@@ -25,7 +25,7 @@
 #ifndef _IRL_API_H
 #define _IRL_API_H
 
-//#include <stdio.h>
+#include <stdio.h>
 #include <sys/socket.h>
 
 #include "e_types.h"
@@ -35,9 +35,9 @@ extern "C"
 {
 #endif
 
-#define DEBUG_TRACE(x,...)
+//#define DEBUG_TRACE(...)
 
-//#define DEBUG_TRACE(x,...)		printf(__VA_ARGS__)
+#define DEBUG_TRACE(...)		printf(__VA_ARGS__)
 
 #define IRL_MT_VERSION			2
 #define IRL_MT_PORT				3197

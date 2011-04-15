@@ -27,7 +27,7 @@
 
 //#define WINVER	0x0501
 
-#include <stdio.h>
+//#include <stdio.h>
 
 //#include "e_network.h"
 #include "config_intf.h"

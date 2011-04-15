@@ -25,7 +25,7 @@
 #ifndef IRL_FW_H_
 #define IRL_FW_H_
 
-#include <stdio.h>
+//#include <stdio.h>
 #include "e_types.h"
 #include "irl_api.h"
 
