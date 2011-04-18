@@ -26,7 +26,6 @@
 #define _IRL_API_H
 
 #include <stdio.h>
-#include <sys/socket.h>
 
 #include "e_types.h"
 
@@ -73,24 +72,24 @@ enum {
  *	IRL_CONFIG_CONNECTION_TYPE	callback must return a pointer to connection type which is either WAN or LAN
  *	IRL_CONFIG_MAC_ADDR			callback must return a pointer to MAC address
  *	IRL_CONFIG_LINK_SPEED		callback must return a pointer to link speed
- *	IRL_CONFIG_PHONE_NUM		callback must return a pointer to struct irl_config_phone_t for phone number for WAN connection type
+ *	IRL_CONFIG_PHONE_NUM		callback must return a pointer to IrlConfigPhone_t for phone number for WAN connection type
  *	IRL_CONFIG_TX_KEEPALIVE 	callback must return a pointer to TX keepalive
  *	IRL_CONFIG_RX_KEEPALIVE		callback must return a pointer to RX keepalive
  *	IRL_CONFIG_WAIT_COUNT		callback must return a pointer to wait count
- *	IRL_CONFIG_IP_ADDR			callback must return a pointer to struct irl_config_ip_addr_t for device ip address
+ *	IRL_CONFIG_IP_ADDR			callback must return a pointer to IrlConfigIpAddr_t for device ip address
  *	IRL_ERROR_STATUS			callback is called if IRL encounters error from previous callback.
- *								callback is given a pointer to struct irl_error_status_t for the configuration id and error status.
+ *								callback is given a pointer to IrlErrorStatus_t for the configuration id and error status.
  *	IRL_DISCONNECTED			callback is called when server disconnects IRL. No data is given to the callback.
  *								If callback returns CONTINUE, it will reconnect the server. If callback returns ABORT, it will exit
  *								IRL function with SERVER DISCONNECTED error.
  *	IRL_REDIRECT				callback is called when server redirects IRL to connect to different server.
  *
- *	IRL_CONFIG_CONNECT			callback is called to establish connection to iDigi server. Pointer to struct irl_network_connect_t
+ *	IRL_CONFIG_CONNECT			callback is called to establish connection to iDigi server. Pointer to IrlNetworkConnect_t
  *								is given to the callback. callback must set the socket fd if connection is successfully established.
- *	IRL_CONFIG_SEND				callback is called to send data to iDigi server. Pointer to struct irl_network_write_t is given to
+ *	IRL_CONFIG_SEND				callback is called to send data to iDigi server. Pointer to IrlNetworkWrite_t is given to
  *								the callback. If callback encounters EAGAIN error, callback must not return error. It should set
  *								the number of bytes written to 0 and return CONTINUE status for IRL to call this callback again.
- *	IRL_CONFIG_RECEIVE			callback is called to receive data from iDigi server. Pointer to struct irl_network_read_t is given
+ *	IRL_CONFIG_RECEIVE			callback is called to receive data from iDigi server. Pointer to IrlNetworkRead_t is given
  *								to the callback. If callback encounters EAGAIN error, callback must not return error. It should set
  *								the number of bytes received to 0 and return CONTINUE status for IRL to call this callback again.
  *	IRL_CONFIG_SELECT
@@ -134,7 +133,7 @@ enum {
 #define IRL_WAN_CONNECTION	0x02
 
 
-typedef enum {
+typedef enum irl_status_t {
 	IRL_STATUS_CONTINUE,
 	IRL_STATUS_ERROR,
 	IRL_STATUS_ABORT,
@@ -142,26 +141,31 @@ typedef enum {
 } IrlStatus_t;
 
 
-struct irl_config_phone_t {
+typedef struct irl_config_phone_t {
 	uint8_t		* number;
 	size_t		length;
-};
+} IrlConfigPhone_t;
 
-struct irl_config_ip_addr_t {
-	int		 	sa_family;
-	uint8_t		* ip_addr;
-};
+typedef enum irl_ip_addr_type_t {
+    IRL_IPV4_ADDRESS,
+    IRL_IPV6_ADDRESS
+} IrlIpAddrType_t;
+
+typedef struct irl_config_ip_addr_t {
+	IrlIpAddrType_t 	addr_type;
+	uint8_t		        * ip_addr;
+} IrlConfigIpAddr_t;
 
 #define IRL_CC_NOT_REDIRECT			0
 #define IRL_CC_REDIRECT_SUCCESS		1
 #define IRL_CC_REDIRECT_ERROR		2
 
-struct irl_redirect_t {
+typedef struct irl_redirect_t {
 	char		* destination;
 	uint8_t		report_code;
 	char		* report_message;
 	unsigned	timeout;
-};
+} IrlRedirect_t;
 
 /* error status structure
  *
@@ -172,10 +176,10 @@ struct irl_redirect_t {
  * @param status		Error status of the error.
  *
  */
-struct irl_error_status_t {
+typedef struct irl_error_status_t {
 	unsigned	config_id;
 	int			status;
-};
+} IrlErrorStatus_t;
 
 /* network connect structure
  *
@@ -188,11 +192,11 @@ struct irl_error_status_t {
  * 						connection is successfully established.
  *
  */
-struct irl_network_connect_t {
+typedef struct irl_network_connect_t {
 	char 		* host_name;
 	unsigned	port;
 	int		 	socket_fd;
-};
+} IrlNetworkConnect_t;
 
 /* Network write structure
  *
@@ -208,13 +212,13 @@ struct irl_network_connect_t {
  * 							timeout. This allows IRL to maintenance keepalive process.
  * 							The connection may be disconnected if keepalive fails.
  */
-struct irl_network_write_t {
+typedef struct irl_network_write_t {
 	uint8_t		* buffer;
 	size_t		length;
 	size_t		length_written;
 	int			socket_fd;
 	unsigned	timeout;
-};
+} IrlNetworkWrite_t;
 
 /* Network read structure
  *
@@ -230,26 +234,26 @@ struct irl_network_write_t {
  * 							timeout. This allows IRL to maintenance keepalive process.
  * 							The connection may be disconnected if keepalive fails.
  */
-struct irl_network_read_t {
+typedef struct irl_network_read_t {
 	uint8_t		* buffer;
 	size_t		length;
 	size_t		length_read;
 	int			socket_fd;
 	unsigned	timeout;
 
-};
+} IrlNetworkRead_t;
 
 #define irl_network_read_t_SET		0x1
 #define irl_network_write_t_SET		(0x1 << 1)
 #define IRL_NETWORK_CALLBACK_SET	(0x1 << 2)
 #define IRL_NETWORK_TIMEOUT_SET		(0x1 << 3)
 
-struct irl_network_select_t {
-	struct timeval 	wait_time;
+typedef struct irl_network_select_t {
+	unsigned 	    wait_time;
 	unsigned		select_set;
 	unsigned		actual_set;
 	int				socket_fd;
-};
+} IrlNetworkSelect_t;
 
 /*
  * IRL callback for EDP configurations, network interface, and os interface.
@@ -282,20 +286,19 @@ unsigned long irl_init(irl_callback_t callback);
 
 typedef int (* IrlFacilityEnableFunc_t ) (unsigned long irl_handle, void * data);
 
-struct irl_facility_list_t {
+typedef struct irl_facility_data_t {
 	IrlFacilityEnableFunc_t	facility_enalble_function;
 	void					* user_data;
-};
+} IrlFacilityData_t;
 
-typedef struct {
-	uint32_t					version;
-	unsigned					facility_count;
+typedef struct irl_data_t {
+	uint32_t		   version;
+	unsigned		   facility_count;
 
-	struct irl_facility_list_t  * facility_list;
+	IrlFacilityData_t  * facility_list;
+} IrlData_t;
 
-} irl_data_t;
-
-int irl_start(unsigned long handle, irl_data_t const * data);
+int irl_start(unsigned long handle, IrlData_t const * data);
 
 #define IRL_STOP		0
 #define IRL_TERMINATE	1

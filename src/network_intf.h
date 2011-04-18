@@ -112,29 +112,29 @@ enum {
 
 #define  IRL_IS_SELECT_SET(x, y)		(x & y)
 
-void irl_set_edp_state(struct irl_setting_t * irl_ptr, int state);
+void irl_set_edp_state(IrlSetting_t * irl_ptr, int state);
 
-unsigned irl_get_network_set(struct irl_setting_t * irl_ptr);
-int irl_select(struct irl_setting_t * irl_ptr, unsigned set, unsigned * actual_set);
-int irl_connect_server(struct irl_setting_t * irl_ptr, char * server_url, unsigned port);
-int irl_close(struct irl_setting_t * irl_ptr);
+unsigned irl_get_network_set(IrlSetting_t * irl_ptr);
+int irl_select(IrlSetting_t * irl_ptr, unsigned set, unsigned * actual_set);
+int irl_connect_server(IrlSetting_t * irl_ptr, char * server_url, unsigned port);
+int irl_close(IrlSetting_t * irl_ptr);
 
-int irl_send_packet_init(struct irl_setting_t * irl_ptr, struct e_packet * p, unsigned pre_length);
-int irl_send_packet(struct irl_setting_t * irl_ptr, struct e_packet * p, uint16_t type);
-int irl_send_packet_status(struct irl_setting_t * irl_ptr, int * send_status);
-int irl_send_facility_layer(struct irl_setting_t * irl_ptr, struct e_packet * p, uint16_t facility, uint8_t sec_coding);
+int irl_send_packet_init(IrlSetting_t * irl_ptr, struct e_packet * p, unsigned pre_length);
+int irl_send_packet(IrlSetting_t * irl_ptr, struct e_packet * p, uint16_t type);
+int irl_send_packet_status(IrlSetting_t * irl_ptr, int * send_status);
+int irl_send_facility_layer(IrlSetting_t * irl_ptr, struct e_packet * p, uint16_t facility, uint8_t sec_coding);
 
-void irl_receive_init(struct irl_setting_t * irl_ptr);
+void irl_receive_init(IrlSetting_t * irl_ptr);
 int irl_packet_init(struct e_packet * p);
-int irl_receive_packet(struct irl_setting_t * irl_ptr, struct e_packet * p);
-int irl_receive_packet_status(struct irl_setting_t * irl_ptr, int * receive_status);
-int irl_send_rx_keepalive(struct irl_setting_t * irl_ptr);
+int irl_receive_packet(IrlSetting_t * irl_ptr, struct e_packet * p);
+int irl_receive_packet_status(IrlSetting_t * irl_ptr, int * receive_status);
+int irl_send_rx_keepalive(IrlSetting_t * irl_ptr);
 
-int irl_communication_layer(struct irl_setting_t * irl_ptr);
-int irl_initialization_layer(struct irl_setting_t * irl_ptr);
-int irl_security_layer(struct irl_setting_t * irl_ptr);
-int irl_discovery_layer(struct irl_setting_t * irl_ptr);
-int irl_facility_layer(struct irl_setting_t * irl_ptr);
+int irl_communication_layer(IrlSetting_t * irl_ptr);
+int irl_initialization_layer(IrlSetting_t * irl_ptr);
+int irl_security_layer(IrlSetting_t * irl_ptr);
+int irl_discovery_layer(IrlSetting_t * irl_ptr);
+int irl_facility_layer(IrlSetting_t * irl_ptr);
 
 
 #ifdef __cplusplus

@@ -25,7 +25,6 @@
 #ifndef IRL_FW_H_
 #define IRL_FW_H_
 
-//#include <stdio.h>
 #include "e_types.h"
 #include "irl_api.h"
 
@@ -125,10 +124,10 @@ typedef union {
 typedef IrlStatus_t (* IrlFimwareFacilityCb_t )(unsigned command, IrlFirmwareReq_t * request, IrlFirmwareRsp_t * response, unsigned timeout);
 
 
-struct irl_firmware_facility_t {
+typedef struct irl_firmware_facility_t {
 	uint32_t				version;
 	IrlFimwareFacilityCb_t	callback;
-};
+} IrlFirmwareFacility_t;
 
 int irlEnable_FirmwareFacility(unsigned long irl_handle, void * firmware_data);
 

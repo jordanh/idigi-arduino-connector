@@ -33,7 +33,7 @@
 /* Error Status callback */
 IrlStatus_t irl_error_status(irl_callback_t callback, unsigned config_id, int status)
 {
-    struct irl_error_status_t err;
+    IrlErrorStatus_t err;
 
     err.config_id = config_id;
     err.status = status;
@@ -41,7 +41,7 @@ IrlStatus_t irl_error_status(irl_callback_t callback, unsigned config_id, int st
     return callback(IRL_ERROR_STATUS, &err);
 }
 
-IrlStatus_t irl_get_config(struct irl_setting_t * irl_ptr, unsigned config_id, void * data)
+IrlStatus_t irl_get_config(IrlSetting_t * irl_ptr, unsigned config_id, void * data)
 {
 
 	IrlStatus_t	status;
@@ -61,7 +61,7 @@ unsigned irl_edp_init_config_ids[] = {
 		IRL_CONFIG_SERVER_URL, IRL_CONFIG_TX_KEEPALIVE, IRL_CONFIG_RX_KEEPALIVE, IRL_CONFIG_WAIT_COUNT,
 };
 
-int irl_edp_configuration_layer(struct irl_setting_t * irl_ptr)
+int irl_edp_configuration_layer(IrlSetting_t * irl_ptr)
 {
 	int 		rc = IRL_SUCCESS;
 	unsigned	config_id;
@@ -114,7 +114,7 @@ _ret:
 
 }
 
-unsigned irl_get_select_set(struct irl_setting_t * irl_ptr)
+unsigned irl_get_select_set(IrlSetting_t * irl_ptr)
 {
 	unsigned set = irl_network_read_t_SET | IRL_NETWORK_TIMEOUT_SET; /* always receive (waiting data from server) */
 
@@ -130,9 +130,9 @@ unsigned irl_get_select_set(struct irl_setting_t * irl_ptr)
 	return set;
 }
 
-struct irl_facility_handle_t * irl_get_facility_handle(struct irl_setting_t * irl_ptr, void * user_data)
+IrlFacilityHandle_t * irl_get_facility_handle(IrlSetting_t * irl_ptr, void * user_data)
 {
-	struct irl_facility_handle_t	* fac_ptr, * rc_fac = NULL;
+	IrlFacilityHandle_t	* fac_ptr, * rc_fac = NULL;
 
 	for (fac_ptr = irl_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
 	{
@@ -146,10 +146,10 @@ struct irl_facility_handle_t * irl_get_facility_handle(struct irl_setting_t * ir
 	return rc_fac;
 }
 
-int irl_del_facility_handle(struct irl_setting_t * irl_ptr, void * user_data)
+int irl_del_facility_handle(IrlSetting_t * irl_ptr, void * user_data)
 {
 	int								rc = IRL_SUCCESS;
-	struct irl_facility_handle_t	* fac_ptr, * fac_ptr1 = NULL, * next_ptr;
+	IrlFacilityHandle_t	* fac_ptr, * fac_ptr1 = NULL, * next_ptr;
 
 	for (fac_ptr = irl_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
 	{
@@ -177,17 +177,17 @@ int irl_del_facility_handle(struct irl_setting_t * irl_ptr, void * user_data)
 	return rc;
 }
 
-int irl_add_facility_handle(struct irl_setting_t * irl_ptr, void * user_data, struct irl_facility_handle_t ** fac_handle)
+int irl_add_facility_handle(IrlSetting_t * irl_ptr, void * user_data, IrlFacilityHandle_t ** fac_handle)
 {
 	int								rc = IRL_SUCCESS;
-	struct irl_facility_handle_t	* fac_ptr;
+	IrlFacilityHandle_t	* fac_ptr;
 
 	fac_ptr = irl_get_facility_handle(irl_ptr, user_data);
 
 	if (fac_ptr == NULL)
 	{
 
-		rc = irl_malloc(irl_ptr, sizeof(struct irl_facility_handle_t), (void **)&fac_ptr);
+		rc = irl_malloc(irl_ptr, sizeof(IrlFacilityHandle_t), (void **)&fac_ptr);
 		if (rc != IRL_SUCCESS)
 		{
 			goto _ret;
@@ -214,10 +214,10 @@ _ret:
 	return rc;
 }
 
-int irl_add_facility(struct irl_setting_t * irl_ptr, void * user_data, unsigned facility_id, void * facility_data, irl_facility_process_cb_t process_cb)
+int irl_add_facility(IrlSetting_t * irl_ptr, void * user_data, unsigned facility_id, void * facility_data, irl_facility_process_cb_t process_cb)
 {
 	int 							rc = IRL_INIT_ERR;
-	struct irl_facility_handle_t	* fac_ptr;
+	IrlFacilityHandle_t	* fac_ptr;
 
 	fac_ptr = irl_get_facility_handle(irl_ptr, user_data);
 
@@ -235,7 +235,7 @@ int irl_add_facility(struct irl_setting_t * irl_ptr, void * user_data, unsigned 
 
 
 #if 0
-int irl_get_device_id(struct irl_setting_t * irl_ptr, uint8_t * device_id)
+int irl_get_device_id(IrlSetting_t * irl_ptr, uint8_t * device_id)
 {
     unsigned    	config_id;
     int				rc = IRL_CONFIG_ERR;
@@ -259,7 +259,7 @@ int irl_get_device_id(struct irl_setting_t * irl_ptr, uint8_t * device_id)
 	return rc;
 }
 
-int irl_get_vendor_id(struct irl_setting_t * irl_ptr, uint8_t * vendor_id)
+int irl_get_vendor_id(IrlSetting_t * irl_ptr, uint8_t * vendor_id)
 {
     unsigned    	config_id;
     int				rc = IRL_CONFIG_ERR;
@@ -276,7 +276,7 @@ int irl_get_vendor_id(struct irl_setting_t * irl_ptr, uint8_t * vendor_id)
 	return rc;
 }
 
-int irl_get_device_type(struct irl_setting_t * irl_ptr, char ** device_type)
+int irl_get_device_type(IrlSetting_t * irl_ptr, char ** device_type)
 {
     unsigned    	config_id;
     IrlStatus_t 	status = IRL_STATUS_CONTINUE;
@@ -294,7 +294,7 @@ int irl_get_device_type(struct irl_setting_t * irl_ptr, char ** device_type)
 	return rc;
 }
 
-int irl_get_server_url(struct irl_setting_t * irl_ptr, char ** server_url)
+int irl_get_server_url(IrlSetting_t * irl_ptr, char ** server_url)
 {
     unsigned    	config_id;
     IrlStatus_t 	status = IRL_STATUS_CONTINUE;
@@ -313,7 +313,7 @@ int irl_get_server_url(struct irl_setting_t * irl_ptr, char ** server_url)
 	return rc;
 }
 
-int irl_get_tx_keepalive(struct irl_setting_t * irl_ptr, uint16_t * keepalive)
+int irl_get_tx_keepalive(IrlSetting_t * irl_ptr, uint16_t * keepalive)
 {
     unsigned    	config_id;
     IrlStatus_t 	status = IRL_STATUS_CONTINUE;
@@ -330,7 +330,7 @@ int irl_get_tx_keepalive(struct irl_setting_t * irl_ptr, uint16_t * keepalive)
 	return rc;
 }
 
-int irl_get_rx_keepalive(struct irl_setting_t * irl_ptr, uint16_t * keepalive)
+int irl_get_rx_keepalive(IrlSetting_t * irl_ptr, uint16_t * keepalive)
 {
     unsigned    	config_id;
     IrlStatus_t 	status = IRL_STATUS_CONTINUE;
@@ -347,7 +347,7 @@ int irl_get_rx_keepalive(struct irl_setting_t * irl_ptr, uint16_t * keepalive)
 	return rc;
 }
 
-int irl_get_wait_count(struct irl_setting_t * irl_ptr, uint8_t * wait_count)
+int irl_get_wait_count(IrlSetting_t * irl_ptr, uint8_t * wait_count)
 {
     unsigned    	config_id;
     IrlStatus_t 	status = IRL_STATUS_CONTINUE;
@@ -365,7 +365,7 @@ int irl_get_wait_count(struct irl_setting_t * irl_ptr, uint8_t * wait_count)
 	return rc;
 }
 
-int irl_get_password(struct irl_setting_t * irl_ptr, char ** password)
+int irl_get_password(IrlSetting_t * irl_ptr, char ** password)
 {
     unsigned    	config_id;
     IrlStatus_t 	status = IRL_STATUS_CONTINUE;

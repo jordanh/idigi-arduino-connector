@@ -55,26 +55,26 @@ struct irl_firmware_data_t {
 	char			* name_spec;
 
 	struct e_packet 				packet;
-	struct irl_firmware_facility_t	* facility_data;
+	IrlFirmwareFacility_t	* facility_data;
 };
 
 struct irl_firmware_data_t	* gIrlFirmwareFacilityData = NULL;
 
 
-typedef int (* irl_firmware_opcode_cb_t)(struct irl_setting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p);
+typedef int (* irl_firmware_opcode_cb_t)(IrlSetting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p);
 
 struct irl_firmware_opcode_handle_t {
 	uint8_t						opcode;
 	irl_firmware_opcode_cb_t	callback;
 };
 
-static int process_fw_info_request(struct irl_setting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p);
-static int process_fw_download_request(struct irl_setting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p);
-static int process_fw_binary_block(struct irl_setting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p);
-static int process_fw_abort(struct irl_setting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p);
-static int process_fw_complete(struct irl_setting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p);
-static int process_fw_info_request(struct irl_setting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p);
-static int process_target_reset(struct irl_setting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p);
+static int process_fw_info_request(IrlSetting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p);
+static int process_fw_download_request(IrlSetting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p);
+static int process_fw_binary_block(IrlSetting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p);
+static int process_fw_abort(IrlSetting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p);
+static int process_fw_complete(IrlSetting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p);
+static int process_fw_info_request(IrlSetting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p);
+static int process_target_reset(IrlSetting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p);
 
 struct irl_firmware_opcode_handle_t gIrlFirmwareOpcodeHandle[] = {
 	{IRL_FW_INFO_REQUEST_OPCODE,  		(irl_firmware_opcode_cb_t)process_fw_info_request},
@@ -87,7 +87,7 @@ struct irl_firmware_opcode_handle_t gIrlFirmwareOpcodeHandle[] = {
 
 unsigned gIrlFirmwareOpcodeHandleCount = sizeof gIrlFirmwareOpcodeHandle/ sizeof gIrlFirmwareOpcodeHandle[0];
 
-static IrlStatus_t get_fw_config(struct irl_setting_t * irl_ptr, IrlFimwareFacilityCb_t callback,
+static IrlStatus_t get_fw_config(IrlSetting_t * irl_ptr, IrlFimwareFacilityCb_t callback,
 							  unsigned command, IrlFirmwareReq_t  * request, IrlFirmwareRsp_t * response)
 {
 	IrlStatus_t	status;
@@ -215,7 +215,7 @@ _ret:
 }
 
 
-static IrlStatus_t get_fw_target_count(struct irl_setting_t * irl_ptr, IrlFimwareFacilityCb_t callback, uint16_t * count)
+static IrlStatus_t get_fw_target_count(IrlSetting_t * irl_ptr, IrlFimwareFacilityCb_t callback, uint16_t * count)
 {
     unsigned    	config_id;
     IrlStatus_t 	status = IRL_STATUS_CONTINUE;
@@ -235,7 +235,7 @@ static IrlStatus_t get_fw_target_count(struct irl_setting_t * irl_ptr, IrlFimwar
 	return status;
 }
 
-static IrlStatus_t get_fw_version(struct irl_setting_t * irl_ptr, IrlFimwareFacilityCb_t callback, uint8_t target, uint32_t * version)
+static IrlStatus_t get_fw_version(IrlSetting_t * irl_ptr, IrlFimwareFacilityCb_t callback, uint8_t target, uint32_t * version)
 {
     unsigned    	config_id;
     IrlStatus_t 	status = IRL_STATUS_CONTINUE;
@@ -257,7 +257,7 @@ static IrlStatus_t get_fw_version(struct irl_setting_t * irl_ptr, IrlFimwareFaci
 	return status;
 }
 
-static IrlStatus_t get_fw_code_size(struct irl_setting_t * irl_ptr, IrlFimwareFacilityCb_t callback, uint8_t target, uint32_t * size)
+static IrlStatus_t get_fw_code_size(IrlSetting_t * irl_ptr, IrlFimwareFacilityCb_t callback, uint8_t target, uint32_t * size)
 {
     unsigned    	config_id;
     IrlStatus_t 	status = IRL_STATUS_CONTINUE;
@@ -278,7 +278,7 @@ static IrlStatus_t get_fw_code_size(struct irl_setting_t * irl_ptr, IrlFimwareFa
 	return status;
 }
 
-static IrlStatus_t get_fw_description(struct irl_setting_t * irl_ptr, IrlFimwareFacilityCb_t callback, uint8_t target, char ** desc)
+static IrlStatus_t get_fw_description(IrlSetting_t * irl_ptr, IrlFimwareFacilityCb_t callback, uint8_t target, char ** desc)
 {
     unsigned    	config_id;
     IrlStatus_t 	status = IRL_STATUS_CONTINUE;
@@ -299,7 +299,7 @@ static IrlStatus_t get_fw_description(struct irl_setting_t * irl_ptr, IrlFimware
 	return status;
 }
 
-static IrlStatus_t get_fw_name_spec(struct irl_setting_t * irl_ptr, IrlFimwareFacilityCb_t callback, uint8_t target, char ** spec)
+static IrlStatus_t get_fw_name_spec(IrlSetting_t * irl_ptr, IrlFimwareFacilityCb_t callback, uint8_t target, char ** spec)
 {
     unsigned    	config_id;
     IrlStatus_t 	status = IRL_STATUS_CONTINUE;
@@ -320,7 +320,7 @@ static IrlStatus_t get_fw_name_spec(struct irl_setting_t * irl_ptr, IrlFimwareFa
 	return status;
 }
 
-int fw_send(struct irl_setting_t * irl_ptr, struct e_packet * p)
+int fw_send(IrlSetting_t * irl_ptr, struct e_packet * p)
 {
 	int 	rc;
 
@@ -331,7 +331,7 @@ int fw_send(struct irl_setting_t * irl_ptr, struct e_packet * p)
 
 static int fw_discovery_layer_init(unsigned long irl_handle, struct irl_firmware_data_t * fw_ptr, IrlFimwareFacilityCb_t facility_cb)
 {
-	struct irl_setting_t * irl_ptr = (struct irl_setting_t *)irl_handle;
+	IrlSetting_t * irl_ptr = (IrlSetting_t *)irl_handle;
 	int 		rc = IRL_SUCCESS;
 	uint32_t		version;
 	uint8_t			* ptr;
@@ -417,7 +417,7 @@ _ret:
 	return rc;
 }
 
-static int send_fw_abort(struct irl_setting_t * irl_ptr, uint8_t target, uint8_t status)
+static int send_fw_abort(IrlSetting_t * irl_ptr, uint8_t target, uint8_t status)
 {
 	int 	rc;
 	uint8_t	* ptr;
@@ -453,14 +453,14 @@ static int send_fw_abort(struct irl_setting_t * irl_ptr, uint8_t target, uint8_t
 	return rc;
 }
 
-typedef IrlStatus_t (* irl_fw_callback_t)(struct irl_setting_t * irl_ptr, IrlFimwareFacilityCb_t callback, uint8_t target, void * data);
+typedef IrlStatus_t (* irl_fw_callback_t)(IrlSetting_t * irl_ptr, IrlFimwareFacilityCb_t callback, uint8_t target, void * data);
 
 irl_fw_callback_t	gIrlFwConfigFunction[] = {
 		(irl_fw_callback_t)get_fw_version, (irl_fw_callback_t)get_fw_code_size,
 		(irl_fw_callback_t)get_fw_description, (irl_fw_callback_t)get_fw_name_spec
 };
 
-static int process_fw_info_request(struct irl_setting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p)
+static int process_fw_info_request(IrlSetting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p)
 {
 	int 				rc = IRL_BUSY;
 	IrlStatus_t			status;
@@ -476,7 +476,7 @@ static int process_fw_info_request(struct irl_setting_t * irl_ptr, struct irl_fi
 //	opcode = p->buf[0]
 	target = p->buf[1];
 
-	while (fw_ptr->idx < (sizeof gIrlFwConfigFunction/ sizeof gIrlFwConfigFunction[0]))
+	while (fw_ptr->idx < (int)(sizeof gIrlFwConfigFunction/ sizeof gIrlFwConfigFunction[0]))
 	{
 		i = fw_ptr->idx;
 		/* get the current firmware version for this target */
@@ -581,7 +581,7 @@ _ret:
 	return rc;
 }
 
-static int process_fw_download_request(struct irl_setting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p)
+static int process_fw_download_request(IrlSetting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p)
 {
 	int 				rc = IRL_SUCCESS;
 	IrlStatus_t			status;
@@ -725,7 +725,7 @@ _rsp:
 	return rc;
 }
 
-static int process_fw_binary_block(struct irl_setting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p)
+static int process_fw_binary_block(IrlSetting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p)
 {
 	int 				rc = IRL_SUCCESS;
 	IrlStatus_t			status;
@@ -816,7 +816,7 @@ static int process_fw_binary_block(struct irl_setting_t * irl_ptr, struct irl_fi
 	return rc;
 }
 
-int process_fw_abort(struct irl_setting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p)
+int process_fw_abort(IrlSetting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p)
 {
 	int 				rc = IRL_SUCCESS;
 	IrlStatus_t			status;
@@ -859,7 +859,7 @@ int process_fw_abort(struct irl_setting_t * irl_ptr, struct irl_firmware_data_t 
 	return rc;
 
 }
-int process_fw_complete(struct irl_setting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p)
+int process_fw_complete(IrlSetting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p)
 {
 	int 				rc = IRL_SUCCESS;
 	IrlStatus_t			status;
@@ -953,7 +953,7 @@ int process_fw_complete(struct irl_setting_t * irl_ptr, struct irl_firmware_data
 
 }
 
-int process_target_reset(struct irl_setting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p)
+int process_target_reset(IrlSetting_t * irl_ptr, struct irl_firmware_data_t * fw_ptr, struct e_packet * p)
 {
 	int 				rc = IRL_SUCCESS;
 	IrlStatus_t			status;
@@ -992,11 +992,11 @@ int process_target_reset(struct irl_setting_t * irl_ptr, struct irl_firmware_dat
 	return rc;
 }
 
-int irl_fw_process(struct irl_setting_t * irl_ptr, struct irl_facility_handle_t * fac_ptr, struct e_packet * p)
+int irl_fw_process(IrlSetting_t * irl_ptr, IrlFacilityHandle_t * fac_ptr, struct e_packet * p)
 {
 	int 							rc = IRL_SUCCESS;
 	uint8_t							opcode;
-	int								i;
+	unsigned						i;
 	struct irl_firmware_data_t		* fw_ptr = (struct irl_firmware_data_t *)fac_ptr->facility_data;
 
 
@@ -1024,7 +1024,7 @@ int irl_fw_process(struct irl_setting_t * irl_ptr, struct irl_facility_handle_t 
 
 int irlEnable_FirmwareFacility(unsigned long irl_handle, void * firmware_data)
 {
-	struct irl_setting_t 					* irl_ptr = (struct irl_setting_t *) irl_handle;
+	IrlSetting_t 					* irl_ptr = (IrlSetting_t *) irl_handle;
 	int 							rc = IRL_BUSY;
 
 	DEBUG_TRACE("Enable Firmware Facility\n");

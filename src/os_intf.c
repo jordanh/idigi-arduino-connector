@@ -27,7 +27,7 @@
 #include "os_intf.h"
 
 
-int irl_wait(struct irl_setting_t * irl_ptr, uint32_t wait_time)
+int irl_wait(IrlSetting_t * irl_ptr, uint32_t wait_time)
 {
 	uint32_t	mswait = wait_time;
 
@@ -49,7 +49,7 @@ int irl_wait(struct irl_setting_t * irl_ptr, uint32_t wait_time)
 
 }
 
-int irl_get_system_time(struct irl_setting_t * irl_ptr, uint32_t * mstime)
+int irl_get_system_time(IrlSetting_t * irl_ptr, uint32_t * mstime)
 {
 	int					rc = IRL_CONFIG_ERR;
 	IrlStatus_t			status;
@@ -128,7 +128,7 @@ static void del_malloc_stats(void * ptr)
 	}
 }
 
-int irl_malloc(struct irl_setting_t * irl_ptr, size_t length, void ** ptr)
+int irl_malloc(IrlSetting_t * irl_ptr, size_t length, void ** ptr)
 {
 	int					rc = IRL_CONFIG_ERR;
 	IrlStatus_t			status;
@@ -152,7 +152,7 @@ int irl_malloc(struct irl_setting_t * irl_ptr, size_t length, void ** ptr)
 	return rc;
 }
 
-int irl_free(struct irl_setting_t * irl_ptr, void * ptr)
+int irl_free(IrlSetting_t * irl_ptr, void * ptr)
 {
 	int				rc = IRL_CONFIG_ERR;
 	IrlStatus_t		status;

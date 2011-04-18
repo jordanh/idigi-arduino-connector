@@ -39,9 +39,9 @@
 #include "irl_cc.h"
 #include "irl_rci.h"
 
-extern int rci_process_function(struct irl_setting_t * irl_ptr, struct irl_facility_handle_t * fac_ptr, struct e_packet * p);
+extern int rci_process_function(IrlSetting_t * irl_ptr, IrlFacilityHandle_t * fac_ptr, struct e_packet * p);
 
-int check_interval_limit(struct irl_setting_t * irl_ptr, uint32_t start, uint32_t limit)
+int check_interval_limit(IrlSetting_t * irl_ptr, uint32_t start, uint32_t limit)
 {
 #define LIMIT_VALID		1
 #define LIMIT_INVALID	0
@@ -73,9 +73,9 @@ int irl_packet_init(struct e_packet * p)
 }
 
 
-int irl_select(struct irl_setting_t * irl_ptr, unsigned set, unsigned * actual_set)
+int irl_select(IrlSetting_t * irl_ptr, unsigned set, unsigned * actual_set)
 {
-	struct irl_network_select_t 	irl_select;
+	IrlNetworkSelect_t select_data;
 	unsigned				  	config_id;
 	IrlStatus_t					status;
 	int							rc = IRL_SUCCESS;
@@ -84,44 +84,43 @@ int irl_select(struct irl_setting_t * irl_ptr, unsigned set, unsigned * actual_s
 
 	if (irl_ptr->edp_state > IRL_DISCOVERY_LAYER)
 	{
-		rx_keepalive = GET_RX_KEEPALIVE((struct irl_setting_t *)irl_ptr);
-		tx_keepalive = GET_TX_KEEPALIVE((struct irl_setting_t *)irl_ptr);
-		irl_select.wait_time.tv_sec = IRL_MIN(rx_keepalive, tx_keepalive);
-		irl_select.wait_time.tv_usec = 0;
+		rx_keepalive = GET_RX_KEEPALIVE((IrlSetting_t *)irl_ptr);
+		tx_keepalive = GET_TX_KEEPALIVE((IrlSetting_t *)irl_ptr);
+		select_data.wait_time = IRL_MIN(rx_keepalive, tx_keepalive);
 
-		if (irl_select.wait_time.tv_sec == 0)
+		if (select_data.wait_time == 0)
 		{
-			irl_select.wait_time.tv_usec = IRL_MIN_NETWORK_TIMEOUT;
+			select_data.wait_time = IRL_MIN_NETWORK_TIMEOUT;
 		}
 	}
 	else
 	{
-		irl_select.wait_time.tv_sec = 0;
-		irl_select.wait_time.tv_usec = 10;
+		select_data.wait_time = 0;
+		select_data.wait_time = IRL_MIN_NETWORK_TIMEOUT;
 	}
-	irl_select.select_set = set;
-	irl_select.actual_set = 0;
-	irl_select.socket_fd = irl_ptr->connection.socket_fd;
+	select_data.select_set = set;
+	select_data.actual_set = 0;
+	select_data.socket_fd = irl_ptr->connection.socket_fd;
 
 
 	config_id = IRL_CONFIG_SELECT;
-	status = irl_get_config(irl_ptr, config_id, &irl_select);
+	status = irl_get_config(irl_ptr, config_id, &select_data);
 	if (status != IRL_STATUS_CONTINUE && status != IRL_STATUS_BUSY)
 	{
 		rc = IRL_CONFIG_ERR;
 	}
 
-	*actual_set = irl_select.actual_set;
+	*actual_set = select_data.actual_set;
 
 	return rc;
 }
 
 
-int irl_send(struct irl_setting_t * irl_ptr, int socket_fd, uint8_t * buffer, size_t length)
+int irl_send(IrlSetting_t * irl_ptr, int socket_fd, uint8_t * buffer, size_t length)
 {
 	int							rc = IRL_NETWORK_ERR;
 	IrlStatus_t					status;
-	struct irl_network_write_t	write_data;
+	IrlNetworkWrite_t	write_data;
 	uint16_t					tx_keepalive;
 	uint16_t					rx_keepalive;
 
@@ -164,7 +163,7 @@ _ret:
 	return rc;
 }
 
-int irl_send_no_security_packet(struct irl_setting_t * irl_ptr, struct e_packet * p, uint16_t type)
+int irl_send_no_security_packet(IrlSetting_t * irl_ptr, struct e_packet * p, uint16_t type)
 {
 	int16_t length;
 	int 	rc = IRL_NETWORK_ERR;
@@ -229,7 +228,7 @@ int irl_send_no_security_packet(struct irl_setting_t * irl_ptr, struct e_packet 
 	return rc;
 }
 
-int irl_send_packet_init(struct irl_setting_t * irl_ptr, struct e_packet * p, unsigned pre_length)
+int irl_send_packet_init(IrlSetting_t * irl_ptr, struct e_packet * p, unsigned pre_length)
 {
 	int rc = IRL_BUSY;
 
@@ -244,14 +243,14 @@ int irl_send_packet_init(struct irl_setting_t * irl_ptr, struct e_packet * p, un
 	}
 	else
 	{
-		DEBUG_TRACE("irl_send_packet_init: send still pending %d\n", irl_ptr->send_packet.total_length);
+		DEBUG_TRACE("irl_send_packet_init: send still pending %d\n", (int)irl_ptr->send_packet.total_length);
 	}
 
 	return rc;
 }
 
 
-int irl_send_packet_status(struct irl_setting_t * irl_ptr, int * send_status)
+int irl_send_packet_status(IrlSetting_t * irl_ptr, int * send_status)
 {
 	uint8_t * buf;
 	size_t	length;
@@ -278,7 +277,7 @@ int irl_send_packet_status(struct irl_setting_t * irl_ptr, int * send_status)
 
 	return rc;
 }
-int irl_send_packet(struct irl_setting_t * irl_ptr, struct e_packet * p, uint16_t type)
+int irl_send_packet(IrlSetting_t * irl_ptr, struct e_packet * p, uint16_t type)
 {
 	int 	rc = IRL_UNSUPPORTED_SECURITY_ERR;
 	int		send_status;
@@ -309,7 +308,7 @@ int irl_send_packet(struct irl_setting_t * irl_ptr, struct e_packet * p, uint16_
 
 	return rc;
 }
-int irl_send_rx_keepalive(struct irl_setting_t * irl_ptr)
+int irl_send_rx_keepalive(IrlSetting_t * irl_ptr)
 {
 #define IRL_MTV2_VERSION			2
 	int 				rc = IRL_NETWORK_ERR;
@@ -387,7 +386,7 @@ _ret:
 	return rc;
 }
 
-int irl_send_facility_layer(struct irl_setting_t * irl_ptr, struct e_packet * p, uint16_t facility, uint8_t sec_coding)
+int irl_send_facility_layer(IrlSetting_t * irl_ptr, struct e_packet * p, uint16_t facility, uint8_t sec_coding)
 {
 	int 	rc;
 	uint16_t	facility_num;
@@ -418,11 +417,11 @@ _ret:
 	return rc;
 }
 
-int irl_receive(struct irl_setting_t * irl_ptr, int socket_fd, uint8_t * buffer, size_t length)
+int irl_receive(IrlSetting_t * irl_ptr, int socket_fd, uint8_t * buffer, size_t length)
 {
 	int 			rc = IRL_SUCCESS;
 	IrlStatus_t		status;
-	struct irl_network_read_t	read_data;
+	IrlNetworkRead_t	read_data;
 	uint16_t		tx_keepalive;
 	uint16_t		rx_keepalive;
 	uint8_t			wait_count;
@@ -497,7 +496,7 @@ _ka_check:
 	return rc;
 }
 
-void irl_receive_init(struct irl_setting_t * irl_ptr)
+void irl_receive_init(IrlSetting_t * irl_ptr)
 {
 	irl_ptr->receive_packet.packet_type = 0;
 	irl_ptr->receive_packet.packet_length = 0;
@@ -507,7 +506,7 @@ void irl_receive_init(struct irl_setting_t * irl_ptr)
 	irl_ptr->receive_packet.enabled = TRUE;
 }
 
-static int irl_receive_status(struct irl_setting_t * irl_ptr, int * receive_status)
+static int irl_receive_status(IrlSetting_t * irl_ptr, int * receive_status)
 {
 	uint8_t * buf;
 	size_t	length;
@@ -551,14 +550,14 @@ static int irl_receive_status(struct irl_setting_t * irl_ptr, int * receive_stat
 }
 
 
-int irl_receive_packet(struct irl_setting_t * irl_ptr, struct e_packet * p)
+int irl_receive_packet(IrlSetting_t * irl_ptr, struct e_packet * p)
 {
 	int 		rc = IRL_SUCCESS;
 //	int16_t 	len;
 	uint16_t 	type_val;
 //	IrlStatus_t	status;
 	int			receive_status;
-//	struct irl_network_read_t		read_data;
+//	IrlNetworkRead_t		read_data;
 
 	if (p == NULL)
 	{
@@ -868,7 +867,7 @@ _ret:
 	return rc;
 }
 
-int irl_receive_packet_status(struct irl_setting_t * irl_ptr, int * receive_status)
+int irl_receive_packet_status(IrlSetting_t * irl_ptr, int * receive_status)
 {
 //	uint8_t * buf;
 //	size_t	length;
@@ -885,7 +884,7 @@ int irl_receive_packet_status(struct irl_setting_t * irl_ptr, int * receive_stat
 }
 
 
-int irl_connect_server(struct irl_setting_t * irl_ptr, char * server_url, unsigned port)
+int irl_connect_server(IrlSetting_t * irl_ptr, char * server_url, unsigned port)
 {
 	int			rc = IRL_CONFIG_ERR;
 	IrlStatus_t	status;
@@ -909,7 +908,7 @@ int irl_connect_server(struct irl_setting_t * irl_ptr, char * server_url, unsign
 	return rc;
 }
 
-int irl_close(struct irl_setting_t * irl_ptr)
+int irl_close(IrlSetting_t * irl_ptr)
 {
 	int			rc = IRL_SUCCESS;
 	IrlStatus_t	status;
@@ -937,10 +936,12 @@ int irl_close(struct irl_setting_t * irl_ptr)
 	return rc;
 }
 
-static int msg_add_keepalive_param(struct irl_setting_t * irl_ptr, uint8_t * buf, uint16_t type, uint16_t value)
+static int msg_add_keepalive_param(IrlSetting_t * irl_ptr, uint8_t * buf, uint16_t type, uint16_t value)
 {
 	uint16_t 	msg_type, len=2, msg_value;
 	int			rc;
+
+    (void)irl_ptr;
 
 	msg_type = TO_BE16(type);
 	memcpy(&buf[0], &msg_type, sizeof msg_type);
@@ -957,14 +958,14 @@ static int msg_add_keepalive_param(struct irl_setting_t * irl_ptr, uint8_t * buf
 	return rc; /* return count of bytes added to buffer */
 }
 
-void irl_set_edp_state(struct irl_setting_t * irl_ptr, int state)
+void irl_set_edp_state(IrlSetting_t * irl_ptr, int state)
 {
 	irl_ptr->edp_state = state;
 	irl_ptr->layer_state = IRL_LAYER_INIT;
 	irl_ptr->config.id = 0;
 }
 
-int irl_communication_layer(struct irl_setting_t * irl_ptr)
+int irl_communication_layer(IrlSetting_t * irl_ptr)
 {
 	int				rc = IRL_SUCCESS;
 //	int				send_status;
@@ -1125,7 +1126,7 @@ _ret:
 	return rc;
 }
 
-int irl_initialization_layer(struct irl_setting_t * irl_ptr)
+int irl_initialization_layer(IrlSetting_t * irl_ptr)
 {
 	int				rc = IRL_SUCCESS;
 	struct e_packet pkt;
@@ -1204,7 +1205,7 @@ _ret:
 	return rc;
 }
 
-int irl_security_layer(struct irl_setting_t * irl_ptr)
+int irl_security_layer(IrlSetting_t * irl_ptr)
 {
 #define URL_PREFIX	"en://"
 
@@ -1359,10 +1360,11 @@ int irl_security_layer(struct irl_setting_t * irl_ptr)
 _ret:
 	return rc;
 }
-int irl_get_security_code(struct irl_setting_t * irl_ptr)
+int irl_get_security_code(IrlSetting_t * irl_ptr)
 {
 	int sec_coding = SECURITY_PROTO_NONE;
 
+    (void) irl_ptr;
 #if 0
 		if (irl_ptr->security_form != SECURITY_IDENT_FORM_SIMPLE)
 		{
@@ -1371,7 +1373,7 @@ int irl_get_security_code(struct irl_setting_t * irl_ptr)
 #endif
 	return sec_coding;
 }
-int irl_discovery_layer(struct irl_setting_t * irl_ptr)
+int irl_discovery_layer(IrlSetting_t * irl_ptr)
 {
 	int				rc = IRL_SUCCESS;
 //	int				send_status;
@@ -1458,7 +1460,7 @@ int irl_discovery_layer(struct irl_setting_t * irl_ptr)
 
 	if (irl_ptr->layer_state == IRL_LAYER_DISCOVERY_FACILITY_INIT)
 	{
-		struct irl_facility_handle_t	* fac_ptr;
+		IrlFacilityHandle_t	* fac_ptr;
 
 		if (irl_ptr->active_facility == NULL)
 		{
@@ -1520,7 +1522,7 @@ _ret:
 	return rc;
 }
 
-int irl_facility_layer(struct irl_setting_t * irl_ptr)
+int irl_facility_layer(IrlSetting_t * irl_ptr)
 {
 	int		rc = IRL_SUCCESS;
 	int		ccode;
@@ -1545,7 +1547,7 @@ int irl_facility_layer(struct irl_setting_t * irl_ptr)
 		uint8_t		disc_opcode;
 
 		uint16_t	facility;
-		struct irl_facility_handle_t	* fac_ptr;
+		IrlFacilityHandle_t	* fac_ptr;
 
 		rc = irl_receive_packet_status(irl_ptr, &receive_status);
 		if (rc == IRL_SUCCESS && receive_status == IRL_NETWORK_BUFFER_COMPLETE)

@@ -34,10 +34,10 @@ extern "C"
 {
 #endif
 
-struct irl_setting_t;
-struct irl_facility_handle_t;
+typedef struct irl_setting_t IrlSetting_t;
+typedef struct irl_facility_handle_t IrlFacilityHandle_t;
 
-typedef int (* irl_facility_process_cb_t)(struct irl_setting_t * irl_ptr, struct irl_facility_handle_t * fac_ptr, struct e_packet * p);
+typedef int (* irl_facility_process_cb_t) (IrlSetting_t * irl_ptr, struct irl_facility_handle_t * fac_ptr, struct e_packet * p);
 
 struct irl_facility_handle_t {
 	IrlFacilityEnableFunc_t			facility_enalble_function;
@@ -74,8 +74,8 @@ struct irl_setting_t {
 
 	unsigned						active_facility_idx;
 	unsigned						facility_count;
-	struct irl_facility_handle_t 	* facility_list;
-	struct irl_facility_handle_t	* active_facility;
+	IrlFacilityHandle_t 	* facility_list;
+	IrlFacilityHandle_t	* active_facility;
 
 
 #if 0
@@ -101,7 +101,7 @@ struct irl_setting_t {
 	int							layer_state;
     int							facility_state;
     uint16_t					network_busy;
-	struct irl_network_connect_t	connection;
+	IrlNetworkConnect_t	connection;
 
 	struct {
 		uint8_t			* ptr;
@@ -129,18 +129,18 @@ struct irl_setting_t {
 
 
 #if 1
-#define GET_RX_KEEPALIVE(x) *((uint16_t *)(((struct irl_setting_t *)(x))->config.data[IRL_CONFIG_RX_KEEPALIVE]))
-#define GET_TX_KEEPALIVE(x) *((uint16_t *)(((struct irl_setting_t *)(x))->config.data[IRL_CONFIG_TX_KEEPALIVE]))
-#define GET_WAIT_COUNT(x) 	*((uint8_t *)(((struct irl_setting_t *)(x))->config.data[IRL_CONFIG_WAIT_COUNT]))
+#define GET_RX_KEEPALIVE(x) *((uint16_t *)(((IrlSetting_t *)(x))->config.data[IRL_CONFIG_RX_KEEPALIVE]))
+#define GET_TX_KEEPALIVE(x) *((uint16_t *)(((IrlSetting_t *)(x))->config.data[IRL_CONFIG_TX_KEEPALIVE]))
+#define GET_WAIT_COUNT(x) 	*((uint8_t *)(((IrlSetting_t *)(x))->config.data[IRL_CONFIG_WAIT_COUNT]))
 #endif
 
-int irl_add_facility(struct irl_setting_t * irl_ptr, void * user_data, unsigned facility_id, void * facility_data, irl_facility_process_cb_t process_cb);
-struct irl_facility_handle_t * irl_get_facility_handle(struct irl_setting_t * irl_ptr, void * user_data);
-int irl_del_facility_handle(struct irl_setting_t * irl_ptr, void * user_data);
-int irl_add_facility_handle(struct irl_setting_t * irl_ptr, void * user_data, struct irl_facility_handle_t ** fac_handle);
+int irl_add_facility(IrlSetting_t * irl_ptr, void * user_data, unsigned facility_id, void * facility_data, irl_facility_process_cb_t process_cb);
+IrlFacilityHandle_t * irl_get_facility_handle(IrlSetting_t * irl_ptr, void * user_data);
+int irl_del_facility_handle(IrlSetting_t * irl_ptr, void * user_data);
+int irl_add_facility_handle(IrlSetting_t * irl_ptr, void * user_data, IrlFacilityHandle_t ** fac_handle);
 
-void irl_init_setting(struct irl_setting_t * irl_ptr);
-int irl_edp_configuration_layer(struct irl_setting_t * irl_ptr);
+void irl_init_setting(IrlSetting_t * irl_ptr);
+int irl_edp_configuration_layer(IrlSetting_t * irl_ptr);
 
 #ifdef __cplusplus
 extern "C"

@@ -30,11 +30,11 @@
 
 #define IRL_MAX_IRL_HANDLE	1
 
-struct irl_setting_t 	gIrlData[IRL_MAX_IRL_HANDLE];
+IrlSetting_t 	gIrlData[IRL_MAX_IRL_HANDLE];
 unsigned				gIrlDataCount = 0;
 
 /* main edp state processes called by start function */
-typedef int (* irl_edp_state_cb)(struct irl_setting_t * irl_ptr);
+typedef int (* irl_edp_state_cb)(IrlSetting_t * irl_ptr);
 
 irl_edp_state_cb gIrlEdpStateCallback[] = {
 	irl_edp_configuration_layer,
@@ -48,7 +48,7 @@ irl_edp_state_cb gIrlEdpStateCallback[] = {
 
 e_boolean_t irl_validate_handle(unsigned long handle)
 {
-	int i;
+	unsigned    i;
 	e_boolean_t rc = FALSE;
 
 	for (i=0; i < gIrlDataCount; i++)
@@ -64,7 +64,7 @@ e_boolean_t irl_validate_handle(unsigned long handle)
 }
 
 
-void irl_init_setting(struct irl_setting_t * irl_ptr)
+void irl_init_setting(IrlSetting_t * irl_ptr)
 {
    	irl_ptr->active_state = IRL_HANDLE_ACTIVE;
 	irl_ptr->active_facility_idx = 0;
@@ -90,14 +90,14 @@ void irl_init_setting(struct irl_setting_t * irl_ptr)
  *
  *
  */
-int irl_start(unsigned long handle, irl_data_t const * data)
+int irl_start(unsigned long handle, IrlData_t const * data)
 {
     int         	rc = IRL_SUCCESS;
-    struct irl_setting_t   	* irl_handle = (struct irl_setting_t *)handle;
+    IrlSetting_t   	* irl_handle = (IrlSetting_t *)handle;
 	int				sent_status = IRL_NETWORK_BUFFER_COMPLETE;
 	unsigned		i;
 
-	struct irl_facility_handle_t	* fac_ptr;
+	IrlFacilityHandle_t	* fac_ptr;
    irl_edp_state_cb	state_function;
 
 	if (!irl_validate_handle(handle) ||
@@ -152,7 +152,7 @@ int irl_start(unsigned long handle, irl_data_t const * data)
 		}
 	}
 
-	if (irl_handle->edp_state >= (sizeof gIrlEdpStateCallback / sizeof gIrlEdpStateCallback[0]))
+	if (irl_handle->edp_state >= (int)(sizeof gIrlEdpStateCallback / sizeof gIrlEdpStateCallback[0]))
 	{
 		DEBUG_TRACE("irl_start: invalid state %d\n", irl_handle->edp_state);
 		rc = IRL_STATE_ERR;
@@ -209,7 +209,7 @@ _ret:
  */
 unsigned long irl_init(irl_callback_t callback)
 {
-    struct irl_setting_t   	* irl_handle = NULL;
+    IrlSetting_t   	* irl_handle = NULL;
     int 					status = IRL_SUCCESS;
     unsigned				i;
 
@@ -269,7 +269,7 @@ unsigned long irl_init(irl_callback_t callback)
 int irl_stop(unsigned long handle, unsigned stop_flag)
 {
 	int 		rc = IRL_SUCCESS;
-    struct irl_setting_t   * irl_handle = (struct irl_setting_t *)handle;
+    IrlSetting_t   * irl_handle = (IrlSetting_t *)handle;
 
 	if (!irl_validate_handle(handle))
 	{

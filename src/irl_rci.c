@@ -30,7 +30,7 @@
 #include "network_intf.h"
 #include "bele.h"
 
-int rci_send(struct irl_setting_t * irl_ptr, struct e_packet * p)
+int rci_send(IrlSetting_t * irl_ptr, struct e_packet * p)
 {
 	int 	rc;
 
@@ -40,12 +40,15 @@ int rci_send(struct irl_setting_t * irl_ptr, struct e_packet * p)
 }
 
 char * no_query_state_response = "<rci_replay version=\"1.1\"> <query_state/> </rci_reply>";
-int rci_process_function(struct irl_setting_t * irl_ptr, struct irl_facility_handle_t * fac_ptr, struct e_packet * p)
+int rci_process_function(IrlSetting_t * irl_ptr, IrlFacilityHandle_t * fac_ptr, struct e_packet * p)
 {
 	int 				rc = IRL_SUCCESS;
 	struct e_packet		pkt;
 	uint8_t				* buf;
 	uint32_t			length;
+
+    (void)fac_ptr;
+    (void)p;
 
 	DEBUG_TRACE("rci_process_function: fake response\n");
 	irl_send_packet_init(irl_ptr, &pkt, PKT_PRE_FACILITY);
