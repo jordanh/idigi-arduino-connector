@@ -44,17 +44,17 @@ extern "C"
  * MT version 2 message type defines.
  * Refer to EDP specification rev. 14.2 for a description of MT version 2.
  */
-#define E_MSG_MT2_TYPE_VERSION				0x0004 /* C -> S */
-#define E_MSG_MT2_TYPE_LEGACY_EDP_VERSION	0x0004 /* C -> S */
+#define E_MSG_MT2_TYPE_VERSION								0x0004 /* C -> S */
+#define E_MSG_MT2_TYPE_LEGACY_EDP_VERSION		0x0004 /* C -> S */
 #define E_MSG_MT2_TYPE_LEGACY_EDP_VER_RESP	0x0001 /* C <- S */
-#define E_MSG_MT2_TYPE_VERSION_OK			0x0010 /* C <- S */
-#define E_MSG_MT2_TYPE_VERSION_BAD			0x0011 /* C <- S */
-#define E_MSG_MT2_TYPE_SERVER_OVERLOAD		0x0012 /* C <- S */
-#define E_MSG_MT2_TYPE_KA_RX_INTERVAL		0x0020 /* C -> S */
-#define E_MSG_MT2_TYPE_KA_TX_INTERVAL		0x0021 /* C -> S */
-#define E_MSG_MT2_TYPE_KA_WAIT				0x0022 /* C -> S */
-#define E_MSG_MT2_TYPE_KA_KEEPALIVE			0x0030 /* bi-directional */
-#define E_MSG_MT2_TYPE_PAYLOAD				0x0040 /* bi-directional */
+#define E_MSG_MT2_TYPE_VERSION_OK						0x0010 /* C <- S */
+#define E_MSG_MT2_TYPE_VERSION_BAD					0x0011 /* C <- S */
+#define E_MSG_MT2_TYPE_SERVER_OVERLOAD			0x0012 /* C <- S */
+#define E_MSG_MT2_TYPE_KA_RX_INTERVAL				0x0020 /* C -> S */
+#define E_MSG_MT2_TYPE_KA_TX_INTERVAL				0x0021 /* C -> S */
+#define E_MSG_MT2_TYPE_KA_WAIT								0x0022 /* C -> S */
+#define E_MSG_MT2_TYPE_KA_KEEPALIVE					0x0030 /* bi-directional */
+#define E_MSG_MT2_TYPE_PAYLOAD								0x0040 /* bi-directional */
 
 
 enum {
@@ -63,78 +63,26 @@ enum {
 	IRL_NETWORK_RECEIVED_MESSAGE
 };
 
-enum {
-	IRL_LAYER_INIT,
-	IRL_LAYER_CONNECT,
-	IRL_LAYER_REDIRECT,
-	IRL_COMMUNICATION_LAYER_VERSION,
-	IRL_COMMUNICATION_LAYER_VERSION1,
-	IRL_COMMUNICATION_LAYER_KA_PARAMS,
-	IRL_LAYER_RECEIVE_PENDING,
-	IRL_LAYER_RECEIVE_DATA,
-	IRL_LAYER_SEND_PENDING,
-	IRL_SECURITY_LAYER_DEVICE_ID,
-	IRL_SECURITY_LAYER_SERVER_URL,
-	IRL_SECURITY_LAYER_PASSWORD,
-	IRL_LAYER_DISCOVERY_DEVICE_TYPE,
-	IRL_LAYER_DISCOVERY_FACILITY_INIT,
-//	IRL_LAYER_DISCOVERY_CC_INIT,
-	IRL_LAYER_DISCOVERY_FACILITY,
-	IRL_LAYER_DISCOVERY_COMPLETE,
-	IRL_LAYER_DONE
-};
-
-enum {
-	IRL_FACILITY_INIT,
-	IRL_FACILITY_INIT_DONE,
-	IRL_FACILITY_PROCESS,
-	IRL_FACILITY_DONE
-};
-
-enum {
-	IRL_INIT,
-	IRL_COMMUNICATION_LAYER,
-	IRL_INITIALIZATION_LAYER,
-	IRL_SECURITY_LAYER,
-	IRL_DISCOVERY_LAYER,
-	IRL_FACILITY_LAYER
-};
-
-enum {
-	IRL_RECEIVE_LENGTH,
-	IRL_RECEIVE_LENGTH_COMPLETE,
-	IRL_RECEIVE_TYPE,
-	IRL_RECEIVE_TYPE_COMPLETE,
-	IRL_RECEIVE_DATA,
-	IRL_RECEIVE_DATA_COMPLETE,
-	IRL_RECEIVE_COMPLETE
-};
 
 #define  IRL_IS_SELECT_SET(x, y)		(x & y)
 
-void irl_set_edp_state(IrlSetting_t * irl_ptr, int state);
 
-unsigned irl_get_network_set(IrlSetting_t * irl_ptr);
 int irl_select(IrlSetting_t * irl_ptr, unsigned set, unsigned * actual_set);
 int irl_connect_server(IrlSetting_t * irl_ptr, char * server_url, unsigned port);
 int irl_close(IrlSetting_t * irl_ptr);
+
+int irl_send(IrlSetting_t * irl_ptr, int socket_fd, uint8_t * buffer, size_t length);
 
 int irl_send_packet_init(IrlSetting_t * irl_ptr, struct e_packet * p, unsigned pre_length);
 int irl_send_packet(IrlSetting_t * irl_ptr, struct e_packet * p, uint16_t type);
 int irl_send_packet_status(IrlSetting_t * irl_ptr, int * send_status);
 int irl_send_facility_layer(IrlSetting_t * irl_ptr, struct e_packet * p, uint16_t facility, uint8_t sec_coding);
+int irl_send_rx_keepalive(IrlSetting_t * irl_ptr);
 
 void irl_receive_init(IrlSetting_t * irl_ptr);
 int irl_packet_init(struct e_packet * p);
 int irl_receive_packet(IrlSetting_t * irl_ptr, struct e_packet * p);
 int irl_receive_packet_status(IrlSetting_t * irl_ptr, int * receive_status);
-int irl_send_rx_keepalive(IrlSetting_t * irl_ptr);
-
-int irl_communication_layer(IrlSetting_t * irl_ptr);
-int irl_initialization_layer(IrlSetting_t * irl_ptr);
-int irl_security_layer(IrlSetting_t * irl_ptr);
-int irl_discovery_layer(IrlSetting_t * irl_ptr);
-int irl_facility_layer(IrlSetting_t * irl_ptr);
 
 
 #ifdef __cplusplus
