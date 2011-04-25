@@ -47,10 +47,10 @@ int rci_process_function(IrlSetting_t * irl_ptr, IrlFacilityHandle_t * fac_ptr, 
 	uint8_t				* buf;
 	uint32_t			length;
 
-    (void)fac_ptr;
-    (void)p;
+	(void)fac_ptr;
+	(void)p;
 
-	DEBUG_TRACE("rci_process_function: fake response\n");
+	DEBUG_PRINTF("rci_process_function: fake response\n");
 	irl_send_packet_init(irl_ptr, &pkt, PKT_PRE_FACILITY);
 
 	buf = pkt.buf;
