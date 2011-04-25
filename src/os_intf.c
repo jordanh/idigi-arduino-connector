@@ -94,7 +94,7 @@ static void add_malloc_stats(void * ptr, size_t length)
 	}
 	else
 	{
-		DEBUG_TRACE("add_malloc_stats: malloc failed\n");
+		DEBUG_PRINTF("add_malloc_stats: malloc failed\n");
 	}
 }
 
@@ -124,7 +124,7 @@ static void del_malloc_stats(void * ptr)
 
 	if (pMalloc == NULL)
 	{
-		DEBUG_TRACE("del_malloc_stats: free invalid pointer\n");
+		DEBUG_PRINTF("del_malloc_stats: free invalid pointer\n");
 	}
 }
 
