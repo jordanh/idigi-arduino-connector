@@ -33,8 +33,8 @@ extern "C"
 {
 #endif
 
-#define	IRL_FIRMWARE_FACILTIY_VERSION	0x00000001
-#define IRL_FIRMWARE_ACCESS_FACILITY	(0x1 << IRL_CONFIG_FIRMWARE_FACILITY)
+#define	IRL_FIRMWARE_FACILTIY_VERSION		0x00000001
+#define IRL_FIRMWARE_ACCESS_FACILITY		(0x1 << IRL_CONFIG_FIRMWARE_FACILITY)
 
 enum {
 	IRL_FA_TARGET_COUNT  = IRL_FIRMWARE_ACCESS_FACILITY,
@@ -49,50 +49,50 @@ enum {
 	IRL_FA_DOWNLOAD_RESET
 };
 
-#define IRL_FA_ID_STRING_LENGTH			128  /* bytes */
+#define IRL_FA_ID_STRING_LENGTH		128  /* bytes */
 
 
-#define IRL_FA_SUCCESS						0x00
-#define IRL_FA_DOWNLOAD_DENIED_ERR			0x01
-#define IRL_FA_DOWNLOAD_INVALID_SIZE_ERR	0x02
-#define IRL_FA_DOWNLOAD_INVALID_VERSION_ERR	0x03
+#define IRL_FA_SUCCESS													0x00
+#define IRL_FA_DOWNLOAD_DENIED_ERR						0x01
+#define IRL_FA_DOWNLOAD_INVALID_SIZE_ERR				0x02
+#define IRL_FA_DOWNLOAD_INVALID_VERSION_ERR		0x03
 #define IRL_FA_DOWNLOAD_UNAUTHENTICATED_ERR	0x04
-#define IRL_FA_DOWNLOAD_NOT_ALLOWED_ERR		0x05
-#define IRL_FA_DOWNLOAD_REJECT_ERR			0x06
-#define IRL_FA_FIRMWARE_ERR	 				0x07
+#define IRL_FA_DOWNLOAD_NOT_ALLOWED_ERR			0x05
+#define IRL_FA_DOWNLOAD_REJECT_ERR							0x06
+#define IRL_FA_FIRMWARE_ERR	 										0x07
 
 #define IRL_FA_USER_ABORT_ERR				0x08
-#define IRL_FA_DEVICE_ERR					0x09
-#define IRL_FA_INVALID_OFFSET_ERR			0x0a
-#define IRL_FA_INVALID_DATA_ERR				0x0b
+#define IRL_FA_DEVICE_ERR						0x09
+#define IRL_FA_INVALID_OFFSET_ERR		0x0a
+#define IRL_FA_INVALID_DATA_ERR			0x0b
 #define IRL_FA_HARWARE_ERR					0x0c
 
 /* download complete status */
-#define IRL_FA_DOWNLOAD_STATUS_SUCCESS		0x0
+#define IRL_FA_DOWNLOAD_STATUS_SUCCESS			0x0
 #define IRL_FA_DOWNLOAD_CHECKSUM_MISMATCH	0x1
-#define IRL_FA_DOWNLOAD_NOT_COMPLETE		0x2
+#define IRL_FA_DOWNLOAD_NOT_COMPLETE				0x2
 
 typedef union {
 	struct {
 		uint8_t		target;
-		uint32_t	version;
-		uint32_t	code_size;
-		char		* desc_string;
-		char		* file_name_spec;
-		char		* filename;
+		uint32_t		version;
+		uint32_t		code_size;
+		char			* desc_string;
+		char			* file_name_spec;
+		char			* filename;
 	} download_request;
 
 	struct {
 		uint8_t		target;
-		uint32_t	code_size;
-		uint32_t	checksum;
+		uint32_t		code_size;
+		uint32_t		checksum;
 	} download_complete;
 
 	struct {
 		uint8_t		target;
-		uint32_t	offset;
+		uint32_t		offset;
 		uint8_t		* data;
-		size_t		length;
+		size_t			length;
 	} image_data;
 
 	struct {
@@ -106,10 +106,10 @@ typedef union {
 
 typedef union {
 		uint8_t		target_count;
-		uint32_t	target_version;
-		uint32_t	avail_size;
-		char 		*desc_string;
-		char		* file_name_spec;
+		uint32_t		target_version;
+		uint32_t		avail_size;
+		char 			*desc_string;
+		char			* file_name_spec;
 
 		struct {
 			uint32_t	version;
@@ -125,7 +125,7 @@ typedef IrlStatus_t (* IrlFimwareFacilityCb_t )(unsigned command, IrlFirmwareReq
 
 
 typedef struct irl_firmware_facility_t {
-	uint32_t				version;
+	uint32_t							version;
 	IrlFimwareFacilityCb_t	callback;
 } IrlFirmwareFacility_t;
 
