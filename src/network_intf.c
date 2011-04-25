@@ -26,20 +26,14 @@
 #include "network_intf.h"
 #include "config_intf.h"
 #include "os_intf.h"
-//#include "fw_def.h"
-//#include "irl_api.h"
+#include "layer.h"
 
-//#include <sys/socket.h>
 #include "bele.h"
-//#include "e_network.h"
-//#include "ei_packet.h"
 #include "ei_security.h"
-#include "ei_msg.h"
+//#include "ei_msg.h"
 #include "ei_discover.h"
-#include "irl_cc.h"
-#include "irl_rci.h"
+//#include "irl_cc.h"
 
-extern int rci_process_function(IrlSetting_t * irl_ptr, IrlFacilityHandle_t * fac_ptr, struct e_packet * p);
 
 int check_interval_limit(IrlSetting_t * irl_ptr, uint32_t start, uint32_t limit)
 {
@@ -81,22 +75,30 @@ int irl_select(IrlSetting_t * irl_ptr, unsigned set, unsigned * actual_set)
 	int							rc = IRL_SUCCESS;
 	uint16_t					rx_keepalive;
 	uint16_t					tx_keepalive;
+	uint32_t					time_stamp;
 
+	if (irl_ptr->connection.socket_fd < 0)
+	{
+	    goto _ret;
+	}
 	if (irl_ptr->edp_state > IRL_DISCOVERY_LAYER)
 	{
-		rx_keepalive = GET_RX_KEEPALIVE((IrlSetting_t *)irl_ptr);
-		tx_keepalive = GET_TX_KEEPALIVE((IrlSetting_t *)irl_ptr);
+		if (irl_get_system_time(irl_ptr, &time_stamp) != IRL_SUCCESS)
+		{
+			status = IRL_STATUS_ERROR;
+			goto _ret;
+		}
+
+		rx_keepalive = (GET_RX_KEEPALIVE(irl_ptr) * IRL_MILLISECONDS) - (time_stamp - irl_ptr->rx_ka_time);
+		tx_keepalive = (GET_TX_KEEPALIVE(irl_ptr) * IRL_MILLISECONDS) - (time_stamp - irl_ptr->tx_ka_time);
+
 		select_data.wait_time = IRL_MIN(rx_keepalive, tx_keepalive);
 
-		if (select_data.wait_time == 0)
-		{
-			select_data.wait_time = IRL_MIN_NETWORK_TIMEOUT;
-		}
 	}
 	else
 	{
 		select_data.wait_time = 0;
-		select_data.wait_time = IRL_MIN_NETWORK_TIMEOUT;
+		select_data.wait_time = 2;
 	}
 	select_data.select_set = set;
 	select_data.actual_set = 0;
@@ -111,10 +113,9 @@ int irl_select(IrlSetting_t * irl_ptr, unsigned set, unsigned * actual_set)
 	}
 
 	*actual_set = select_data.actual_set;
-
+_ret:
 	return rc;
 }
-
 
 int irl_send(IrlSetting_t * irl_ptr, int socket_fd, uint8_t * buffer, size_t length)
 {
@@ -123,20 +124,31 @@ int irl_send(IrlSetting_t * irl_ptr, int socket_fd, uint8_t * buffer, size_t len
 	IrlNetworkWrite_t	write_data;
 	uint16_t					tx_keepalive;
 	uint16_t					rx_keepalive;
+	uint32_t					time_stamp;
 
-	if (irl_ptr->network_busy)
+	if (irl_ptr->network_busy || socket_fd < 0)
 	{
+		/* don't do any network activity */
 		rc = 0;
 		goto _ret;
 	}
 	rx_keepalive = GET_RX_KEEPALIVE(irl_ptr);
 	tx_keepalive = GET_TX_KEEPALIVE(irl_ptr);
+	if (irl_get_system_time(irl_ptr, &time_stamp) != IRL_SUCCESS)
+	{
+		status = IRL_STATUS_ERROR;
+		goto _ret;
+	}
+
+	rx_keepalive = (GET_RX_KEEPALIVE(irl_ptr) * IRL_MILLISECONDS) - (time_stamp - irl_ptr->rx_ka_time);
+	tx_keepalive = (GET_TX_KEEPALIVE(irl_ptr) * IRL_MILLISECONDS) - (time_stamp - irl_ptr->tx_ka_time);
 
 	write_data.buffer = buffer;
 	write_data.length = length;
 	write_data.socket_fd = socket_fd;
 	write_data.length_written = 0;
-	write_data.timeout = IRL_MIN(tx_keepalive, rx_keepalive);
+	write_data.timeout = IRL_MIN(tx_keepalive, rx_keepalive)/IRL_MILLISECONDS;
+	printf("irl_send: timeout = %d\n", write_data.timeout);
 
 	status = irl_get_config(irl_ptr, IRL_CONFIG_SEND, &write_data);
 	if (status == IRL_STATUS_CONTINUE) {
@@ -243,7 +255,7 @@ int irl_send_packet_init(IrlSetting_t * irl_ptr, struct e_packet * p, unsigned p
 	}
 	else
 	{
-		DEBUG_TRACE("irl_send_packet_init: send still pending %d\n", (int)irl_ptr->send_packet.total_length);
+		DEBUG_PRINTF("irl_send_packet_init: send still pending %d\n", (int)irl_ptr->send_packet.total_length);
 	}
 
 	return rc;
@@ -287,17 +299,23 @@ int irl_send_packet(IrlSetting_t * irl_ptr, struct e_packet * p, uint16_t type)
 		if (p->sec_coding == SECURITY_PROTO_NONE)
 		{
 			rc = irl_send_no_security_packet(irl_ptr, p, type);
+			if (rc != IRL_SUCCESS)
+			{
+			    goto _err;
+			}
 		}
 
 		rc = irl_send_packet_status(irl_ptr, &send_status);
+
+_err:
 		if (rc != IRL_SUCCESS)
 		{
-			DEBUG_TRACE("irl_send_packet: error %d\n", rc);
+			DEBUG_PRINTF("irl_send_packet: error %d\n", rc);
 			/* error */
 		}
 		else if (send_status != IRL_NETWORK_BUFFER_COMPLETE)
 		{
-			DEBUG_TRACE("irl_send_packet: send pending\n");
+			DEBUG_PRINTF("irl_send_packet: send pending\n");
 			rc = IRL_BUSY;
 		}
 	}
@@ -311,23 +329,16 @@ int irl_send_packet(IrlSetting_t * irl_ptr, struct e_packet * p, uint16_t type)
 int irl_send_rx_keepalive(IrlSetting_t * irl_ptr)
 {
 #define IRL_MTV2_VERSION			2
-	int 				rc = IRL_NETWORK_ERR;
-	//IrlStatus_t			status;
+	int 						rc = IRL_NETWORK_ERR;
+	IrlStatus_t			status;
 	struct e_packet 	pkt;
-	uint16_t			rx_keepalive;
-
-	/* send still pending */
- 	if (irl_ptr->send_packet.total_length > 0)
- 	{
- 		rc = IRL_SUCCESS;
- 		goto _ret;
- 	}
+	uint16_t				rx_keepalive;
 
 //	rx_keepalive = (uint16_t *)irl_ptr->config.data[IRL_CONFIG_RX_KEEPALIVE];
 //	wait_count = (uint8_t *)irl_ptr->config.data[IRL_CONFIG_WAIT_COUNT];
 	rx_keepalive = GET_RX_KEEPALIVE(irl_ptr);
 
-	rc = check_interval_limit(irl_ptr, irl_ptr->rx_ka_time, (rx_keepalive * 1000));
+	rc = check_interval_limit(irl_ptr, irl_ptr->rx_ka_time, (rx_keepalive * IRL_MILLISECONDS));
 	if (rc == 1)
 	{
 		/* not expired yet. no need to send rx keepalive */
@@ -337,9 +348,24 @@ int irl_send_rx_keepalive(IrlSetting_t * irl_ptr)
 	else if (rc < 0)
 	{
 		/* something's wrong */
+		DEBUG_PRINTF("irl_send_rx_keepalive: check interval limit fails %d\n", rc);
 		goto _ret;
 	}
 
+	if (irl_ptr->send_packet.total_length > 0)
+	{
+		/* time to send rx keepalive but send is still pending */
+		status = irl_error_status(irl_ptr->callback, IRL_CONFIG_SEND, IRL_KEEPALIVE_ERR);
+		if (status == IRL_STATUS_ERROR)
+		{
+			rc = IRL_KEEPALIVE_ERR;
+		}
+		else
+		{
+			rc = IRL_SUCCESS;
+		}
+		goto _ret;
+	}
 #if 0
 
 	rc = irl_get_system_time(irl_ptr, &cur_time);
@@ -352,7 +378,7 @@ int irl_send_rx_keepalive(IrlSetting_t * irl_ptr)
 	}
 #endif
 
-	DEBUG_TRACE("irl_send_rx_keepalive: time to send Rx keepalive\n");
+	DEBUG_PRINTF("irl_send_rx_keepalive: time to send Rx keepalive\n");
 
 	irl_send_packet_init(irl_ptr, &pkt, PKT_MT_LENGTH);
 
@@ -408,7 +434,7 @@ int irl_send_facility_layer(IrlSetting_t * irl_ptr, struct e_packet * p, uint16_
 	rc = irl_send_packet(irl_ptr, p, E_MSG_MT2_TYPE_PAYLOAD);
 	if (rc != IRL_SUCCESS)
 	{
-		DEBUG_TRACE("irl_send_facility_layer: irl_snd_packet returns %d\n", rc);
+		DEBUG_PRINTF("irl_send_facility_layer: irl_snd_packet returns %d\n", rc);
 		/* either error or send pending */
 		goto _ret;
 	}
@@ -416,6 +442,9 @@ int irl_send_facility_layer(IrlSetting_t * irl_ptr, struct e_packet * p, uint16_
 _ret:
 	return rc;
 }
+
+unsigned receive_timeout = 0;
+unsigned receive_count = 0;
 
 int irl_receive(IrlSetting_t * irl_ptr, int socket_fd, uint8_t * buffer, size_t length)
 {
@@ -425,22 +454,44 @@ int irl_receive(IrlSetting_t * irl_ptr, int socket_fd, uint8_t * buffer, size_t 
 	uint16_t		tx_keepalive;
 	uint16_t		rx_keepalive;
 	uint8_t			wait_count;
+	uint32_t		time_stamp;
 
+    if (socket_fd < 0)
+    {
+        goto _ret;
+    }
 
 	tx_keepalive = GET_TX_KEEPALIVE(irl_ptr);
 	rx_keepalive = GET_RX_KEEPALIVE(irl_ptr);
 	wait_count = GET_WAIT_COUNT(irl_ptr);
 
-	if (irl_ptr->network_busy)
+	if (irl_ptr->network_busy )
 	{
 		goto _ka_check;
 	}
+
+	if (irl_get_system_time(irl_ptr, &time_stamp) != IRL_SUCCESS)
+	{
+		rc = IRL_CONFIG_ERR;
+		goto _ret;
+	}
+
+	read_data.timeout = (IRL_MIN(((rx_keepalive * IRL_MILLISECONDS) - (time_stamp - irl_ptr->rx_ka_time)),
+									 	 	 	  ((tx_keepalive * IRL_MILLISECONDS) - (time_stamp - irl_ptr->tx_ka_time)))/
+									 IRL_MILLISECONDS);
+
+	if (receive_timeout != read_data.timeout)
+	{
+//		printf("irl_receive: timeout = %d count %d\n", read_data.timeout, receive_count);
+		receive_timeout = read_data.timeout;
+	}
+	else
+			receive_count++;
 
 	read_data.buffer = buffer;
 	read_data.length = length;
 	read_data.socket_fd = socket_fd;
 	read_data.length_read = 0;
-	read_data.timeout = IRL_MIN(tx_keepalive, rx_keepalive);
 
 	status = irl_get_config(irl_ptr, IRL_CONFIG_RECEIVE, &read_data);
 	if (status == IRL_STATUS_CONTINUE || status == IRL_STATUS_BUSY)
@@ -461,7 +512,7 @@ _ka_check:
 			rc = 0;
 			if (tx_keepalive > 0)
 			{
-				rc = check_interval_limit(irl_ptr, irl_ptr->tx_ka_time, (tx_keepalive * 1000 * wait_count));
+				rc = check_interval_limit(irl_ptr, irl_ptr->tx_ka_time, (tx_keepalive * IRL_MILLISECONDS * wait_count));
 				if (rc == 1)
 				{
 					/* tx keepalive not expired yet */
@@ -481,9 +532,9 @@ _ka_check:
 					 * keep-alive failure check never triggers.
 					 *
 					 */
-					rc = IRL_TX_KEEPALIVE_ERR;
-					irl_error_status(irl_ptr->callback, IRL_CONFIG_RECEIVE, IRL_TX_KEEPALIVE_ERR);
-					DEBUG_TRACE("irl_receive: keepalive fail\n");
+					rc = IRL_KEEPALIVE_ERR;
+					irl_error_status(irl_ptr->callback, IRL_CONFIG_RECEIVE, IRL_KEEPALIVE_ERR);
+					DEBUG_PRINTF("irl_receive: keepalive fail\n");
 				}
 			}
 		}
@@ -493,6 +544,7 @@ _ka_check:
 	{
 		rc = IRL_NETWORK_ERR;
 	}
+_ret:
 	return rc;
 }
 
@@ -522,7 +574,7 @@ static int irl_receive_status(IrlSetting_t * irl_ptr, int * receive_status)
 		read_length = irl_receive(irl_ptr, irl_ptr->connection.socket_fd, buf, length);
 		if (read_length > 0)
 		{
-			DEBUG_TRACE("irl_receive_status: read_length = %d\n", read_length);
+			DEBUG_PRINTF("irl_receive_status: read_length = %d\n", read_length);
 			irl_ptr->receive_packet.length += read_length;
 		}
 		else if (read_length < 0)
@@ -540,11 +592,11 @@ static int irl_receive_status(IrlSetting_t * irl_ptr, int * receive_status)
 		else if (irl_ptr->receive_packet.length > irl_ptr->receive_packet.total_length)
 		{
 			/* something's wrong */
-			DEBUG_TRACE("irl_receive_packet_status: length receive > request length !!!\n");
+			DEBUG_PRINTF("irl_receive_packet_status: length receive > request length !!!\n");
 		}
 
 	}
-//	DEBUG_TRACE("irl_receive_status: length = %d total_length %d status %d\n", irl_ptr->receive_packet.length,
+//	DEBUG_PRINTF("irl_receive_status: length = %d total_length %d status %d\n", irl_ptr->receive_packet.length,
 //			irl_ptr->receive_packet.total_length, *receive_status);
 	return rc;
 }
@@ -561,7 +613,7 @@ int irl_receive_packet(IrlSetting_t * irl_ptr, struct e_packet * p)
 
 	if (p == NULL)
 	{
-		DEBUG_TRACE("irl_receive_packet: packet is NULL\n");
+		DEBUG_PRINTF("irl_receive_packet: packet is NULL\n");
 		rc = IRL_PARAM_ERR;
 		goto _ret;
 	}
@@ -693,7 +745,7 @@ int irl_receive_packet(IrlSetting_t * irl_ptr, struct e_packet * p)
 		{
 			/* Expected MTv2 message types... */
 			case E_MSG_MT2_TYPE_LEGACY_EDP_VER_RESP:
-				DEBUG_TRACE("irl_receive_packet: E_MSG_MT2_TYPE_LEGACY_EDP_VER_RESP 0x%x\n", (unsigned) type_val);
+				DEBUG_PRINTF("irl_receive_packet: E_MSG_MT2_TYPE_LEGACY_EDP_VER_RESP 0x%x\n", (unsigned) type_val);
 				/*
 				 * Obtain the MT message length (2 bytes).
 				 * Note that legacy EDP version response messages do not have a length
@@ -707,19 +759,19 @@ int irl_receive_packet(IrlSetting_t * irl_ptr, struct e_packet * p)
 				irl_ptr->receive_packet.length = 1;
 				break;
 			case E_MSG_MT2_TYPE_VERSION_OK:
-				DEBUG_TRACE("irl_receive_packet: E_MSG_MT2_TYPE_VERSION_OK 0x%x\n", (unsigned) type_val);
+				DEBUG_PRINTF("irl_receive_packet: E_MSG_MT2_TYPE_VERSION_OK 0x%x\n", (unsigned) type_val);
 				break;
 			case E_MSG_MT2_TYPE_VERSION_BAD:
-				DEBUG_TRACE("irl_receive_packet: E_MSG_MT2_TYPE_VERSION_BAD 0x%x\n", (unsigned) type_val);
+				DEBUG_PRINTF("irl_receive_packet: E_MSG_MT2_TYPE_VERSION_BAD 0x%x\n", (unsigned) type_val);
 				break;
 			case E_MSG_MT2_TYPE_SERVER_OVERLOAD:
-				DEBUG_TRACE("irl_receive_packet: E_MSG_MT2_TYPE_SERVER_OVERLOAD 0x%x\n", (unsigned) type_val);
+				DEBUG_PRINTF("irl_receive_packet: E_MSG_MT2_TYPE_SERVER_OVERLOAD 0x%x\n", (unsigned) type_val);
 				break;
 			case E_MSG_MT2_TYPE_KA_KEEPALIVE:
-				DEBUG_TRACE("irl_receive_packet: E_MSG_MT2_TYPE_KA_KEEPALIVE 0x%x\n", (unsigned) type_val);
+				DEBUG_PRINTF("irl_receive_packet: E_MSG_MT2_TYPE_KA_KEEPALIVE 0x%x\n", (unsigned) type_val);
 				break;
 			case E_MSG_MT2_TYPE_PAYLOAD:
-				DEBUG_TRACE("irl_receive_packet: E_MSG_MT2_TYPE_PAYLOAD 0x%x\n", (unsigned) type_val);
+				DEBUG_PRINTF("irl_receive_packet: E_MSG_MT2_TYPE_PAYLOAD 0x%x\n", (unsigned) type_val);
 				break;
 			/* Unexpected/unknown MTv2 message types... */
 			case E_MSG_MT2_TYPE_VERSION:
@@ -728,7 +780,7 @@ int irl_receive_packet(IrlSetting_t * irl_ptr, struct e_packet * p)
 			case E_MSG_MT2_TYPE_KA_TX_INTERVAL:
 			case E_MSG_MT2_TYPE_KA_WAIT:
 			default:
-				DEBUG_TRACE("irl_receive_packet: error type 0x%x\n", (unsigned) type_val);
+				DEBUG_PRINTF("irl_receive_packet: error type 0x%x\n", (unsigned) type_val);
 				irl_error_status(irl_ptr->callback, IRL_CONFIG_RECEIVE, IRL_INVALID_MESSAGE_ERR);
 				rc =  IRL_INVALID_MESSAGE_ERR;
 				goto _ret;
@@ -781,7 +833,7 @@ int irl_receive_packet(IrlSetting_t * irl_ptr, struct e_packet * p)
 				goto _ret;
 			}
 		}
-	    DEBUG_TRACE("irl_receive_packet: length field %d\n", p->length);
+	    DEBUG_PRINTF("irl_receive_packet: length field %d\n", p->length);
 	}
 
 
@@ -920,12 +972,12 @@ int irl_close(IrlSetting_t * irl_ptr)
 		status = irl_get_config(irl_ptr, config_id, &irl_ptr->connection.socket_fd);
 		if (status == IRL_STATUS_CONTINUE)
 		{
-			DEBUG_TRACE("irl_close: close %d fd\n", irl_ptr->connection.socket_fd);
+			DEBUG_PRINTF("irl_close: close %d fd\n", irl_ptr->connection.socket_fd);
 			irl_ptr->connection.socket_fd = -1;
 		}
 		else if (status == IRL_STATUS_BUSY)
 		{
-			DEBUG_TRACE("irl_close: close busy\n");
+			DEBUG_PRINTF("irl_close: close busy\n");
 			rc = IRL_BUSY;
 		}
 		else
@@ -936,731 +988,3 @@ int irl_close(IrlSetting_t * irl_ptr)
 	return rc;
 }
 
-static int msg_add_keepalive_param(IrlSetting_t * irl_ptr, uint8_t * buf, uint16_t type, uint16_t value)
-{
-	uint16_t 	msg_type, len=2, msg_value;
-	int			rc;
-
-    (void)irl_ptr;
-
-	msg_type = TO_BE16(type);
-	memcpy(&buf[0], &msg_type, sizeof msg_type);
-
-	len = TO_BE16(2);
-	memcpy(&buf[2], &len, sizeof len);
-
-	msg_value = TO_BE16(value);
-	memcpy((void *)&buf[4], (void *)&msg_value, sizeof msg_value);
-
-	rc = 6;
-
-
-	return rc; /* return count of bytes added to buffer */
-}
-
-void irl_set_edp_state(IrlSetting_t * irl_ptr, int state)
-{
-	irl_ptr->edp_state = state;
-	irl_ptr->layer_state = IRL_LAYER_INIT;
-	irl_ptr->config.id = 0;
-}
-
-int irl_communication_layer(IrlSetting_t * irl_ptr)
-{
-	int				rc = IRL_SUCCESS;
-//	int				send_status;
-//	uint32_t		mswait = 2;
-	struct e_packet pkt;
-	uint32_t		version;
-//	uint8_t			buffer[128];
-	uint8_t			* buf;
-	int				len;
-	int				receive_status;
-
-
-
-	if (irl_ptr->layer_state == IRL_LAYER_INIT)
-	{
-		DEBUG_TRACE("Communication layer\n");
-
-		DEBUG_TRACE("--- Send MT Version\n");
-		/* Send the MT version message. */
-		irl_send_packet_init(irl_ptr, &pkt, PKT_MT_LENGTH);
-
-		pkt.length = sizeof version;
-
-		version = TO_BE32(irl_ptr->edp_version);
-		memcpy(pkt.buf, &version, 4);
-		if (rc != IRL_SUCCESS)
-		{
-			goto _ret;
-		}
-
-		rc = irl_send_packet(irl_ptr, &pkt, E_MSG_MT2_TYPE_VERSION);
-		if (rc != IRL_SUCCESS)
-		{
-			/* either error */
-			goto _ret;
-		}
-
-		irl_ptr->layer_state = IRL_COMMUNICATION_LAYER_VERSION;
-
-	}
-
-	if (irl_ptr->layer_state == IRL_COMMUNICATION_LAYER_VERSION)
-	{
-		DEBUG_TRACE("--- waiting MT version response\n");
-		irl_receive_init(irl_ptr);
-		rc = irl_receive_packet(irl_ptr, &irl_ptr->data_packet);
-		if (rc == IRL_STATUS_CONTINUE)
-		{
-			irl_ptr->layer_state = IRL_COMMUNICATION_LAYER_VERSION1;
-		}
-	}
-
-	if (irl_ptr->layer_state == IRL_COMMUNICATION_LAYER_VERSION1)
-	{
-		rc = irl_receive_packet_status(irl_ptr, &receive_status);
-
-		if (rc == IRL_SUCCESS && receive_status == IRL_NETWORK_BUFFER_COMPLETE)
-		{
-			DEBUG_TRACE("--- receive Mt version\n");
-
-			if (irl_ptr->data_packet.type != E_MSG_MT2_TYPE_VERSION_OK)
-			{
-				/*
-				 * The received message is not acceptable. Return an error value
-				 * appropriate to the message received.
-				 */
-				switch (irl_ptr->data_packet.type)
-				{
-					/* Expected MTv2 message types... */
-					case E_MSG_MT2_TYPE_LEGACY_EDP_VER_RESP:
-						if (irl_ptr->data_packet.buf[0] == 0x02) {
-							rc = IRL_SERVER_OVERLOAD_ERR;
-						}
-						else {
-							/* Assume a version error for all other values. */
-							rc = IRL_BAD_VERSION_ERR;
-						}
-						break;
-					case E_MSG_MT2_TYPE_VERSION_BAD:
-						rc = IRL_BAD_VERSION_ERR;
-						break;
-					case E_MSG_MT2_TYPE_SERVER_OVERLOAD:
-						rc = IRL_SERVER_OVERLOAD_ERR;
-						break;
-					/* Unexpected/unknown MTv2 message types... */
-			//		case E_MSG_MT2_TYPE_VERSION:
-			//		case E_MSG_MT2_TYPE_LEGACY_EDP_VERSION:
-			//		case E_MSG_MT2_TYPE_KA_RX_INTERVAL:
-			//		case E_MSG_MT2_TYPE_KA_TX_INTERVAL:
-			//		case E_MSG_MT2_TYPE_KA_WAIT:
-			//		case E_MSG_MT2_TYPE_KA_KEEPALIVE:
-			//		case E_MSG_MT2_TYPE_PAYLOAD:
-					default:
-						rc = IRL_INVALID_MESSAGE_ERR;
-				}
-			}
-			irl_ptr->layer_state = IRL_COMMUNICATION_LAYER_KA_PARAMS;
-		}
-
-		if (rc != IRL_SUCCESS)
-		{
-			/* mt version error. let's notify user */
-			irl_error_status(irl_ptr->callback, IRL_CONFIG_RECEIVE, rc);
-			goto _ret;
-		}
-		else
-		{
-			rc = IRL_BUSY;
-		}
-	}
-
-	if (irl_ptr->layer_state == IRL_COMMUNICATION_LAYER_KA_PARAMS)
-	{
-		uint16_t	timeout;
-		uint8_t		wait_count;
-
-		DEBUG_TRACE("--- send keepalive params \n");
-
-		/* Send the MT version message. */
-		irl_packet_init(&pkt);
-
-		buf = pkt.buf = irl_ptr->send_packet.buffer;
-//		pkt.alloc_len = sizeof(irl_ptr->send_packet.buffer);
-
-		timeout = GET_RX_KEEPALIVE(irl_ptr);
-		len = msg_add_keepalive_param(irl_ptr, buf, E_MSG_MT2_TYPE_KA_RX_INTERVAL, timeout);
-		if (len < 0) goto _ret;
-		buf += len;
-
-		timeout = GET_TX_KEEPALIVE(irl_ptr);
-		len = msg_add_keepalive_param(irl_ptr, buf, E_MSG_MT2_TYPE_KA_TX_INTERVAL, timeout);
-		if (len < 0) goto _ret;
-		buf += len;
-
-		wait_count = GET_WAIT_COUNT(irl_ptr);
-		len = msg_add_keepalive_param(irl_ptr, buf, E_MSG_MT2_TYPE_KA_WAIT, (uint16_t)wait_count);
-		if (len < 0) goto _ret;
-		buf += len;
-
-		pkt.length = buf - pkt.buf;
-
-		irl_ptr->send_packet.total_length = pkt.length;
-		irl_ptr->send_packet.length = 0;
-
-		rc = irl_send(irl_ptr, irl_ptr->connection.socket_fd, pkt.buf, pkt.length);
-		if (rc > 0)
-		{
-			irl_ptr->send_packet.total_length -= rc;
-			irl_ptr->send_packet.length += rc;
-			rc = IRL_SUCCESS;
-		}
-
-		irl_set_edp_state(irl_ptr, IRL_INITIALIZATION_LAYER);
-
-	}
-
-_ret:
-	return rc;
-}
-
-int irl_initialization_layer(IrlSetting_t * irl_ptr)
-{
-	int				rc = IRL_SUCCESS;
-	struct e_packet pkt;
-	uint32_t		version;
-	//uint8_t			buffer[128];
-	int				receive_status;
-
-	if (irl_ptr->layer_state == IRL_LAYER_INIT)
-	{
-		DEBUG_TRACE("Initialization layer\n");
-		DEBUG_TRACE("--- send protocol version\n");
-		/*
-		 * Send the protocol version message.
-		 */
-		irl_send_packet_init(irl_ptr, &pkt, PKT_MT_LENGTH);
-
-		pkt.length = sizeof(version);
-		version = TO_BE32(IRL_PROTOCOL_VERSION);
-		memcpy(&pkt.buf[0], &version, sizeof version);
-
-		rc = irl_send_packet(irl_ptr, &pkt, E_MSG_MT2_TYPE_PAYLOAD);
-		if (rc != IRL_SUCCESS)
-		{
-			/* either error or send pending */
-			goto _ret;
-		}
-		irl_ptr->layer_state = IRL_LAYER_RECEIVE_PENDING;
-
-	}
-
-	if (irl_ptr->layer_state == IRL_LAYER_RECEIVE_PENDING)
-	{
-		irl_receive_init(irl_ptr);
-		rc = irl_receive_packet(irl_ptr, &irl_ptr->data_packet);
-
-		irl_ptr->layer_state = IRL_LAYER_RECEIVE_DATA;
-	}
-
-	if (irl_ptr->layer_state == IRL_LAYER_RECEIVE_DATA)
-	{
-		rc = irl_receive_packet_status(irl_ptr, &receive_status);
-		if (rc == IRL_SUCCESS && receive_status == IRL_NETWORK_BUFFER_COMPLETE)
-		{
-			DEBUG_TRACE("--- receive protocol version\n");
-			/*
-			 * Process the response.
-			 */
-			if (pkt.length < 1) {
-				/* An empty packet is an error. */
-				rc = IRL_INVALID_MESSAGE_ERR;
-				goto _ret;
-			}
-			/* MT version 1 reports server overload in the version response. */
-		#if 0
-			if (e_dp_mt_version == 1 && pkt.buf[0] == 2) {
-				/* The server indicated an overload condition. */
-				rc = IRL_BAD_VERSION_ERR;
-				goto _ret;
-			}
-		#endif
-
-			/* If the protocol version number was not acceptable to the server. */
-			if (pkt.buf[0] != 0)
-			{
-				rc = IRL_BAD_VERSION_ERR;
-				irl_error_status(irl_ptr->callback, IRL_CONFIG_RECEIVE, rc);
-				goto _ret;
-
-			}
-			irl_set_edp_state(irl_ptr, IRL_SECURITY_LAYER);
-		}
-	}
-
-_ret:
-
-	return rc;
-}
-
-int irl_security_layer(IrlSetting_t * irl_ptr)
-{
-#define URL_PREFIX	"en://"
-
-	int				rc = IRL_SUCCESS;
-//	int				send_status;
-//	uint32_t		mswait = 2;
-	struct e_packet pkt;
-	//int				send_status;
-	char 			* pwd = NULL;
-	uint16_t		len, size;
-	uint8_t * ptr;
-	char *	url_prefix = URL_PREFIX;
-
-
-	if (irl_ptr->layer_state == IRL_LAYER_INIT)
-	{
-		DEBUG_TRACE("Security layer\n");
-		DEBUG_TRACE("--- send security form\n");
-
-		pwd = (char *)irl_ptr->config.data[IRL_CONFIG_PASSWORD];
-
-		/* Send the identity verification form message. */
-		irl_send_packet_init(irl_ptr, &pkt, PKT_MT_LENGTH);
-
-		pkt.length = 2;
-		pkt.buf[0] = SECURITY_OPER_IDENT_FORM;
-
-		if (pwd != NULL)
-		{
-			pkt.buf[1] = (uint8_t)SECURITY_IDENT_FORM_PASSWORD;
-		}
-		else
-		{
-			pkt.buf[1] = (uint8_t)SECURITY_IDENT_FORM_SIMPLE;
-		}
-		irl_ptr->security_form = pkt.buf[1];
-
-		rc = irl_send_packet(irl_ptr, &pkt, E_MSG_MT2_TYPE_PAYLOAD);
-		if (rc != IRL_SUCCESS)
-		{
-			/* either error or send pending */
-			goto _ret;
-		}
-
-		irl_ptr->layer_state = IRL_SECURITY_LAYER_DEVICE_ID;
-	}
-
-	if (irl_ptr->layer_state == IRL_SECURITY_LAYER_DEVICE_ID)
-	{
-		uint8_t	* device_id;
-
-		DEBUG_TRACE("--- send device ID\n");
-
-		/* Send the device ID message. */
-		irl_send_packet_init(irl_ptr, &pkt, PKT_MT_LENGTH);
-
-		pkt.length = 1 + IRL_DEVICE_ID_LENGTH;
-		pkt.buf[0] = SECURITY_OPER_DEVICE_ID;
-
-		device_id = (uint8_t *)irl_ptr->config.data[IRL_CONFIG_DEVICE_ID];
-
-		memcpy(&pkt.buf[1], device_id, IRL_DEVICE_ID_LENGTH);
-		if (rc != IRL_SUCCESS)
-		{
-			goto _ret;
-		}
-		rc = irl_send_packet(irl_ptr, &pkt, E_MSG_MT2_TYPE_PAYLOAD);
-		if (rc != IRL_SUCCESS)
-		{
-			/* either error or send pending */
-			goto _ret;
-		}
-		irl_ptr->layer_state = IRL_SECURITY_LAYER_SERVER_URL;
-	}
-
-	if (irl_ptr->layer_state == IRL_SECURITY_LAYER_SERVER_URL)
-	{
-		char * server_url;
-
-		DEBUG_TRACE("--- send server url\n");
-		/* Send the URL message. */
-		irl_send_packet_init(irl_ptr, &pkt, PKT_MT_LENGTH);
-
-		server_url = (char *)irl_ptr->config.data[IRL_CONFIG_SERVER_URL];
-
-		len = strlen(server_url) + strlen(URL_PREFIX);
-
-		pkt.length = 1 + sizeof(uint16_t) + len;
-		pkt.buf[0] = SECURITY_OPER_URL;
-		ptr = &pkt.buf[1];
-
-		size = sizeof len;
-		len = TO_BE16(len);
-
-		memcpy(ptr, &len, size);
-		ptr += size;
-
-		len =  strlen(server_url);
-		if (len > 0)
-		{
-			size = strlen(url_prefix);
-			memcpy(ptr, url_prefix, size);
-
-			ptr += size;
-			memcpy(ptr, server_url, len);
-		}
-		rc = irl_send_packet(irl_ptr, &pkt, E_MSG_MT2_TYPE_PAYLOAD);
-		if (rc != IRL_SUCCESS)
-		{
-			/* either error or send pending */
-			goto _ret;
-		}
-		if (irl_ptr->security_form == SECURITY_IDENT_FORM_PASSWORD)
-		{
-			irl_ptr->layer_state = IRL_SECURITY_LAYER_PASSWORD;
-		}
-		else
-		{
-			irl_set_edp_state(irl_ptr, IRL_DISCOVERY_LAYER);
-		}
-	}
-
-	if (irl_ptr->layer_state == IRL_SECURITY_LAYER_PASSWORD)
-	{
-		DEBUG_TRACE("--- send password\n");
-		/* Send the password along in addition to the simple messages */
-		irl_send_packet_init(irl_ptr, &pkt, PKT_MT_LENGTH);
-
-		pkt.length = 1 + sizeof(uint16_t) + len;
-		pkt.buf[0] = SECURITY_OPER_PASSWD;
-
-		len = TO_BE16(strlen(pwd));
-
-		size = sizeof len;
-
-		memcpy(&pkt.buf[1], &len, size);
-
-		if (len > 0)
-		{
-			memcpy(&pkt.buf[1+size], pwd, strlen(pwd));
-		}
-
-		rc = irl_send_packet(irl_ptr, &pkt, E_MSG_MT2_TYPE_PAYLOAD);
-		if (rc != IRL_SUCCESS)
-		{
-			/* either error or send pending */
-			goto _ret;
-		}
-		irl_set_edp_state(irl_ptr, IRL_DISCOVERY_LAYER);
-	}
-
-_ret:
-	return rc;
-}
-int irl_get_security_code(IrlSetting_t * irl_ptr)
-{
-	int sec_coding = SECURITY_PROTO_NONE;
-
-    (void) irl_ptr;
-#if 0
-		if (irl_ptr->security_form != SECURITY_IDENT_FORM_SIMPLE)
-		{
-			sec_coding = ;
-		}
-#endif
-	return sec_coding;
-}
-int irl_discovery_layer(IrlSetting_t * irl_ptr)
-{
-	int				rc = IRL_SUCCESS;
-//	int				send_status;
-//	uint32_t		mswait = 2;
-	struct e_packet pkt;
-	//int				send_status;
-	uint16_t		len, size;
-	uint8_t			sec_coding = irl_get_security_code(irl_ptr);
-
-	if (irl_ptr->layer_state == IRL_LAYER_INIT)
-	{
-		uint8_t * vendor_id;
-
-		DEBUG_TRACE("Discovery layer\n");
-		DEBUG_TRACE("--- send vendor id\n");
-
-		irl_send_packet_init(irl_ptr, &pkt, PKT_MT_LENGTH);
-
-	#if 0
-		if (irl_ptr->security_form != SECURITY_IDENT_FORM_SIMPLE)
-		{
-			sec_coding = ;
-		}
-	#endif
-
-		pkt.buf[0] = sec_coding;
-		pkt.buf[1] = DISC_OP_VENDOR_ID;
-		vendor_id = (uint8_t *)irl_ptr->config.data[IRL_CONFIG_VENDOR_ID];
-		memcpy(&pkt.buf[2], vendor_id, IRL_VENDOR_ID_LENGTH);
-
-		/* Send the message. */
-		pkt.length = 2+(uint16_t)IRL_VENDOR_ID_LENGTH;
-
-		rc = irl_send_packet(irl_ptr, &pkt, E_MSG_MT2_TYPE_PAYLOAD);
-		if (rc != IRL_SUCCESS)
-		{
-			/* either error or send pending */
-			goto _ret;
-		}
-
-		irl_ptr->layer_state = IRL_LAYER_DISCOVERY_DEVICE_TYPE;
-	}
-
-	if (irl_ptr->layer_state == IRL_LAYER_DISCOVERY_DEVICE_TYPE)
-	{
-		char * device_type;
-
-		DEBUG_TRACE("--- send device type\n");
-		irl_send_packet_init(irl_ptr, &pkt, PKT_MT_LENGTH);
-
-		pkt.buf[0] = sec_coding;
-		pkt.buf[1] = DISC_OP_DEVICETYPE;
-
-		device_type = (char *)irl_ptr->config.data[IRL_CONFIG_DEVICE_TYPE];
-		if (device_type == NULL)
-		{
-			len = 0;
-		}
-		else
-		{
-			len = TO_BE16(strlen(device_type));
-		}
-
-		size = sizeof len;
-		memcpy(&pkt.buf[2], &len, size);
-
-		len = strlen(device_type);
-		if (len > 0)
-		{
-			memcpy(&pkt.buf[2+size], device_type, len);
-		}
-
-		/* Send the message. */
-		pkt.length = 2 + size + len;
-
-		rc = irl_send_packet(irl_ptr, &pkt, E_MSG_MT2_TYPE_PAYLOAD);
-		if (rc != IRL_SUCCESS)
-		{
-			/* either error or send pending */
-			goto _ret;
-		}
-		irl_ptr->layer_state = IRL_LAYER_DISCOVERY_FACILITY_INIT;
-	}
-
-	if (irl_ptr->layer_state == IRL_LAYER_DISCOVERY_FACILITY_INIT)
-	{
-		IrlFacilityHandle_t	* fac_ptr;
-
-		if (irl_ptr->active_facility == NULL)
-		{
-			irl_ptr->active_facility = irl_ptr->facility_list;
-		}
-
-		fac_ptr = irl_ptr->active_facility;
-
-		while (fac_ptr != NULL)
-		{
-			rc = fac_ptr->process_function(irl_ptr, fac_ptr, NULL);
-			if (rc == IRL_BUSY)
-			{
-				goto _ret;
-			}
-			else if (rc != IRL_SUCCESS)
-			{
-				/* error */
-				DEBUG_TRACE("irl_discovery_layer: process facility returns error %d\n", rc);
-				break;
-			}
-
-			fac_ptr->state = IRL_LAYER_RECEIVE_PENDING;
-			irl_ptr->active_facility = fac_ptr->next;
-			fac_ptr = irl_ptr->active_facility;
-
-		}
-
-		if (irl_ptr->active_facility == NULL)
-		{
-			irl_ptr->layer_state = IRL_LAYER_DISCOVERY_COMPLETE;
-		}
-
-	}
-
-	if (irl_ptr->layer_state == IRL_LAYER_DISCOVERY_COMPLETE)
-	{
-		DEBUG_TRACE("--- send complete\n");
-		irl_packet_init(&pkt);
-
-		pkt.buf = irl_ptr->send_packet.buffer + PKT_MT_LENGTH;
-//		pkt.alloc_len = sizeof(irl_ptr->send_packet.buffer) - PKT_MT_LENGTH;
-//		pkt.pre_len = PKT_MT_LENGTH;
-
-		pkt.buf[0] = sec_coding;
-		pkt.buf[1] = DISC_OP_INITCOMPLETE;
-		pkt.length = 2;
-
-		rc = irl_send_packet(irl_ptr, &pkt, E_MSG_MT2_TYPE_PAYLOAD);
-		if (rc != IRL_SUCCESS)
-		{
-			/* either error or send pending */
-			goto _ret;
-		}
-		irl_set_edp_state(irl_ptr, IRL_FACILITY_LAYER);
-	}
-
-_ret:
-	return rc;
-}
-
-int irl_facility_layer(IrlSetting_t * irl_ptr)
-{
-	int		rc = IRL_SUCCESS;
-	int		ccode;
-	int		receive_status;
-	struct e_packet * p;
-
-
-	if (irl_ptr->layer_state == IRL_LAYER_INIT)
-	{
-		DEBUG_TRACE("Facility_layer\n");
-		irl_receive_init(irl_ptr);
-		rc = irl_receive_packet(irl_ptr, &irl_ptr->data_packet);
-		if (rc == IRL_STATUS_CONTINUE)
-		{
-			irl_ptr->layer_state = IRL_LAYER_RECEIVE_PENDING;
-		}
-	}
-
-	if (irl_ptr->layer_state == IRL_LAYER_RECEIVE_PENDING)
-	{
-		uint8_t		sec_opcode;
-		uint8_t		disc_opcode;
-
-		uint16_t	facility;
-		IrlFacilityHandle_t	* fac_ptr;
-
-		rc = irl_receive_packet_status(irl_ptr, &receive_status);
-		if (rc == IRL_SUCCESS && receive_status == IRL_NETWORK_BUFFER_COMPLETE)
-		{
-			irl_ptr->layer_state = IRL_LAYER_INIT;
-
-			p = &irl_ptr->data_packet;
-			if (p->type == E_MSG_MT2_TYPE_PAYLOAD)
-			{
-
-				if (p->length < PKT_OP_SECURITY)
-				{
-					/* just ignore this packet */
-					DEBUG_TRACE("irl_facility_layer: invalid length for security opcode. length received %d < %d min length\n", p->length, PKT_OP_FACILITY);
-					goto _ret;
-				}
-				sec_opcode = p->buf[0];
-
-
-				if (sec_opcode != SECURITY_PROTO_NONE)
-				{
-					/* handle security operation */
-				}
-				p->buf += 1;
-				p->length -= 1;
-//				p->alloc_len -= 1;
-				p->sec_coding = sec_opcode;
-//				p->sec_cxn = sc;
-
-				if (p->length < (PKT_OP_DISCOVERY + PKT_OP_FACILITY))
-				{
-					/* just ignore this packet */
-					DEBUG_TRACE("irl_facility_layer: invalid length for discovery opcode. length received %d < %d min length\n",
-								p->length, (PKT_OP_DISCOVERY + PKT_OP_FACILITY));
-					goto _ret;
-				}
-
-				disc_opcode = p->buf[0];
-				if (disc_opcode != DISC_OP_PAYLOAD)
-				{
-					/* just ignore this packet */
-					DEBUG_TRACE("irl_facility_layer: invalid discovery opcode (%d) received opcode = %d\n", DISC_OP_PAYLOAD, disc_opcode);
-					goto _ret;
-				}
-				p->buf += 1;
-				p->length -= 1;
-//				p->alloc_len -= 1;
-				facility = FROM_BE16(*((uint16_t *)p->buf));
-				DEBUG_TRACE("irl_facility_layer: receive data facility = 0x%04x, type = %d, length=%d\n",
-							facility, p->type, p->length);
-
-				if (facility == E_MSG_FAC_RCI_NUM)
-				{
-					rc = rci_process_function(irl_ptr, NULL, p);
-				}
-
-				for (fac_ptr = irl_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
-				{
-					if (fac_ptr->facility_id == facility && fac_ptr->state == IRL_LAYER_RECEIVE_PENDING)
-					{
-						/* copy the packet to the local facility packet */
-						fac_ptr->packet.length = p->length-2;
-//						fac_ptr->packet.alloc_len = p->alloc_len-2;
-						fac_ptr->packet.sec_coding = p->sec_coding;
-//						fac_ptr->packet.sec_cxn = p->sec_cxn;
-//						fac_ptr->packet.pre_len = p->pre_len +2;
-						memcpy(fac_ptr->buffer, &p->buf[2], p->length-2);
-						fac_ptr->packet.buf = fac_ptr->buffer;
-						fac_ptr->state = IRL_LAYER_RECEIVE_DATA;
-						break;
-					}
-				}
-			}
-			else
-			{
-				DEBUG_TRACE("irl_facility_layer: not MTv2 Payload\n");
-			}
-
-		}
-
-		if (rc != IRL_SUCCESS && rc != IRL_BUSY)
-		{
-			/* some kind of error */
-			goto _ret;
-		}
-
-		for (fac_ptr = irl_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
-		{
-			if (fac_ptr->state == IRL_LAYER_RECEIVE_DATA)
-			{
-				rc = fac_ptr->process_function(irl_ptr, fac_ptr, &fac_ptr->packet);
-				if (rc == IRL_SUCCESS)
-				{
-					fac_ptr->state = IRL_LAYER_RECEIVE_PENDING;
-				}
-				else if (rc != IRL_BUSY)
-				{
-					/* error */
-					DEBUG_TRACE("irl_facility_layer: facility  (0x%04x) returns error %d\n", fac_ptr->facility_id, rc);
-					break;
-				}
-
-			}
-		}
-
-	}
-
-	ccode = irl_send_rx_keepalive(irl_ptr);
-	if (ccode == IRL_STATUS_ABORT || ccode == IRL_STATUS_ERROR)
-	{
-		rc = ccode;
-	}
-
-_ret:
-	return rc;
-}
