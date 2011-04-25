@@ -25,10 +25,11 @@
 #include <string.h>
 
 #include "bele.h"
-#include "irl_api.h"
+#include "irl_def.h"
 #include "os_intf.h"
 #include "config_intf.h"
 #include "network_intf.h"
+#include "layer.h"
 #include "ei_security.h"
 #include "ei_msg.h"
 #include "irl_cc.h"
@@ -60,8 +61,9 @@ static int cc_redirect_report(IrlSetting_t * irl_ptr, struct irl_connection_cont
 	IrlRedirect_t 		redirect_report;
 	uint8_t				report_msg_length = 0;
 	uint16_t			url_length;
+	uint32_t			time_stamp;
 
-	DEBUG_TRACE("--- send redirect_report\n");
+	DEBUG_PRINTF("--- send redirect_report\n");
 	p = &irl_ptr->data_packet;
 	irl_send_packet_init(irl_ptr, p, PKT_PRE_FACILITY);
 
@@ -91,10 +93,17 @@ static int cc_redirect_report(IrlSetting_t * irl_ptr, struct irl_connection_cont
 
 		redirect_report.report_code = cc_ptr->report_code;
 
-		rx_keepalive = GET_RX_KEEPALIVE((IrlSetting_t *)irl_ptr);
-		tx_keepalive = GET_TX_KEEPALIVE((IrlSetting_t *)irl_ptr);
-		redirect_report.timeout = IRL_MIN(rx_keepalive, tx_keepalive);
-		if (redirect_report.timeout == 0) redirect_report.timeout = IRL_MIN_NETWORK_TIMEOUT;
+
+		if (irl_get_system_time(irl_ptr, &time_stamp) != IRL_SUCCESS)
+		{
+			status = IRL_STATUS_ERROR;
+			goto _ret;
+		}
+
+		rx_keepalive = (GET_RX_KEEPALIVE(irl_ptr) * IRL_MILLISECONDS) - (time_stamp - irl_ptr->rx_ka_time);
+		tx_keepalive = (GET_TX_KEEPALIVE(irl_ptr) * IRL_MILLISECONDS) - (time_stamp - irl_ptr->tx_ka_time);
+
+		redirect_report.timeout = IRL_MIN(rx_keepalive, tx_keepalive)/IRL_MILLISECONDS;
 
 		status = irl_get_config(irl_ptr, IRL_REDIRECT, &redirect_report);
 
@@ -147,7 +156,7 @@ static int cc_connection_report(IrlSetting_t * irl_ptr, struct irl_connection_co
 	struct e_packet 	* p;
 	IrlConfigIpAddr_t	* addr;
 
-	DEBUG_TRACE("--- send connection report\n");
+	DEBUG_PRINTF("--- send connection report\n");
 
 	p = &irl_ptr->data_packet;
 
@@ -190,7 +199,14 @@ static int cc_connection_report(IrlSetting_t * irl_ptr, struct irl_connection_co
 
 		if (addr != NULL && addr->ip_addr != NULL)
 		{
-			if (addr->addr_type == IRL_IPV4_ADDRESS)
+			if (addr->addr_type == IRL_IPV6_ADDRESS)
+			{
+				memcpy(&p->buf[12], addr->ip_addr, IRL_IPV6_ADDRESS_LENGTH);
+				cc_ptr->item = IRL_CONFIG_CONNECTION_TYPE;
+				p->length += IRL_IPV6_ADDRESS_LENGTH;
+
+			}
+			else if (addr->addr_type == IRL_IPV4_ADDRESS)
 			{
 				uint32_t	* ipv4;
 
@@ -198,17 +214,7 @@ static int cc_connection_report(IrlSetting_t * irl_ptr, struct irl_connection_co
 				if (*ipv4 == 0x00000000 || *ipv4 == 0xffffffff)
 				{
 					/* bad addr */
-					status = irl_error_status(irl_ptr->callback, IRL_CONFIG_IP_ADDR, IRL_INVALID_DATA);
-					if (status == IRL_STATUS_BUSY)
-					{
-						rc = IRL_BUSY;
-						goto _ret;
-					}
-					if (status != IRL_STATUS_CONTINUE)
-					{
-						rc = IRL_CONFIG_ERR;
-						goto _ret;
-					}
+					goto _error_param;
 				}
 				else
 				{
@@ -222,11 +228,23 @@ static int cc_connection_report(IrlSetting_t * irl_ptr, struct irl_connection_co
 			}
 			else
 			{
-				memcpy(&p->buf[12], addr->ip_addr, IRL_IPV6_ADDRESS_LENGTH);
-				cc_ptr->item = IRL_CONFIG_CONNECTION_TYPE;
-				p->length += IRL_IPV6_ADDRESS_LENGTH;
-
+				goto _error_param;
 			}
+		}
+		else
+		{
+_error_param:
+				status = irl_error_status(irl_ptr->callback, IRL_CONFIG_IP_ADDR, IRL_INVALID_DATA);
+				if (status == IRL_STATUS_BUSY)
+				{
+					rc = IRL_BUSY;
+					goto _ret;
+				}
+				if (status != IRL_STATUS_CONTINUE)
+				{
+					rc = IRL_CONFIG_ERR;
+					goto _ret;
+				}
 		}
 
 	}
@@ -304,6 +322,13 @@ static int cc_connection_report(IrlSetting_t * irl_ptr, struct irl_connection_co
 			goto _ret;
 		}
 
+		rc =   irl_check_config_null(irl_ptr, IRL_CONFIG_MAC_ADDR);
+		if (rc == IRL_BUSY)
+		{
+			/* Need to call the callback again */
+			goto _ret;
+		}
+
 		mac = (uint8_t *)irl_ptr->config.data[IRL_CONFIG_MAC_ADDR];
 
 		memcpy(&p->buf[p->length], mac, IRL_MAC_ADDR_LENGTH);
@@ -333,22 +358,29 @@ static int cc_connection_report(IrlSetting_t * irl_ptr, struct irl_connection_co
 			goto _ret;
 		}
 
+		rc =   irl_check_config_null(irl_ptr, IRL_CONFIG_LINK_SPEED);
+		if (rc == IRL_BUSY)
+		{
+			/* Need to call the callback again */
+			goto _ret;
+		}
+
 		link_speed = (uint8_t *)irl_ptr->config.data[IRL_CONFIG_LINK_SPEED];
 
 		memcpy(&p->buf[p->length], link_speed, IRL_LINK_SPEED_LENGTH);
 		p->length += IRL_LINK_SPEED_LENGTH;
 
-		cc_ptr->item = IRl_CONFIG_PHONE_NUM;
+		cc_ptr->item = IRL_CONFIG_PHONE_NUM;
 
 	}
 
-	if (cc_ptr->item == IRl_CONFIG_PHONE_NUM)
+	if (cc_ptr->item == IRL_CONFIG_PHONE_NUM)
 	{
 		/* callback for phone number for WAN connection type */
 		IrlConfigPhone_t * phone;
 
 		/* phone number */
-		status = irl_get_config(irl_ptr, IRl_CONFIG_PHONE_NUM, &irl_ptr->config.data[IRl_CONFIG_PHONE_NUM]);
+		status = irl_get_config(irl_ptr, IRL_CONFIG_PHONE_NUM, &irl_ptr->config.data[IRL_CONFIG_PHONE_NUM]);
 
 		if (status == IRL_STATUS_BUSY)
 		{
@@ -361,7 +393,14 @@ static int cc_connection_report(IrlSetting_t * irl_ptr, struct irl_connection_co
 			goto _ret;
 		}
 
-		phone = (IrlConfigPhone_t *)irl_ptr->config.data[IRl_CONFIG_PHONE_NUM];
+		rc =   irl_check_config_null(irl_ptr, IRL_CONFIG_PHONE_NUM);
+		if (rc == IRL_BUSY)
+		{
+			/* Need to call the callback again */
+			goto _ret;
+		}
+
+		phone = (IrlConfigPhone_t *)irl_ptr->config.data[IRL_CONFIG_PHONE_NUM];
 
 		memcpy(&p->buf[p->length], phone->number, phone->length);
 		p->length += phone->length;
@@ -400,12 +439,12 @@ int cc_discover_facility(IrlSetting_t * irl_ptr, struct irl_connection_control_t
 
 int cc_process_disconnect(IrlSetting_t * irl_ptr, struct irl_connection_control_t * cc_ptr)
 {
-	int 		rc;
+	int 		        rc;
 	IrlStatus_t	status;
 
     (void)cc_ptr;
 
-	DEBUG_TRACE("---Connection Disconnect\n");
+	DEBUG_PRINTF("---Connection Disconnect\n");
 
 	rc = irl_close(irl_ptr);
 	if (rc == IRL_SUCCESS)
@@ -419,13 +458,8 @@ int cc_process_disconnect(IrlSetting_t * irl_ptr, struct irl_connection_control_
 			goto _ret;
 		}
 
-		if (status != IRL_STATUS_CONTINUE)
-		{
-			DEBUG_TRACE("irl_cc_process: server disconnect\n");
-			rc = IRL_SERVER_DISCONNECTED;
-		}
-		/* reset to initial state */
-		irl_init_setting(irl_ptr);
+		DEBUG_PRINTF("irl_cc_process: server disconnect\n");
+		rc = IRL_SERVER_DISCONNECTED;
 	}
 _ret:
 	return rc;
@@ -452,7 +486,7 @@ int cc_process_redirect(IrlSetting_t * irl_ptr, struct irl_connection_control_t 
 
 		if (url_count == 0)
 		{	/* nothing to redirect */
-			DEBUG_TRACE("cc_process_redirect: redirect with no url specified\n");
+			DEBUG_PRINTF("cc_process_redirect: redirect with no url specified\n");
 			goto _ret;
 		}
 
@@ -467,7 +501,7 @@ int cc_process_redirect(IrlSetting_t * irl_ptr, struct irl_connection_control_t 
 		buf += sizeof url_length;
 		if (url_length > sizeof cc_ptr->server_url)
 		{
-			DEBUG_TRACE("cc_process_redirect: url length (%d) > max size (%d)\n", url_length, (int)sizeof cc_ptr->server_url);
+			DEBUG_PRINTF("cc_process_redirect: url length (%d) > max size (%d)\n", url_length, (int)sizeof cc_ptr->server_url);
 		}
 		else
 		{
@@ -482,7 +516,7 @@ int cc_process_redirect(IrlSetting_t * irl_ptr, struct irl_connection_control_t 
 		buf += sizeof url_length;
 		if (url_length > sizeof cc_ptr->server_url)
 		{
-			DEBUG_TRACE("cc_process_redirect: url2 length (%d) > max size (%d)\n", url_length, (int)sizeof cc_ptr->server_url);
+			DEBUG_PRINTF("cc_process_redirect: url2 length (%d) > max size (%d)\n", url_length, (int)sizeof cc_ptr->server_url);
 		}
 		else
 		{
@@ -541,7 +575,7 @@ int irl_cc_process(IrlSetting_t * irl_ptr, IrlFacilityHandle_t * fac_ptr, struct
 	struct irl_connection_control_t	* cc_ptr = (struct irl_connection_control_t *)fac_ptr->facility_data;
 
 
-	DEBUG_TRACE("irl_cc_process...\n");
+	DEBUG_PRINTF("irl_cc_process...\n");
 
 	if (p == NULL)
 	{
@@ -561,7 +595,7 @@ int irl_cc_process(IrlSetting_t * irl_ptr, IrlFacilityHandle_t * fac_ptr, struct
 		}
 		else
 		{
-			DEBUG_TRACE("irl_cc_process: unsupported opcode 0x%x\b", opcode);
+			DEBUG_PRINTF("irl_cc_process: unsupported opcode 0x%x\b", opcode);
 		}
 	}
 
@@ -571,8 +605,7 @@ int irl_cc_process(IrlSetting_t * irl_ptr, IrlFacilityHandle_t * fac_ptr, struct
 int irlEnable_ConnectionControl(unsigned long irl_handle)
 {
 	IrlSetting_t 			* irl_ptr = (IrlSetting_t *) irl_handle;
-	int 							rc = IRL_BUSY;
-	IrlFacilityHandle_t	* fac_ptr;
+	int 							rc = IRL_SUCCESS;
 	if (gIrlConnectionControl == NULL)
 	{
 		rc = irl_malloc(irl_ptr, sizeof(struct irl_connection_control_t), (void **)&gIrlConnectionControl);
@@ -589,23 +622,20 @@ int irlEnable_ConnectionControl(unsigned long irl_handle)
 		gIrlConnectionControl->report_code = IRL_CC_NOT_REDIRECT;
 		gIrlConnectionControl->server_url[0] = '\0';
 		gIrlConnectionControl->security_code = SECURITY_PROTO_NONE;
-		gIrlConnectionControl->facility_state = IRL_CC_STATE_REDIRECT_REPORT;
 
 
 	}
 
-	rc =  irl_add_facility_handle(irl_ptr, gIrlConnectionControl, &fac_ptr);
-	if (rc == IRL_SUCCESS)
-	{
-		/*  Add Connection Control facility to the IRL setting facility list.
-		 *  This is not added by application so we use gIrlConnectionControl as user data.
-		 *  [IRL setting]--->[facility_list]--->[facility_data]        --->[user_data]
-		 *  [IRL setting]--->[facility_list]--->[gIrlConnectionControl]--->[gIrlConnectionControl]
-		 */
-		gIrlConnectionControl->item = IRL_CONFIG_IP_ADDR;
+	/*  Add Connection Control facility to the IRL setting facility list.
+	 *  This is not added by application so we use gIrlConnectionControl as user data.
+	 *  [IRL setting]--->[facility_list]--->[facility_data]        --->[user_data]
+	 *  [IRL setting]--->[facility_list]--->[gIrlConnectionControl]--->[gIrlConnectionControl]
+	 */
+	gIrlConnectionControl->item = IRL_CONFIG_IP_ADDR;
+	gIrlConnectionControl->facility_state = IRL_CC_STATE_REDIRECT_REPORT;
 
-		rc = irl_add_facility(irl_ptr, gIrlConnectionControl, E_MSG_FAC_CC_NUM, gIrlConnectionControl, irl_cc_process);
-	}
+	rc = irl_add_facility(irl_ptr, gIrlConnectionControl, E_MSG_FAC_CC_NUM, gIrlConnectionControl, irl_cc_process);
+
 
 _ret:
 	return rc;
