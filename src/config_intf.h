@@ -27,20 +27,21 @@
 
 #include "irl_def.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+
 IrlStatus_t irl_error_status(irl_callback_t callback, unsigned config_id, int status);
 IrlStatus_t irl_get_config(IrlSetting_t * irl_ptr, unsigned config_id, void * data);
+int  irl_check_config_null(IrlSetting_t *irl_ptr, unsigned config_id);
 
-#if 0
-int irl_get_device_id(IrlSetting_t * irl_ptr, uint8_t * device_id);
-int irl_get_vendor_id(IrlSetting_t * irl_ptr, uint8_t * vendor_id);
-int irl_get_device_type(IrlSetting_t * irl_ptr, char ** device_type);
-int irl_get_server_url(IrlSetting_t * irl_ptr, char ** server_url);
-int irl_get_tx_keepalive(IrlSetting_t * irl_ptr, uint16_t * keepalive);
-int irl_get_rx_keepalive(IrlSetting_t * irl_ptr, uint16_t * keepalive);
-int irl_get_wait_count(IrlSetting_t * irl_ptr, uint8_t * wait_count);
-int irl_get_password(IrlSetting_t * irl_ptr, char ** password);
+int irl_add_facility(IrlSetting_t * irl_ptr, void * user_data, unsigned facility_id, void * facility_data, irl_facility_process_cb_t process_cb);
+//IrlFacilityHandle_t * irl_get_facility_handle(IrlSetting_t * irl_ptr, unsigned facility_id);
+//int irl_del_facility_handle(IrlSetting_t * irl_ptr, unsigned facility_id);
+//int irl_add_facility_handle(IrlSetting_t * irl_ptr, unsigned facility_id, IrlFacilityHandle_t ** fac_handle);
 
-#endif
 
 #ifdef __cplusplus
 }
