@@ -39,25 +39,31 @@ typedef struct irl_facility_handle_t IrlFacilityHandle_t;
 
 typedef int (* irl_facility_process_cb_t) (IrlSetting_t * irl_ptr, struct irl_facility_handle_t * fac_ptr, struct e_packet * p);
 
+typedef struct irl_facility_packet_t {
+	e_boolean_t							active;
+	uint8_t									buffer[IRL_MSG_MAX_PACKET_SIZE];
+	struct e_packet						packet;
+	struct irl_facility_packet_t	* next;
+} IrlFacilityPacket_t;
+
 struct irl_facility_handle_t {
 	IrlFacilityEnableFunc_t			facility_enalble_function;
-	void							* user_data;
-	void							* facility_data;
+	void										* user_data;
+	void										* facility_data;
 
-
-	unsigned 						facility_id;
+	unsigned 							facility_id;
 	irl_facility_process_cb_t		process_function;
-	struct e_packet					packet;
-	uint8_t							buffer[IRL_MSG_MAX_PACKET_SIZE];
 
+	IrlFacilityPacket_t				* packet;
+	unsigned							packet_count;
+	int										state;
 
-	int								state;
 	struct irl_facility_handle_t	* next;
 };
 
-#define	IRL_HANDLE_INACTIVE	0
-#define	IRL_HANDLE_ACTIVE	1
-#define	IRL_HANDLE_STOP		2
+#define	IRL_HANDLE_INACTIVE		0
+#define	IRL_HANDLE_ACTIVE			1
+#define	IRL_HANDLE_STOP				2
 #define IRL_HANDLE_TERMINATE	3
 
 
@@ -65,7 +71,7 @@ struct irl_setting_t {
 	uint32_t		edp_version;
 	int				active_state;
 
-    irl_callback_t   callback;
+	irl_callback_t   callback;
 
 	struct {
    		void 			* data[IRL_CONFIG_MAX];
@@ -74,14 +80,14 @@ struct irl_setting_t {
 
 	unsigned						active_facility_idx;
 	unsigned						facility_count;
-	IrlFacilityHandle_t 	* facility_list;
-	IrlFacilityHandle_t	* active_facility;
+	IrlFacilityHandle_t 	 		* facility_list;
+	IrlFacilityHandle_t			* active_facility;
 
 
 #if 0
-    uint8_t         device_id[IRL_DEVICE_ID_LENGTH];
-    uint8_t         vendor_id[IRL_VENDOR_ID_LENGTH];
-//    char            device_type[IRL_DEVICE_TYPE_LENGTH];
+	uint8_t		device_id[IRL_DEVICE_ID_LENGTH];
+	uint8_t		vendor_id[IRL_VENDOR_ID_LENGTH];
+//	char				device_type[IRL_DEVICE_TYPE_LENGTH];
 	char			* device_type;
 
 	char			* server_url;
@@ -106,41 +112,35 @@ struct irl_setting_t {
 	struct {
 		uint8_t			* ptr;
 		uint8_t			buffer[IRL_MSG_MAX_PACKET_SIZE];
-		size_t			length;
-		size_t			total_length;
+		size_t				length;
+		size_t				total_length;
 	} send_packet;
 
 	struct {
-		int				index;
-		uint8_t			buffer[IRL_MSG_MAX_PACKET_SIZE];
-		uint16_t		packet_type;
-		uint16_t		packet_length;
-		size_t			length;
-		size_t			total_length;
-		uint8_t			* ptr;
-		struct e_packet	* packet;
-		e_boolean_t		enabled;
+		int							index;
+		uint8_t					buffer[IRL_MSG_MAX_PACKET_SIZE];
+		uint16_t					packet_type;
+		uint16_t					packet_length;
+		size_t						length;
+		size_t						total_length;
+		uint8_t					* ptr;
+		struct e_packet		* packet;
+		e_boolean_t			enabled;
 	} receive_packet;
 
 	struct e_packet		data_packet;
-	int					callback_event;
+	int							callback_event;
+	int							return_code;
 
 };
 
 
-#if 1
 #define GET_RX_KEEPALIVE(x) *((uint16_t *)(((IrlSetting_t *)(x))->config.data[IRL_CONFIG_RX_KEEPALIVE]))
 #define GET_TX_KEEPALIVE(x) *((uint16_t *)(((IrlSetting_t *)(x))->config.data[IRL_CONFIG_TX_KEEPALIVE]))
 #define GET_WAIT_COUNT(x) 	*((uint8_t *)(((IrlSetting_t *)(x))->config.data[IRL_CONFIG_WAIT_COUNT]))
-#endif
 
-int irl_add_facility(IrlSetting_t * irl_ptr, void * user_data, unsigned facility_id, void * facility_data, irl_facility_process_cb_t process_cb);
-IrlFacilityHandle_t * irl_get_facility_handle(IrlSetting_t * irl_ptr, void * user_data);
-int irl_del_facility_handle(IrlSetting_t * irl_ptr, void * user_data);
-int irl_add_facility_handle(IrlSetting_t * irl_ptr, void * user_data, IrlFacilityHandle_t ** fac_handle);
 
 void irl_init_setting(IrlSetting_t * irl_ptr);
-int irl_edp_configuration_layer(IrlSetting_t * irl_ptr);
 
 #ifdef __cplusplus
 extern "C"
