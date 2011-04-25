@@ -26,6 +26,7 @@
 #include "config_intf.h"
 #include "network_intf.h"
 #include  "os_intf.h"
+#include "layer.h"
 
 #define IS_NETWORK_BUSY_CONFIG(x)	(((x) == IRL_CONFIG_CLOSE) || ((x) == IRL_DISCONNECTED) || ((x) == IRL_REDIRECT))
 #define NETWORK_BUSY_FLAG(x)		((((x) == IRL_CONFIG_CLOSE) ? 0x01 : 0) | (((x) == IRL_DISCONNECTED) ? 0x02 : 0) | (((x) == IRL_REDIRECT) ? 0x04 : 0))
@@ -33,12 +34,12 @@
 /* Error Status callback */
 IrlStatus_t irl_error_status(irl_callback_t callback, unsigned config_id, int status)
 {
-    IrlErrorStatus_t err;
+	IrlErrorStatus_t err;
 
-    err.config_id = config_id;
-    err.status = status;
+	err.config_id = config_id;
+	err.status = status;
 
-    return callback(IRL_ERROR_STATUS, &err);
+	return callback(IRL_ERROR_STATUS, &err);
 }
 
 IrlStatus_t irl_get_config(IrlSetting_t * irl_ptr, unsigned config_id, void * data)
@@ -57,70 +58,36 @@ IrlStatus_t irl_get_config(IrlSetting_t * irl_ptr, unsigned config_id, void * da
 	return status;
 }
 
-unsigned irl_edp_init_config_ids[] = {
-		IRL_CONFIG_SERVER_URL, IRL_CONFIG_TX_KEEPALIVE, IRL_CONFIG_RX_KEEPALIVE, IRL_CONFIG_WAIT_COUNT,
-};
-
-int irl_edp_configuration_layer(IrlSetting_t * irl_ptr)
+int  irl_check_config_null(IrlSetting_t *irl_ptr, unsigned config_id)
 {
-	int 		rc = IRL_SUCCESS;
-	unsigned	config_id;
-	IrlStatus_t	status;
+	IrlStatus_t		status;
+	int				rc = IRL_SUCCESS;
 
-	DEBUG_TRACE("irl_edp_init: INIT\n");
-	if (irl_ptr->layer_state == IRL_LAYER_INIT)
+	if (irl_ptr->config.data[config_id] == NULL)
 	{
-		DEBUG_TRACE("--- getting config id\n");
-		while(irl_ptr->config.id < (sizeof irl_edp_init_config_ids/ sizeof irl_edp_init_config_ids[0]))
+		status =  irl_error_status(irl_ptr->callback, config_id, IRL_INVALID_DATA);
+		if (status == IRL_STATUS_CONTINUE)
 		{
-			config_id = irl_edp_init_config_ids[irl_ptr->config.id];
-
-			status = irl_get_config(irl_ptr, config_id, &irl_ptr->config.data[config_id]);
-
-			if (status == IRL_STATUS_CONTINUE)
-			{
-				irl_ptr->config.id++;
-			}
-			else if (status != IRL_STATUS_BUSY)
-			{
-				rc = IRL_CONFIG_ERR;
-				goto _ret;
-			}
-			/* Should be wait here */
+			/* continue calling the callback */
+			rc = IRL_BUSY;
 		}
-		irl_ptr->layer_state = IRL_LAYER_CONNECT;
+		else
+		{
+			rc = IRL_CONFIG_ERR;
+		}
 	}
 
-	if (irl_ptr->layer_state == IRL_LAYER_CONNECT)
-	{
-		char * server_url;
-
-		config_id = IRL_CONFIG_SERVER_URL;
-		server_url = irl_ptr->config.data[config_id];
-
-		DEBUG_TRACE("--- connecting server = %s\n", server_url);
-		rc = irl_connect_server(irl_ptr, server_url, IRL_MT_PORT);
-
-		if (rc == IRL_BUSY)
-		{
-			rc = IRL_SUCCESS;
-		}
-
-		irl_set_edp_state(irl_ptr, IRL_COMMUNICATION_LAYER);
-	}
-
-_ret:
 	return rc;
-
 }
+
 
 unsigned irl_get_select_set(IrlSetting_t * irl_ptr)
 {
-	unsigned set = irl_network_read_t_SET | IRL_NETWORK_TIMEOUT_SET; /* always receive (waiting data from server) */
+	unsigned set = IRL_NETWORK_READ_SET | IRL_NETWORK_TIMEOUT_SET; /* always receive (waiting data from server) */
 
 	if (irl_ptr->send_packet.total_length > 0)
 	{
-		set |= irl_network_write_t_SET;
+		set |= IRL_NETWORK_WRITE_SET;
 	}
 	if (irl_ptr->callback_event)
 	{
@@ -130,13 +97,13 @@ unsigned irl_get_select_set(IrlSetting_t * irl_ptr)
 	return set;
 }
 
-IrlFacilityHandle_t * irl_get_facility_handle(IrlSetting_t * irl_ptr, void * user_data)
+IrlFacilityHandle_t * irl_get_facility_handle(IrlSetting_t * irl_ptr, unsigned facility_id)
 {
 	IrlFacilityHandle_t	* fac_ptr, * rc_fac = NULL;
 
 	for (fac_ptr = irl_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
 	{
-		if (fac_ptr->user_data == user_data)
+		if (fac_ptr->facility_id == facility_id)
 		{
 			rc_fac = fac_ptr;
 			break;
@@ -146,14 +113,14 @@ IrlFacilityHandle_t * irl_get_facility_handle(IrlSetting_t * irl_ptr, void * use
 	return rc_fac;
 }
 
-int irl_del_facility_handle(IrlSetting_t * irl_ptr, void * user_data)
+int irl_del_facility_handle(IrlSetting_t * irl_ptr, unsigned facility_id)
 {
 	int								rc = IRL_SUCCESS;
 	IrlFacilityHandle_t	* fac_ptr, * fac_ptr1 = NULL, * next_ptr;
 
 	for (fac_ptr = irl_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
 	{
-		if (fac_ptr->user_data == user_data)
+		if (fac_ptr->facility_id == facility_id)
 		{
 			next_ptr = fac_ptr->next;
 
@@ -177,12 +144,12 @@ int irl_del_facility_handle(IrlSetting_t * irl_ptr, void * user_data)
 	return rc;
 }
 
-int irl_add_facility_handle(IrlSetting_t * irl_ptr, void * user_data, IrlFacilityHandle_t ** fac_handle)
+int irl_add_facility_handle(IrlSetting_t * irl_ptr, unsigned facility_id, IrlFacilityHandle_t ** fac_handle)
 {
 	int								rc = IRL_SUCCESS;
 	IrlFacilityHandle_t	* fac_ptr;
 
-	fac_ptr = irl_get_facility_handle(irl_ptr, user_data);
+	fac_ptr = irl_get_facility_handle(irl_ptr, facility_id);
 
 	if (fac_ptr == NULL)
 	{
@@ -199,11 +166,12 @@ int irl_add_facility_handle(IrlSetting_t * irl_ptr, void * user_data, IrlFacilit
 		}
 
 		fac_ptr->facility_enalble_function	= NULL;
-		fac_ptr->user_data 					= user_data;
-		fac_ptr->facility_data				= NULL;
-		fac_ptr->process_function 			= NULL;
-		fac_ptr->state						= IRL_FACILITY_INIT;
-		fac_ptr->next 						= irl_ptr->facility_list;
+		fac_ptr->facility_id				            = facility_id;
+		fac_ptr->facility_data				        = NULL;
+		fac_ptr->process_function 		    	= NULL;
+		fac_ptr->state						            = IRL_FACILITY_INIT;
+		fac_ptr->packet                              = NULL;
+		fac_ptr->next 						            = irl_ptr->facility_list;
 
 		irl_ptr->facility_list = fac_ptr;
 	}
@@ -217,14 +185,14 @@ _ret:
 int irl_add_facility(IrlSetting_t * irl_ptr, void * user_data, unsigned facility_id, void * facility_data, irl_facility_process_cb_t process_cb)
 {
 	int 							rc = IRL_INIT_ERR;
-	IrlFacilityHandle_t	* fac_ptr;
+	IrlFacilityHandle_t	* fac_ptr = NULL;
 
-	fac_ptr = irl_get_facility_handle(irl_ptr, user_data);
+	rc = irl_add_facility_handle(irl_ptr, facility_id, &fac_ptr);
 
 	if (fac_ptr != NULL)
 	{
-		DEBUG_TRACE("irl_add_facility: add facility 0x%x\n", facility_id);
-		fac_ptr->facility_id = facility_id;
+		DEBUG_PRINTF("irl_add_facility: add facility 0x%x\n", facility_id);
+		fac_ptr->user_data = user_data;
 		fac_ptr->facility_data = facility_data;
 		fac_ptr->process_function = process_cb;
 		rc = IRL_SUCCESS;
@@ -237,15 +205,15 @@ int irl_add_facility(IrlSetting_t * irl_ptr, void * user_data, unsigned facility
 #if 0
 int irl_get_device_id(IrlSetting_t * irl_ptr, uint8_t * device_id)
 {
-    unsigned    	config_id;
-    int				rc = IRL_CONFIG_ERR;
+	unsigned		config_id;
+	int				rc = IRL_CONFIG_ERR;
 
 	config_id = IRL_CONFIG_DEVICE_ID;
 	if (irl_get_config(irl_ptr, config_id, device_id) == IRL_STATUS_CONTINUE)
 	{
 		rc = IRL_SUCCESS;
 
-		DEBUG_TRACE("irl_get_device_id: device_id = %02x%02x%02x%02x-%02x%02x%02x%02x-%02x%02x%02x%02x-%02x%02x%02x%02x\n",
+		DEBUG_PRINTF("irl_get_device_id: device_id = %02x%02x%02x%02x-%02x%02x%02x%02x-%02x%02x%02x%02x-%02x%02x%02x%02x\n",
 				(unsigned)device_id[0], (unsigned)device_id[1],
 				(unsigned)device_id[2], (unsigned)device_id[3],
 				(unsigned)device_id[4], (unsigned)device_id[5],
@@ -261,14 +229,14 @@ int irl_get_device_id(IrlSetting_t * irl_ptr, uint8_t * device_id)
 
 int irl_get_vendor_id(IrlSetting_t * irl_ptr, uint8_t * vendor_id)
 {
-    unsigned    	config_id;
-    int				rc = IRL_CONFIG_ERR;
+	unsigned		config_id;
+	int				rc = IRL_CONFIG_ERR;
 
 	config_id = IRL_CONFIG_VENDOR_ID;
 	if (irl_get_config(irl_ptr, config_id, vendor_id) == IRL_STATUS_CONTINUE)
 	{
 		rc = IRL_SUCCESS;
-		DEBUG_TRACE("irl_get_vendor_id: vendor_id = %02x%02x%02x%02x\n",
+		DEBUG_PRINTF("irl_get_vendor_id: vendor_id = %02x%02x%02x%02x\n",
 				(unsigned)vendor_id[0], (unsigned)vendor_id[1],
 				(unsigned)vendor_id[2], (unsigned)vendor_id[3]);
 	}
@@ -288,7 +256,7 @@ int irl_get_device_type(IrlSetting_t * irl_ptr, char ** device_type)
 	{
 		rc = IRL_SUCCESS;
 
-		DEBUG_TRACE("irl_get_device_type: device_type = %s\n", *device_type);
+		DEBUG_PRINTF("irl_get_device_type: device_type = %s\n", *device_type);
 	}
 
 	return rc;
@@ -307,7 +275,7 @@ int irl_get_server_url(IrlSetting_t * irl_ptr, char ** server_url)
 	{
 		rc = IRL_SUCCESS;
 
-		DEBUG_TRACE("irl_get_server_url: server_url = %s\n", *server_url);
+		DEBUG_PRINTF("irl_get_server_url: server_url = %s\n", *server_url);
 	}
 
 	return rc;
@@ -324,7 +292,7 @@ int irl_get_tx_keepalive(IrlSetting_t * irl_ptr, uint16_t * keepalive)
 	if (status == IRL_STATUS_CONTINUE)
 	{
 		rc = IRL_SUCCESS;
-		DEBUG_TRACE("irl_get_tx_keepalive: tx_keepalive interval = %d\n", *keepalive);
+		DEBUG_PRINTF("irl_get_tx_keepalive: tx_keepalive interval = %d\n", *keepalive);
 	}
 
 	return rc;
@@ -341,7 +309,7 @@ int irl_get_rx_keepalive(IrlSetting_t * irl_ptr, uint16_t * keepalive)
 	if (status == IRL_STATUS_CONTINUE)
 	{
 		rc = IRL_SUCCESS;
-		DEBUG_TRACE("irl_get_rx_keepalive: rx_keepalive interval = %d\n", *keepalive);
+		DEBUG_PRINTF("irl_get_rx_keepalive: rx_keepalive interval = %d\n", *keepalive);
 	}
 
 	return rc;
@@ -359,7 +327,7 @@ int irl_get_wait_count(IrlSetting_t * irl_ptr, uint8_t * wait_count)
 	if (status == IRL_STATUS_CONTINUE)
 	{
 		rc = IRL_SUCCESS;
-		DEBUG_TRACE("irl_get_wait_count: wait_count = %d\n", *wait_count);
+		DEBUG_PRINTF("irl_get_wait_count: wait_count = %d\n", *wait_count);
 	}
 
 	return rc;
@@ -377,7 +345,7 @@ int irl_get_password(IrlSetting_t * irl_ptr, char ** password)
 	if (status == IRL_STATUS_CONTINUE)
 	{
 		rc = IRL_SUCCESS;
-		DEBUG_TRACE("irl_get_password: password = %s\n", *password);
+		DEBUG_PRINTF("irl_get_password: password = %s\n", *password);
 	}
 
 	return rc;
