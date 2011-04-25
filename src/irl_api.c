@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include "irl_def.h"
 #include "os_intf.h"
+#include "layer.h"
 #include "network_intf.h"
 #include "irl_cc.h"
 
@@ -90,15 +91,15 @@ void irl_init_setting(IrlSetting_t * irl_ptr)
  *
  *
  */
-int irl_start(unsigned long handle, IrlData_t const * data)
+int irl_task(unsigned long handle, IrlData_t const * data)
 {
-    int         	rc = IRL_SUCCESS;
-    IrlSetting_t   	* irl_handle = (IrlSetting_t *)handle;
+	int					rc = IRL_SUCCESS;
+	IrlSetting_t		* irl_handle = (IrlSetting_t *)handle;
 	int				sent_status = IRL_NETWORK_BUFFER_COMPLETE;
 	unsigned		i;
 
-	IrlFacilityHandle_t	* fac_ptr;
-   irl_edp_state_cb	state_function;
+	// IrlFacilityHandle_t	* fac_ptr;
+	irl_edp_state_cb	state_function;
 
 	if (!irl_validate_handle(handle) ||
 		irl_handle->active_state == IRL_HANDLE_INACTIVE)
@@ -117,27 +118,15 @@ int irl_start(unsigned long handle, IrlData_t const * data)
 		{
 			i = irl_handle->active_facility_idx;
 
-			rc = irl_add_facility_handle(irl_handle, data->facility_list[i].user_data, &fac_ptr);
-
-			if (rc != IRL_SUCCESS)
+			if (data->facility_list[i].facility_enalble_function != NULL)
 			{
-				goto _ret;
-			}
-
-			if (fac_ptr->state == IRL_FACILITY_INIT)
-			{
-				fac_ptr->facility_enalble_function = data->facility_list[i].facility_enalble_function;
-
-				if (fac_ptr->facility_enalble_function != NULL)
+				rc = data->facility_list[i].facility_enalble_function((unsigned long)irl_handle, data->facility_list[i].user_data);
+				if (rc != IRL_SUCCESS)
 				{
-					rc = fac_ptr->facility_enalble_function((unsigned long)irl_handle, fac_ptr->user_data);
-					if (rc != IRL_SUCCESS)
-					{
-						goto _ret;
-					}
+					goto _ret;
 				}
-				fac_ptr->state = IRL_FACILITY_INIT_DONE;
 			}
+
 			irl_handle->active_facility_idx++;
 		}
 
@@ -154,7 +143,7 @@ int irl_start(unsigned long handle, IrlData_t const * data)
 
 	if (irl_handle->edp_state >= (int)(sizeof gIrlEdpStateCallback / sizeof gIrlEdpStateCallback[0]))
 	{
-		DEBUG_TRACE("irl_start: invalid state %d\n", irl_handle->edp_state);
+		DEBUG_PRINTF("irl_task: invalid state %d\n", irl_handle->edp_state);
 		rc = IRL_STATE_ERR;
 		goto _ret;
 	}
@@ -162,9 +151,9 @@ int irl_start(unsigned long handle, IrlData_t const * data)
 
 	rc = irl_send_packet_status(irl_handle, &sent_status);
 
-	if (sent_status != IRL_NETWORK_BUFFER_COMPLETE)
+	if (rc != IRL_SUCCESS && sent_status != IRL_NETWORK_BUFFER_COMPLETE)
 	{
-		DEBUG_TRACE("irl_start: send pending\n");
+		DEBUG_PRINTF("irl_task: send status returns %d status = %d\n", rc, sent_status);
 		goto _ret;
 	}
 
@@ -172,28 +161,52 @@ int irl_start(unsigned long handle, IrlData_t const * data)
 	rc = state_function(irl_handle);
 
 _ret:
-	if (rc == IRL_BUSY)
+	if ((rc < 0 && rc != IRL_BUSY) || irl_handle->edp_state == IRL_DONE)
 	{
-		rc = IRL_SUCCESS;
-	}
-	else if (rc < 0)
-	{
-		if (irl_close(irl_handle) != IRL_SUCCESS)
+	    int ccode;
+
+	    irl_handle->edp_state = IRL_DONE;
+	    irl_handle->return_code = rc;
+
+		ccode = irl_close(irl_handle);
+
+		if (ccode == IRL_BUSY)
+		{
+			rc = IRL_BUSY;
+		}
+		else 	if (ccode != IRL_SUCCESS)
 		{
 			rc = IRL_CLOSE_ERR;
 		}
-		if (irl_handle->active_state == IRL_HANDLE_TERMINATE)
 		{
-			DEBUG_TRACE("irl_start: IRL_HANDLE_TERMINATE\n");
-			irl_handle->active_state = IRL_HANDLE_INACTIVE;
-		}
-		else
-		{
-			DEBUG_TRACE("irl_start: IRL_HANDLE_STOP\n");
-			irl_handle->active_state = IRL_HANDLE_ACTIVE;
+
+			ccode = irl_clean_facility_packet(irl_handle);
+			if (ccode != IRL_SUCCESS)
+			{
+				rc = ccode;
+			}
+			else
+			{
+
+				rc = irl_handle->return_code;
+
+				irl_init_setting(irl_handle);
+
+
+				if (irl_handle->active_state == IRL_HANDLE_TERMINATE)
+				{
+					DEBUG_PRINTF("irl_task: IRL_HANDLE_TERMINATE\n");
+					irl_handle->active_state = IRL_HANDLE_INACTIVE;
+				}
+				else
+				{
+					DEBUG_PRINTF("irl_task: IRL_HANDLE_STOP\n");
+					irl_handle->active_state = IRL_HANDLE_ACTIVE;
+				}
+			}
 		}
 	}
-    return rc;
+	return rc;
 }
 
 /*
@@ -201,38 +214,52 @@ _ret:
  * from callback. It returns IRL handle and IRL is ready to start.
  *
  * @param callback		callback for EDP configurations, network interface,
- * 						and operating system interface.
+ * 									and operating system interface.
  *
- * @return 0x0			Unable to initialize IRL or error is found.
+ * @return 0x0				Unable to initialize IRL or error is found.
  * @return handler		IRL Handler used throughout IRL API.
  *
  */
 unsigned long irl_init(irl_callback_t callback)
 {
-    IrlSetting_t   	* irl_handle = NULL;
-    int 					status = IRL_SUCCESS;
-    unsigned				i;
+	IrlSetting_t   	* irl_handle = NULL;
+	int 				status = IRL_SUCCESS;
+	unsigned	i;
+	unsigned	config_id;
 
-    unsigned irl_init_config_ids[] = {
-    		IRL_CONFIG_DEVICE_ID, IRL_CONFIG_VENDOR_ID, IRL_CONFIG_DEVICE_TYPE
-    };
+	unsigned irl_init_config_ids[] = {
+			IRL_CONFIG_DEVICE_ID, IRL_CONFIG_VENDOR_ID, IRL_CONFIG_DEVICE_TYPE
+	};
 
-    if (gIrlDataCount < IRL_MAX_IRL_HANDLE && callback != NULL)
-    {
-    	/* get the IRL setting */
-    	irl_handle = &gIrlData[gIrlDataCount];
-    	gIrlDataCount++;
-    	irl_init_setting(irl_handle); /* set irl setting to initial values */
+	if (gIrlDataCount < IRL_MAX_IRL_HANDLE && callback != NULL)
+	{
+		/* get the IRL setting */
+		irl_handle = &gIrlData[gIrlDataCount];
+		gIrlDataCount++;
+		irl_init_setting(irl_handle); /* set irl setting to initial values */
 
 
 		irl_handle->callback = (irl_callback_t)callback;
 		i = 0;
 
-		while (i < (sizeof irl_init_config_ids/sizeof irl_init_config_ids[0]) && status == IRL_SUCCESS)
+		while (i < (sizeof irl_init_config_ids/sizeof irl_init_config_ids[0]) && status == IRL_STATUS_CONTINUE)
 		{
 			/* get initial configurations */
+			config_id = irl_init_config_ids[i];
+
 			do {
-				status = irl_get_config(irl_handle, irl_init_config_ids[i], &irl_handle->config.data[irl_init_config_ids[i]]);
+				status = irl_get_config(irl_handle, irl_init_config_ids[i], &irl_handle->config.data[config_id]);
+
+				if (status == IRL_STATUS_CONTINUE && irl_handle->config.data[config_id] == NULL)
+				{
+					status =  irl_error_status(irl_handle->callback, config_id, IRL_INVALID_DATA);
+					if (status == IRL_STATUS_CONTINUE)
+					{
+						/* continue calling the callback */
+						status = IRL_STATUS_BUSY;
+					}
+				}
+
 				/* wait here ??? */
 			} while (status == IRL_STATUS_BUSY);
 
@@ -240,13 +267,12 @@ unsigned long irl_init(irl_callback_t callback)
 		}
 	}
 
-    if (status != IRL_SUCCESS && irl_handle != NULL)
-    {
-    	irl_handle->active_state = IRL_HANDLE_INACTIVE;
+	{
+		irl_handle->active_state = IRL_HANDLE_INACTIVE;
 		gIrlDataCount--;
 		irl_handle = NULL;
-    }
-    return (unsigned long) irl_handle;
+	}
+	return (unsigned long) irl_handle;
 }
 
 
