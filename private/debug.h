@@ -28,9 +28,9 @@
 #include "idk_def.h"
 
 struct malloc_stats_t {
-	void  * ptr;
-	size_t length;
-	struct malloc_stats_t * next;
+    void  * ptr;
+    size_t length;
+    struct malloc_stats_t * next;
 };
 
 size_t gMallocLength = 0;
@@ -38,54 +38,54 @@ struct malloc_stats_t * gMallocStats = NULL;
 
 static void add_malloc_stats(void * ptr, size_t length)
 {
-	struct malloc_stats_t	* pMalloc;
+    struct malloc_stats_t   * pMalloc;
 
-	pMalloc = (struct malloc_stats_t *)malloc(sizeof(struct malloc_stats_t));
-	if (pMalloc != NULL)
-	{
-		pMalloc->ptr = ptr;
-		pMalloc->length = length;
-		pMalloc->next = gMallocStats;
+    pMalloc = (struct malloc_stats_t *)malloc(sizeof(struct malloc_stats_t));
+    if (pMalloc != NULL)
+    {
+        pMalloc->ptr = ptr;
+        pMalloc->length = length;
+        pMalloc->next = gMallocStats;
 
-		gMallocStats = pMalloc;
+        gMallocStats = pMalloc;
 
-		gMallocLength += length;
+        gMallocLength += length;
 
-	}
-	else
-	{
-		DEBUG_PRINTF("add_malloc_stats: malloc failed\n");
-	}
+    }
+    else
+    {
+        DEBUG_PRINTF("add_malloc_stats: malloc failed\n");
+    }
 }
 
 static void del_malloc_stats(void * ptr)
 {
-	struct malloc_stats_t	* pMalloc, * pMalloc1 = NULL;
+    struct malloc_stats_t   * pMalloc, * pMalloc1 = NULL;
 
-	for (pMalloc = gMallocStats; pMalloc != NULL; pMalloc = pMalloc->next)
-	{
-		if (pMalloc->ptr == ptr)
-		{
-			if (pMalloc1 != NULL)
-			{
-				pMalloc1->next = pMalloc->next;
-			}
-			if (pMalloc == gMallocStats)
-			{
-				gMallocStats = pMalloc->next;
-			}
+    for (pMalloc = gMallocStats; pMalloc != NULL; pMalloc = pMalloc->next)
+    {
+        if (pMalloc->ptr == ptr)
+        {
+            if (pMalloc1 != NULL)
+            {
+                pMalloc1->next = pMalloc->next;
+            }
+            if (pMalloc == gMallocStats)
+            {
+                gMallocStats = pMalloc->next;
+            }
 
-			gMallocLength -= pMalloc->length;
-			free(pMalloc);
-			break;
-		}
-		pMalloc1 = pMalloc;
-	}
+            gMallocLength -= pMalloc->length;
+            free(pMalloc);
+            break;
+        }
+        pMalloc1 = pMalloc;
+    }
 
-	if (pMalloc == NULL)
-	{
-		DEBUG_PRINTF("del_malloc_stats: free invalid pointer\n");
-	}
+    if (pMalloc == NULL)
+    {
+        DEBUG_PRINTF("del_malloc_stats: free invalid pointer\n");
+    }
 }
 #else
 #define add_malloc_stats(ptr, size)

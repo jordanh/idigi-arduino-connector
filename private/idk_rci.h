@@ -22,41 +22,41 @@
  * =======================================================================
  *
  */
-#include <string.h>
+//#include <string.h>
 
-#include "idk_def.h"
-#include "ei_msg.h"
-#include "ei_security.h"
+//#include "idk_def.h"
+//#include "ei_msg.h"
+//#include "ei_security.h"
 //#include "bele.c"
 
 
 char * no_query_state_response = "<rci_replay version=\"1.1\"> <query_state/> </rci_reply>";
-idk_status_t rci_process_function(idk_data_t * idk_ptr, idk_facility_t * fac_ptr, idk_facility_packet_t * p)
+static idk_status_t rci_process_function(idk_data_t * idk_ptr, idk_facility_t * fac_ptr, idk_facility_packet_t * p)
 {
-	idk_status_t rc = idk_success;
-	idk_facility_packet_t	* pkt;
-	uint8_t				* buf, * data_ptr;
-	uint32_t			length;
+    idk_status_t rc = idk_success;
+    idk_facility_packet_t   * pkt;
+    uint8_t             * buf, * data_ptr;
+    uint32_t            length;
 
-	(void)fac_ptr;
-	(void)p;
+    (void)fac_ptr;
+    (void)p;
 
-	DEBUG_PRINTF("rci_process_function: fake response\n");
+    DEBUG_PRINTF("rci_process_function: fake response\n");
 
-	pkt = (idk_facility_packet_t *)idk_ptr->send_packet.buffer;
-	data_ptr = buf = IDK_PACKET_DATA_POINTER(pkt, sizeof(idk_facility_packet_t));
-	*buf++ = 0x04;
-	*buf++ = 0x00;
-	length = TO_BE32(strlen(no_query_state_response));
-	memcpy(buf, &length, sizeof length);
-	buf += sizeof length;
+    pkt = (idk_facility_packet_t *)idk_ptr->send_packet.buffer;
+    data_ptr = buf = IDK_PACKET_DATA_POINTER(pkt, sizeof(idk_facility_packet_t));
+    *buf++ = 0x04;
+    *buf++ = 0x00;
+    length = TO_BE32(strlen(no_query_state_response));
+    memcpy(buf, &length, sizeof length);
+    buf += sizeof length;
 
-	/* now add this target to the target list message */
-	memcpy(buf, no_query_state_response, strlen(no_query_state_response));
-	buf += strlen(no_query_state_response);
-	pkt->length = buf - data_ptr;
+    /* now add this target to the target list message */
+    memcpy(buf, no_query_state_response, strlen(no_query_state_response));
+    buf += strlen(no_query_state_response);
+    pkt->length = buf - data_ptr;
 
-	rc = net_enable_facility_packet(idk_ptr, E_MSG_FAC_RCI_NUM, SECURITY_PROTO_NONE);
+    rc = net_enable_facility_packet(idk_ptr, E_MSG_FAC_RCI_NUM, SECURITY_PROTO_NONE);
 
-	return rc;
+    return rc;
 }

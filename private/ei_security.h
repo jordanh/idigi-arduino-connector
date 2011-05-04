@@ -29,7 +29,7 @@
  * ei_security.h   Copyright 2000-2003 Embrace Networks Inc.
  */
 
-#include "idk_types.h"
+//#include "idk_types.h"
 //#include "ei_packet.h"
 
 /**

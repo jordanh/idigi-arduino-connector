@@ -26,7 +26,7 @@
 #ifndef IDK_DEF_H_
 #define IDK_DEF_H_
 
-#include "idk_api.h"
+//#include "idk_api.h"
 #include "ei_packet.h"
 
 #ifdef __cplusplus
@@ -35,60 +35,60 @@ extern "C"
 #endif
 //#define DEBUG_PRINTF(...)
 
-#define DEBUG_PRINTF(...)		printf(__VA_ARGS__)
+#define DEBUG_PRINTF(...)       printf(__VA_ARGS__)
 
 
 #define IDK_MT_VERSION           2
 #define IDK_MT_PORT              3197
-#define IDK_MSG_MAX_PACKET_SIZE	1600
+#define IDK_MSG_MAX_PACKET_SIZE 1600
 
-#define IDK_DEVICE_TYPE_LENGTH	32
-#define IDK_DEVICE_ID_LENGTH	16
-#define IDK_VENDOR_ID_LENGTH	4
-#define IDK_SERVER_URL_LENGTH	255
-#define IDK_MAC_ADDR_LENGTH		6
-#define IDK_LINK_SPEED_LENGTH	4
+#define IDK_DEVICE_TYPE_LENGTH  32
+#define IDK_DEVICE_ID_LENGTH    16
+#define IDK_VENDOR_ID_LENGTH    4
+#define IDK_SERVER_URL_LENGTH   255
+#define IDK_MAC_ADDR_LENGTH     6
+#define IDK_LINK_SPEED_LENGTH   4
 
-#define IDK_RX_INTERVAL_MIN		5
-#define IDK_RX_INTERVAL_MAX		7200
-#define IDK_TX_INTERVAL_MIN		5
-#define IDK_TX_INTERVAL_MAX		7200
-#define IDK_WAIT_COUNT_MIN		2
-#define IDK_WAIT_COUNT_MAX		64
+#define IDK_RX_INTERVAL_MIN     5
+#define IDK_RX_INTERVAL_MAX     7200
+#define IDK_TX_INTERVAL_MIN     5
+#define IDK_TX_INTERVAL_MAX     7200
+#define IDK_WAIT_COUNT_MIN      2
+#define IDK_WAIT_COUNT_MAX      64
 
-#define IDK_MIN(x,y)		(((x) < (y))? (x): (y))
-#define IDK_MAX(x,y)		(((x) > (y))? (x): (y))
-#define IDK_MILLISECONDS			1000
+#define IDK_MIN(x,y)        (((x) < (y))? (x): (y))
+#define IDK_MAX(x,y)        (((x) > (y))? (x): (y))
+#define IDK_MILLISECONDS            1000
 
-#define  IDK_IS_SELECT_SET(x, y)		(x & y)
-#define  IDK_PACKET_DATA_POINTER(p, y)	(uint8_t *)((uint8_t *)p + y - sizeof(uint8_t *))
+#define  IDK_IS_SELECT_SET(x, y)        (x & y)
+#define  IDK_PACKET_DATA_POINTER(p, y)  (uint8_t *)((uint8_t *)p + y - sizeof(uint8_t *))
 
 /* IRL EDP States */
 typedef enum {
-	edp_init_layer,
-	edp_communication_layer,
-	edp_initialization_layer,
-	edp_security_layer,
-	edp_discovery_layer,
-	edp_facility_layer
+    edp_init_layer,
+    edp_communication_layer,
+    edp_initialization_layer,
+    edp_security_layer,
+    edp_discovery_layer,
+    edp_facility_layer
 } idk_edp_state_t;
 
 /* layer states */
 typedef enum {
-	layer_init_state,
-	layer_connect_state,
-	layer_redirect_state,
-	layer_communication_version_state,
-	layer_communication_ka_params_state,
-	layer_receive_data_state,
-	layer_security_device_id_state,
-	layer_security_server_url_state,
-	layer_security_password_state,
-	layer_discovery_device_type_state,
-	layer_discovery_facility_init_state,
-	layer_discovery_facility_state,
-	layer_discovery_complete_state,
-	layer_done_state
+    layer_init_state,
+    layer_connect_state,
+    layer_redirect_state,
+    layer_communication_version_state,
+    layer_communication_ka_params_state,
+    layer_receive_data_state,
+    layer_security_device_id_state,
+    layer_security_server_url_state,
+    layer_security_password_state,
+    layer_discovery_device_type_state,
+    layer_discovery_facility_init_state,
+    layer_discovery_facility_state,
+    layer_discovery_complete_state,
+    layer_done_state
 } idk_layer_state_t;
 
 struct idk_data;
@@ -105,29 +105,29 @@ typedef struct idk_facility {
 } idk_facility_t;
 
 typedef struct idk_data {
-	int active_state;
+    int active_state;
 
-	idk_callback_t callback;
+    idk_callback_t callback;
 
-	uint8_t * device_id;
-	uint8_t * vendor_id;
-	char * device_type;
-	char * server_url;
-	char * password;
-	int  request_id;
+    uint8_t * device_id;
+    uint8_t * vendor_id;
+    char * device_type;
+    char * server_url;
+    char * password;
+    int  request_id;
 
     uint16_t facilities;
     idk_network_handle_t * network_handle;
 
-	uint16_t	* tx_keepalive;
-	uint16_t	* rx_keepalive;
-	uint8_t  * wait_count;
-	uint32_t	rx_ka_time;
-	uint32_t	tx_ka_time;
+    uint16_t    * tx_keepalive;
+    uint16_t    * rx_keepalive;
+    uint8_t  * wait_count;
+    uint32_t    rx_ka_time;
+    uint32_t    tx_ka_time;
 
 
-//	uint8_t			current_wait_count;
-	uint8_t security_form;
+//  uint8_t         current_wait_count;
+    uint8_t security_form;
 
    idk_edp_state_t edp_state;
    idk_layer_state_t layer_state;
@@ -139,22 +139,22 @@ typedef struct idk_data {
    idk_facility_t * facility_list;
 
    struct {
-		uint8_t buffer[IDK_MSG_MAX_PACKET_SIZE];
-		uint8_t * ptr;
-		size_t length;
-		size_t total_length;
-	} send_packet;
+        uint8_t buffer[IDK_MSG_MAX_PACKET_SIZE];
+        uint8_t * ptr;
+        size_t length;
+        size_t total_length;
+    } send_packet;
 
-	struct {
-		int index;
-		uint8_t buffer[IDK_MSG_MAX_PACKET_SIZE];
-		uint8_t * ptr;
-		uint16_t	packet_type;
-		uint16_t	packet_length;
-		size_t length;
-		size_t total_length;
-		idk_packet_t * data_packet;
-	} receive_packet;
+    struct {
+        int index;
+        uint8_t buffer[IDK_MSG_MAX_PACKET_SIZE];
+        uint8_t * ptr;
+        uint16_t    packet_type;
+        uint16_t    packet_length;
+        size_t length;
+        size_t total_length;
+        idk_packet_t * data_packet;
+    } receive_packet;
 
 } idk_data_t;
 
