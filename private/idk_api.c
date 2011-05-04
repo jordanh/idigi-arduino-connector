@@ -22,257 +22,190 @@
  * =======================================================================
  *
  */
-#include <stdio.h>
-#include "irl_def.h"
+#include "idk_def.h"
+#include "bele.h"
 #include "os_intf.h"
-#include "layer.h"
 #include "network_intf.h"
-#include "irl_cc.h"
+#include "idk_cc.h"
+#include "idk_fw.h"
+#include "layer.h"
 
-#define IRL_MAX_IRL_HANDLE	1
-
-IrlSetting_t 	gIrlData[IRL_MAX_IRL_HANDLE];
-unsigned				gIrlDataCount = 0;
-
-/* main edp state processes called by start function */
-typedef int (* irl_edp_state_cb)(IrlSetting_t * irl_ptr);
-
-irl_edp_state_cb gIrlEdpStateCallback[] = {
-	irl_edp_configuration_layer,
-	irl_communication_layer,
-	irl_initialization_layer,
-	irl_security_layer,
-	irl_discovery_layer,
-	irl_facility_layer
+enum {
+	idk_device_started,
+	idk_device_stop,
+	idk_device_terminate
 };
+#define IDK_MAX_IDK_HANDLE	1
+
+static idk_data_t * idkData = NULL;
 
 
-e_boolean_t irl_validate_handle(unsigned long handle)
+idk_status_t idk_step(idk_handle_t const handle)
 {
-	unsigned    i;
-	e_boolean_t rc = FALSE;
+	idk_status_t rc = idk_success;
+	idk_data_t * idk_handle = (idk_data_t *)handle;
+	int sent_status = IDK_NETWORK_BUFFER_COMPLETE;
 
-	for (i=0; i < gIrlDataCount; i++)
+	if (idk_handle != NULL || idk_handle->active_state != idk_device_started)
 	{
-		if (handle == (unsigned)&gIrlData[i])
+		rc = idk_init_error;
+		goto _ret;
+	}
+
+
+    if (idk_handle->edp_connected)
+    {
+    	rc = net_send_packet(idk_handle, &sent_status);
+    	if (rc != idk_success)
+	    {
+    		DEBUG_PRINTF("idk_task: send status returns %d\n", rc);
+	    	goto _ret;
+	    }
+    }
+
+    if (sent_status == IDK_NETWORK_BUFFER_COMPLETE)
+    {
+		switch (idk_handle->edp_state)
 		{
-			rc = TRUE;
+		case edp_init_layer:
+			rc = configuration_layer(idk_handle);
 			break;
-		}
-	}
-
-	return rc;
-}
-
-
-void irl_init_setting(IrlSetting_t * irl_ptr)
-{
-   	irl_ptr->active_state = IRL_HANDLE_ACTIVE;
-	irl_ptr->active_facility_idx = 0;
-	irl_ptr->active_facility = NULL;
-	irl_ptr->connection.socket_fd = -1;
-	irl_ptr->edp_state = IRL_INIT;
-	irl_ptr->config.id = 0;
-	irl_ptr->layer_state = 0;
-
-}
-
-/* Starts and process IRL.
- *
- *
- *
- * @param handler		handler returned from irl_init.
- * @param data			Pointer to IRL data which includes all supported facilities.
- *
- * @return IRL_SUCCESS		Successfully process IRL. Application need to call this function
- * 							again to continue IRL.
- * @return not IRL_SUCCESS	Error is encountered and IRL has closed the connection. Applciation
- * 							may call this function to restart IRL or irl_stop to terminated IRL.
- *
- *
- */
-int irl_task(unsigned long handle, IrlData_t const * data)
-{
-	int					rc = IRL_SUCCESS;
-	IrlSetting_t		* irl_handle = (IrlSetting_t *)handle;
-	int				sent_status = IRL_NETWORK_BUFFER_COMPLETE;
-	unsigned		i;
-
-	// IrlFacilityHandle_t	* fac_ptr;
-	irl_edp_state_cb	state_function;
-
-	if (!irl_validate_handle(handle) ||
-		irl_handle->active_state == IRL_HANDLE_INACTIVE)
-	{
-		rc = IRL_INIT_ERR;
-		goto _ret;
-	}
-
-	if (irl_handle->edp_state == IRL_INIT)
-	{
-
-		irl_handle->edp_version = data->version;
-		irl_handle->facility_count = data->facility_count;
-
-		while (irl_handle->active_facility_idx < irl_handle->facility_count)
-		{
-			i = irl_handle->active_facility_idx;
-
-			if (data->facility_list[i].facility_enalble_function != NULL)
-			{
-				rc = data->facility_list[i].facility_enalble_function((unsigned long)irl_handle, data->facility_list[i].user_data);
-				if (rc != IRL_SUCCESS)
-				{
-					goto _ret;
-				}
-			}
-
-			irl_handle->active_facility_idx++;
-		}
-
-		if (irl_handle->active_facility_idx >= irl_handle->facility_count)
-		{
-			rc = irlEnable_ConnectionControl((unsigned long)irl_handle);
-			if (rc != IRL_SUCCESS)
-			{
-				goto _ret;
-			}
-			irl_handle->active_facility_idx = 0;
-		}
-	}
-
-	if (irl_handle->edp_state >= (int)(sizeof gIrlEdpStateCallback / sizeof gIrlEdpStateCallback[0]))
-	{
-		DEBUG_PRINTF("irl_task: invalid state %d\n", irl_handle->edp_state);
-		rc = IRL_STATE_ERR;
-		goto _ret;
-	}
-
-
-	rc = irl_send_packet_status(irl_handle, &sent_status);
-
-	if (rc != IRL_SUCCESS && sent_status != IRL_NETWORK_BUFFER_COMPLETE)
-	{
-		DEBUG_PRINTF("irl_task: send status returns %d status = %d\n", rc, sent_status);
-		goto _ret;
-	}
-
-	state_function = gIrlEdpStateCallback[irl_handle->edp_state];
-	rc = state_function(irl_handle);
+		case edp_communication_layer:
+			rc = communication_layer(idk_handle);
+			break;
+		case edp_initialization_layer:
+			rc = initialization_layer(idk_handle);
+			break;
+		case edp_security_layer:
+			rc = security_layer(idk_handle);
+			break;
+		case edp_discovery_layer:
+			rc = discovery_layer(idk_handle);
+			break;
+		case edp_facility_layer:
+			rc = facility_layer(idk_handle);
+			break;
+		};
+    }
 
 _ret:
-	if ((rc < 0 && rc != IRL_BUSY) || irl_handle->edp_state == IRL_DONE)
+	if (rc != idk_success)
 	{
-	    int ccode;
+		idk_callback_status_t status;
+		idk_request_t request_id;
 
-	    irl_handle->edp_state = IRL_DONE;
-	    irl_handle->return_code = rc;
+		do {
+			status = net_close(idk_handle);
 
-		ccode = irl_close(irl_handle);
-
-		if (ccode == IRL_BUSY)
-		{
-			rc = IRL_BUSY;
-		}
-		else 	if (ccode != IRL_SUCCESS)
-		{
-			rc = IRL_CLOSE_ERR;
-		}
-		{
-
-			ccode = irl_clean_facility_packet(irl_handle);
-			if (ccode != IRL_SUCCESS)
+			if (status == idk_callback_abort)
 			{
-				rc = ccode;
+				DEBUG_PRINTF("idk_task: net_close returns abort");
+				rc = idk_close_error;
 			}
-			else
+			else if (status == idk_callback_busy)
 			{
-
-				rc = irl_handle->return_code;
-
-				irl_init_setting(irl_handle);
-
-
-				if (irl_handle->active_state == IRL_HANDLE_TERMINATE)
-				{
-					DEBUG_PRINTF("irl_task: IRL_HANDLE_TERMINATE\n");
-					irl_handle->active_state = IRL_HANDLE_INACTIVE;
-				}
-				else
-				{
-					DEBUG_PRINTF("irl_task: IRL_HANDLE_STOP\n");
-					irl_handle->active_state = IRL_HANDLE_ACTIVE;
-				}
+				/* TODO: need to delay */
 			}
+		} while (status == idk_callback_busy);
+
+		init_setting(idk_handle);
+
+		if (idk_handle->active_state == idk_device_terminate)
+		{
+			rc = remove_facility_layer(idk_handle);
+			if (rc == idk_success)
+			{
+				rc = idk_device_terminated;
+			}
+
+        	request_id.base_request = idk_base_free;
+
+        	do {
+        		status = idk_handle->callback(idk_class_base, request_id, idk_handle, sizeof idk_handle, NULL, NULL);
+    			if (status == idk_callback_abort)
+    			{
+    				DEBUG_PRINTF("idk_task: net_close returns abort");
+    				rc = idk_configuration_error;
+    			}
+    			else if (status == idk_callback_busy)
+    			{
+    				/* TODO: need to delay */
+    			}
+    		} while (status == idk_callback_busy);
+
+            idkData = NULL;
+
 		}
 	}
 	return rc;
 }
 
-/*
- * Initializes IRL and get device ID, vendor ID and device type configurations
- * from callback. It returns IRL handle and IRL is ready to start.
- *
- * @param callback		callback for EDP configurations, network interface,
- * 									and operating system interface.
- *
- * @return 0x0				Unable to initialize IRL or error is found.
- * @return handler		IRL Handler used throughout IRL API.
- *
- */
-unsigned long irl_init(irl_callback_t callback)
+idk_handle_t idk_init(idk_callback_t callback)
 {
-	IrlSetting_t   	* irl_handle = NULL;
-	int 				status = IRL_SUCCESS;
-	unsigned	i;
-	unsigned	config_id;
+	idk_data_t * idk_handle = NULL;
+	idk_callback_status_t status = idk_callback_abort;
+    size_t length;
+	unsigned i;
+    void * data;
+    size_t size;
+    idk_request_t request_id;
 
-	unsigned irl_init_config_ids[] = {
-			IRL_CONFIG_DEVICE_ID, IRL_CONFIG_VENDOR_ID, IRL_CONFIG_DEVICE_TYPE
+	idk_base_request_t idk_base_request_ids[] = {
+			idk_base_device_id, idk_base_vendor_id, idk_base_device_type
 	};
 
-	if (gIrlDataCount < IRL_MAX_IRL_HANDLE && callback != NULL)
+
+	if (callback != NULL)
 	{
-		/* get the IRL setting */
-		irl_handle = &gIrlData[gIrlDataCount];
-		gIrlDataCount++;
-		irl_init_setting(irl_handle); /* set irl setting to initial values */
+        /* allocate idk data */
+        size = sizeof(idk_data_t);
 
+        request_id.base_request = idk_base_malloc;
+        status = callback(idk_class_base, request_id, &size, sizeof size, &idk_handle, NULL);
+        if (status == idk_callback_abort)
+        {
+            goto _ret;
+        }
 
-		irl_handle->callback = (irl_callback_t)callback;
-		i = 0;
+        idkData = idk_handle;
+		init_setting(idk_handle);
+		idk_handle->active_state = idk_device_started;
+		idk_handle->callback = (idk_callback_t)callback;
 
-		while (i < (sizeof irl_init_config_ids/sizeof irl_init_config_ids[0]) && status == IRL_STATUS_CONTINUE)
-		{
-			/* get initial configurations */
-			config_id = irl_init_config_ids[i];
+        /* get device id, vendor id, & device type */    
+        i = 0;
+        while (i < sizeof idk_base_request_ids/sizeof idk_base_request_ids[0])
+        {
+        	request_id.base_request = idk_base_request_ids[i];
+	        status = idk_handle->callback(idk_class_base, request_id, NULL, 0, &data, &length);
+            if (status == idk_callback_continue)
+            {
+                if ((idk_base_request_ids[i] == idk_base_device_id && length != IDK_DEVICE_ID_LENGTH) ||
+                    (idk_base_request_ids[i] == idk_base_vendor_id && length != IDK_VENDOR_ID_LENGTH) ||
+                    (idk_base_request_ids[i] == idk_base_device_type && length > IDK_DEVICE_TYPE_LENGTH))
+                {
+                    status = notify_error_status(callback, idk_class_base, request_id, idk_invalid_data_size);
+                }
+                else
+                {
+                    i++;
+                }
+            }
 
-			do {
-				status = irl_get_config(irl_handle, irl_init_config_ids[i], &irl_handle->config.data[config_id]);
+            if (status == idk_callback_abort)
+            {
+                DEBUG_PRINTF("idk_init: base class request id = %d callback aborts\n", idk_base_request_ids[i]);
+            	request_id.base_request = idk_base_free;
+            	callback(idk_class_base, request_id, idk_handle, sizeof idk_handle, NULL, NULL);
+                idk_handle = idkData = NULL;
+                break;
+            }
+        }
 
-				if (status == IRL_STATUS_CONTINUE && irl_handle->config.data[config_id] == NULL)
-				{
-					status =  irl_error_status(irl_handle->callback, config_id, IRL_INVALID_DATA);
-					if (status == IRL_STATUS_CONTINUE)
-					{
-						/* continue calling the callback */
-						status = IRL_STATUS_BUSY;
-					}
-				}
-
-				/* wait here ??? */
-			} while (status == IRL_STATUS_BUSY);
-
-			i++;
-		}
 	}
 
-	{
-		irl_handle->active_state = IRL_HANDLE_INACTIVE;
-		gIrlDataCount--;
-		irl_handle = NULL;
-	}
-	return (unsigned long) irl_handle;
+_ret:
+	return (idk_handle_t) idk_handle;
 }
 
 
@@ -280,38 +213,31 @@ unsigned long irl_init(irl_callback_t callback)
  *
  *
  *
- * @param handler		handler returned from irl_init.
- * @param stop_flag     IRL_STOP flag to stop IRL which IRL will disconnect iDigi server
+ * @param handler		handler returned from idk_init.
+ * @param stop_flag     IDK_STOP flag to stop IRL which IRL will disconnect iDigi server
  * 						and may be reconnect to iDigi server again.
- *						IRL_TERMINATE flag to terminate IRL which IRL will disconnect iDigi
+ *						IDK_TERMINATE flag to terminate IRL which IRL will disconnect iDigi
  *						server and free all memory used. IRL cannot be restart again unless
- *						irl_init is called again.
+ *						idk_init is called again.
  *
- * @return IRL_SUCCESS		IRL was successfully stopped or terminated.
- * @return IRL_INIT_ERR		Invalid handle
+ * @return idk_success		IRL was successfully stopped or terminated.
+ * @return IDK_INIT_ERR		Invalid handle
  *
  *
  */
-int irl_stop(unsigned long handle, unsigned stop_flag)
+idk_status_t idk_dispatch(idk_handle_t handle, idk_dispatch_request_t request, void * data)
 {
-	int 		rc = IRL_SUCCESS;
-    IrlSetting_t   * irl_handle = (IrlSetting_t *)handle;
+	idk_status_t rc = idk_success;
+	idk_data_t * idk_ptr = (idk_data_t *)handle;
 
-	if (!irl_validate_handle(handle))
+	switch (request)
 	{
-		rc = IRL_INIT_ERR;
-		goto _ret;
+	case idk_dispatch_terminate:
+		idk_ptr->active_state = idk_device_terminate;
+		break;
+	default:
+		break;
 	}
 
-	if (stop_flag == IRL_TERMINATE)
-	{
-		irl_handle->active_state = IRL_HANDLE_TERMINATE;
-	}
-	else if (irl_handle->active_state == IRL_HANDLE_ACTIVE)
-	{
-		irl_handle->active_state = IRL_HANDLE_STOP;
-
-	}
-_ret:
 	return rc;
 }
