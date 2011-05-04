@@ -37,7 +37,7 @@
 
 /*@{*/
 
-#include "e_types.h"
+#include "idk_types.h"
 
 /*
  * Embrace Device Protocol preallocation needs.
@@ -87,19 +87,24 @@ struct e_edp_header {
 typedef struct e_edp_header e_edp_header_t;
 #endif
 
-struct e_packet {
-	uint8_t	 type;
-	uint16_t length;
-//	uint16_t alloc_len;
-	uint8_t *buf;
-//	uint16_t pre_len;
-	uint8_t  sec_coding;
-//	void    *sec_cxn;
-//	e_edp_header_t edp_hdr;
-};
-typedef struct e_packet e_packet_t;
+typedef struct {
+	uint16_t	type;
+	uint16_t	length;
+//	uint8_t	* data;
+} idk_packet_t;
+
+typedef struct {
+	uint16_t	type;
+	uint16_t	length;
+	uint8_t		sec_coding;
+	uint8_t		disc_payload;
+	uint16_t	facility;
+	uint8_t		* data;
+} idk_facility_packet_t;
 
 #if 0
+typedef struct e_packet e_packet_t;
+
 struct e_packet_callback {
 	int (*func)(struct e_packet *, void *);
 	void *parm;

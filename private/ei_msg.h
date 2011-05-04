@@ -36,7 +36,7 @@
 
 /*@{*/
 
-#include "e_types.h"
+#include "idk_types.h"
 //#include "e_network.h"
 
 

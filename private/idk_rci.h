@@ -24,48 +24,39 @@
  */
 #include <string.h>
 
-#include "irl_rci.h"
+#include "idk_def.h"
 #include "ei_msg.h"
 #include "ei_security.h"
-#include "network_intf.h"
-#include "bele.h"
+//#include "bele.c"
 
-int rci_send(IrlSetting_t * irl_ptr, struct e_packet * p)
-{
-	int 	rc;
-
-	rc = irl_send_facility_layer(irl_ptr, p, E_MSG_FAC_RCI_NUM, SECURITY_PROTO_NONE);
-
-	return rc;
-}
 
 char * no_query_state_response = "<rci_replay version=\"1.1\"> <query_state/> </rci_reply>";
-int rci_process_function(IrlSetting_t * irl_ptr, IrlFacilityHandle_t * fac_ptr, struct e_packet * p)
+idk_status_t rci_process_function(idk_data_t * idk_ptr, idk_facility_t * fac_ptr, idk_facility_packet_t * p)
 {
-	int 				rc = IRL_SUCCESS;
-	struct e_packet		pkt;
-	uint8_t				* buf;
+	idk_status_t rc = idk_success;
+	idk_facility_packet_t	* pkt;
+	uint8_t				* buf, * data_ptr;
 	uint32_t			length;
 
 	(void)fac_ptr;
 	(void)p;
 
 	DEBUG_PRINTF("rci_process_function: fake response\n");
-	irl_send_packet_init(irl_ptr, &pkt, PKT_PRE_FACILITY);
 
-	buf = pkt.buf;
+	pkt = (idk_facility_packet_t *)idk_ptr->send_packet.buffer;
+	data_ptr = buf = IDK_PACKET_DATA_POINTER(pkt, sizeof(idk_facility_packet_t));
 	*buf++ = 0x04;
 	*buf++ = 0x00;
 	length = TO_BE32(strlen(no_query_state_response));
 	memcpy(buf, &length, sizeof length);
 	buf += sizeof length;
 
-		/* now add this target to the target list message */
+	/* now add this target to the target list message */
 	memcpy(buf, no_query_state_response, strlen(no_query_state_response));
 	buf += strlen(no_query_state_response);
-	pkt.length = buf - pkt.buf;
+	pkt->length = buf - data_ptr;
 
-	rc = rci_send(irl_ptr, &pkt);
+	rc = net_enable_facility_packet(idk_ptr, E_MSG_FAC_RCI_NUM, SECURITY_PROTO_NONE);
 
 	return rc;
 }

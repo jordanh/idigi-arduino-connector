@@ -23,128 +23,146 @@
  *
  */
 
-#ifndef IRL_DEF_H_
-#define IRL_DEF_H_
+#ifndef IDK_DEF_H_
+#define IDK_DEF_H_
 
-#include "irl_api.h"
+#include "idk_api.h"
 #include "ei_packet.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+//#define DEBUG_PRINTF(...)
 
-typedef struct irl_setting_t IrlSetting_t;
-typedef struct irl_facility_handle_t IrlFacilityHandle_t;
-
-typedef int (* irl_facility_process_cb_t) (IrlSetting_t * irl_ptr, struct irl_facility_handle_t * fac_ptr, struct e_packet * p);
-
-typedef struct irl_facility_packet_t {
-	e_boolean_t							active;
-	uint8_t									buffer[IRL_MSG_MAX_PACKET_SIZE];
-	struct e_packet						packet;
-	struct irl_facility_packet_t	* next;
-} IrlFacilityPacket_t;
-
-struct irl_facility_handle_t {
-	IrlFacilityEnableFunc_t			facility_enalble_function;
-	void										* user_data;
-	void										* facility_data;
-
-	unsigned 							facility_id;
-	irl_facility_process_cb_t		process_function;
-
-	IrlFacilityPacket_t				* packet;
-	unsigned							packet_count;
-	int										state;
-
-	struct irl_facility_handle_t	* next;
-};
-
-#define	IRL_HANDLE_INACTIVE		0
-#define	IRL_HANDLE_ACTIVE			1
-#define	IRL_HANDLE_STOP				2
-#define IRL_HANDLE_TERMINATE	3
+#define DEBUG_PRINTF(...)		printf(__VA_ARGS__)
 
 
-struct irl_setting_t {
-	uint32_t		edp_version;
-	int				active_state;
+#define IDK_MT_VERSION           2
+#define IDK_MT_PORT              3197
+#define IDK_MSG_MAX_PACKET_SIZE	1600
 
-	irl_callback_t   callback;
+#define IDK_DEVICE_TYPE_LENGTH	32
+#define IDK_DEVICE_ID_LENGTH	16
+#define IDK_VENDOR_ID_LENGTH	4
+#define IDK_SERVER_URL_LENGTH	255
+#define IDK_MAC_ADDR_LENGTH		6
+#define IDK_LINK_SPEED_LENGTH	4
 
-	struct {
-   		void 			* data[IRL_CONFIG_MAX];
-		unsigned		id;
-	} config;
+#define IDK_RX_INTERVAL_MIN		5
+#define IDK_RX_INTERVAL_MAX		7200
+#define IDK_TX_INTERVAL_MIN		5
+#define IDK_TX_INTERVAL_MAX		7200
+#define IDK_WAIT_COUNT_MIN		2
+#define IDK_WAIT_COUNT_MAX		64
 
-	unsigned						active_facility_idx;
-	unsigned						facility_count;
-	IrlFacilityHandle_t 	 		* facility_list;
-	IrlFacilityHandle_t			* active_facility;
+#define IDK_MIN(x,y)		(((x) < (y))? (x): (y))
+#define IDK_MAX(x,y)		(((x) > (y))? (x): (y))
+#define IDK_MILLISECONDS			1000
+
+#define  IDK_IS_SELECT_SET(x, y)		(x & y)
+#define  IDK_PACKET_DATA_POINTER(p, y)	(uint8_t *)((uint8_t *)p + y - sizeof(uint8_t *))
+
+/* IRL EDP States */
+typedef enum {
+	edp_init_layer,
+	edp_communication_layer,
+	edp_initialization_layer,
+	edp_security_layer,
+	edp_discovery_layer,
+	edp_facility_layer
+} idk_edp_state_t;
+
+/* layer states */
+typedef enum {
+	layer_init_state,
+	layer_connect_state,
+	layer_redirect_state,
+	layer_communication_version_state,
+	layer_communication_ka_params_state,
+	layer_receive_data_state,
+	layer_security_device_id_state,
+	layer_security_server_url_state,
+	layer_security_password_state,
+	layer_discovery_device_type_state,
+	layer_discovery_facility_init_state,
+	layer_discovery_facility_state,
+	layer_discovery_complete_state,
+	layer_done_state
+} idk_layer_state_t;
+
+struct idk_data;
+struct idk_facility;
+
+typedef idk_status_t (* idk_facility_process_cb_t )(struct idk_data * idk_ptr, struct idk_facility * fac_ptr);
+
+typedef struct idk_facility {
+    idk_base_request_t facility_id;
+    size_t size;
+    idk_facility_process_cb_t process_cb;
+    idk_facility_packet_t   * packet;
+    struct idk_facility * next;
+} idk_facility_t;
+
+typedef struct idk_data {
+	int active_state;
+
+	idk_callback_t callback;
+
+	uint8_t * device_id;
+	uint8_t * vendor_id;
+	char * device_type;
+	char * server_url;
+	char * password;
+	int  request_id;
+
+    uint16_t facilities;
+    idk_network_handle_t * network_handle;
+
+	uint16_t	* tx_keepalive;
+	uint16_t	* rx_keepalive;
+	uint8_t  * wait_count;
+	uint32_t	rx_ka_time;
+	uint32_t	tx_ka_time;
 
 
-#if 0
-	uint8_t		device_id[IRL_DEVICE_ID_LENGTH];
-	uint8_t		vendor_id[IRL_VENDOR_ID_LENGTH];
-//	char				device_type[IRL_DEVICE_TYPE_LENGTH];
-	char			* device_type;
+//	uint8_t			current_wait_count;
+	uint8_t security_form;
 
-	char			* server_url;
+   idk_edp_state_t edp_state;
+   idk_layer_state_t layer_state;
 
-	uint16_t		tx_keepalive;
-	uint16_t		rx_keepalive;
-	uint8_t			wait_count;
-#endif
+   bool network_busy;
+   bool edp_connected;
 
-	uint32_t		rx_ka_time;
-	uint32_t		tx_ka_time;
-	uint8_t			current_wait_count;
-	uint8_t			security_form;
-	// uint8_t 		ka_buf[PKT_MT_LENGTH];
+   idk_facility_t * active_facility;
+   idk_facility_t * facility_list;
 
-	int							edp_state;
-	int							layer_state;
-    int							facility_state;
-    uint16_t					network_busy;
-	IrlNetworkConnect_t	connection;
-
-	struct {
-		uint8_t			* ptr;
-		uint8_t			buffer[IRL_MSG_MAX_PACKET_SIZE];
-		size_t				length;
-		size_t				total_length;
+   struct {
+		uint8_t buffer[IDK_MSG_MAX_PACKET_SIZE];
+		uint8_t * ptr;
+		size_t length;
+		size_t total_length;
 	} send_packet;
 
 	struct {
-		int							index;
-		uint8_t					buffer[IRL_MSG_MAX_PACKET_SIZE];
-		uint16_t					packet_type;
-		uint16_t					packet_length;
-		size_t						length;
-		size_t						total_length;
-		uint8_t					* ptr;
-		struct e_packet		* packet;
-		e_boolean_t			enabled;
+		int index;
+		uint8_t buffer[IDK_MSG_MAX_PACKET_SIZE];
+		uint8_t * ptr;
+		uint16_t	packet_type;
+		uint16_t	packet_length;
+		size_t length;
+		size_t total_length;
+		idk_packet_t * data_packet;
 	} receive_packet;
 
-	struct e_packet		data_packet;
-	int							callback_event;
-	int							return_code;
-
-};
+} idk_data_t;
 
 
-#define GET_RX_KEEPALIVE(x) *((uint16_t *)(((IrlSetting_t *)(x))->config.data[IRL_CONFIG_RX_KEEPALIVE]))
-#define GET_TX_KEEPALIVE(x) *((uint16_t *)(((IrlSetting_t *)(x))->config.data[IRL_CONFIG_TX_KEEPALIVE]))
-#define GET_WAIT_COUNT(x) 	*((uint8_t *)(((IrlSetting_t *)(x))->config.data[IRL_CONFIG_WAIT_COUNT]))
-
-
-void irl_init_setting(IrlSetting_t * irl_ptr);
 
 #ifdef __cplusplus
 extern "C"
 }
 #endif
 
-#endif /* IRL_DEF_H_ */
+#endif /* IDK_DEF_H_ */
