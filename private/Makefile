@@ -1,5 +1,5 @@
 #
-#  irl/Makefile
+#IDK Makefile
 #
 #  Copyright (C) 2010 by Digi International Inc.
 #  All rights reserved.
@@ -10,7 +10,7 @@
 # In rules.in:
 # CC pointer to compiler
 # LD pointer to linker
-# $CLFAGS options to the compiler
+# CFLAGS options to the compiler
 # LDFLAGS options to the linker
 
 # arguments
@@ -20,7 +20,7 @@
 
 # end of rules.in
 
-include $(IRL_RULES)
+include $(IDK_RULES)
 
 ifeq ($(LITTLE_ENDIAN),true)
 CFLAGS += -D_LITTLE_ENDIAN
@@ -49,8 +49,8 @@ clean:
 
 .PHONY: help
 help:
-	@echo "Syntax:"
-	@echo "    IRL_RULES = The full path name for toolset"
+	@echo "Options:"
+	@echo "    IDK_RULES = Location and  name for toolset"
 	@echo "    LIBRARY = Location and name of library"
 	@echo "    DEBUG = true or false for debugging"
 	@echo "    LITTLE_ENDIAN = true or false for little endian"
