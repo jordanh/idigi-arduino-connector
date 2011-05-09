@@ -22,14 +22,6 @@
  * =======================================================================
  *
  */
-//#include <string.h>
-//#include "idk_def.h"
-//#include "bele.c"
-//#include "ei_security.h"
-//#include "ei_msg.h"
-//#include "ei_discover.h"
-
-
 
 #define IDK_PROTOCOL_VERSION    0x120
 
@@ -56,39 +48,46 @@ static unsigned idk_edp_init_config_ids[] = {
         idk_base_server_url, idk_base_wait_count, idk_base_tx_keepalive, idk_base_rx_keepalive, idk_base_password,
 };
 
+/* Reserved 1st for connection control facility */
 static idk_base_request_t idk_edp_init_facility_ids[] = {
-        idk_base_firmware_facility,
+         (idk_base_request_t)-1, idk_base_firmware_facility,
 };
 
 static size_t idk_facility_count = sizeof idk_edp_init_facility_ids/ sizeof idk_edp_init_facility_ids[0];
 
-static idk_status_t remove_facility_layer(idk_data_t * idk_ptr)
+static idk_callback_status_t  remove_facility_layer(idk_data_t * idk_ptr)
 {
-    idk_status_t rc = idk_success;
-    idk_callback_status_t status;
+    idk_callback_status_t status = idk_callback_continue, rc = idk_callback_continue;
     idk_base_request_t facility_id;
 
-    while (idk_ptr->request_id < idk_facility_count)
+    while (idk_ptr->request_id < (int)idk_facility_count)
     {
-        facility_id = idk_edp_init_facility_ids[idk_ptr->request_id];
-        status = del_facility_data(idk_ptr, facility_id);
-        if (status == idk_callback_abort)
+        if (idk_ptr->facilities & (0x1 << idk_ptr->request_id))
         {
-            rc = idk_configuration_error;
-            break;
-        }
-        else if (status == idk_callback_continue)
-        {
-            idk_ptr->request_id++;
-        }
-        else
-        {
-        /* TODO: need to wait a while before calling
-         * the callback again for BUSY return.
-         */
+            facility_id = idk_edp_init_facility_ids[idk_ptr->request_id];
+            switch(facility_id)
+            {
+            case idk_base_firmware_facility:
+                status = fw_delete_facility(idk_ptr);
+                break;
+            default:
+                break;
+            }
+            if (status == idk_callback_continue)
+            {
+                idk_ptr->request_id++;
+            }
+            else
+            {
+                rc = idk_callback_abort;
+            }
         }
     }
 
+    if (cc_delete_facility(idk_ptr) != idk_callback_continue)
+    {
+        rc = idk_callback_abort;
+    }
     return rc;
 }
 
@@ -118,13 +117,34 @@ static int msg_add_keepalive_param(uint8_t * buf, uint16_t type, uint16_t value)
     return rc; /* return count of bytes added to buffer */
 }
 
-idk_status_t configuration_layer(idk_data_t * idk_ptr)
+static idk_callback_status_t discovery_facility_layer(idk_data_t * idk_ptr)
 {
-    idk_status_t rc = idk_success;
-    idk_status_t err_code = idk_success;
+    idk_callback_status_t status = idk_callback_continue;
+    idk_facility_t * fac_ptr;
+
+    DEBUG_PRINTF("Discovery Facility 0x%x\n", (unsigned)idk_ptr->facility_list);
+    fac_ptr = idk_ptr->active_facility;
+    if (fac_ptr == NULL)
+    {
+        fac_ptr = idk_ptr->facility_list;
+    }
+
+    while (fac_ptr != NULL && status == idk_callback_continue)
+    {
+        status = fac_ptr->discovery_cb(idk_ptr, fac_ptr);
+        if (status == idk_callback_continue)
+        {
+            fac_ptr = idk_ptr->active_facility = fac_ptr->next;
+        }
+    }
+    return status;
+}
+
+static idk_callback_status_t configuration_layer(idk_data_t * idk_ptr)
+{
     idk_request_t request_id;
-    idk_callback_status_t status;
-    void * data;
+    idk_callback_status_t status = idk_callback_continue;;
+    void * data = NULL;
     size_t length;
     size_t request_count; 
 
@@ -137,7 +157,7 @@ idk_status_t configuration_layer(idk_data_t * idk_ptr)
          * Call error status callback if error is encountered (NULL data, invalid range, invalid size).
          * If all these configuration are successfully obtained, update layer_state to CONNECT state.
          */
-        while(idk_ptr->request_id < request_count)
+        while(idk_ptr->request_id < (int)request_count)
         {
             request_id.base_request = idk_edp_init_config_ids[idk_ptr->request_id];
 
@@ -148,7 +168,8 @@ idk_status_t configuration_layer(idk_data_t * idk_ptr)
             {
                 if (request_id.base_request != idk_base_password && data == NULL)
                 {
-                    err_code = idk_invalid_data;
+                    /* callback cannot return NULL except idk_base_password */
+                    idk_ptr->error_code = idk_invalid_data;
                     goto _param_err;
                 }
 
@@ -161,7 +182,7 @@ idk_status_t configuration_layer(idk_data_t * idk_ptr)
                     idk_ptr->server_url = (char *)data;
                     if (length == 0 || length > IDK_SERVER_URL_LENGTH)
                     {
-                        err_code = idk_invalid_data_range;
+                        idk_ptr->error_code = idk_invalid_data_range;
                         goto _param_err;
                     }
                     break;
@@ -171,7 +192,7 @@ idk_status_t configuration_layer(idk_data_t * idk_ptr)
                     if (*idk_ptr->tx_keepalive < IDK_TX_INTERVAL_MIN || *idk_ptr->tx_keepalive > IDK_TX_INTERVAL_MAX ||
                         length != sizeof(uint16_t))
                     {
-                        err_code = idk_invalid_data_range;
+                        idk_ptr->error_code = idk_invalid_data_range;
                         goto _param_err;
                     }
                     break;
@@ -180,7 +201,7 @@ idk_status_t configuration_layer(idk_data_t * idk_ptr)
                     if (*idk_ptr->rx_keepalive < IDK_RX_INTERVAL_MIN || *idk_ptr->rx_keepalive > IDK_RX_INTERVAL_MAX ||
                         length != sizeof(uint16_t))
                     {
-                        err_code = idk_invalid_data_range;
+                        idk_ptr->error_code = idk_invalid_data_range;
                         goto _param_err;
                     }
                     break;
@@ -190,7 +211,7 @@ idk_status_t configuration_layer(idk_data_t * idk_ptr)
                         length != sizeof(uint8_t))
                     {
 _param_err:
-                        status = notify_error_status( idk_ptr->callback, idk_class_base, request_id, err_code);
+                        status = notify_error_status( idk_ptr->callback, idk_class_base, request_id, idk_ptr->error_code);
                         
                     }
                     break;
@@ -198,7 +219,7 @@ _param_err:
                     break;
                 }
 
-                if (err_code == idk_success)
+                if (idk_ptr->error_code == idk_success)
                 {   
                     idk_ptr->request_id++;
                 }
@@ -206,18 +227,25 @@ _param_err:
 
             if (status == idk_callback_abort)
             {
-                rc = idk_configuration_error;
+                if (idk_ptr->error_code == idk_success)
+                {
+                    idk_ptr->error_code = idk_configuration_error;
+                }
                 goto _ret;
             }
 
         } /* while */
 
         /* List of facilities is defined in idk_edp_init_facility_ids[] table.
-         * Call the callback to see whether the facility is supported or not.
+         *
+         * Call the callback to see which the facility is supported.
          */
-        while (idk_ptr->request_id >= request_count && idk_ptr->request_id < (request_count + idk_facility_count))
+        while (idk_ptr->request_id >= (int)request_count && idk_ptr->request_id < (int)(request_count + idk_facility_count))
         {
             bool facility_enable;
+
+            /* skip 1st one since it's reserved for Connection control facility */
+            if ((idk_ptr->request_id - request_count) == 0) idk_ptr->request_id++;
 
             request_id.base_request = idk_edp_init_facility_ids [idk_ptr->request_id - request_count];
 
@@ -225,12 +253,13 @@ _param_err:
             if (status == idk_callback_continue)
             {
                 /* set the bit for supporting the facility */
+                DEBUG_PRINTF("configuration_layer: %d facility  supported = %d\n", request_id.base_request, (int)facility_enable);
                 idk_ptr->facilities = 0x1 << (idk_ptr->request_id - request_count);
                 idk_ptr->request_id++;
             }
             else if (status == idk_callback_abort)
             {
-                rc = idk_configuration_error;
+                idk_ptr->error_code = idk_configuration_error;
                 goto _ret;
             }
             else if (status == idk_callback_busy)
@@ -240,7 +269,7 @@ _param_err:
             
         }
 
-        if (idk_ptr->request_id == (request_count + idk_facility_count))
+        if (idk_ptr->request_id == (int)(request_count + idk_facility_count))
         {
             idk_ptr->request_id = 0;
             idk_ptr->layer_state = layer_connect_state;
@@ -254,104 +283,104 @@ _param_err:
 
         if (status == idk_callback_continue)
         {
+            idk_ptr->request_id = 0;
             set_idk_state(idk_ptr, edp_communication_layer);
         }
     }
 
 _ret:
-    return rc;
-
-}
-
-static idk_callback_status_t discovery_facility_layer(idk_data_t * idk_ptr)
-{
-    idk_callback_status_t status;
-    idk_base_request_t facility_id;
-
-    while (idk_ptr->request_id < idk_facility_count)
-    {
-
-
-        if (idk_ptr->facilities & (0x1 << idk_ptr->request_id))
-        {
-            facility_id = idk_edp_init_facility_ids[idk_ptr->request_id];
-
-            switch(facility_id)
-            {
-            case idk_base_firmware_facility:
-                status = firmware_discovery_layer(idk_ptr);
-                break;
-            default:
-                break;
-            }
-        }
-        if (status == idk_callback_continue)
-        {
-            idk_ptr->request_id++;
-        }
-        else if (status == idk_callback_abort)
-        {
-            goto _ret;
-        }
-    }
-
-    if (idk_ptr->request_id == idk_facility_count)
-    {
-        status = cc_discovery_layer(idk_ptr);
-    }
-    else
-    {
-        status = idk_callback_busy;
-    }
-
-_ret:
     return status;
+
 }
 
-idk_status_t communication_layer(idk_data_t * idk_ptr)
+
+static idk_callback_status_t communication_layer(idk_data_t * idk_ptr)
 {
-    idk_status_t rc = idk_success;
+    idk_callback_status_t status = idk_callback_continue;
     uint32_t version;
     uint8_t * buf;
     int len;
     idk_packet_t * p;
+    idk_base_request_t facility_id;
 
     /* communitcation layer:
-     *  1. sends MT version
-     *  2. receives and validates MT version response
-     *  3. sends tx, rx, & waitcount parameter
+     *  1. initialize all supported facilites.
+     *  2. sends MT version
+     *  3. receives and validates MT version response
+     *  4. sends tx, rx, & waitcount parameter
      *
      *  When starts sending a packet (setup_send_packet), we need to exit and
      *  let idk_task to process and complete the send.
      */
     if (idk_ptr->layer_state == layer_init_state)
     {
+        while (idk_ptr->request_id < (int)idk_facility_count)
+        {
+            /* Connection control facility */
+            if (idk_ptr->request_id  == 0)
+            {
+                status = cc_init_facility(idk_ptr);
+            }
+            /* other supported facilities */
+            else if (idk_ptr->facilities & (0x1 << idk_ptr->request_id))
+            {
+                facility_id = idk_edp_init_facility_ids[idk_ptr->request_id];
 
+                switch(facility_id)
+                {
+                case idk_base_firmware_facility:
+                    status = fw_init_facility(idk_ptr);
+                    break;
+                default:
+                    break;
+                }
+            }
+            if (status == idk_callback_continue)
+            {
+                idk_ptr->request_id++;
+            }
+            else
+            {
+                goto _ret;
+            }
+        }
+
+        if (idk_ptr->request_id == (int)idk_facility_count && status == idk_callback_continue)
+        {
+            idk_ptr->layer_state = layer_send_version_state;
+        }
+    }
+
+    if (idk_ptr->layer_state == layer_send_version_state)
+    {
         DEBUG_PRINTF("Communication layer\n");
         DEBUG_PRINTF("--- Send MT Version\n");
         /* Send the MT version message. */
 
-        p = (idk_packet_t *)idk_ptr->send_packet.buffer;
-        buf = IDK_PACKET_DATA_POINTER(p, sizeof(idk_packet_t));
+        p =(idk_packet_t *) net_get_send_packet(idk_ptr, sizeof(idk_packet_t), &buf);
+        if (p == NULL)
+        {
+            goto _ret;
+        }
         p->type = E_MSG_MT2_TYPE_VERSION;
         p->length = sizeof version;
 
         version = TO_BE32(IDK_MT_VERSION);
         memcpy(buf, &version, p->length);
-        rc = net_enable_send_packet(idk_ptr);
-        if (rc == idk_success)
+        status = net_enable_send_packet(idk_ptr);
+        if (status == idk_callback_continue)
         {
-            idk_ptr->layer_state = layer_communication_version_state;
+            idk_ptr->layer_state = layer_process_packet_state;
         }
 
     }
 
 
-    else if (idk_ptr->layer_state == layer_communication_version_state)
+    else if (idk_ptr->layer_state == layer_process_packet_state)
     {
-        rc = net_get_receive_packet(idk_ptr, &p);
+        status = net_get_receive_packet(idk_ptr, &p);
 
-        if (rc == idk_success && p != NULL)
+        if (status == idk_callback_continue && p != NULL)
         {
             DEBUG_PRINTF("--- receive Mt version\n");
 
@@ -363,23 +392,24 @@ idk_status_t communication_layer(idk_data_t * idk_ptr)
                  * The received message is not acceptable. Return an error value
                  * appropriate to the message received.
                  */
+                status = idk_callback_abort;
                 switch (p->type)
                 {
                     /* Expected MTv2 message types... */
                     case E_MSG_MT2_TYPE_LEGACY_EDP_VER_RESP:
                         if (*buf == 0x02) {
-                            rc = idk_server_overload;
+                            idk_ptr->error_code = idk_server_overload;
                         }
                         else {
                             /* Assume a version error for all other values. */
-                            rc = idk_bad_version;
+                            idk_ptr->error_code = idk_bad_version;
                         }
                         break;
                     case E_MSG_MT2_TYPE_VERSION_BAD:
-                        rc = idk_bad_version;
+                        idk_ptr->error_code = idk_bad_version;
                         break;
                     case E_MSG_MT2_TYPE_SERVER_OVERLOAD:
-                        rc = idk_server_overload;
+                        idk_ptr->error_code = idk_server_overload;
                         break;
                     /* Unexpected/unknown MTv2 message types... */
             //      case E_MSG_MT2_TYPE_VERSION:
@@ -390,16 +420,16 @@ idk_status_t communication_layer(idk_data_t * idk_ptr)
             //      case E_MSG_MT2_TYPE_KA_KEEPALIVE:
             //      case E_MSG_MT2_TYPE_PAYLOAD:
                     default:
-                        rc = idk_invalid_packet;
+                        idk_ptr->error_code = idk_invalid_packet;
                 }
             }
             else
             {
-                idk_ptr->layer_state = layer_communication_ka_params_state;
+                idk_ptr->layer_state = layer_send_ka_params_state;
             }
         }
 
-        if (rc != idk_success)
+        if (status == idk_callback_abort)
         {
             idk_request_t request_id;
 
@@ -409,12 +439,12 @@ idk_status_t communication_layer(idk_data_t * idk_ptr)
              * will close the connection.
              */
             request_id.base_request = idk_base_receive;
-            notify_error_status(idk_ptr->callback, idk_class_base, request_id, rc);
+            notify_error_status(idk_ptr->callback, idk_class_base, request_id, idk_ptr->error_code);
             goto _ret;
         }
     }
 
-    else if (idk_ptr->layer_state == layer_communication_ka_params_state)
+    else if (idk_ptr->layer_state == layer_send_ka_params_state)
     {
         uint16_t    timeout;
         uint8_t     wait_count;
@@ -441,20 +471,20 @@ idk_status_t communication_layer(idk_data_t * idk_ptr)
         if (len < 0) goto _ret;
         buf += len;
         idk_ptr->send_packet.total_length += len;
-
         idk_ptr->send_packet.length = 0;
 
+        idk_ptr->request_id = 0;
         set_idk_state(idk_ptr, edp_initialization_layer);
 
     }
 
 _ret:
-    return rc;
+    return status;
 }
 
-idk_status_t initialization_layer(idk_data_t * idk_ptr)
+static idk_callback_status_t initialization_layer(idk_data_t * idk_ptr)
 {
-    idk_status_t rc = idk_success;
+    idk_callback_status_t status = idk_callback_continue;
     idk_packet_t * p;
     uint32_t version;
     uint8_t * ptr;
@@ -474,21 +504,24 @@ idk_status_t initialization_layer(idk_data_t * idk_ptr)
         /*
          * Send the protocol version message.
          */
-        p = (idk_packet_t *)idk_ptr->send_packet.buffer;
-        ptr = IDK_PACKET_DATA_POINTER(p, sizeof(idk_packet_t));
+        p =(idk_packet_t *) net_get_send_packet(idk_ptr, sizeof(idk_packet_t), &ptr);
+        if (p == NULL)
+        {
+            goto _ret;
+        }
         p->length = sizeof(version);
         p->type = E_MSG_MT2_TYPE_PAYLOAD;
 
         version = TO_BE32(IDK_PROTOCOL_VERSION);
         memcpy(ptr, &version, sizeof version);
 
-        rc = net_enable_send_packet(idk_ptr);
-        idk_ptr->layer_state = layer_receive_data_state;
+        status = net_enable_send_packet(idk_ptr);
+        idk_ptr->layer_state = layer_process_packet_state;
         break;
 
-    case layer_receive_data_state:
-        rc = net_get_receive_packet(idk_ptr, &p);
-        if (rc == idk_success && p != NULL)
+    case layer_process_packet_state:
+        status = net_get_receive_packet(idk_ptr, &p);
+        if (status == idk_callback_continue && p != NULL)
         {
             DEBUG_PRINTF("--- receive protocol version\n");
             /*
@@ -496,17 +529,10 @@ idk_status_t initialization_layer(idk_data_t * idk_ptr)
              */
             if (p->length < 1)
             {
-                idk_request_t request_id;
-
-                request_id.base_request = idk_base_receive;
-                if (notify_error_status(idk_ptr->callback, idk_class_base, request_id, idk_invalid_packet) == idk_callback_abort)
-                {
-                    rc = idk_invalid_packet;
-                }
                 goto _ret;
             }
 
-            /* Parse the version response.
+            /* Parse the version response (0 = version response ok).
              * If the protocol version number was not acceptable to the server,
              * tell the application. TO DO: IRL needs updated protocol version.
              */
@@ -516,8 +542,8 @@ idk_status_t initialization_layer(idk_data_t * idk_ptr)
                 idk_request_t request_id;
 
                 request_id.base_request = idk_base_receive;
-                rc = idk_bad_version;
-                notify_error_status(idk_ptr->callback, idk_class_base, request_id, rc);
+                idk_ptr->error_code = idk_bad_version;
+                status = notify_error_status(idk_ptr->callback, idk_class_base, request_id, idk_ptr->error_code);
                 goto _ret;
 
             }
@@ -530,14 +556,14 @@ idk_status_t initialization_layer(idk_data_t * idk_ptr)
 
 _ret:
 
-    return rc;
+    return status;
 }
 
-idk_status_t security_layer(idk_data_t * idk_ptr)
+static idk_callback_status_t security_layer(idk_data_t * idk_ptr)
 {
 #define URL_PREFIX  "en://"
 
-    idk_status_t rc = idk_success;
+    idk_callback_status_t status = idk_callback_continue;
     idk_packet_t * p;
     char * pwd = NULL;
     uint16_t len, size;
@@ -565,8 +591,11 @@ idk_status_t security_layer(idk_data_t * idk_ptr)
          * Otherwise, use PASSWORD FORM identity.
          */
 
-        p = (idk_packet_t *)idk_ptr->send_packet.buffer;
-        ptr = IDK_PACKET_DATA_POINTER(p, sizeof(idk_packet_t));
+        p =(idk_packet_t *) net_get_send_packet(idk_ptr, sizeof(idk_packet_t), &ptr);
+        if (p == NULL)
+        {
+            goto _ret;
+        }
 
         *ptr++ = SECURITY_OPER_IDENT_FORM;
 
@@ -582,7 +611,7 @@ idk_status_t security_layer(idk_data_t * idk_ptr)
         p->type = E_MSG_MT2_TYPE_PAYLOAD;
         p->length = 2;
 
-        rc = net_enable_send_packet(idk_ptr);
+        status = net_enable_send_packet(idk_ptr);
 
         idk_ptr->layer_state = layer_security_device_id_state;
         break;
@@ -592,8 +621,11 @@ idk_status_t security_layer(idk_data_t * idk_ptr)
 
         DEBUG_PRINTF("--- send device ID\n");
 
-        p = (idk_packet_t *)idk_ptr->send_packet.buffer;
-        ptr = IDK_PACKET_DATA_POINTER(p, sizeof(idk_packet_t));
+        p =(idk_packet_t *) net_get_send_packet(idk_ptr, sizeof(idk_packet_t), &ptr);
+        if (p == NULL)
+        {
+            goto _ret;
+        }
 
         p->type = E_MSG_MT2_TYPE_PAYLOAD;
         p->length = 1 + IDK_DEVICE_ID_LENGTH;
@@ -602,7 +634,7 @@ idk_status_t security_layer(idk_data_t * idk_ptr)
         device_id = (uint8_t *)idk_ptr->device_id;
 
         memcpy(ptr, device_id, IDK_DEVICE_ID_LENGTH);
-        rc = net_enable_send_packet(idk_ptr);
+        status = net_enable_send_packet(idk_ptr);
         idk_ptr->layer_state = layer_security_server_url_state;
         break;
     }
@@ -616,8 +648,11 @@ idk_status_t security_layer(idk_data_t * idk_ptr)
 
         len = strlen(server_url) + strlen(URL_PREFIX);
 
-        p = (idk_packet_t *)idk_ptr->send_packet.buffer;
-        ptr = IDK_PACKET_DATA_POINTER(p, sizeof(idk_packet_t));
+        p =(idk_packet_t *) net_get_send_packet(idk_ptr, sizeof(idk_packet_t), &ptr);
+        if (p == NULL)
+        {
+            goto _ret;
+        }
         /*
          * construct response packet
          *  ------------------------------
@@ -647,7 +682,7 @@ idk_status_t security_layer(idk_data_t * idk_ptr)
             memcpy(ptr, server_url, len);
         }
 
-        rc = net_enable_send_packet(idk_ptr);
+        status = net_enable_send_packet(idk_ptr);
         if (idk_ptr->security_form == SECURITY_IDENT_FORM_PASSWORD)
         {
             idk_ptr->layer_state = layer_security_password_state;
@@ -663,8 +698,11 @@ idk_status_t security_layer(idk_data_t * idk_ptr)
         /* Send the password along in addition to the simple messages */
         pwd = (char *)idk_ptr->password;
 
-        p = (idk_packet_t *)idk_ptr->send_packet.buffer;
-        ptr = IDK_PACKET_DATA_POINTER(p, sizeof(idk_packet_t));
+        p =(idk_packet_t *) net_get_send_packet(idk_ptr, sizeof(idk_packet_t), &ptr);
+        if (p == NULL)
+        {
+            goto _ret;
+        }
         p->type = E_MSG_MT2_TYPE_PAYLOAD;
 
         /*
@@ -690,20 +728,19 @@ idk_status_t security_layer(idk_data_t * idk_ptr)
             memcpy(ptr, pwd, strlen(pwd));
         }
 
-        rc = net_enable_send_packet(idk_ptr);
+        status = net_enable_send_packet(idk_ptr);
         set_idk_state(idk_ptr, edp_discovery_layer);
         break;
     default:
         break;
     }
-
-    return rc;
+_ret:
+    return status;
 }
 
-idk_status_t discovery_layer(idk_data_t * idk_ptr)
+static idk_callback_status_t discovery_layer(idk_data_t * idk_ptr)
 {
-    idk_status_t rc = idk_success;
-    idk_callback_status_t status;
+    idk_callback_status_t status = idk_callback_continue;
     idk_packet_t * p;
     uint16_t len, size;
     uint8_t sec_coding = SECURITY_PROTO_NONE;
@@ -727,8 +764,11 @@ idk_status_t discovery_layer(idk_data_t * idk_ptr)
         DEBUG_PRINTF("Discovery layer\n");
         DEBUG_PRINTF("--- send vendor id\n");
 
-        p = (idk_packet_t *)idk_ptr->send_packet.buffer;
-        ptr = IDK_PACKET_DATA_POINTER(p, sizeof(idk_packet_t));
+        p =(idk_packet_t *) net_get_send_packet(idk_ptr, sizeof(idk_packet_t), &ptr);
+        if (p == NULL)
+        {
+            goto _ret;
+        }
 
         /*
          * construct response packet
@@ -748,7 +788,7 @@ idk_status_t discovery_layer(idk_data_t * idk_ptr)
         p->length = 2+(uint16_t)IDK_VENDOR_ID_LENGTH;
         p->type = E_MSG_MT2_TYPE_PAYLOAD;
 
-        rc = net_enable_send_packet(idk_ptr);
+        status = net_enable_send_packet(idk_ptr);
 
         idk_ptr->layer_state = layer_discovery_device_type_state;
         break;
@@ -759,8 +799,11 @@ idk_status_t discovery_layer(idk_data_t * idk_ptr)
         char * device_type;
 
         DEBUG_PRINTF("--- send device type\n");
-        p = (idk_packet_t *)idk_ptr->send_packet.buffer;
-        ptr = IDK_PACKET_DATA_POINTER(p, sizeof(idk_packet_t));
+        p =(idk_packet_t *) net_get_send_packet(idk_ptr, sizeof(idk_packet_t), &ptr);
+        if (p == NULL)
+        {
+            goto _ret;
+        }
 
         /*
          * construct response packet
@@ -798,7 +841,7 @@ idk_status_t discovery_layer(idk_data_t * idk_ptr)
         p->length = 2 + size + len;
         p->type = E_MSG_MT2_TYPE_PAYLOAD;
 
-        rc = net_enable_send_packet(idk_ptr);
+        status = net_enable_send_packet(idk_ptr);
         idk_ptr->layer_state = layer_discovery_facility_init_state;
         break;
     }
@@ -811,17 +854,16 @@ idk_status_t discovery_layer(idk_data_t * idk_ptr)
         {
             idk_ptr->layer_state = layer_discovery_complete_state;
         }
-        else if (status == idk_callback_abort)
-        {
-            rc = idk_facility_init_error;
-        }
         break;
     }
 
     case layer_discovery_complete_state:
         DEBUG_PRINTF("--- send complete\n");
-        p = (idk_packet_t *)idk_ptr->send_packet.buffer;
-        ptr = IDK_PACKET_DATA_POINTER(p, sizeof(idk_packet_t));
+        p =(idk_packet_t *) net_get_send_packet(idk_ptr, sizeof(idk_packet_t), &ptr);
+        if (p == NULL)
+        {
+            goto _ret;
+        }
 
         /*
          * construct response packet
@@ -836,25 +878,26 @@ idk_status_t discovery_layer(idk_data_t * idk_ptr)
         p->length = 2;
         p->type = E_MSG_MT2_TYPE_PAYLOAD;
 
-        rc = net_enable_send_packet(idk_ptr);
+        status = net_enable_send_packet(idk_ptr);
         set_idk_state(idk_ptr, edp_facility_layer);
         break;
     default:
         break;
     }
-
-    return rc;
+_ret:
+    return status;
 }
 
-idk_status_t facility_layer(idk_data_t * idk_ptr)
+static idk_callback_status_t facility_layer(idk_data_t * idk_ptr)
 {
-    idk_status_t rc = idk_success;
-    int     ccode;
+    idk_callback_status_t status = idk_callback_continue;
 //  int     receive_status;
 
     idk_facility_packet_t * p;
 //  idk_facility_packet_t       * fac_pkt;
     idk_facility_t * fac_ptr;
+    uint16_t    facility;
+
 
 
 
@@ -865,19 +908,19 @@ idk_status_t facility_layer(idk_data_t * idk_ptr)
      */
     if (idk_ptr->layer_state == layer_init_state)
     {
-//      uint8_t     sec_opcode;
-//      uint8_t     disc_opcode;
-
-        uint16_t    facility;
-
         /* wait for data */
-        rc = net_get_receive_packet(idk_ptr, (idk_packet_t **)&p);
-        if (rc == idk_success && p != NULL)
+        status = net_get_receive_packet(idk_ptr, (idk_packet_t **)&p);
+        goto _packet;
+    }
+    else if (idk_ptr->layer_state == layer_process_packet_state)
+    {
+        p = (idk_facility_packet_t *)idk_ptr->receive_packet.data_packet;
+
+_packet:
+        if (status == idk_callback_continue && p != NULL)
         {
-            uint8_t     * ptr;
             unsigned    length;
 
-            ptr = IDK_PACKET_DATA_POINTER(p, sizeof(idk_packet_t));
             length = p->length;
 
             if (p->type == E_MSG_MT2_TYPE_PAYLOAD)
@@ -921,17 +964,35 @@ idk_status_t facility_layer(idk_data_t * idk_ptr)
                 /* fake RCI response */
                 if (facility == E_MSG_FAC_RCI_NUM)
                 {
-                    rc = rci_process_function(idk_ptr, NULL, p);
+                    status = rci_process_function(idk_ptr, NULL, p);
                 }
 
                 /* seach facility and pass the data to the facility */
                 for (fac_ptr = idk_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
                 {
-                    if (fac_ptr->facility_id == facility)
+                    if (fac_ptr->facility_num  == facility)
                     {
-                        fac_ptr->packet = p;
-                        idk_ptr->active_facility = fac_ptr;
-                        idk_ptr->layer_state = layer_receive_data_state;
+                        if (fac_ptr->packet == NULL)
+                        {
+                            uint8_t * src_ptr, * dst_ptr;
+
+                            fac_ptr->packet = (idk_facility_packet_t *)fac_ptr->buffer;
+                            fac_ptr->packet->disc_payload= p->disc_payload;
+                            fac_ptr->packet->sec_coding = p->sec_coding;
+                            fac_ptr->packet->facility = p->facility;
+                            fac_ptr->packet->length = p->length - sizeof p->disc_payload - sizeof p->sec_coding - sizeof p->facility;
+                            idk_ptr->active_facility = fac_ptr;
+
+                            src_ptr = IDK_PACKET_DATA_POINTER(p, sizeof(idk_facility_packet_t));
+                            dst_ptr = IDK_PACKET_DATA_POINTER(fac_ptr->packet, sizeof(idk_facility_packet_t));
+                            memcpy(dst_ptr, src_ptr, fac_ptr->packet->length);
+
+                            idk_ptr->layer_state = layer_init_state;
+                        }
+                        else
+                        { /* stop receiving packet */
+                            idk_ptr->layer_state = layer_process_packet_state;
+                        }
                         break;
                     }
                 }
@@ -943,7 +1004,7 @@ idk_status_t facility_layer(idk_data_t * idk_ptr)
 
         }
 
-        if (rc != idk_success)
+        if (status != idk_callback_continue)
         {
             /* some kind of error */
             goto _ret;
@@ -951,32 +1012,25 @@ idk_status_t facility_layer(idk_data_t * idk_ptr)
     }
 
 
-    fac_ptr = idk_ptr->active_facility;
-    if (fac_ptr != NULL && fac_ptr->packet != NULL)
-    {
-
-        rc = fac_ptr->process_cb(idk_ptr, fac_ptr);
-         if (rc != idk_success)
+    for (fac_ptr = idk_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
+    {;
+        if ( fac_ptr->packet != NULL)
         {
-            /* error */
-            DEBUG_PRINTF("idk_facility_layer: facility  (0x%04x) returns error %d\n", fac_ptr->facility_id, rc);
+            status = fac_ptr->process_cb(idk_ptr, fac_ptr);
+             if (status == idk_callback_abort)
+            {
+                /* error */
+                DEBUG_PRINTF("idk_facility_layer: facility  (0x%x) returns error code %d\n", fac_ptr->facility_num, idk_ptr->error_code);
+                goto _ret;
+            }
         }
-        if (fac_ptr->packet == NULL)
-        {
-            idk_ptr->layer_state = layer_init_state;
-        }
-
     }
 
 
 _cont:
-    ccode = net_send_rx_keepalive(idk_ptr);
-    if (ccode != idk_success)
-    {
-        rc = ccode;
-    }
+    status = net_send_rx_keepalive(idk_ptr);
 
 _ret:
-    return rc;
+    return status;
 }
 
