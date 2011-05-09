@@ -41,7 +41,6 @@ typedef enum {
    idk_init_error,
    idk_invalid_parameter,
    idk_configuration_error,
-   idk_network_error,
    idk_invalid_data_size,
    idk_invalid_data_range,  
    idk_invalid_payload_packet,
@@ -56,8 +55,11 @@ typedef enum {
    idk_server_disconnected,
    idk_firwmare_download_error,
    idk_facility_init_error,
+   idk_receive_error,
+   idk_send_error,
    idk_close_error,
-   idk_device_terminated
+   idk_device_terminated,
+   idk_redirect_error
 } idk_status_t;
 
 typedef enum {
@@ -68,9 +70,9 @@ typedef enum {
 } idk_class_t;
 
 typedef enum {
-    /* callback request ID to return device ID
+    /* Callback request ID to return device ID
      *
-     * The callback parameters:
+     * Callback parameters:
      *  class = idk_class_base
      *  request = idk_base_device_id
      *  request_data = NULL
@@ -78,11 +80,14 @@ typedef enum {
      *  response_data = callback returns pointer to the device ID
      *  response_length = pointer to memory where callback writes the size of the device id (must 16 bytes)
      *
+     * Callback returns:
+     *  idk_callback_continue = device ID is successfully returned
+     *  not idk_callback_continue = error is encountered and abort IDK.
      */
     idk_base_device_id,
-    /* callback request ID to return vendor ID
+    /* Callback request ID to return vendor ID
      *
-     * The callback parameters:
+     * Callback parameters:
      *  class = idk_class_base
      *  request = idk_base_vendor_id
      *  request_data = NULL
@@ -90,11 +95,14 @@ typedef enum {
      *  response_data = callback returns pointer to the vendor ID
      *  response_length = pointer to memory where callback writes the size of the vendor id (must be 4 bytes)
      *
+     * Callback returns:
+     *  idk_callback_continue = vendor ID is successfully returned
+     *  not idk_callback_continue = error is encountered and abort IDK.
      */
     idk_base_vendor_id,
-    /* callback request ID to return device type
+    /* Callback request ID to return device type
      *
-     * The callback parameters:
+     * Callback parameters:
      *  class = idk_class_base
      *  request = idk_base_device_type
      *  request_data = NULL
@@ -102,12 +110,15 @@ typedef enum {
      *  response_data = callback returns pointer to the ASCII device type string
      *  response_length = pointer to memory where callback writes the length of the device type (must < 32 bytes)
      *
+     * Callback returns:
+     *  idk_callback_continue = device type is successfully returned
+     *  not idk_callback_continue = error is encountered and abort IDK.
      */
     idk_base_device_type,
 
-    /* callback request ID to return server URL
+    /* Callback request ID to return server URL
      *
-     * The callback parameters:
+     * Callback parameters:
      *  class = idk_class_base
      *  request = idk_base_server_url
      *  request_data = NULL
@@ -115,23 +126,32 @@ typedef enum {
      *  response_data = callback returns pointer to the FQDN of server URL
      *  response_length = pointer to memory where callback writes the length of the server URL (must < 255 bytes)
      *
+     * Callback returns:
+     *  idk_callback_continue = server URL is successfully returned
+     *  not idk_callback_continue = error is encountered and abort IDK.
      */
     idk_base_server_url,
-    /* callback request ID to return password for identity verification
+
+    /* Callback request ID to return password for identity verification
      *
-     * The callback parameters:
+     * Callback parameters:
      *  class = idk_class_base
      *  request = idk_base_password
      *  request_data = NULL
      *  request_length = 0;
-     *  response_data = callback returns pointer to the ASCII password string
+     *  response_data = callback returns pointer to the ASCII password string.
+     *                             Returns NULL for no identity verification.
      *  response_length = pointer to memory where callback writes the length of the password
      *
+     * Callback returns:
+     *  idk_callback_continue = password is successfully returned
+     *  not idk_callback_continue = error is encountered and abort IDK.
      */
     idk_base_password,
-    /* callback request ID to return connection type
+
+    /* Callback request ID to return connection type
      *
-     * The callback parameters:
+     * Callback parameters:
      *  class = idk_class_base
      *  request = idk_base_connection_type
      *  request_data = NULL
@@ -139,11 +159,14 @@ typedef enum {
      *  response_data = callback returns pointer to idk_connection_type_t of connection type
      *  response_length = ignore
      *
+     * Callback returns:
+     *  idk_callback_continue = Connection type  is successfully returned
+     *  not idk_callback_continue = error is encountered and abort IDK.
      */
     idk_base_connection_type,
-    /* callback request ID to return MAC address
+    /* Callback request ID to return MAC address
      *
-     * The callback parameters:
+     * Callback parameters:
      *  class = idk_class_base
      *  request = idk_base_mac_addr
      *  request_data = NULL
@@ -151,11 +174,15 @@ typedef enum {
      *  response_data = callback returns pointer to MAC address
      *  response_length = pointer to memory where callback writes the size of MAC address (must be 6 bytes)
      *
-     */
+     * Callback returns:
+     *  idk_callback_continue = MAC address is successfully returned
+     *  not idk_callback_continue = error is encountered and abort IDK.
+    */
     idk_base_mac_addr,
-    /* callback request ID to return link speed for WAN connection type
-     *
-     * The callback parameters:
+    /* Callback request ID to return link speed for WAN connection type
+     * IDK will not call the callback for link speed if connection type is LAN.
+      *
+     * Callback parameters:
      *  class = idk_class_base
      *  request = idk_base_link_speed
      *  request_data = NULL
@@ -163,11 +190,15 @@ typedef enum {
      *  response_data = callback returns pointer to 4 octet integer link speed
      *  response_length = pointer to memory where callback writes the size of link speed (must be 4 bytes)
      *
+     * Callback returns:
+     *  idk_callback_continue = Link speed is successfully returned
+     *  not idk_callback_continue = error is encountered and abort IDK.
      */
     idk_base_link_speed,
-    /* callback request ID to return phone number dailed for WAN connection type
+    /* Callback request ID to return phone number dialed for WAN connection type
+     * IDK will not call the callback for phone number dialed if connection type is LAN.
      *
-     * The callback parameters:
+     * Callback parameters:
      *  class = idk_class_base
      *  request = idk_base_phone number
      *  request_data = NULL
@@ -176,12 +207,15 @@ typedef enum {
      *                  the phone number dialed + any dialing prefixes.
      *  response_length = pointer to memory where callback writes the length of the phone number
      *
+     * Callback returns:
+     *  idk_callback_continue = phone number dialed is successfully returned
+     *  not idk_callback_continue = error is encountered and abort IDK.
      */
     idk_base_phone_number,
 
-    /* callback request ID to return TX keepalive interval
+    /* Callback request ID to return TX keepalive interval
      *
-     * The callback parameters:
+     * Callback parameters:
      *  class = idk_class_base
      *  request = idk_base_tx_keepalive
      *  request_data = NULL
@@ -190,12 +224,15 @@ typedef enum {
      *                  it must be between 5 and 7200 seconds.
      *  response_length = pointer to memory where callback writes the size of TX keepalive (must be 2 bytes)
      *
+     * Callback returns:
+     *  idk_callback_continue = Tx keepalive interval is successfully returned
+     *  not idk_callback_continue = error is encountered and abort IDK.
      */
     idk_base_tx_keepalive,
 
-    /* callback request ID to return RX keepalive interval
+    /* Callback request ID to return RX keepalive interval
      *
-     * The callback parameters:
+     * Callback parameters:
      *  class = idk_class_base
      *  request = idk_base_rx_keepalive
      *  request_data = NULL
@@ -204,13 +241,17 @@ typedef enum {
      *                  it must be between 5 and 7200 seconds.
      *  response_length = pointer to memory where callback writes the size of RX keepalive (must be 2 bytes)
      *
+     * Callback returns:
+     *  idk_callback_continue = Rx keepalive interval is successfully returned
+     *  not idk_callback_continue = error is encountered and abort IDK.
      */
     idk_base_rx_keepalive,
 
-    /* callback request ID to return wait count (the number of intervals of not receiving a keepalive
+    /* Callback request ID to return wait count (the number of intervals of not receiving a keepalive
      * message after which a connection should be considered lost.
      *
-     * The callback parameters:
+     *
+     * Callback parameters:
      *  class = idk_class_base
      *  request = idk_base_wait_count
      *  request_data = NULL
@@ -219,12 +260,15 @@ typedef enum {
      *                  it must be between 2 and 64.
      *  response_length = pointer to memory where callback writes the size of wait count (must be 1 byte)
      *
+     * Callback returns:
+     *  idk_callback_continue = Wait count is successfully returned
+     *  not idk_callback_continue = error is encountered and abort IDK.
      */
     idk_base_wait_count,
 
-    /* callback request ID to return IP address
+    /* Callback request ID to return IP address
      *
-     * The callback parameters:
+     * Callback parameters:
      *  class = idk_class_base
      *  request = idk_base_ip_addr
      *  request_data = NULL
@@ -233,11 +277,14 @@ typedef enum {
      *  response_length = pointer to memory where callback writes the size of IP addresss.
      *                    16 bytes for IPv6 or 4 bytes for IPv4 address.
      *
+     * Callback returns:
+     *  idk_callback_continue = IP address is successfully returned
+     *  not idk_callback_continue = error is encountered and abort IDK.
      */
     idk_base_ip_addr,
 
-    /* callback request ID for error notification. This is used to tell the callback
-     * IDK has encountered error.
+    /* Callback request ID for error notification.
+     * This error status callback is be called to notify caller that IDK has encountered error.
      *
      * The callback parameters:
      *  class = idk_class_base
@@ -247,13 +294,19 @@ typedef enum {
      *  response_data = NULL
      *  response_length = NULL
      *
+     * Callback returns:
+     *  idk_callback_continue = IDK will continue. If this error status callback is called because IDK
+     *                                       finds error in a  previous callback, IDK will call the previous callback
+     *                                       to correct the error if idk_callback_continue is returned.
+     *  not idk_callbcak_continue = Abort  and exit IDK.
+     *
      */
     idk_base_error_status,
 
-    /* callback request ID for server disconnected notification. This is used to tell the callback
-     * server disconnects IDK.
+    /* Callback request ID for server disconnected notification. This is used to tell the callback
+     * that server disconnects IDK.
      *
-     * The callback parameters:
+     * Callback parameters:
      *  class = idk_class_base
      *  request = idk_base_disconnected
      *  request_data = NULL
@@ -261,30 +314,35 @@ typedef enum {
      *  response_data = NULL
      *  response_length = NULL
      *
-     * If error is found from a callback, this error status callback will be called
-     * to notify caller. If this error status callback returns idk_callback_continue,
-     * IDK will call the previous callback where error is found again. Otherwise, IDK will stop
-     * and exit with error status.
+     * Callback returns:
+     *  idk_callback_continue = Callback acknowledges it.
+     *  idk_callback_abort =  abort IDK.
+     *  idk_callback_busy = Callback is busy and needs to be called again.
      */
     idk_base_disconnected,
 
-    /* callback request ID to connect iDigi server
+    /* Callback request ID to connect iDigi server
      *
-     * The callback parameters:
+     * Callback parameters:
      *  class = idk_class_base
      *  request = idk_base_connect
      *  request_data = pointer to idk_connect_request_t containing server FQDN and
      *                 port which callback makes connection to.
      *  request_length = size of idk_connect_request_t
-     *  response_data = pointer to idk_network_handle_t (This is used to for send, receive, & close callbacks)
+     *  response_data = callback returns pointer to idk_network_handle_t.
+     *                              (This is used to for send, receive, & close callbacks)
      *  response_length = pointer to memory where callback writes the size of idk_network_handle_t.
      *
+     * Callback returns:
+     *  idk_callback_continue = Callback successfully established the connection.
+     *  idk_callback_abort =  abort IDK.
+     *  idk_callback_busy = Callback is busy and needs to be called again.
      */
     idk_base_connect,
 
-    /* callback request ID to send data to iDigi server
+    /* Callback request ID to send data to iDigi server
      *
-     * The callback parameters:
+     * Callback parameters:
      *  class = idk_class_base
      *  request = idk_base_send
      *  request_data = pointer to idk_write_request_t
@@ -293,12 +351,16 @@ typedef enum {
      *                  This is size_t type.
      *  response_length = ignore
      *
+     * Callback returns:
+     *  idk_callback_continue = Callback successfully sent all data.
+     *  idk_callback_abort =  abort IDK.
+     *  idk_callback_busy = Callback is busy and needs to be called again.
      */
     idk_base_send,
 
-    /* callback request ID to receive data from iDigi server
+    /* Callback request ID to receive data from iDigi server
      *
-     * The callback parameters:
+     * Callback parameters:
      *  class = idk_class_base
      *  request = idk_base_receive
      *  request_data = pointer to idk_read_request_t
@@ -307,13 +369,16 @@ typedef enum {
      *                  This is size_t type.
      *  response_length = ignore
      *
+     * Callback returns:
+     *  idk_callback_continue = Callback successfully received number of requested bytes.
+     *  idk_callback_abort =  abort IDK.
+     *  idk_callback_busy = Callback is busy and needs to be called again.
      */
     idk_base_receive,
-    idk_base_select,
 
-    /* callback request ID to close the connection
+    /* Callback request ID to close the connection
      *
-     * The callback parameters:
+     * Callback parameters:
      *  class = idk_class_base
      *  request = idk_base_close
      *  request_data = pointer to idk_network_handle_t associated with a connection through
@@ -322,12 +387,15 @@ typedef enum {
      *  response_data = NULL
      *  response_length = NULL
      *
+     * Callback returns:
+     *  idk_callback_continue = Callback successfully sent all data.
+     *  not idk_callback_continue =  abort and exit IDK.
      */
     idk_base_close,
 
-    /* callback request ID to allocate memory
+    /* Callback request ID to allocate memory
      *
-     * The callback parameters:
+     * Callback parameters:
      *  class = idk_class_base
      *  request = idk_base_malloc
      *  request_data = pointer to size_t containing number of bytes to be allocated
@@ -335,18 +403,26 @@ typedef enum {
      *  response_data = pointer to allocated address
      *  response_length = ignore
      *
+     * Callback returns:
+     *  idk_callback_continue = Callback successfully allocated memory..
+     *  idk_callback_abort =  abort and exit IDK.
+     *  idk_callback_busy = memory is not available and callback needs to be called again.
      */
     idk_base_malloc,
 
-    /* callback request ID to free memory that is returned from idk_base_malloc callback
+    /* Callback request ID to free memory that is returned from idk_base_malloc callback
      *
-     * The callback parameters:
+     * Callback parameters:
      *  class = idk_class_base
      *  request = idk_base_free
      *  request_data = address to be freed
      *  request_length = size of void *
      *  response_data = NULL
      *  response_length = NULL
+     *
+     * Callback returns:
+     *  idk_callback_continue = Callback successfully freed memory.
+     *  not idk_callback_continue =  abort and exit IDK.
      *
      */
     idk_base_free,
@@ -361,6 +437,9 @@ typedef enum {
      *  response_data = pointer to 4 octet integer memory where callback writes the system time in millisecond.
      *  response_length = ignore
      *
+     * Callback returns:
+     *  idk_callback_continue = Callback successfully returns the system time..
+     *  not idk_callback_continue =  abort and exit IDK.
      */
     idk_base_system_time,
 
@@ -374,6 +453,9 @@ typedef enum {
      *  response_data = pointer to memory in boolean (bool) type where callback writes true to support firmware facility
      *  response_length = ignore
      *
+     * Callback returns:
+     *  idk_callback_continue = Callback successfully indicated facility support..
+     *  not idk_callback_continue =  abort and exit IDK.
      */
     idk_base_firmware_facility,
 
@@ -387,11 +469,14 @@ typedef enum {
      * The callback parameters:
      *  class = idk_class_firmware
      *  request = idk_firmware_target_count
-     *  request_data = NULL
-     *  request_length = 0
+     *  request_data = Pointer to timeout value in seconds.
+     *  request_length = size of unsigned
      *  response_data = pointer to 2 octet integer memory where callback writes number of supported targets.
      *  response_length = NULL
      *
+     * Callback returns:
+     *  idk_callback_continue = Callback successfully returns number of target supported.
+     *  not idk_callback_continue =  abort and exit IDK.
      */
     idk_firmware_target_count,
 
@@ -405,6 +490,9 @@ typedef enum {
      *  response_data = pointer to 4 octet integer memory where callback writes the version.
      *  response_length = NULL
      *
+     * Callback returns:
+     *  idk_callback_continue = Callback successfully returns version number.
+     *  not idk_callback_continue =  abort and exit IDK.
      */
     idk_firmware_version,
 
@@ -418,6 +506,9 @@ typedef enum {
      *  response_data = pointer to 4 octet integer memory where callback writes the code size.
      *  response_length = NULL
      *
+     * Callback returns:
+     *  idk_callback_continue = Callback successfully returns the code size.
+     *  not idk_callback_continue =  abort and exit IDK.
      */
     idk_firmware_code_size,
 
@@ -432,6 +523,9 @@ typedef enum {
      *  response_length = pointer to memory where callback writes the length of the description string.
      *                    The total length of description and name spec must not exceed 127 bytes.
      *
+     * Callback returns:
+     *  idk_callback_continue = Callback successfully returns the description.
+     *  not idk_callback_continue =  abort and exit IDK.
      */
     idk_firmware_description,
 
@@ -446,28 +540,35 @@ typedef enum {
      *  response_length = pointer to memory where callback writes the length of the name spec.
      *                    The total length of description and name spec must not exceed 127 bytes.
      *
+     * Callback returns:
+     *  idk_callback_continue = Callback successfully returns the name spec.
+     *  not idk_callback_continue =  abort and exit IDK.
      */
     idk_firmware_name_spec,
 
-    /* callback request ID to request firmware download from server
+    /* Callback request ID to request firmware download from server
      *
-     * The callback parameters:
+     * Callback parameters:
      *  class = idk_class_firmware
      *  request = idk_firmware_download_request
      *  request_data = pointer to idk_fw_download_request_t
      *  request_length = sizeof idk_fw_download_request_t
      *  response_data = pointer to memory where callback writes the idk_fw_status_t status to.
-     *                  IDK will use idk_fw_device_error error status for unknown returned status.
-     *                  Callback writes idk_fw_success when it's ready to download.
+     *                  IDK will send idk_fw_device_error error status to abort downlaod request
+     *                  * for unknown returned status.
      *  response_length = NULL
      *
-     * If callback returns idk_callback_abort, IDK will send idk_fw_user_abort error to server to reject firmware download request and stop running
+     * Callback returns:
+     *  idk_callback_continue = Callback has set appropriate status in response_data.
+     *  idk_callback_abort =  abort and exit IDK.
+     *  idk_callback_busy = Callback is busy and needs to be called again.
+     *
      */
     idk_firmware_download_request,
 
-    /* callback request ID to pass image data for firmware download.
+    /* Callback request ID to pass image data for firmware download.
      *
-     * The callback parameters:
+     * Callback parameters:
      *  class = idk_class_firmware
      *  request = idk_firmware_binary_block
      *  request_data = pointer to idk_fw_image_data_t
@@ -475,15 +576,17 @@ typedef enum {
      *  response_data = NULL
      *  response_length = NULL
      *
-     *  If callback returns idk_callback_continue, IDK will continue and wait for more data from server.
-     *  If callback returns idk_callback_abort, IDK will send idk_fw_user_abort to abort firmware download and stop running
+     * Callback returns:
+     *  idk_callback_continue =  Callback has acknowledged.
+     *  idk_callback_abort =  IDK will send idk_fw_user_abort to abort firmware download and exit.
+     *  idk_callback_busy = Callback is busy and needs to be called again.
      */
     idk_firmware_binary_block,
 
-    /* callback request ID to complete firmware download. This is used when server completes sending
+    /* Callback request ID to complete firmware download. This is used when server completes sending
      * all image binary data.
      *
-     * The callback parameters:
+     * Callback parameters:
      *  class = idk_class_firmware
      *  request = idk_firmware_download_complete
      *  request_data = pointer to idk_fw_download_complete_request_t
@@ -491,14 +594,16 @@ typedef enum {
      *  response_data = pointer to idk_fw_download_complete_request_t where callback writes response to
      *  response_length = NULL
      *
-     *  If callback returns idk_callback_continue, IDK will complete firmware download.
-     *  If callback returns idk_callback_abort, IDK will send idk_fw_user_abort to abort firmware download and stop running.
+     * Callback returns:
+     *  idk_callback_continue =  Callback has successfully returned response_data..
+     *  idk_callback_abort =  IDK will send idk_fw_user_abort to abort firmware download and exit.
+     *  idk_callback_busy = Callback is busy and needs to be called again.
      */
     idk_firmware_download_complete,
 
     /* callback request ID to abort firmware download. This is called when server abort firmware download.
      *
-     * The callback parameters:
+     * Callback parameters:
      *  class = idk_class_firmware
      *  request = idk_firmware_download_abort
      *  request_data = pointer to idk_fw_download_abort_t
@@ -506,7 +611,10 @@ typedef enum {
      *  response_data = NULL
      *  response_length = NULL
      *
-     *  If callback returns idk_callback_abort, IDK will stop and exit.
+     * Callback returns:
+     *  idk_callback_continue =  Callback has acknowledged that server has aborted the download.
+     *  idk_callback_abort = abort and exit IDK
+     *  idk_callback_busy = Callback is busy and needs to be called again.
      */
     idk_firmware_download_abort,
 
@@ -514,7 +622,7 @@ typedef enum {
      * not return if it's resetting itself. It may return and continue. However, server may disconnect
      * the device and IDK will process the idk_base_disconnected callback.
      *
-     * The callback parameters:
+     * Callback parameters:
      *  class = idk_class_firmware
      *  request = idk_firmware_target_reset
      *  request_data = pointer to idk_fw_config_t
@@ -522,7 +630,10 @@ typedef enum {
      *  response_data = NULL
      *  response_length = NULL
      *
-     *  If callback returns idk_callback_abort, IDK will stop and exit.
+     * Callback returns:
+     *  idk_callback_continue =  Callback has acknowledged that server has reseted the target..
+     *  idk_callback_abort = abort and exit IDK
+     *  idk_callback_busy = Callback is busy and needs to be called again.
      */
     idk_firmware_target_reset,
 } idk_firmware_request_t;
@@ -657,7 +768,7 @@ typedef struct  {
 
 /* Firmware facility configurations structure
  *
- * @oaram timeout   Timeout value in second which callback must return with this timeout value.
+ * @param timeout   Timeout value in second which callback must return with this timeout value.
  *                  This allows IDK to maintenance keepalive process. The connection may be
  *                  disconnected if keepalvie fails.
  * @param target    Target number
@@ -697,7 +808,7 @@ typedef struct {
  *
  * This is used after firmware download request from the server for firmware image data.
  *
- * @oaram timeout   Timeout value in second which callback must return with this timeout value.
+ * @param timeout   Timeout value in second which callback must return with this timeout value.
  *                  This allows IDK to maintenance keepalive process. The connection may be
  *                  disconnected if keepalvie fails.
  * @param target    Target number of which image data for
@@ -718,7 +829,7 @@ typedef struct {
  *
  * This is used when the server completes sending all firmware image data.
  *
- * @oaram timeout   Timeout value in second which callback must return with this timeout value.
+ * @param timeout   Timeout value in second which callback must return with this timeout value.
  *                  This allows IDK to maintenance keepalive process. The connection may be
  *                  disconnected if keepalvie fails.
  * @param target    Target number
@@ -735,7 +846,7 @@ typedef struct {
 
 /* Firmware Download Complete Response structure
  *
- * @oaram version   Version number of the image
+ * @param version   Version number of the image
  * @param calculated_checksum  Currently it's used for error code sent to server.
  * @param status    Download complete status
  *
@@ -750,7 +861,7 @@ typedef struct {
  *
  * This is used when server aborts firmware downlaod.
  *
- * @oaram timeout   Timeout value in second which callback must return with this timeout value.
+ * @param timeout   Timeout value in second which callback must return with this timeout value.
  *                  This allows IDK to maintenance keepalive process. The connection may be
  *                  disconnected if keepalvie fails.
  * @param target    Target number of which image data.
@@ -774,7 +885,9 @@ typedef struct {
  * @param response_data  Pointer to requested data for the request ID.
  * @param response_length Pointer to memory where the length of the response data will be written.
  *
- * @return
+ * @return idk_callback_continue  IDK will continue
+ * @return idk_callback_busy        IDK will call the callback again
+ * @return idk_callback_abort       IDK will stop and exit
  */
 typedef idk_callback_status_t (* idk_callback_t) (idk_class_t class, idk_request_t request, 
                                                   void const * request_data, size_t request_length, 
