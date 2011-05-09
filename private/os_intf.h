@@ -22,14 +22,15 @@
  * =======================================================================
  *
  */
-//#include "idk_def.h"
-#include "debug.h"
+#include "debug.c"
 
 static void init_setting(idk_data_t * idk_ptr)
 {
     idk_ptr->edp_state = edp_init_layer;
     idk_ptr->layer_state = 0;
     idk_ptr->request_id = 0;
+    idk_ptr->error_code = idk_success;
+    idk_ptr->active_facility = NULL;
     //idk_ptr->network_busy = false
 
 }
@@ -57,6 +58,10 @@ static idk_callback_status_t get_system_time(idk_data_t * idk_ptr, uint32_t * ms
 
     request_id.base_request = idk_base_system_time;
     status = idk_ptr->callback(idk_class_base, request_id, NULL, 0, mstime, &length);
+    if (status == idk_callback_abort)
+    {
+        idk_ptr->error_code = idk_configuration_error;
+    }
     /* do I need to check the length */
 
     return status;
@@ -73,8 +78,11 @@ static idk_callback_status_t malloc_data(idk_data_t * idk_ptr, size_t length, vo
 
     request_id.base_request = idk_base_malloc;
     status = idk_ptr->callback(idk_class_base, request_id, &size, sizeof size, &p, &len);
-
-    if (status == idk_callback_continue)
+    if (status == idk_callback_abort)
+    {
+        idk_ptr->error_code = idk_configuration_error;
+    }
+    else if (status == idk_callback_continue)
     {
         *ptr = p;
         add_malloc_stats(p, size);
@@ -90,7 +98,11 @@ static idk_callback_status_t free_data(idk_data_t * idk_ptr, void * ptr)
 
     request_id.base_request = idk_base_free;
     status = idk_ptr->callback(idk_class_base, request_id, ptr, sizeof(void *), NULL, NULL);
-    if (status == idk_callback_continue)
+    if (status == idk_callback_abort)
+    {
+        idk_ptr->error_code = idk_configuration_error;
+    }
+    else if (status == idk_callback_continue)
     {
         del_malloc_stats(ptr);
     }
@@ -98,13 +110,13 @@ static idk_callback_status_t free_data(idk_data_t * idk_ptr, void * ptr)
     return status;
 }
 
-static idk_facility_t * get_facility_data(idk_data_t * idk_ptr, idk_base_request_t facility_id)
+static idk_facility_t * get_facility_data(idk_data_t * idk_ptr, uint16_t facility_num)
 {
     idk_facility_t * fac_ptr;
 
     for (fac_ptr = idk_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
     {
-        if (fac_ptr->facility_id == facility_id)
+        if (fac_ptr->facility_num == facility_num)
         {
             break;
         }
@@ -113,7 +125,8 @@ static idk_facility_t * get_facility_data(idk_data_t * idk_ptr, idk_base_request
     return fac_ptr;
 }
 
-static idk_callback_status_t add_facility_data(idk_data_t * idk_ptr, idk_base_request_t facility_id, idk_facility_t ** fac_ptr, size_t size, idk_facility_process_cb_t process_cb)
+static idk_callback_status_t add_facility_data(idk_data_t * idk_ptr, uint16_t facility_num, idk_facility_t ** fac_ptr, size_t size,
+                                                                               idk_facility_process_cb_t discovery_cb, idk_facility_process_cb_t process_cb)
 {
     idk_callback_status_t status;
     idk_facility_t * ptr = NULL;
@@ -121,8 +134,9 @@ static idk_callback_status_t add_facility_data(idk_data_t * idk_ptr, idk_base_re
     status = malloc_data(idk_ptr, size, (void **)&ptr);
     if (status == idk_callback_continue && ptr != NULL)
     {
-        ptr->facility_id = facility_id;
+        ptr->facility_num = facility_num;
         ptr->size = size;
+        ptr->discovery_cb = discovery_cb;
         ptr->process_cb = process_cb;
         ptr->packet = NULL;
         ptr->next = idk_ptr->facility_list;
@@ -133,14 +147,14 @@ static idk_callback_status_t add_facility_data(idk_data_t * idk_ptr, idk_base_re
     return status;
 }
 
-static idk_callback_status_t del_facility_data(idk_data_t * idk_ptr, idk_base_request_t facility_id)
+static idk_callback_status_t del_facility_data(idk_data_t * idk_ptr, uint16_t facility_num)
 {
     idk_callback_status_t status = idk_callback_continue;
     idk_facility_t * fac_ptr, * prev_ptr = NULL, * next_ptr;
 
     for (fac_ptr = idk_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
     {
-        if (fac_ptr->facility_id == facility_id)
+        if (fac_ptr->facility_num == facility_num)
         {
             next_ptr = fac_ptr->next;
 
