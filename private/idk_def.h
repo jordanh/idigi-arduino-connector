@@ -61,7 +61,7 @@ extern "C"
 #define IDK_MILLISECONDS            1000
 
 #define  IDK_IS_SELECT_SET(x, y)        (x & y)
-#define  IDK_PACKET_DATA_POINTER(p, y)  (uint8_t *)((uint8_t *)p + y - sizeof(uint8_t *))
+#define  IDK_PACKET_DATA_POINTER(p, s)  (uint8_t *)((uint8_t *)p + s)
 
 /* IRL EDP States */
 typedef enum {
@@ -78,9 +78,9 @@ typedef enum {
     layer_init_state,
     layer_connect_state,
     layer_redirect_state,
-    layer_communication_version_state,
-    layer_communication_ka_params_state,
-    layer_receive_data_state,
+    layer_send_version_state,
+    layer_send_ka_params_state,
+    layer_process_packet_state,
     layer_security_device_id_state,
     layer_security_server_url_state,
     layer_security_password_state,
@@ -94,13 +94,15 @@ typedef enum {
 struct idk_data;
 struct idk_facility;
 
-typedef idk_status_t (* idk_facility_process_cb_t )(struct idk_data * idk_ptr, struct idk_facility * fac_ptr);
+typedef idk_callback_status_t (* idk_facility_process_cb_t )(struct idk_data * idk_ptr, struct idk_facility * fac_ptr);
 
 typedef struct idk_facility {
-    idk_base_request_t facility_id;
+    uint16_t facility_num;
     size_t size;
+    idk_facility_process_cb_t discovery_cb;
     idk_facility_process_cb_t process_cb;
-    idk_facility_packet_t   * packet;
+    idk_facility_packet_t * packet;
+    uint8_t buffer[IDK_MSG_MAX_PACKET_SIZE];
     struct idk_facility * next;
 } idk_facility_t;
 
@@ -131,7 +133,7 @@ typedef struct idk_data {
 
    idk_edp_state_t edp_state;
    idk_layer_state_t layer_state;
-
+   idk_status_t error_code;
    bool network_busy;
    bool edp_connected;
 
