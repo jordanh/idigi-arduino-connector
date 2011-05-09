@@ -22,8 +22,6 @@
  * =======================================================================
  *
  */
-//#include "bele.c"
-//#include "idk_def.h"
 #include "ei_security.h"
 #include "ei_msg.h"
 
@@ -67,7 +65,7 @@ typedef struct {
 
 #define  idk_base_connection_control idk_base_connection_type
 
-static idk_callback_status_t process_redirect_report(idk_data_t * idk_ptr, idk_cc_data_t * cc_ptr)
+static idk_callback_status_t send_redirect_report(idk_data_t * idk_ptr, idk_cc_data_t * cc_ptr)
 {
     idk_callback_status_t status;
     idk_facility_packet_t * p;
@@ -86,8 +84,12 @@ static idk_callback_status_t process_redirect_report(idk_data_t * idk_ptr, idk_c
      *  ----------------------------------------------------
      */
 
-    p = (idk_facility_packet_t *)idk_ptr->send_packet.buffer;
-    ptr = IDK_PACKET_DATA_POINTER(p, sizeof(idk_facility_packet_t));
+    p =(idk_facility_packet_t *) net_get_send_packet(idk_ptr, sizeof(idk_facility_packet_t), &ptr);
+    if (p == NULL)
+    {
+        status = idk_callback_busy;
+        goto _ret;
+    }
 
     *ptr++ = FAC_CC_REDIRECT_REPORT;  /* opcode */
     *ptr++ = cc_ptr->report_code;    /* report code */
@@ -127,15 +129,14 @@ static idk_callback_status_t process_redirect_report(idk_data_t * idk_ptr, idk_c
     }
 
     status = net_enable_facility_packet(idk_ptr, E_MSG_FAC_CC_NUM, cc_ptr->security_code);
-
+_ret:
     return status;
 }
 
-static idk_callback_status_t process_connection_report(idk_data_t * idk_ptr, idk_cc_data_t * cc_ptr)
+static idk_callback_status_t send_connection_report(idk_data_t * idk_ptr, idk_cc_data_t * cc_ptr)
 {
     idk_callback_status_t status = idk_callback_continue;;
     idk_facility_packet_t * p;
-    idk_status_t err_status;
     idk_request_t request_id;
     uint8_t * ptr;
     size_t length;
@@ -156,13 +157,18 @@ static idk_callback_status_t process_connection_report(idk_data_t * idk_ptr, idk
      * 4. if connection type is WAN, call callback to get and build link speed in the send packet
      * 5. if connection type is WAN, call callback to get and build phone number in the send packet
      */
-    p = (idk_facility_packet_t *)idk_ptr->send_packet.buffer;
+    p =(idk_facility_packet_t *) net_get_send_packet(idk_ptr, sizeof(idk_facility_packet_t), &ptr);
+    if (p == NULL)
+    {
+        status = idk_callback_busy;
+        goto _ret;
+    }
 
     if (cc_ptr->item == idk_base_ip_addr)
     {
         uint8_t * ip_addr = NULL;
 
-        ptr = IDK_PACKET_DATA_POINTER(p, sizeof(idk_facility_packet_t));
+//        ptr = IDK_PACKET_DATA_POINTER(p, sizeof(idk_facility_packet_t));
 
         *ptr++ = FAC_CC_CONNECTION_REPORT;  /* opcode */
         *ptr++ = FAC_CC_CLIENTTYPE_DEVICE;  /* client type */
@@ -176,11 +182,12 @@ static idk_callback_status_t process_connection_report(idk_data_t * idk_ptr, idk
         status = idk_ptr->callback(idk_class_base, request_id, NULL, 0, &ip_addr, &length);
         if (status != idk_callback_continue)
         {
+            idk_ptr->error_code = idk_configuration_error;
             goto _ret;
         }
         if (ip_addr == NULL || length == 0 || (length != IDK_IPV6_ADDRESS_LENGTH && length != IDK_IPV4_ADDRESS_LENGTH))
         {
-            err_status = idk_invalid_data_size;
+            idk_ptr->error_code = idk_invalid_data_size;
             goto _error_param;
         }
 
@@ -197,7 +204,7 @@ static idk_callback_status_t process_connection_report(idk_data_t * idk_ptr, idk
             if (*((uint32_t *)ip_addr) == 0x00000000 || *((uint32_t *)ip_addr) == 0xffffffff)
             {
                 /* bad addr */
-                err_status = idk_invalid_data;
+                idk_ptr->error_code = idk_invalid_data;
                 goto _error_param;
             }
             else
@@ -225,13 +232,14 @@ static idk_callback_status_t process_connection_report(idk_data_t * idk_ptr, idk
         status = idk_ptr->callback(idk_class_base, request_id, NULL, 0, &connection_type, &length);
         if (status != idk_callback_continue)
         {
+            idk_ptr->error_code = idk_configuration_error;
             goto _ret;
         }
 
         if (connection_type == NULL || (*connection_type != idk_lan_connection_type && *connection_type != idk_wan_connection_type))
         {
             /* bad connection type */
-            err_status = idk_invalid_data;
+            idk_ptr->error_code = idk_invalid_data;
             goto _error_param;
         }
         else
@@ -264,12 +272,13 @@ static idk_callback_status_t process_connection_report(idk_data_t * idk_ptr, idk
         status = idk_ptr->callback(idk_class_base, request_id, NULL, 0, &mac, &length);
         if (status != idk_callback_continue)
         {
+            idk_ptr->error_code = idk_configuration_error;
             goto _ret;
         }
         if (mac == NULL || length != IDK_MAC_ADDR_LENGTH)
         {
             /* bad connection type */
-            err_status = idk_invalid_data_size;
+            idk_ptr->error_code = idk_invalid_data_size;
             goto _error_param;
         }
 
@@ -291,13 +300,14 @@ static idk_callback_status_t process_connection_report(idk_data_t * idk_ptr, idk
         status = idk_ptr->callback(idk_class_base, request_id, NULL, 0, &link_speed, &length);
         if (status != idk_callback_continue)
         {
+            idk_ptr->error_code = idk_configuration_error;
             goto _ret;
         }
 
         if (link_speed == NULL || length != sizeof(uint32_t))
         {
             /* bad connection type */
-            err_status = idk_invalid_data_size;
+            idk_ptr->error_code = idk_invalid_data_size;
             goto _error_param;
         }
 
@@ -320,15 +330,16 @@ static idk_callback_status_t process_connection_report(idk_data_t * idk_ptr, idk
 
         if (status != idk_callback_continue)
         {
+            idk_ptr->error_code = idk_configuration_error;
             goto _ret;
         }
 
         if (phone == NULL || length == 0)
         {
             /* bad connection type */
-            err_status = idk_invalid_data_size;
+            idk_ptr->error_code = idk_invalid_data_size;
 _error_param:
-            status = notify_error_status(idk_ptr->callback, idk_class_base, request_id, err_status);
+            status = notify_error_status(idk_ptr->callback, idk_class_base, request_id, idk_ptr->error_code);
             goto _ret;
         }
 
@@ -338,17 +349,16 @@ _error_param:
         memcpy(ptr, phone, length);
         p->length += length;
 
-        status = net_enable_facility_packet(idk_ptr, E_MSG_FAC_CC_NUM, cc_ptr->security_code);
     }
+    status = net_enable_facility_packet(idk_ptr, E_MSG_FAC_CC_NUM, cc_ptr->security_code);
 
 _ret:
     return status;
 }
 
-static idk_status_t process_disconnect(idk_data_t * idk_ptr, idk_cc_data_t * cc_ptr)
+static idk_callback_status_t process_disconnect(idk_data_t * idk_ptr, idk_cc_data_t * cc_ptr)
 {
-    idk_status_t rc = idk_success;
-    idk_callback_status_t   status;
+    idk_callback_status_t status = idk_callback_continue;
     idk_request_t request_id;
 
     (void)cc_ptr;
@@ -364,11 +374,12 @@ static idk_status_t process_disconnect(idk_data_t * idk_ptr, idk_cc_data_t * cc_
         if (status == idk_callback_continue)
         {
             cc_ptr->facility.packet = NULL;
+            init_setting(idk_ptr);
 //            idk_ptr->network_busy = true;
         }
         else if (status == idk_callback_abort)
         {
-            rc = idk_server_disconnected;
+            idk_ptr->error_code = idk_server_disconnected;
         }
         else
         {
@@ -376,13 +387,12 @@ static idk_status_t process_disconnect(idk_data_t * idk_ptr, idk_cc_data_t * cc_
         }
     }
 
-    return rc;
+    return status;
 }
 
-static idk_status_t  process_redirect(idk_data_t * idk_ptr, idk_cc_data_t * cc_ptr, idk_facility_packet_t * p)
+static idk_callback_status_t  process_redirect(idk_data_t * idk_ptr, idk_cc_data_t * cc_ptr, idk_facility_packet_t * p)
 {
-    idk_status_t rc = idk_success;
-    idk_callback_status_t status;
+    idk_callback_status_t status = idk_callback_continue;
     uint8_t     url_count;
     uint16_t    url_length;
     uint8_t     * buf;
@@ -415,12 +425,7 @@ static idk_status_t  process_redirect(idk_data_t * idk_ptr, idk_cc_data_t * cc_p
         }
 
         status = net_close(idk_ptr);
-        if (status == idk_callback_abort)
-        {
-            rc = idk_close_error;
-            goto _ret;
-        }
-        else if (status == idk_callback_busy)
+        if (status != idk_callback_continue)
         {
             goto _ret;
         }
@@ -494,12 +499,12 @@ static idk_status_t  process_redirect(idk_data_t * idk_ptr, idk_cc_data_t * cc_p
     }
 
 _ret:
-    return rc;
+    return status;
 }
 
-static idk_status_t cc_process(idk_data_t * idk_ptr, idk_facility_t * fac_ptr)
+static idk_callback_status_t cc_process(idk_data_t * idk_ptr, idk_facility_t * fac_ptr)
 {
-    idk_status_t rc = idk_success;
+    idk_callback_status_t status = idk_callback_continue;
     uint8_t opcode, * ptr;
     idk_facility_packet_t * p;
     idk_cc_data_t * cc_ptr = (idk_cc_data_t *)fac_ptr;
@@ -515,11 +520,11 @@ static idk_status_t cc_process(idk_data_t * idk_ptr, idk_facility_t * fac_ptr)
 
         if (opcode == FAC_CC_DISCONNECT)
         {
-            rc = process_disconnect(idk_ptr, cc_ptr);
+            status = process_disconnect(idk_ptr, cc_ptr);
         }
         else if (opcode == FAC_CC_REDIRECT_TO_SDA)
         {
-            rc = process_redirect(idk_ptr, cc_ptr, p);
+            status = process_redirect(idk_ptr, cc_ptr, p);
         }
         else
         {
@@ -527,43 +532,65 @@ static idk_status_t cc_process(idk_data_t * idk_ptr, idk_facility_t * fac_ptr)
         }
     }
 
-    return rc;
+    return status;
 }
 
-idk_callback_status_t cc_discovery_layer(idk_data_t * idk_ptr)
+static idk_callback_status_t cc_discovery(idk_data_t * idk_ptr, idk_facility_t * fac_ptr)
 {
-    idk_callback_status_t status;
-   idk_cc_data_t * cc_ptr;
-
-    cc_ptr = (idk_cc_data_t *)get_facility_data(idk_ptr, idk_base_connection_control);
-    if (cc_ptr == NULL)
-    {
-        status = add_facility_data(idk_ptr, idk_base_connection_control, (idk_facility_t **) &cc_ptr, sizeof(idk_cc_data_t), cc_process);
-
-        if (status == idk_callback_abort || cc_ptr == NULL)
-        {
-            goto _ret;
-        }
-        cc_ptr->state = cc_state_redirect_report;
-        cc_ptr->report_code = IDK_CC_NOT_REDIRECT;
-        cc_ptr->server_url[0] = '\0';
-        cc_ptr->security_code = SECURITY_PROTO_NONE;
-        cc_ptr->item = idk_base_ip_addr;
-
-    }
+    idk_callback_status_t status = idk_callback_continue;
+    idk_cc_data_t * cc_ptr = (idk_cc_data_t *)fac_ptr;;
 
     if (cc_ptr->state == cc_state_redirect_report)
     {
-        status = process_redirect_report(idk_ptr, cc_ptr);
+        status = send_redirect_report(idk_ptr, cc_ptr);
         if (status == idk_callback_continue)
         {
+            status = idk_callback_busy;
             cc_ptr->state = cc_state_connect_report;
         }
     }
     else if (cc_ptr->state == cc_state_connect_report)
     {
-        status = process_connection_report(idk_ptr, cc_ptr);
+        status = send_connection_report(idk_ptr, cc_ptr);
     }
+
+    return status;
+}
+
+static idk_status_t cc_delete_facility(idk_data_t * idk_ptr)
+{
+    idk_callback_status_t status = idk_callback_continue;
+    idk_cc_data_t * cc_ptr;
+
+    cc_ptr = (idk_cc_data_t *)get_facility_data(idk_ptr, E_MSG_FAC_CC_NUM);
+    if (cc_ptr != NULL)
+    {
+        status = del_facility_data(idk_ptr, E_MSG_FAC_CC_NUM);
+    }
+    return status;
+}
+
+static idk_callback_status_t cc_init_facility(idk_data_t * idk_ptr)
+{
+    idk_callback_status_t status = idk_callback_continue;
+    idk_cc_data_t * cc_ptr;
+
+    cc_ptr = (idk_cc_data_t *)get_facility_data(idk_ptr, E_MSG_FAC_CC_NUM);
+    if (cc_ptr == NULL)
+    {
+        status = add_facility_data(idk_ptr, E_MSG_FAC_CC_NUM, (idk_facility_t **) &cc_ptr, sizeof(idk_cc_data_t), cc_discovery, cc_process);
+
+        if (status == idk_callback_abort || cc_ptr == NULL)
+        {
+            goto _ret;
+        }
+        cc_ptr->report_code = IDK_CC_NOT_REDIRECT;
+        cc_ptr->server_url[0] = '\0';
+
+    }
+    cc_ptr->state = cc_state_redirect_report;
+    cc_ptr->security_code = SECURITY_PROTO_NONE;
+    cc_ptr->item = idk_base_ip_addr;
 
 _ret:
     return status;
