@@ -25,12 +25,12 @@
 #ifndef _EI_PACKET_H
 #define _EI_PACKET_H
 
-#define PKT_MT_LENGTH        4	/* size of MTv2 type+length fields */
-                              	/* (also suffices for MTv1 length field) */
-#define PKT_OP_SECURITY      1	/* size of security layer opcode field */
-#define PKT_OP_DISCOVERY     1	/* size of discovery layer opcode field */
-#define PKT_OP_MUX           2	/* size of mux layer opcode field */
-#define PKT_OP_FACILITY       2	/* size of mux layer opcode field */
+#define PKT_MT_LENGTH        4  /* size of MTv2 type+length fields */
+                                /* (also suffices for MTv1 length field) */
+#define PKT_OP_SECURITY      1  /* size of security layer opcode field */
+#define PKT_OP_DISCOVERY     1  /* size of discovery layer opcode field */
+#define PKT_OP_MUX           2  /* size of mux layer opcode field */
+#define PKT_OP_FACILITY       2 /* size of mux layer opcode field */
 #define PKT_PRE_SECURITY     PKT_MT_LENGTH
 #define PKT_PRE_DISCOVERY    (PKT_PRE_SECURITY + PKT_OP_SECURITY)
 #define PKT_PRE_MUX          (PKT_PRE_DISCOVERY + PKT_OP_DISCOVERY)
@@ -50,19 +50,21 @@
 
 
 typedef struct {
-	uint16_t	type;
-	uint16_t	length;
-//	uint8_t	* data;
+    uint16_t avail_length;
+    uint16_t    type;
+    uint16_t    length;
+//  uint8_t * data;
 } idk_packet_t;
 
 typedef struct {
-	uint16_t	type;
-	uint16_t	length;
-	uint8_t		sec_coding;
-	uint8_t		disc_payload;
-	uint16_t	facility;
-	uint8_t		* data;
+    uint16_t avail_length;
+    uint16_t    type;
+    uint16_t    length;
+    uint8_t     sec_coding;
+    uint8_t     disc_payload;
+    uint16_t    facility;
+//  uint8_t     * data;
 } idk_facility_packet_t;
 
 /*@}*/
-#endif	/* _EI_PACKET_H */
+#endif  /* _EI_PACKET_H */
