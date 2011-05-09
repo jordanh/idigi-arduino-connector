@@ -22,19 +22,25 @@
  * =======================================================================
  *
  */
-#ifndef IRL_RCI_H_
-#define IRL_RCI_H_
+#ifndef EH_OS_H_
+#define EH_OS_H_
 
-#include "irl_api.h"
+#include "idk_api.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
+idk_callback_status_t hal_get_system_time(uint32_t * mstime);
+idk_callback_status_t hal_wait(uint32_t mswait);
+idk_callback_status_t hal_lock(unsigned id);
+idk_callback_status_t hal_unlock(unsigned id);
+idk_callback_status_t hal_malloc(size_t size, void ** ptr);
+idk_callback_status_t hal_free(void * ptr);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* IRL_RCI_H_ */
+#endif /* EH_OS_H_ */

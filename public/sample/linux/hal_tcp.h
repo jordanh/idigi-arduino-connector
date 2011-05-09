@@ -22,30 +22,27 @@
  * =======================================================================
  *
  */
-#ifndef CONFIG_INTF_H_
-#define CONFIG_INTF_H_
+#ifndef EH_TCP_H_
+#define EH_TCP_H_
 
-#include "irl_def.h"
+#include <netinet/in.h>
+#include "idk_api.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
+idk_callback_status_t hal_connect(idk_connect_request_t * connect_data);
+idk_callback_status_t hal_send(idk_write_request_t * write_data, size_t * sent_length);
+idk_callback_status_t hal_receive(idk_read_request_t * read_data, size_t * read_length);
+idk_callback_status_t hal_close(idk_network_handle_t * fd);
+uint8_t hal_select(idk_network_handle_t fd, uint8_t select_set, unsigned wait_time);
 
-IrlStatus_t irl_error_status(irl_callback_t callback, unsigned config_id, int status);
-IrlStatus_t irl_get_config(IrlSetting_t * irl_ptr, unsigned config_id, void * data);
-int  irl_check_config_null(IrlSetting_t *irl_ptr, unsigned config_id);
-
-int irl_add_facility(IrlSetting_t * irl_ptr, void * user_data, unsigned facility_id, void * facility_data, irl_facility_process_cb_t process_cb);
-//IrlFacilityHandle_t * irl_get_facility_handle(IrlSetting_t * irl_ptr, unsigned facility_id);
-//int irl_del_facility_handle(IrlSetting_t * irl_ptr, unsigned facility_id);
-//int irl_add_facility_handle(IrlSetting_t * irl_ptr, unsigned facility_id, IrlFacilityHandle_t ** fac_handle);
-
+int e_dns_resolve(char *domain_name, struct in_addr * ip_addr);
 
 #ifdef __cplusplus
 }
 #endif
 
-
-#endif /* CONFIG_INTF_H_ */
+#endif /* EH_TCP_H_ */

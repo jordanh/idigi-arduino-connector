@@ -1,0 +1,10 @@
+# Comment if not cross-compiling or redefine if using other architecture
+#CROSS_COMPILE = arm-linux-
+
+CC      = $(CROSS_COMPILE)gcc
+LD      = $(CROSS_COMPILE)gcc
+CXX     = $(CROSS_COMPILE)g++
+STRIP   = $(CROSS_COMPILE)strip
+AR      = $(CROSS_COMPILE)ar
+
+LDFLAGS = -Wl,-soname,$(LIBRARY) -shared $^ -o
