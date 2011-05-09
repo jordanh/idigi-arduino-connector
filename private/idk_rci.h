@@ -43,8 +43,12 @@ static idk_status_t rci_process_function(idk_data_t * idk_ptr, idk_facility_t * 
 
     DEBUG_PRINTF("rci_process_function: fake response\n");
 
-    pkt = (idk_facility_packet_t *)idk_ptr->send_packet.buffer;
-    data_ptr = buf = IDK_PACKET_DATA_POINTER(pkt, sizeof(idk_facility_packet_t));
+    pkt =(idk_facility_packet_t *) net_get_send_packet(idk_ptr, sizeof(idk_facility_packet_t), &buf);
+    if (pkt == NULL)
+    {
+        goto _ret;
+    }
+    data_ptr = buf;
     *buf++ = 0x04;
     *buf++ = 0x00;
     length = TO_BE32(strlen(no_query_state_response));
@@ -57,6 +61,6 @@ static idk_status_t rci_process_function(idk_data_t * idk_ptr, idk_facility_t * 
     pkt->length = buf - data_ptr;
 
     rc = net_enable_facility_packet(idk_ptr, E_MSG_FAC_RCI_NUM, SECURITY_PROTO_NONE);
-
+_ret:
     return rc;
 }
