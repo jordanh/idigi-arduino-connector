@@ -25,12 +25,12 @@
 #include "idk_api.h"
 #include "idk_def.h"
 #include "bele.h"
-#include "os_intf.h"
-#include "network_intf.h"
-#include "idk_cc.h"
-#include "idk_fw.h"
-#include "idk_rci.h"
-#include "layer.h"
+#include "os_intf.c"
+#include "network_intf.c"
+#include "idk_cc.c"
+#include "idk_fw.c"
+#include "idk_rci.c"
+#include "layer.c"
 
 enum {
     idk_device_started,
@@ -45,10 +45,11 @@ static idk_data_t * idkData = NULL;
 idk_status_t idk_step(idk_handle_t const handle)
 {
     idk_status_t rc = idk_success;
+    idk_callback_status_t status;
     idk_data_t * idk_handle = (idk_data_t *)handle;
     int sent_status = IDK_NETWORK_BUFFER_COMPLETE;
 
-    if (idk_handle != NULL || idk_handle->active_state != idk_device_started)
+    if (idk_handle == NULL || idk_handle->active_state != idk_device_started)
     {
         rc = idk_init_error;
         goto _ret;
@@ -57,9 +58,10 @@ idk_status_t idk_step(idk_handle_t const handle)
 
     if (idk_handle->edp_connected)
     {
-        rc = net_send_packet(idk_handle, &sent_status);
-        if (rc != idk_success)
+        status = net_send_packet(idk_handle, &sent_status);
+        if (status != idk_callback_continue)
         {
+            rc = idk_handle->error_code;
             DEBUG_PRINTF("idk_task: send status returns %d\n", rc);
             goto _ret;
         }
@@ -70,73 +72,65 @@ idk_status_t idk_step(idk_handle_t const handle)
         switch (idk_handle->edp_state)
         {
         case edp_init_layer:
-            rc = configuration_layer(idk_handle);
+            status = configuration_layer(idk_handle);
             break;
         case edp_communication_layer:
-            rc = communication_layer(idk_handle);
+            status = communication_layer(idk_handle);
             break;
         case edp_initialization_layer:
-            rc = initialization_layer(idk_handle);
+            status = initialization_layer(idk_handle);
             break;
         case edp_security_layer:
-            rc = security_layer(idk_handle);
+            status = security_layer(idk_handle);
             break;
         case edp_discovery_layer:
-            rc = discovery_layer(idk_handle);
+            status = discovery_layer(idk_handle);
             break;
         case edp_facility_layer:
-            rc = facility_layer(idk_handle);
+            status = facility_layer(idk_handle);
             break;
         };
     }
 
-_ret:
-    if (rc != idk_success)
+    if (status != idk_callback_abort && idk_handle->edp_connected)
     {
-        idk_callback_status_t status;
+        status = net_send_packet(idk_handle, &sent_status);
+    }
+    if (status == idk_callback_abort)
+    {
+        rc = idk_handle->error_code;
+    }
+
+_ret:
+    if (rc != idk_success && idk_handle != NULL)
+    {
         idk_request_t request_id;
+        status = net_close(idk_handle);
 
-        do {
-            status = net_close(idk_handle);
-
-            if (status == idk_callback_abort)
-            {
-                DEBUG_PRINTF("idk_task: net_close returns abort");
-                rc = idk_close_error;
-            }
-            else if (status == idk_callback_busy)
-            {
-                /* TODO: need to delay */
-            }
-        } while (status == idk_callback_busy);
-
+        if (status != idk_callback_continue)
+        {
+            DEBUG_PRINTF("idk_task: net_close returns abort");
+        }
         init_setting(idk_handle);
 
         if (idk_handle->active_state == idk_device_terminate)
         {
-            rc = remove_facility_layer(idk_handle);
-            if (rc == idk_success)
+            status = remove_facility_layer(idk_handle);
+            if (status == idk_callback_abort)
             {
-                rc = idk_device_terminated;
+                rc = idk_handle->error_code;
             }
 
             request_id.base_request = idk_base_free;
 
-            do {
-                status = idk_handle->callback(idk_class_base, request_id, idk_handle, sizeof idk_handle, NULL, NULL);
-                if (status == idk_callback_abort)
-                {
-                    DEBUG_PRINTF("idk_task: net_close returns abort");
-                    rc = idk_configuration_error;
-                }
-                else if (status == idk_callback_busy)
-                {
-                    /* TODO: need to delay */
-                }
-            } while (status == idk_callback_busy);
+            status = idk_handle->callback(idk_class_base, request_id, idk_handle, sizeof idk_handle, NULL, NULL);
+            if (status != idk_callback_continue)
+            {
+                DEBUG_PRINTF("idk_task: net_close returns abort");
+                rc = idk_configuration_error;
+            }
 
             idkData = NULL;
-
         }
     }
     return rc;
@@ -164,7 +158,7 @@ idk_handle_t idk_init(idk_callback_t callback)
 
         request_id.base_request = idk_base_malloc;
         status = callback(idk_class_base, request_id, &size, sizeof size, &idk_handle, NULL);
-        if (status == idk_callback_abort)
+        if (status == idk_callback_abort || idk_handle == NULL)
         {
             goto _ret;
         }
@@ -190,6 +184,21 @@ idk_handle_t idk_init(idk_callback_t callback)
                 }
                 else
                 {
+                    switch (idk_base_request_ids[i])
+                    {
+                    case idk_base_device_id:
+                        idk_handle->device_id = (uint8_t *)data;
+                        break;
+                    case idk_base_vendor_id:
+                        idk_handle->vendor_id = (uint8_t *)data;
+                        break;
+                    case idk_base_device_type:
+                        idk_handle->device_type = (char *)data;
+                        break;
+                    default:
+                        break;
+
+                    }
                     i++;
                 }
             }
@@ -232,6 +241,8 @@ idk_status_t idk_dispatch(idk_handle_t handle, idk_dispatch_request_t request, v
     idk_status_t rc = idk_success;
     idk_data_t * idk_ptr = (idk_data_t *)handle;
 
+    (void)data;
+
     switch (request)
     {
     case idk_dispatch_terminate:
@@ -243,3 +254,4 @@ idk_status_t idk_dispatch(idk_handle_t handle, idk_dispatch_request_t request, v
 
     return rc;
 }
+
