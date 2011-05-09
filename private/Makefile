@@ -34,24 +34,28 @@ endif
 
 CFLAGS += -I../public/include -Wall
 
-SRCS := $(wildcard *.c)
-OBJS := $(patsubst %.c,%.o,$(SRCS))
+#SRCS := $(wildcard *.c)
+#OBJS := $(patsubst %.c,%.o,$(SRCS))
 
-.PHONY: all
-all: $(LIBRARY)
+OBJS := idk_api.o
 
-$(LIBRARY): $(OBJS)
+$(OBJS): $(wildcard *.c) 
+
+#.PHONY: all
+all: $(LIB)
+
+$(LIB): $(OBJS)
 	$(LD) $(LDFLAGS) $@
 
 .PHONY: clean
 clean:
-	-rm -f $(LIBRARY) $(OBJS)
+	-rm -f $(LIB) $(OBJS)
 
 .PHONY: help
 help:
 	@echo "Options:"
 	@echo "    IDK_RULES = Location and  name for toolset"
-	@echo "    LIBRARY = Location and name of library"
+	@echo "    LIB = Location and name of library"
 	@echo "    DEBUG = true or false for debugging"
 	@echo "    LITTLE_ENDIAN = true or false for little endian"
 
