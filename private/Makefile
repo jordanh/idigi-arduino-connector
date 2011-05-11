@@ -39,7 +39,7 @@ CFLAGS += -I../public/include -Wall
 
 OBJS := idk_api.o
 
-$(OBJS): $(wildcard *.c) 
+$(OBJS): *.c *.h
 
 #.PHONY: all
 all: $(LIB)
