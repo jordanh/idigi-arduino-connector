@@ -36,22 +36,6 @@
 
 /*@{*/
 
-//#include "idk_types.h"
-//#include "e_network.h"
-
-
-/*
- * Messages over TCP (MT) version.
- *   1   indicates the original MT (version 1)
- *   2   indicates MT version 2 (introduced in EDBP version 4.0)
- */
-//#define E_MSG_MT_VERSION 1
-//#define E_MSG_MT_VERSION 2
-
-
-
-//#include "ei_packet.h"
-
 #define E_MSG_SOCKET_RETRY_DELAY	200UL 	/* milliseconds */
 #define E_MSG_SOCKET_RETRY_COUNT	25
 #define E_MSG_CONNECT_RETRY_DELAY	2000UL 	/* milliseconds */
@@ -128,21 +112,6 @@
 #define E_MSG_MDH_KA_WAIT_MIN        2
 #define E_MSG_MDH_KA_WAIT_MAX        64
 #define E_MSG_MDH_KA_WAIT_DEFAULT    3
-
-#if 0
-/*
- * Error return values.
- */
-#define E_MSG_ERR_SERVER_OVERLOAD	-503	/* Server overload */
-#define E_MSG_ERR_KEEPALIVE_FAIL	-504	/* Keep-alive failure */
-#define E_MSG_ERR_MAX_RETRIES		-505	/* Too many retries */
-#define E_MSG_ERR_INVALID_MESSAGE	-506	/* Invalid message type */
-#define E_MSG_ERR_RCVD_MSG_TOO_BIG	-507	/* Rcvd msg too big for buffer */
-#define E_MSG_ERR_RCVD_MSG_BAD_SIZE	-508	/* Rcvd msg size wrong for type */
-#define E_MSG_ERR_BAD_MT_VERSION	-509	/* MT version number is bad */
-#define E_MSG_ERR_REQUEST_CANCELED	-510	/* Request was canceled */
-#define E_MSG_ERR_CONN_IDLE_TIMEOUT	-511	/* Connection idle timeout */
-#endif
 
 
 /*@}*/
