@@ -131,6 +131,60 @@ _ret:
 }
 #endif
 
+static idk_callback_status_t net_enable_send_packet(idk_data_t * idk_ptr)
+{
+    idk_callback_status_t status = idk_callback_continue;
+    idk_packet_t * p;
+    uint16_t length;
+    uint16_t msg_type;
+
+    if (idk_ptr->send_packet.total_length > 0)
+    {
+        DEBUG_PRINTF("net_enable_send_packet: unable to enable another send since previous data is still pending\n");
+        status = idk_callback_busy;
+        goto _ret;
+    }
+
+    p = (idk_packet_t *)idk_ptr->send_packet.buffer;
+    /* Adjust the packet header fields. */
+
+    idk_ptr->send_packet.total_length = p->length;
+    idk_ptr->send_packet.ptr = (uint8_t *)&p->type;
+    length = TO_BE16(p->length);
+
+    /*
+     * MTv2 (and later)...
+     * MT version 2 has a 2-octet type field before the 2-octet length.
+     *   | length | type | data |
+     */
+
+    msg_type = TO_BE16(p->type);
+
+    p->type = msg_type;
+    p->length = length;
+    idk_ptr->send_packet.total_length += sizeof(p->type) + sizeof(p->length);
+
+    idk_ptr->send_packet.length = 0;
+
+_ret:
+    return status;
+}
+
+static idk_callback_status_t net_enable_facility_packet(idk_data_t * idk_ptr, uint16_t facility, uint8_t security_code)
+{
+    idk_facility_packet_t   * p;
+
+    p = (idk_facility_packet_t *)idk_ptr->send_packet.buffer;
+
+    p->type = E_MSG_MT2_TYPE_PAYLOAD;
+
+    p->sec_coding = security_code;
+    p->disc_payload = DISC_OP_PAYLOAD;
+    p->facility = TO_BE16(facility);
+    p->length += sizeof(p->sec_coding) + sizeof(p->disc_payload) + sizeof(p->facility);
+    return net_enable_send_packet(idk_ptr);
+}
+
 static int send_buffer(idk_data_t * idk_ptr, uint8_t * buffer, size_t length)
 {
     int bytes_sent = 0;
@@ -216,96 +270,6 @@ static idk_packet_t * net_get_send_packet(idk_data_t * idk_ptr, size_t packet_si
     return p;
 }
 
-static idk_callback_status_t net_send_packet(idk_data_t * idk_ptr, int * sent_status)
-{
-    uint8_t * buf;
-    size_t  length;
-    int bytes_sent;
-    idk_callback_status_t status = idk_callback_continue;
-
-    *sent_status = IDK_NETWORK_BUFFER_COMPLETE;
-
-    if (idk_ptr->send_packet.total_length > 0)
-    {
-        buf = idk_ptr->send_packet.ptr + idk_ptr->send_packet.length;
-        length = idk_ptr->send_packet.total_length;
-
-        bytes_sent = send_buffer(idk_ptr, buf, length);
-        if (bytes_sent > 0)
-        {
-            idk_ptr->send_packet.total_length -= bytes_sent;
-            idk_ptr->send_packet.length += bytes_sent;
-        }
-        else
-        {
-            idk_ptr->error_code = -bytes_sent;
-            status = idk_callback_abort;
-        }
-    }
-
-    if (status == idk_callback_continue && idk_ptr->send_packet.total_length > 0)
-    {
-        *sent_status = IDK_NETWORK_BUFFER_PENDING;
-    }
-    return status;
-
-}
-
-
-static idk_callback_status_t net_enable_send_packet(idk_data_t * idk_ptr)
-{
-    idk_callback_status_t status = idk_callback_continue;
-    idk_packet_t * p;
-    uint16_t length;
-    uint16_t msg_type;
-
-    if (idk_ptr->send_packet.total_length > 0)
-    {
-        DEBUG_PRINTF("net_enable_send_packet: unable to enable another send since previous data is still pending\n");
-        status = idk_callback_busy;
-        goto _ret;
-    }
-
-    p = (idk_packet_t *)idk_ptr->send_packet.buffer;
-    /* Adjust the packet header fields. */
-
-    idk_ptr->send_packet.total_length = p->length;
-    idk_ptr->send_packet.ptr = (uint8_t *)&p->type;
-    length = TO_BE16(p->length);
-
-    /*
-     * MTv2 (and later)...
-     * MT version 2 has a 2-octet type field before the 2-octet length.
-     *   | length | type | data |
-     */
-
-    msg_type = TO_BE16(p->type);
-
-    p->type = msg_type;
-    p->length = length;
-    idk_ptr->send_packet.total_length += sizeof(p->type) + sizeof(p->length);
-
-    idk_ptr->send_packet.length = 0;
-
-_ret:
-    return status;
-}
-
-static idk_callback_status_t net_enable_facility_packet(idk_data_t * idk_ptr, uint16_t facility, uint8_t security_code)
-{
-    idk_facility_packet_t   * p;
-
-    p = (idk_facility_packet_t *)idk_ptr->send_packet.buffer;
-
-    p->type = E_MSG_MT2_TYPE_PAYLOAD;
-
-    p->sec_coding = security_code;
-    p->disc_payload = DISC_OP_PAYLOAD;
-    p->facility = TO_BE16(facility);
-    p->length += sizeof(p->sec_coding) + sizeof(p->disc_payload) + sizeof(p->facility);
-    return net_enable_send_packet(idk_ptr);
-}
-
 static idk_callback_status_t net_send_rx_keepalive(idk_data_t * idk_ptr)
 {
 #define IDK_MTV2_VERSION            2
@@ -344,13 +308,11 @@ static idk_callback_status_t net_send_rx_keepalive(idk_data_t * idk_ptr)
         goto _ret;
     }
 
-    p->length = 0;
-
     /*
      * MTv2 (and later)...
      * MT version 2 has a 2-octet type field before the 2-octet length.
      */
-    p->length = 4;
+    p->length = 0;
     p->type = E_MSG_MT2_TYPE_KA_KEEPALIVE;
     version = TO_BE32(IDK_MTV2_VERSION);
     memcpy(ptr, &version, p->length);
@@ -360,6 +322,46 @@ static idk_callback_status_t net_send_rx_keepalive(idk_data_t * idk_ptr)
 _ret:
     return status;
 }
+
+static idk_callback_status_t net_send_packet(idk_data_t * idk_ptr)
+{
+    uint8_t * buf;
+    size_t  length;
+    int bytes_sent;
+    idk_callback_status_t status = idk_callback_continue;
+
+    if (idk_ptr->send_packet.total_length > 0)
+    {
+        net_send_rx_keepalive(idk_ptr);
+    }
+
+    if (idk_ptr->send_packet.total_length > 0)
+    {
+        buf = idk_ptr->send_packet.ptr + idk_ptr->send_packet.length;
+        length = idk_ptr->send_packet.total_length;
+
+        bytes_sent = send_buffer(idk_ptr, buf, length);
+        if (bytes_sent > 0)
+        {
+            idk_ptr->send_packet.total_length -= bytes_sent;
+            idk_ptr->send_packet.length += bytes_sent;
+        }
+        else
+        {
+            idk_ptr->error_code = -bytes_sent;
+            status = idk_callback_abort;
+        }
+    }
+
+    if (status == idk_callback_continue && idk_ptr->send_packet.total_length > 0)
+    {
+        status = idk_callback_busy;
+    }
+    return status;
+
+}
+
+
 
 
 unsigned receive_timeout = 0;
@@ -754,17 +756,21 @@ static idk_callback_status_t net_connect_server(idk_data_t * idk_ptr, char * ser
     status = idk_ptr->callback(idk_class_base, request_id, &request, sizeof request, &idk_ptr->network_handle, &length);
     if (status == idk_callback_continue)
     {
-        if (idk_ptr->network_handle == NULL || length != sizeof(idk_network_handle_t))
-        {
-            request_id.base_request = idk_base_connect;
-            idk_ptr->error_code = idk_invalid_data_size;
-            status = notify_error_status(idk_ptr->callback, idk_class_base, request_id, idk_invalid_data_size);
-        }
-        else
+        if (idk_ptr->network_handle != NULL && length == sizeof(idk_network_handle_t))
         {
             idk_ptr->edp_connected = true;
             idk_ptr->network_busy = false;
         }
+        else
+        {
+            idk_ptr->error_code = (idk_ptr->network_handle == NULL) ? idk_invalid_data : idk_invalid_data_size;
+            request_id.base_request = idk_base_connect;
+            status = notify_error_status(idk_ptr->callback, idk_class_base, request_id, idk_ptr->error_code);
+        }
+    }
+    else if (status == idk_callback_abort)
+    {
+        idk_ptr->error_code = idk_connect_error;
     }
     return status;
 }
@@ -780,14 +786,19 @@ static idk_callback_status_t net_close(idk_data_t * idk_ptr)
         status = idk_ptr->callback(idk_class_base, request_id, idk_ptr->network_handle, sizeof(idk_network_handle_t *), NULL, NULL);
         if (status == idk_callback_continue)
         {
-            DEBUG_PRINTF("net_close: close 0x%x\n", (unsigned)idk_ptr->network_handle);
             idk_ptr->network_handle = NULL;
             idk_ptr->edp_connected = false;
+            idk_ptr->send_packet.total_length = 0;
+            idk_ptr->receive_packet.index = 0;
 ;
         }
         else if (status == idk_callback_abort)
         {
+            DEBUG_PRINTF("net_close: close callback aborts\n");
+            idk_ptr->network_handle = NULL;
             idk_ptr->error_code = idk_close_error;
+            idk_ptr->send_packet.total_length = 0;
+            idk_ptr->receive_packet.index = 0;
         }
     }
     return status;
