@@ -27,9 +27,9 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "hal_fw.h"
-#include "idk.h"
-#include "hal_os.h"
+#include "firmware.h"
+#include "idigi_data.h"
+#include "os.h"
 
 typedef struct {
     uint32_t    version;
@@ -56,11 +56,11 @@ firmware_data_t gFirmwareData = { 0, -1, 0, false, idk_fw_success};
 
 int fw_state = 0;
 
-idk_callback_status_t hal_fw_download_request(idk_fw_download_request_t * download_data, idk_fw_status_t * download_status)
+idk_callback_status_t firmware_download_request(idk_fw_download_request_t * download_data, idk_fw_status_t * download_status)
 {
     idk_callback_status_t status = idk_callback_continue;
 
-    DEBUG_PRINTF("hal_fw_download_request...\n");
+    DEBUG_PRINTF("firmware_download_request...\n");
     if (download_data == NULL || download_status == NULL || download_data->target >= gFirmwareListCount)
     {
         DEBUG_PRINTF("--- ERROR: IDK passes incorrect parameters\n");
@@ -91,7 +91,7 @@ idk_callback_status_t hal_fw_download_request(idk_fw_download_request_t * downlo
 
     if (gFirmwareData.fd == -1)
     {
-        perror("hal_fw_download_request: open fails");
+        perror("firmware_download_request: open fails");
         *download_status = idk_fw_download_denied;
         goto _ret;
     }
@@ -108,12 +108,12 @@ _ret:
     return status;
 }
 
-idk_callback_status_t hal_fw_image_data(idk_fw_image_data_t * image_data)
+idk_callback_status_t firmware_image_data(idk_fw_image_data_t * image_data)
 {
     idk_callback_status_t   status = idk_callback_continue;
     int bytes;
 
-    DEBUG_PRINTF("hal_fw_image_data...\n");
+    DEBUG_PRINTF("firmware_image_data...\n");
     if (image_data == NULL || !gFirmwareData.start_download || gFirmwareData.target != image_data->target)
     {
         DEBUG_PRINTF("ERROR: IDK passes incorrect parameters\n");
@@ -140,7 +140,7 @@ idk_callback_status_t hal_fw_image_data(idk_fw_image_data_t * image_data)
     {
         if (errno != EAGAIN)
         {
-            perror("hal_fw_image_data: write fails");
+            perror("firmware_image_data: write fails");
             gFirmwareData.status = idk_fw_encounterted_error;
             goto _ret;
         }
@@ -160,11 +160,11 @@ _ret:
 
 int gFwComplete = 0;
 
-idk_callback_status_t hal_fw_download_complete(idk_fw_download_complete_request_t * request_data, idk_fw_download_complete_response_t * response_data)
+idk_callback_status_t firmware_download_complete(idk_fw_download_complete_request_t * request_data, idk_fw_download_complete_response_t * response_data)
 {
     idk_callback_status_t   status = idk_callback_continue;
 
-    DEBUG_PRINTF("hal_fw_download_complete...\n");
+    DEBUG_PRINTF("firmware_download_complete...\n");
     if (request_data == NULL || response_data == NULL || !gFirmwareData.start_download ||
          gFirmwareData.target != request_data->target)
     {
@@ -174,11 +174,11 @@ idk_callback_status_t hal_fw_download_complete(idk_fw_download_complete_request_
 
     if (gFwComplete == 0)
     {
-        printf("hal_fw: wait %d sec\n", request_data->timeout);
+        printf("firmware: wait %d sec\n", request_data->timeout);
         hal_wait(request_data->timeout * 1000);
         gFwComplete = 1;
         status = idk_callback_busy;
-        printf("hal_fw: return %d\n", status);
+        printf("firmware: return %d\n", status);
         goto _ret;
     }
 
@@ -189,7 +189,7 @@ idk_callback_status_t hal_fw_download_complete(idk_fw_download_complete_request_
 
     if (gFirmwareData.total_length != request_data->code_size)
     {
-        DEBUG_PRINTF("hal_fw_download_complete: code size incorrect (received %d != %d)\n",
+        DEBUG_PRINTF("firmware_download_complete: code size incorrect (received %d != %d)\n",
                                     gFirmwareData.total_length, request_data->code_size);
     }
 
@@ -212,7 +212,7 @@ idk_callback_status_t hal_fw_download_complete(idk_fw_download_complete_request_
     if (gFirmwareData.fd != -1)
     {
         if (close(gFirmwareData.fd) < 0)
-            perror("hal_fw_download_complete: close fails");
+            perror("firmware_download_complete: close fails");
     }
 
     gFirmwareData.fd = -1;
@@ -224,11 +224,11 @@ _ret:
     return status;
 }
 
-idk_callback_status_t hal_fw_download_abort(idk_fw_download_abort_t * abort_data)
+idk_callback_status_t firmware_download_abort(idk_fw_download_abort_t * abort_data)
 {
     idk_callback_status_t   status = idk_callback_continue;;
 
-    DEBUG_PRINTF("hal_fw_download_abort...\n");
+    DEBUG_PRINTF("firmware_download_abort...\n");
     if (abort_data == NULL || !gFirmwareData.start_download || gFirmwareData.target != abort_data->target)
     {
         DEBUG_PRINTF("--- Error: IDK passes incorrect parameters\n");
@@ -238,7 +238,7 @@ idk_callback_status_t hal_fw_download_abort(idk_fw_download_abort_t * abort_data
     if (gFirmwareData.fd != -1)
     {
         if (close(gFirmwareData.fd) < 0)
-            perror("hal_fw_download_abort: close fails");
+            perror("firmware_download_abort: close fails");
     }
 
     gFirmwareData.fd = -1;
@@ -250,11 +250,11 @@ _ret:
     return status;
 }
 
-idk_callback_status_t hal_fw_reset(idk_fw_config_t * reset_data)
+idk_callback_status_t firmware_reset(idk_fw_config_t * reset_data)
 {
     idk_callback_status_t   status = idk_callback_continue;;
 
-    DEBUG_PRINTF("hal_fw_reset...\n");
+    DEBUG_PRINTF("firmware_reset...\n");
 
     return status;
 }
@@ -348,24 +348,24 @@ idk_callback_status_t idigi_firmware_callback(idk_firmware_request_t request,
         }
         break;
     case idk_firmware_download_request:
-        status = hal_fw_download_request((idk_fw_download_request_t *)request_data, (idk_fw_status_t *)response_data);
+        status = firmware_download_request((idk_fw_download_request_t *)request_data, (idk_fw_status_t *)response_data);
         break;
 
     case idk_firmware_binary_block:
-        status =  hal_fw_image_data((idk_fw_image_data_t *) request_data);
+        status =  firmware_image_data((idk_fw_image_data_t *) request_data);
         break;
 
     case idk_firmware_download_complete:
-        status =  hal_fw_download_complete((idk_fw_download_complete_request_t *) request_data,
+        status =  firmware_download_complete((idk_fw_download_complete_request_t *) request_data,
                                                                    (idk_fw_download_complete_response_t *) response_data);
 
         break;
     case idk_firmware_download_abort:
-        status =  hal_fw_download_abort((idk_fw_download_abort_t *) request_data);
+        status =  firmware_download_abort((idk_fw_download_abort_t *) request_data);
         break;
 
     case idk_firmware_target_reset:
-        status =  hal_fw_reset((idk_fw_config_t *) request_data);
+        status =  firmware_reset((idk_fw_config_t *) request_data);
         break;
     }
 
