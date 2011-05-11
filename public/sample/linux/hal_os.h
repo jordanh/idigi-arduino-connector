@@ -32,12 +32,10 @@ extern "C"
 {
 #endif
 
-idk_callback_status_t hal_get_system_time(uint32_t * mstime);
-idk_callback_status_t hal_wait(uint32_t mswait);
-idk_callback_status_t hal_lock(unsigned id);
-idk_callback_status_t hal_unlock(unsigned id);
-idk_callback_status_t hal_malloc(size_t size, void ** ptr);
-idk_callback_status_t hal_free(void * ptr);
+idk_callback_status_t os_get_system_time(uint32_t * mstime);
+idk_callback_status_t os_wait(uint32_t mswait);
+idk_callback_status_t os_malloc(size_t size, void ** ptr);
+idk_callback_status_t os_free(void * ptr);
 
 #ifdef __cplusplus
 }
