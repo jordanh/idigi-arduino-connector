@@ -902,6 +902,7 @@ static idk_callback_status_t facility_layer(idk_data_t * idk_ptr)
     {
         /* wait for a packet */
         status = net_get_receive_packet(idk_ptr, (idk_packet_t **)&p);
+
         goto _packet;
     }
     else if (idk_ptr->layer_state == layer_process_packet_state)
@@ -951,7 +952,7 @@ _packet:
                 }
 
                 facility = FROM_BE16(p->facility);
-                p->facility = facility;
+//                p->facility = facility;
 
                 DEBUG_PRINTF("idk_facility_layer: receive data facility = 0x%04x, type = %d, length=%d\n",
                                             facility, p->type, length);
@@ -977,7 +978,7 @@ _packet:
                             fac_ptr->packet = (idk_facility_packet_t *)fac_ptr->buffer;
                             fac_ptr->packet->disc_payload= p->disc_payload;
                             fac_ptr->packet->sec_coding = p->sec_coding;
-                            fac_ptr->packet->facility = p->facility;
+                            fac_ptr->packet->facility = facility;
                             fac_ptr->packet->length = p->length - sizeof p->disc_payload - sizeof p->sec_coding - sizeof p->facility;
                             idk_ptr->active_facility = fac_ptr;
 
@@ -995,7 +996,7 @@ _packet:
             }
         }
 
-        if (status != idk_callback_continue)
+        if (status == idk_callback_abort)
         {
             /* some kind of error */
             goto _ret;
