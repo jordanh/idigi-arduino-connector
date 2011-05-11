@@ -31,10 +31,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-//typedef uint8_t bool;
 typedef int idk_network_handle_t;
 
-//#define false 0
-//#define true  1
 
 #endif /* IDK_TYPES_H_ */
