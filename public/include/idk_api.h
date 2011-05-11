@@ -55,6 +55,7 @@ typedef enum {
    idk_server_disconnected,
    idk_firwmare_download_error,
    idk_facility_init_error,
+   idk_connect_error,
    idk_receive_error,
    idk_send_error,
    idk_close_error,
