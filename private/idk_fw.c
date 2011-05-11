@@ -141,7 +141,7 @@ static idk_callback_status_t get_fw_config(idk_firmware_data_t * fw_ptr, idk_fir
 
     if (fw_ptr->ka_time > 0)
     {
-        /* when starts downloading, we need to send target list on every
+        /* when download starts, we need to send target list on every
          * IDK_FW_TARGET_LIST_MSG_INTERVAL second. This ka_time is
          * set when we receive IDK_FW_DOWNLOAD_COMPLETE_OPCODE to trigger
          * the keepalive time for sending target list message.
@@ -152,7 +152,9 @@ static idk_callback_status_t get_fw_config(idk_firmware_data_t * fw_ptr, idk_fir
 
     }
 
-    /* put the timeout value in the request (1st field is timeout field) */
+    /* put the timeout value in the request pointer
+     * (1st field is timeout field for all fw callback)
+     */
     if (request != NULL)
     {
         req_timeout = (unsigned *)request;
@@ -167,7 +169,7 @@ static idk_callback_status_t get_fw_config(idk_firmware_data_t * fw_ptr, idk_fir
         goto _ret;
     }
 
-    if (get_system_time(idk_ptr, &time_stamp1)  != idk_callback_continue)
+    if (get_system_time(idk_ptr, &time_stamp1) != idk_callback_continue)
     {
         idk_ptr->error_code = idk_configuration_error;
         status = idk_callback_abort;
@@ -197,6 +199,7 @@ static idk_callback_status_t get_fw_config(idk_firmware_data_t * fw_ptr, idk_fir
         {
             goto _ret;
         }
+        /* come back here to correct idk_invalid_data_size */
         status = idk_callback_busy;
     }
 
