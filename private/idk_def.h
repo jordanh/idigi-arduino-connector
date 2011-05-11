@@ -60,8 +60,10 @@ extern "C"
 #define IDK_MAX(x,y)        (((x) > (y))? (x): (y))
 #define IDK_MILLISECONDS            1000
 
-#define  IDK_IS_SELECT_SET(x, y)        (x & y)
-#define  IDK_PACKET_DATA_POINTER(p, s)  (uint8_t *)((uint8_t *)p + s)
+#define URL_PREFIX  "en://"
+#define IDK_IS_SELECT_SET(x, y)        (x & y)
+#define IDK_PACKET_DATA_POINTER(p, s)  (uint8_t *)((uint8_t *)p + s)
+#define IDK_SEND_PENDING(idk_ptr)	(idk_ptr->send_packet.total_length > 0)
 
 /* IRL EDP States */
 typedef enum {
