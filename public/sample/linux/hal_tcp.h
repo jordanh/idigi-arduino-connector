@@ -33,13 +33,11 @@ extern "C"
 {
 #endif
 
-idk_callback_status_t hal_connect(idk_connect_request_t * connect_data);
-idk_callback_status_t hal_send(idk_write_request_t * write_data, size_t * sent_length);
-idk_callback_status_t hal_receive(idk_read_request_t * read_data, size_t * read_length);
-idk_callback_status_t hal_close(idk_network_handle_t * fd);
-uint8_t hal_select(idk_network_handle_t fd, uint8_t select_set, unsigned wait_time);
-
-int e_dns_resolve(char *domain_name, struct in_addr * ip_addr);
+idk_callback_status_t network_connect(idk_connect_request_t * connect_data);
+idk_callback_status_t network_send(idk_write_request_t * write_data, size_t * sent_length);
+idk_callback_status_t network_receive(idk_read_request_t * read_data, size_t * read_length);
+idk_callback_status_t network_close(idk_network_handle_t * fd);
+uint8_t network_select(idk_network_handle_t fd, uint8_t select_set, unsigned wait_time);
 
 #ifdef __cplusplus
 }
