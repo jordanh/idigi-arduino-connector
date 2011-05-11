@@ -53,7 +53,6 @@ typedef struct {
     uint16_t avail_length;
     uint16_t    type;
     uint16_t    length;
-//  uint8_t * data;
 } idk_packet_t;
 
 typedef struct {
@@ -63,7 +62,6 @@ typedef struct {
     uint8_t     sec_coding;
     uint8_t     disc_payload;
     uint16_t    facility;
-//  uint8_t     * data;
 } idk_facility_packet_t;
 
 /*@}*/
