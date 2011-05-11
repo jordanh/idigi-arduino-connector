@@ -175,7 +175,7 @@ idk_callback_status_t firmware_download_complete(idk_fw_download_complete_reques
     if (gFwComplete == 0)
     {
         printf("firmware: wait %d sec\n", request_data->timeout);
-        hal_wait(request_data->timeout * 1000);
+        os_wait(request_data->timeout * 1000);
         gFwComplete = 1;
         status = idk_callback_busy;
         printf("firmware: return %d\n", status);
