@@ -39,10 +39,10 @@
 #include <arpa/inet.h>
 
 
-#include "idk.h"
-#include "hal_os.h"
-#include "hal_tcp.h"
-#include "hal_fw.h"
+#include "idigi_data.h"
+#include "os.h"
+#include "network.h"
+#include "firmware.h"
 
 
 idigi_data_t giDigiSetting = {
@@ -62,7 +62,8 @@ idigi_data_t giDigiSetting = {
     /* device type */
     "Linux Application",
     /* server_url */
-    "test.idigi.com",
+    "10.52.18.85",
+//    "test.idigi.com",
     /* password */
     NULL,
 
@@ -154,7 +155,7 @@ _ret:
 }
 
 
-idk_callback_status_t hal_error_status(idk_error_status_t * error_data)
+idk_callback_status_t idigi_error_status(idk_error_status_t * error_data)
 {
     idk_callback_status_t   status = idk_callback_continue;
     char * error_status_string[] = {"idk_success", "idk_init_error",
@@ -166,7 +167,7 @@ idk_callback_status_t hal_error_status(idk_error_status_t * error_data)
                                                       "idk_exceed_timeout", "idk_unsupported_security",
                                                       "idk_invalid_data", "idk_firmware_error",
                                                       "idk_server_disconnected", "idk_firwmare_download_error",
-                                                      "idk_facility_init_error", "idk_receive_error",
+                                                      "idk_facility_init_error", "idk_connect_error", "idk_receive_error",
                                                       "idk_send_error", "idk_close_error",
                                                       "idk_device_terminated", "idk_redirect_error"};
 
@@ -328,7 +329,7 @@ idk_callback_status_t idigi_base_callback(idk_base_request_t request,
         }
         else
         {
-            status = hal_error_status((idk_error_status_t *)request_data);
+            status = idigi_error_status((idk_error_status_t *)request_data);
         }
         break;
 
@@ -336,7 +337,7 @@ idk_callback_status_t idigi_base_callback(idk_base_request_t request,
         giDigiSetting.socket_fd = -1;
         break;
     case idk_base_connect:
-        status = hal_connect((idk_connect_request_t *)request_data);
+        status = network_connect((idk_connect_request_t *)request_data);
         if (status == idk_callback_continue)
         {
             idk_network_handle_t ** data = (idk_network_handle_t **)response_data;
@@ -345,26 +346,26 @@ idk_callback_status_t idigi_base_callback(idk_base_request_t request,
         }
         break;
     case idk_base_send:
-        status = hal_send((idk_write_request_t *)request_data, (size_t *)response_data);
+        status = network_send((idk_write_request_t *)request_data, (size_t *)response_data);
         break;
     case idk_base_receive:
-        status = hal_receive((idk_read_request_t *)request_data, (size_t *)response_data);
+        status = network_receive((idk_read_request_t *)request_data, (size_t *)response_data);
         break;
 
     case idk_base_close:
-        status = hal_close((idk_network_handle_t *)request_data);
+        status = network_close((idk_network_handle_t *)request_data);
         break;
 
     case idk_base_malloc:
-        status = hal_malloc(*((size_t *)request_data), (void **)response_data);
+        status = os_malloc(*((size_t *)request_data), (void **)response_data);
         break;
 
     case idk_base_free:
-        status = hal_free((void *)request_data);
+        status = os_free((void *)request_data);
         break;
 
     case idk_base_system_time:
-        status = hal_get_system_time((uint32_t *)response_data);
+        status = os_get_system_time((uint32_t *)response_data);
         break;
 
     case idk_base_firmware_facility:
@@ -377,9 +378,9 @@ idk_callback_status_t idigi_base_callback(idk_base_request_t request,
 }
 
 
-idk_callback_status_t idk_configuration_callbak(idk_class_t class, idk_request_t request,
-                                                  void const * request_data, size_t request_length,
-                                                  void * response_data, size_t * response_length)
+idk_callback_status_t idigi_callbak(idk_class_t class, idk_request_t request,
+                                    void const * request_data, size_t request_length,
+                                    void * response_data, size_t * response_length)
 {
     idk_callback_status_t   status = idk_callback_continue;
 
@@ -399,7 +400,6 @@ idk_callback_status_t idk_configuration_callbak(idk_class_t class, idk_request_t
 }
 
 
-#if 1
 int main (void)
 {
     idk_status_t status = idk_success;
@@ -422,7 +422,7 @@ int main (void)
 //  ip_addr->S_un = ((struct sockaddr_in *)(res0->ai_addr))->sin_addr.S_un;
 
 
-    giDigiSetting.idk_handle = idk_init((idk_callback_t) idk_configuration_callbak);
+    giDigiSetting.idk_handle = idk_init((idk_callback_t) idigi_callbak);
     if (giDigiSetting.idk_handle != 0)
     {
 
@@ -434,13 +434,13 @@ int main (void)
             if (status != idk_success)
             {
                 printf("main: idk_task returns %d\n", status);
-                hal_wait(20*1000);
+                os_wait(20*1000);
 
             }
             else
             {
                 giDigiSetting.select_data |= NETWORK_TIMEOUT_SET | NETWORK_READ_SET;
-                hal_select(giDigiSetting.socket_fd, giDigiSetting.select_data, 1);
+                network_select(giDigiSetting.socket_fd, giDigiSetting.select_data, 1);
             }
 
         }
@@ -451,144 +451,3 @@ int main (void)
 
     return 0;
 }
-#else
-#include <stdio.h>          /* stderr, stdout */
-#include <netdb.h>          /* hostent struct, gethostbyname() */
-#include <arpa/inet.h>      /* inet_ntoa() to format IP address */
-#include <netinet/in.h>     /* in_addr structure */
-#include <sys/stat.h>
-#include <fcntl.h>
-
-#if 0
-int main(void){
-            int sock;
-            char * buf = malloc(128* sizeof(struct ifreq));
-            struct ifconf conf;
-            unsigned int entries = 0;
-            int i;
-            conf.ifc_len = 128*sizeof(struct ifreq);
-            conf.ifc_buf = buf;
-
-            sock = socket(AF_INET, SOCK_DGRAM, 0);
-            if( -1 == sock){
-                    perror("socket");
-                    return(-1);
-            }
-
-            if( ioctl(sock,SIOCGIFCONF , &conf) == -1){
-                    fDEBUG_PRINTF(stderr, "Error using ioctl SIOCGIFCONF.\n");
-                    return(-1);
-            }
-            entries = conf.ifc_len / sizeof(struct ifreq);
-            DEBUG_PRINTF("Kernel used %d bytes of buffer (%d entries), sizeof struct ifreq = %d\n",
-                   conf.ifc_len,
-                   entries,
-                   sizeof(struct ifreq));
-            for( i = 0; i<entries; i++){
-                    struct ifreq * req = &conf.ifc_req[i];
-                    struct sockaddr_in * sa = (struct sockaddr_in *) &req->ifr_addr;
-                    DEBUG_PRINTF("Interface: %s, IP: %s\n",
-                           req->ifr_name,
-                           inet_ntoa(sa->sin_addr)
-                            );
-            }
-            return 0;
-}
-#endif
-
-#if 0
-int main(void)
-{
-
-    /* Variable and structure definitions. */
-    int sd, rc, length = sizeof(int);
-    struct sockaddr_in serveraddr;
-    char server[255] = "test.idigi.com";
-    struct hostent *hostp;
-
-    /* The socket() function returns a socket */
-    /* descriptor representing an endpoint. */
-    /* The statement also identifies that the */
-    /* INET (Internet Protocol) address family */
-    /* with the TCP transport (SOCK_STREAM) */
-    /* will be used for this socket. */
-
-    /******************************************/
-
-    /* get a socket descriptor */
-    if((sd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-    {
-        perror("Client-socket() error");
-        return(-1);
-    }
-    else
-        DEBUG_PRINTF("Client-socket() OK\n");
-
-
-    memset(&serveraddr, 0x00, sizeof(struct sockaddr_in));
-
-    serveraddr.sin_family = AF_INET;
-    serveraddr.sin_port = htons(3197);
-    if((serveraddr.sin_addr.s_addr = inet_addr(server)) == (unsigned long)INADDR_NONE)
-    {
-        /* When passing the host name of the server as a */
-        /* parameter to this program, use the gethostbyname() */
-        /* function to retrieve the address of the host server. */
-        /***************************************************/
-
-        /* get host address */
-        hostp = gethostbyname(server);
-        if(hostp == (struct hostent *)NULL)
-        {
-            DEBUG_PRINTF("HOST NOT FOUND --> ");
-            /* h_errno is usually defined */
-            /* in netdb.h */
-            DEBUG_PRINTF("h_errno = %d\n",h_errno);
-            DEBUG_PRINTF("---This is a client program---\n");
-            close(sd);
-            return(-1);
-        }
-
-        memcpy(&serveraddr.sin_addr, hostp->h_addr, sizeof(serveraddr.sin_addr));
-    }
-
-    DEBUG_PRINTF("ip address = %s\n", inet_ntoa(serveraddr.sin_addr));
-
-    /* After the socket descriptor is received, the */
-    /* connect() function is used to establish a */
-    /* connection to the server. */
-
-    /***********************************************/
-    /* connect() to server. */
-    if((rc = connect(sd, (struct sockaddr *)&serveraddr, sizeof(serveraddr))) < 0)
-    {
-        perror("Client-connect() error");
-        close(sd);
-        return(-1);
-    }
-    else
-        DEBUG_PRINTF("Connection established...\n");
-
-    close(sd);
-    return 0;
-
-}
-#endif
-
-int main(void)
-{
-    int fd;
-
-    fd = open("idigi.bin", O_WRONLY|O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO);
-    if (fd == -1)
-    {
-        perror("open fails ");
-    }
-    else
-    {
-        close(fd);
-    }
-
-    return 0;
-}
-#endif
