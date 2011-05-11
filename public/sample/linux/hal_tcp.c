@@ -36,7 +36,8 @@
 
 #include <errno.h>
 
-#include "idk.h"
+#include "idigi_data.h"
+
 
 /*
  * e_dns_resolve
@@ -167,7 +168,7 @@ void set_socket_blockopt(unsigned sockfd, int block)
 #endif
 }
 
-idk_callback_status_t hal_connect(idk_connect_request_t * connect_data)
+idk_callback_status_t network_connect(idk_connect_request_t * connect_data)
 {
     idk_callback_status_t rc = idk_callback_abort;
 
@@ -186,11 +187,15 @@ idk_callback_status_t hal_connect(idk_connect_request_t * connect_data)
          * Do I need to check a dotted-notation IP address or a domain
          * name. If it's a domain name, attempt to resolve it.
          */
-        if (e_dns_resolve(connect_data->host_name, &ip_addr) < 0)
+        ip_addr.s_addr = inet_addr(connect_data->host_name);
+        if (ip_addr.s_addr == -1)
         {
-            DEBUG_PRINTF("hal_connect: Can't resolve DNS for %s\n", connect_data->host_name);
-            /* Can't resolve it either. Too bad. */
-            goto _ret;
+            if (e_dns_resolve(connect_data->host_name, &ip_addr) < 0)
+            {
+                DEBUG_PRINTF("hal_connect: Can't resolve DNS for %s\n", connect_data->host_name);
+                /* Can't resolve it either. Too bad. */
+                goto _ret;
+            }
         }
 
         if (open_socket(&s, SOCK_STREAM) < 0)
@@ -274,11 +279,12 @@ _ret:
     if (rc == idk_callback_abort && s >= 0)
     {
         close(s);
+        giDigiSetting.socket_fd = -1;
     }
     return rc;
 }
 
-idk_callback_status_t hal_send(idk_write_request_t * write_data, size_t * sent_length)
+idk_callback_status_t network_send(idk_write_request_t * write_data, size_t * sent_length)
 {
     idk_callback_status_t rc = idk_callback_continue;
     int         ccode;
@@ -316,7 +322,7 @@ idk_callback_status_t hal_send(idk_write_request_t * write_data, size_t * sent_l
     return rc;
 }
 
-idk_callback_status_t hal_receive(idk_read_request_t * read_data, size_t * read_length)
+idk_callback_status_t network_receive(idk_read_request_t * read_data, size_t * read_length)
 {
     idk_callback_status_t rc = idk_callback_continue;
     int ccode;
@@ -363,7 +369,7 @@ idk_callback_status_t hal_receive(idk_read_request_t * read_data, size_t * read_
     return rc;
 }
 
-idk_callback_status_t hal_close(idk_network_handle_t * fd)
+idk_callback_status_t network_close(idk_network_handle_t * fd)
 {
     struct linger ling_opt;
 
@@ -388,7 +394,7 @@ idk_callback_status_t hal_close(idk_network_handle_t * fd)
     return idk_callback_continue;
 }
 
-uint8_t hal_select(idk_network_handle_t fd, uint8_t select_set, unsigned wait_time)
+uint8_t network_select(idk_network_handle_t fd, uint8_t select_set, unsigned wait_time)
 {
     uint8_t actual_set = 0;
     int             ccode;
