@@ -25,10 +25,10 @@
 #include <malloc.h>
 #include <time.h>
 #include <unistd.h>
-#include "hal_os.h"
+#include "os.h"
 
 
-idk_callback_status_t hal_malloc(size_t size, void ** ptr)
+idk_callback_status_t os_malloc(size_t size, void ** ptr)
 {
     idk_callback_status_t rc = idk_callback_continue;
 
@@ -40,7 +40,7 @@ idk_callback_status_t hal_malloc(size_t size, void ** ptr)
 	return rc;
 }
 
-idk_callback_status_t hal_free(void * ptr)
+idk_callback_status_t os_free(void * ptr)
 {
 	free(ptr);
 	return idk_callback_continue;
@@ -48,7 +48,7 @@ idk_callback_status_t hal_free(void * ptr)
 
 // clock_t gSysTime = 0;
 
-idk_callback_status_t hal_get_system_time(uint32_t * mstime)
+idk_callback_status_t os_get_system_time(uint32_t * mstime)
 {
 #if 0
 	clock_t		systime;
@@ -73,19 +73,10 @@ idk_callback_status_t hal_get_system_time(uint32_t * mstime)
 	return idk_callback_continue;
 }
 
-idk_callback_status_t hal_wait(uint32_t mswait)
+idk_callback_status_t os_wait(uint32_t mswait)
 {
 	usleep(mswait * 1000);
 	return idk_callback_continue;
 }
 
-idk_callback_status_t hal_lock(unsigned id)
-{
-	return idk_callback_continue;
-}
-
-idk_callback_status_t hal_unlock(unsigned id)
-{
-	return idk_callback_continue;
-}
 
