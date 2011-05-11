@@ -25,37 +25,38 @@
 #include "ei_security.h"
 #include "ei_msg.h"
 
-#define IDK_IPV6_ADDRESS_LENGTH 16
-#define IDK_IPV4_ADDRESS_LENGTH 4
+#define CC_IPV6_ADDRESS_LENGTH 16
+#define CC_IPV4_ADDRESS_LENGTH 4
 
-#define IDK_CC_NOT_REDIRECT 0
+enum {
+    cc_not_redirect,
+    cc_redirect_success,
+    cc_redirect_error
+};
 
-#define IDK_CC_REDIRECT_SUCCESS 0
-#define IDK_CC_REDIRECT_ERROR   1
-
-#define FAC_CC_DISCONNECT           0
-#define FAC_CC_RESERVED_OPCODE1     1
-#define FAC_CC_RESERVED_OPCODE2     2
-#define FAC_CC_REDIRECT_TO_SDA      3
-#define FAC_CC_REDIRECT_REPORT      4
-#define FAC_CC_CONNECTION_REPORT    5
+#define FAC_CC_DISCONNECT           0x00
+#define FAC_CC_RESERVED_OPCODE1     0x01
+#define FAC_CC_RESERVED_OPCODE2     0x02
+#define FAC_CC_REDIRECT_TO_SDA      0x03
+#define FAC_CC_REDIRECT_REPORT      0x04
+#define FAC_CC_CONNECTION_REPORT    0x05
 
 #define FAC_CC_CLIENTTYPE_SIM       0
 #define FAC_CC_CLIENTTYPE_DEVICE    1
 
+#define CC_REDIRECT_SERVER_COUNT    2
 
 enum {
     cc_state_redirect_report,
     cc_state_connect_report,
-    cc_state_redirect_server1,
+    cc_state_redirect_server,
     cc_state_redirect_server2
 };
 
 typedef struct {
     idk_facility_t  facility;
 
-    char    server_url[IDK_SERVER_URL_LENGTH];
-    char    server_url2[IDK_SERVER_URL_LENGTH];
+    char    server_url[CC_REDIRECT_SERVER_COUNT][IDK_SERVER_URL_LENGTH];
     uint8_t report_code;
     uint8_t security_code;
     int     state;
@@ -70,7 +71,7 @@ static idk_callback_status_t send_redirect_report(idk_data_t * idk_ptr, idk_cc_d
     idk_callback_status_t status;
     idk_facility_packet_t * p;
     uint8_t             report_msg_length = 0;
-    uint16_t            url_length;
+    uint16_t            url_length, len;
     uint8_t             * ptr;
 
     DEBUG_PRINTF("--- send redirect_report\n");
@@ -95,7 +96,7 @@ static idk_callback_status_t send_redirect_report(idk_data_t * idk_ptr, idk_cc_d
     *ptr++ = cc_ptr->report_code;    /* report code */
     p->length = 2;
 #if 0
-    if (cc_ptr->report_code != IDK_CC_NOT_REDIRECT)
+    if (cc_ptr->report_code != cc_not_redirect)
     {
         /* skip buf[0] for report message length.
          * let's construct report message first.
@@ -117,16 +118,23 @@ static idk_callback_status_t send_redirect_report(idk_data_t * idk_ptr, idk_cc_d
 
 
     /* URL length */
-    url_length = TO_BE16(strlen(cc_ptr->server_url));
-    memcpy(ptr, &url_length, 2);
+    if (cc_ptr->item >= CC_REDIRECT_SERVER_COUNT)
+    {
+        cc_ptr->item = CC_REDIRECT_SERVER_COUNT-1;
+    }
+    url_length = strlen(cc_ptr->server_url[cc_ptr->item]);
+    len = TO_BE16(url_length);
+    memcpy(ptr, &len, 2);
     ptr += 2;
     p->length += 2;
 
     if (url_length > 0)
     {   /* URL */
-        memcpy(ptr, cc_ptr->server_url, url_length);
+        memcpy(ptr, cc_ptr->server_url[cc_ptr->item], url_length);
         p->length += url_length;
     }
+
+    cc_ptr->item = idk_base_ip_addr;
 
     status = net_enable_facility_packet(idk_ptr, E_MSG_FAC_CC_NUM, cc_ptr->security_code);
 _ret:
@@ -175,7 +183,7 @@ static idk_callback_status_t send_connection_report(idk_data_t * idk_ptr, idk_cc
         p->length = 2;
 
         /* callback for ip address */
-        memset(ptr, 0x00, IDK_IPV6_ADDRESS_LENGTH);
+        memset(ptr, 0x00, CC_IPV6_ADDRESS_LENGTH);
 
         /* IP address (use IPv6 format) */
         request_id.base_request = idk_base_ip_addr;
@@ -185,17 +193,17 @@ static idk_callback_status_t send_connection_report(idk_data_t * idk_ptr, idk_cc
             idk_ptr->error_code = idk_configuration_error;
             goto _ret;
         }
-        if (ip_addr == NULL || length == 0 || (length != IDK_IPV6_ADDRESS_LENGTH && length != IDK_IPV4_ADDRESS_LENGTH))
+        if (ip_addr == NULL || length == 0 || (length != CC_IPV6_ADDRESS_LENGTH && length != CC_IPV4_ADDRESS_LENGTH))
         {
             idk_ptr->error_code = idk_invalid_data_size;
             goto _error_param;
         }
 
-        if (length == IDK_IPV6_ADDRESS_LENGTH)
+        if (length == CC_IPV6_ADDRESS_LENGTH)
         {
             /* IPv6 address */
-            memcpy(ptr, ip_addr, IDK_IPV6_ADDRESS_LENGTH);
-            ptr += IDK_IPV6_ADDRESS_LENGTH;
+            memcpy(ptr, ip_addr, CC_IPV6_ADDRESS_LENGTH);
+            ptr += CC_IPV6_ADDRESS_LENGTH;
             cc_ptr->item = idk_base_connection_type;
         }
         else 
@@ -213,8 +221,8 @@ static idk_callback_status_t send_connection_report(idk_data_t * idk_ptr, idk_cc
                 ptr+= 10;
                 *ptr++= 0xFF;
                 *ptr++ = 0xFF;
-                memcpy(ptr, ip_addr, IDK_IPV4_ADDRESS_LENGTH);
-                p->length += IDK_IPV6_ADDRESS_LENGTH;
+                memcpy(ptr, ip_addr, CC_IPV4_ADDRESS_LENGTH);
+                p->length += CC_IPV6_ADDRESS_LENGTH;
                 cc_ptr->item = idk_base_connection_type;
             }
         }
@@ -373,7 +381,6 @@ static idk_callback_status_t process_disconnect(idk_data_t * idk_ptr, idk_cc_dat
         status = idk_ptr->callback(idk_class_base, request_id, NULL, 0, NULL, NULL);
         if (status == idk_callback_continue)
         {
-            cc_ptr->facility.packet = NULL;
             init_setting(idk_ptr);
 //            idk_ptr->network_busy = true;
         }
@@ -396,8 +403,9 @@ static idk_callback_status_t  process_redirect(idk_data_t * idk_ptr, idk_cc_data
     uint8_t     url_count;
     uint16_t    url_length;
     uint8_t     * buf;
-    uint16_t    length;
+    uint16_t    length, prefix_len;
     char        * server_url;
+    int i = 0;
 
     /* Redirect new destination:
      *
@@ -408,21 +416,32 @@ static idk_callback_status_t  process_redirect(idk_data_t * idk_ptr, idk_cc_data
      *    callback for redirect will be called.
      * 4. reset edp state so that idk_task will re-establish the EDP connection.
      */
-    if (cc_ptr->state != cc_state_redirect_server1 &&
-        cc_ptr->state != cc_state_redirect_server1)
+
+    /*
+     * parse url 1 and url 2
+     *  -----------------------------------------------------------
+     * |     0     |    1 - 2    |  3 ... |              |         |
+     *  -----------------------------------------------------------
+     * | URL count | URL 1 Length|  URL 1 | URL 2 Length |  URL 2  |
+     *  -----------------------------------------------------------
+    */
+    buf = IDK_PACKET_DATA_POINTER(p, sizeof(idk_facility_packet_t));
+    buf++; /* skip redirect opcode */
+    length = p->length -1;
+
+
+    url_count = *buf;
+    buf++;
+    length--;
+
+    if (url_count == 0)
+    {   /* nothing to redirect */
+        DEBUG_PRINTF("cc_process_redirect: redirect with no url specified\n");
+        goto _ret;
+    }
+
+    if (cc_ptr->state != cc_state_redirect_server)
     {
-        buf = IDK_PACKET_DATA_POINTER(p, sizeof(idk_facility_packet_t));
-        length = p->length;
-
-        url_count = *buf;
-        buf++;
-        length--;
-
-        if (url_count == 0)
-        {   /* nothing to redirect */
-            DEBUG_PRINTF("cc_process_redirect: redirect with no url specified\n");
-            goto _ret;
-        }
 
         status = net_close(idk_ptr);
         if (status != idk_callback_continue)
@@ -430,74 +449,67 @@ static idk_callback_status_t  process_redirect(idk_data_t * idk_ptr, idk_cc_data
             goto _ret;
         }
 
-
-        url_length = FROM_BE16(*((uint16_t *)buf));
-        buf += sizeof url_length;
-        if (url_length > sizeof cc_ptr->server_url)
+        while (url_count > 0)
         {
-            DEBUG_PRINTF("cc_process_redirect: url length (%d) > max size (%d)\n", url_length, (int)sizeof cc_ptr->server_url);
-        }
-        else
-        {
-            memcpy(cc_ptr->server_url, buf, url_length);
-            cc_ptr->server_url[url_length] = '\0';
-            cc_ptr->state = cc_state_redirect_server1;
-        }
-
-        buf += url_length;
-
-        url_length = FROM_BE16(*((uint16_t *)buf));
-        buf += sizeof url_length;
-        if (url_length > sizeof cc_ptr->server_url)
-        {
-            DEBUG_PRINTF("cc_process_redirect: url2 length (%d) > max size (%d)\n", url_length, (int)sizeof cc_ptr->server_url);
-        }
-        else
-        {
-            memcpy(cc_ptr->server_url2, buf, url_length);
-            cc_ptr->server_url2[url_length] = '\0';
-            if (cc_ptr->state != cc_state_redirect_server1)
+            url_length = FROM_BE16(*((uint16_t *)buf));
+            buf += sizeof url_length;
+            if (url_length > sizeof cc_ptr->server_url[i])
             {
-                cc_ptr->state = cc_state_redirect_server2;
+                DEBUG_PRINTF("cc_process_redirect: url length (%d) > max size (%d)\n", url_length, (int)sizeof cc_ptr->server_url);
             }
+            else if (i < CC_REDIRECT_SERVER_COUNT)
+            {
+                memcpy(cc_ptr->server_url[i], buf, url_length);
+                cc_ptr->server_url[i][url_length] = '\0';
+                cc_ptr->state = cc_state_redirect_server;
+                cc_ptr->item = 0;
+            }
+            buf += url_length;
+            length -= url_length;
+            i++;
+            url_count--;
         }
+
         init_setting(idk_ptr);
     }
 
-    if (cc_ptr->state == cc_state_redirect_server1 ||
-        cc_ptr->state == cc_state_redirect_server2)
+    if (cc_ptr->state == cc_state_redirect_server)
     {
-        if (cc_ptr->state == cc_state_redirect_server1)
-        {
-            server_url = cc_ptr->server_url;
-        }
-        else
-        {
-            server_url = cc_ptr->server_url2;
-        }
+        prefix_len = strlen(URL_PREFIX);
 
-        status = net_connect_server(idk_ptr, server_url, IDK_MT_PORT);
-        if (status == idk_callback_continue && idk_ptr->network_handle != NULL)
-        {
-            cc_ptr->report_code = IDK_CC_REDIRECT_SUCCESS;
-            set_idk_state(idk_ptr, edp_communication_layer);
-        }
-        else if (status != idk_callback_busy)
-        {
-            cc_ptr->report_code = IDK_CC_REDIRECT_ERROR;
-            if (cc_ptr->state == cc_state_redirect_server1 &&
-                strlen(cc_ptr->server_url2) > 0)
+        do {
+            server_url = cc_ptr->server_url[cc_ptr->item];
+
+            if (memcmp(server_url, URL_PREFIX, prefix_len) == 0)
             {
-                cc_ptr->server_url[0] = '\0';
-                cc_ptr->state = cc_state_redirect_server2;
+                server_url += prefix_len;
             }
-            else
+
+            status = net_connect_server(idk_ptr, server_url, IDK_MT_PORT);
+            if (status == idk_callback_continue && idk_ptr->network_handle != NULL)
             {
-                set_idk_state(idk_ptr, edp_communication_layer);
+                cc_ptr->report_code = cc_redirect_success;
+                break;
             }
-        }
+            else if (status != idk_callback_busy)
+            {
+                cc_ptr->report_code = cc_redirect_error;
+                cc_ptr->item++;
+            }
+        } while (cc_ptr->item < CC_REDIRECT_SERVER_COUNT && cc_ptr->item < url_count);
     }
-
+    if (status != idk_callback_busy)
+    {
+        /* make it to continue to communication layer.
+         *
+         * Even connect fails, we want to continue to
+         * orginal server.
+         */
+        cc_ptr->item = 0;
+        cc_ptr->state = cc_state_redirect_report;
+        set_idk_state(idk_ptr, edp_communication_layer);
+        status = idk_callback_continue;
+    }
 _ret:
     return status;
 }
@@ -515,7 +527,7 @@ static idk_callback_status_t cc_process(idk_data_t * idk_ptr, idk_facility_t * f
     if (fac_ptr->packet != NULL)
     {
         p = (idk_facility_packet_t *)fac_ptr->packet;
-        ptr = IDK_PACKET_DATA_POINTER(p, sizeof(idk_packet_t));
+        ptr = IDK_PACKET_DATA_POINTER(p, sizeof(idk_facility_packet_t));
         opcode = *ptr;
 
         if (opcode == FAC_CC_DISCONNECT)
@@ -529,6 +541,10 @@ static idk_callback_status_t cc_process(idk_data_t * idk_ptr, idk_facility_t * f
         else
         {
             DEBUG_PRINTF("idk_cc_process: unsupported opcode 0x%x\b", opcode);
+        }
+        if (status != idk_callback_busy)
+        {
+            cc_ptr->facility.packet = NULL;
         }
     }
 
@@ -584,13 +600,14 @@ static idk_callback_status_t cc_init_facility(idk_data_t * idk_ptr)
         {
             goto _ret;
         }
-        cc_ptr->report_code = IDK_CC_NOT_REDIRECT;
-        cc_ptr->server_url[0] = '\0';
+        cc_ptr->report_code = cc_not_redirect;
+        cc_ptr->server_url[0][0] = '\0';
+        cc_ptr->server_url[1][0] = '\0';
 
     }
     cc_ptr->state = cc_state_redirect_report;
     cc_ptr->security_code = SECURITY_PROTO_NONE;
-    cc_ptr->item = idk_base_ip_addr;
+    cc_ptr->item = 0;
 
 _ret:
     return status;
