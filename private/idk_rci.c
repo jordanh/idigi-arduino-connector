@@ -22,14 +22,6 @@
  * =======================================================================
  *
  */
-//#include <string.h>
-
-//#include "idk_def.h"
-//#include "ei_msg.h"
-//#include "ei_security.h"
-//#include "bele.c"
-
-
 char * no_query_state_response = "<rci_replay version=\"1.1\"> <query_state/> </rci_reply>";
 static idk_status_t rci_process_function(idk_data_t * idk_ptr, idk_facility_t * fac_ptr, idk_facility_packet_t * p)
 {
