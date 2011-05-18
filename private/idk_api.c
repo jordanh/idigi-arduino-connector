@@ -28,6 +28,7 @@
 #include "os_intf.c"
 #include "network_intf.c"
 #include "idk_cc.c"
+#include "idk_loopbk.c"
 #include "idk_fw.c"
 #include "idk_rci.c"
 #include "layer.c"
@@ -47,6 +48,7 @@ idk_handle_t idk_init(idk_callback_t callback)
     void * data;
     size_t size;
     idk_request_t request_id;
+    idk_status_t err_status;
 
     idk_base_request_t idk_base_request_ids[] = {
             idk_base_device_id, idk_base_vendor_id, idk_base_device_type
@@ -58,8 +60,7 @@ idk_handle_t idk_init(idk_callback_t callback)
         /* allocate idk data */
         size = sizeof(idk_data_t);
 
-        request_id.base_request = idk_base_malloc;
-        status = callback(idk_class_base, request_id, &size, sizeof size, &idk_handle, NULL);
+        status = malloc_cb(callback, size, (void **)&idk_handle);
         if (status != idk_callback_continue || idk_handle == NULL)
         {
             goto _ret;
@@ -77,10 +78,17 @@ idk_handle_t idk_init(idk_callback_t callback)
             status = idk_handle->callback(idk_class_base, request_id, NULL, 0, &data, &length);
             if (status == idk_callback_continue)
             {
-                if ((idk_base_request_ids[i] == idk_base_device_id && length != IDK_DEVICE_ID_LENGTH) ||
+                if (idk_base_request_ids[i] != idk_base_device_type && data == NULL)
+                {
+                    err_status = idk_invalid_data;
+                    goto _err;
+                }
+                else if ((idk_base_request_ids[i] == idk_base_device_id && length != IDK_DEVICE_ID_LENGTH) ||
                     (idk_base_request_ids[i] == idk_base_vendor_id && length != IDK_VENDOR_ID_LENGTH) ||
                     (idk_base_request_ids[i] == idk_base_device_type && length > IDK_DEVICE_TYPE_LENGTH))
                 {
+                    err_status = idk_invalid_data_size;
+_err:
                     status = notify_error_status(callback, idk_class_base, request_id, idk_invalid_data_size);
                 }
                 else
@@ -107,8 +115,7 @@ idk_handle_t idk_init(idk_callback_t callback)
             if (status != idk_callback_continue)
             {
                 DEBUG_PRINTF("idk_init: base class request id = %d callback aborts\n", idk_base_request_ids[i]);
-                request_id.base_request = idk_base_free;
-                callback(idk_class_base, request_id, idk_handle, sizeof idk_handle, NULL, NULL);
+                free_data(idk_handle, idk_handle);
                 idk_handle = NULL;
                 break;
             }
@@ -132,6 +139,7 @@ idk_status_t idk_step(idk_handle_t const handle)
         goto _ret;
     }
 
+    /* process edp layers */
     if (!IDK_SEND_PENDING(idk_handle))
     {
         switch (idk_handle->edp_state)
@@ -157,17 +165,10 @@ idk_status_t idk_step(idk_handle_t const handle)
         };
     }
 
+    /* process any send data */
     if (status != idk_callback_abort && idk_handle->edp_connected)
     {
-        if (idk_handle->edp_state >= edp_discovery_layer)
-        {
-            status = net_send_rx_keepalive(idk_handle);
-        }
-
-        if (status != idk_callback_abort)
-        {
-            status = net_send_packet(idk_handle);
-        }
+        status = net_send_packet(idk_handle);
     }
     if (status == idk_callback_abort)
     {
@@ -177,7 +178,6 @@ idk_status_t idk_step(idk_handle_t const handle)
 _ret:
     if (rc != idk_success && idk_handle != NULL)
     {
-        idk_request_t request_id;
         status = net_close(idk_handle);
 
         if (status != idk_callback_continue)
@@ -194,19 +194,31 @@ _ret:
                 rc = idk_handle->error_code;
             }
 
-            request_id.base_request = idk_base_free;
-
-            status = idk_handle->callback(idk_class_base, request_id, idk_handle, sizeof idk_handle, NULL, NULL);
-            if (status != idk_callback_continue)
+            status = free_data(idk_handle, idk_handle);
+           if (status != idk_callback_continue)
             {
                 DEBUG_PRINTF("idk_task: net_close returns abort");
                 rc = idk_configuration_error;
             }
+           rc = idk_device_terminated;
 
         }
     }
     return rc;
 }
+
+idk_status_t idk_run(idk_handle_t const handle)
+{
+    idk_status_t rc = idk_success;
+
+    while (rc == idk_success)
+    {
+        rc = idk_step(handle);
+    }
+
+    return rc;
+}
+
 
 idk_status_t idk_dispatch(idk_handle_t handle, idk_dispatch_request_t request, void * data)
 {
@@ -219,9 +231,6 @@ idk_status_t idk_dispatch(idk_handle_t handle, idk_dispatch_request_t request, v
     {
     case idk_dispatch_terminate:
         idk_ptr->active_state = idk_device_terminate;
-        break;
-    case idk_dispatch_stop:
-        idk_ptr->active_state = idk_device_stop;
         break;
     default:
         break;
