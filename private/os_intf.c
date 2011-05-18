@@ -31,7 +31,6 @@ static void init_setting(idk_data_t * idk_ptr)
     idk_ptr->request_id = 0;
     idk_ptr->error_code = idk_success;
     idk_ptr->active_facility = NULL;
-    //idk_ptr->network_busy = false
 
 }
 
@@ -67,25 +66,37 @@ static idk_callback_status_t get_system_time(idk_data_t * idk_ptr, uint32_t * ms
     return status;
 }
 
-
-
-static idk_callback_status_t malloc_data(idk_data_t * idk_ptr, size_t length, void ** ptr)
+static idk_callback_status_t malloc_cb(idk_callback_t callback, size_t length, void ** ptr)
 {
     idk_callback_status_t status;
     size_t  size = length, len;
     idk_request_t request_id;
     void * p;
 
-    request_id.base_request = idk_base_malloc;
-    status = idk_ptr->callback(idk_class_base, request_id, &size, sizeof size, &p, &len);
-    if (status == idk_callback_abort)
+    if (callback == NULL)
     {
-        idk_ptr->error_code = idk_configuration_error;
+        status = idk_callback_abort;
     }
-    else if (status == idk_callback_continue)
+    request_id.base_request = idk_base_malloc;
+    status = callback(idk_class_base, request_id, &size, sizeof size, &p, &len);
+    if (status == idk_callback_continue)
     {
         *ptr = p;
         add_malloc_stats(p, size);
+    }
+    return status;
+
+}
+
+
+static idk_callback_status_t malloc_data(idk_data_t * idk_ptr, size_t length, void ** ptr)
+{
+    idk_callback_status_t status;
+
+    status = malloc_cb(idk_ptr->callback, length, ptr);
+    if (status == idk_callback_abort)
+    {
+        idk_ptr->error_code = idk_configuration_error;
     }
     return status;
 
@@ -126,7 +137,7 @@ static idk_facility_t * get_facility_data(idk_data_t * idk_ptr, uint16_t facilit
 }
 
 static idk_callback_status_t add_facility_data(idk_data_t * idk_ptr, uint16_t facility_num, idk_facility_t ** fac_ptr, size_t size,
-                                                                               idk_facility_process_cb_t discovery_cb, idk_facility_process_cb_t process_cb)
+                                               idk_facility_process_cb_t discovery_cb, idk_facility_process_cb_t process_cb)
 {
     idk_callback_status_t status;
     idk_facility_t * ptr = NULL;
