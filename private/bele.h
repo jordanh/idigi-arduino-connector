@@ -89,11 +89,12 @@ swap32(unsigned long value)
 #define MAKE32_4(b3, b2, b1, b0)        MAKE32( MAKE16( b3, b2 ), MAKE16( b1, b0 ))
 
 
-    // These macros handle little-endian vs big-endian
-    // byte-swapping for 16- and 32-bit quantities.
-    //
-    // FROM_xx      Translates FROM xx format to native CPU format
-    // TO_xx        Translates from native CPU format TO xx format
+    /* These macros handle little-endian vs big-endian
+     * byte-swapping for 16- and 32-bit quantities.
+     *
+     * FROM_xx      Translates FROM xx format to native CPU format
+     * TO_xx        Translates from native CPU format TO xx format
+     */
 
 
 #ifdef _LITTLE_ENDIAN
