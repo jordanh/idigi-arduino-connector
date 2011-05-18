@@ -39,7 +39,6 @@ extern "C"
 typedef enum {
    idk_success,
    idk_init_error,
-   idk_invalid_parameter,
    idk_configuration_error,
    idk_invalid_data_size,
    idk_invalid_data_range,  
@@ -51,16 +50,12 @@ typedef enum {
    idk_exceed_timeout,
    idk_unsupported_security,
    idk_invalid_data,
-   idk_firmware_error,      
    idk_server_disconnected,
-   idk_firwmare_download_error,
-   idk_facility_init_error,
    idk_connect_error,
    idk_receive_error,
    idk_send_error,
    idk_close_error,
    idk_device_terminated,
-   idk_redirect_error
 } idk_status_t;
 
 typedef enum {
@@ -460,8 +455,6 @@ typedef enum {
      */
     idk_base_firmware_facility,
 
-//  idk_base_rci_facility,
-//  idk_base_messaging_facility
 } idk_base_request_t;
 
 typedef enum {
@@ -574,7 +567,8 @@ typedef enum {
      *  request = idk_firmware_binary_block
      *  request_data = pointer to idk_fw_image_data_t
      *  request_length = sizeof idk_fw_image_data_t
-     *  response_data = NULL
+     *  response_data = pointer to memory where callback writes the idk_fw_status_t status to.
+     *                  IDK will send idk_fw_device_error error status to abort firmware downlaod process.
      *  response_length = NULL
      *
      * Callback returns:
@@ -641,7 +635,7 @@ typedef enum {
 
 typedef enum {
     idk_dispatch_terminate,
-    idk_dispatch_stop
+    idk_dispatch_put_service
 } idk_dispatch_request_t;
 
 typedef enum {
@@ -669,7 +663,7 @@ typedef enum {
    idk_fw_download_unauthenticated,
    idk_fw_download_not_allowed,
    idk_fw_download_reject,
-   idk_fw_encounterted_error,
+   idk_fw_encountered_error,
    /* abort status */
    idk_fw_user_abort,
    idk_fw_device_error,
@@ -689,8 +683,6 @@ typedef enum {
 typedef union {
    idk_base_request_t base_request;
    idk_firmware_request_t firmware_request;
-//   idk_rci_request_t rci_request;
-//   idk_messaging_request_t messaging_request;
 } idk_request_t;
 
 #define idk_handle_t void *
@@ -918,14 +910,37 @@ idk_handle_t idk_init(idk_callback_t callback);
  * @return idk_success      No error is encountered and it allows caller to gain back the system control.
  *                          Caller must call this function again to continue IDK process.
  * @return not idk_success  Error is encountered and IDK has closed the connection. Applciation
- *                          may call this function to restart IRL or idk_stop to terminated IRL.
+ *                          may call this function to restart IRL or idk_dispatch to terminated IRL.
  *
  *
  */
-idk_status_t idk_step(idk_handle_t handle);
+idk_status_t idk_step(idk_handle_t const handle);
 
-//idk_status_t idk_run(idk_handle_t handle);
-//idk_status_t idk_dispatch(idk_handle_t handle, idk_dispatch_request_t request);
+/* Starts and run IDK. This function is similiar to idk_step except it does not
+ * return control to caller unless it encounters error.
+ *
+ * This function is recommended to be executed as a thread.
+ *
+ * @param handler       handler returned from idk_init.
+ *
+  * @return not idk_success  Error is encountered and IDK has closed the connection. Applciation
+ *                          may call this function to restart IRL or idk_dispatch to terminated IRL.
+ */
+idk_status_t idk_run(idk_handle_t const handle);
+
+/* Dispatch IDK to perform requested action.
+ *
+ * @param handler       handler returned from idk_init.
+ * @param request       Request ID:
+ *                       idk_dispatch_terminate = terminates IDK. It closes the connection and frees
+ *                       all allocated memory. If caller calls idk_step, caller must call idk_step again
+ *                       for IDK to be terminated. If caller is using idk_run, idk_run will be terminated
+ *                       and return. Once IDK is terminated, IDK cannot restart unless idk_init is called again.
+ *@param data           Pointer to requested data.
+                        For Request ID:
+                            idk_dispatch_termiated: data is not used
+ */
+idk_status_t idk_dispatch(idk_handle_t handle, idk_dispatch_request_t request, void * data);
 
 #ifdef __cplusplus
 }
