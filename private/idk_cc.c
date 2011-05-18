@@ -159,11 +159,11 @@ static idk_callback_status_t send_connection_report(idk_data_t * idk_ptr, idk_cc
      * |        |  type  | address |    type     | information |
      *  -------------------------------------------------------
      *
-     * 1. call callback to get ip address & build ip_address in the send packet
-     * 2. call callback to get & build conenction type in the send packet
-     * 3. if connection type is LAN, call callback to get and build mac address in the send packet
-     * 4. if connection type is WAN, call callback to get and build link speed in the send packet
-     * 5. if connection type is WAN, call callback to get and build phone number in the send packet
+     * 1. call callback to get ip address & build ip_address
+     * 2. call callback to get & build conenction type
+     * 3. if connection type is LAN, call callback to get and build mac address for connection information
+     * 4. if connection type is WAN, call callback to get and build link speed for connection information
+     * 5. if connection type is WAN, call callback to get and build phone number for connection information
      */
     p =(idk_facility_packet_t *) net_get_send_packet(idk_ptr, sizeof(idk_facility_packet_t), &ptr);
     if (p == NULL)
@@ -176,16 +176,11 @@ static idk_callback_status_t send_connection_report(idk_data_t * idk_ptr, idk_cc
     {
         uint8_t * ip_addr = NULL;
 
-//        ptr = IDK_PACKET_DATA_POINTER(p, sizeof(idk_facility_packet_t));
-
         *ptr++ = FAC_CC_CONNECTION_REPORT;  /* opcode */
         *ptr++ = FAC_CC_CLIENTTYPE_DEVICE;  /* client type */
         p->length = 2;
 
-        /* callback for ip address */
-        memset(ptr, 0x00, CC_IPV6_ADDRESS_LENGTH);
-
-        /* IP address (use IPv6 format) */
+       /* IP address (use IPv6 format) */
         request_id.base_request = idk_base_ip_addr;
         status = idk_ptr->callback(idk_class_base, request_id, NULL, 0, &ip_addr, &length);
         if (status != idk_callback_continue)
@@ -218,6 +213,7 @@ static idk_callback_status_t send_connection_report(idk_data_t * idk_ptr, idk_cc
             else
             {
                 /* good ipv4 addr. convert to ipv6 format */
+                memset(ptr, 0x00, CC_IPV6_ADDRESS_LENGTH);
                 ptr+= 10;
                 *ptr++= 0xFF;
                 *ptr++ = 0xFF;
@@ -235,7 +231,6 @@ static idk_callback_status_t send_connection_report(idk_data_t * idk_ptr, idk_cc
         /* callback for connection type */
         idk_connection_type_t * connection_type;
 
-        /* connection type */
         request_id.base_request = idk_base_connection_type;
         status = idk_ptr->callback(idk_class_base, request_id, NULL, 0, &connection_type, &length);
         if (status != idk_callback_continue)
@@ -255,7 +250,7 @@ static idk_callback_status_t send_connection_report(idk_data_t * idk_ptr, idk_cc
             ptr = IDK_PACKET_DATA_POINTER(p, sizeof(idk_facility_packet_t));
             ptr += p->length;
 
-            *ptr = (*connection_type+1);  /* +1 to matach the spec LAN or WAN connection type */
+            *ptr = (*connection_type+1);  /* +1 to matach the SPEC LAN or WAN connection type value */
             p->length++;
             if (*connection_type == idk_lan_connection_type)
             {
@@ -272,10 +267,9 @@ static idk_callback_status_t send_connection_report(idk_data_t * idk_ptr, idk_cc
 
     if (cc_ptr->item == idk_base_mac_addr)
     {
-        /* callback for MAC for LAN connection type */
+        /* callback for MAC addr for LAN connection type */
         uint8_t * mac;
 
-        /* MAC address */
         request_id.base_request = idk_base_mac_addr;
         status = idk_ptr->callback(idk_class_base, request_id, NULL, 0, &mac, &length);
         if (status != idk_callback_continue)
@@ -303,7 +297,6 @@ static idk_callback_status_t send_connection_report(idk_data_t * idk_ptr, idk_cc
         /* callback for Link speed for WAN connection type */
         uint32_t * link_speed;
 
-        /* Link speed for WAN */
         request_id.base_request = idk_base_link_speed;
         status = idk_ptr->callback(idk_class_base, request_id, NULL, 0, &link_speed, &length);
         if (status != idk_callback_continue)
@@ -332,7 +325,6 @@ static idk_callback_status_t send_connection_report(idk_data_t * idk_ptr, idk_cc
         /* callback for phone number for WAN connection type */
         char * phone = NULL;
 
-        /* phone number */
         request_id.base_request = idk_base_phone_number;
         status = idk_ptr->callback(idk_class_base, request_id, NULL, 0, &phone, &length);
 
@@ -382,7 +374,6 @@ static idk_callback_status_t process_disconnect(idk_data_t * idk_ptr, idk_cc_dat
         if (status == idk_callback_continue)
         {
             init_setting(idk_ptr);
-//            idk_ptr->network_busy = true;
         }
         else if (status == idk_callback_abort)
         {
@@ -407,14 +398,13 @@ static idk_callback_status_t  process_redirect(idk_data_t * idk_ptr, idk_cc_data
     char        * server_url;
     int i = 0;
 
-    /* Redirect new destination:
+    /* Redirect to new destination:
      *
      * 1. close connection
      * 2. Parse new destinations (server url & server ip)
-     * 3. connect to new destinations. If connect to server url fails,
-     *    this function will return SUCCESS to try server ip. If connection is made,
-     *    callback for redirect will be called.
-     * 4. reset edp state so that idk_task will re-establish the EDP connection.
+     * 3. connect to new destinations. If connect to new server url fails,
+     *    this function will return SUCCESS to try connecting to server ip.
+     * 4. reset edp state so that IDK will establish the EDP connection.
      */
 
     /*
