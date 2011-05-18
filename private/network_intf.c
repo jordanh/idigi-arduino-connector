@@ -244,7 +244,7 @@ static int send_buffer(idk_data_t * idk_ptr, uint8_t * buffer, size_t length)
     }
     else if (status == idk_callback_abort)
     {
-        bytes_sent = -idk_receive_error;
+        bytes_sent = -idk_send_error;
     }
 
 _ret:
@@ -259,7 +259,8 @@ static idk_packet_t * net_get_send_packet(idk_data_t * idk_ptr, size_t packet_si
     if (idk_ptr->send_packet.total_length == 0)
     {
         p = (idk_packet_t *)idk_ptr->send_packet.buffer;
-        p->avail_length = sizeof idk_ptr->send_packet.buffer - sizeof p->avail_length;;
+        p->avail_length = sizeof idk_ptr->send_packet.buffer - sizeof p->avail_length;
+        p->length = 0;
         ptr = IDK_PACKET_DATA_POINTER(p, packet_size);
     }
     else
@@ -284,8 +285,6 @@ static idk_callback_status_t net_send_rx_keepalive(idk_data_t * idk_ptr)
     {
         goto _ret;
     }
-//  rx_keepalive = (uint16_t *)idk_ptr->config.data[IDK_CONFIG_RX_KEEPALIVE];
-//  wait_count = (uint8_t *)idk_ptr->config.data[IDK_CONFIG_WAIT_COUNT];
     rx_keepalive = *idk_ptr->rx_keepalive;
 
     if (valid_interval_limit(idk_ptr, idk_ptr->rx_ka_time, (rx_keepalive * IDK_MILLISECONDS)))
@@ -330,7 +329,8 @@ static idk_callback_status_t net_send_packet(idk_data_t * idk_ptr)
     int bytes_sent;
     idk_callback_status_t status = idk_callback_continue;
 
-    if (idk_ptr->send_packet.total_length > 0)
+    /* if nothing needs to be sent, check whether we need to send rx keepalive */
+    if (idk_ptr->send_packet.total_length == 0 && idk_ptr->edp_state >= edp_discovery_layer)
     {
         net_send_rx_keepalive(idk_ptr);
     }
@@ -519,8 +519,6 @@ static idk_callback_status_t receive_data_status(idk_data_t * idk_ptr, int * rec
         }
 
     }
-//  DEBUG_PRINTF("idk_receive_status: length = %d total_length %d status %d\n", idk_ptr->receive_packet.length,
-//          idk_ptr->receive_packet.total_length, *receive_status);
     return status;
 }
 
@@ -648,7 +646,6 @@ static idk_callback_status_t net_get_receive_packet(idk_data_t * idk_ptr, idk_pa
                     break;
                 /* Unexpected/unknown MTv2 message types... */
                 case E_MSG_MT2_TYPE_VERSION:
-            //  case E_MSG_MT2_TYPE_LEGACY_EDP_VERSION: // same as E_MSG_MT2_TYPE_VERSION
                 case E_MSG_MT2_TYPE_KA_RX_INTERVAL:
                 case E_MSG_MT2_TYPE_KA_TX_INTERVAL:
                 case E_MSG_MT2_TYPE_KA_WAIT:
