@@ -44,32 +44,33 @@ enum {
     IDK_RECEIVE_COMPLETE
 };
 
+typedef idk_callback_status_t (* idk_facility_init_cb_t )(struct idk_data * idk_ptr);
 
-/* Reserved 1st for connection control facility */
-static idk_base_request_t idk_edp_init_facility_ids[] = {
-         (idk_base_request_t)-1, idk_base_firmware_facility,
+typedef struct {
+    idk_base_request_t  facility;
+    idk_facility_init_cb_t init_cb;
+    idk_facility_init_cb_t delete_cb;
+} idk_facility_init_t;
+
+
+static idk_facility_init_t idk_facility_init_cb[] = {
+        {(idk_base_request_t)-1, (idk_facility_init_cb_t)cc_init_facility, (idk_facility_init_cb_t)cc_delete_facility},
+        {(idk_base_request_t)-1, (idk_facility_init_cb_t)loopback_init_facility, (idk_facility_init_cb_t)loopback_delete_facility},
+        {idk_base_firmware_facility, (idk_facility_init_cb_t)fw_init_facility, (idk_facility_init_cb_t)fw_delete_facility}
 };
 
-static size_t idk_facility_count = sizeof idk_edp_init_facility_ids/ sizeof idk_edp_init_facility_ids[0];
+static size_t idk_facility_count = sizeof idk_facility_init_cb/ sizeof idk_facility_init_cb[0];
 
 static idk_callback_status_t  remove_facility_layer(idk_data_t * idk_ptr)
 {
     idk_callback_status_t status = idk_callback_continue, rc = idk_callback_continue;
-    idk_base_request_t facility_id;
 
     while (idk_ptr->request_id < (int)idk_facility_count)
     {
-        if (idk_ptr->facilities & (0x1 << idk_ptr->request_id))
+        if ((idk_ptr->facilities & (0x1 << idk_ptr->request_id)) &&
+             idk_facility_init_cb[idk_ptr->request_id].delete_cb != NULL)
         {
-            facility_id = idk_edp_init_facility_ids[idk_ptr->request_id];
-            switch(facility_id)
-            {
-            case idk_base_firmware_facility:
-                status = fw_delete_facility(idk_ptr);
-                break;
-            default:
-                break;
-            }
+            status = idk_facility_init_cb[idk_ptr->request_id].delete_cb(idk_ptr);
             if (status == idk_callback_continue)
             {
                 idk_ptr->request_id++;
@@ -79,12 +80,12 @@ static idk_callback_status_t  remove_facility_layer(idk_data_t * idk_ptr)
                 rc = idk_callback_abort;
             }
         }
+        else
+        {
+            idk_ptr->request_id++;
+        }
     }
 
-    if (cc_delete_facility(idk_ptr) != idk_callback_continue)
-    {
-        rc = idk_callback_abort;
-    }
     return rc;
 }
 
@@ -127,7 +128,15 @@ static idk_callback_status_t discovery_facility_layer(idk_data_t * idk_ptr)
 
     while (fac_ptr != NULL && status == idk_callback_continue)
     {
-        status = fac_ptr->discovery_cb(idk_ptr, fac_ptr);
+        if (fac_ptr->discovery_cb == NULL)
+        {
+            status = idk_callback_continue;
+        }
+        else
+        {
+            status = fac_ptr->discovery_cb(idk_ptr, fac_ptr);
+        }
+
         if (status == idk_callback_continue)
         {
             fac_ptr = idk_ptr->active_facility = fac_ptr->next;
@@ -142,20 +151,21 @@ static idk_callback_status_t configuration_layer(idk_data_t * idk_ptr)
     idk_callback_status_t status = idk_callback_continue;;
     void * data = NULL;
     size_t length;
-    size_t request_count; 
+    size_t config_count;
     static unsigned idk_edp_init_config_ids[] = {
             idk_base_server_url, idk_base_wait_count, idk_base_tx_keepalive, idk_base_rx_keepalive, idk_base_password,
     };
 
     DEBUG_PRINTF("idk_edp_init: idk_edp_configuration_layer\n");
-    request_count = (sizeof idk_edp_init_config_ids/ sizeof idk_edp_init_config_ids[0]);
+    config_count = (sizeof idk_edp_init_config_ids/ sizeof idk_edp_init_config_ids[0]);
 
+    /* Call callback to obtain configuration data */
     if (idk_ptr->layer_state == layer_init_state)
     {
         /* Call callback to get server url, wait count, tx keepalive, rx keepalive, & password at this layer.
          * Call error status callback if error is encountered (NULL data, invalid range, invalid size).
          */
-        while(idk_ptr->request_id < (int)request_count)
+        while(idk_ptr->request_id < (int)config_count)
         {
             request_id.base_request = idk_edp_init_config_ids[idk_ptr->request_id];
 
@@ -209,7 +219,7 @@ static idk_callback_status_t configuration_layer(idk_data_t * idk_ptr)
                         length != sizeof(uint8_t))
                     {
 _param_err:
-                        status = notify_error_status( idk_ptr->callback, idk_class_base, request_id, idk_ptr->error_code);
+                        status = notify_error_status(idk_ptr->callback, idk_class_base, request_id, idk_ptr->error_code);
                         
                     }
                     break;
@@ -235,34 +245,35 @@ _param_err:
         } /* while */
 
         /* List of facilities is defined in idk_edp_init_facility_ids[] table.
-         * Call the callback to see which facility is supported.
+         * Call callback to see which facility is supported.
          */
-        while (idk_ptr->request_id >= (int)request_count && idk_ptr->request_id < (int)(request_count + idk_facility_count))
+        idk_ptr->facilities = 0;
+        while (idk_ptr->request_id >= (int)config_count && idk_ptr->request_id < (int)(config_count + idk_facility_count))
         {
             bool facility_enable;
+            int  idx;
 
-            /* skip 1st one since it's reserved for Connection control facility */
-            if ((idk_ptr->request_id - request_count) == 0)
+            idx = idk_ptr->request_id - config_count;
+
+            request_id.base_request = idk_facility_init_cb[idx].facility;
+            if (request_id.base_request != (idk_base_request_t)-1)
             {
-                status = cc_init_facility(idk_ptr);
+                status = idk_ptr->callback(idk_class_base, request_id, NULL, 0, &facility_enable, &length);
+                if (status == idk_callback_continue && facility_enable)
+                {
+                    DEBUG_PRINTF("configuration_layer: Initialize facility %d\n", request_id.base_request);
+                    goto _init_facility;
+                }
+
             }
             else
             {
-            	request_id.base_request = idk_edp_init_facility_ids [idk_ptr->request_id - request_count];
-
-            	status = idk_ptr->callback(idk_class_base, request_id, NULL, 0, &facility_enable, &length);
-            	if (status == idk_callback_continue)
-            	{
-            		DEBUG_PRINTF("configuration_layer: %d facility  supported = %d\n", request_id.base_request, (int)facility_enable);
-            		switch(request_id.base_request)
-                    {
-                    case idk_base_firmware_facility:
-                        status = fw_init_facility(idk_ptr);
-                        break;
-                    default:
-                        break;
-                    }
+_init_facility:
+                if (idk_facility_init_cb[idx].init_cb != NULL)
+                {
+                    status = idk_facility_init_cb[idx].init_cb(idk_ptr);
                 }
+                idk_ptr->facilities |= (0x01 << idx);
             }
 
             if (status == idk_callback_continue)
@@ -283,26 +294,13 @@ _param_err:
             
         }
 
-        if (idk_ptr->request_id == (int)(request_count + idk_facility_count))
+        if (idk_ptr->request_id == (int)(config_count + idk_facility_count))
         {
             idk_ptr->request_id = 0;
-//            idk_ptr->layer_state = layer_connect_state;
             set_idk_state(idk_ptr, edp_communication_layer);
         }
     }
-#if 0
-    if (idk_ptr->layer_state == layer_connect_state)
-    {
-        DEBUG_PRINTF("--- connecting server = %s\n", idk_ptr->server_url);
-        status = net_connect_server(idk_ptr, idk_ptr->server_url, IDK_MT_PORT);
 
-        if (status == idk_callback_continue)
-        {
-            idk_ptr->request_id = 0;
-            set_idk_state(idk_ptr, edp_communication_layer);
-        }
-    }
-#endif
 _ret:
     return status;
 
@@ -316,7 +314,6 @@ static idk_callback_status_t communication_layer(idk_data_t * idk_ptr)
     uint8_t * buf;
     int len;
     idk_packet_t * p;
-//    idk_base_request_t facility_id;
 
     /* communitcation layer:
      *  1. initialize all supported facilites.
@@ -327,43 +324,6 @@ static idk_callback_status_t communication_layer(idk_data_t * idk_ptr)
     if (idk_ptr->layer_state == layer_init_state)
     {
         DEBUG_PRINTF("Communication layer\n");
-#if 0
-        while (idk_ptr->request_id < (int)idk_facility_count)
-        {
-            /* Connection control facility */
-            if (idk_ptr->request_id  == 0)
-            {
-                status = cc_init_facility(idk_ptr);
-            }
-            /* other supported facilities */
-            else if (idk_ptr->facilities & (0x1 << idk_ptr->request_id))
-            {
-                facility_id = idk_edp_init_facility_ids[idk_ptr->request_id];
-
-                switch(facility_id)
-                {
-                case idk_base_firmware_facility:
-                    status = fw_init_facility(idk_ptr);
-                    break;
-                default:
-                    break;
-                }
-            }
-            if (status == idk_callback_continue)
-            {
-                idk_ptr->request_id++;
-            }
-            else
-            {
-                goto _ret;
-            }
-        }
-
-        if (idk_ptr->request_id == (int)idk_facility_count && status == idk_callback_continue)
-        {
-            idk_ptr->layer_state = layer_send_version_state;
-        }
-#endif
         if (idk_ptr->network_handle == NULL)
         {
             DEBUG_PRINTF("--- connecting server = %s\n", idk_ptr->server_url);
@@ -952,7 +912,6 @@ _packet:
                 }
 
                 facility = FROM_BE16(p->facility);
-//                p->facility = facility;
 
                 DEBUG_PRINTF("idk_facility_layer: receive data facility = 0x%04x, type = %d, length=%d\n",
                                             facility, p->type, length);
