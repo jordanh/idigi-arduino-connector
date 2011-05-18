@@ -26,16 +26,18 @@
 #ifndef IDK_DEF_H_
 #define IDK_DEF_H_
 
-//#include "idk_api.h"
 #include "ei_packet.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-//#define DEBUG_PRINTF(...)
 
+#if defined(DEBUG)
 #define DEBUG_PRINTF(...)       printf(__VA_ARGS__)
+#else
+#define DEBUG_PRINTF(...)
+#endif
 
 
 #define IDK_MT_VERSION           2
@@ -63,7 +65,7 @@ extern "C"
 #define URL_PREFIX  "en://"
 #define IDK_IS_SELECT_SET(x, y)        (x & y)
 #define IDK_PACKET_DATA_POINTER(p, s)  (uint8_t *)((uint8_t *)p + s)
-#define IDK_SEND_PENDING(idk_ptr)	(idk_ptr->send_packet.total_length > 0)
+#define IDK_SEND_PENDING(idk_ptr)	(idk_ptr->edp_connected && idk_ptr->send_packet.total_length > 0)
 
 /* IRL EDP States */
 typedef enum {
@@ -130,7 +132,6 @@ typedef struct idk_data {
     uint32_t    tx_ka_time;
 
 
-//  uint8_t         current_wait_count;
     uint8_t security_form;
 
    idk_edp_state_t edp_state;
