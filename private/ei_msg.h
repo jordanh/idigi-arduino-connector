@@ -80,8 +80,7 @@
 #define E_MSG_FAC_FW_NUM		   0x0070
 #define E_MSG_FAC_RCI_NUM          0x00a0
 #define E_MSG_FAC_MSG_NUM          0x00c0
-//#define E_MSG_FAC_DEV_LOOP_NUM     0xff00
-//#define E_MSG_FAC_SERVER_LOOP_NUM  0xff01
+#define E_MSG_FAC_DEV_LOOP_NUM     0xff00
 #define E_MSG_FAC_CC_NUM           0xffff
 
 /*
