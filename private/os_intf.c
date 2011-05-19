@@ -61,7 +61,6 @@ static idk_callback_status_t get_system_time(idk_data_t * idk_ptr, uint32_t * ms
     {
         idk_ptr->error_code = idk_configuration_error;
     }
-    /* do I need to check the length */
 
     return status;
 }
