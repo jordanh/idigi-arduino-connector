@@ -568,7 +568,7 @@ typedef enum {
      *  request_data = pointer to idk_fw_image_data_t
      *  request_length = sizeof idk_fw_image_data_t
      *  response_data = pointer to memory where callback writes the idk_fw_status_t status to.
-     *                  IDK will send idk_fw_device_error error status to abort firmware downlaod process.
+     *                  IDK will send error status to abort firmware downlaod process.
      *  response_length = NULL
      *
      * Callback returns:
@@ -887,7 +887,6 @@ typedef idk_callback_status_t (* idk_callback_t) (idk_class_t class, idk_request
                                                   void * response_data, size_t * response_length);
 
 /*
- * Allocates and initializes IDK. It will call the callback to get device ID, vendor ID and
  * device type configurations. This function returns IDK handle if IDK is ready.
  *
  * @param callback      callback function to communicate with IDK
@@ -916,7 +915,7 @@ idk_handle_t idk_init(idk_callback_t callback);
  */
 idk_status_t idk_step(idk_handle_t const handle);
 
-/* Starts and run IDK. This function is similiar to idk_step except it does not
+/* Starts and run IDK. This function is similar to idk_step except it does not
  * return control to caller unless it encounters error.
  *
  * This function is recommended to be executed as a thread.
