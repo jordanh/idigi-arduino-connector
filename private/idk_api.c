@@ -139,7 +139,25 @@ idk_status_t idk_step(idk_handle_t const handle)
         goto _ret;
     }
 
-    /* process edp layers */
+    /* process edp layers.
+     *
+     * States 1 to 5 are layers to establish communication between IDK
+     * and iDigi server. State 6 is waiting and processing any messages
+     * from server.
+     *
+     * 1. edp_init_layer
+     * 2. edp_communication_layer
+     * 3. edp_initialization_layer
+     * 4. edp_security_layer
+     * 5. edp_discovery_layer
+     * 6. edp_facility_layer
+     *
+     * Each layer should not send data directly. This function will process any data
+     * that needs to be sent.
+     *
+     * Make sure send is not pending before execute the layer.
+     *
+     */
     if (!IDK_SEND_PENDING(idk_handle))
     {
         switch (idk_handle->edp_state)
@@ -177,7 +195,7 @@ idk_status_t idk_step(idk_handle_t const handle)
 
 _ret:
     if (rc != idk_success && idk_handle != NULL)
-    {
+    {  /* error */
         status = net_close(idk_handle);
 
         if (status != idk_callback_continue)
@@ -187,7 +205,7 @@ _ret:
         init_setting(idk_handle);
 
         if (idk_handle->active_state == idk_device_terminate)
-        {
+        {   /* terminated by idk_dispatch call */
             status = remove_facility_layer(idk_handle);
             if (status == idk_callback_abort)
             {
