@@ -882,17 +882,10 @@ _packet:
             if (p->type == E_MSG_MT2_TYPE_PAYLOAD)
             {
 
-                if (p->length < PKT_OP_SECURITY)
-                {
-                    /* ignore this packet */
-                    DEBUG_PRINTF("idk_facility_layer: invalid length for security opcode. length received %d < %d min length\n", p->length, PKT_OP_FACILITY);
-                    goto _ret;
-                }
-
                 if (p->sec_coding != SECURITY_PROTO_NONE)
                 {
                     /* handle security operation */
-                    DEBUG_PRINTF("idk_facility_layer: unsupported security\n");
+                    DEBUG_PRINTF("idk_facility_layer: security code = %d\n", p->sec_coding);
                 }
 
                 if (length < (PKT_OP_DISCOVERY + PKT_OP_FACILITY))
@@ -922,14 +915,14 @@ _packet:
                     status = rci_process_function(idk_ptr, NULL, p);
                 }
 
-                /* search facility and pass the data to the facility */
+                /* search facility and copy the data to the facility
+                 *
+                 * Make sure the facility is not processing previous packet.
+                 */
                 for (fac_ptr = idk_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
                 {
                     if (fac_ptr->facility_num  == facility)
                     {
-                        /* Is facility still processing a packet?
-                         * If not, let's copy the packet to the facility packet
-                         */
                         if (fac_ptr->packet == NULL)
                         {
                             uint8_t * src_ptr, * dst_ptr;
@@ -938,6 +931,9 @@ _packet:
                             fac_ptr->packet->disc_payload= p->disc_payload;
                             fac_ptr->packet->sec_coding = p->sec_coding;
                             fac_ptr->packet->facility = facility;
+                            /* The packet length includes discovery_payload, security_coding + facility number so
+                             * must subtract all these length to get the length of facility data
+                             */
                             fac_ptr->packet->length = p->length - sizeof p->disc_payload - sizeof p->sec_coding - sizeof p->facility;
                             idk_ptr->active_facility = fac_ptr;
 
@@ -946,7 +942,7 @@ _packet:
                             memcpy(dst_ptr, src_ptr, fac_ptr->packet->length);
                         }
                         else
-                        { /* hold on the packet so stop receiving data */
+                        { /* Facility is busy so hold on the packet and stop receiving data */
                             idk_ptr->layer_state = layer_process_packet_state;
                         }
                         break;
