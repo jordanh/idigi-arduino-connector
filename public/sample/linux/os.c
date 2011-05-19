@@ -31,7 +31,7 @@
 idk_callback_status_t os_malloc(size_t size, void ** ptr)
 {
     idk_callback_status_t rc = idk_callback_continue;
-
+#error "Add code for allocate memory";
 	*ptr = malloc(size);
 	if (*ptr == NULL)
 	{
@@ -42,26 +42,17 @@ idk_callback_status_t os_malloc(size_t size, void ** ptr)
 
 idk_callback_status_t os_free(void * ptr)
 {
+/#error "Add code to free allocated memory";
 	free(ptr);
 	return idk_callback_continue;
 }
 
-// clock_t gSysTime = 0;
+ clock_t gSysTime = 0;
 
 idk_callback_status_t os_get_system_time(uint32_t * mstime)
 {
-#if 0
-	clock_t		systime;
-	systime = clock();
-
-	*mstime = systime/CLOCKS_PER_SEC * 1000;
-	if (gSysTime != (*mstime/1000))
-	{
-	    DEBUG_PRINTF("system_time = %d mstime = %d\n", (int) systime, *mstime/1000);
-	    gSysTime = (*mstime/1000);
-	}
-#else
-	extern time_t gSystemTime;
+#error "Add code to return system time in milliseconds";
+    extern time_t gSystemTime;
 
 	time_t      curtime;
 
@@ -69,14 +60,8 @@ idk_callback_status_t os_get_system_time(uint32_t * mstime)
 
 	*mstime = (uint32_t)(curtime - gSystemTime) * 1000;
 
-#endif
 	return idk_callback_continue;
 }
 
-idk_callback_status_t os_wait(uint32_t mswait)
-{
-	usleep(mswait * 1000);
-	return idk_callback_continue;
-}
 
 
