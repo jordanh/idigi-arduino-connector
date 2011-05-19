@@ -89,8 +89,6 @@ static idk_callback_status_t net_enable_send_packet(idk_data_t * idk_ptr)
     }
 
     p = (idk_packet_t *)idk_ptr->send_packet.buffer;
-    /* Adjust the packet header fields. */
-
     idk_ptr->send_packet.total_length = p->length;
     idk_ptr->send_packet.ptr = (uint8_t *)&p->type;
     length = TO_BE16(p->length);
@@ -119,7 +117,8 @@ static idk_callback_status_t net_enable_facility_packet(idk_data_t * idk_ptr, ui
     idk_facility_packet_t   * p;
 
     p = (idk_facility_packet_t *)idk_ptr->send_packet.buffer;
-    /*
+    /* this function is to set up a facility packet to be sent.
+     *
      * facility packet:
      *    -----------------------------------------------------------------------------------------
      *   |      1 - 4         |          5           |         6         |  7 - 8   |   9...       |
@@ -210,7 +209,10 @@ static idk_packet_t * net_get_send_packet(idk_data_t * idk_ptr, size_t packet_si
     idk_packet_t * p = NULL;
     uint8_t * ptr = NULL;
 
-    /* make sure send is not pending */
+    /* Return an available packet pointer for caller to setup data to be sent to server.
+     *
+     * make sure send is not pending
+     */
     if (idk_ptr->send_packet.total_length == 0)
     {
         p = (idk_packet_t *)idk_ptr->send_packet.buffer;
@@ -236,6 +238,8 @@ static idk_callback_status_t net_send_rx_keepalive(idk_data_t * idk_ptr)
     {
         goto _ret;
     }
+
+    /* Sends rx keepalive if keepalive timing is expired. */
     rx_keepalive = *idk_ptr->rx_keepalive;
 
     if (valid_interval_limit(idk_ptr, idk_ptr->rx_ka_time, (rx_keepalive * IDK_MILLISECONDS)))
@@ -258,10 +262,6 @@ static idk_callback_status_t net_send_rx_keepalive(idk_data_t * idk_ptr)
         goto _ret;
     }
 
-    /*
-     * MTv2 (and later)...
-     * MT version 2 has a 2-octet type field before the 2-octet length.
-     */
     p->length = 0;
     p->type = E_MSG_MT2_TYPE_KA_KEEPALIVE;
     version = TO_BE32(IDK_MTV2_VERSION);
