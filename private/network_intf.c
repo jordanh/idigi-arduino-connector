@@ -44,12 +44,6 @@
 
 
 enum {
-    IDK_NETWORK_BUFFER_COMPLETE,
-    IDK_NETWORK_BUFFER_PENDING,
-    IDK_NETWORK_RECEIVED_MESSAGE
-};
-
-enum {
     receive_packet_init,
     receive_packet_type,
     receive_packet_length,
@@ -480,14 +474,13 @@ _ret:
 }
 
 
-static idk_callback_status_t receive_data_status(idk_data_t * idk_ptr, int * receive_status)
+static idk_callback_status_t receive_data_status(idk_data_t * idk_ptr)
 {
     uint8_t * buf;
     size_t  length;
     idk_callback_status_t status = idk_callback_continue;
     int     read_length;
 
-    *receive_status = IDK_NETWORK_BUFFER_COMPLETE;
     if (idk_ptr->receive_packet.length < idk_ptr->receive_packet.total_length)
     {
         buf = idk_ptr->receive_packet.ptr + idk_ptr->receive_packet.length;
@@ -506,18 +499,10 @@ static idk_callback_status_t receive_data_status(idk_data_t * idk_ptr, int * rec
         }
     }
 
-    if (idk_ptr->receive_packet.total_length > 0)
+    if (idk_ptr->receive_packet.total_length > 0 &&
+        idk_ptr->receive_packet.length < idk_ptr->receive_packet.total_length)
     {
-        if (idk_ptr->receive_packet.length < idk_ptr->receive_packet.total_length)
-        {
-            *receive_status = IDK_NETWORK_BUFFER_PENDING;
-        }
-        else if (idk_ptr->receive_packet.length > idk_ptr->receive_packet.total_length)
-        {
-            /* something's wrong */
-            DEBUG_PRINTF("get_receive_packet_status: length receive > request length !!!\n");
-        }
-
+        status = idk_callback_busy;
     }
     return status;
 }
@@ -527,7 +512,6 @@ static idk_callback_status_t net_get_receive_packet(idk_data_t * idk_ptr, idk_pa
 {
     idk_callback_status_t status = idk_callback_continue;
     uint16_t type_val;
-    int receive_status;
     idk_request_t request_id;
 
     *p = NULL;
@@ -560,14 +544,14 @@ static idk_callback_status_t net_get_receive_packet(idk_data_t * idk_ptr, idk_pa
      * 2. read message length
      * 3. actual message data
      *
-     * So we use index = 0 to initialize the packet before starting reading.
-     * we must check whether we need to complete the read.
-     * when index == 1, set to receive message type. After message type is received,
+     * So we use index == receive_packet_init to initialize the packet before starting reading.
+     * When index == receive_packet_type, set to receive message type. After message type is received,
      * we must check valid message type.
      * 
-     * when index == 2, set to receive message length.
-     * when index == 3, set to receive message data.
-     * when index == 4, message data is completely received and reset index = 0.
+     * When index == receive_packet_length, set to receive message length.
+     * When index == receive_packet_data, set to receive message data.
+     * When index == receive_packet_complete, message data is completely received and
+     * reset index = receive_packet_init and exit.
      *
      */
 
@@ -575,9 +559,9 @@ static idk_callback_status_t net_get_receive_packet(idk_data_t * idk_ptr, idk_pa
     {
         if (idk_ptr->receive_packet.index != receive_packet_init)
         {
-            status = receive_data_status(idk_ptr, &receive_status);
-            if (status != idk_callback_continue || receive_status == IDK_NETWORK_BUFFER_PENDING)
-            {
+            status = receive_data_status(idk_ptr);
+            if (status != idk_callback_continue)
+            {  /* receive pending */
                 goto _ret;
             }
         }
@@ -729,7 +713,7 @@ static idk_callback_status_t net_get_receive_packet(idk_data_t * idk_ptr, idk_pa
             break;
         case receive_packet_complete:
             idk_ptr->receive_packet.data_packet->type = idk_ptr->receive_packet.packet_type;
-            idk_ptr->receive_packet.index = 0;
+            idk_ptr->receive_packet.index = receive_packet_init;
             *p = idk_ptr->receive_packet.data_packet;
             goto _ret;
         }
