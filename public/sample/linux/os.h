@@ -33,7 +33,6 @@ extern "C"
 #endif
 
 idk_callback_status_t os_get_system_time(uint32_t * mstime);
-idk_callback_status_t os_wait(uint32_t mswait);
 idk_callback_status_t os_malloc(size_t size, void ** ptr);
 idk_callback_status_t os_free(void * ptr);
 
