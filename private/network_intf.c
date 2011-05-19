@@ -313,10 +313,6 @@ static idk_callback_status_t net_send_packet(idk_data_t * idk_ptr)
 }
 
 
-
-
-unsigned receive_timeout = 0;
-
 static int receive_data(idk_data_t * idk_ptr, uint8_t * buffer, size_t length)
 {
     int bytes_received = 0;
@@ -367,11 +363,6 @@ static int receive_data(idk_data_t * idk_ptr, uint8_t * buffer, size_t length)
     read_data.timeout = (IDK_MIN((rx_keepalive - tx_ka_time ),
                                                       (tx_keepalive- rx_ka_time))/
                                  IDK_MILLISECONDS);
-
-    if (receive_timeout != read_data.timeout)
-    {
-        receive_timeout = read_data.timeout;
-    }
 
     read_data.network_handle = idk_ptr->network_handle;
     read_data.buffer = buffer;
@@ -453,6 +444,7 @@ static idk_callback_status_t receive_data_status(idk_data_t * idk_ptr)
         {
             idk_ptr->error_code = -read_length;
             status = idk_callback_abort;
+            goto _ret;
         }
     }
 
@@ -461,6 +453,7 @@ static idk_callback_status_t receive_data_status(idk_data_t * idk_ptr)
     {
         status = idk_callback_busy;
     }
+_ret:
     return status;
 }
 
