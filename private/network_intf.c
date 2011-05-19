@@ -73,57 +73,6 @@ static void set_idk_state(idk_data_t * idk_ptr, int state)
     idk_ptr->request_id = 0;
 }
 
-#if 0
-stataic int idk_select(idk_data_t * idk_ptr, unsigned set, unsigned * actual_set)
-{
-    IrlNetworkSelect_t select_data;
-    unsigned                    config_id;
-    idk_callback_status_t                   status;
-    int                         rc = IDK_SUCCESS;
-    uint16_t                    rx_keepalive;
-    uint16_t                    tx_keepalive;
-    uint32_t                    time_stamp;
-
-    if (idk_ptr->connection.socket_fd < 0)
-    {
-        goto _ret;
-    }
-    if (idk_ptr->edp_state > edp_discovery_layer)
-    {
-        if (idk_get_system_time(idk_ptr, &time_stamp) != IDK_SUCCESS)
-        {
-            status = IDK_STATUS_ERROR;
-            goto _ret;
-        }
-
-        rx_keepalive = (GET_RX_KEEPALIVE(idk_ptr) * IDK_MILLISECONDS) - (time_stamp - idk_ptr->rx_ka_time);
-        tx_keepalive = (GET_TX_KEEPALIVE(idk_ptr) * IDK_MILLISECONDS) - (time_stamp - idk_ptr->tx_ka_time);
-
-        select_data.wait_time = IDK_MIN(rx_keepalive, tx_keepalive);
-
-    }
-    else
-    {
-        select_data.wait_time = 0;
-        select_data.wait_time = 2;
-    }
-    select_data.select_set = set;
-    select_data.actual_set = 0;
-    select_data.socket_fd = idk_ptr->connection.socket_fd;
-
-
-    config_id = IDK_CONFIG_SELECT;
-    status = idk_get_config(idk_ptr, config_id, &select_data);
-    if (status != idk_callback_continue && status != IDK_STATUS_BUSY)
-    {
-        rc = IDK_CONFIG_ERR;
-    }
-
-    *actual_set = select_data.actual_set;
-_ret:
-    return rc;
-}
-#endif
 
 static idk_callback_status_t net_enable_send_packet(idk_data_t * idk_ptr)
 {
@@ -148,8 +97,9 @@ static idk_callback_status_t net_enable_send_packet(idk_data_t * idk_ptr)
 
     /*
      * MTv2 (and later)...
-     * MT version 2 has a 2-octet type field before the 2-octet length.
-     *   | length | type | data |
+     * Packet format for MT version,
+     * it has a 2-octet type field and the 2-octet length field and followed by data.
+     *   | type | length | data |
      */
 
     msg_type = TO_BE16(p->type);
@@ -169,6 +119,16 @@ static idk_callback_status_t net_enable_facility_packet(idk_data_t * idk_ptr, ui
     idk_facility_packet_t   * p;
 
     p = (idk_facility_packet_t *)idk_ptr->send_packet.buffer;
+    /*
+     * facility packet:
+     *    -----------------------------------------------------------------------------------------
+     *   |      1 - 4         |          5           |         6         |  7 - 8   |   9...       |
+     *    -----------------------------------------------------------------------------------------
+     *   | MTv2 packet format | data security coding | discovery payload | facility | facility data|
+     *    -----------------------------------------------------------------------------------------
+     *   | type   |   length  |
+     *    --------------------
+     */
 
     p->type = E_MSG_MT2_TYPE_PAYLOAD;
 
@@ -250,16 +210,13 @@ static idk_packet_t * net_get_send_packet(idk_data_t * idk_ptr, size_t packet_si
     idk_packet_t * p = NULL;
     uint8_t * ptr = NULL;
 
+    /* make sure send is not pending */
     if (idk_ptr->send_packet.total_length == 0)
     {
         p = (idk_packet_t *)idk_ptr->send_packet.buffer;
         p->avail_length = sizeof idk_ptr->send_packet.buffer - sizeof p->avail_length;
         p->length = 0;
         ptr = IDK_PACKET_DATA_POINTER(p, packet_size);
-    }
-    else
-    {
-        DEBUG_PRINTF("WAIT...send pending\n");
     }
     *buf = ptr;
     return p;
