@@ -38,8 +38,8 @@ extern "C"
 
 #define DEBUG_PRINTF(...)       printf(__VA_ARGS__)
 
-#define NETWORK_READ_SET        0x01 << 0
-#define NETWORK_WRITE_SET       0x01 << 1
+#define NETWORK_READ_SET      0x01 << 0
+#define NETWORK_WRITE_SET     0x01 << 1
 #define NETWORK_TIMEOUT_SET   0x01 << 2
 
 typedef struct {
@@ -51,14 +51,16 @@ typedef struct {
     char            * device_type;
     char            * server_url;
     char            * password;
-    idk_connection_type_t         connection_type;
-    uint8_t         mac[MAC_ADDR_LENGTH];
+    char            * phone_number;
+    uint16_t        link_speed;
+    idk_connection_type_t connection_type;
+    uint8_t         mac_addr[MAC_ADDR_LENGTH];
 
-    struct in_addr  ip_addr;
+    uint32_t        ip_addr; /* only IPv4 */
 
-    idk_handle_t                   idk_handle;
+    idk_handle_t             idk_handle;
     idk_network_handle_t     socket_fd;
-    uint8_t                            select_data;
+    uint8_t                  select_data;
 } idigi_data_t;
 
 extern idigi_data_t giDigiSetting;
