@@ -133,7 +133,7 @@ static idk_callback_status_t discovery_facility_layer(idk_data_t * idk_ptr)
             status = idk_callback_continue;
         }
         else
-        {
+        {   /* function to send facility discovery */
             status = fac_ptr->discovery_cb(idk_ptr, fac_ptr);
         }
 
@@ -155,6 +155,9 @@ static idk_callback_status_t configuration_layer(idk_data_t * idk_ptr)
     static unsigned idk_edp_init_config_ids[] = {
             idk_base_server_url, idk_base_wait_count, idk_base_tx_keepalive, idk_base_rx_keepalive, idk_base_password,
     };
+    /* configuration layer:
+     * 1. get configuration data
+     * 2. initialize any facilities */
 
     DEBUG_PRINTF("idk_edp_init: idk_edp_configuration_layer\n");
     config_count = (sizeof idk_edp_init_config_ids/ sizeof idk_edp_init_config_ids[0]);
@@ -316,7 +319,7 @@ static idk_callback_status_t communication_layer(idk_data_t * idk_ptr)
     idk_packet_t * p;
 
     /* communitcation layer:
-     *  1. initialize all supported facilites.
+     *  1. establishes connection.
      *  2. sends MT version
      *  3. receives and validates MT version response
      *  4. sends tx, rx, & waitcount parameter
@@ -711,7 +714,7 @@ static idk_callback_status_t discovery_layer(idk_data_t * idk_ptr)
     /* discovery layer:
      * 1. send vendor ID
      * 2. send device type
-     * 3. call each facility process to send its own discovery layer
+     * 3. call each facility to send its own discovery layer
      * 4. send discovery complete message.
     */
     switch (idk_ptr->layer_state)
@@ -854,7 +857,10 @@ static idk_callback_status_t facility_layer(idk_data_t * idk_ptr)
     uint16_t    facility;
 
 
-    /* facility layer waits and processes packet from server.
+    /* facility layer:
+     * 1. waits message from server
+     * 2. parses message and copies message to the facility
+     * 2. invokes facility to process message.
      *
      * Once it gets a packet, it parses and mux to appropriate facility.
      */
