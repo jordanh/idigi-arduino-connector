@@ -31,7 +31,6 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-//#include <fcntl.h>
 #include <sys/ioctl.h>
 
 #include <errno.h>
@@ -61,7 +60,6 @@ int e_dns_resolve(char *domain_name, struct in_addr * ip_addr)
     struct addrinfo *res0;
     struct addrinfo *res;
     struct addrinfo hint;
-    //struct in_addr addr;
 
     /* Validate the caller's parameters. */
     if (domain_name == NULL || ip_addr == NULL) {
@@ -70,7 +68,7 @@ int e_dns_resolve(char *domain_name, struct in_addr * ip_addr)
 
     memset(&hint, 0, sizeof(hint));
     hint.ai_socktype = SOCK_STREAM;
-    hint.ai_family = AF_INET; // PF_INET;
+    hint.ai_family = AF_INET;
     rc = getaddrinfo(domain_name, NULL, &hint, &res0);
     if (rc != 0)
     {
@@ -84,7 +82,6 @@ int e_dns_resolve(char *domain_name, struct in_addr * ip_addr)
     {
         if (res->ai_family == PF_INET)  /* v4 address? */
         {
-//      ip_addr->l = ((struct sockaddr_in*)res->ai_addr)->sin_addr.s_addr;
         ip_addr->s_addr = ((struct sockaddr_in*)res->ai_addr)->sin_addr.s_addr;
         rc = 0;     /* Success! */
         break;
@@ -92,7 +89,6 @@ int e_dns_resolve(char *domain_name, struct in_addr * ip_addr)
     }
 #else
 
-//  ip_addr->l = ((struct sockaddr_in *)res0->ai_addr)->sin_addr.s_addr;
     ip_addr->s_addr = ((struct sockaddr_in *)(res0->ai_addr))->sin_addr.s_addr;
 
 #endif
@@ -138,38 +134,18 @@ static int open_socket(int *sock_fd, int type)
 
 void set_socket_blockopt(unsigned sockfd, int block)
 {
-#if 1
-
-#if 0
-    int flags;
-
-
-    flags = fcntl(sockfd, F_GETFL,0);
-    if (block)
-        fcntl(sockfd, F_SETFL, flags & ~O_NONBLOCK);
-    else
-        fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
-#endif
-    int opt = (int)(block == 0);
+   int opt = (int)(block == 0);
     if (ioctl(sockfd, FIONBIO, &opt) < 0)
     {
         perror("ioctl: ");
         DEBUG_PRINTF("set_socket_blockopt: ioctl errno = %d\n", errno);
     }
 
-
-#else
-    int iMode = (int)(block == 0);
-//  if (ioctlsocket(sockfd, FIONBIO, (u_long FAR*) &iMode) < 0)
-    if (setsockopt(sockfd, SOL_SOCKET, SO_NBIO, NULL, &iMode) < 0)
-    {
-        DEBUG_PRINTF("set_socket_blockopt: setsockopt errno = %d\n", errno);
-    }
-#endif
 }
 
 idk_callback_status_t network_connect(idk_connect_request_t * connect_data)
 {
+#error "Add code to make connection to server";
     idk_callback_status_t rc = idk_callback_abort;
 
     struct in_addr ip_addr;
@@ -192,7 +168,7 @@ idk_callback_status_t network_connect(idk_connect_request_t * connect_data)
         {
             if (e_dns_resolve(connect_data->host_name, &ip_addr) < 0)
             {
-                DEBUG_PRINTF("hal_connect: Can't resolve DNS for %s\n", connect_data->host_name);
+                DEBUG_PRINTF("network_connect: Can't resolve DNS for %s\n", connect_data->host_name);
                 /* Can't resolve it either. Too bad. */
                 goto _ret;
             }
@@ -222,8 +198,8 @@ idk_callback_status_t network_connect(idk_connect_request_t * connect_data)
     {
         if (errno != EAGAIN && errno != EINPROGRESS)
         {
-            perror("hal_connect fails");
-            DEBUG_PRINTF("hal_socket_connect: errno=%d\n", errno);
+            perror("network_connect fails");
+            DEBUG_PRINTF("network_connect: errno=%d\n", errno);
             /* We must wait for the connect to complete or time out. */
             goto _ret;
         }
@@ -248,12 +224,12 @@ idk_callback_status_t network_connect(idk_connect_request_t * connect_data)
         /* An error or timeout occurred. */
         if (ccode < 0)
         {
-            DEBUG_PRINTF("select error\r\n");
+            DEBUG_PRINTF("network_connect: select error\r\n");
         }
         else
         {
             rc = idk_callback_busy;
-            DEBUG_PRINTF("select timeout\r\n");
+            DEBUG_PRINTF("network_connect: select timeout\r\n");
         }
         /* restore socket block flag */
         goto _ret;
@@ -272,7 +248,7 @@ idk_callback_status_t network_connect(idk_connect_request_t * connect_data)
 
         /* We're connected! */
         rc = idk_callback_continue;
-        DEBUG_PRINTF("hal_connect: connected\n");
+        DEBUG_PRINTF("network_connect: connected to %s server\n", connect_data->host_name);
     }
 
 _ret:
@@ -286,6 +262,7 @@ _ret:
 
 idk_callback_status_t network_send(idk_write_request_t * write_data, size_t * sent_length)
 {
+#error "Add code to send data to server";
     idk_callback_status_t rc = idk_callback_continue;
     int         ccode;
 
@@ -306,7 +283,7 @@ idk_callback_status_t network_send(idk_write_request_t * write_data, size_t * se
              * let's abort it.
              */
             rc = idk_callback_abort;
-            DEBUG_PRINTF("hal_send: send returns errno %d\n", err);
+            DEBUG_PRINTF("network_send: send returns errno %d\n", err);
         }
     }
     *sent_length = ccode;
@@ -324,6 +301,7 @@ idk_callback_status_t network_send(idk_write_request_t * write_data, size_t * se
 
 idk_callback_status_t network_receive(idk_read_request_t * read_data, size_t * read_length)
 {
+#error "Add code to receive data from server"
     idk_callback_status_t rc = idk_callback_continue;
     int ccode;
     int err;
@@ -334,7 +312,7 @@ idk_callback_status_t network_receive(idk_read_request_t * read_data, size_t * r
     if (ccode == 0)
     {
         /* EOF on input: the connection was closed. */
-        DEBUG_PRINTF("hal_tcp_receive: EOF on TCP socket read\r\n");
+        DEBUG_PRINTF("network_receive: EOF on TCP socket read\r\n");
         rc = idk_callback_abort;
     }
     else if (ccode < 0)
@@ -352,7 +330,7 @@ idk_callback_status_t network_receive(idk_read_request_t * read_data, size_t * r
             /* if not timeout (no data), let's return error */
             rc = idk_callback_abort;
             /* The error was other than a timeout: indicate a socket error. */
-            DEBUG_PRINTF("hal_tcp_receive: Error %d on TCP socket read\r\n", err);
+            DEBUG_PRINTF("network_receive: Error %d on TCP socket read\r\n", err);
         }
     }
 
@@ -371,6 +349,7 @@ idk_callback_status_t network_receive(idk_read_request_t * read_data, size_t * r
 
 idk_callback_status_t network_close(idk_network_handle_t * fd)
 {
+#error "Add code to close connection";
     struct linger ling_opt;
 
     ling_opt.l_linger = 0;
@@ -378,16 +357,16 @@ idk_callback_status_t network_close(idk_network_handle_t * fd)
 
     if (*fd != giDigiSetting.socket_fd)
     {
-        DEBUG_PRINTF("hal_close: mis-match network handle callback %d != local %d\n", *fd, giDigiSetting.socket_fd);
+        DEBUG_PRINTF("network_close: mis-match network handle callback %d != local %d\n", *fd, giDigiSetting.socket_fd);
     }
     if (setsockopt(*fd, SOL_SOCKET, SO_LINGER, (char*)&ling_opt, sizeof(ling_opt) ) < 0)
     {
-        perror("hal_close: setsockopt fails: ");
+        perror("network_close: setsockopt fails: ");
     }
 
     if (close(*fd) < 0)
     {
-        perror("hal_close: close fails: ");
+        perror("network_close: close fails: ");
     }
     giDigiSetting.socket_fd = -1;
 
@@ -436,12 +415,12 @@ uint8_t network_select(idk_network_handle_t fd, uint8_t select_set, unsigned wai
     {
         if (FD_ISSET(fd, &read_set))
         {
-            DEBUG_PRINTF("hal_select: Read ready\n");
+            DEBUG_PRINTF("network_select: Read ready\n");
             actual_set |= NETWORK_READ_SET;
         }
         if (FD_ISSET(fd, &write_set))
         {
-            DEBUG_PRINTF("hal_select: write ready\n");
+            DEBUG_PRINTF("network_select: write ready\n");
             actual_set |= NETWORK_WRITE_SET;
         }
     }
