@@ -1070,7 +1070,6 @@ static idk_callback_status_t fw_discovery(idk_data_t *idk_ptr, idk_facility_t * 
                 p->length += sizeof version;
                 ptr += sizeof version;
                 fw_ptr->target++;
-                printf("fw_discovery: %d total count = %d\n", fw_ptr->target, fw_ptr->target_count);
             }
         }
 
