@@ -1063,11 +1063,14 @@ static idk_callback_status_t fw_discovery(idk_data_t *idk_ptr, idk_facility_t * 
                  */
 
                 *ptr = fw_ptr->target;  /* target number */
+                ptr++;
                 p->length++;
                 version = TO_BE32(ver);
-                memcpy((void *)(ptr+1), (void *)&version, sizeof version);
+                memcpy((void *)ptr, (void *)&version, sizeof version);
                 p->length += sizeof version;
+                ptr += sizeof version;
                 fw_ptr->target++;
+                printf("fw_discovery: %d total count = %d\n", fw_ptr->target, fw_ptr->target_count);
             }
         }
 
