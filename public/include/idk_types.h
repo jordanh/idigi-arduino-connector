@@ -26,12 +26,22 @@
 #ifndef IDK_TYPES_H_
 #define IDK_TYPES_H_
 
-#include <string.h> /* memcpy */
-#include <stdio.h>
+#include <string.h>
+#include <assert.h>
 #include <stdint.h>
 #include <stdbool.h>
 
 typedef int idk_network_handle_t;
+
+
+#if defined(DEBUG)
+#define DEBUG_PRINTF(...)   printf(__VA_ARGS__)
+#define ASSERT(cond)        assert(cond)
+
+#else
+#define DEBUG_PRINTF(...)
+#define ASSERT(cond)
+#endif
 
 
 #endif /* IDK_TYPES_H_ */
