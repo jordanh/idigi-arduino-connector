@@ -33,12 +33,19 @@ extern "C"
 {
 #endif
 
+
+#define ON_FALSE_DO_(cond, code)        do { if (!(cond)) {code;} } while (0)
+
 #if defined(DEBUG)
-#define DEBUG_PRINTF(...)       printf(__VA_ARGS__)
+#define ON_ASSERT_DO_(cond, code, output)   ON_FALSE_DO_((cond), {ASSERT(cond); code;})
+
 #else
-#define DEBUG_PRINTF(...)
+#define ON_ASSERT_DO_(cond, code, output)   ON_FALSE_DO_((cond), {code})
 #endif
 
+#define ASSERT_GOTO(cond, label)    ON_ASSERT_DO_((cond), {goto label;}, {})
+
+#define UNUSED_PARAMETER(x)     ((void)x)
 
 #define IDK_MT_VERSION           2
 #define IDK_MT_PORT              3197
@@ -67,6 +74,8 @@ extern "C"
 #define IDK_PACKET_DATA_POINTER(p, s)  (uint8_t *)((uint8_t *)p + s)
 #define IDK_SEND_PENDING(idk_ptr)	(idk_ptr->edp_connected && idk_ptr->send_packet.total_length > 0)
 
+#define asizeof(array)  (sizeof array/sizeof array[0])
+
 /* IRL EDP States */
 typedef enum {
     edp_init_layer,
@@ -77,23 +86,12 @@ typedef enum {
     edp_facility_layer
 } idk_edp_state_t;
 
-/* layer states */
+
 typedef enum {
-    layer_init_state,
-    layer_connect_state,
-    layer_redirect_state,
-    layer_send_version_state,
-    layer_send_ka_params_state,
-    layer_process_packet_state,
-    layer_security_device_id_state,
-    layer_security_server_url_state,
-    layer_security_password_state,
-    layer_discovery_device_type_state,
-    layer_discovery_facility_init_state,
-    layer_discovery_facility_state,
-    layer_discovery_complete_state,
-    layer_done_state
-} idk_layer_state_t;
+    idk_device_started,
+    idk_device_stop,
+    idk_device_terminate
+} idk_active_state_t;
 
 struct idk_data;
 struct idk_facility;
@@ -111,7 +109,7 @@ typedef struct idk_facility {
 } idk_facility_t;
 
 typedef struct idk_data {
-    int active_state;
+    idk_active_state_t active_state;
 
     idk_callback_t callback;
 
@@ -135,7 +133,7 @@ typedef struct idk_data {
     uint8_t security_form;
 
    idk_edp_state_t edp_state;
-   idk_layer_state_t layer_state;
+   unsigned layer_state;
    idk_status_t error_code;
    bool network_busy;
    bool edp_connected;
@@ -143,6 +141,7 @@ typedef struct idk_data {
    idk_facility_t * active_facility;
    idk_facility_t * facility_list;
 
+   idk_packet_t     rx_keepalive_packet;
    struct {
         uint8_t buffer[IDK_MSG_MAX_PACKET_SIZE];
         uint8_t * ptr;
