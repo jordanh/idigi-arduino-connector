@@ -64,5 +64,4 @@ typedef struct {
     uint16_t    facility;
 } idk_facility_packet_t;
 
-/*@}*/
 #endif  /* _EI_PACKET_H */
