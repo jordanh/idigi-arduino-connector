@@ -31,9 +31,6 @@
 #define CC_ZERO_IP_ADDR         0x00000000
 #define CC_BOARDCAST_IP_ADDR    0xFFFFFFFF
 
-#define CC_ALL_ONES_OCTETS          0xFF
-#define CC_ALL_ZERO_OCTETS_LENGTH   10
-
 typedef enum {
     cc_not_redirect,
     cc_redirect_success,
