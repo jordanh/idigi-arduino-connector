@@ -33,6 +33,9 @@ typedef struct malloc_stats{
     struct malloc_stats * next;
 } malloc_stats_t;
 
+/* These are used for debugging and tracking memory
+ * usage and high water mark.
+ */
 static size_t total_malloc_length = 0;
 static malloc_stats_t * malloc_list = NULL;
 
