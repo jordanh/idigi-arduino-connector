@@ -34,6 +34,19 @@ static void init_setting(idk_data_t * idk_ptr)
 
 }
 
+static idk_callback_status_t idk_callback(idk_callback_t callback, idk_class_t class, idk_request_t request,
+                                   void const * request_data, size_t request_length,
+                                   void * response_data, size_t * response_length)
+{
+    idk_callback_status_t status;
+
+    status = callback(class, request, request_data, request_length, response_data, response_length);
+
+    ASSERT((status == idk_callback_continue) || (status == idk_callback_abort) || (status == idk_callback_busy));
+
+    return status;
+}
+
 
 static idk_callback_status_t notify_error_status(idk_callback_t callback, idk_class_t class, idk_request_t request, idk_status_t status)
 {
@@ -45,7 +58,7 @@ static idk_callback_status_t notify_error_status(idk_callback_t callback, idk_cl
     err_status.status = status;
 
     request_id.base_request = idk_base_error_status;
-    return callback(idk_class_base, request_id, &err_status, sizeof err_status, NULL, NULL);
+    return idk_callback(callback, idk_class_base, request_id, &err_status, sizeof err_status, NULL, NULL);
 }
 
 
@@ -56,7 +69,7 @@ static idk_callback_status_t get_system_time(idk_data_t * idk_ptr, uint32_t * ms
     idk_request_t request_id;
 
     request_id.base_request = idk_base_system_time;
-    status = idk_ptr->callback(idk_class_base, request_id, NULL, 0, mstime, &length);
+    status = idk_callback(idk_ptr->callback, idk_class_base, request_id, NULL, 0, mstime, &length);
     if (status == idk_callback_abort)
     {
         idk_ptr->error_code = idk_configuration_error;
@@ -77,7 +90,7 @@ static idk_callback_status_t malloc_cb(idk_callback_t callback, size_t length, v
         status = idk_callback_abort;
     }
     request_id.base_request = idk_base_malloc;
-    status = callback(idk_class_base, request_id, &size, sizeof size, &p, &len);
+    status = idk_callback(callback, idk_class_base, request_id, &size, sizeof size, &p, &len);
     if (status == idk_callback_continue)
     {
         *ptr = p;
@@ -107,7 +120,7 @@ static idk_callback_status_t free_data(idk_data_t * idk_ptr, void * ptr)
     idk_request_t request_id;
 
     request_id.base_request = idk_base_free;
-    status = idk_ptr->callback(idk_class_base, request_id, ptr, sizeof(void *), NULL, NULL);
+    status = idk_callback(idk_ptr->callback, idk_class_base, request_id, ptr, sizeof(void *), NULL, NULL);
     if (status == idk_callback_abort)
     {
         idk_ptr->error_code = idk_configuration_error;
