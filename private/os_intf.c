@@ -116,7 +116,7 @@ static idk_callback_status_t malloc_data(idk_data_t * idk_ptr, size_t length, vo
 
 static idk_callback_status_t free_data(idk_data_t * idk_ptr, void * ptr)
 {
-    idk_callback_status_t       status;
+    idk_callback_status_t   status;
     idk_request_t request_id;
 
     request_id.base_request = idk_base_free;
@@ -133,47 +133,56 @@ static idk_callback_status_t free_data(idk_data_t * idk_ptr, void * ptr)
     return status;
 }
 
-static idk_facility_t * get_facility_data(idk_data_t * idk_ptr, uint16_t facility_num)
+static void * get_facility_data(idk_data_t * idk_ptr, uint16_t facility_num)
 {
     idk_facility_t * fac_ptr;
+    void * ptr = NULL;
 
     for (fac_ptr = idk_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
     {
         if (fac_ptr->facility_num == facility_num)
         {
+            ptr = fac_ptr->facility_data;
             break;
         }
     }
 
-    return fac_ptr;
+    return ptr;
 }
 
-static idk_callback_status_t add_facility_data(idk_data_t * idk_ptr, uint16_t facility_num, idk_facility_t ** fac_ptr, size_t size,
+static idk_callback_status_t add_facility_data(idk_data_t * idk_ptr, uint16_t facility_num, void ** fac_ptr, size_t size,
                                                idk_facility_process_cb_t discovery_cb, idk_facility_process_cb_t process_cb)
 {
     idk_callback_status_t status;
-    idk_facility_t * ptr = NULL;
+    idk_facility_t * facility;
+    void * ptr;
+    size_t facility_size = sizeof(idk_facility_t);
 
-    status = malloc_data(idk_ptr, size, (void **)&ptr);
+    *fac_ptr = NULL;
+    status = malloc_data(idk_ptr, size + facility_size, &ptr);
     if (status == idk_callback_continue && ptr != NULL)
     {
-        ptr->facility_num = facility_num;
-        ptr->size = size;
-        ptr->discovery_cb = discovery_cb;
-        ptr->process_cb = process_cb;
-        ptr->packet = NULL;
-        ptr->next = idk_ptr->facility_list;
+        facility = (idk_facility_t *)ptr;
+        facility->facility_num = facility_num;
+        facility->size = size;
+        facility->discovery_cb = discovery_cb;
+        facility->process_cb = process_cb;
+        facility->packet = NULL;
+        facility->next = idk_ptr->facility_list;
         idk_ptr->facility_list = ptr;
+        facility->facility_data = ptr + facility_size;
+        *fac_ptr = facility->facility_data;
     }
 
-    *fac_ptr = ptr;
     return status;
 }
 
 static idk_callback_status_t del_facility_data(idk_data_t * idk_ptr, uint16_t facility_num)
 {
     idk_callback_status_t status = idk_callback_continue;
-    idk_facility_t * fac_ptr, * prev_ptr = NULL, * next_ptr;
+    idk_facility_t * fac_ptr;
+    idk_facility_t * prev_ptr = NULL;
+    idk_facility_t * next_ptr;
 
     for (fac_ptr = idk_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
     {
