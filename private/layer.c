@@ -174,7 +174,7 @@ static idk_callback_status_t get_configurations(idk_data_t * idk_ptr)
                    break;
                 case idk_base_server_url:
                     idk_ptr->server_url = (char *)data;
-                    if (length == 0 || length > IDK_SERVER_URL_LENGTH)
+                    if (length == 0 || length > SERVER_URL_LENGTH)
                     {
                         idk_ptr->error_code = idk_invalid_data_range;
                         goto error;
@@ -183,7 +183,7 @@ static idk_callback_status_t get_configurations(idk_data_t * idk_ptr)
                 case idk_base_tx_keepalive:
                     idk_ptr->tx_keepalive = (uint16_t *)data;
 
-                    if (*idk_ptr->tx_keepalive < IDK_TX_INTERVAL_MIN || *idk_ptr->tx_keepalive > IDK_TX_INTERVAL_MAX ||
+                    if (*idk_ptr->tx_keepalive < MIN_TX_KEEPALIVE_INTERVAL_PER_SECOND || *idk_ptr->tx_keepalive > MAX_TX_KEEPALIVE_INTERVAL_PER_SECOND ||
                         length != sizeof(uint16_t))
                     {
                         idk_ptr->error_code = idk_invalid_data_range;
@@ -192,7 +192,7 @@ static idk_callback_status_t get_configurations(idk_data_t * idk_ptr)
                     break;
                 case idk_base_rx_keepalive:
                     idk_ptr->rx_keepalive = (uint16_t *)data;
-                    if (*idk_ptr->rx_keepalive < IDK_RX_INTERVAL_MIN || *idk_ptr->rx_keepalive > IDK_RX_INTERVAL_MAX ||
+                    if (*idk_ptr->rx_keepalive < MIN_RX_KEEPALIVE_INTERVAL_PER_SECOND || *idk_ptr->rx_keepalive > MAX_RX_KEEPALIVE_INTERVAL_PER_SECOND ||
                         length != sizeof(uint16_t))
                     {
                         idk_ptr->error_code = idk_invalid_data_range;
@@ -201,7 +201,7 @@ static idk_callback_status_t get_configurations(idk_data_t * idk_ptr)
                     break;
                 case idk_base_wait_count:
                     idk_ptr->wait_count = (uint8_t *)data;
-                    if (*idk_ptr->wait_count < IDK_WAIT_COUNT_MIN || *idk_ptr->wait_count > IDK_WAIT_COUNT_MAX ||
+                    if (*idk_ptr->wait_count < WAIT_COUNT_MIN || *idk_ptr->wait_count > WAIT_COUNT_MAX ||
                         length != sizeof(uint8_t))
                     {
                         idk_ptr->error_code = idk_invalid_data_range;
@@ -379,7 +379,7 @@ static idk_callback_status_t communication_layer(idk_data_t * idk_ptr)
     {
         if (idk_ptr->network_handle == NULL)
         {
-            status = connect_server(idk_ptr, idk_ptr->server_url, IDK_MT_PORT);
+            status = connect_server(idk_ptr, idk_ptr->server_url, EDP_MT_PORT);
         }
 
         if (status == idk_callback_continue)
@@ -409,7 +409,7 @@ static idk_callback_status_t communication_layer(idk_data_t * idk_ptr)
         packet->type = E_MSG_MT2_TYPE_VERSION;
         packet->length = sizeof version;
 
-        StoreBE32(ptr, IDK_MT_VERSION);
+        StoreBE32(ptr, EDP_MT_VERSION);
 
         status = enable_send_packet(idk_ptr, packet);
         if (status == idk_callback_continue)
@@ -437,7 +437,7 @@ static idk_callback_status_t communication_layer(idk_data_t * idk_ptr)
              *
              */
 
-            ptr = IDK_PACKET_DATA_POINTER(packet, sizeof(idk_packet_t));
+            ptr = GET_PACKET_DATA_POINTER(packet, sizeof(idk_packet_t));
 
             if (packet->type != E_MSG_MT2_TYPE_VERSION_OK)
             {
@@ -619,7 +619,7 @@ static idk_callback_status_t initialization_layer(idk_data_t * idk_ptr)
              * If the protocol version number was not acceptable to the server,
              * tell the application.
              */
-            ptr = IDK_PACKET_DATA_POINTER(packet, sizeof(idk_packet_t));
+            ptr = GET_PACKET_DATA_POINTER(packet, sizeof(idk_packet_t));
             if (*ptr != initialization_version_response_acceptable)
             {
                 idk_request_t request_id;
@@ -724,8 +724,8 @@ static idk_callback_status_t security_layer(idk_data_t * idk_ptr)
 
         device_id = (uint8_t *)idk_ptr->device_id;
 
-        memcpy(ptr, device_id, IDK_DEVICE_ID_LENGTH);
-        packet->length += IDK_DEVICE_ID_LENGTH;
+        memcpy(ptr, device_id, DEVICE_ID_LENGTH);
+        packet->length += DEVICE_ID_LENGTH;
 
         status = enable_send_packet(idk_ptr, packet);
         idk_ptr->layer_state = security_send_server_url;
@@ -858,8 +858,8 @@ static idk_callback_status_t discovery_layer(idk_data_t * idk_ptr)
         *ptr++= sec_coding;
         *ptr++ = DISC_OP_VENDOR_ID;
         vendor_id = (uint8_t *)idk_ptr->vendor_id;
-        memcpy(ptr, vendor_id, IDK_VENDOR_ID_LENGTH);
-        ptr += IDK_VENDOR_ID_LENGTH;
+        memcpy(ptr, vendor_id, VENDOR_ID_LENGTH);
+        ptr += VENDOR_ID_LENGTH;
 
         packet->length = ptr - data_ptr;
         packet->type = E_MSG_MT2_TYPE_PAYLOAD;
@@ -1036,8 +1036,8 @@ static idk_callback_status_t facility_layer(idk_data_t * idk_ptr)
                         fac_ptr->packet->length = packet->length - sizeof packet->disc_payload - sizeof packet->sec_coding - sizeof packet->facility;
                         idk_ptr->active_facility = fac_ptr;
 
-                        src_ptr = IDK_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
-                        dst_ptr = IDK_PACKET_DATA_POINTER(fac_ptr->packet, sizeof(idk_facility_packet_t));
+                        src_ptr = GET_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
+                        dst_ptr = GET_PACKET_DATA_POINTER(fac_ptr->packet, sizeof(idk_facility_packet_t));
                         memcpy(dst_ptr, src_ptr, fac_ptr->packet->length);
                     }
                     else
