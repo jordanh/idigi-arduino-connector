@@ -53,9 +53,9 @@ typedef enum {
 
 
 enum {
-    idk_fw_invalid_target,
-    idk_fw_invalid_opcode,
-    idk_fw_invalid_msg
+    fw_invalid_target,
+    fw_invalid_opcode,
+    fw_invalid_msg
 };
 
 typedef enum {
@@ -900,7 +900,7 @@ static idk_callback_status_t fw_process(idk_data_t * idk_ptr, idk_facility_t * f
     if (target >= fw_ptr->target_count)
     {
         DEBUG_PRINTF("fw_process: invalid target\n");
-        status = send_fw_abort(idk_ptr, target, fw_error_opcode, idk_fw_invalid_target);
+        status = send_fw_abort(idk_ptr, target, fw_error_opcode, fw_invalid_target);
         goto done;
     }
 
@@ -942,7 +942,7 @@ static idk_callback_status_t fw_process(idk_data_t * idk_ptr, idk_facility_t * f
         fw_ptr->keepalive = false;
         break;
     default:
-        status = send_fw_abort(idk_ptr, target, fw_error_opcode, idk_fw_invalid_opcode);
+        status = send_fw_abort(idk_ptr, target, fw_error_opcode, fw_invalid_opcode);
         break;
     }
 

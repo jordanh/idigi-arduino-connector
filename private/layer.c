@@ -23,10 +23,10 @@
  *
  */
 
-#define IDK_PROTOCOL_VERSION    0x120
+#define EDP_PROTOCOL_VERSION    0x120
 
 #define KEEPALIVE_PARAMETER_LENGTH  6
-#define IDK_SERVER_OVERLOAD_RESP    0x02
+#define SERVER_OVERLOAD_RESPONSE    0x02
 
 
 typedef idk_callback_status_t (* idk_facility_init_cb_t )(struct idk_data * idk_ptr);
@@ -451,7 +451,7 @@ static idk_callback_status_t communication_layer(idk_data_t * idk_ptr)
                 {
                     /* Expected MTv2 message types... */
                     case E_MSG_MT2_TYPE_LEGACY_EDP_VER_RESP:
-                        if (*ptr == IDK_SERVER_OVERLOAD_RESP) {
+                        if (*ptr == SERVER_OVERLOAD_RESPONSE) {
                             idk_ptr->error_code = idk_server_overload;
                         }
                         else {
@@ -587,7 +587,7 @@ static idk_callback_status_t initialization_layer(idk_data_t * idk_ptr)
         packet->length = sizeof(version);
         packet->type = E_MSG_MT2_TYPE_PAYLOAD;
 
-        version = IDK_PROTOCOL_VERSION;
+        version = EDP_PROTOCOL_VERSION;
         StoreBE32(ptr, version);
 
         status = enable_send_packet(idk_ptr, packet);

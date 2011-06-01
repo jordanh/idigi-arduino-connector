@@ -26,6 +26,7 @@
 #define APP_DEF_H_
 
 #include <netinet/in.h>
+#include <stdio.h>
 #include "idk_api.h"
 
 #ifdef __cplusplus
@@ -35,8 +36,6 @@ extern "C"
 #define DEVICE_ID_LENGTH    16
 #define VENDOR_ID_LENGTH    4
 #define MAC_ADDR_LENGTH     6
-
-#define DEBUG_PRINTF(...)       printf(__VA_ARGS__)
 
 #define NETWORK_READ_SET      0x01 << 0
 #define NETWORK_WRITE_SET     0x01 << 1
@@ -51,8 +50,8 @@ typedef struct {
     char            * device_type;
     char            * server_url;
     char            * password;
-    char            * phone_number;
-    uint16_t        link_speed;
+    uint8_t         * phone_number;
+    uint32_t        link_speed;
     idk_connection_type_t connection_type;
     uint8_t         mac_addr[MAC_ADDR_LENGTH];
 
@@ -63,7 +62,7 @@ typedef struct {
     uint8_t                  select_data;
 } idigi_data_t;
 
-extern idigi_data_t giDigiSetting;
+extern idigi_data_t iDigiSetting;
 
 #ifdef __cplusplus
 }

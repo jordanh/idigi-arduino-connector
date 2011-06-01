@@ -1,24 +1,26 @@
 #
-#IDK Makefile
+#  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
 #
-#  Copyright (C) 2010 by Digi International Inc.
-#  All rights reserved.
+#  This software contains proprietary and confidential information of Digi
+#  International Inc.  By accepting transfer of this copy, Recipient agrees
+#  to retain this software in confidence, to prevent disclosure to others,
+#  and to make no use of this software other than that for which it was
+#  delivered.  This is an unpublished copyrighted work of Digi International
+#  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
+#  prohibited.
+# 
+#  Restricted Rights Legend
 #
-#  This program is free software; you can redistribute it and/or modify it
-#  under the terms of the GNU General Public License version 2  as published by
-#  the Free Software Foundation.
-# In rules.in:
-# CC pointer to compiler
-# LD pointer to linker
-# CFLAGS options to the compiler
-# LDFLAGS options to the linker
-
-# arguments
-# LITTLE_ENDIAN={true|false}
-# LIBRARY=path
-# DEBUG={true|false}
-
-# end of rules.in
+#  Use, duplication, or disclosure by the Government is subject to
+#  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
+#  Technical Data and Computer Software clause at DFARS 252.227-7031 or
+#  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
+#  Restricted Rights at 48 CFR 52.227-19, as applicable.
+#
+#  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
+#
+# =======================================================================
+#
 
 include $(IDK_RULES)
 
@@ -38,24 +40,27 @@ CFLAGS += -I../public/include -Wall
 #OBJS := $(patsubst %.c,%.o,$(SRCS))
 
 OBJS := idk_api.o
+IDK_LIB = $(LIB)/libidk.so
 
 $(OBJS): *.c *.h
 
 #.PHONY: all
-all: $(LIB)
+all: $(IDK_LIB)
 
-$(LIB): $(OBJS)
+$(IDK_LIB): $(OBJS)
 	$(LD) $(LDFLAGS) $@
 
 .PHONY: clean
 clean:
-	-rm -f $(LIB) $(OBJS)
+	-rm -f $(IDK_LIB) $(OBJS)
 
 .PHONY: help
 help:
+	@echo "Syntax:   make IDK_RULES=[rules.in] LIB=[directory of libidk.so] [Options]"
+	@echo "Where:
+	@echo "    IDK_RULES = full path to your rules.in"
+	@echo "    LIB = directory to store libidk.so"
 	@echo "Options:"
-	@echo "    IDK_RULES = Location and  name for toolset"
-	@echo "    LIB = Location and name of library"
 	@echo "    DEBUG = true or false for debugging"
 	@echo "    LITTLE_ENDIAN = true or false for little endian"
 

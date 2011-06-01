@@ -43,7 +43,7 @@
 
 #define EDP_MT_VERSION           2
 #define EDP_MT_PORT              3197
-#define IDK_MSG_MAX_PACKET_SIZE 1600
+#define MSG_MAX_PACKET_SIZE 1600
 
 #define DEVICE_TYPE_LENGTH  32
 #define DEVICE_ID_LENGTH    16
@@ -105,7 +105,7 @@ typedef struct idk_facility {
     idk_facility_process_cb_t discovery_cb;
     idk_facility_process_cb_t process_cb;
     idk_facility_packet_t * packet;
-    uint8_t buffer[IDK_MSG_MAX_PACKET_SIZE];
+    uint8_t buffer[MSG_MAX_PACKET_SIZE];
     struct idk_facility * next;
     void * facility_data;
 } idk_facility_t;
@@ -145,7 +145,7 @@ typedef struct idk_data {
 
    idk_packet_t     rx_keepalive_packet;
    struct {
-        uint8_t buffer[IDK_MSG_MAX_PACKET_SIZE];
+        uint8_t buffer[MSG_MAX_PACKET_SIZE];
         uint8_t * ptr;
         size_t length;
         size_t total_length;
@@ -153,7 +153,7 @@ typedef struct idk_data {
 
     struct {
         int index;
-        uint8_t buffer[IDK_MSG_MAX_PACKET_SIZE];
+        uint8_t buffer[MSG_MAX_PACKET_SIZE];
         uint8_t * ptr;
         uint16_t    packet_type;
         uint16_t    packet_length;

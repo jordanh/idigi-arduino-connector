@@ -37,20 +37,22 @@
 #include <netinet/in.h>
 
 #include <arpa/inet.h>
-
+#include <pthread.h>
 
 #include "idigi_data.h"
 #include "os.h"
 #include "network.h"
 #include "firmware.h"
 
+uint8_t phone_number[] = {8,8,8,5,5,5,1,0,0,0};
+
 bool gAbort = false;
-idigi_data_t giDigiSetting = {
+idigi_data_t iDigiSetting = {
     /* device id */
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
      /* vendor id */
-    {0x00, 0x00, 0x00, 0x00},
+    {0x01, 0x00, 0x00, 0x43},
 
     /* tx keepalive */
     30,
@@ -63,21 +65,22 @@ idigi_data_t giDigiSetting = {
     "Linux Application",
 
     /* server_url */
-    "developer.idigi.com",
+    "test.idigi.com\0",
+//    "10.52.18.85",
 
     /* password */
     NULL,
 
     /* phone number */
-    NULL,
+    phone_number,
     /* link speed */
-    0,
+    19200,
 
     /* connection type */
     idk_lan_connection_type,
 
     /* mac address */
-    {0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+    {0x78, 0xE7, 0xD1, 0x84, 0x47, 0x82},
 
     /* ip address */
     0,
@@ -109,7 +112,7 @@ static int get_device_address(struct in_addr * eth_addr)
 
     if (buf == NULL)
     {
-        goto _ret;
+        goto done;
     }
     conf.ifc_len = 128*sizeof(struct ifreq);
     conf.ifc_buf = buf;
@@ -117,13 +120,13 @@ static int get_device_address(struct in_addr * eth_addr)
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     if(-1 == sock){
         perror("socket");
-        goto _ret;
+        goto done;
     }
 
     if( ioctl(sock,SIOCGIFCONF , &conf) == -1)
     {
         DEBUG_PRINTF("Error using ioctl SIOCGIFCONF.\n");
-        goto _ret;
+        goto done;
     }
 
     entries = conf.ifc_len / sizeof(struct ifreq);
@@ -145,7 +148,7 @@ static int get_device_address(struct in_addr * eth_addr)
 
     rc = 0;
 
-_ret:
+done:
     if (sock != -1)
     {
         close(sock);
@@ -161,7 +164,7 @@ idk_callback_status_t idigi_error_status(idk_error_status_t * error_data)
 {
 
     idk_callback_status_t   status = idk_callback_abort;
-    char * error_status_string[] = {"idk_success", "idk_init_error",
+    char const * error_status_string[] = {"idk_success", "idk_init_error",
                                                        "idk_configuration_error",
                                                        "idk_invalid_data_size",
                                                       "idk_invalid_data_range", "idk_invalid_payload_packet",
@@ -173,7 +176,7 @@ idk_callback_status_t idigi_error_status(idk_error_status_t * error_data)
                                                       "idk_send_error", "idk_close_error",
                                                       "idk_device_terminated"};
 
-    char * base_request_string[] = { "idk_base_device_id", "idk_base_vendor_id",
+    char const * base_request_string[] = { "idk_base_device_id", "idk_base_vendor_id",
                                                          "idk_base_device_type", "idk_base_server_url",
                                                          "idk_base_password", "idk_base_connection_type",
                                                          "idk_base_mac_addr", "idk_base_link_speed",
@@ -185,7 +188,7 @@ idk_callback_status_t idigi_error_status(idk_error_status_t * error_data)
                                                          "idk_base_close", "idk_base_malloc",
                                                          "idk_base_free", "idk_base_system_time",
                                                          "idk_base_firmware_facility" };
-    char * firmware_request_string[] = {"idk_firmware_target_count", "idk_firmware_version",
+    char const * firmware_request_string[] = {"idk_firmware_target_count", "idk_firmware_version",
                                                               "idk_firmware_code_size", "idk_firmware_description",
                                                               "idk_firmware_name_spec", "idk_firmware_download_request",
                                                               "idk_firmware_binary_block", "idk_firmware_download_complete",
@@ -209,6 +212,7 @@ idk_callback_status_t idigi_error_status(idk_error_status_t * error_data)
     }
     return status;
 }
+int run_count = 0;
 
 idk_callback_status_t idigi_base_callback(idk_base_request_t request,
                                                   void const * request_data, size_t request_length,
@@ -222,9 +226,17 @@ idk_callback_status_t idigi_base_callback(idk_base_request_t request,
     {
         uint8_t ** data = (uint8_t **) response_data;
 
-#error  "Must specify device id";
-        *data = (uint8_t *)giDigiSetting.device_id;
-        *response_length = sizeof giDigiSetting.device_id;
+//#error  "Must specify device id";
+        iDigiSetting.device_id[8] = iDigiSetting.mac_addr[0];
+        iDigiSetting.device_id[9] = iDigiSetting.mac_addr[1];
+        iDigiSetting.device_id[10] = iDigiSetting.mac_addr[2];
+        iDigiSetting.device_id[11] = 0xFF;
+        iDigiSetting.device_id[12] = 0xFF;
+        iDigiSetting.device_id[13] = iDigiSetting.mac_addr[3];
+        iDigiSetting.device_id[14] = iDigiSetting.mac_addr[4];
+        iDigiSetting.device_id[15] = iDigiSetting.mac_addr[5];
+        *data = (uint8_t *)iDigiSetting.device_id;
+        *response_length = sizeof iDigiSetting.device_id;
         break;
     }
 
@@ -232,37 +244,37 @@ idk_callback_status_t idigi_base_callback(idk_base_request_t request,
     {
         uint8_t ** data = (uint8_t **) response_data;
 
-#error "Must specify vendor id";
-        *data = (uint8_t *)giDigiSetting.vendor_id;
-        *response_length = sizeof giDigiSetting.vendor_id;
+//#error "Must specify vendor id";
+        *data = (uint8_t *)iDigiSetting.vendor_id;
+        *response_length = sizeof iDigiSetting.vendor_id;
         break;
     }
 
     case idk_base_device_type:
     {
         char ** data = (char **) response_data;
-#error "Specify device type";
-        * data = (char *)giDigiSetting.device_type;
-        *response_length = sizeof giDigiSetting.device_type;
+//#error "Specify device type";
+        * data = (char *)iDigiSetting.device_type;
+        *response_length = strlen(iDigiSetting.device_type);
          break;
     }
 
     case idk_base_server_url:
     {
         char ** data = (char **) response_data;
-#error "Specify iDigi server url";
-        *data = (char *)giDigiSetting.server_url;
-        *response_length = strlen(giDigiSetting.server_url);
+//#error "Specify iDigi server url";
+        *data = (char *)iDigiSetting.server_url;
+        *response_length = strlen(iDigiSetting.server_url);
         break;
     }
     case idk_base_password:
     {
         char ** data = (char **) response_data;
-#error "Specify password for identity verification";
-        *data = (char *)giDigiSetting.password;
-        if (giDigiSetting.password != NULL)
+//#error "Specify password for identity verification";
+        *data = (char *)iDigiSetting.password;
+        if (iDigiSetting.password != NULL)
         {
-            *response_length = strlen(giDigiSetting.password);
+            *response_length = strlen(iDigiSetting.password);
         }
         break;
     }
@@ -271,54 +283,59 @@ idk_callback_status_t idigi_base_callback(idk_base_request_t request,
     {
         idk_connection_type_t  ** data = (idk_connection_type_t **) response_data;
 
-#error "Specify LAN or WAN connection type";
-        *data = (idk_connection_type_t *)&giDigiSetting.connection_type;
+//#error "Specify LAN or WAN connection type";
+        *data = (idk_connection_type_t *)&iDigiSetting.connection_type;
         break;
     };
 
     case idk_base_mac_addr:
     {
         uint8_t ** data = (uint8_t **) response_data;
-#error "Specify device MAC address for LAN connection type";
-        *data = (uint8_t *)giDigiSetting.mac_addr;
-        *response_length = sizeof giDigiSetting.mac_addr;
+//#error "Specify device MAC address for LAN connection type";
+        *data = (uint8_t *)iDigiSetting.mac_addr;
+        *response_length = sizeof iDigiSetting.mac_addr;
         break;
     }
 
     case idk_base_link_speed:
     {
-        uint16_t ** data = (uint16_t **) response_data;
-#error "Specify LINK SPEED for WAN connection type";
-        *data = (uint16_t *)&giDigiSetting.link_speed;
-        *response_length = sizeof giDigiSetting.link_speed;
+        uint32_t ** data = (uint32_t **) response_data;
+//#error "Specify LINK SPEED for WAN connection type";
+        *data = (uint32_t *)&iDigiSetting.link_speed;
+        *response_length = sizeof iDigiSetting.link_speed;
         break;
     }
     case idk_base_phone_number:
     {
-        char ** data = (char **) response_data;
-#error "Specify phone number dialed for WAN connection type";
-        *data = (char *)giDigiSetting.phone_number;
-        if (giDigiSetting.phone_number != NULL)
+        uint8_t ** data = (uint8_t **) response_data;
+//#error "Specify phone number dialed for WAN connection type";
+        *data = (uint8_t *)iDigiSetting.phone_number;
+        if (iDigiSetting.phone_number != NULL)
         {
-            *response_length = strlen(giDigiSetting.phone_number);
+            *response_length = sizeof phone_number;
+        }
+        if (run_count == 0)
+        {
+            status = idk_callback_busy;
+            run_count++;
         }
         break;
     }
     case idk_base_tx_keepalive:
     {
         uint16_t ** data = (uint16_t **) response_data;
-#error "Specify TX keepalive interval in seconds";
-        *data = (uint16_t *)&giDigiSetting.tx_keepalive;
-        *response_length = sizeof giDigiSetting.tx_keepalive;
+//#error "Specify TX keepalive interval in seconds";
+        *data = (uint16_t *)&iDigiSetting.tx_keepalive;
+        *response_length = sizeof iDigiSetting.tx_keepalive;
         break;
     }
     case idk_base_rx_keepalive:
     {
         uint16_t ** data = (uint16_t **) response_data;
 
-#error "Specify RX keepalive interval in seconds";
-        *data = (uint16_t *)&giDigiSetting.rx_keepalive;
-        *response_length = sizeof giDigiSetting.rx_keepalive;
+//#error "Specify RX keepalive interval in seconds";
+        *data = (uint16_t *)&iDigiSetting.rx_keepalive;
+        *response_length = sizeof iDigiSetting.rx_keepalive;
         break;
     }
 
@@ -326,9 +343,9 @@ idk_callback_status_t idigi_base_callback(idk_base_request_t request,
     {
         uint8_t ** data = (uint8_t **) response_data;
 
-#error "Specify wait count for not receiving TX keepalive";
-        *data = (uint8_t *)&giDigiSetting.wait_count;
-        *response_length = sizeof giDigiSetting.wait_count;
+//#error "Specify wait count for not receiving TX keepalive";
+        *data = (uint8_t *)&iDigiSetting.wait_count;
+        *response_length = sizeof iDigiSetting.wait_count;
         break;
     }
 
@@ -336,10 +353,10 @@ idk_callback_status_t idigi_base_callback(idk_base_request_t request,
     {
         uint8_t ** data = (uint8_t **) response_data;
 
-#error "Specify Device IP address. Return the response_length to4-byte for IPv4 or 16-byte for IPv6";
-        *data = (uint8_t *)&giDigiSetting.ip_addr;
-        *response_length = sizeof giDigiSetting.ip_addr;
-    }
+//#error "Specify Device IP address. Return the response_length to4-byte for IPv4 or 16-byte for IPv6";
+        *data = (uint8_t *)&iDigiSetting.ip_addr;
+        *response_length = sizeof iDigiSetting.ip_addr;
+}
         break;
     case idk_base_error_status:
         if (request_length != sizeof(idk_error_status_t))
@@ -353,16 +370,17 @@ idk_callback_status_t idigi_base_callback(idk_base_request_t request,
         break;
 
     case idk_base_disconnected:
-#error "Disconnect server"
-        giDigiSetting.socket_fd = -1;
+//#error "Disconnect server"
+//        iDigiSetting.socket_fd = -1;
+        printf("main: socket = %d\n", iDigiSetting.socket_fd);
         break;
     case idk_base_connect:
         status = network_connect((idk_connect_request_t *)request_data);
         if (status == idk_callback_continue)
         {
             idk_network_handle_t ** data = (idk_network_handle_t **)response_data;
-            *data = (idk_network_handle_t *)&giDigiSetting.socket_fd;
-            *response_length = sizeof giDigiSetting.socket_fd;
+            *data = (idk_network_handle_t *)&iDigiSetting.socket_fd;
+            *response_length = sizeof iDigiSetting.socket_fd;
         }
         break;
     case idk_base_send:
@@ -398,7 +416,7 @@ idk_callback_status_t idigi_base_callback(idk_base_request_t request,
 }
 
 
-idk_callback_status_t idigi_callbak(idk_class_t class, idk_request_t request,
+idk_callback_status_t idigi_callback(idk_class_t class, idk_request_t request,
                                     void const * request_data, size_t request_length,
                                     void * response_data, size_t * response_length)
 {
@@ -420,6 +438,7 @@ idk_callback_status_t idigi_callbak(idk_class_t class, idk_request_t request,
 }
 
 
+#if 1
 int main (void)
 {
     idk_status_t status = idk_success;
@@ -430,20 +449,20 @@ int main (void)
     if (get_device_address(&ip_addr) < 0)
     {
          DEBUG_PRINTF("main: unable to get device ip address\n");
-         goto _ret;
+         goto done;
     }
 
     /* IPv4 address */
-    giDigiSetting.ip_addr = (uint32_t)ip_addr.s_addr;
+    iDigiSetting.ip_addr = (uint32_t)ip_addr.s_addr;
 
-    giDigiSetting.idk_handle = idk_init((idk_callback_t) idigi_callbak);
-    if (giDigiSetting.idk_handle != 0)
+    iDigiSetting.idk_handle = idk_init((idk_callback_t) idigi_callback);
+    if (iDigiSetting.idk_handle != 0)
     {
 
         while (status == idk_success)
         {
-            status = idk_step(giDigiSetting.idk_handle);
-             giDigiSetting.select_data = 0;
+            status = idk_step(iDigiSetting.idk_handle);
+            iDigiSetting.select_data = 0;
 
             if (status != idk_success)
             {
@@ -451,12 +470,73 @@ int main (void)
             }
             else
             {
-                giDigiSetting.select_data |= NETWORK_TIMEOUT_SET | NETWORK_READ_SET;
-                network_select(giDigiSetting.socket_fd, giDigiSetting.select_data, 1);
+                iDigiSetting.select_data |= NETWORK_TIMEOUT_SET | NETWORK_READ_SET;
+                network_select(iDigiSetting.socket_fd, iDigiSetting.select_data, 1);
             }
         }
-
+   }
+    else
+    {
+        printf("unable to initialize IDK\n");
     }
-_ret:
+done:
     return 0;
 }
+
+#else
+void * idk_process_thread(void * arg)
+{
+    idk_status_t status;
+
+    printf("IDK Process thread starts...\n");
+
+    status = idk_run((idk_handle_t)arg);
+
+    printf("IDK process thread exits... %d\n", status);
+
+    pthread_exit(arg);
+
+}
+
+int main (void)
+{
+    struct in_addr  ip_addr;
+    pthread_t   idk_thread;
+    void * idkdone;
+
+    time(&gSystemTime);
+
+    if (get_device_address(&ip_addr) < 0)
+    {
+         DEBUG_PRINTF("main: unable to get device ip address\n");
+         goto done;
+    }
+
+    /* IPv4 address */
+    iDigiSetting.ip_addr = (uint32_t)ip_addr.s_addr;
+
+    iDigiSetting.idk_handle = idk_init((idk_callback_t) idigi_callback);
+    if (iDigiSetting.idk_handle != 0)
+    {
+
+        if (pthread_create(&idk_thread, NULL, idk_process_thread, iDigiSetting.idk_handle) != 0)
+        {
+            perror("thread_create() error on idk_process_thread");
+            goto done;
+        }
+
+        if (pthread_join(idk_thread, &idkdone) != 0)
+        {
+            perror("thread_join() error on my_process_thread");
+            goto done;
+        }
+    }
+    else
+    {
+        printf("unable to initialize IDK\n");
+    }
+done:
+    return 0;
+}
+
+#endif

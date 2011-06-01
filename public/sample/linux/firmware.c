@@ -31,6 +31,8 @@
 #include "idigi_data.h"
 #include "os.h"
 
+int gStatus = 0;
+
 typedef struct {
     uint32_t    version;
     uint32_t    code_size;
@@ -38,39 +40,41 @@ typedef struct {
     char        * description;
 } firmware_list_t;
 
-firmware_list_t gFirmwareList[] = {
+static firmware_list_t fimware_list[] = {
         /* version     code_size     name_spec       description */
-/*    {0x00000100, (uint32_t)-1, ".*\\.[bB][iI][nN]", "Binary Image" } */
-    {0x10000000, (uint32_t)-1, "[pP][aA][rR][tT][iI][tT][iI][oO][nN]1" "Partition 1 Image"},
-    {0x10000001, (uint32_t)-1, "[pP][aA][rR][tT][iI][tT][iI][oO][nN]2" "Partition 2 Image"},
-    {0x10000002, (uint32_t)-1, "[pP][aA][rR][tT][iI][tT][iI][oO][nN]3" "Partition 3 Image"},
+    {0x01000000, (uint32_t)-1, "[pP][aA][rR][tT][iI][tT][iI][oO][nN]1","Partition 1 Image"},
+    {0x01000001, (uint32_t)-1, "[pP][aA][rR][tT][iI][tT][iI][oO][nN]2","Partition 2 Image"},
+    {0x01000002, (uint32_t)-1, "[pP][aA][rR][tT][iI][tT][iI][oO][nN]3","Partition 3 Image"},
+    {0x00000100, (uint32_t)-1, ".*\\.[bB][iI][nN]", "Binary Image" }   /* any *.bin */
 };
-uint16_t gFirmwareListCount = sizeof gFirmwareList/sizeof gFirmwareList[0];
+static uint16_t fimware_list_count = sizeof fimware_list/sizeof fimware_list[0];
+static size_t total_image_size = 0;
 
 idk_callback_status_t firmware_download_request(idk_fw_download_request_t * download_data, idk_fw_status_t * download_status)
 {
     idk_callback_status_t status = idk_callback_continue;
 
-#error "Add code to process firmware downlaod request";
+//#error "Add code to process firmware downlaod request";
 
-    DEBUG_PRINTF("firmware_download_request...\n");
     if (download_data == NULL || download_status == NULL)
     {
-        DEBUG_PRINTF("--- ERROR: IDK passes incorrect parameters\n");
+        DEBUG_PRINTF("firmware_download_request ERROR: IDK passes incorrect parameters\n");
         *download_status = idk_fw_download_denied;
-        goto _ret;
+        goto done;
     }
 
-    DEBUG_PRINTF("--- target = %d\n", download_data->target);
-    DEBUG_PRINTF("--- version = 0x%04X\n", download_data->version);
-    DEBUG_PRINTF("--- code size = %d\n", download_data->code_size);
-    DEBUG_PRINTF("--- desc_string = %s\n", download_data->desc_string);
-    DEBUG_PRINTF("--- file name spec = %s\n", download_data->file_name_spec);
-    DEBUG_PRINTF("--- filename = %s\n", download_data->filename);
+    DEBUG_PRINTF("target = %d\n", download_data->target);
+    DEBUG_PRINTF("version = 0x%04X\n", download_data->version);
+    DEBUG_PRINTF("code size = %d\n", download_data->code_size);
+    DEBUG_PRINTF("desc_string = %s\n", download_data->desc_string);
+    DEBUG_PRINTF("file name spec = %s\n", download_data->file_name_spec);
+    DEBUG_PRINTF("filename = %s\n", download_data->filename);
 
-    *download_status = idk_fw_download_success;
+    total_image_size = 0;
 
-_ret:
+    *download_status = idk_fw_success;
+
+done:
     return status;
 }
 
@@ -78,22 +82,22 @@ idk_callback_status_t firmware_image_data(idk_fw_image_data_t * image_data, idk_
 {
     idk_callback_status_t   status = idk_callback_continue;
 
-#error "Add code to process fimware image data";
-    DEBUG_PRINTF("firmware_image_data...\n");
+//#error "Add code to process fimware image data";
     if (image_data == NULL)
     {
-        DEBUG_PRINTF("ERROR: IDK passes incorrect parameters\n");
-        goto _ret;
+        DEBUG_PRINTF("firmware_image_data ERROR: IDK passes incorrect parameters\n");
+        goto done;
     }
 
-    DEBUG_PRINTF("--- target = %d\n", image_data->target);
-    DEBUG_PRINTF("--- offset = 0x%04X\n", image_data->offset);
-    DEBUG_PRINTF("--- data = 0x%x\n", (unsigned)image_data->data);
-    DEBUG_PRINTF("--- length = %d\n", image_data->length);
+    DEBUG_PRINTF("target = %d\n", image_data->target);
+    DEBUG_PRINTF("offset = 0x%04X\n", image_data->offset);
+    DEBUG_PRINTF("data = 0x%x\n", (unsigned)image_data->data);
+    total_image_size += image_data->length;
+    DEBUG_PRINTF("length = %d (total = %d)\n", image_data->length, total_image_size);
 
 
     *data_status = idk_fw_success;
-_ret:
+done:
     return status;
 }
 
@@ -102,18 +106,29 @@ idk_callback_status_t firmware_download_complete(idk_fw_download_complete_reques
 {
     idk_callback_status_t   status = idk_callback_continue;
 
-#error "Add code to process firmware download complete";
+//#error "Add code to process firmware download complete";
 
-    DEBUG_PRINTF("firmware_download_complete...\n");
     if (request_data == NULL || response_data == NULL)
     {
-        DEBUG_PRINTF("--- Error: IDK passes incorrect parameters\n");
-        goto _ret;
+        DEBUG_PRINTF("firmware_download_complete Error: IDK passes incorrect parameters\n");
+        goto done;
     }
 
-    DEBUG_PRINTF("--- target = %d\n", request_data->target);
-    DEBUG_PRINTF("--- code size = %d\n", request_data->code_size);
-    DEBUG_PRINTF("--- checksum = 0x%x\n", (unsigned)request_data->checksum);
+    DEBUG_PRINTF("target = %d\n", request_data->target);
+    DEBUG_PRINTF("code size = %d\n", request_data->code_size);
+    DEBUG_PRINTF("checksum = 0x%x\n", (unsigned)request_data->checksum);
+
+    printf("timeout = %u\n", request_data->timeout);
+    usleep(request_data->timeout * 1000 * 1000);
+
+    if (gStatus < 1)
+    {
+        status = idk_callback_busy;
+        gStatus++;
+    }
+    else
+        gStatus = 0;
+
 
     response_data->status = idk_fw_download_success;
 
@@ -122,8 +137,13 @@ idk_callback_status_t firmware_download_complete(idk_fw_download_complete_reques
      */
     response_data->calculated_checksum = 0;
 
+    if (request_data->code_size != total_image_size)
+    {
+        DEBUG_PRINTF("firmware_download_complete: received image size (%d) != the code size sent (%d)\n",
+                      request_data->code_size, total_image_size);
+    }
 
-_ret:
+done:
     return status;
 }
 
@@ -131,16 +151,16 @@ idk_callback_status_t firmware_download_abort(idk_fw_download_abort_t * abort_da
 {
     idk_callback_status_t   status = idk_callback_continue;;
 
-#error "Add code to handle firmware download abort";
+//#error "Add code to handle firmware download abort";
 
-    DEBUG_PRINTF("firmware_download_abort...\n");
+    DEBUG_PRINTF("firmware_download_abort\n");
     if (abort_data == NULL)
     {
-        DEBUG_PRINTF("--- Error: IDK passes incorrect parameters\n");
-        goto _ret;
+        DEBUG_PRINTF("firmware_download_abort Error: IDK passes incorrect parameters\n");
+        goto done;
     }
 
-_ret:
+done:
     return status;
 }
 
@@ -148,12 +168,11 @@ idk_callback_status_t firmware_reset(idk_fw_config_t * reset_data)
 {
     idk_callback_status_t   status = idk_callback_continue;;
 
-#error "Add code to do firmware reset";
-    DEBUG_PRINTF("firmware_reset...\n");
+//#error "Add code to do firmware reset";
+    DEBUG_PRINTF("firmware_reset\n");
 
     return status;
 }
-
 
 idk_callback_status_t idigi_firmware_callback(idk_firmware_request_t request,
                                                   void const * request_data, size_t request_length,
@@ -167,16 +186,16 @@ idk_callback_status_t idigi_firmware_callback(idk_firmware_request_t request,
     case idk_firmware_target_count:
     {
         uint16_t * value = (uint16_t *)response_data;
-#error "specify number of targets"
-        *value = gFirmwareListCount;
+//#error "specify number of targets"
+        *value = fimware_list_count;
         break;
     }
     case idk_firmware_version:
-#error "Return firmware version";
-        if (config->target < gFirmwareListCount)
+//#error "Return firmware version";
+        if (config->target < fimware_list_count)
         {
             uint32_t * version = (uint32_t *)response_data;
-            *version = gFirmwareList[config->target].version;
+            *version = fimware_list[config->target].version;
         }
         else
         {
@@ -185,11 +204,11 @@ idk_callback_status_t idigi_firmware_callback(idk_firmware_request_t request,
         break;
 
     case idk_firmware_code_size:
-#error "Return firmware code size";
-        if (config->target < gFirmwareListCount)
+//#error "Return firmware code size";
+        if (config->target < fimware_list_count)
         {
             uint32_t * code_size = (uint32_t *)response_data;
-            * code_size = gFirmwareList[config->target].code_size;
+            * code_size = fimware_list[config->target].code_size;
         }
         else
         {
@@ -198,12 +217,12 @@ idk_callback_status_t idigi_firmware_callback(idk_firmware_request_t request,
         break;
 
     case idk_firmware_description:
-#error "return firmware description";
-        if (config->target < gFirmwareListCount)
+//#error "return firmware description";
+        if (config->target < fimware_list_count)
         {
             char ** desc = (char **)response_data;
-            *desc = gFirmwareList[config->target].description;
-            *response_length = strlen(gFirmwareList[config->target].description);
+            *desc = fimware_list[config->target].description;
+            *response_length = strlen(fimware_list[config->target].description);
         }
         else
         {
@@ -211,12 +230,12 @@ idk_callback_status_t idigi_firmware_callback(idk_firmware_request_t request,
         }
         break;
     case idk_firmware_name_spec:
-#error "return firmware file name spec";
-        if (config->target < gFirmwareListCount)
+//#error "return firmware file name spec";
+        if (config->target < fimware_list_count)
         {
             char ** spec = (char **)response_data;
-            * spec =  gFirmwareList[config->target].name_spec;
-            *response_length = strlen(gFirmwareList[config->target].name_spec);
+            * spec =  fimware_list[config->target].name_spec;
+            *response_length = strlen(fimware_list[config->target].name_spec);
         }
         else
         {
