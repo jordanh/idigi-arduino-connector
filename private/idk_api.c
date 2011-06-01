@@ -50,9 +50,9 @@ idk_handle_t idk_init(idk_callback_t callback)
         idk_base_request_t request;
         size_t length;
     } idk_base_request_ids[INIT_REQUEST_ID_COUNT] = {
-            {idk_base_device_id, IDK_DEVICE_ID_LENGTH},
-            {idk_base_vendor_id, IDK_VENDOR_ID_LENGTH},
-            {idk_base_device_type, IDK_DEVICE_TYPE_LENGTH}
+            {idk_base_device_id, DEVICE_ID_LENGTH},
+            {idk_base_vendor_id, VENDOR_ID_LENGTH},
+            {idk_base_device_type, DEVICE_TYPE_LENGTH}
     };
 
     ASSERT(callback != NULL);
@@ -73,6 +73,10 @@ idk_handle_t idk_init(idk_callback_t callback)
         init_setting(idk_handle);
         idk_handle->active_state = idk_device_started;
         idk_handle->callback = callback;
+        idk_handle->facility_list = NULL;
+        idk_handle->network_handle = NULL;
+        idk_handle->facilities = 0;
+        idk_handle->network_busy = false;
 
         /* get device id, vendor id, & device type */
         i = 0;
@@ -104,13 +108,13 @@ idk_handle_t idk_init(idk_callback_t callback)
                     switch (idk_base_request_ids[i].request)
                     {
                     case idk_base_device_id:
-                       idk_handle->device_id = (uint8_t *)data;
+                       idk_handle->device_id = data;
                         break;
                     case idk_base_vendor_id:
-                       idk_handle->vendor_id = (uint8_t *)data;
+                       idk_handle->vendor_id = data;
                         break;
                     case idk_base_device_type:
-                        idk_handle->device_type = (char *)data;
+                        idk_handle->device_type = data;
                         break;
                     case idk_base_server_url:
                     case idk_base_password:
@@ -188,7 +192,7 @@ idk_status_t idk_step(idk_handle_t const handle)
      * Make sure send is not pending before execute the layer.
      *
      */
-    if (!IDK_SEND_PENDING(idk_handle))
+    if (!IS_SEND_PENDING(idk_handle))
     {
         switch (idk_handle->edp_state)
         {
