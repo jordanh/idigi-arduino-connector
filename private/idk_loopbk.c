@@ -25,34 +25,34 @@
 static idk_callback_status_t loopback_process(idk_data_t * idk_ptr, idk_facility_t * fac_ptr)
 {
     idk_callback_status_t status = idk_callback_continue;
-    idk_facility_packet_t * p;
+    idk_facility_packet_t * packet;
     uint8_t * src, * dst;
 
     /* get the current message and copy it into send packet */
     if (fac_ptr->packet == NULL)
     {
         DEBUG_PRINTF("loopback_process: No Packet\n");
-        goto _ret;
+        goto done;
     }
     src = IDK_PACKET_DATA_POINTER(fac_ptr->packet, sizeof(idk_facility_packet_t));
 
-    p =(idk_facility_packet_t *) net_get_send_packet(idk_ptr, sizeof(idk_facility_packet_t), &dst);
-    if (p == NULL)
+    packet =(idk_facility_packet_t *) get_packet_buffer(idk_ptr, sizeof(idk_facility_packet_t), &dst);
+    if (packet == NULL)
     {
         status = idk_callback_busy;
-        goto _ret;
+        goto done;
     }
 
-    *p = *fac_ptr->packet;
+    *packet = *fac_ptr->packet;
     memcpy(dst, src, fac_ptr->packet->length);
 
-    status = net_enable_facility_packet(idk_ptr, E_MSG_FAC_DEV_LOOP_NUM, SECURITY_PROTO_NONE);
+    status = enable_facility_packet(idk_ptr, E_MSG_FAC_DEV_LOOP_NUM, SECURITY_PROTO_NONE);
 
     if (status != idk_callback_busy)
     {
         fac_ptr->packet = NULL;
     }
-_ret:
+done:
     return status;
 }
 
@@ -83,10 +83,10 @@ static idk_callback_status_t loopback_init_facility(idk_data_t *idk_ptr)
 
         if (status != idk_callback_continue || fac_ptr == NULL)
         {
-            goto _ret;
+            goto done;
         }
    }
-_ret:
+done:
     return status;
 }
 

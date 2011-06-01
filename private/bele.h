@@ -1,58 +1,25 @@
-
-/*****************************************************************************
-* Copyright (c) 2002 Digi International Inc., All Rights Reserved
-* 
-* This software contains proprietary and confidential information of Digi
-* International Inc.  By accepting transfer of this copy, Recipient agrees
-* to retain this software in confidence, to prevent disclosure to others,
-* and to make no use of this software other than that for which it was
-* delivered.  This is an unpublished copyrighted work of Digi International
-* Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
-* prohibited.
-* 
-* Restricted Rights Legend
-*
-* Use, duplication, or disclosure by the Government is subject to
-* restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
-* Technical Data and Computer Software clause at DFARS 252.227-7031 or
-* subparagraphs (c)(1) and (2) of the Commercial Computer Software -
-* Restricted Rights at 48 CFR 52.227-19, as applicable.
-*
-* Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
-*
-*****************************************************************************/
 /*
- * $Log: bele.h,v $
- * Revision 1.8  2007/03/12 15:02:05  whagstro
- * Took in several fixes that were checked into the NDS trunk.
+ *  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
  *
- * Revision 1.5  2007/03/10 00:34:53  timj
- * Put back in the macros at end.  Removing them broke a boot build.
+ *  This software contains proprietary and confidential information of Digi
+ *  International Inc.  By accepting transfer of this copy, Recipient agrees
+ *  to retain this software in confidence, to prevent disclosure to others,
+ *  and to make no use of this software other than that for which it was
+ *  delivered.  This is an unpublished copyrighted work of Digi International
+ *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
+ *  prohibited.
  *
- * Revision 1.4  2007/03/09 23:59:48  timj
- * - Fixed Big Endian macros FROM_LE16 and TO_LE16.
- * - Removed UNCACHED, DCACHED and ICACHED macros.
- * - Added MAKE16, MAKE32, etc. macros.
+ *  Restricted Rights Legend
  *
- * Revision 1.3  2007/02/12 23:31:56  markw
- * Improve LoadBE/LE, StoreBE/LE macros so that array can be pointer to larger
- * type than char.  This does not appear to increase code size, and is a nice
- * code correctness improvement.
+ *  Use, duplication, or disclosure by the Government is subject to
+ *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
+ *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
+ *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
+ *  Restricted Rights at 48 CFR 52.227-19, as applicable.
  *
- * Revision 1.2  2005/07/14 18:04:41  jamesp
- * Migrated the NDS treck branch down to become the NDS "trunk".
+ *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  *
- * Revision 1.1.2.3  2003/07/22 23:05:49  markw
- * Add cache address space macros.
- *
- * Revision 1.1.2.2  2003/07/15 02:48:37  markw
- * Add prototype for swap32().
- *
- * Revision 1.1.2.1  2003/07/01 20:34:35  markw
- * Moved to bcomm directory from nds/include.
- *
- * Revision 1.1.2.1  2003/05/22 17:08:26  markw
- * Little-big endian conversion functions.
+ * =======================================================================
  *
  */
 
@@ -62,13 +29,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-static unsigned long
-swap32(unsigned long value)
-{
-    uint32_t v = (value << 16) | (value >> 16);
-    return ((v >> 8) & 0x00ff00ff) | ((v << 8) & 0xff00ff00);
-}
 
 /*
  *  Byte-extraction/creation macros
@@ -98,6 +58,13 @@ swap32(unsigned long value)
 
 
 #ifdef _LITTLE_ENDIAN
+
+static unsigned long
+swap32(unsigned long value)
+{
+    uint32_t v = (value << 16) | (value >> 16);
+    return ((v >> 8) & 0x00ff00ff) | ((v << 8) & 0xff00ff00);
+}
 
 /* These are the definitions for LITTLE_ENDIAN */
 
@@ -162,20 +129,6 @@ swap32(unsigned long value)
 /* Copy n bytes from src to dst converting the string as you go. */
 /* NOTE: If n is odd, this will write one byte past the end! */
 extern void WE16cpy(void *dst, void *src, int n);
-
-#if 0
-#define WE16cpy(dst, src, n)    \
-    do { \
-    ushort *p = (ushort *)(src); \
-    ushort *q = (ushort *)(dst); \
-    ushort *end = q + ((n)+1)/2; \
-    for ( ; q < end; ++p, ++q) \
-    { \
-        *q++ = FROM_LE16(*p); \
-        ++p; \
-    } \
-    } while (0)
-#endif
 
 #endif /* _LITTLE_ENDIAN */
 
@@ -286,13 +239,6 @@ extern void WE16cpy(void *dst, void *src, int n);
 #define LoadWE32(array)    \
     (LoadNative16((array)) | LoadNative16((array)+2) << 16)
 
-
-/* This probably isn't the best place for these, but where is? */
-/* See NACACHE.C for memory map information. */
-/* NOTE: Don't use these macros on ARM chip addresses (0xFFxxxxx)! */
-#define UNCACHED(x)	((DWord)(x) & ~0xFC000000)
-#define DCACHED(x)	(((DWord)(x) & ~0xFC000000) | 0x04000000)
-#define ICACHED(x)	(((DWord)(x) & ~0xFC000000) | 0x08000000)
 
 #ifdef __cplusplus
 }

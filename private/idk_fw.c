@@ -40,6 +40,7 @@
 #define IDK_FW_TARGET_RESET_OPCODE                  0x0a
 #define IDK_FW_ERROR_OPCODE                 0x0c
 
+
 enum {
     idk_fw_invalid_target,
     idk_fw_invalid_opcode,
@@ -118,7 +119,6 @@ static idk_callback_status_t get_fw_config(idk_firmware_data_t * fw_ptr, idk_fir
     idk_callback_status_t   status;
     unsigned timeout;
     uint32_t time_stamp, time_stamp1;
-    int ecode;
     uint32_t rx_keepalive;
     uint32_t tx_keepalive;
     unsigned * req_timeout;
@@ -136,14 +136,11 @@ static idk_callback_status_t get_fw_config(idk_firmware_data_t * fw_ptr, idk_fir
     status = get_system_time(idk_ptr, &time_stamp);
     if (status != idk_callback_continue)
     {
-        goto _ret;
+        goto done;
     }
 
     rx_keepalive = (*idk_ptr->rx_keepalive * IDK_MILLISECONDS) - (time_stamp - idk_ptr->rx_ka_time);
     tx_keepalive = (*idk_ptr->tx_keepalive * IDK_MILLISECONDS) - (time_stamp - idk_ptr->tx_ka_time);
-
-    ecode = idk_configuration_error;
-
 
     timeout = IDK_MIN( rx_keepalive, tx_keepalive);
 
@@ -170,52 +167,45 @@ static idk_callback_status_t get_fw_config(idk_firmware_data_t * fw_ptr, idk_fir
     }
 
     rid.firmware_request = request_id;
-    status = idk_ptr->callback(idk_class_firmware, rid, request, request_size, response, &length);
+    status = idk_callback(idk_ptr->callback, idk_class_firmware, rid, request, request_size, response, &length);
     if (status == idk_callback_abort)
     {
         idk_ptr->error_code = idk_configuration_error;
-        goto _ret;
+        goto done;
     }
 
     if (get_system_time(idk_ptr, &time_stamp1) != idk_callback_continue)
     {
         idk_ptr->error_code = idk_configuration_error;
         status = idk_callback_abort;
-        goto _ret;
+        goto done;
     }
 
 
     if (status == idk_callback_continue && response_size != NULL)
     {
-        if (compare_type == fw_equal && length == *response_size)
+        if ((compare_type == fw_equal && length != *response_size) ||
+            (compare_type == fw_less_than && length > *response_size) ||
+            (compare_type == fw_greater_than && length < *response_size))
         {
-            goto _cont;
-        }
-        else if (compare_type == fw_less_than && length < *response_size)
-        {
-            goto _cont;
-        }
-        else if (compare_type == fw_greater_than && length > *response_size)
-        {
-            goto _cont;
-        }
 
-        DEBUG_PRINTF("get_fw_version: invalid returned size of data %d max length %d\n", (int)length, (int)*response_size);
-        idk_ptr->error_code = idk_invalid_data_size;
-        status = notify_error_status(idk_ptr->callback, idk_class_firmware, rid, idk_invalid_data_size);
-        if (status == idk_callback_abort)
-        {
-            goto _ret;
+            DEBUG_PRINTF("get_fw_config: invalid returned size of data %d max length %d\n", (int)length, (int)*response_size);
+            idk_ptr->error_code = idk_invalid_data_size;
+            status = notify_error_status(idk_ptr->callback, idk_class_firmware, rid, idk_invalid_data_size);
+            if (status == idk_callback_abort)
+            {
+                goto done;
+            }
+            /* come back here to correct idk_invalid_data_size */
+            status = idk_callback_busy;
         }
-        /* come back here to correct idk_invalid_data_size */
-        status = idk_callback_busy;
     }
 
-_cont:
     if (response_size != NULL)
     {
         *response_size = length;
     }
+
     if ((time_stamp1- time_stamp) > timeout)
     {
         /* callback exceeds timeout value */
@@ -223,7 +213,7 @@ _cont:
         status = notify_error_status(idk_ptr->callback, idk_class_firmware, rid, idk_exceed_timeout);
         if (status == idk_callback_abort)
         {
-            goto _ret;
+            goto done;
         }
         status = idk_callback_busy;
     }
@@ -241,7 +231,7 @@ _cont:
         fw_ptr->keepalive = false;
     }
 
-_ret:
+done:
     return status;
 }
 
@@ -252,26 +242,11 @@ static idk_callback_status_t get_fw_target_count(idk_firmware_data_t * fw_ptr,  
     unsigned timeout;
 
 
-    DEBUG_PRINTF("--- get FW target count\n");
-
     status = get_fw_config(fw_ptr, idk_firmware_target_count, &timeout, sizeof timeout, count, NULL, fw_equal);
 
 
     if (status == idk_callback_continue)
     {
-#if 0
-        if (!VALID_SIZE_TYPE(size, uint16_t))
-        {
-            DEBUG_PRINTF("get_fw_target_count: invalid the returned size of data %d\n", size);
-
-            request_id.firmware_request = idk_firmware_target_count;
-            status = notify_error_status(idk_ptr->callback, idk_class_firmware, request_id, idk_invalid_data_size);
-            if (status == idk_callback_continue)
-            {
-                status = idk_callback_busy; 
-            }
-        }
-#endif
         DEBUG_PRINTF("get_fw_target_count: target count = %d\n", *count);
     }
 
@@ -283,16 +258,9 @@ static idk_callback_status_t get_fw_version(idk_firmware_data_t * fw_ptr, uint8_
     idk_callback_status_t status;
     idk_fw_config_t request;
 
-    DEBUG_PRINTF("--- get firmware target version\n");
-
     request.target = target;
     
    status = get_fw_config(fw_ptr, idk_firmware_version, &request, sizeof request, version, NULL, fw_equal);
-    if (status == idk_callback_continue)
-    {
-        DEBUG_PRINTF("idk_get_fw_version: target version = 0x%x\n", (unsigned)*version);
-    }
-
     return status;
 }
 
@@ -301,16 +269,9 @@ static idk_callback_status_t get_fw_code_size(idk_firmware_data_t * fw_ptr, uint
     idk_callback_status_t status;
     idk_fw_config_t request;
 
-    DEBUG_PRINTF("--- get firmware target version\n");
-
     request.target = target;
 
     status = get_fw_config(fw_ptr, idk_firmware_code_size, &request, sizeof request, code_size, NULL, fw_equal);
-
-    if (status == idk_callback_continue)
-    {
-        DEBUG_PRINTF("get_fw_code_size: code size = 0x%x\n", (unsigned)*code_size);
-    }
 
     return status;
 }
@@ -319,8 +280,6 @@ static idk_callback_status_t get_fw_description(idk_firmware_data_t * fw_ptr, ui
 {
     idk_callback_status_t status;
     idk_fw_config_t request;
-
-    DEBUG_PRINTF("--- get firmware description\n");
 
     request.target = target;
     status = get_fw_config(fw_ptr, idk_firmware_description, &request, sizeof request, (void *)desc, length, fw_less_than);
@@ -333,8 +292,6 @@ static idk_callback_status_t get_fw_name_spec(idk_firmware_data_t * fw_ptr,  uin
     idk_callback_status_t status;
     idk_fw_config_t request;
 
-    DEBUG_PRINTF("--- get firmware name spec\n");
-
     request.target = target;
     status = get_fw_config(fw_ptr, idk_firmware_name_spec, &request, sizeof request, (void *)spec, length, fw_less_than);
 
@@ -345,6 +302,8 @@ static idk_callback_status_t get_fw_name_spec(idk_firmware_data_t * fw_ptr,  uin
 
 static idk_callback_status_t send_fw_abort(idk_data_t * idk_ptr, uint8_t target, uint8_t msg_opcode, uint8_t status)
 {
+#define FW_SEND_ABORT_LENGTH    3
+
     uint8_t * ptr;
     uint8_t status_code = status;
     idk_facility_packet_t   * p;
@@ -358,11 +317,11 @@ static idk_callback_status_t send_fw_abort(idk_data_t * idk_ptr, uint8_t target,
      *
      *  Firmware ID string: [descr]0xa[file name spec]
      */
-    p =(idk_facility_packet_t *) net_get_send_packet(idk_ptr, sizeof(idk_facility_packet_t), &ptr);
+    p =(idk_facility_packet_t *) get_packet_buffer(idk_ptr, sizeof(idk_facility_packet_t), &ptr);
     if (p == NULL)
     {
         status = idk_callback_busy;
-        goto _ret;
+        goto done;
     }
     /* need to adjust abort status code in the fw_status_t */
     if (msg_opcode != IDK_FW_ERROR_OPCODE && (status < idk_fw_user_abort || status > idk_fw_hardware_error))
@@ -377,52 +336,57 @@ static idk_callback_status_t send_fw_abort(idk_data_t * idk_ptr, uint8_t target,
     *ptr++ = msg_opcode;
     *ptr++ = target;
     *ptr++ = status_code;  /* adjust the Firmware download abort status code */
-    p->length = 3;
+    p->length = FW_SEND_ABORT_LENGTH;
 
 
-    status = net_enable_facility_packet(idk_ptr, E_MSG_FAC_FW_NUM, SECURITY_PROTO_NONE);
+    status = enable_facility_packet(idk_ptr, E_MSG_FAC_FW_NUM, SECURITY_PROTO_NONE);
 
-_ret:
+done:
     return status;
 
 }
 
 
 
-static idk_callback_status_t  process_fw_info_request(idk_firmware_data_t * fw_ptr, idk_facility_packet_t * p)
+static idk_callback_status_t  process_fw_info_request(idk_firmware_data_t * fw_ptr, idk_facility_packet_t * packet)
 {
+#define FW_INFO_REQUEST_ID_COUNT    4
+
     idk_data_t * idk_ptr = fw_ptr->idk_ptr;
     idk_callback_status_t status = idk_callback_continue;
     uint8_t target;
-    uint32_t be_value;
     uint8_t * ptr, * data_ptr;
-    idk_facility_packet_t * pkt;
-    idk_firmware_request_t request_list[] = { idk_firmware_version, idk_firmware_code_size,
-                                                                idk_firmware_description, idk_firmware_name_spec};
-    unsigned request_count = sizeof request_list/sizeof request_list[0];
+    idk_facility_packet_t * send_packet;
+    idk_firmware_request_t request_list[FW_INFO_REQUEST_ID_COUNT] = { idk_firmware_version, idk_firmware_code_size,
+                                              idk_firmware_description, idk_firmware_name_spec};
 
-    /* build and send firmware info response
-     *  ---------------------------------------------------------------------------
-     * |       0     |    1     |   2 - 5   |    6 - 9      |  10 ...       |
-     *  ----------------------------------------------------------------------------
-     * | opcode | target | version |  Available | Firmware  |
-     * |              |           |              | code size | ID string   |
-     *  ----------------------------------------------------------------------------
+    /* parse firmware info request
+     *  -----------------
+     * |   0    |    1   |
+     *  -----------------
+     * | opcode | target |
+     *  -----------------
+     *
+     * build and send firmware info response
+     *  ---------------------------------------------------
+     * |   0    |    1   |  2 - 5  |  6 - 9    |  10 ...   |
+     *  ---------------------------------------------------
+     * | opcode | target | version | Available | Firmware  |
+     * |        |        |         | code size | ID string |
+     *  ---------------------------------------------------
      *
      *  Firmware ID string = [descr]0xa[file name spec]
      */
-    DEBUG_PRINTF("process_fw_info_request...\n");
-
     fw_ptr->ka_time = 0;
     fw_ptr->keepalive = false;
 
     /* let's get the request target number from the request packet */
-    ptr = IDK_PACKET_DATA_POINTER(p, sizeof(idk_facility_packet_t));
+    ptr = IDK_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
     ptr++; /* skip the opcode */
     target = *ptr;
 
     /* let's get and build target info response */
-    while (fw_ptr->request_id < request_count)
+    while (fw_ptr->request_id < FW_INFO_REQUEST_ID_COUNT)
     {
 
         switch (request_list[fw_ptr->request_id])
@@ -437,14 +401,18 @@ static idk_callback_status_t  process_fw_info_request(idk_firmware_data_t * fw_p
             break;
 
         case idk_firmware_description:
-            fw_ptr->desc_length = IDK_FA_ID_STRING_LENGTH-1;
-            status = get_fw_description(fw_ptr, target, (char **)&fw_ptr->description, &fw_ptr->desc_length);
-            goto _check_name;
-
         case idk_firmware_name_spec:
-            fw_ptr->spec_length = IDK_FA_ID_STRING_LENGTH-1;
-            status = get_fw_name_spec(fw_ptr, target, (char **)&fw_ptr->name_spec, &fw_ptr->spec_length);
-_check_name:
+            if (request_list[fw_ptr->request_id] == idk_firmware_description)
+            {
+                fw_ptr->desc_length = IDK_FA_ID_STRING_LENGTH-fw_ptr->spec_length-1;
+                status = get_fw_description(fw_ptr, target, (char **)&fw_ptr->description, &fw_ptr->desc_length);
+            }
+            else
+            {
+                fw_ptr->spec_length = IDK_FA_ID_STRING_LENGTH-fw_ptr->desc_length-1;
+                status = get_fw_name_spec(fw_ptr, target, (char **)&fw_ptr->name_spec, &fw_ptr->spec_length);
+            }
+
             if (status == idk_callback_continue && (fw_ptr->desc_length + fw_ptr->spec_length) > (IDK_FA_ID_STRING_LENGTH -1))
             {
                 idk_request_t request_id;
@@ -458,81 +426,97 @@ _check_name:
                     fw_ptr->desc_length = 0;
                     fw_ptr->spec_length = 0;
                     status = idk_callback_busy;
-                    goto _ret;
+                    goto done;
                 }
             }
             break;
-        default:
+        case idk_firmware_target_count:
+        case idk_firmware_download_request:
+        case idk_firmware_binary_block:
+        case idk_firmware_download_complete:
+        case idk_firmware_download_abort:
+        case idk_firmware_target_reset:
+            /* handle in different functions */
             break;
 
         }
         if (status != idk_callback_continue)
         {
-            goto _ret;
+            goto done;
         }
         fw_ptr->request_id++;
     }
 
 
-    if (fw_ptr->request_id == request_count)
+    if (fw_ptr->request_id == FW_INFO_REQUEST_ID_COUNT)
     {
-        pkt =(idk_facility_packet_t *) net_get_send_packet(idk_ptr, sizeof(idk_facility_packet_t), &ptr);
-        if (pkt == NULL)
+        send_packet =(idk_facility_packet_t *) get_packet_buffer(idk_ptr, sizeof(idk_facility_packet_t), &ptr);
+        if (send_packet == NULL)
         {
             status = idk_callback_busy;
-            goto _ret;
+            goto done;
         }
         data_ptr = ptr;
 
         *ptr++ = IDK_FW_INFO_RESPONSE_OPCODE;
         *ptr++ = target;  /* target number */
 
-        be_value = TO_BE32(fw_ptr->version);
-        memcpy((void *)ptr, (void *)&be_value, sizeof be_value);
-        ptr += sizeof be_value;
 
-        be_value = TO_BE32(fw_ptr->code_size);
-        memcpy((void *)ptr, (void *)&be_value, sizeof be_value);
-        ptr += sizeof be_value;
+        StoreBE32(ptr, fw_ptr->version);
+        ptr += sizeof fw_ptr->version;
 
-        memcpy((void *)ptr, (void *)fw_ptr->description, fw_ptr->desc_length);
-        ptr += fw_ptr->desc_length;
+        StoreBE32(ptr, fw_ptr->code_size);
+        ptr += sizeof fw_ptr->code_size;
+
+        if (fw_ptr->description != NULL)
+        {
+            memcpy((void *)ptr, (void *)fw_ptr->description, fw_ptr->desc_length);
+            ptr += fw_ptr->desc_length;
+        }
         *ptr++ = 0x0a;
 
-        memcpy((void *)ptr, (void *)fw_ptr->name_spec, fw_ptr->spec_length);
-        ptr += fw_ptr->spec_length;
+        if (fw_ptr->name_spec != NULL)
+        {
+            memcpy((void *)ptr, (void *)fw_ptr->name_spec, fw_ptr->spec_length);
+            ptr += fw_ptr->spec_length;
+        }
 
-        pkt->length = (uint16_t)(ptr - data_ptr);
-
-        fw_ptr->request_id = idk_firmware_target_count; /* reset back to original state */
-        status = net_enable_facility_packet(idk_ptr, E_MSG_FAC_FW_NUM, SECURITY_PROTO_NONE);
+        send_packet->length = (uint16_t)(ptr - data_ptr);
+        /* reset back to initial values */
+        fw_ptr->version = 0;
+        fw_ptr->code_size = 0;
+        fw_ptr->desc_length = 0;
+        fw_ptr->spec_length = 0;
+        fw_ptr->request_id = idk_firmware_target_count;
+        status = enable_facility_packet(idk_ptr, E_MSG_FAC_FW_NUM, SECURITY_PROTO_NONE);
     }
 
-_ret:
+done:
     return status;
 }
 
-static idk_callback_status_t process_fw_download_request(idk_firmware_data_t * fw_ptr, idk_facility_packet_t * p)
+static idk_callback_status_t process_fw_download_request(idk_firmware_data_t * fw_ptr, idk_facility_packet_t * packet)
 {
+#define FW_NULL_ASCII       0x00
+#define FW_NEW_LINE_ASCII   0x0A
+
     idk_data_t * idk_ptr = fw_ptr->idk_ptr;
     idk_callback_status_t status;
     uint32_t value;
     idk_fw_download_request_t request_data;
     idk_fw_status_t response_status = idk_fw_user_abort;
-    idk_facility_packet_t   * pkt;
+    idk_facility_packet_t   * send_packet;
     int i;
     uint8_t * buf;
     uint16_t length;
-    uint8_t * ptr, * data_ptr;
+    uint8_t * send_ptr, * data_ptr;
 
 
-    DEBUG_PRINTF("Process Firmware Download request...\n");
-
-    pkt =(idk_facility_packet_t *) net_get_send_packet(idk_ptr, sizeof(idk_facility_packet_t), &ptr);
-    if (pkt == NULL)
+    send_packet =(idk_facility_packet_t *) get_packet_buffer(idk_ptr, sizeof(idk_facility_packet_t), &send_ptr);
+    if (send_packet == NULL)
     {
         status = idk_callback_busy;
-        goto _ret;
+        goto done;
     }
     request_data.file_name_spec = NULL;
     request_data.filename = NULL;
@@ -551,9 +535,9 @@ static idk_callback_status_t process_fw_download_request(idk_firmware_data_t * f
      */
 
     /* get the requested target number from the request packet */
-    buf = IDK_PACKET_DATA_POINTER(p, sizeof(idk_facility_packet_t));
+    buf = IDK_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
     buf++; /* skip opcode */
-    length = p->length-1;
+    length = packet->length-1;
 
     request_data.target = *buf;
     length--;
@@ -569,16 +553,16 @@ static idk_callback_status_t process_fw_download_request(idk_firmware_data_t * f
     length -= sizeof value;
     buf += sizeof value;
 
-    if (*buf != 0x0a && *buf != 0x00)
+    if (*buf != FW_NEW_LINE_ASCII && *buf != FW_NULL_ASCII)
     {
         request_data.desc_string = (char *)buf;
     }
 
-    for (i=0; i < p->length; i++)
+    for (i=0; i < packet->length; i++)
     {
-        if (buf[i] == 0x0a || buf[i] == 0x00)
+        if (buf[i] == FW_NEW_LINE_ASCII || buf[i] == FW_NULL_ASCII)
         {
-            buf[i] = 0x00;
+            buf[i] = FW_NULL_ASCII;
             break;
         }
     }
@@ -586,94 +570,85 @@ static idk_callback_status_t process_fw_download_request(idk_firmware_data_t * f
     buf += (i+1);
 
 
-    if (*buf != 0x0a && * buf != 0x00)
+    if (*buf != FW_NEW_LINE_ASCII && * buf != FW_NULL_ASCII)
     {
         request_data.file_name_spec = (char *)buf;
     }
-    for (i=0; i < p->length; i++)
+    for (i=0; i < packet->length; i++)
     {
-        if (buf[i] == 0x0a || buf[i] == 0x00)
+        if (buf[i] == FW_NEW_LINE_ASCII || buf[i] == FW_NULL_ASCII)
         {
-            buf[i] = 0x00;
+            buf[i] = FW_NULL_ASCII;
             break;
         }
     }
     length -= (i+1);
     buf += (i+1);
 
-    fw_ptr->filename[0] = 0x0;
-    if (*buf != 0x0a && *buf != 0x00)
+    fw_ptr->filename[0] = FW_NULL_ASCII;
+    if (*buf != FW_NEW_LINE_ASCII && *buf != FW_NULL_ASCII)
     {
         memcpy(fw_ptr->filename, buf, length);
-        fw_ptr->filename[length]=0x0;
+        fw_ptr->filename[length]= FW_NULL_ASCII;
         request_data.filename = (char *)fw_ptr->filename;
     }
 
     status = get_fw_config(fw_ptr, idk_firmware_download_request, &request_data, sizeof request_data, &response_status, NULL, fw_equal);
 
-    if (status == idk_callback_abort)
+
+    if (status != idk_callback_busy)
     {
+
         if (response_status > idk_fw_user_abort)
         {
             send_fw_abort(idk_ptr, request_data.target, IDK_FW_DOWNLOAD_ABORT_OPCODE, response_status);
+            goto done;
         }
-        else
-        {
-            goto _rsp;
-        }
-    }
-    else if (status == idk_callback_continue)
-    {
 
-        response_status = idk_fw_success;
-
-_rsp:
         /* send firmware download response
-         *  ---------------------------------------------
-         * |     0       |     1    |     2                   |
-         *  ---------------------------------------------
+         *  ---------------------------------
+         * |  0     |   1    |     2         |
+         *  ---------------------------------
          * | opcode | target | response type |
-         *  --------------------------------------------
+         *  ---------------------------------
          *
          *  Firmware ID string: [descr]0xa[file name spec]
          */
 
-        data_ptr = ptr;
+        data_ptr = send_ptr;
 
         /* now add this target to the target list message */
-        *ptr++ = IDK_FW_DOWNLOAD_RESPONSE_OPCODE;
-        *ptr++ = request_data.target;  /* target number */
-        *ptr++ = response_status;
+        *send_ptr++ = IDK_FW_DOWNLOAD_RESPONSE_OPCODE;
+        *send_ptr++ = request_data.target;  /* target number */
+        *send_ptr++ = response_status;
 
-        pkt->length = ptr - data_ptr;
-        status = net_enable_facility_packet(idk_ptr, E_MSG_FAC_FW_NUM, SECURITY_PROTO_NONE);
+        send_packet->length = send_ptr - data_ptr;
+        status = enable_facility_packet(idk_ptr, E_MSG_FAC_FW_NUM, SECURITY_PROTO_NONE);
     }
-_ret:
+done:
     return status;
 }
 
 
-static idk_callback_status_t process_fw_binary_block(idk_firmware_data_t * fw_ptr, idk_facility_packet_t * p)
+static idk_callback_status_t process_fw_binary_block(idk_firmware_data_t * fw_ptr, idk_facility_packet_t * packet)
 {
     idk_data_t * idk_ptr = fw_ptr->idk_ptr;
     idk_callback_status_t status;
     uint32_t value;
     uint8_t ack_required;
     idk_fw_image_data_t request_data;
-    idk_facility_packet_t * pkt;
+    idk_facility_packet_t * send_packet;
     uint8_t * buf;
     uint16_t length;
     uint8_t * ptr, * data_ptr;
     idk_fw_status_t response_status = idk_fw_user_abort;
 
 
-    DEBUG_PRINTF("Process Firmware Binary Block...\n");
-
-    pkt =(idk_facility_packet_t *) net_get_send_packet(idk_ptr, sizeof(idk_facility_packet_t), &ptr);
-    if (pkt == NULL)
+    send_packet =(idk_facility_packet_t *) get_packet_buffer(idk_ptr, sizeof(idk_facility_packet_t), &ptr);
+    if (send_packet == NULL)
     {
         status = idk_callback_busy;
-        goto _ret;
+        goto done;
     }
 
     /* Parse firmware binary block
@@ -685,10 +660,10 @@ static idk_callback_status_t process_fw_binary_block(idk_firmware_data_t * fw_pt
      *
      */
 
-    buf = IDK_PACKET_DATA_POINTER(p, sizeof(idk_facility_packet_t));
+    buf = IDK_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
     buf++; /* skip opcode */
 
-    length = p->length-1;
+    length = packet->length-1;
 
     request_data.target = *buf;
     length--;
@@ -715,11 +690,11 @@ static idk_callback_status_t process_fw_binary_block(idk_firmware_data_t * fw_pt
         if(ack_required)
         {
             /* send firmware binary block acknowledge
-             *  ---------------------------------------------------
-             * |   0      |     1     | 2 - 5  |    6       |
-             *  -----------------------------------------------------
+             *  -----------------------------------
+             * |   0    |    1   | 2 - 5  |    6   |
+             *  -----------------------------------
              * | opcode | target | offset | status |
-             *  ----------------------------------------------------
+             *  -----------------------------------
              *
              *  Firmware ID string: [descr]0xa[file name spec]
              */
@@ -728,33 +703,31 @@ static idk_callback_status_t process_fw_binary_block(idk_firmware_data_t * fw_pt
             /* now add this target to the target list message */
             *ptr++ = IDK_FW_BINARY_BLOCK_ACK_OPCODE;
             *ptr++ = request_data.target;  /* target number */
-            value = TO_BE32(request_data.offset);
-            memcpy(ptr, &value, sizeof value);
-            ptr += sizeof value;
+
+            StoreBE32(ptr, request_data.offset);
+            ptr += sizeof request_data.offset;
 
             *ptr++ = idk_fw_success;
 
-            pkt->length = ptr - data_ptr;
+            send_packet->length = ptr - data_ptr;
 
-            status = net_enable_facility_packet(idk_ptr, E_MSG_FAC_FW_NUM, SECURITY_PROTO_NONE);
+            status = enable_facility_packet(idk_ptr, E_MSG_FAC_FW_NUM, SECURITY_PROTO_NONE);
         }
     }
     else if (status != idk_callback_busy)
     {
         send_fw_abort(idk_ptr, request_data.target,IDK_FW_DOWNLOAD_ABORT_OPCODE, response_status);
     }
-_ret:
+done:
     return status;
 }
 
-static idk_callback_status_t process_fw_abort(idk_firmware_data_t * fw_ptr, idk_facility_packet_t * p)
+static idk_callback_status_t process_fw_abort(idk_firmware_data_t * fw_ptr, idk_facility_packet_t * packet)
 {
     idk_callback_status_t status;
     idk_fw_download_abort_t request_data;
     uint8_t * buf;
     uint16_t length;
-
-    DEBUG_PRINTF("Process Firmware Abort...\n");
 
     /* parse firmware download abort
      *  --------------------------
@@ -764,9 +737,9 @@ static idk_callback_status_t process_fw_abort(idk_firmware_data_t * fw_ptr, idk_
      *  --------------------------
      *
      */
-    buf = IDK_PACKET_DATA_POINTER(p, sizeof(idk_facility_packet_t));
+    buf = IDK_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
     buf++;
-    length = p->length-1;
+    length = packet->length-1;
 
     request_data.target = *buf;
     length--;
@@ -781,25 +754,23 @@ static idk_callback_status_t process_fw_abort(idk_firmware_data_t * fw_ptr, idk_
     return status;
 
 }
-static idk_callback_status_t process_fw_complete(idk_firmware_data_t * fw_ptr, idk_facility_packet_t * p)
+static idk_callback_status_t process_fw_complete(idk_firmware_data_t * fw_ptr, idk_facility_packet_t * packet)
 {
     idk_data_t * idk_ptr = fw_ptr->idk_ptr;
     idk_callback_status_t status;
     uint32_t value;
     idk_fw_download_complete_request_t request_data;
     idk_fw_download_complete_response_t response_data;
-    idk_facility_packet_t * pkt;
+    idk_facility_packet_t * send_packet;
     uint8_t * buf;
     uint16_t length;
     uint8_t * ptr, * data_ptr;
 
-    DEBUG_PRINTF("Process Firmware Download Complete...\n");
-
-    pkt =(idk_facility_packet_t *) net_get_send_packet(idk_ptr, sizeof(idk_facility_packet_t), &ptr);
-    if (pkt == NULL)
+    send_packet =(idk_facility_packet_t *) get_packet_buffer(idk_ptr, sizeof(idk_facility_packet_t), &ptr);
+    if (send_packet == NULL)
     {
         status = idk_callback_busy;
-        goto _ret;
+        goto done;
     }
 
     /* Parse firmware downlaod complete
@@ -811,9 +782,9 @@ static idk_callback_status_t process_fw_complete(idk_firmware_data_t * fw_ptr, i
      *
      */
 
-    buf = IDK_PACKET_DATA_POINTER(p, sizeof(idk_facility_packet_t));
+    buf = IDK_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
     buf++;
-    length = p->length-1;
+    length = packet->length-1;
 
     request_data.target = *buf;
     length--;
@@ -848,41 +819,38 @@ static idk_callback_status_t process_fw_complete(idk_firmware_data_t * fw_ptr, i
         /* now add this target to the target list message */
         *ptr++ = IDK_FW_DOWNLOAD_COMPLETE_RESPONSE_OPCODE;
         *ptr++ = request_data.target;  /* target number */
-        value = TO_BE32(response_data.version);
-        memcpy((void *)ptr, (void *)&value, sizeof value);
-        ptr += sizeof value;
+        StoreBE32(ptr, response_data.version);
+        ptr += sizeof response_data.version;
 
-        value = TO_BE32(response_data.calculated_checksum);
-        memcpy((void *)ptr, (void *)&value, sizeof value);
-        ptr += sizeof value;
+
+        StoreBE32(ptr, response_data.calculated_checksum);
+        ptr += sizeof response_data.calculated_checksum;
 
         *ptr++ = response_data.status;
 
-        pkt->length = ptr - data_ptr;
+        send_packet->length = ptr - data_ptr;
 
         fw_ptr->ka_time = 0;
         fw_ptr->keepalive = false;
 
-        status = net_enable_facility_packet(idk_ptr, E_MSG_FAC_FW_NUM, SECURITY_PROTO_NONE);
+        status = enable_facility_packet(idk_ptr, E_MSG_FAC_FW_NUM, SECURITY_PROTO_NONE);
     }
     else if (status == idk_callback_abort)
     {
         send_fw_abort(idk_ptr, request_data.target,IDK_FW_DOWNLOAD_ABORT_OPCODE, response_data.status);
     }
 
-_ret:
+done:
     return status;
 
 }
 
-static idk_callback_status_t process_target_reset(idk_firmware_data_t * fw_ptr, idk_facility_packet_t * p)
+static idk_callback_status_t process_target_reset(idk_firmware_data_t * fw_ptr, idk_facility_packet_t * packet)
 {
     idk_callback_status_t status;
     idk_fw_config_t request;
     uint8_t             * buf;
     uint16_t            length;
-
-    DEBUG_PRINTF("Process Firmware Reset\n");
 
     /* Parse firmware target reset
      *  -----------------
@@ -892,9 +860,9 @@ static idk_callback_status_t process_target_reset(idk_firmware_data_t * fw_ptr, 
      *  -----------------
      *
      */
-    buf = IDK_PACKET_DATA_POINTER(p, sizeof(idk_facility_packet_t));
+    buf = IDK_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
     buf++;
-    length = p->length;
+    length = packet->length;
 
     request.target = *buf;
     length--;
@@ -909,12 +877,10 @@ static idk_callback_status_t fw_process(idk_data_t * idk_ptr, idk_facility_t * f
 {
     idk_callback_status_t status = idk_callback_continue;
     uint8_t opcode, target;
-    idk_facility_packet_t * p;
+    idk_facility_packet_t * packet;
     uint8_t * ptr;
     idk_firmware_data_t * fw_ptr = (idk_firmware_data_t *)fac_ptr;
 
-
-    DEBUG_PRINTF("idk_fw_process...\n");
 
     if (fw_ptr->keepalive)
     {
@@ -928,7 +894,7 @@ static idk_callback_status_t fw_process(idk_data_t * idk_ptr, idk_facility_t * f
             status = get_system_time(idk_ptr, &fw_ptr->ka_time);
             if (status == idk_callback_abort)
             {
-                goto _ret;
+                goto done;
             }
             else 
             {
@@ -941,20 +907,20 @@ static idk_callback_status_t fw_process(idk_data_t * idk_ptr, idk_facility_t * f
     {
 
 _cont:
-        p =(idk_facility_packet_t *) fac_ptr->packet;
-        if (p == NULL)
+        packet =(idk_facility_packet_t *) fac_ptr->packet;
+        if (packet == NULL)
         {
             DEBUG_PRINTF("fw_process: No Packet\n");
-            goto _ret;
+            goto done;
         }
-        ptr = IDK_PACKET_DATA_POINTER(p, sizeof(idk_facility_packet_t));
+        ptr = IDK_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
         opcode = *ptr;
         target = *(ptr+1);
         if (target >= fw_ptr->target_count)
         {
             DEBUG_PRINTF("fw_process: invalid target\n");
             status = send_fw_abort(idk_ptr, target, IDK_FW_ERROR_OPCODE, idk_fw_invalid_target);
-            goto _ret;
+            goto done;
         }
 
 
@@ -973,24 +939,24 @@ _cont:
         switch(opcode)
         {
         case IDK_FW_INFO_REQUEST_OPCODE:
-            status = process_fw_info_request(fw_ptr, p);
+            status = process_fw_info_request(fw_ptr, packet);
             break;
         case IDK_FW_DOWNLOAD_REQUEST_OPCODE:
-            status = process_fw_download_request(fw_ptr, p);
+            status = process_fw_download_request(fw_ptr, packet);
             break;
         case IDK_FW_BINARY_BLOCK_OPCODE:
-            status = process_fw_binary_block(fw_ptr, p);
+            status = process_fw_binary_block(fw_ptr, packet);
             break;
         case IDK_FW_DOWNLOAD_ABORT_OPCODE:
-            status = process_fw_abort(fw_ptr, p);
+            status = process_fw_abort(fw_ptr, packet);
             fw_ptr->ka_time = 0;
             fw_ptr->keepalive = false;
             break;
         case IDK_FW_DOWNLOAD_COMPLETE_OPCODE:
-            status = process_fw_complete(fw_ptr, p);
+            status = process_fw_complete(fw_ptr, packet);
             break;
         case IDK_FW_TARGET_RESET_OPCODE:
-            status = process_target_reset(fw_ptr, p);
+            status = process_target_reset(fw_ptr, packet);
             fw_ptr->ka_time = 0;
             fw_ptr->keepalive = false;
             break;
@@ -1000,9 +966,9 @@ _cont:
         }
     }
 
-_ret:
+done:
     if (status != idk_callback_busy)
-    {
+    {   /* we are done with the packet */
         fw_ptr->facility.packet = NULL;
     }
     return status;
@@ -1012,16 +978,17 @@ static idk_callback_status_t fw_discovery(idk_data_t *idk_ptr, idk_facility_t * 
 {
     idk_callback_status_t status = idk_callback_continue;
     uint8_t * ptr;
-    idk_facility_packet_t * p;
+    idk_facility_packet_t * packet;
     idk_firmware_data_t * fw_ptr = (idk_firmware_data_t *)fac_ptr;
 
-     DEBUG_PRINTF("fw_discovery_layer_init: sends target list info\n");
+    /* Firmware Access facility needs to send target list info during initialization phase at discovery layer */
+
     /* get packet pointer for constructing target list info */
-    p =(idk_facility_packet_t *) net_get_send_packet(idk_ptr, sizeof(idk_facility_packet_t), &ptr);
-    if (p == NULL)
+    packet =(idk_facility_packet_t *) get_packet_buffer(idk_ptr, sizeof(idk_facility_packet_t), &ptr);
+    if (packet == NULL)
     {
         status = idk_callback_busy;
-        goto _ret;
+        goto done;
     }
 
     /* Construct a target list message.
@@ -1033,9 +1000,9 @@ static idk_callback_status_t fw_discovery(idk_data_t *idk_ptr, idk_facility_t * 
        status = get_fw_target_count(fw_ptr, &fw_ptr->target_count);
         if (status == idk_callback_continue)
         {
-            p->length = 0;
+            packet->length = 0;
             *ptr = E_FAC_FU_OP_LIST_TARGETS;
-            p->length++;
+            packet->length++;
             fw_ptr->target = 0;
             fw_ptr->request_id = idk_firmware_version;
         }
@@ -1043,14 +1010,14 @@ static idk_callback_status_t fw_discovery(idk_data_t *idk_ptr, idk_facility_t * 
 
     if (fw_ptr->request_id == idk_firmware_version)
     {
-        ptr += p->length;
+        ptr += packet->length;
 
         while (fw_ptr->target < fw_ptr->target_count)
         {
-            uint32_t ver, version;
+            uint32_t version;
 
             /* get the current firmware version for this target */
-            status = get_fw_version(fw_ptr, fw_ptr->target, &ver);
+            status = get_fw_version(fw_ptr, fw_ptr->target, &version);
             if (status == idk_callback_continue)
             {
                 /*
@@ -1064,25 +1031,24 @@ static idk_callback_status_t fw_discovery(idk_data_t *idk_ptr, idk_facility_t * 
 
                 *ptr = fw_ptr->target;  /* target number */
                 ptr++;
-                p->length++;
-                version = TO_BE32(ver);
-                memcpy((void *)ptr, (void *)&version, sizeof version);
-                p->length += sizeof version;
+                packet->length++;
+                StoreBE32(ptr, version);
                 ptr += sizeof version;
+                packet->length += sizeof version;
                 fw_ptr->target++;
             }
         }
 
         if (fw_ptr->target == fw_ptr->target_count)
         {
-            status = net_enable_facility_packet(idk_ptr, E_MSG_FAC_FW_NUM, SECURITY_PROTO_NONE);
+            status = enable_facility_packet(idk_ptr, E_MSG_FAC_FW_NUM, SECURITY_PROTO_NONE);
             fw_ptr->request_id = idk_firmware_target_count;;
             fw_ptr->target = 0;
         }
     }
 
 
-_ret:
+done:
     return status;
 }
 
@@ -1104,16 +1070,16 @@ static idk_callback_status_t fw_init_facility(idk_data_t *idk_ptr)
     idk_callback_status_t status = idk_callback_continue;
     idk_firmware_data_t * fw_ptr;
 
-
+    /* Add firmware access facility to IDK */
     fw_ptr = (idk_firmware_data_t *)get_facility_data(idk_ptr, E_MSG_FAC_FW_NUM);
     if (fw_ptr == NULL)
     {
         status = add_facility_data(idk_ptr, E_MSG_FAC_FW_NUM, (idk_facility_t **) &fw_ptr,
-                                                        sizeof(idk_firmware_data_t), fw_discovery, fw_process);
+                                   sizeof(idk_firmware_data_t), fw_discovery, fw_process);
 
         if (status != idk_callback_continue || fw_ptr == NULL)
         {
-            goto _ret;
+            goto done;
         }
    }
     fw_ptr->request_id = 0;
@@ -1123,7 +1089,7 @@ static idk_callback_status_t fw_init_facility(idk_data_t *idk_ptr)
     fw_ptr->keepalive = false;
     fw_ptr->idk_ptr = idk_ptr;
 
-_ret:
+done:
     return status;
 }
 

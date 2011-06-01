@@ -27,42 +27,53 @@
 #include <malloc.h>
 #include "idk_def.h"
 
-struct malloc_stats_t {
-    void  * ptr;
+typedef struct malloc_stats{
+    void const * ptr;
     size_t length;
-    struct malloc_stats_t * next;
-};
+    struct malloc_stats * next;
+} malloc_stats_t;
 
-size_t gMallocLength = 0;
-struct malloc_stats_t * gMallocStats = NULL;
+/* These are used for debugging and tracking memory
+ * usage and high water mark.
+ */
+static size_t total_malloc_length = 0;
+static malloc_stats_t * malloc_list = NULL;
 
-static void add_malloc_stats(void * ptr, size_t length)
+/* Added allocated pointer and its size to
+ * keep track number of allocated pointers and
+ * allocated memory size.
+ *
+ * This is for debugging only.
+ */
+static void add_malloc_stats(void const * ptr, size_t length)
 {
-    struct malloc_stats_t   * pMalloc;
+    malloc_stats_t   * pMalloc;
 
-    pMalloc = (struct malloc_stats_t *)malloc(sizeof(struct malloc_stats_t));
+    pMalloc = (malloc_stats_t *)malloc(sizeof(malloc_stats_t));
     if (pMalloc != NULL)
     {
         pMalloc->ptr = ptr;
         pMalloc->length = length;
-        pMalloc->next = gMallocStats;
+        pMalloc->next = malloc_list;
 
-        gMallocStats = pMalloc;
+        malloc_list = pMalloc;
 
-        gMallocLength += length;
+        total_malloc_length += length;
 
     }
     else
     {
+
         DEBUG_PRINTF("add_malloc_stats: malloc failed\n");
     }
 }
 
-static void del_malloc_stats(void * ptr)
+/* free and remove allocated memory */
+static void del_malloc_stats(void const * ptr)
 {
-    struct malloc_stats_t   * pMalloc, * pMalloc1 = NULL;
+    malloc_stats_t   * pMalloc, * pMalloc1 = NULL;
 
-    for (pMalloc = gMallocStats; pMalloc != NULL; pMalloc = pMalloc->next)
+    for (pMalloc = malloc_list; pMalloc != NULL; pMalloc = pMalloc->next)
     {
         if (pMalloc->ptr == ptr)
         {
@@ -70,12 +81,12 @@ static void del_malloc_stats(void * ptr)
             {
                 pMalloc1->next = pMalloc->next;
             }
-            if (pMalloc == gMallocStats)
+            if (pMalloc == malloc_list)
             {
-                gMallocStats = pMalloc->next;
+                malloc_list = pMalloc->next;
             }
 
-            gMallocLength -= pMalloc->length;
+            total_malloc_length -= pMalloc->length;
             free(pMalloc);
             break;
         }

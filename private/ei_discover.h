@@ -25,11 +25,6 @@
 #ifndef EI_DISCOVER_H_
 #define EI_DISCOVER_H_
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 /** Discovery layer opcodes */
 #define	DISC_OP_PAYLOAD       0
 #define DISC_OP_RESERVED1     1
@@ -39,8 +34,5 @@ extern "C"
 #define DISC_OP_INITCOMPLETE  5
 #define DISC_OP_VENDOR_ID     6
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* EI_DISCOVER_H_ */
