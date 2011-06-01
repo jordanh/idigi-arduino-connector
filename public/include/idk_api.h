@@ -935,11 +935,14 @@ idk_status_t idk_run(idk_handle_t const handle);
  *                       all allocated memory. If caller calls idk_step, caller must call idk_step again
  *                       for IDK to be terminated. If caller is using idk_run, idk_run will be terminated
  *                       and return. Once IDK is terminated, IDK cannot restart unless idk_init is called again.
- *@param data           Pointer to requested data.
+ *@param request_data   Pointer to requested data.
+                        For Request ID:
+                            idk_dispatch_termiated: data is not used
+ *@param response_data  Pointer to response data.
                         For Request ID:
                             idk_dispatch_termiated: data is not used
  */
-idk_status_t idk_dispatch(idk_handle_t handle, idk_dispatch_request_t request, void * data);
+idk_status_t idk_initiate_action(idk_handle_t handle, idk_dispatch_request_t request, void const * request_data, void * response_data);
 
 #ifdef __cplusplus
 }
