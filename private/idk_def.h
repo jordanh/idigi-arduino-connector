@@ -28,12 +28,6 @@
 
 #include "ei_packet.h"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-
 #define ON_FALSE_DO_(cond, code)        do { if (!(cond)) {code;} } while (0)
 
 #if defined(DEBUG)
@@ -47,32 +41,39 @@ extern "C"
 
 #define UNUSED_PARAMETER(x)     ((void)x)
 
-#define IDK_MT_VERSION           2
-#define IDK_MT_PORT              3197
+#define EDP_MT_VERSION           2
+#define EDP_MT_PORT              3197
 #define IDK_MSG_MAX_PACKET_SIZE 1600
 
-#define IDK_DEVICE_TYPE_LENGTH  32
-#define IDK_DEVICE_ID_LENGTH    16
-#define IDK_VENDOR_ID_LENGTH    4
-#define IDK_SERVER_URL_LENGTH   255
-#define IDK_MAC_ADDR_LENGTH     6
-#define IDK_LINK_SPEED_LENGTH   4
+#define DEVICE_TYPE_LENGTH  32
+#define DEVICE_ID_LENGTH    16
+#define VENDOR_ID_LENGTH    4
+#define SERVER_URL_LENGTH   255
+#define MAC_ADDR_LENGTH     6
 
-#define IDK_RX_INTERVAL_MIN     5
-#define IDK_RX_INTERVAL_MAX     7200
-#define IDK_TX_INTERVAL_MIN     5
-#define IDK_TX_INTERVAL_MAX     7200
-#define IDK_WAIT_COUNT_MIN      2
-#define IDK_WAIT_COUNT_MAX      64
+/* these are limits for Tx and Rx keepalive
+ * interval in seconds.
+ */
+#define MIN_RX_KEEPALIVE_INTERVAL_PER_SECOND     5
+#define MAX_RX_KEEPALIVE_INTERVAL_PER_SECOND     7200
+#define MIN_TX_KEEPALIVE_INTERVAL_PER_SECOND     5
+#define MAX_TX_KEEPALIVE_INTERVAL_PER_SECOND     7200
+/* Limits for wait count (number of
+ * keepalive packets)
+ */
+#define WAIT_COUNT_MIN      2
+#define WAIT_COUNT_MAX      64
 
-#define IDK_MIN(x,y)        (((x) < (y))? (x): (y))
-#define IDK_MAX(x,y)        (((x) > (y))? (x): (y))
-#define IDK_MILLISECONDS            1000
+#define MIN_VALUE(x,y)        (((x) < (y))? (x): (y))
+#define MAX_VALUE(x,y)        (((x) > (y))? (x): (y))
+#define MILLISECONDS_PER_SECOND            1000
 
 #define URL_PREFIX  "en://"
-#define IDK_IS_SELECT_SET(x, y)        (x & y)
-#define IDK_PACKET_DATA_POINTER(p, s)  (uint8_t *)((uint8_t *)p + s)
-#define IDK_SEND_PENDING(idk_ptr)	(idk_ptr->edp_connected && idk_ptr->send_packet.total_length > 0)
+#define GET_PACKET_DATA_POINTER(p, s)  (uint8_t *)(((uint8_t *)p) + (s))
+#define IS_SEND_PENDING(idk_ptr)       (idk_ptr->edp_connected && idk_ptr->send_packet.total_length > 0)
+#define GET_FACILITY_POINTER(fac_ptr)   (fac_ptr->facility_data)
+#define GET_FACILITY_PACKET(fac_ptr)    (fac_ptr->packet)
+#define DONE_FACILITY_PACKET(fac_ptr)   (fac_ptr->packet = NULL)
 
 #define asizeof(array)  (sizeof array/sizeof array[0])
 
@@ -106,6 +107,7 @@ typedef struct idk_facility {
     idk_facility_packet_t * packet;
     uint8_t buffer[IDK_MSG_MAX_PACKET_SIZE];
     struct idk_facility * next;
+    void * facility_data;
 } idk_facility_t;
 
 typedef struct idk_data {
@@ -161,12 +163,5 @@ typedef struct idk_data {
     } receive_packet;
 
 } idk_data_t;
-
-
-
-#ifdef __cplusplus
-extern "C"
-}
-#endif
 
 #endif /* IDK_DEF_H_ */
