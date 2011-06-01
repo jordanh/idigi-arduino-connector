@@ -25,32 +25,34 @@
 static idk_callback_status_t loopback_process(idk_data_t * idk_ptr, idk_facility_t * fac_ptr)
 {
     idk_callback_status_t status = idk_callback_continue;
-    idk_facility_packet_t * packet;
+    idk_facility_packet_t * out_packet;
+    idk_facility_packet_t * in_packet;
     uint8_t * src, * dst;
 
     /* get the current message and copy it into send packet */
-    if (fac_ptr->packet == NULL)
+    in_packet = GET_FACILITY_PACKET(fac_ptr);
+    if (in_packet == NULL)
     {
         DEBUG_PRINTF("loopback_process: No Packet\n");
         goto done;
     }
-    src = IDK_PACKET_DATA_POINTER(fac_ptr->packet, sizeof(idk_facility_packet_t));
+    src = GET_PACKET_DATA_POINTER(in_packet, sizeof(idk_facility_packet_t));
 
-    packet =(idk_facility_packet_t *) get_packet_buffer(idk_ptr, sizeof(idk_facility_packet_t), &dst);
-    if (packet == NULL)
+    out_packet =(idk_facility_packet_t *) get_packet_buffer(idk_ptr, sizeof(idk_facility_packet_t), &dst);
+    if (out_packet == NULL)
     {
         status = idk_callback_busy;
         goto done;
     }
 
-    *packet = *fac_ptr->packet;
-    memcpy(dst, src, fac_ptr->packet->length);
+    *out_packet = *in_packet;
+    memcpy(dst, src, in_packet->length);
 
     status = enable_facility_packet(idk_ptr, E_MSG_FAC_DEV_LOOP_NUM, SECURITY_PROTO_NONE);
 
     if (status != idk_callback_busy)
     {
-        fac_ptr->packet = NULL;
+        DONE_FACILITY_PACKET(fac_ptr);
     }
 done:
     return status;
@@ -58,15 +60,7 @@ done:
 
 static idk_status_t loopback_delete_facility(idk_data_t * idk_ptr)
 {
-    idk_callback_status_t status = idk_callback_continue;
-    idk_facility_t * fac_ptr;
-
-    fac_ptr = (idk_facility_t *)get_facility_data(idk_ptr, E_MSG_FAC_DEV_LOOP_NUM);
-    if (fac_ptr != NULL)
-    {
-        status = del_facility_data(idk_ptr, E_MSG_FAC_DEV_LOOP_NUM);
-    }
-    return status;
+    return del_facility_data(idk_ptr, E_MSG_FAC_DEV_LOOP_NUM);
 }
 
 static idk_callback_status_t loopback_init_facility(idk_data_t *idk_ptr)
@@ -75,13 +69,14 @@ static idk_callback_status_t loopback_init_facility(idk_data_t *idk_ptr)
     idk_facility_t * fac_ptr;
 
 
-    fac_ptr = (idk_facility_t *)get_facility_data(idk_ptr, E_MSG_FAC_DEV_LOOP_NUM);
+    fac_ptr = get_facility_data(idk_ptr, E_MSG_FAC_DEV_LOOP_NUM);
     if (fac_ptr == NULL)
     {
-        status = add_facility_data(idk_ptr, E_MSG_FAC_DEV_LOOP_NUM, (idk_facility_t **) &fac_ptr,
-                                                        sizeof(idk_facility_t), NULL, loopback_process);
+        void * ptr;
+        status = add_facility_data(idk_ptr, E_MSG_FAC_DEV_LOOP_NUM, &ptr,
+                                   0, NULL, loopback_process);
 
-        if (status != idk_callback_continue || fac_ptr == NULL)
+        if (status != idk_callback_continue || ptr == NULL)
         {
             goto done;
         }
