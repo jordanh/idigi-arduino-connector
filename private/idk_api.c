@@ -55,104 +55,100 @@ idk_handle_t idk_init(idk_callback_t callback)
             {idk_base_device_type, DEVICE_TYPE_LENGTH}
     };
 
-    ASSERT(callback != NULL);
+    ASSERT_GOTO(callback != NULL, done);
 
-    if (callback != NULL)
+    /* allocate idk data */
+    size = sizeof(idk_data_t);
+
+    status = malloc_cb(callback, size, &handle);
+    if (status != idk_callback_continue || handle == NULL)
     {
-        /* allocate idk data */
-        size = sizeof(idk_data_t);
+        goto done;
+    }
 
-        status = malloc_cb(callback, size, &handle);
-        if (status != idk_callback_continue || handle == NULL)
+    idk_handle = handle;
+
+    init_setting(idk_handle);
+    idk_handle->active_state = idk_device_started;
+    idk_handle->callback = callback;
+    idk_handle->facility_list = NULL;
+    idk_handle->network_handle = NULL;
+    idk_handle->facilities = 0;
+    idk_handle->network_busy = false;
+
+    /* get device id, vendor id, & device type */
+    i = 0;
+    while (i < INIT_REQUEST_ID_COUNT)
+    {
+        request_id.base_request = idk_base_request_ids[i].request;
+        status = idk_callback(idk_handle->callback, idk_class_base, request_id, NULL, 0, &data, &length);
+
+        if (status == idk_callback_continue)
         {
-            goto done;
-        }
-
-        idk_handle = handle;
-
-        init_setting(idk_handle);
-        idk_handle->active_state = idk_device_started;
-        idk_handle->callback = callback;
-        idk_handle->facility_list = NULL;
-        idk_handle->network_handle = NULL;
-        idk_handle->facilities = 0;
-        idk_handle->network_busy = false;
-
-        /* get device id, vendor id, & device type */
-        i = 0;
-        while (i < INIT_REQUEST_ID_COUNT)
-        {
-            request_id.base_request = idk_base_request_ids[i].request;
-            status = idk_callback(idk_handle->callback, idk_class_base, request_id, NULL, 0, &data, &length);
-
-            if (status == idk_callback_continue)
+            /* if error occurs, notify caller and go back to the callback for
+             * caller fixing the problem.
+             */
+            if (data == NULL)
             {
-                /* if error occurs, notify caller and go back to the callback for
-                 * caller fixing the problem.
-                 */
-                if (data == NULL)
-                {
-                    status = notify_error_status(callback, idk_class_base, request_id, idk_invalid_data);
-                }
-                else if ((idk_base_request_ids[i].request != idk_base_device_type) && (length != idk_base_request_ids[i].length))
-                {
-                    status = notify_error_status(callback, idk_class_base, request_id, idk_invalid_data_size);
-                }
-                else if ((idk_base_request_ids[i].request == idk_base_device_type) &&
-                        ((length == 0) || (length > idk_base_request_ids[i].length)))
-                {
-                    status = notify_error_status(callback, idk_class_base, request_id, idk_invalid_data_size);
-                }
-                else
-                {
-                    switch (idk_base_request_ids[i].request)
-                    {
-                    case idk_base_device_id:
-                       idk_handle->device_id = data;
-                        break;
-                    case idk_base_vendor_id:
-                       idk_handle->vendor_id = data;
-                        break;
-                    case idk_base_device_type:
-                        idk_handle->device_type = data;
-                        break;
-                    case idk_base_server_url:
-                    case idk_base_password:
-                    case idk_base_connection_type:
-                    case idk_base_mac_addr:
-                    case idk_base_link_speed:
-                    case idk_base_phone_number:
-                    case idk_base_tx_keepalive:
-                    case idk_base_rx_keepalive:
-                    case idk_base_wait_count:
-                    case idk_base_ip_addr:
-                    case idk_base_error_status:
-                    case idk_base_disconnected:
-                    case idk_base_connect:
-                    case idk_base_send:
-                    case idk_base_receive:
-                    case idk_base_close:
-                    case idk_base_malloc:
-                    case idk_base_free:
-                    case idk_base_system_time:
-                    case idk_base_firmware_facility:
-                        ASSERT(0);
-                        /* Get these in different modules */
-                        break;
-                    }
-                    i++;
-                }
+                status = notify_error_status(callback, idk_class_base, request_id, idk_invalid_data);
             }
-
-            if (status != idk_callback_continue)
+            else if ((idk_base_request_ids[i].request != idk_base_device_type) && (length != idk_base_request_ids[i].length))
             {
-                DEBUG_PRINTF("idk_init: base class request id = %d callback aborts\n", idk_base_request_ids[i].request);
-                free_data(idk_handle, idk_handle);
-                idk_handle = NULL;
-                break;
+                status = notify_error_status(callback, idk_class_base, request_id, idk_invalid_data_size);
+            }
+            else if ((idk_base_request_ids[i].request == idk_base_device_type) &&
+                    ((length == 0) || (length > idk_base_request_ids[i].length)))
+            {
+                status = notify_error_status(callback, idk_class_base, request_id, idk_invalid_data_size);
+            }
+            else
+            {
+                switch (idk_base_request_ids[i].request)
+                {
+                case idk_base_device_id:
+                   idk_handle->device_id = data;
+                    break;
+                case idk_base_vendor_id:
+                   idk_handle->vendor_id = data;
+                    break;
+                case idk_base_device_type:
+                    idk_handle->device_type = data;
+                    break;
+                case idk_base_server_url:
+                case idk_base_password:
+                case idk_base_connection_type:
+                case idk_base_mac_addr:
+                case idk_base_link_speed:
+                case idk_base_phone_number:
+                case idk_base_tx_keepalive:
+                case idk_base_rx_keepalive:
+                case idk_base_wait_count:
+                case idk_base_ip_addr:
+                case idk_base_error_status:
+                case idk_base_disconnected:
+                case idk_base_connect:
+                case idk_base_send:
+                case idk_base_receive:
+                case idk_base_close:
+                case idk_base_malloc:
+                case idk_base_free:
+                case idk_base_system_time:
+                case idk_base_firmware_facility:
+                    ASSERT(0);
+                    /* Get these in different modules */
+                    break;
+                }
+                i++;
             }
         }
 
+        if (status != idk_callback_continue)
+        {
+            DEBUG_PRINTF("idk_init: base class request id = %d callback aborts\n", idk_base_request_ids[i].request);
+            free_data(idk_handle, idk_handle);
+            idk_handle = NULL;
+            break;
+        }
     }
 
 done:
@@ -286,14 +282,15 @@ idk_status_t idk_run(idk_handle_t const handle)
 }
 
 
-idk_status_t idk_dispatch(idk_handle_t handle, idk_dispatch_request_t request, void * data)
+idk_status_t idk_initiate_action(idk_handle_t handle, idk_dispatch_request_t request, void const * request_data, void  * response_data)
 {
     idk_status_t rc = idk_init_error;
     idk_data_t * idk_ptr = (idk_data_t *)handle;
 
     ASSERT_GOTO(handle != NULL, done);
 
-    UNUSED_PARAMETER(data);
+    UNUSED_PARAMETER(request_data);
+    UNUSED_PARAMETER(response_data);
 
     rc = idk_success;
     switch (request)
