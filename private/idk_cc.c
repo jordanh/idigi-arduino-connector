@@ -61,9 +61,8 @@ enum {
 };
 
 typedef struct {
-    idk_facility_t  facility;
-
-    char    server_url[CC_REDIRECT_SERVER_COUNT][IDK_SERVER_URL_LENGTH];
+    idk_facility_t facility;
+    char    server_url[CC_REDIRECT_SERVER_COUNT][SERVER_URL_LENGTH];
     uint8_t report_code;
     uint8_t security_code;
     int     state;
@@ -139,7 +138,7 @@ static idk_callback_status_t get_ip_addr(idk_data_t * idk_ptr, uint8_t * ipv6_ad
     idk_request_t request_id;
     size_t length;
 
-  /* IP address (use IPv6 format) */
+  /* Get IP address */
     request_id.base_request = idk_base_ip_addr;
     status = idk_callback(idk_ptr->callback, idk_class_base, request_id, NULL, 0, &ip_addr, &length);
     if (status != idk_callback_continue)
@@ -266,7 +265,7 @@ static idk_callback_status_t get_mac_addr(idk_data_t * idk_ptr, uint8_t * mac_ad
     {
         idk_ptr->error_code = idk_configuration_error;
     }
-    else if (mac == NULL || length != IDK_MAC_ADDR_LENGTH)
+    else if (mac == NULL || length != MAC_ADDR_LENGTH)
     {
         /* bad connection type */
         idk_ptr->error_code = idk_invalid_data_size;
@@ -279,7 +278,7 @@ static idk_callback_status_t get_mac_addr(idk_data_t * idk_ptr, uint8_t * mac_ad
     }
     else
     {
-        memcpy(mac_addr, mac, IDK_MAC_ADDR_LENGTH);
+        memcpy(mac_addr, mac, MAC_ADDR_LENGTH);
     }
 
     return status;
@@ -335,7 +334,7 @@ static idk_callback_status_t send_connection_report(idk_data_t * idk_ptr, idk_cc
 
     if (cc_ptr->item == idk_base_connection_type)
     {
-        ptr = IDK_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
+        ptr = GET_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
         ptr += packet->length;
         status = get_connection_type(idk_ptr, ptr);
         if (status != idk_callback_continue)
@@ -357,14 +356,14 @@ static idk_callback_status_t send_connection_report(idk_data_t * idk_ptr, idk_cc
 
     if (cc_ptr->item == idk_base_mac_addr)
     {
-        ptr = IDK_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
+        ptr = GET_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
         ptr += packet->length;
         status = get_mac_addr(idk_ptr, ptr);
         if (status != idk_callback_continue)
         {
             goto done;
         }
-        packet->length += IDK_MAC_ADDR_LENGTH;
+        packet->length += MAC_ADDR_LENGTH;
 
 
     }
@@ -385,7 +384,7 @@ static idk_callback_status_t send_connection_report(idk_data_t * idk_ptr, idk_cc
             goto done;
         }
 
-        if (link_speed == NULL || length != sizeof(uint32_t))
+        if (link_speed == NULL || length != sizeof(*link_speed))
         {
             /* bad connection type */
             idk_ptr->error_code = idk_invalid_data_size;
@@ -393,7 +392,7 @@ static idk_callback_status_t send_connection_report(idk_data_t * idk_ptr, idk_cc
             goto done;
         }
 
-        ptr = IDK_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
+        ptr = GET_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
         ptr += packet->length;
         StoreBE32(ptr, *link_speed);
         packet->length += sizeof(*link_speed);
@@ -424,7 +423,7 @@ static idk_callback_status_t send_connection_report(idk_data_t * idk_ptr, idk_cc
             goto done;
         }
 
-        ptr = IDK_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
+        ptr = GET_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
         ptr += packet->length;
         memcpy(ptr, phone, length);
         packet->length += length;
@@ -473,7 +472,6 @@ static idk_callback_status_t  process_redirect(idk_data_t * idk_ptr, idk_cc_data
     uint8_t     * buf;
     uint16_t    length, prefix_len;
     char        * server_url;
-    int i;
 
     DEBUG_PRINTF("process_redirect:  redirect to new destination\n");
     /* Redirect to new destination:
@@ -490,7 +488,7 @@ static idk_callback_status_t  process_redirect(idk_data_t * idk_ptr, idk_cc_data
      * | opcode | URL count | URL 1 Length|  URL 1 | URL 2 Length |  URL 2  |
      *  --------------------------------------------------------------------
     */
-    buf = IDK_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
+    buf = GET_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
     buf++; /* skip redirect opcode */
     length = packet->length -1;
 
@@ -512,6 +510,7 @@ static idk_callback_status_t  process_redirect(idk_data_t * idk_ptr, idk_cc_data
 
     if (cc_ptr->state != cc_state_redirect_server)
     {
+        int i;
         /* Close the connection before parsing new destination url */
         status = close_server(idk_ptr);
         if (status != idk_callback_continue)
@@ -527,7 +526,7 @@ static idk_callback_status_t  process_redirect(idk_data_t * idk_ptr, idk_cc_data
             buf += sizeof url_length;
             ASSERT_GOTO(url_length < sizeof cc_ptr->server_url[i], done);
 
-            memcpy(cc_ptr->server_url[i], buf, url_length);
+            strncpy(cc_ptr->server_url[i],(const char *) buf, url_length);
             cc_ptr->server_url[i][url_length] = '\0';
             cc_ptr->state = cc_state_redirect_server;
             buf += url_length;
@@ -553,11 +552,12 @@ static idk_callback_status_t  process_redirect(idk_data_t * idk_ptr, idk_cc_data
                 server_url += prefix_len;
             }
 
-            status = connect_server(idk_ptr, server_url, IDK_MT_PORT);
+            status = connect_server(idk_ptr, server_url, EDP_MT_PORT);
             if (status == idk_callback_continue && idk_ptr->network_handle != NULL)
             {
                 cc_ptr->item++;
                 cc_ptr->report_code = cc_redirect_success;
+                idk_ptr->server_url = server_url;
                 break;
             }
             if (status != idk_callback_busy)
@@ -587,16 +587,18 @@ done:
 static idk_callback_status_t cc_process(idk_data_t * idk_ptr, idk_facility_t * fac_ptr)
 {
     idk_callback_status_t status = idk_callback_continue;
-    uint8_t opcode, * ptr;
-    idk_facility_packet_t * p;
-    idk_cc_data_t * cc_ptr = (idk_cc_data_t *)fac_ptr;
+    idk_facility_packet_t * packet = GET_FACILITY_PACKET(fac_ptr);;
+
 
     /* process incoming message from server for Connection Control facility */
 
-    if (fac_ptr->packet != NULL)
+    if (packet != NULL)
     {
-        p = (idk_facility_packet_t *)fac_ptr->packet;
-        ptr = IDK_PACKET_DATA_POINTER(p, sizeof(idk_facility_packet_t));
+        uint8_t opcode;
+        uint8_t * ptr;
+        idk_cc_data_t * cc_ptr = GET_FACILITY_POINTER(fac_ptr);
+
+        ptr = GET_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
         opcode = *ptr;
 
         if (opcode == FAC_CC_DISCONNECT)
@@ -605,25 +607,25 @@ static idk_callback_status_t cc_process(idk_data_t * idk_ptr, idk_facility_t * f
         }
         else if (opcode == FAC_CC_REDIRECT_TO_SDA)
         {
-            status = process_redirect(idk_ptr, cc_ptr, p);
+            status = process_redirect(idk_ptr, cc_ptr, packet);
         }
         else
         {
-            DEBUG_PRINTF("idk_cc_process: unsupported opcode 0x%x\b", opcode);
+            DEBUG_PRINTF("idk_cc_process: unsupported opcode %u\n", opcode);
         }
         if (status != idk_callback_busy)
         {
-            cc_ptr->facility.packet = NULL;
+            /* clear this when it's done */
+            DONE_FACILITY_PACKET(fac_ptr);
         }
     }
 
     return status;
 }
-
 static idk_callback_status_t cc_discovery(idk_data_t * idk_ptr, idk_facility_t * fac_ptr)
 {
     idk_callback_status_t status = idk_callback_continue;
-    idk_cc_data_t * cc_ptr = (idk_cc_data_t *)fac_ptr;;
+    idk_cc_data_t * cc_ptr = GET_FACILITY_POINTER(fac_ptr);
 
     /* Connection control facility needs to send redirect and
      * connection reports on discovery layer.
@@ -647,15 +649,7 @@ static idk_callback_status_t cc_discovery(idk_data_t * idk_ptr, idk_facility_t *
 
 static idk_status_t cc_delete_facility(idk_data_t * idk_ptr)
 {
-    idk_callback_status_t status = idk_callback_continue;
-    idk_cc_data_t * cc_ptr;
-
-    cc_ptr = (idk_cc_data_t *)get_facility_data(idk_ptr, E_MSG_FAC_CC_NUM);
-    if (cc_ptr != NULL)
-    {
-        status = del_facility_data(idk_ptr, E_MSG_FAC_CC_NUM);
-    }
-    return status;
+    return del_facility_data(idk_ptr, E_MSG_FAC_CC_NUM);
 }
 
 static idk_callback_status_t cc_init_facility(idk_data_t * idk_ptr)
@@ -664,20 +658,23 @@ static idk_callback_status_t cc_init_facility(idk_data_t * idk_ptr)
     idk_cc_data_t * cc_ptr;
 
     /* Add Connection control facility to IDK */
-    cc_ptr = (idk_cc_data_t *)get_facility_data(idk_ptr, E_MSG_FAC_CC_NUM);
+    cc_ptr = get_facility_data(idk_ptr, E_MSG_FAC_CC_NUM);
     if (cc_ptr == NULL)
     {
-        status = add_facility_data(idk_ptr, E_MSG_FAC_CC_NUM, (idk_facility_t **) &cc_ptr, sizeof(idk_cc_data_t), cc_discovery, cc_process);
+        void * ptr;
 
-        if (status == idk_callback_abort || cc_ptr == NULL)
+        status = add_facility_data(idk_ptr, E_MSG_FAC_CC_NUM, &ptr, sizeof(idk_cc_data_t), cc_discovery, cc_process);
+
+        if (status == idk_callback_abort || ptr == NULL)
         {
             goto done;
         }
-        cc_ptr->report_code = cc_not_redirect;
-        cc_ptr->server_url[0][0] = '\0';
-        cc_ptr->server_url[1][0] = '\0';
+        cc_ptr = (idk_cc_data_t *)ptr;
 
     }
+    cc_ptr->report_code = cc_not_redirect;
+    cc_ptr->server_url[0][0] = '\0';
+    cc_ptr->server_url[1][0] = '\0';
     cc_ptr->state = cc_state_redirect_report;
     cc_ptr->security_code = SECURITY_PROTO_NONE;
     cc_ptr->item = 0;
