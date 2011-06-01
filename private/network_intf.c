@@ -177,9 +177,9 @@ static int send_buffer(idk_data_t * idk_ptr, uint8_t * buffer, size_t length)
      *
      * timeout value is in seconds.
      */
-    write_data.timeout = (IDK_MIN(((rx_keepalive * IDK_MILLISECONDS) - (time_stamp - idk_ptr->rx_ka_time)),
-                                 ((tx_keepalive * IDK_MILLISECONDS) - (time_stamp - idk_ptr->tx_ka_time)))/
-                                 IDK_MILLISECONDS);
+    write_data.timeout = (MIN_VALUE(((rx_keepalive * MILLISECONDS_PER_SECOND) - (time_stamp - idk_ptr->rx_ka_time)),
+                                 ((tx_keepalive * MILLISECONDS_PER_SECOND) - (time_stamp - idk_ptr->tx_ka_time)))/
+                                 MILLISECONDS_PER_SECOND);
 
     write_data.buffer = buffer;
     write_data.length = length;
@@ -221,7 +221,7 @@ static idk_packet_t * get_packet_buffer(idk_data_t * idk_ptr, size_t packet_size
     {
         packet = (idk_packet_t *)idk_ptr->send_packet.buffer;
         packet->avail_length = sizeof idk_ptr->send_packet.buffer - sizeof packet->avail_length;
-        ptr = IDK_PACKET_DATA_POINTER(packet, packet_size);
+        ptr = GET_PACKET_DATA_POINTER(packet, packet_size);
     }
     *buf = ptr;
     return packet;
@@ -243,7 +243,7 @@ static idk_callback_status_t rx_keepalive_process(idk_data_t * idk_ptr)
     /* Sends rx keepalive if keepalive timing is expired. */
     rx_keepalive = *idk_ptr->rx_keepalive;
 
-    if (valid_interval_limit(idk_ptr, idk_ptr->rx_ka_time, (rx_keepalive * IDK_MILLISECONDS)))
+    if (valid_interval_limit(idk_ptr, idk_ptr->rx_ka_time, (rx_keepalive * MILLISECONDS_PER_SECOND)))
     {
         /* not expired yet. no need to send rx keepalive */
         goto done;
@@ -319,8 +319,8 @@ static int receive_data(idk_data_t * idk_ptr, uint8_t * buffer, size_t length)
     size_t  length_read, size;
     idk_request_t request_id;
 
-    tx_keepalive = *idk_ptr->tx_keepalive * IDK_MILLISECONDS;
-    rx_keepalive = *idk_ptr->rx_keepalive * IDK_MILLISECONDS;
+    tx_keepalive = *idk_ptr->tx_keepalive * MILLISECONDS_PER_SECOND;
+    rx_keepalive = *idk_ptr->rx_keepalive * MILLISECONDS_PER_SECOND;
     wait_count = *idk_ptr->wait_count;
 
     if (!idk_ptr->network_busy)
@@ -351,8 +351,8 @@ static int receive_data(idk_data_t * idk_ptr, uint8_t * buffer, size_t length)
         {
             rx_ka_time -= rx_keepalive;
         }
-        read_data.timeout = (IDK_MIN((rx_keepalive - tx_ka_time ),
-                                     (tx_keepalive- rx_ka_time))/IDK_MILLISECONDS);
+        read_data.timeout = (MIN_VALUE((rx_keepalive - tx_ka_time ),
+                                     (tx_keepalive- rx_ka_time))/MILLISECONDS_PER_SECOND);
 
         read_data.network_handle = idk_ptr->network_handle;
         read_data.buffer = buffer;
@@ -557,7 +557,7 @@ static idk_callback_status_t receive_packet(idk_data_t * idk_ptr, idk_packet_t *
                     /*
                      * Read the actual message data bytes into the packet buffer.
                      */
-                    idk_ptr->receive_packet.ptr = IDK_PACKET_DATA_POINTER(idk_ptr->receive_packet.buffer, sizeof(idk_packet_t));
+                    idk_ptr->receive_packet.ptr = GET_PACKET_DATA_POINTER(idk_ptr->receive_packet.buffer, sizeof(idk_packet_t));
                     idk_ptr->receive_packet.length = 0;
                     idk_ptr->receive_packet.total_length = idk_ptr->receive_packet.data_packet->length;
                     idk_ptr->receive_packet.index++;
@@ -645,7 +645,7 @@ static idk_callback_status_t receive_packet(idk_data_t * idk_ptr, idk_packet_t *
                 /*
                  * Read the actual message data bytes into the packet buffer.
                  */
-                idk_ptr->receive_packet.ptr = IDK_PACKET_DATA_POINTER(idk_ptr->receive_packet.buffer, sizeof(idk_packet_t));
+                idk_ptr->receive_packet.ptr = GET_PACKET_DATA_POINTER(idk_ptr->receive_packet.buffer, sizeof(idk_packet_t));
                 idk_ptr->receive_packet.length = 0;
                 idk_ptr->receive_packet.total_length = idk_ptr->receive_packet.data_packet->length;
                 idk_ptr->receive_packet.index++;
