@@ -39,8 +39,8 @@ CFLAGS += -I../public/include -Wall
 #SRCS := $(wildcard *.c)
 #OBJS := $(patsubst %.c,%.o,$(SRCS))
 
-OBJS := idk_api.o
-IDK_LIB = $(LIB)/libidk.so
+OBJS := iik_api.o
+IDK_LIB = $(LIB)/libiik.so
 
 $(OBJS): *.c *.h
 

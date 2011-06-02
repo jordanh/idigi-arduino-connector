@@ -27,11 +27,9 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "firmware.h"
 #include "idigi_data.h"
-#include "os.h"
 
-int gStatus = 0;
+#define asizeof(array)      (sizeof(array)/sizeof(array[0]))
 
 typedef struct {
     uint32_t    version;
@@ -40,26 +38,31 @@ typedef struct {
     char        * description;
 } firmware_list_t;
 
+/* list of all supported firmware target info */
 static firmware_list_t fimware_list[] = {
-        /* version     code_size     name_spec       description */
-    {0x01000000, (uint32_t)-1, "[pP][aA][rR][tT][iI][tT][iI][oO][nN]1","Partition 1 Image"},
-    {0x01000001, (uint32_t)-1, "[pP][aA][rR][tT][iI][tT][iI][oO][nN]2","Partition 2 Image"},
-    {0x01000002, (uint32_t)-1, "[pP][aA][rR][tT][iI][tT][iI][oO][nN]3","Partition 3 Image"},
-    {0x00000100, (uint32_t)-1, ".*\\.[bB][iI][nN]", "Binary Image" }   /* any *.bin */
+    /* version     code_size     name_spec          description */
+    {0x01000000, (uint32_t)-1, ".*\\.a",            "Library Image"}, /* any *.a files */
+    {0x00000100, (uint32_t)-1, ".*\\.[bB][iI][nN]", "Binary Image" }  /* any *.bin files */
 };
-static uint16_t fimware_list_count = sizeof fimware_list/sizeof fimware_list[0];
+static uint16_t fimware_list_count = asizeof(fimware_list);
+
+static bool firmware_download_started = false;
 static size_t total_image_size = 0;
 
-idk_callback_status_t firmware_download_request(idk_fw_download_request_t * download_data, idk_fw_status_t * download_status)
+static iik_callback_status_t firmware_download_request(iik_fw_download_request_t * download_data, iik_fw_status_t * download_status)
 {
-    idk_callback_status_t status = idk_callback_continue;
+    iik_callback_status_t status = iik_callback_continue;
 
-//#error "Add code to process firmware downlaod request";
-
+    /* Server requests firmware image update.*/
     if (download_data == NULL || download_status == NULL)
     {
         DEBUG_PRINTF("firmware_download_request ERROR: IDK passes incorrect parameters\n");
-        *download_status = idk_fw_download_denied;
+        *download_status = iik_fw_download_denied;
+        goto done;
+    }
+    if (firmware_download_started)
+    {
+        *download_status = iik_fw_device_error;
         goto done;
     }
 
@@ -71,18 +74,19 @@ idk_callback_status_t firmware_download_request(idk_fw_download_request_t * down
     DEBUG_PRINTF("filename = %s\n", download_data->filename);
 
     total_image_size = 0;
+    firmware_download_started = true;
 
-    *download_status = idk_fw_success;
+    *download_status = iik_fw_success;
 
 done:
     return status;
 }
 
-idk_callback_status_t firmware_image_data(idk_fw_image_data_t * image_data, idk_fw_status_t * data_status)
+static iik_callback_status_t firmware_image_data(iik_fw_image_data_t * image_data, iik_fw_status_t * data_status)
 {
-    idk_callback_status_t   status = idk_callback_continue;
+    iik_callback_status_t   status = iik_callback_continue;
 
-//#error "Add code to process fimware image data";
+    /* Server sends image data for firmware update */
     if (image_data == NULL)
     {
         DEBUG_PRINTF("firmware_image_data ERROR: IDK passes incorrect parameters\n");
@@ -96,17 +100,16 @@ idk_callback_status_t firmware_image_data(idk_fw_image_data_t * image_data, idk_
     DEBUG_PRINTF("length = %d (total = %d)\n", image_data->length, total_image_size);
 
 
-    *data_status = idk_fw_success;
+    *data_status = iik_fw_success;
 done:
     return status;
 }
 
+int gStatus = 2;
 
-idk_callback_status_t firmware_download_complete(idk_fw_download_complete_request_t * request_data, idk_fw_download_complete_response_t * response_data)
+static iik_callback_status_t firmware_download_complete(iik_fw_download_complete_request_t * request_data, iik_fw_download_complete_response_t * response_data)
 {
-    idk_callback_status_t   status = idk_callback_continue;
-
-//#error "Add code to process firmware download complete";
+    iik_callback_status_t   status = iik_callback_continue;
 
     if (request_data == NULL || response_data == NULL)
     {
@@ -114,23 +117,14 @@ idk_callback_status_t firmware_download_complete(idk_fw_download_complete_reques
         goto done;
     }
 
+    /* Server is done sending all image data and asks application
+     * to complete firmware update.
+     */
     DEBUG_PRINTF("target = %d\n", request_data->target);
     DEBUG_PRINTF("code size = %d\n", request_data->code_size);
     DEBUG_PRINTF("checksum = 0x%x\n", (unsigned)request_data->checksum);
 
-    printf("timeout = %u\n", request_data->timeout);
-    usleep(request_data->timeout * 1000 * 1000);
-
-    if (gStatus < 1)
-    {
-        status = idk_callback_busy;
-        gStatus++;
-    }
-    else
-        gStatus = 0;
-
-
-    response_data->status = idk_fw_download_success;
+    response_data->status = iik_fw_download_success;
 
     /* Server currently use calculated checksum field for write status.
      * 0 means no error.
@@ -143,16 +137,17 @@ idk_callback_status_t firmware_download_complete(idk_fw_download_complete_reques
                       request_data->code_size, total_image_size);
     }
 
+    firmware_download_started = false;
+
 done:
     return status;
 }
 
-idk_callback_status_t firmware_download_abort(idk_fw_download_abort_t * abort_data)
+static iik_callback_status_t firmware_download_abort(iik_fw_download_abort_t * abort_data)
 {
-    idk_callback_status_t   status = idk_callback_continue;;
+    iik_callback_status_t   status = iik_callback_continue;
 
-//#error "Add code to handle firmware download abort";
-
+    /* Server is aborting firmware update */
     DEBUG_PRINTF("firmware_download_abort\n");
     if (abort_data == NULL)
     {
@@ -164,103 +159,82 @@ done:
     return status;
 }
 
-idk_callback_status_t firmware_reset(idk_fw_config_t * reset_data)
+static iik_callback_status_t firmware_reset(iik_fw_config_t * reset_data)
 {
-    idk_callback_status_t   status = idk_callback_continue;;
+    iik_callback_status_t   status = iik_callback_continue;
 
-//#error "Add code to do firmware reset";
+    /* Server requests firmware reboot */
     DEBUG_PRINTF("firmware_reset\n");
 
     return status;
 }
 
-idk_callback_status_t idigi_firmware_callback(idk_firmware_request_t request,
+iik_callback_status_t idigi_firmware_callback(iik_firmware_request_t request,
                                                   void const * request_data, size_t request_length,
                                                   void * response_data, size_t * response_length)
 {
-    idk_callback_status_t status = idk_callback_continue;
-    idk_fw_config_t * config = (idk_fw_config_t *)request_data;;
+    iik_callback_status_t status = iik_callback_continue;
+    iik_fw_config_t * config = (iik_fw_config_t *)request_data;
+
 
     switch (request)
     {
-    case idk_firmware_target_count:
+    case iik_firmware_target_count:
     {
-        uint16_t * value = (uint16_t *)response_data;
-//#error "specify number of targets"
-        *value = fimware_list_count;
+        uint16_t * count = (uint16_t *)response_data;
+        /* return total number of firmware update targets */
+        *count = fimware_list_count;
         break;
     }
-    case idk_firmware_version:
-//#error "Return firmware version";
-        if (config->target < fimware_list_count)
-        {
-            uint32_t * version = (uint32_t *)response_data;
-            *version = fimware_list[config->target].version;
-        }
-        else
-        {
-            DEBUG_PRINTF("idigi_firmware_callback: invalid target %d\n", config->target);
-        }
+    case iik_firmware_version:
+    {
+        uint32_t * version = (uint32_t *)response_data;
+        /* return the target version number */
+        *version = fimware_list[config->target].version;
+        break;
+    }
+    case iik_firmware_code_size:
+    {
+        /* Return the target code size */
+        uint32_t * code_size = (uint32_t *)response_data;
+        *code_size = fimware_list[config->target].code_size;
+        break;
+    }
+    case iik_firmware_description:
+    {
+        /* return pointer to firmware target description */
+        char ** description = (char **)response_data;
+        *description = fimware_list[config->target].description;
+        *response_length = strlen(fimware_list[config->target].description);
+       break;
+    }
+    case iik_firmware_name_spec:
+    {
+        /* return pointer to firmware target description */
+        char ** name_spec = (char **)response_data;
+        *name_spec = fimware_list[config->target].name_spec;
+        *response_length = strlen(fimware_list[config->target].name_spec);
+        break;
+    }
+    case iik_firmware_download_request:
+        status = firmware_download_request((iik_fw_download_request_t *)request_data, (iik_fw_status_t *)response_data);
         break;
 
-    case idk_firmware_code_size:
-//#error "Return firmware code size";
-        if (config->target < fimware_list_count)
-        {
-            uint32_t * code_size = (uint32_t *)response_data;
-            * code_size = fimware_list[config->target].code_size;
-        }
-        else
-        {
-            DEBUG_PRINTF("idigi_firmware_callback: invalid target %d\n", config->target);
-        }
+    case iik_firmware_binary_block:
+        status =  firmware_image_data((iik_fw_image_data_t *) request_data, (iik_fw_status_t *)response_data);
         break;
 
-    case idk_firmware_description:
-//#error "return firmware description";
-        if (config->target < fimware_list_count)
-        {
-            char ** desc = (char **)response_data;
-            *desc = fimware_list[config->target].description;
-            *response_length = strlen(fimware_list[config->target].description);
-        }
-        else
-        {
-            DEBUG_PRINTF("idigi_firmware_callback: invalid target %d\n", config->target);
-        }
-        break;
-    case idk_firmware_name_spec:
-//#error "return firmware file name spec";
-        if (config->target < fimware_list_count)
-        {
-            char ** spec = (char **)response_data;
-            * spec =  fimware_list[config->target].name_spec;
-            *response_length = strlen(fimware_list[config->target].name_spec);
-        }
-        else
-        {
-            DEBUG_PRINTF("idigi_firmware_callback: invalid target %d\n", config->target);
-        }
-        break;
-    case idk_firmware_download_request:
-        status = firmware_download_request((idk_fw_download_request_t *)request_data, (idk_fw_status_t *)response_data);
+    case iik_firmware_download_complete:
+        status =  firmware_download_complete((iik_fw_download_complete_request_t *) request_data,
+                                             (iik_fw_download_complete_response_t *) response_data);
         break;
 
-    case idk_firmware_binary_block:
-        status =  firmware_image_data((idk_fw_image_data_t *) request_data, (idk_fw_status_t *)response_data);
+    case iik_firmware_download_abort:
+        status =  firmware_download_abort((iik_fw_download_abort_t *) request_data);
         break;
 
-    case idk_firmware_download_complete:
-        status =  firmware_download_complete((idk_fw_download_complete_request_t *) request_data,
-                                                                   (idk_fw_download_complete_response_t *) response_data);
-
-        break;
-    case idk_firmware_download_abort:
-        status =  firmware_download_abort((idk_fw_download_abort_t *) request_data);
-        break;
-
-    case idk_firmware_target_reset:
-        status =  firmware_reset((idk_fw_config_t *) request_data);
+    case iik_firmware_target_reset:
+        status =  firmware_reset((iik_fw_config_t *) request_data);
         break;
     }
 
