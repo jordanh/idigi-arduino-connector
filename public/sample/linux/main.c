@@ -26,408 +26,33 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#include <errno.h>
-#include <sys/ioctl.h>
-#include <net/if.h>
-#include <unistd.h>
-
-#include <malloc.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-
-#include <arpa/inet.h>
-#include <pthread.h>
 
 #include "idigi_data.h"
-#include "os.h"
-#include "network.h"
-#include "firmware.h"
 
-uint8_t phone_number[] = {8,8,8,5,5,5,1,0,0,0};
+/* If set, IDK will start as a separated thread calling iik_run */
+#define IIK_THREAD  0
 
-bool gAbort = false;
-idigi_data_t iDigiSetting = {
-    /* device id */
-    {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
-     /* vendor id */
-    {0x01, 0x00, 0x00, 0x43},
-
-    /* tx keepalive */
-    30,
-    /* rx keepalive */
-    30,
-    /* wait count */
-    3,
-
-    /* device type */
-    "Linux Application",
-
-    /* server_url */
-    "test.idigi.com\0",
-//    "10.52.18.85",
-
-    /* password */
-    NULL,
-
-    /* phone number */
-    phone_number,
-    /* link speed */
-    19200,
-
-    /* connection type */
-    idk_lan_connection_type,
-
-    /* mac address */
-    {0x78, 0xE7, 0xD1, 0x84, 0x47, 0x82},
-
-    /* ip address */
-    0,
-
-    /* idk handle  (application) */
-   NULL,
-
-    /* socket fd */
-    -1,
-
-    /* select data */
-    0
-};
-
-time_t  gSystemTime;
+time_t  deviceSystemUpStartTime;
 
 
-#define REDIRECT_SUCCESSFUL_MESSAGE "Redirect"
-#define REDIRECT_ERROR_MESSAGE      "Error in redirect"
-
-static int get_device_address(struct in_addr * eth_addr)
-{
-    int             sock = -1;
-    char            * buf = malloc(128* sizeof(struct ifreq));
-    struct ifconf   conf;
-    unsigned int    entries = 0;
-    int             i;
-    int             rc = -1;
-
-    if (buf == NULL)
-    {
-        goto done;
-    }
-    conf.ifc_len = 128*sizeof(struct ifreq);
-    conf.ifc_buf = buf;
-
-    sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if(-1 == sock){
-        perror("socket");
-        goto done;
-    }
-
-    if( ioctl(sock,SIOCGIFCONF , &conf) == -1)
-    {
-        DEBUG_PRINTF("Error using ioctl SIOCGIFCONF.\n");
-        goto done;
-    }
-
-    entries = conf.ifc_len / sizeof(struct ifreq);
-
-    DEBUG_PRINTF("Looking current device IP address: found %d entries\n", entries);
-
-    for( i = 0; i<entries; i++)
-    {
-        struct ifreq * req = &conf.ifc_req[i];
-        struct sockaddr_in * sa = (struct sockaddr_in *) &req->ifr_addr;
-
-        DEBUG_PRINTF("%d: %s, IP: %s\n", i+1, req->ifr_name, inet_ntoa(sa->sin_addr));
-        if (sa->sin_addr.s_addr != htonl(INADDR_LOOPBACK))
-        {
-            *eth_addr = sa->sin_addr;
-            break;
-        }
-    }
-
-    rc = 0;
-
-done:
-    if (sock != -1)
-    {
-        close(sock);
-    }
-    if (buf != NULL)
-    {
-        free(buf);
-    }
-    return rc;
-}
-
-idk_callback_status_t idigi_error_status(idk_error_status_t * error_data)
-{
-
-    idk_callback_status_t   status = idk_callback_abort;
-    char const * error_status_string[] = {"idk_success", "idk_init_error",
-                                                       "idk_configuration_error",
-                                                       "idk_invalid_data_size",
-                                                      "idk_invalid_data_range", "idk_invalid_payload_packet",
-                                                      "idk_keepalive_error", "idk_server_overload",
-                                                      "idk_bad_version", "idk_invalid_packet",
-                                                      "idk_exceed_timeout", "idk_unsupported_security",
-                                                      "idk_invalid_data", "idk_server_disconnected",
-                                                       "idk_connect_error", "idk_receive_error",
-                                                      "idk_send_error", "idk_close_error",
-                                                      "idk_device_terminated"};
-
-    char const * base_request_string[] = { "idk_base_device_id", "idk_base_vendor_id",
-                                                         "idk_base_device_type", "idk_base_server_url",
-                                                         "idk_base_password", "idk_base_connection_type",
-                                                         "idk_base_mac_addr", "idk_base_link_speed",
-                                                         "idk_base_phone_number", "idk_base_tx_keepalive",
-                                                         "idk_base_rx_keepalive", "idk_base_wait_count",
-                                                         "idk_base_ip_addr", "idk_base_error_status",
-                                                         "idk_base_disconnected", "idk_base_connect",
-                                                         "idk_base_send", "idk_base_receive",
-                                                         "idk_base_close", "idk_base_malloc",
-                                                         "idk_base_free", "idk_base_system_time",
-                                                         "idk_base_firmware_facility" };
-    char const * firmware_request_string[] = {"idk_firmware_target_count", "idk_firmware_version",
-                                                              "idk_firmware_code_size", "idk_firmware_description",
-                                                              "idk_firmware_name_spec", "idk_firmware_download_request",
-                                                              "idk_firmware_binary_block", "idk_firmware_download_complete",
-                                                              "idk_firmware_download_abort", "idk_firmware_target_reset"};
-
-
-
-    switch (error_data->class)
-    {
-    case idk_class_base:
-        DEBUG_PRINTF("idigi_error_status: BASE - %s (%d)  status = %s (%d)\n", base_request_string[error_data->request.base_request], error_data->request.base_request,
-                                   error_status_string[error_data->status],error_data->status);
-        break;
-    case idk_class_firmware:
-        DEBUG_PRINTF("idigi_error_status: Firmware facility - %s (%d)  status = %s (%d)\n", firmware_request_string[error_data->request.firmware_request], error_data->request.firmware_request,
-                                   error_status_string[error_data->status],error_data->status);
-        break;
-    default:
-        DEBUG_PRINTF("idigi_error_status: unsupport class = %d status = %d\n", error_data->class, error_data->status);
-        break;
-    }
-    return status;
-}
-int run_count = 0;
-
-idk_callback_status_t idigi_base_callback(idk_base_request_t request,
-                                                  void const * request_data, size_t request_length,
-                                                  void * response_data, size_t * response_length)
-{
-    idk_callback_status_t status = idk_callback_continue;
-
-    switch (request)
-    {
-    case idk_base_device_id:
-    {
-        uint8_t ** data = (uint8_t **) response_data;
-
-//#error  "Must specify device id";
-        iDigiSetting.device_id[8] = iDigiSetting.mac_addr[0];
-        iDigiSetting.device_id[9] = iDigiSetting.mac_addr[1];
-        iDigiSetting.device_id[10] = iDigiSetting.mac_addr[2];
-        iDigiSetting.device_id[11] = 0xFF;
-        iDigiSetting.device_id[12] = 0xFF;
-        iDigiSetting.device_id[13] = iDigiSetting.mac_addr[3];
-        iDigiSetting.device_id[14] = iDigiSetting.mac_addr[4];
-        iDigiSetting.device_id[15] = iDigiSetting.mac_addr[5];
-        *data = (uint8_t *)iDigiSetting.device_id;
-        *response_length = sizeof iDigiSetting.device_id;
-        break;
-    }
-
-    case idk_base_vendor_id:
-    {
-        uint8_t ** data = (uint8_t **) response_data;
-
-//#error "Must specify vendor id";
-        *data = (uint8_t *)iDigiSetting.vendor_id;
-        *response_length = sizeof iDigiSetting.vendor_id;
-        break;
-    }
-
-    case idk_base_device_type:
-    {
-        char ** data = (char **) response_data;
-//#error "Specify device type";
-        * data = (char *)iDigiSetting.device_type;
-        *response_length = strlen(iDigiSetting.device_type);
-         break;
-    }
-
-    case idk_base_server_url:
-    {
-        char ** data = (char **) response_data;
-//#error "Specify iDigi server url";
-        *data = (char *)iDigiSetting.server_url;
-        *response_length = strlen(iDigiSetting.server_url);
-        break;
-    }
-    case idk_base_password:
-    {
-        char ** data = (char **) response_data;
-//#error "Specify password for identity verification";
-        *data = (char *)iDigiSetting.password;
-        if (iDigiSetting.password != NULL)
-        {
-            *response_length = strlen(iDigiSetting.password);
-        }
-        break;
-    }
-        ;
-    case idk_base_connection_type:
-    {
-        idk_connection_type_t  ** data = (idk_connection_type_t **) response_data;
-
-//#error "Specify LAN or WAN connection type";
-        *data = (idk_connection_type_t *)&iDigiSetting.connection_type;
-        break;
-    };
-
-    case idk_base_mac_addr:
-    {
-        uint8_t ** data = (uint8_t **) response_data;
-//#error "Specify device MAC address for LAN connection type";
-        *data = (uint8_t *)iDigiSetting.mac_addr;
-        *response_length = sizeof iDigiSetting.mac_addr;
-        break;
-    }
-
-    case idk_base_link_speed:
-    {
-        uint32_t ** data = (uint32_t **) response_data;
-//#error "Specify LINK SPEED for WAN connection type";
-        *data = (uint32_t *)&iDigiSetting.link_speed;
-        *response_length = sizeof iDigiSetting.link_speed;
-        break;
-    }
-    case idk_base_phone_number:
-    {
-        uint8_t ** data = (uint8_t **) response_data;
-//#error "Specify phone number dialed for WAN connection type";
-        *data = (uint8_t *)iDigiSetting.phone_number;
-        if (iDigiSetting.phone_number != NULL)
-        {
-            *response_length = sizeof phone_number;
-        }
-        if (run_count == 0)
-        {
-            status = idk_callback_busy;
-            run_count++;
-        }
-        break;
-    }
-    case idk_base_tx_keepalive:
-    {
-        uint16_t ** data = (uint16_t **) response_data;
-//#error "Specify TX keepalive interval in seconds";
-        *data = (uint16_t *)&iDigiSetting.tx_keepalive;
-        *response_length = sizeof iDigiSetting.tx_keepalive;
-        break;
-    }
-    case idk_base_rx_keepalive:
-    {
-        uint16_t ** data = (uint16_t **) response_data;
-
-//#error "Specify RX keepalive interval in seconds";
-        *data = (uint16_t *)&iDigiSetting.rx_keepalive;
-        *response_length = sizeof iDigiSetting.rx_keepalive;
-        break;
-    }
-
-    case idk_base_wait_count:
-    {
-        uint8_t ** data = (uint8_t **) response_data;
-
-//#error "Specify wait count for not receiving TX keepalive";
-        *data = (uint8_t *)&iDigiSetting.wait_count;
-        *response_length = sizeof iDigiSetting.wait_count;
-        break;
-    }
-
-    case idk_base_ip_addr:
-    {
-        uint8_t ** data = (uint8_t **) response_data;
-
-//#error "Specify Device IP address. Return the response_length to4-byte for IPv4 or 16-byte for IPv6";
-        *data = (uint8_t *)&iDigiSetting.ip_addr;
-        *response_length = sizeof iDigiSetting.ip_addr;
-}
-        break;
-    case idk_base_error_status:
-        if (request_length != sizeof(idk_error_status_t))
-        {
-            DEBUG_PRINTF("idigi_base_callback: given incompatible idk_base_error_status size\n");
-        }
-        else
-        {
-            status = idigi_error_status((idk_error_status_t *)request_data);
-        }
-        break;
-
-    case idk_base_disconnected:
-//#error "Disconnect server"
-//        iDigiSetting.socket_fd = -1;
-        printf("main: socket = %d\n", iDigiSetting.socket_fd);
-        break;
-    case idk_base_connect:
-        status = network_connect((idk_connect_request_t *)request_data);
-        if (status == idk_callback_continue)
-        {
-            idk_network_handle_t ** data = (idk_network_handle_t **)response_data;
-            *data = (idk_network_handle_t *)&iDigiSetting.socket_fd;
-            *response_length = sizeof iDigiSetting.socket_fd;
-        }
-        break;
-    case idk_base_send:
-        status = network_send((idk_write_request_t *)request_data, (size_t *)response_data);
-        break;
-    case idk_base_receive:
-        status = network_receive((idk_read_request_t *)request_data, (size_t *)response_data);
-        break;
-
-    case idk_base_close:
-        status = network_close((idk_network_handle_t *)request_data);
-        break;
-
-    case idk_base_malloc:
-        status = os_malloc(*((size_t *)request_data), (void **)response_data);
-        break;
-
-    case idk_base_free:
-        status = os_free((void *)request_data);
-        break;
-
-    case idk_base_system_time:
-        status = os_get_system_time((uint32_t *)response_data);
-        break;
-
-    case idk_base_firmware_facility:
-        *((bool *)response_data)= true;
-
-        break;
-    }
-
-    return status;
-}
-
-
-idk_callback_status_t idigi_callback(idk_class_t class, idk_request_t request,
+iik_callback_status_t idigi_callback(iik_class_t class, iik_request_t request,
                                     void const * request_data, size_t request_length,
                                     void * response_data, size_t * response_length)
 {
-    idk_callback_status_t   status = idk_callback_continue;
+    iik_callback_status_t   status = iik_callback_continue;
 
     switch (class)
     {
-    case idk_class_base:
-        status = idigi_base_callback(request.base_request, request_data, request_length, response_data, response_length);
+    case iik_class_config:
+        status = idigi_config_callback(request.config_request, request_data, request_length, response_data, response_length);
         break;
-    case idk_class_firmware:
+    case iik_class_operating_system:
+        status = idigi_os_callback(request.os_request, request_data, request_length, response_data, response_length);
+        break;
+    case iik_class_network:
+        status = idigi_network_callback(request.network_request, request_data, request_length, response_data, response_length);
+        break;
+    case iik_class_firmware:
         status = idigi_firmware_callback(request.firmware_request, request_data, request_length, response_data, response_length);
         break;
     default:
@@ -438,35 +63,75 @@ idk_callback_status_t idigi_callback(idk_class_t class, idk_request_t request,
 }
 
 
-#if 1
+#if IIK_THREAD
+
+#include <pthread.h>
+
+void * iik_process_thread(void * arg)
+{
+    iik_status_t status;
+
+    printf("IDK Process thread starts...\n");
+
+    status = iik_run((iik_handle_t)arg);
+
+    printf("IDK process thread exits... %d\n", status);
+
+    pthread_exit(arg);
+
+}
+
 int main (void)
 {
-    idk_status_t status = idk_success;
-    struct in_addr  ip_addr;
+    pthread_t   iik_thread;
+    void * idkdone;
 
-    time(&gSystemTime);
+    time(&deviceSystemUpStartTime);
 
-    if (get_device_address(&ip_addr) < 0)
-    {
-         DEBUG_PRINTF("main: unable to get device ip address\n");
-         goto done;
-    }
-
-    /* IPv4 address */
-    iDigiSetting.ip_addr = (uint32_t)ip_addr.s_addr;
-
-    iDigiSetting.idk_handle = idk_init((idk_callback_t) idigi_callback);
-    if (iDigiSetting.idk_handle != 0)
+    iDigiSetting.iik_handle = iik_init((iik_callback_t) idigi_callback);
+    if (iDigiSetting.iik_handle != 0)
     {
 
-        while (status == idk_success)
+        if (pthread_create(&iik_thread, NULL, iik_process_thread, iDigiSetting.iik_handle) != 0)
         {
-            status = idk_step(iDigiSetting.idk_handle);
+            perror("thread_create() error on iik_process_thread");
+            goto done;
+        }
+
+        if (pthread_join(iik_thread, &idkdone) != 0)
+        {
+            perror("thread_join() error on my_process_thread");
+            goto done;
+        }
+    }
+    else
+    {
+        printf("unable to initialize IDK\n");
+    }
+done:
+    return 0;
+}
+#else
+
+int main (void)
+{
+    iik_status_t status = iik_success;
+
+    time(&deviceSystemUpStartTime);
+
+
+    iDigiSetting.iik_handle = iik_init((iik_callback_t) idigi_callback);
+    if (iDigiSetting.iik_handle != 0)
+    {
+
+        while (status == iik_success)
+        {
+            status = iik_step(iDigiSetting.iik_handle);
             iDigiSetting.select_data = 0;
 
-            if (status != idk_success)
+            if (status != iik_success)
             {
-                printf("main: idk_task returns error %d\n", status);
+                printf("main: iik_task returns error %d\n", status);
             }
             else
             {
@@ -479,63 +144,6 @@ int main (void)
     {
         printf("unable to initialize IDK\n");
     }
-done:
-    return 0;
-}
-
-#else
-void * idk_process_thread(void * arg)
-{
-    idk_status_t status;
-
-    printf("IDK Process thread starts...\n");
-
-    status = idk_run((idk_handle_t)arg);
-
-    printf("IDK process thread exits... %d\n", status);
-
-    pthread_exit(arg);
-
-}
-
-int main (void)
-{
-    struct in_addr  ip_addr;
-    pthread_t   idk_thread;
-    void * idkdone;
-
-    time(&gSystemTime);
-
-    if (get_device_address(&ip_addr) < 0)
-    {
-         DEBUG_PRINTF("main: unable to get device ip address\n");
-         goto done;
-    }
-
-    /* IPv4 address */
-    iDigiSetting.ip_addr = (uint32_t)ip_addr.s_addr;
-
-    iDigiSetting.idk_handle = idk_init((idk_callback_t) idigi_callback);
-    if (iDigiSetting.idk_handle != 0)
-    {
-
-        if (pthread_create(&idk_thread, NULL, idk_process_thread, iDigiSetting.idk_handle) != 0)
-        {
-            perror("thread_create() error on idk_process_thread");
-            goto done;
-        }
-
-        if (pthread_join(idk_thread, &idkdone) != 0)
-        {
-            perror("thread_join() error on my_process_thread");
-            goto done;
-        }
-    }
-    else
-    {
-        printf("unable to initialize IDK\n");
-    }
-done:
     return 0;
 }
 
