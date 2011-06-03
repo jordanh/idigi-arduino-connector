@@ -26,10 +26,10 @@
 #define RCI_NO_REPLY_REQUESTED_FLAG 0x00
 
 static char const * no_query_state_response = "<rci_replay version=\"1.1\"> <query_state/> </rci_reply>";
-static idk_status_t rci_process_function(idk_data_t * idk_ptr, idk_facility_t * fac_ptr, idk_facility_packet_t * packet)
+static iik_status_t rci_process_function(iik_data_t * iik_ptr, iik_facility_t * fac_ptr, iik_facility_packet_t * packet)
 {
-    idk_status_t rc = idk_success;
-    idk_facility_packet_t   * send_packet;
+    iik_status_t rc = iik_success;
+    iik_facility_packet_t   * send_packet;
     uint8_t             * buf, * data_ptr;
     uint32_t            length;
 
@@ -38,7 +38,7 @@ static idk_status_t rci_process_function(idk_data_t * idk_ptr, idk_facility_t * 
 
     DEBUG_PRINTF("rci_process_function: fake response\n");
 
-    send_packet =(idk_facility_packet_t *) get_packet_buffer(idk_ptr, sizeof(idk_facility_packet_t), &buf);
+    send_packet =(iik_facility_packet_t *) get_packet_buffer(iik_ptr, sizeof(iik_facility_packet_t), &buf);
     if (send_packet == NULL)
     {
         goto done;
@@ -55,7 +55,7 @@ static idk_status_t rci_process_function(idk_data_t * idk_ptr, idk_facility_t * 
     buf += strlen(no_query_state_response);
     send_packet->length = buf - data_ptr;
 
-    rc = enable_facility_packet(idk_ptr, E_MSG_FAC_RCI_NUM, SECURITY_PROTO_NONE);
+    rc = enable_facility_packet(iik_ptr, E_MSG_FAC_RCI_NUM, SECURITY_PROTO_NONE);
 done:
     return rc;
 }

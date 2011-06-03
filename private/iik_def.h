@@ -23,16 +23,10 @@
  *
  */
 
-#ifndef IDK_DEF_H_
-#define IDK_DEF_H_
+#ifndef IIK_DEF_H_
+#define IIK_DEF_H_
 
 #include "ei_packet.h"
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 
 #define ON_FALSE_DO_(cond, code)        do { if (!(cond)) {code;} } while (0)
 
@@ -47,32 +41,39 @@ extern "C"
 
 #define UNUSED_PARAMETER(x)     ((void)x)
 
-#define IDK_MT_VERSION           2
-#define IDK_MT_PORT              3197
-#define IDK_MSG_MAX_PACKET_SIZE 1600
+#define EDP_MT_VERSION           2
+#define EDP_MT_PORT              3197
+#define MSG_MAX_PACKET_SIZE 1600
 
-#define IDK_DEVICE_TYPE_LENGTH  32
-#define IDK_DEVICE_ID_LENGTH    16
-#define IDK_VENDOR_ID_LENGTH    4
-#define IDK_SERVER_URL_LENGTH   255
-#define IDK_MAC_ADDR_LENGTH     6
-#define IDK_LINK_SPEED_LENGTH   4
+#define DEVICE_TYPE_LENGTH  32
+#define DEVICE_ID_LENGTH    16
+#define VENDOR_ID_LENGTH    4
+#define SERVER_URL_LENGTH   255
+#define MAC_ADDR_LENGTH     6
 
-#define IDK_RX_INTERVAL_MIN     5
-#define IDK_RX_INTERVAL_MAX     7200
-#define IDK_TX_INTERVAL_MIN     5
-#define IDK_TX_INTERVAL_MAX     7200
-#define IDK_WAIT_COUNT_MIN      2
-#define IDK_WAIT_COUNT_MAX      64
+/* these are limits for Tx and Rx keepalive
+ * interval in seconds.
+ */
+#define MIN_RX_KEEPALIVE_INTERVAL_PER_SECOND     5
+#define MAX_RX_KEEPALIVE_INTERVAL_PER_SECOND     7200
+#define MIN_TX_KEEPALIVE_INTERVAL_PER_SECOND     5
+#define MAX_TX_KEEPALIVE_INTERVAL_PER_SECOND     7200
+/* Limits for wait count (number of
+ * keepalive packets)
+ */
+#define WAIT_COUNT_MIN      2
+#define WAIT_COUNT_MAX      64
 
-#define IDK_MIN(x,y)        (((x) < (y))? (x): (y))
-#define IDK_MAX(x,y)        (((x) > (y))? (x): (y))
-#define IDK_MILLISECONDS            1000
+#define MIN_VALUE(x,y)        (((x) < (y))? (x): (y))
+#define MAX_VALUE(x,y)        (((x) > (y))? (x): (y))
+#define MILLISECONDS_PER_SECOND            1000
 
 #define URL_PREFIX  "en://"
-#define IDK_IS_SELECT_SET(x, y)        (x & y)
-#define IDK_PACKET_DATA_POINTER(p, s)  (uint8_t *)((uint8_t *)p + s)
-#define IDK_SEND_PENDING(idk_ptr)	(idk_ptr->edp_connected && idk_ptr->send_packet.total_length > 0)
+#define GET_PACKET_DATA_POINTER(p, s)  (uint8_t *)(((uint8_t *)p) + (s))
+#define IS_SEND_PENDING(iik_ptr)       (iik_ptr->edp_connected && iik_ptr->send_packet.total_length > 0)
+#define GET_FACILITY_POINTER(fac_ptr)   (fac_ptr->facility_data)
+#define GET_FACILITY_PACKET(fac_ptr)    (fac_ptr->packet)
+#define DONE_FACILITY_PACKET(fac_ptr)   (fac_ptr->packet = NULL)
 
 #define asizeof(array)  (sizeof array/sizeof array[0])
 
@@ -84,34 +85,35 @@ typedef enum {
     edp_security_layer,
     edp_discovery_layer,
     edp_facility_layer
-} idk_edp_state_t;
+} iik_edp_state_t;
 
 
 typedef enum {
-    idk_device_started,
-    idk_device_stop,
-    idk_device_terminate
-} idk_active_state_t;
+    iik_device_started,
+    iik_device_stop,
+    iik_device_terminate
+} iik_active_state_t;
 
-struct idk_data;
-struct idk_facility;
+struct iik_data;
+struct iik_facility;
 
-typedef idk_callback_status_t (* idk_facility_process_cb_t )(struct idk_data * idk_ptr, struct idk_facility * fac_ptr);
+typedef iik_callback_status_t (* iik_facility_process_cb_t )(struct iik_data * iik_ptr, struct iik_facility * fac_ptr);
 
-typedef struct idk_facility {
+typedef struct iik_facility {
     uint16_t facility_num;
     size_t size;
-    idk_facility_process_cb_t discovery_cb;
-    idk_facility_process_cb_t process_cb;
-    idk_facility_packet_t * packet;
-    uint8_t buffer[IDK_MSG_MAX_PACKET_SIZE];
-    struct idk_facility * next;
-} idk_facility_t;
+    iik_facility_process_cb_t discovery_cb;
+    iik_facility_process_cb_t process_cb;
+    iik_facility_packet_t * packet;
+    uint8_t buffer[MSG_MAX_PACKET_SIZE];
+    struct iik_facility * next;
+    void * facility_data;
+} iik_facility_t;
 
-typedef struct idk_data {
-    idk_active_state_t active_state;
+typedef struct iik_data {
+    iik_active_state_t active_state;
 
-    idk_callback_t callback;
+    iik_callback_t callback;
 
     uint8_t * device_id;
     uint8_t * vendor_id;
@@ -121,7 +123,7 @@ typedef struct idk_data {
     int  request_id;
 
     uint16_t facilities;
-    idk_network_handle_t * network_handle;
+    iik_network_handle_t * network_handle;
 
     uint16_t    * tx_keepalive;
     uint16_t    * rx_keepalive;
@@ -132,18 +134,18 @@ typedef struct idk_data {
 
     uint8_t security_form;
 
-   idk_edp_state_t edp_state;
+   iik_edp_state_t edp_state;
    unsigned layer_state;
-   idk_status_t error_code;
+   iik_status_t error_code;
    bool network_busy;
    bool edp_connected;
 
-   idk_facility_t * active_facility;
-   idk_facility_t * facility_list;
+   iik_facility_t * active_facility;
+   iik_facility_t * facility_list;
 
-   idk_packet_t     rx_keepalive_packet;
+   iik_packet_t     rx_keepalive_packet;
    struct {
-        uint8_t buffer[IDK_MSG_MAX_PACKET_SIZE];
+        uint8_t buffer[MSG_MAX_PACKET_SIZE];
         uint8_t * ptr;
         size_t length;
         size_t total_length;
@@ -151,22 +153,15 @@ typedef struct idk_data {
 
     struct {
         int index;
-        uint8_t buffer[IDK_MSG_MAX_PACKET_SIZE];
+        uint8_t buffer[MSG_MAX_PACKET_SIZE];
         uint8_t * ptr;
         uint16_t    packet_type;
         uint16_t    packet_length;
         size_t length;
         size_t total_length;
-        idk_packet_t * data_packet;
+        iik_packet_t * data_packet;
     } receive_packet;
 
-} idk_data_t;
+} iik_data_t;
 
-
-
-#ifdef __cplusplus
-extern "C"
-}
-#endif
-
-#endif /* IDK_DEF_H_ */
+#endif /* IIK_DEF_H_ */

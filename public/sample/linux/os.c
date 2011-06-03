@@ -25,43 +25,60 @@
 #include <malloc.h>
 #include <time.h>
 #include <unistd.h>
-#include "os.h"
+#include "idigi_data.h"
 
 
-idk_callback_status_t os_malloc(size_t size, void ** ptr)
+static iik_callback_status_t os_malloc(size_t size, void ** ptr)
 {
-    idk_callback_status_t rc = idk_callback_continue;
-#error "Add code for allocate memory";
-	*ptr = malloc(size);
-	if (*ptr == NULL)
-	{
-	    rc = idk_callback_busy;
-	}
-	return rc;
+    iik_callback_status_t rc = iik_callback_continue;
+    *ptr = malloc(size);
+    if (*ptr == NULL)
+    {
+        rc = iik_callback_busy;
+    }
+    return rc;
 }
 
-idk_callback_status_t os_free(void * ptr)
+static iik_callback_status_t os_free(void * ptr)
 {
-/#error "Add code to free allocated memory";
-	free(ptr);
-	return idk_callback_continue;
+    free(ptr);
+    return iik_callback_continue;
 }
 
- clock_t gSysTime = 0;
 
-idk_callback_status_t os_get_system_time(uint32_t * mstime)
+static iik_callback_status_t os_get_system_time(uint32_t * mstime)
 {
-#error "Add code to return system time in milliseconds";
-    extern time_t gSystemTime;
+    time_t      curtime;
 
-	time_t      curtime;
+    time(&curtime);
 
-	time(&curtime);
+    *mstime = (uint32_t)(curtime - deviceSystemUpStartTime) * 1000;
 
-	*mstime = (uint32_t)(curtime - gSystemTime) * 1000;
-
-	return idk_callback_continue;
+    return iik_callback_continue;
 }
 
+iik_callback_status_t idigi_os_callback(iik_os_request_t request,
+                                        void const * request_data, size_t request_length,
+                                        void * response_data, size_t * response_length)
+{
+    iik_callback_status_t status = iik_callback_continue;
+
+    switch (request)
+    {
+    case iik_os_malloc:
+        status = os_malloc(*((size_t *)request_data), (void **)response_data);
+        break;
+
+    case iik_os_free:
+        status = os_free((void *)request_data);
+        break;
+
+    case iik_os_system_up_time:
+        status = os_get_system_time((uint32_t *)response_data);
+        break;
+    }
+
+    return status;
+}
 
 

@@ -26,10 +26,6 @@
 #ifndef BELE_H_
 #define BELE_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*
  *  Byte-extraction/creation macros
  *
@@ -239,8 +235,4 @@ extern void WE16cpy(void *dst, void *src, int n);
 #define LoadWE32(array)    \
     (LoadNative16((array)) | LoadNative16((array)+2) << 16)
 
-
-#ifdef __cplusplus
-}
-#endif
 #endif /* BELE_H_ */

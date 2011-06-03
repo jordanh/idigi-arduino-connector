@@ -22,22 +22,26 @@
  * =======================================================================
  *
  */
-#ifndef EH_OS_H_
-#define EH_OS_H_
 
-#include "idk_api.h"
+#ifndef IIK_TYPES_H_
+#define IIK_TYPES_H_
 
-#ifdef __cplusplus
-extern "C"
-{
+#include <string.h>
+#include <assert.h>
+#include <stdint.h>
+#include <stdbool.h>
+
+typedef int iik_network_handle_t;
+
+
+#if defined(DEBUG)
+#define DEBUG_PRINTF(...)   printf(__VA_ARGS__)
+#define ASSERT(cond)        assert(cond)
+
+#else
+#define DEBUG_PRINTF(...)
+#define ASSERT(cond)
 #endif
 
-idk_callback_status_t os_get_system_time(uint32_t * mstime);
-idk_callback_status_t os_malloc(size_t size, void ** ptr);
-idk_callback_status_t os_free(void * ptr);
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* EH_OS_H_ */
+#endif /* IIK_TYPES_H_ */

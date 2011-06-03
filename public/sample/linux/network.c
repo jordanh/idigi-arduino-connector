@@ -54,7 +54,7 @@
  * return value is -1, and the value of the data item pointed to by the
  * parameter ip_addr is undefined.
  */
-int e_dns_resolve(char *domain_name, struct in_addr * ip_addr)
+static int e_dns_resolve(char const *domain_name, struct in_addr * ip_addr)
 {
     int rc;
     struct addrinfo *res0;
@@ -75,7 +75,6 @@ int e_dns_resolve(char *domain_name, struct in_addr * ip_addr)
         DEBUG_PRINTF("DNS resolution failed for %s\n", domain_name);
         return -1;  /* Resolv failed. */
     }
-#if 1
     rc = -1;    /* Assume failure. */
     /* Find the first IPv4 address, if any. */
     for (res = res0; res; res = res->ai_next)
@@ -87,11 +86,6 @@ int e_dns_resolve(char *domain_name, struct in_addr * ip_addr)
         break;
         }
     }
-#else
-
-    ip_addr->s_addr = ((struct sockaddr_in *)(res0->ai_addr))->sin_addr.s_addr;
-
-#endif
 
     DEBUG_PRINTF("e_dns_resolve: ip address = %s\n", inet_ntoa(*ip_addr));
 
@@ -132,7 +126,7 @@ static int open_socket(int *sock_fd, int type)
     return ret;
 }
 
-void set_socket_blockopt(unsigned sockfd, int block)
+static void set_socket_blockopt(unsigned sockfd, int block)
 {
    int opt = (int)(block == 0);
     if (ioctl(sockfd, FIONBIO, &opt) < 0)
@@ -143,10 +137,9 @@ void set_socket_blockopt(unsigned sockfd, int block)
 
 }
 
-idk_callback_status_t network_connect(idk_connect_request_t * connect_data)
+static iik_callback_status_t network_connect(iik_connect_request_t * connect_data, iik_network_handle_t ** network_handle)
 {
-#error "Add code to make connection to server";
-    idk_callback_status_t rc = idk_callback_abort;
+    iik_callback_status_t rc = iik_callback_abort;
 
     struct in_addr ip_addr;
     struct sockaddr_in sin;
@@ -157,55 +150,53 @@ idk_callback_status_t network_connect(idk_connect_request_t * connect_data)
     fd_set set_wr;       /* writable socket descriptor set for selectsocket() */
     struct timeval conn_to; /* timeout value for selectsocket() */
 
-    if (giDigiSetting.socket_fd == -1)
+    if (iDigiSetting.socket_fd == -1)
     {
         /*
-         * Do I need to check a dotted-notation IP address or a domain
-         * name. If it's a domain name, attempt to resolve it.
+         * check if it's a dotted-notation IP address.
+         * If it's a domain name, attempt to resolve it.
          */
         ip_addr.s_addr = inet_addr(connect_data->host_name);
         if (ip_addr.s_addr == -1)
         {
+            /* Resolve domain name */
             if (e_dns_resolve(connect_data->host_name, &ip_addr) < 0)
             {
                 DEBUG_PRINTF("network_connect: Can't resolve DNS for %s\n", connect_data->host_name);
-                /* Can't resolve it either. Too bad. */
-                goto _ret;
+                /* Can't resolve it either */
+                goto done;
             }
         }
 
         if (open_socket(&s, SOCK_STREAM) < 0)
         {
-            goto _ret;
+            goto done;
         }
 
-        giDigiSetting.socket_fd = s;
+        iDigiSetting.socket_fd = s;
 
         /* Make socket non-blocking */
         set_socket_blockopt(s, 0);
-    }
 
-
-    s = giDigiSetting.socket_fd;
-
-    /* try to connect */
-    memset((char *)&sin, 0, sizeof(sin));
-    memcpy(&sin.sin_addr, &ip_addr, sizeof sin.sin_addr);
-    sin.sin_port = htons(connect_data->port);
-    sin.sin_family = AF_INET;
-    ccode = connect(s, (struct sockaddr *)&sin, sizeof(sin));
-    if (ccode < 0)
-    {
-        if (errno != EAGAIN && errno != EINPROGRESS)
+        /* try to connect */
+        memset((char *)&sin, 0, sizeof(sin));
+        memcpy(&sin.sin_addr, &ip_addr, sizeof sin.sin_addr);
+        sin.sin_port = htons(connect_data->port);
+        sin.sin_family = AF_INET;
+        ccode = connect(s, (struct sockaddr *)&sin, sizeof(sin));
+        if (ccode < 0)
         {
-            perror("network_connect fails");
-            DEBUG_PRINTF("network_connect: errno=%d\n", errno);
-            /* We must wait for the connect to complete or time out. */
-            goto _ret;
+            if (errno != EAGAIN && errno != EINPROGRESS)
+            {
+                perror("network_connect fails");
+                goto done;
+            }
         }
     }
 
+    s = iDigiSetting.socket_fd;
     /*
+     *
      * Wait for the connection initiated by the non-blocking connect()
      * to complete or time out.
      */
@@ -228,11 +219,10 @@ idk_callback_status_t network_connect(idk_connect_request_t * connect_data)
         }
         else
         {
-            rc = idk_callback_busy;
+            rc = iik_callback_busy;
             DEBUG_PRINTF("network_connect: select timeout\r\n");
         }
-        /* restore socket block flag */
-        goto _ret;
+        goto done;
     }
 
     /* Check whether the socket is now writable (connection succeeded). */
@@ -242,28 +232,27 @@ idk_callback_status_t network_connect(idk_connect_request_t * connect_data)
         /* If we also got a "socket readable" we have an error. */
         if (FD_ISSET(s, &set_rd))
         {
-            /* restore socket block flag */
-            goto _ret;
+            goto done;
         }
 
         /* We're connected! */
-        rc = idk_callback_continue;
+        *network_handle = &iDigiSetting.socket_fd;
+        rc = iik_callback_continue;
         DEBUG_PRINTF("network_connect: connected to %s server\n", connect_data->host_name);
     }
 
-_ret:
-    if (rc == idk_callback_abort && s >= 0)
+done:
+    if (rc == iik_callback_abort && s >= 0)
     {
         close(s);
-        giDigiSetting.socket_fd = -1;
+        iDigiSetting.socket_fd = -1;
     }
     return rc;
 }
 
-idk_callback_status_t network_send(idk_write_request_t * write_data, size_t * sent_length)
+static iik_callback_status_t network_send(iik_write_request_t * write_data, size_t * sent_length)
 {
-#error "Add code to send data to server";
-    idk_callback_status_t rc = idk_callback_continue;
+    iik_callback_status_t rc = iik_callback_continue;
     int         ccode;
 
 
@@ -271,38 +260,36 @@ idk_callback_status_t network_send(idk_write_request_t * write_data, size_t * se
     if (ccode < 0) {
         int err = errno;
 
-        perror("hal_send: ");
         if (err == EAGAIN || err == EWOULDBLOCK)
         {
-            giDigiSetting.select_data |= NETWORK_READ_SET;
-            rc = idk_callback_busy;
+            iDigiSetting.select_data |= NETWORK_READ_SET;
+            rc = iik_callback_busy;
         }
         else
         {
             /* if not block (something's wrong),
              * let's abort it.
              */
-            rc = idk_callback_abort;
-            DEBUG_PRINTF("network_send: send returns errno %d\n", err);
+            rc = iik_callback_abort;
+            perror("network send fails: ");
         }
     }
     *sent_length = ccode;
     if (ccode < write_data->length)
     {
-        giDigiSetting.select_data |= NETWORK_READ_SET;
+        iDigiSetting.select_data |= NETWORK_READ_SET;
     }
     else
     {
-        giDigiSetting.select_data &= ~NETWORK_READ_SET;
+        iDigiSetting.select_data &= ~NETWORK_READ_SET;
     }
     /* Return success (the number of bytes sent). */
     return rc;
 }
 
-idk_callback_status_t network_receive(idk_read_request_t * read_data, size_t * read_length)
+static iik_callback_status_t network_receive(iik_read_request_t * read_data, size_t * read_length)
 {
-#error "Add code to receive data from server"
-    idk_callback_status_t rc = idk_callback_continue;
+    iik_callback_status_t rc = iik_callback_continue;
     int ccode;
     int err;
 
@@ -313,7 +300,7 @@ idk_callback_status_t network_receive(idk_read_request_t * read_data, size_t * r
     {
         /* EOF on input: the connection was closed. */
         DEBUG_PRINTF("network_receive: EOF on TCP socket read\r\n");
-        rc = idk_callback_abort;
+        rc = iik_callback_abort;
     }
     else if (ccode < 0)
     {
@@ -321,59 +308,63 @@ idk_callback_status_t network_receive(idk_read_request_t * read_data, size_t * r
         err = errno;
         if (err == EAGAIN || err == EWOULDBLOCK)
         {
-            giDigiSetting.select_data |= NETWORK_WRITE_SET;
-            rc = idk_callback_busy;
+            iDigiSetting.select_data |= NETWORK_WRITE_SET;
+            rc = iik_callback_busy;
         }
         else
         {
-            perror("hal_receive: ");
+            perror("network receive fails: ");
             /* if not timeout (no data), let's return error */
-            rc = idk_callback_abort;
-            /* The error was other than a timeout: indicate a socket error. */
-            DEBUG_PRINTF("network_receive: Error %d on TCP socket read\r\n", err);
+            rc = iik_callback_abort;
         }
     }
 
-    * read_length = (size_t)ccode;
+    *read_length = (size_t)ccode;
     if (ccode < read_data->length)
     {
-        giDigiSetting.select_data |= NETWORK_WRITE_SET;
+        iDigiSetting.select_data |= NETWORK_WRITE_SET;
     }
     else
     {
-        giDigiSetting.select_data &= ~NETWORK_WRITE_SET;
+        iDigiSetting.select_data &= ~NETWORK_WRITE_SET;
     }
 
     return rc;
 }
 
-idk_callback_status_t network_close(idk_network_handle_t * fd)
+
+static iik_callback_status_t network_close(iik_network_handle_t * fd)
 {
-#error "Add code to close connection";
+    iik_callback_status_t status = iik_callback_continue;
     struct linger ling_opt;
 
-    ling_opt.l_linger = 0;
+    ling_opt.l_linger = 1;
     ling_opt.l_onoff = 1;
 
-    if (*fd != giDigiSetting.socket_fd)
+    if (*fd != iDigiSetting.socket_fd)
     {
-        DEBUG_PRINTF("network_close: mis-match network handle callback %d != local %d\n", *fd, giDigiSetting.socket_fd);
+        DEBUG_PRINTF("network_close: mis-match network handle callback %d != local %d\n", *fd, iDigiSetting.socket_fd);
     }
+
     if (setsockopt(*fd, SOL_SOCKET, SO_LINGER, (char*)&ling_opt, sizeof(ling_opt) ) < 0)
     {
-        perror("network_close: setsockopt fails: ");
+        perror("network close: setsockopt fails: ");
+        if (errno == EAGAIN || errno == EWOULDBLOCK)
+        {
+            status = iik_callback_busy;
+        }
     }
-
     if (close(*fd) < 0)
     {
-        perror("network_close: close fails: ");
+        perror("network close: close fails: ");
     }
-    giDigiSetting.socket_fd = -1;
+    iDigiSetting.socket_fd = -1;
 
-    return idk_callback_continue;
+
+    return status;
 }
 
-uint8_t network_select(idk_network_handle_t fd, uint8_t select_set, unsigned wait_time)
+uint8_t network_select(iik_network_handle_t fd, uint8_t select_set, unsigned wait_time)
 {
     uint8_t actual_set = 0;
     int             ccode;
@@ -384,7 +375,7 @@ uint8_t network_select(idk_network_handle_t fd, uint8_t select_set, unsigned wai
     if (fd < 0||
         (select_set  & (NETWORK_READ_SET | NETWORK_WRITE_SET | NETWORK_TIMEOUT_SET)) == 0)
     {
-        goto _ret;
+        goto done;
     }
 
     FD_ZERO(&read_set);
@@ -424,8 +415,38 @@ uint8_t network_select(idk_network_handle_t fd, uint8_t select_set, unsigned wai
             actual_set |= NETWORK_WRITE_SET;
         }
     }
-_ret:
+done:
     return actual_set;
+}
+
+
+iik_callback_status_t idigi_network_callback(iik_network_request_t request,
+                                            void const * request_data, size_t request_length,
+                                            void * response_data, size_t * response_length)
+{
+    iik_callback_status_t status = iik_callback_continue;
+
+    switch (request)
+    {
+    case iik_network_connect:
+        status = network_connect((iik_connect_request_t *)request_data, (iik_network_handle_t **)response_data);
+        *response_length = sizeof(iik_network_handle_t);
+
+        break;
+    case iik_network_send:
+        status = network_send((iik_write_request_t *)request_data, (size_t *)response_data);
+        break;
+    case iik_network_receive:
+        status = network_receive((iik_read_request_t *)request_data, (size_t *)response_data);
+        break;
+
+    case iik_network_close:
+        status = network_close((iik_network_handle_t *)request_data);
+        break;
+
+    }
+
+    return status;
 }
 
 

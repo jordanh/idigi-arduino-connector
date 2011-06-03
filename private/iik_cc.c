@@ -61,22 +61,21 @@ enum {
 };
 
 typedef struct {
-    idk_facility_t  facility;
-
-    char    server_url[CC_REDIRECT_SERVER_COUNT][IDK_SERVER_URL_LENGTH];
+    iik_facility_t facility;
+    char    server_url[CC_REDIRECT_SERVER_COUNT][SERVER_URL_LENGTH];
     uint8_t report_code;
     uint8_t security_code;
     int     state;
     unsigned item;
 
-} idk_cc_data_t;
+} iik_cc_data_t;
 
-#define  idk_base_connection_control idk_base_connection_type
+#define  iik_config_connection_control iik_config_connection_type
 
-static idk_callback_status_t send_redirect_report(idk_data_t * idk_ptr, idk_cc_data_t * cc_ptr)
+static iik_callback_status_t send_redirect_report(iik_data_t * iik_ptr, iik_cc_data_t * cc_ptr)
 {
-    idk_callback_status_t status;
-    idk_facility_packet_t * packet;
+    iik_callback_status_t status;
+    iik_facility_packet_t * packet;
     uint8_t             report_msg_length = 0;
     uint16_t            url_length;
     uint8_t             * ptr, * data_ptr;
@@ -92,10 +91,10 @@ static idk_callback_status_t send_redirect_report(idk_data_t * idk_ptr, idk_cc_d
      *  ----------------------------------------------------
      */
 
-    packet =(idk_facility_packet_t *) get_packet_buffer(idk_ptr, sizeof(idk_facility_packet_t), &ptr);
+    packet =(iik_facility_packet_t *) get_packet_buffer(iik_ptr, sizeof(iik_facility_packet_t), &ptr);
     if (packet == NULL)
     {
-        status = idk_callback_busy;
+        status = iik_callback_busy;
         goto done;
     }
     data_ptr = ptr;
@@ -125,31 +124,31 @@ static idk_callback_status_t send_redirect_report(idk_data_t * idk_ptr, idk_cc_d
     }
 
     packet->length = ptr - data_ptr;
-    cc_ptr->item = idk_base_ip_addr;
+    cc_ptr->item = iik_config_ip_addr;
 
-    status = enable_facility_packet(idk_ptr, E_MSG_FAC_CC_NUM, cc_ptr->security_code);
+    status = enable_facility_packet(iik_ptr, E_MSG_FAC_CC_NUM, cc_ptr->security_code);
 done:
     return status;
 }
-static idk_callback_status_t get_ip_addr(idk_data_t * idk_ptr, uint8_t * ipv6_addr)
+static iik_callback_status_t get_ip_addr(iik_data_t * iik_ptr, uint8_t * ipv6_addr)
 {
-    idk_callback_status_t status;
+    iik_callback_status_t status;
 
     uint8_t * ip_addr = NULL;
-    idk_request_t request_id;
+    iik_request_t request_id;
     size_t length;
 
-  /* IP address (use IPv6 format) */
-    request_id.base_request = idk_base_ip_addr;
-    status = idk_callback(idk_ptr->callback, idk_class_base, request_id, NULL, 0, &ip_addr, &length);
-    if (status != idk_callback_continue)
+  /* Get IP address */
+    request_id.config_request = iik_config_ip_addr;
+    status = iik_callback(iik_ptr->callback, iik_class_config, request_id, NULL, 0, &ip_addr, &length);
+    if (status != iik_callback_continue)
     {
-        idk_ptr->error_code = idk_configuration_error;
+        iik_ptr->error_code = iik_configuration_error;
         goto done;
     }
     if (ip_addr == NULL || (length != CC_IPV6_ADDRESS_LENGTH && length != CC_IPV4_ADDRESS_LENGTH))
     {
-        idk_ptr->error_code = idk_invalid_data_size;
+        iik_ptr->error_code = iik_invalid_data_size;
         goto error;
     }
 
@@ -165,7 +164,7 @@ static idk_callback_status_t get_ip_addr(idk_data_t * idk_ptr, uint8_t * ipv6_ad
         if (*((uint32_t *)ip_addr) == CC_ZERO_IP_ADDR || *((uint32_t *)ip_addr) == CC_BOARDCAST_IP_ADDR)
         {
             /* bad addr */
-            idk_ptr->error_code = idk_invalid_data;
+            iik_ptr->error_code = iik_invalid_data;
             goto error;
         }
         else
@@ -189,50 +188,50 @@ static idk_callback_status_t get_ip_addr(idk_data_t * idk_ptr, uint8_t * ipv6_ad
     }
 
 error:
-    status = notify_error_status(idk_ptr->callback, idk_class_base, request_id, idk_ptr->error_code);
-    if (status != idk_callback_abort)
+    status = notify_error_status(iik_ptr->callback, iik_class_config, request_id, iik_ptr->error_code);
+    if (status != iik_callback_abort)
     {
         /* set to busy to come here to get valid ip addr */
-        status =idk_callback_busy;
+        status =iik_callback_busy;
     }
 
 done:
     return status;
 
 }
-static idk_callback_status_t get_connection_type(idk_data_t * idk_ptr, uint8_t * connection_type)
+static iik_callback_status_t get_connection_type(iik_data_t * iik_ptr, uint8_t * connection_type)
 {
-    idk_callback_status_t status;
+    iik_callback_status_t status;
 
-    idk_request_t request_id;
-    idk_connection_type_t * type;
+    iik_request_t request_id;
+    iik_connection_type_t * type;
 
     /* callback for connection type */
-    request_id.base_request = idk_base_connection_type;
-    status = idk_callback(idk_ptr->callback, idk_class_base, request_id, NULL, 0, &type, NULL);
-    if (status != idk_callback_continue)
+    request_id.config_request = iik_config_connection_type;
+    status = iik_callback(iik_ptr->callback, iik_class_config, request_id, NULL, 0, &type, NULL);
+    if (status != iik_callback_continue)
     {
-        idk_ptr->error_code = idk_configuration_error;
+        iik_ptr->error_code = iik_configuration_error;
         goto done;
     }
 
     if (type == NULL)
     {
         /* bad connection type */
-        idk_ptr->error_code = idk_invalid_data;
+        iik_ptr->error_code = iik_invalid_data;
     }
     else
     {
         switch (*type)
         {
-        case idk_lan_connection_type:
+        case iik_lan_connection_type:
             *connection_type = ethernet_type;
             break;
-        case idk_wan_connection_type:
+        case iik_wan_connection_type:
             *connection_type = ppp_over_modem_type;
             break;
         default:
-            idk_ptr->error_code = idk_invalid_data;
+            iik_ptr->error_code = iik_invalid_data;
             goto error;
 
         }
@@ -240,56 +239,56 @@ static idk_callback_status_t get_connection_type(idk_data_t * idk_ptr, uint8_t *
 
    }
 error:
-    status = notify_error_status(idk_ptr->callback, idk_class_base, request_id, idk_ptr->error_code);
-    if (status != idk_callback_abort)
+    status = notify_error_status(iik_ptr->callback, iik_class_config, request_id, iik_ptr->error_code);
+    if (status != iik_callback_abort)
     {
         /* set to busy to come here to get valid connection type */
-        status =idk_callback_busy;
+        status =iik_callback_busy;
     }
 
 done:
     return status;
 }
 
-static idk_callback_status_t get_mac_addr(idk_data_t * idk_ptr, uint8_t * mac_addr)
+static iik_callback_status_t get_mac_addr(iik_data_t * iik_ptr, uint8_t * mac_addr)
 {
-    idk_callback_status_t status = idk_callback_continue;;
-    idk_request_t request_id;
+    iik_callback_status_t status = iik_callback_continue;;
+    iik_request_t request_id;
     size_t length;
 
     uint8_t * mac;
 
     /* callback for MAC addr for LAN connection type */
-    request_id.base_request = idk_base_mac_addr;
-    status = idk_callback(idk_ptr->callback, idk_class_base, request_id, NULL, 0, &mac, &length);
-    if (status != idk_callback_continue)
+    request_id.config_request = iik_config_mac_addr;
+    status = iik_callback(iik_ptr->callback, iik_class_config, request_id, NULL, 0, &mac, &length);
+    if (status != iik_callback_continue)
     {
-        idk_ptr->error_code = idk_configuration_error;
+        iik_ptr->error_code = iik_configuration_error;
     }
-    else if (mac == NULL || length != IDK_MAC_ADDR_LENGTH)
+    else if (mac == NULL || length != MAC_ADDR_LENGTH)
     {
         /* bad connection type */
-        idk_ptr->error_code = idk_invalid_data_size;
-        status = notify_error_status(idk_ptr->callback, idk_class_base, request_id, idk_ptr->error_code);
-        if (status != idk_callback_abort)
+        iik_ptr->error_code = iik_invalid_data_size;
+        status = notify_error_status(iik_ptr->callback, iik_class_config, request_id, iik_ptr->error_code);
+        if (status != iik_callback_abort)
         {
             /* set to busy to come here to get valid mac address */
-            status =idk_callback_busy;
+            status =iik_callback_busy;
         }
     }
     else
     {
-        memcpy(mac_addr, mac, IDK_MAC_ADDR_LENGTH);
+        memcpy(mac_addr, mac, MAC_ADDR_LENGTH);
     }
 
     return status;
 }
 
-static idk_callback_status_t send_connection_report(idk_data_t * idk_ptr, idk_cc_data_t * cc_ptr)
+static iik_callback_status_t send_connection_report(iik_data_t * iik_ptr, iik_cc_data_t * cc_ptr)
 {
 
-    idk_callback_status_t status = idk_callback_continue;;
-    idk_facility_packet_t * packet;
+    iik_callback_status_t status = iik_callback_continue;;
+    iik_facility_packet_t * packet;
     uint8_t * ptr;
 
 
@@ -309,171 +308,170 @@ static idk_callback_status_t send_connection_report(idk_data_t * idk_ptr, idk_cc
      * 4. if connection type is WAN, call callback to get and build link speed for connection information
      * 5. if connection type is WAN, call callback to get and build phone number for connection information
      */
-    packet =(idk_facility_packet_t *) get_packet_buffer(idk_ptr, sizeof(idk_facility_packet_t), &ptr);
+    packet =(iik_facility_packet_t *) get_packet_buffer(iik_ptr, sizeof(iik_facility_packet_t), &ptr);
     if (packet == NULL)
     {
-        status = idk_callback_busy;
+        status = iik_callback_busy;
         goto done;
     }
 
-    if (cc_ptr->item == idk_base_ip_addr)
+    if (cc_ptr->item == iik_config_ip_addr)
     {
         *ptr++ = FAC_CC_CONNECTION_REPORT;  /* opcode */
         *ptr++ = FAC_CC_CLIENTTYPE_DEVICE;  /* client type */
         packet->length = 2;
 
-        status = get_ip_addr(idk_ptr, ptr);
-        if (status != idk_callback_continue)
+        status = get_ip_addr(iik_ptr, ptr);
+        if (status != iik_callback_continue)
         {
             goto done;
         }
 
-        cc_ptr->item = idk_base_connection_type;
+        cc_ptr->item = iik_config_connection_type;
         packet->length += CC_IPV6_ADDRESS_LENGTH;
     }
 
 
-    if (cc_ptr->item == idk_base_connection_type)
+    if (cc_ptr->item == iik_config_connection_type)
     {
-        ptr = IDK_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
+        ptr = GET_PACKET_DATA_POINTER(packet, sizeof(iik_facility_packet_t));
         ptr += packet->length;
-        status = get_connection_type(idk_ptr, ptr);
-        if (status != idk_callback_continue)
+        status = get_connection_type(iik_ptr, ptr);
+        if (status != iik_callback_continue)
         {
             goto done;
         }
         if (*ptr == ethernet_type)
         {
-            cc_ptr->item = idk_base_mac_addr;
+            cc_ptr->item = iik_config_mac_addr;
         }
         else
         {
-            cc_ptr->item = idk_base_link_speed;
+            cc_ptr->item = iik_config_link_speed;
         }
         packet->length++;
 
     }
 
 
-    if (cc_ptr->item == idk_base_mac_addr)
+    if (cc_ptr->item == iik_config_mac_addr)
     {
-        ptr = IDK_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
+        ptr = GET_PACKET_DATA_POINTER(packet, sizeof(iik_facility_packet_t));
         ptr += packet->length;
-        status = get_mac_addr(idk_ptr, ptr);
-        if (status != idk_callback_continue)
+        status = get_mac_addr(iik_ptr, ptr);
+        if (status != iik_callback_continue)
         {
             goto done;
         }
-        packet->length += IDK_MAC_ADDR_LENGTH;
+        packet->length += MAC_ADDR_LENGTH;
 
 
     }
 
 
-    if (cc_ptr->item == idk_base_link_speed)
+    if (cc_ptr->item == iik_config_link_speed)
     {
         /* callback for Link speed for WAN connection type */
-        idk_request_t request_id;
+        iik_request_t request_id;
         size_t length;
         uint32_t * link_speed;
 
-        request_id.base_request = idk_base_link_speed;
-        status = idk_callback(idk_ptr->callback, idk_class_base, request_id, NULL, 0, &link_speed, &length);
-        if (status != idk_callback_continue)
+        request_id.config_request = iik_config_link_speed;
+        status = iik_callback(iik_ptr->callback, iik_class_config, request_id, NULL, 0, &link_speed, &length);
+        if (status != iik_callback_continue)
         {
-            idk_ptr->error_code = idk_configuration_error;
+            iik_ptr->error_code = iik_configuration_error;
             goto done;
         }
 
-        if (link_speed == NULL || length != sizeof(uint32_t))
+        if (link_speed == NULL || length != sizeof(*link_speed))
         {
             /* bad connection type */
-            idk_ptr->error_code = idk_invalid_data_size;
-            status = notify_error_status(idk_ptr->callback, idk_class_base, request_id, idk_ptr->error_code);
+            iik_ptr->error_code = iik_invalid_data_size;
+            status = notify_error_status(iik_ptr->callback, iik_class_config, request_id, iik_ptr->error_code);
             goto done;
         }
 
-        ptr = IDK_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
+        ptr = GET_PACKET_DATA_POINTER(packet, sizeof(iik_facility_packet_t));
         ptr += packet->length;
         StoreBE32(ptr, *link_speed);
         packet->length += sizeof(*link_speed);
-        cc_ptr->item = idk_base_phone_number;
+        cc_ptr->item = iik_config_phone_number;
     }
 
-    if (cc_ptr->item == idk_base_phone_number)
+    if (cc_ptr->item == iik_config_phone_number)
     {
         /* callback for phone number for WAN connection type */
-        idk_request_t request_id;
+        iik_request_t request_id;
         size_t length;
         uint8_t * phone = NULL;
 
-        request_id.base_request = idk_base_phone_number;
-        status = idk_callback(idk_ptr->callback, idk_class_base, request_id, NULL, 0, &phone, &length);
+        request_id.config_request = iik_config_phone_number;
+        status = iik_callback(iik_ptr->callback, iik_class_config, request_id, NULL, 0, &phone, &length);
 
-        if (status != idk_callback_continue)
+        if (status != iik_callback_continue)
         {
-            idk_ptr->error_code = idk_configuration_error;
+            iik_ptr->error_code = iik_configuration_error;
             goto done;
         }
 
         if (phone == NULL || length == 0)
         {
             /* bad connection type */
-            idk_ptr->error_code = idk_invalid_data_size;
-            status = notify_error_status(idk_ptr->callback, idk_class_base, request_id, idk_ptr->error_code);
+            iik_ptr->error_code = iik_invalid_data_size;
+            status = notify_error_status(iik_ptr->callback, iik_class_config, request_id, iik_ptr->error_code);
             goto done;
         }
 
-        ptr = IDK_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
+        ptr = GET_PACKET_DATA_POINTER(packet, sizeof(iik_facility_packet_t));
         ptr += packet->length;
         memcpy(ptr, phone, length);
         packet->length += length;
 
     }
-    status = enable_facility_packet(idk_ptr, E_MSG_FAC_CC_NUM, cc_ptr->security_code);
+    status = enable_facility_packet(iik_ptr, E_MSG_FAC_CC_NUM, cc_ptr->security_code);
 
 done:
     return status;
 }
 
-static idk_callback_status_t process_disconnect(idk_data_t * idk_ptr, idk_cc_data_t * cc_ptr)
+static iik_callback_status_t process_disconnect(iik_data_t * iik_ptr, iik_cc_data_t * cc_ptr)
 {
-    idk_callback_status_t status = idk_callback_continue;
-    idk_request_t request_id;
+    iik_callback_status_t status = iik_callback_continue;
+    iik_request_t request_id;
 
     UNUSED_PARAMETER(cc_ptr);
 
     DEBUG_PRINTF("process_disconnect: Connection Disconnect\n");
-    idk_ptr->network_busy = true;
+    iik_ptr->network_busy = true;
 
-    status = close_server(idk_ptr);
-    if (status == idk_callback_continue)
+    status = close_server(iik_ptr);
+    if (status == iik_callback_continue)
     {
-        request_id.base_request = idk_base_disconnected;
+        request_id.config_request = iik_config_disconnected;
 
-        status = idk_callback(idk_ptr->callback, idk_class_base, request_id, NULL, 0, NULL, NULL);
-        if (status == idk_callback_continue)
+        status = iik_callback(iik_ptr->callback, iik_class_config, request_id, NULL, 0, NULL, NULL);
+        if (status == iik_callback_continue)
         {
-            init_setting(idk_ptr);
+            init_setting(iik_ptr);
         }
-        else if (status == idk_callback_abort)
+        else if (status == iik_callback_abort)
         {
-            idk_ptr->error_code = idk_server_disconnected;
+            iik_ptr->error_code = iik_server_disconnected;
         }
     }
 
     return status;
 }
 
-static idk_callback_status_t  process_redirect(idk_data_t * idk_ptr, idk_cc_data_t * cc_ptr, idk_facility_packet_t * packet)
+static iik_callback_status_t  process_redirect(iik_data_t * iik_ptr, iik_cc_data_t * cc_ptr, iik_facility_packet_t * packet)
 {
-    idk_callback_status_t status = idk_callback_continue;
+    iik_callback_status_t status = iik_callback_continue;
     uint8_t     url_count;
     uint16_t    url_length;
     uint8_t     * buf;
     uint16_t    length, prefix_len;
     char        * server_url;
-    int i;
 
     DEBUG_PRINTF("process_redirect:  redirect to new destination\n");
     /* Redirect to new destination:
@@ -490,7 +488,7 @@ static idk_callback_status_t  process_redirect(idk_data_t * idk_ptr, idk_cc_data
      * | opcode | URL count | URL 1 Length|  URL 1 | URL 2 Length |  URL 2  |
      *  --------------------------------------------------------------------
     */
-    buf = IDK_PACKET_DATA_POINTER(packet, sizeof(idk_facility_packet_t));
+    buf = GET_PACKET_DATA_POINTER(packet, sizeof(iik_facility_packet_t));
     buf++; /* skip redirect opcode */
     length = packet->length -1;
 
@@ -512,9 +510,10 @@ static idk_callback_status_t  process_redirect(idk_data_t * idk_ptr, idk_cc_data
 
     if (cc_ptr->state != cc_state_redirect_server)
     {
+        int i;
         /* Close the connection before parsing new destination url */
-        status = close_server(idk_ptr);
-        if (status != idk_callback_continue)
+        status = close_server(iik_ptr);
+        if (status != iik_callback_continue)
         {
             goto done;
         }
@@ -527,7 +526,7 @@ static idk_callback_status_t  process_redirect(idk_data_t * idk_ptr, idk_cc_data
             buf += sizeof url_length;
             ASSERT_GOTO(url_length < sizeof cc_ptr->server_url[i], done);
 
-            memcpy(cc_ptr->server_url[i], buf, url_length);
+            strncpy(cc_ptr->server_url[i],(const char *) buf, url_length);
             cc_ptr->server_url[i][url_length] = '\0';
             cc_ptr->state = cc_state_redirect_server;
             buf += url_length;
@@ -553,131 +552,129 @@ static idk_callback_status_t  process_redirect(idk_data_t * idk_ptr, idk_cc_data
                 server_url += prefix_len;
             }
 
-            status = connect_server(idk_ptr, server_url, IDK_MT_PORT);
-            if (status == idk_callback_continue && idk_ptr->network_handle != NULL)
+            status = connect_server(iik_ptr, server_url, EDP_MT_PORT);
+            if (status == iik_callback_continue && iik_ptr->network_handle != NULL)
             {
                 cc_ptr->item++;
                 cc_ptr->report_code = cc_redirect_success;
+                iik_ptr->server_url = server_url;
                 break;
             }
-            if (status != idk_callback_busy)
+            if (status != iik_callback_busy)
             {
                 cc_ptr->item++;
                 cc_ptr->report_code = cc_redirect_error;
             }
         } while (cc_ptr->item < url_count);
     }
-    if (status != idk_callback_busy)
+    if (status != iik_callback_busy)
     {
         /* Reset IDK to inital state to establish communication with the server.
          *
          * Even if connect fails, we want to continue to
          * orginal server.
          */
-        init_setting(idk_ptr);
+        init_setting(iik_ptr);
         cc_ptr->item = 0;
         cc_ptr->state = cc_state_redirect_report;
-        set_idk_state(idk_ptr, edp_communication_layer);
-        status = idk_callback_continue;
+        set_iik_state(iik_ptr, edp_communication_layer);
+        status = iik_callback_continue;
     }
 done:
     return status;
 }
 
-static idk_callback_status_t cc_process(idk_data_t * idk_ptr, idk_facility_t * fac_ptr)
+static iik_callback_status_t cc_process(iik_data_t * iik_ptr, iik_facility_t * fac_ptr)
 {
-    idk_callback_status_t status = idk_callback_continue;
-    uint8_t opcode, * ptr;
-    idk_facility_packet_t * p;
-    idk_cc_data_t * cc_ptr = (idk_cc_data_t *)fac_ptr;
+    iik_callback_status_t status = iik_callback_continue;
+    iik_facility_packet_t * packet = GET_FACILITY_PACKET(fac_ptr);;
+
 
     /* process incoming message from server for Connection Control facility */
 
-    if (fac_ptr->packet != NULL)
+    if (packet != NULL)
     {
-        p = (idk_facility_packet_t *)fac_ptr->packet;
-        ptr = IDK_PACKET_DATA_POINTER(p, sizeof(idk_facility_packet_t));
+        uint8_t opcode;
+        uint8_t * ptr;
+        iik_cc_data_t * cc_ptr = GET_FACILITY_POINTER(fac_ptr);
+
+        ptr = GET_PACKET_DATA_POINTER(packet, sizeof(iik_facility_packet_t));
         opcode = *ptr;
 
         if (opcode == FAC_CC_DISCONNECT)
         {
-            status = process_disconnect(idk_ptr, cc_ptr);
+            status = process_disconnect(iik_ptr, cc_ptr);
         }
         else if (opcode == FAC_CC_REDIRECT_TO_SDA)
         {
-            status = process_redirect(idk_ptr, cc_ptr, p);
+            status = process_redirect(iik_ptr, cc_ptr, packet);
         }
         else
         {
-            DEBUG_PRINTF("idk_cc_process: unsupported opcode 0x%x\b", opcode);
+            DEBUG_PRINTF("iik_cc_process: unsupported opcode %u\n", opcode);
         }
-        if (status != idk_callback_busy)
+        if (status != iik_callback_busy)
         {
-            cc_ptr->facility.packet = NULL;
+            /* clear this when it's done */
+            DONE_FACILITY_PACKET(fac_ptr);
         }
     }
 
     return status;
 }
-
-static idk_callback_status_t cc_discovery(idk_data_t * idk_ptr, idk_facility_t * fac_ptr)
+static iik_callback_status_t cc_discovery(iik_data_t * iik_ptr, iik_facility_t * fac_ptr)
 {
-    idk_callback_status_t status = idk_callback_continue;
-    idk_cc_data_t * cc_ptr = (idk_cc_data_t *)fac_ptr;;
+    iik_callback_status_t status = iik_callback_continue;
+    iik_cc_data_t * cc_ptr = GET_FACILITY_POINTER(fac_ptr);
 
     /* Connection control facility needs to send redirect and
      * connection reports on discovery layer.
      */
     if (cc_ptr->state == cc_state_redirect_report)
     {
-        status = send_redirect_report(idk_ptr, cc_ptr);
-        if (status == idk_callback_continue)
+        status = send_redirect_report(iik_ptr, cc_ptr);
+        if (status == iik_callback_continue)
         {
-            status = idk_callback_busy;
+            status = iik_callback_busy;
             cc_ptr->state = cc_state_connect_report;
         }
     }
     else if (cc_ptr->state == cc_state_connect_report)
     {
-        status = send_connection_report(idk_ptr, cc_ptr);
+        status = send_connection_report(iik_ptr, cc_ptr);
     }
 
     return status;
 }
 
-static idk_status_t cc_delete_facility(idk_data_t * idk_ptr)
+static iik_status_t cc_delete_facility(iik_data_t * iik_ptr)
 {
-    idk_callback_status_t status = idk_callback_continue;
-    idk_cc_data_t * cc_ptr;
-
-    cc_ptr = (idk_cc_data_t *)get_facility_data(idk_ptr, E_MSG_FAC_CC_NUM);
-    if (cc_ptr != NULL)
-    {
-        status = del_facility_data(idk_ptr, E_MSG_FAC_CC_NUM);
-    }
-    return status;
+    return del_facility_data(iik_ptr, E_MSG_FAC_CC_NUM);
 }
 
-static idk_callback_status_t cc_init_facility(idk_data_t * idk_ptr)
+static iik_callback_status_t cc_init_facility(iik_data_t * iik_ptr)
 {
-    idk_callback_status_t status = idk_callback_continue;
-    idk_cc_data_t * cc_ptr;
+    iik_callback_status_t status = iik_callback_continue;
+    iik_cc_data_t * cc_ptr;
 
     /* Add Connection control facility to IDK */
-    cc_ptr = (idk_cc_data_t *)get_facility_data(idk_ptr, E_MSG_FAC_CC_NUM);
+    cc_ptr = get_facility_data(iik_ptr, E_MSG_FAC_CC_NUM);
     if (cc_ptr == NULL)
     {
-        status = add_facility_data(idk_ptr, E_MSG_FAC_CC_NUM, (idk_facility_t **) &cc_ptr, sizeof(idk_cc_data_t), cc_discovery, cc_process);
+        void * ptr;
 
-        if (status == idk_callback_abort || cc_ptr == NULL)
+        status = add_facility_data(iik_ptr, E_MSG_FAC_CC_NUM, &ptr, sizeof(iik_cc_data_t), cc_discovery, cc_process);
+
+        if (status == iik_callback_abort || ptr == NULL)
         {
             goto done;
         }
-        cc_ptr->report_code = cc_not_redirect;
-        cc_ptr->server_url[0][0] = '\0';
-        cc_ptr->server_url[1][0] = '\0';
+        cc_ptr = (iik_cc_data_t *)ptr;
 
     }
+    cc_ptr->report_code = cc_not_redirect;
+    cc_ptr->server_url[0][0] = '\0';
+    cc_ptr->server_url[1][0] = '\0';
     cc_ptr->state = cc_state_redirect_report;
     cc_ptr->security_code = SECURITY_PROTO_NONE;
     cc_ptr->item = 0;

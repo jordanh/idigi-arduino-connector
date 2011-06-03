@@ -24,8 +24,6 @@
  */
 #include "ei_discover.h"
 
-#define IDK_MT_VERSION_1            1
-
 /*
  * MT version 2 message type defines.
  * Refer to EDP specification rev. 14.2 for a description of MT version 2.
@@ -52,12 +50,12 @@ typedef enum {
 } receive_packet_index_t;
 
 
-static bool valid_interval_limit(idk_data_t * idk_ptr, uint32_t start, uint32_t limit)
+static bool valid_interval_limit(iik_data_t * iik_ptr, uint32_t start, uint32_t limit)
 {
     uint32_t elapsed;
     bool rc = false;
 
-    if (get_system_time(idk_ptr, &elapsed) == idk_callback_continue)
+    if (get_system_time(iik_ptr, &elapsed) == iik_callback_continue)
     {
         elapsed -= start;
         rc = (elapsed < limit);
@@ -66,17 +64,17 @@ static bool valid_interval_limit(idk_data_t * idk_ptr, uint32_t start, uint32_t 
     return rc;
 }
 
-static void set_idk_state(idk_data_t * idk_ptr, int state)
+static void set_iik_state(iik_data_t * iik_ptr, int state)
 {
-    idk_ptr->edp_state = state;
-    idk_ptr->layer_state = 0;
-    idk_ptr->request_id = 0;
+    iik_ptr->edp_state = state;
+    iik_ptr->layer_state = 0;
+    iik_ptr->request_id = 0;
 }
 
 
-static idk_callback_status_t enable_send_packet(idk_data_t * idk_ptr, idk_packet_t * packet)
+static iik_callback_status_t enable_send_packet(iik_data_t * iik_ptr, iik_packet_t * packet)
 {
-    idk_callback_status_t status = idk_callback_continue;
+    iik_callback_status_t status = iik_callback_continue;
     uint16_t length;
     uint16_t msg_type;
 
@@ -84,15 +82,15 @@ static idk_callback_status_t enable_send_packet(idk_data_t * idk_ptr, idk_packet
      * send out the data.
      */
 
-    if (idk_ptr->send_packet.total_length > 0)
+    if (iik_ptr->send_packet.total_length > 0)
     {
         DEBUG_PRINTF("enable_send_packet: unable to enable another send since previous data is still pending\n");
-        status = idk_callback_busy;
+        status = iik_callback_busy;
         goto done;
     }
 
-    idk_ptr->send_packet.total_length = packet->length;
-    idk_ptr->send_packet.ptr = (uint8_t *)&packet->type;
+    iik_ptr->send_packet.total_length = packet->length;
+    iik_ptr->send_packet.ptr = (uint8_t *)&packet->type;
     length = TO_BE16(packet->length);
 
     /*
@@ -108,19 +106,19 @@ static idk_callback_status_t enable_send_packet(idk_data_t * idk_ptr, idk_packet
     packet->type = msg_type;
     packet->length = length;
     /* The total length must include the type and length fields */
-    idk_ptr->send_packet.total_length += sizeof(packet->type) + sizeof(packet->length);
+    iik_ptr->send_packet.total_length += sizeof(packet->type) + sizeof(packet->length);
     /* clear the actual number of bytes to be sent */
-    idk_ptr->send_packet.length = 0;
+    iik_ptr->send_packet.length = 0;
 
 done:
     return status;
 }
 
-static idk_callback_status_t enable_facility_packet(idk_data_t * idk_ptr, uint16_t facility, uint8_t security_code)
+static iik_callback_status_t enable_facility_packet(iik_data_t * iik_ptr, uint16_t facility, uint8_t security_code)
 {
-    idk_facility_packet_t   * packet;
+    iik_facility_packet_t   * packet;
 
-    packet = (idk_facility_packet_t *)idk_ptr->send_packet.buffer;
+    packet = (iik_facility_packet_t *)iik_ptr->send_packet.buffer;
     /* this function is to set up a facility packet to be sent.
      *
      * facility packet:
@@ -139,117 +137,117 @@ static idk_callback_status_t enable_facility_packet(idk_data_t * idk_ptr, uint16
     packet->disc_payload = DISC_OP_PAYLOAD;
     packet->facility = TO_BE16(facility);
     packet->length += sizeof(packet->sec_coding) + sizeof(packet->disc_payload) + sizeof(packet->facility);
-    return enable_send_packet(idk_ptr, (idk_packet_t *)packet);
+    return enable_send_packet(iik_ptr, (iik_packet_t *)packet);
 }
 
-static int send_buffer(idk_data_t * idk_ptr, uint8_t * buffer, size_t length)
+static int send_buffer(iik_data_t * iik_ptr, uint8_t * buffer, size_t length)
 {
     int bytes_sent = 0;
 
-    idk_callback_status_t status;
-    idk_write_request_t write_data;
-    uint16_t tx_keepalive;
-    uint16_t rx_keepalive;
+    iik_callback_status_t status;
+    iik_write_request_t write_data;
+    unsigned tx_ka_timeout;
+    unsigned rx_ka_timeout;
     uint32_t time_stamp;
-    idk_request_t request_id;
+    iik_request_t request_id;
 
     size_t length_written, size;
 
 
-    if (idk_ptr->network_busy || idk_ptr->network_handle == NULL)
+    if (iik_ptr->network_busy || iik_ptr->network_handle == NULL)
     {
         /* don't do any network activity */
         goto done;
     }
-    tx_keepalive = *idk_ptr->tx_keepalive;
-    rx_keepalive = *idk_ptr->rx_keepalive;
-    if (get_system_time(idk_ptr, &time_stamp) != idk_callback_continue)
+
+    if (get_system_time(iik_ptr, &time_stamp) != iik_callback_continue)
     {
-        bytes_sent = -idk_configuration_error;
+        bytes_sent = -iik_configuration_error;
         goto done;
     }
 
-    /* rx keepalive timeout that we need to send a keepalive packet:
-     *   = configured keepalive time  - (current time - last time we send a packet);
+    /* Get rx keepalive timeout that we need to send a keepalive packet:
+     *   = configured keepalive time  - (current time - last time we sent a packet);
      *      
-     * tx keepalive timeout that we expect a keepalive packet from server:
-     *   = configured keepalive time  - (current time - last time we receive a packet);
+     * Get tx keepalive timeout that we expect a keepalive packet from server:
+     *   = configured keepalive time  - (current time - last time we received a packet);
      *
      * timeout value is in seconds.
      */
-    write_data.timeout = (IDK_MIN(((rx_keepalive * IDK_MILLISECONDS) - (time_stamp - idk_ptr->rx_ka_time)),
-                                 ((tx_keepalive * IDK_MILLISECONDS) - (time_stamp - idk_ptr->tx_ka_time)))/
-                                 IDK_MILLISECONDS);
+    rx_ka_timeout = get_timeout_limit_in_seconds(*iik_ptr->rx_keepalive, (time_stamp - iik_ptr->rx_ka_time));
+    tx_ka_timeout = get_timeout_limit_in_seconds(*iik_ptr->tx_keepalive, (time_stamp - iik_ptr->tx_ka_time));
+
+    write_data.timeout = MIN_VALUE(rx_ka_timeout, tx_ka_timeout);
 
     write_data.buffer = buffer;
     write_data.length = length;
-    write_data.network_handle = idk_ptr->network_handle;
+    write_data.network_handle = iik_ptr->network_handle;
 
     size = sizeof length_written;
-    request_id.base_request = idk_base_send;
-    status = idk_callback(idk_ptr->callback, idk_class_base, request_id, &write_data, sizeof write_data, &length_written, &size);
-    if (status == idk_callback_continue && length_written > 0) 
+    request_id.network_request = iik_network_send;
+    status = iik_callback(iik_ptr->callback, iik_class_network, request_id, &write_data, sizeof write_data, &length_written, &size);
+    if (status == iik_callback_continue && length_written > 0) 
     {
         bytes_sent = length_written;
 
         /* Retain the "last (RX) message send" time. */
-        status = get_system_time(idk_ptr, &idk_ptr->rx_ka_time);
-        if (status == idk_callback_abort)
+        status = get_system_time(iik_ptr, &iik_ptr->rx_ka_time);
+        if (status == iik_callback_abort)
         {
-            bytes_sent = -idk_configuration_error;
+            bytes_sent = -iik_configuration_error;
         }
     }
-    else if (status == idk_callback_abort)
+    else if (status == iik_callback_abort)
     {
-        bytes_sent = -idk_send_error;
+        bytes_sent = -iik_send_error;
     }
 
 done:
     return bytes_sent;
 }
 
-static idk_packet_t * get_packet_buffer(idk_data_t * idk_ptr, size_t packet_size, uint8_t ** buf)
+static iik_packet_t * get_packet_buffer(iik_data_t * iik_ptr, size_t packet_size, uint8_t ** buf)
 {
-    idk_packet_t * packet = NULL;
+    iik_packet_t * packet = NULL;
     uint8_t * ptr = NULL;
 
     /* Return an available packet pointer for caller to setup data to be sent to server.
      *
      * make sure send is not pending
      */
-    if (idk_ptr->send_packet.total_length == 0)
+    if (iik_ptr->send_packet.total_length == 0)
     {
-        packet = (idk_packet_t *)idk_ptr->send_packet.buffer;
-        packet->avail_length = sizeof idk_ptr->send_packet.buffer - sizeof packet->avail_length;
-        ptr = IDK_PACKET_DATA_POINTER(packet, packet_size);
+        packet = (iik_packet_t *)iik_ptr->send_packet.buffer;
+        packet->avail_length = sizeof iik_ptr->send_packet.buffer - sizeof packet->avail_length;
+        ptr = GET_PACKET_DATA_POINTER(packet, packet_size);
     }
     *buf = ptr;
     return packet;
 }
 
-static idk_callback_status_t rx_keepalive_process(idk_data_t * idk_ptr)
+static iik_callback_status_t rx_keepalive_process(iik_data_t * iik_ptr)
 {
-#define IDK_MTV2_VERSION            2
+#define IIK_MTV2_VERSION            2
 
-    idk_callback_status_t status = idk_callback_continue;
-    idk_packet_t * packet;
+    iik_callback_status_t status = iik_callback_continue;
+    iik_packet_t * packet;
     uint16_t rx_keepalive;
 
-    if (idk_ptr->network_handle == NULL)
+    if (iik_ptr->network_handle == NULL)
     {
         goto done;
     }
 
     /* Sends rx keepalive if keepalive timing is expired. */
-    rx_keepalive = *idk_ptr->rx_keepalive;
+    rx_keepalive = *iik_ptr->rx_keepalive;
 
-    if (valid_interval_limit(idk_ptr, idk_ptr->rx_ka_time, (rx_keepalive * IDK_MILLISECONDS)))
+    if (valid_interval_limit(iik_ptr, iik_ptr->rx_ka_time, (rx_keepalive * MILLISECONDS_PER_SECOND)))
     {
         /* not expired yet. no need to send rx keepalive */
         goto done;
     }
 
-    if (idk_ptr->send_packet.total_length > 0)
+    if (iik_ptr->send_packet.total_length > 0)
     {
         /* time to send rx keepalive but send is still pending */
         goto done;
@@ -257,118 +255,106 @@ static idk_callback_status_t rx_keepalive_process(idk_data_t * idk_ptr)
 
     DEBUG_PRINTF("rx_keepalive_process: time to send Rx keepalive\n");
 
-    packet = (idk_packet_t *)&idk_ptr->rx_keepalive_packet;
+    packet = (iik_packet_t *)&iik_ptr->rx_keepalive_packet;
     packet->length = 0;
     packet->type = E_MSG_MT2_TYPE_KA_KEEPALIVE;
-    status = enable_send_packet(idk_ptr, packet);
+    status = enable_send_packet(iik_ptr, packet);
 
 done:
     return status;
 }
 
-static idk_callback_status_t send_packet_process(idk_data_t * idk_ptr)
+static iik_callback_status_t send_packet_process(iik_data_t * iik_ptr)
 {
     uint8_t * buf;
     size_t  length;
     int bytes_sent;
-    idk_callback_status_t status = idk_callback_continue;
+    iik_callback_status_t status = iik_callback_continue;
 
     /* if nothing needs to be sent, check whether we need to send rx keepalive */
-    if (idk_ptr->send_packet.total_length == 0 && idk_ptr->edp_state >= edp_discovery_layer)
+    if (iik_ptr->send_packet.total_length == 0 && iik_ptr->edp_state >= edp_discovery_layer)
     {
-        rx_keepalive_process(idk_ptr);
+        rx_keepalive_process(iik_ptr);
     }
 
-    if (idk_ptr->send_packet.total_length > 0)
+    if (iik_ptr->send_packet.total_length > 0)
     {
-        buf = idk_ptr->send_packet.ptr + idk_ptr->send_packet.length;
-        length = idk_ptr->send_packet.total_length;
+        buf = iik_ptr->send_packet.ptr + iik_ptr->send_packet.length;
+        length = iik_ptr->send_packet.total_length;
 
-        bytes_sent = send_buffer(idk_ptr, buf, length);
+        bytes_sent = send_buffer(iik_ptr, buf, length);
         if (bytes_sent > 0)
         {
-            idk_ptr->send_packet.total_length -= bytes_sent;
-            idk_ptr->send_packet.length += bytes_sent;
+            iik_ptr->send_packet.total_length -= bytes_sent;
+            iik_ptr->send_packet.length += bytes_sent;
         }
         else
         {
-            idk_ptr->error_code = -bytes_sent;
-            status = idk_callback_abort;
+            iik_ptr->error_code = -bytes_sent;
+            status = iik_callback_abort;
         }
     }
 
-    if (status == idk_callback_continue && idk_ptr->send_packet.total_length > 0)
+    if (status == iik_callback_continue && iik_ptr->send_packet.total_length > 0)
     {
-        status = idk_callback_busy;
+        status = iik_callback_busy;
     }
     return status;
 
 }
 
 
-static int receive_data(idk_data_t * idk_ptr, uint8_t * buffer, size_t length)
+static int receive_data(iik_data_t * iik_ptr, uint8_t * buffer, size_t length)
 {
     int bytes_received = 0;
 
-    idk_callback_status_t status;
-    idk_read_request_t read_data;
-    unsigned tx_keepalive, tx_ka_time;
-    unsigned rx_keepalive, rx_ka_time;
+    iik_callback_status_t status;
+    iik_read_request_t read_data;
+    unsigned tx_keepalive;
+    unsigned tx_ka_timeout;
+    unsigned rx_ka_timeout;
     uint8_t wait_count;
     uint32_t time_stamp;
     size_t  length_read, size;
-    idk_request_t request_id;
+    iik_request_t request_id;
 
-    tx_keepalive = *idk_ptr->tx_keepalive * IDK_MILLISECONDS;
-    rx_keepalive = *idk_ptr->rx_keepalive * IDK_MILLISECONDS;
-    wait_count = *idk_ptr->wait_count;
-
-    if (!idk_ptr->network_busy)
+    if (!iik_ptr->network_busy)
     {
 
-        if (get_system_time(idk_ptr, &time_stamp) != idk_callback_continue)
+        if (get_system_time(iik_ptr, &time_stamp) != iik_callback_continue)
         {
-            bytes_received = -idk_configuration_error;
+            bytes_received = -iik_configuration_error;
             goto done;
         }
 
         /* rx keepalive timeout that we need to send a keepalive packet:
-         *   = configured keepalive time  - (current time - last time we send a packet);
+         *   = configured keepalive time  - (current time - last time we sent a packet);
          *
          * tx keepalive timeout that we expect a keepalive packet from server:
-         *   = configured keepalive time  - (current time - last time we receive a packet);
+         *   = configured keepalive time  - (current time - last time we received a packet);
          *
          * timeout value is in seconds.
          */
-        tx_ka_time = time_stamp - idk_ptr->tx_ka_time;
-        while (tx_ka_time >= tx_keepalive)
-        {
-            tx_ka_time -= tx_keepalive;
-        }
+        rx_ka_timeout = get_timeout_limit_in_seconds(*iik_ptr->rx_keepalive, (time_stamp - iik_ptr->rx_ka_time));
+        tx_ka_timeout = get_timeout_limit_in_seconds(*iik_ptr->tx_keepalive, (time_stamp - iik_ptr->tx_ka_time));
 
-        rx_ka_time = time_stamp - idk_ptr->rx_ka_time;
-        while (rx_ka_time >= rx_keepalive)
-        {
-            rx_ka_time -= rx_keepalive;
-        }
-        read_data.timeout = (IDK_MIN((rx_keepalive - tx_ka_time ),
-                                     (tx_keepalive- rx_ka_time))/IDK_MILLISECONDS);
+        read_data.timeout = MIN_VALUE(tx_ka_timeout, rx_ka_timeout);
 
-        read_data.network_handle = idk_ptr->network_handle;
+        read_data.network_handle = iik_ptr->network_handle;
         read_data.buffer = buffer;
         read_data.length = length;
 
         size = sizeof length_read;
 
-        request_id.base_request = idk_base_receive;
-        status = idk_callback(idk_ptr->callback, idk_class_base, request_id, &read_data, sizeof read_data, &length_read, &size);
-        if (status == idk_callback_abort)
+        request_id.network_request = iik_network_receive;
+        status = iik_callback(iik_ptr->callback, iik_class_network, request_id, &read_data, sizeof read_data, &length_read, &size);
+        if (status == iik_callback_abort)
         {
             DEBUG_PRINTF("receive_data: callback returns abort\n");
-            bytes_received = -idk_receive_error;
+            bytes_received = -iik_receive_error;
             goto done;
         }
-        else if (status == idk_callback_busy)
+        else if (status == iik_callback_busy)
         {
             goto done;
         }
@@ -377,17 +363,19 @@ static int receive_data(idk_data_t * idk_ptr, uint8_t * buffer, size_t length)
         {
             bytes_received = (int)length_read;
             /* Retain the "last (TX) message send" time. */
-            if (get_system_time(idk_ptr, &idk_ptr->tx_ka_time) != idk_callback_continue)
+            if (get_system_time(iik_ptr, &iik_ptr->tx_ka_time) != iik_callback_continue)
             {
-                bytes_received = -idk_configuration_error;
+                bytes_received = -iik_configuration_error;
             }
             goto done;
         }
     }
 
+    tx_keepalive = *iik_ptr->tx_keepalive * MILLISECONDS_PER_SECOND;
     if (tx_keepalive > 0)
     {
-        if (!valid_interval_limit(idk_ptr, idk_ptr->tx_ka_time, (tx_keepalive  * wait_count)))
+        wait_count = *iik_ptr->wait_count;
+        if (!valid_interval_limit(iik_ptr, iik_ptr->tx_ka_time, (tx_keepalive  * wait_count)))
         {
             /*
              * We haven't received a message
@@ -401,10 +389,10 @@ static int receive_data(idk_data_t * idk_ptr, uint8_t * buffer, size_t length)
              * keep-alive failure check never triggers.
              *
              */
-            bytes_received = -idk_keepalive_error;
-            request_id.base_request = idk_base_receive;
-            notify_error_status(idk_ptr->callback, idk_class_base, request_id, idk_keepalive_error);
-            DEBUG_PRINTF("idk_receive: keepalive fail\n");
+            bytes_received = -iik_keepalive_error;
+            request_id.network_request = iik_network_receive;
+            notify_error_status(iik_ptr->callback, iik_class_config, request_id, iik_keepalive_error);
+            DEBUG_PRINTF("iik_receive: keepalive fail\n");
         }
     }
 
@@ -413,50 +401,50 @@ done:
 }
 
 
-static idk_callback_status_t receive_data_status(idk_data_t * idk_ptr)
+static iik_callback_status_t receive_data_status(iik_data_t * iik_ptr)
 {
     uint8_t * buf;
     size_t  length;
-    idk_callback_status_t status = idk_callback_continue;
+    iik_callback_status_t status = iik_callback_continue;
     int     read_length;
 
-    if (idk_ptr->receive_packet.length < idk_ptr->receive_packet.total_length)
+    if (iik_ptr->receive_packet.length < iik_ptr->receive_packet.total_length)
     {
-        buf = idk_ptr->receive_packet.ptr + idk_ptr->receive_packet.length;
-        length = idk_ptr->receive_packet.total_length - idk_ptr->receive_packet.length;
+        buf = iik_ptr->receive_packet.ptr + iik_ptr->receive_packet.length;
+        length = iik_ptr->receive_packet.total_length - iik_ptr->receive_packet.length;
 
-        read_length = receive_data(idk_ptr, buf, length);
+        read_length = receive_data(iik_ptr, buf, length);
         if (read_length > 0)
         {
-            idk_ptr->receive_packet.length += read_length;
+            iik_ptr->receive_packet.length += read_length;
         }
         else if (read_length < 0)
         {
-            idk_ptr->error_code = -read_length;
-            status = idk_callback_abort;
+            iik_ptr->error_code = -read_length;
+            status = iik_callback_abort;
             goto done;
         }
     }
 
-    if (idk_ptr->receive_packet.total_length > 0 &&
-        idk_ptr->receive_packet.length < idk_ptr->receive_packet.total_length)
+    if (iik_ptr->receive_packet.total_length > 0 &&
+        iik_ptr->receive_packet.length < iik_ptr->receive_packet.total_length)
     {
-        status = idk_callback_busy;
+        status = iik_callback_busy;
     }
 done:
     return status;
 }
 
 
-static idk_callback_status_t receive_packet(idk_data_t * idk_ptr, idk_packet_t ** packet)
+static iik_callback_status_t receive_packet(iik_data_t * iik_ptr, iik_packet_t ** packet)
 {
-    idk_callback_status_t status = idk_callback_continue;
+    iik_callback_status_t status = iik_callback_continue;
     uint16_t type_val;
-    idk_request_t request_id;
+    iik_request_t request_id;
 
     *packet = NULL;
 
-    if (idk_ptr->network_handle == NULL)
+    if (iik_ptr->network_handle == NULL)
     {
         goto done;
     }
@@ -495,35 +483,35 @@ static idk_callback_status_t receive_packet(idk_data_t * idk_ptr, idk_packet_t *
      *
      */
 
-    while (idk_ptr->receive_packet.index <= receive_packet_complete)
+    while (iik_ptr->receive_packet.index <= receive_packet_complete)
     {
-        if (idk_ptr->receive_packet.index != receive_packet_init)
+        if (iik_ptr->receive_packet.index != receive_packet_init)
         {
-            status = receive_data_status(idk_ptr);
-            if (status != idk_callback_continue)
+            status = receive_data_status(iik_ptr);
+            if (status != iik_callback_continue)
             {  /* receive pending */
                 goto done;
             }
         }
 
-        switch (idk_ptr->receive_packet.index)
+        switch (iik_ptr->receive_packet.index)
         {
         case receive_packet_init:
-            idk_ptr->receive_packet.packet_type = 0;
-            idk_ptr->receive_packet.packet_length = 0;
-            idk_ptr->receive_packet.length = 0;
-            idk_ptr->receive_packet.total_length = 0;
-            idk_ptr->receive_packet.index = 0;
-            idk_ptr->receive_packet.data_packet = (idk_packet_t *)idk_ptr->receive_packet.buffer;
-            idk_ptr->receive_packet.index++;
+            iik_ptr->receive_packet.packet_type = 0;
+            iik_ptr->receive_packet.packet_length = 0;
+            iik_ptr->receive_packet.length = 0;
+            iik_ptr->receive_packet.total_length = 0;
+            iik_ptr->receive_packet.index = 0;
+            iik_ptr->receive_packet.data_packet = (iik_packet_t *)iik_ptr->receive_packet.buffer;
+            iik_ptr->receive_packet.index++;
             break;
 
         case receive_packet_type:
             /* set to read the type of the message */
-            idk_ptr->receive_packet.ptr = (uint8_t *)&idk_ptr->receive_packet.packet_type;
-            idk_ptr->receive_packet.length = 0;
-            idk_ptr->receive_packet.total_length = sizeof idk_ptr->receive_packet.packet_type;
-            idk_ptr->receive_packet.index++;
+            iik_ptr->receive_packet.ptr = (uint8_t *)&iik_ptr->receive_packet.packet_type;
+            iik_ptr->receive_packet.length = 0;
+            iik_ptr->receive_packet.total_length = sizeof iik_ptr->receive_packet.packet_type;
+            iik_ptr->receive_packet.index++;
             break;
 
         case receive_packet_length:
@@ -531,8 +519,8 @@ static idk_callback_status_t receive_packet(idk_data_t * idk_ptr, idk_packet_t *
              * so make sure we support the message type.
              * Then, set to read message length. 
              */
-            type_val = FROM_BE16(idk_ptr->receive_packet.packet_type);
-            idk_ptr->receive_packet.packet_type = type_val;
+            type_val = FROM_BE16(iik_ptr->receive_packet.packet_type);
+            iik_ptr->receive_packet.packet_type = type_val;
 
             switch (type_val)
             {
@@ -549,18 +537,18 @@ static idk_callback_status_t receive_packet(idk_data_t * idk_ptr, idk_packet_t *
                      * field bytes.
                      */
                     /* Supply a length of 1 byte. */
-                    idk_ptr->receive_packet.data_packet->length = 1;
-                    idk_ptr->receive_packet.index++;
+                    iik_ptr->receive_packet.data_packet->length = 1;
+                    iik_ptr->receive_packet.index++;
 
-                    idk_ptr->receive_packet.total_length = idk_ptr->receive_packet.data_packet->length;
+                    iik_ptr->receive_packet.total_length = iik_ptr->receive_packet.data_packet->length;
 
                     /*
                      * Read the actual message data bytes into the packet buffer.
                      */
-                    idk_ptr->receive_packet.ptr = IDK_PACKET_DATA_POINTER(idk_ptr->receive_packet.buffer, sizeof(idk_packet_t));
-                    idk_ptr->receive_packet.length = 0;
-                    idk_ptr->receive_packet.total_length = idk_ptr->receive_packet.data_packet->length;
-                    idk_ptr->receive_packet.index++;
+                    iik_ptr->receive_packet.ptr = GET_PACKET_DATA_POINTER(iik_ptr->receive_packet.buffer, sizeof(iik_packet_t));
+                    iik_ptr->receive_packet.length = 0;
+                    iik_ptr->receive_packet.total_length = iik_ptr->receive_packet.data_packet->length;
+                    iik_ptr->receive_packet.index++;
 
                     break;
                 case E_MSG_MT2_TYPE_VERSION_OK:
@@ -585,30 +573,30 @@ static idk_callback_status_t receive_packet(idk_data_t * idk_ptr, idk_packet_t *
                      * If callback tells us to continue, we continue reading packet data.
                      */
                     DEBUG_PRINTF("receive_packet: error type 0x%x\n", (unsigned) type_val);
-                    request_id.base_request = idk_base_receive;
-                    idk_ptr->error_code = idk_invalid_packet;
-                    status = notify_error_status(idk_ptr->callback, idk_class_base, request_id, idk_invalid_packet);
-                    if (status == idk_callback_abort)
+                    request_id.network_request = iik_network_receive;
+                    iik_ptr->error_code = iik_invalid_packet;
+                    status = notify_error_status(iik_ptr->callback, iik_class_config, request_id, iik_invalid_packet);
+                    if (status == iik_callback_abort)
                     {
-                        idk_ptr->receive_packet.index = 0;
+                        iik_ptr->receive_packet.index = 0;
                         goto done;
                     }
             }
 
             if (type_val != E_MSG_MT2_TYPE_LEGACY_EDP_VER_RESP)
             {   /* set up to read message length */
-                idk_ptr->receive_packet.ptr = (uint8_t *)&idk_ptr->receive_packet.packet_length;
-                idk_ptr->receive_packet.length = 0;
-                idk_ptr->receive_packet.total_length = sizeof idk_ptr->receive_packet.packet_length;
-                idk_ptr->receive_packet.index++;
+                iik_ptr->receive_packet.ptr = (uint8_t *)&iik_ptr->receive_packet.packet_length;
+                iik_ptr->receive_packet.length = 0;
+                iik_ptr->receive_packet.total_length = sizeof iik_ptr->receive_packet.packet_length;
+                iik_ptr->receive_packet.index++;
             }
             break;
 
         case receive_packet_data:
             /* got packet length so set to read message data */
-            idk_ptr->receive_packet.data_packet->length = FROM_BE16(idk_ptr->receive_packet.packet_length);
-            idk_ptr->receive_packet.packet_length = idk_ptr->receive_packet.data_packet->length;
-            if (idk_ptr->receive_packet.packet_type != E_MSG_MT2_TYPE_PAYLOAD)
+            iik_ptr->receive_packet.data_packet->length = FROM_BE16(iik_ptr->receive_packet.packet_length);
+            iik_ptr->receive_packet.packet_length = iik_ptr->receive_packet.data_packet->length;
+            if (iik_ptr->receive_packet.packet_type != E_MSG_MT2_TYPE_PAYLOAD)
             {
                 /*
                  * For all but payload messages, the length field value should be
@@ -619,44 +607,44 @@ static idk_callback_status_t receive_packet(idk_data_t * idk_ptr, idk_packet_t *
                  *    E_MSG_MT2_TYPE_SERVER_OVERLOAD
                  *    E_MSG_MT2_TYPE_KA_KEEPALIVE
                  */
-                if (idk_ptr->receive_packet.packet_length != 0)
+                if (iik_ptr->receive_packet.packet_length != 0)
                 {
-                    DEBUG_PRINTF("idk_get_receive_packet: Invalid payload\n");
-                    request_id.base_request = idk_base_receive;
-                    idk_ptr->error_code = idk_invalid_payload_packet;
-                    status = notify_error_status(idk_ptr->callback, idk_class_base, request_id, idk_invalid_payload_packet);
-                    if (status == idk_callback_abort)
+                    DEBUG_PRINTF("iik_get_receive_packet: Invalid payload\n");
+                    request_id.network_request = iik_network_receive;
+                    iik_ptr->error_code = iik_invalid_payload_packet;
+                    status = notify_error_status(iik_ptr->callback, iik_class_config, request_id, iik_invalid_payload_packet);
+                    if (status == iik_callback_abort)
                     {
-                        idk_ptr->receive_packet.index = 0;
+                        iik_ptr->receive_packet.index = 0;
                         goto done;
                     }
                 }
             }
             /* set to read message data */
-            idk_ptr->receive_packet.total_length = idk_ptr->receive_packet.data_packet->length;
+            iik_ptr->receive_packet.total_length = iik_ptr->receive_packet.data_packet->length;
 
-            if (idk_ptr->receive_packet.data_packet->length == 0)
+            if (iik_ptr->receive_packet.data_packet->length == 0)
             {
                 /* set to complete data since no data to be read. */
-                idk_ptr->receive_packet.index = 4;
+                iik_ptr->receive_packet.index = 4;
             }
             else 
             {
                 /*
                  * Read the actual message data bytes into the packet buffer.
                  */
-                idk_ptr->receive_packet.ptr = IDK_PACKET_DATA_POINTER(idk_ptr->receive_packet.buffer, sizeof(idk_packet_t));
-                idk_ptr->receive_packet.length = 0;
-                idk_ptr->receive_packet.total_length = idk_ptr->receive_packet.data_packet->length;
-                idk_ptr->receive_packet.index++;
+                iik_ptr->receive_packet.ptr = GET_PACKET_DATA_POINTER(iik_ptr->receive_packet.buffer, sizeof(iik_packet_t));
+                iik_ptr->receive_packet.length = 0;
+                iik_ptr->receive_packet.total_length = iik_ptr->receive_packet.data_packet->length;
+                iik_ptr->receive_packet.index++;
 
             }
 
             break;
         case receive_packet_complete:
-            idk_ptr->receive_packet.data_packet->type = idk_ptr->receive_packet.packet_type;
-            idk_ptr->receive_packet.index = receive_packet_init;
-            *packet = idk_ptr->receive_packet.data_packet;
+            iik_ptr->receive_packet.data_packet->type = iik_ptr->receive_packet.packet_type;
+            iik_ptr->receive_packet.index = receive_packet_init;
+            *packet = iik_ptr->receive_packet.data_packet;
             goto done;
         }
     }
@@ -665,63 +653,63 @@ done:
     return status;
 }
 
-static idk_callback_status_t connect_server(idk_data_t * idk_ptr, char * server_url, unsigned port)
+static iik_callback_status_t connect_server(iik_data_t * iik_ptr, char * server_url, unsigned port)
 {
-    idk_callback_status_t status;
-    idk_connect_request_t request;
+    iik_callback_status_t status;
+    iik_connect_request_t request;
     size_t length;
-    idk_request_t request_id;
+    iik_request_t request_id;
 
     request.host_name = server_url;
     request.port = port;
 
-    request_id.base_request = idk_base_connect;
-    status = idk_callback(idk_ptr->callback, idk_class_base, request_id, &request, sizeof request, &idk_ptr->network_handle, &length);
-    if (status == idk_callback_continue)
+    request_id.network_request = iik_network_connect;
+    status = iik_callback(iik_ptr->callback, iik_class_network, request_id, &request, sizeof request, &iik_ptr->network_handle, &length);
+    if (status == iik_callback_continue)
     {
-        if (idk_ptr->network_handle != NULL && length == sizeof(idk_network_handle_t))
+        if (iik_ptr->network_handle != NULL && length == sizeof(iik_network_handle_t))
         {
-            idk_ptr->edp_connected = true;
-            idk_ptr->network_busy = false;
+            iik_ptr->edp_connected = true;
+            iik_ptr->network_busy = false;
         }
         else
         {
-            idk_ptr->error_code = (idk_ptr->network_handle == NULL) ? idk_invalid_data : idk_invalid_data_size;
-            request_id.base_request = idk_base_connect;
-            status = notify_error_status(idk_ptr->callback, idk_class_base, request_id, idk_ptr->error_code);
+            iik_ptr->error_code = (iik_ptr->network_handle == NULL) ? iik_invalid_data : iik_invalid_data_size;
+            request_id.network_request = iik_network_connect;
+            status = notify_error_status(iik_ptr->callback, iik_class_config, request_id, iik_ptr->error_code);
         }
     }
-    else if (status == idk_callback_abort)
+    else if (status == iik_callback_abort)
     {
-        idk_ptr->error_code = idk_connect_error;
+        iik_ptr->error_code = iik_connect_error;
     }
     return status;
 }
 
-static idk_callback_status_t close_server(idk_data_t * idk_ptr)
+static iik_callback_status_t close_server(iik_data_t * iik_ptr)
 {
-    idk_callback_status_t status = idk_callback_continue;
-    idk_request_t request_id;
+    iik_callback_status_t status = iik_callback_continue;
+    iik_request_t request_id;
 
-    if (idk_ptr->network_handle != NULL)
+    if (iik_ptr->network_handle != NULL)
     {
-        request_id.base_request = idk_base_close;
-        status = idk_callback(idk_ptr->callback, idk_class_base, request_id, idk_ptr->network_handle, sizeof(idk_network_handle_t *), NULL, NULL);
-        if (status == idk_callback_continue)
+        request_id.network_request = iik_network_close;
+        status = iik_callback(iik_ptr->callback, iik_class_network, request_id, iik_ptr->network_handle, sizeof(iik_network_handle_t *), NULL, NULL);
+        if (status == iik_callback_continue)
         {
-            idk_ptr->network_handle = NULL;
-            idk_ptr->edp_connected = false;
-            idk_ptr->send_packet.total_length = 0;
-            idk_ptr->receive_packet.index = 0;
+            iik_ptr->network_handle = NULL;
+            iik_ptr->edp_connected = false;
+            iik_ptr->send_packet.total_length = 0;
+            iik_ptr->receive_packet.index = 0;
 ;
         }
-        else if (status == idk_callback_abort)
+        else if (status == iik_callback_abort)
         {
             DEBUG_PRINTF("close_server: close callback aborts\n");
-            idk_ptr->network_handle = NULL;
-            idk_ptr->error_code = idk_close_error;
-            idk_ptr->send_packet.total_length = 0;
-            idk_ptr->receive_packet.index = 0;
+            iik_ptr->network_handle = NULL;
+            iik_ptr->error_code = iik_close_error;
+            iik_ptr->send_packet.total_length = 0;
+            iik_ptr->receive_packet.index = 0;
         }
     }
     return status;
