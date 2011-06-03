@@ -7,7 +7,7 @@
 #
 # type 'make help' for more information
 
-include $(IDK_RULES)
+include $(IDIGI_RULES)
 
 ifeq ($(LITTLE_ENDIAN),true)
 CFLAGS += -D_LITTLE_ENDIAN
@@ -22,7 +22,7 @@ endif
 CFLAGS += -Wall -Werror -I../../include
 
 OBJS = main.o firmware.o network.o os.o
-LIBS = -lidk -lc
+LIBS = -lidigi -lc
 
 # Name of executable to build
 SAMPLE=linux_sample
@@ -42,11 +42,11 @@ clean:
 help:
 	@echo "Makefile used to build the linux sample"
 	@echo "Options:"
-	@echo "    IDK_RULES     = Location and  name for toolset"
+	@echo "    IDIGI_RULES     = Location and  name for toolset"
 	@echo "    DEBUG         = true or false for debugging"
 	@echo "    LIB           = path of idigi library"
 	@echo "    LITTLE_ENDIAN = true or false for little endian"
 	@echo "NOTE:"
-	@echo "    The IDK library path must be added to the LD_LIBRARY_PATH"
+	@echo "    The idigi library path must be added to the LD_LIBRARY_PATH"
 	@echo "    environmental variable when running the application"
 
