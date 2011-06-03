@@ -29,30 +29,31 @@
 
 #include "idigi_data.h"
 
-/* If set, IDK will start as a separated thread calling iik_run */
-#define IIK_THREAD  0
+/* If set, iDigi will start as a separated thread calling idigi_run */
+#define IDIGI_THREAD  0
 
+#define ONE_SECOND  1
 time_t  deviceSystemUpStartTime;
 
 
-iik_callback_status_t idigi_callback(iik_class_t class, iik_request_t request,
+idigi_callback_status_t idigi_callback(idigi_class_t class, idigi_request_t request,
                                     void const * request_data, size_t request_length,
                                     void * response_data, size_t * response_length)
 {
-    iik_callback_status_t   status = iik_callback_continue;
+    idigi_callback_status_t   status = idigi_callback_continue;
 
     switch (class)
     {
-    case iik_class_config:
+    case idigi_class_config:
         status = idigi_config_callback(request.config_request, request_data, request_length, response_data, response_length);
         break;
-    case iik_class_operating_system:
+    case idigi_class_operating_system:
         status = idigi_os_callback(request.os_request, request_data, request_length, response_data, response_length);
         break;
-    case iik_class_network:
+    case idigi_class_network:
         status = idigi_network_callback(request.network_request, request_data, request_length, response_data, response_length);
         break;
-    case iik_class_firmware:
+    case idigi_class_firmware:
         status = idigi_firmware_callback(request.firmware_request, request_data, request_length, response_data, response_length);
         break;
     default:
@@ -63,19 +64,19 @@ iik_callback_status_t idigi_callback(iik_class_t class, iik_request_t request,
 }
 
 
-#if IIK_THREAD
+#if IDIGI_THREAD
 
 #include <pthread.h>
 
-void * iik_process_thread(void * arg)
+void * idigi_process_thread(void * arg)
 {
-    iik_status_t status;
+    idigi_status_t status;
 
-    printf("IDK Process thread starts...\n");
+    printf("iDigi Process thread starts...\n");
 
-    status = iik_run((iik_handle_t)arg);
+    status = idigi_run((idigi_handle_t)arg);
 
-    printf("IDK process thread exits... %d\n", status);
+    printf("iDigi process thread exits... %d\n", status);
 
     pthread_exit(arg);
 
@@ -83,22 +84,22 @@ void * iik_process_thread(void * arg)
 
 int main (void)
 {
-    pthread_t   iik_thread;
+    pthread_t   idigi_thread;
     void * idkdone;
 
     time(&deviceSystemUpStartTime);
 
-    iDigiSetting.iik_handle = iik_init((iik_callback_t) idigi_callback);
-    if (iDigiSetting.iik_handle != 0)
+    iDigiSetting.idigi_handle = idigi_init((idigi_callback_t) idigi_callback);
+    if (iDigiSetting.idigi_handle != 0)
     {
 
-        if (pthread_create(&iik_thread, NULL, iik_process_thread, iDigiSetting.iik_handle) != 0)
+        if (pthread_create(&idigi_thread, NULL, idigi_process_thread, iDigiSetting.idigi_handle) != 0)
         {
-            perror("thread_create() error on iik_process_thread");
+            perror("thread_create() error on idigi_process_thread");
             goto done;
         }
 
-        if (pthread_join(iik_thread, &idkdone) != 0)
+        if (pthread_join(idigi_thread, &idkdone) != 0)
         {
             perror("thread_join() error on my_process_thread");
             goto done;
@@ -106,7 +107,7 @@ int main (void)
     }
     else
     {
-        printf("unable to initialize IDK\n");
+        printf("unable to initialize iDigi\n");
     }
 done:
     return 0;
@@ -115,34 +116,34 @@ done:
 
 int main (void)
 {
-    iik_status_t status = iik_success;
+    idigi_status_t status = idigi_success;
 
     time(&deviceSystemUpStartTime);
 
 
-    iDigiSetting.iik_handle = iik_init((iik_callback_t) idigi_callback);
-    if (iDigiSetting.iik_handle != 0)
+    iDigiSetting.idigi_handle = idigi_init((idigi_callback_t) idigi_callback);
+    if (iDigiSetting.idigi_handle != 0)
     {
 
-        while (status == iik_success)
+        while (status == idigi_success)
         {
-            status = iik_step(iDigiSetting.iik_handle);
+            status = idigi_step(iDigiSetting.idigi_handle);
             iDigiSetting.select_data = 0;
 
-            if (status != iik_success)
+            if (status != idigi_success)
             {
-                printf("main: iik_task returns error %d\n", status);
+                printf("main: idigi_task returns error %d\n", status);
             }
             else
             {
                 iDigiSetting.select_data |= NETWORK_TIMEOUT_SET | NETWORK_READ_SET;
-                network_select(iDigiSetting.socket_fd, iDigiSetting.select_data, 1);
+                network_select(iDigiSetting.socket_fd, iDigiSetting.select_data, ONE_SECOND);
             }
         }
    }
     else
     {
-        printf("unable to initialize IDK\n");
+        printf("unable to initialize iDigi\n");
     }
     return 0;
 }
