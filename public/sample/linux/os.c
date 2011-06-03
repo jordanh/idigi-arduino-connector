@@ -28,25 +28,25 @@
 #include "idigi_data.h"
 
 
-static iik_callback_status_t os_malloc(size_t size, void ** ptr)
+static idigi_callback_status_t os_malloc(size_t size, void ** ptr)
 {
-    iik_callback_status_t rc = iik_callback_continue;
+    idigi_callback_status_t rc = idigi_callback_continue;
     *ptr = malloc(size);
     if (*ptr == NULL)
     {
-        rc = iik_callback_busy;
+        rc = idigi_callback_busy;
     }
     return rc;
 }
 
-static iik_callback_status_t os_free(void * ptr)
+static idigi_callback_status_t os_free(void * ptr)
 {
     free(ptr);
-    return iik_callback_continue;
+    return idigi_callback_continue;
 }
 
 
-static iik_callback_status_t os_get_system_time(uint32_t * mstime)
+static idigi_callback_status_t os_get_system_time(uint32_t * mstime)
 {
     time_t      curtime;
 
@@ -54,26 +54,26 @@ static iik_callback_status_t os_get_system_time(uint32_t * mstime)
 
     *mstime = (uint32_t)(curtime - deviceSystemUpStartTime) * 1000;
 
-    return iik_callback_continue;
+    return idigi_callback_continue;
 }
 
-iik_callback_status_t idigi_os_callback(iik_os_request_t request,
+idigi_callback_status_t idigi_os_callback(idigi_os_request_t request,
                                         void const * request_data, size_t request_length,
                                         void * response_data, size_t * response_length)
 {
-    iik_callback_status_t status = iik_callback_continue;
+    idigi_callback_status_t status = idigi_callback_continue;
 
     switch (request)
     {
-    case iik_os_malloc:
+    case idigi_os_malloc:
         status = os_malloc(*((size_t *)request_data), (void **)response_data);
         break;
 
-    case iik_os_free:
+    case idigi_os_free:
         status = os_free((void *)request_data);
         break;
 
-    case iik_os_system_up_time:
+    case idigi_os_system_up_time:
         status = os_get_system_time((uint32_t *)response_data);
         break;
     }
