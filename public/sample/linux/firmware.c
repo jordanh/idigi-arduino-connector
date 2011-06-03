@@ -49,20 +49,20 @@ static uint16_t fimware_list_count = asizeof(fimware_list);
 static bool firmware_download_started = false;
 static size_t total_image_size = 0;
 
-static iik_callback_status_t firmware_download_request(iik_fw_download_request_t * download_data, iik_fw_status_t * download_status)
+static idigi_callback_status_t firmware_download_request(idigi_fw_download_request_t * download_data, idigi_fw_status_t * download_status)
 {
-    iik_callback_status_t status = iik_callback_continue;
+    idigi_callback_status_t status = idigi_callback_continue;
 
     /* Server requests firmware image update.*/
     if (download_data == NULL || download_status == NULL)
     {
-        DEBUG_PRINTF("firmware_download_request ERROR: IDK passes incorrect parameters\n");
-        *download_status = iik_fw_download_denied;
+        DEBUG_PRINTF("firmware_download_request ERROR: iDigi passes incorrect parameters\n");
+        *download_status = idigi_fw_download_denied;
         goto done;
     }
     if (firmware_download_started)
     {
-        *download_status = iik_fw_device_error;
+        *download_status = idigi_fw_device_error;
         goto done;
     }
 
@@ -76,20 +76,20 @@ static iik_callback_status_t firmware_download_request(iik_fw_download_request_t
     total_image_size = 0;
     firmware_download_started = true;
 
-    *download_status = iik_fw_success;
+    *download_status = idigi_fw_success;
 
 done:
     return status;
 }
 
-static iik_callback_status_t firmware_image_data(iik_fw_image_data_t * image_data, iik_fw_status_t * data_status)
+static idigi_callback_status_t firmware_image_data(idigi_fw_image_data_t * image_data, idigi_fw_status_t * data_status)
 {
-    iik_callback_status_t   status = iik_callback_continue;
+    idigi_callback_status_t   status = idigi_callback_continue;
 
     /* Server sends image data for firmware update */
     if (image_data == NULL)
     {
-        DEBUG_PRINTF("firmware_image_data ERROR: IDK passes incorrect parameters\n");
+        DEBUG_PRINTF("firmware_image_data ERROR: iDigi passes incorrect parameters\n");
         goto done;
     }
 
@@ -100,20 +100,19 @@ static iik_callback_status_t firmware_image_data(iik_fw_image_data_t * image_dat
     DEBUG_PRINTF("length = %d (total = %d)\n", image_data->length, total_image_size);
 
 
-    *data_status = iik_fw_success;
+    *data_status = idigi_fw_success;
 done:
     return status;
 }
 
-int gStatus = 2;
 
-static iik_callback_status_t firmware_download_complete(iik_fw_download_complete_request_t * request_data, iik_fw_download_complete_response_t * response_data)
+static idigi_callback_status_t firmware_download_complete(idigi_fw_download_complete_request_t * request_data, idigi_fw_download_complete_response_t * response_data)
 {
-    iik_callback_status_t   status = iik_callback_continue;
+    idigi_callback_status_t   status = idigi_callback_continue;
 
     if (request_data == NULL || response_data == NULL)
     {
-        DEBUG_PRINTF("firmware_download_complete Error: IDK passes incorrect parameters\n");
+        DEBUG_PRINTF("firmware_download_complete Error: iDigi passes incorrect parameters\n");
         goto done;
     }
 
@@ -124,7 +123,7 @@ static iik_callback_status_t firmware_download_complete(iik_fw_download_complete
     DEBUG_PRINTF("code size = %d\n", request_data->code_size);
     DEBUG_PRINTF("checksum = 0x%x\n", (unsigned)request_data->checksum);
 
-    response_data->status = iik_fw_download_success;
+    response_data->status = idigi_fw_download_success;
 
     /* Server currently use calculated checksum field for write status.
      * 0 means no error.
@@ -133,7 +132,7 @@ static iik_callback_status_t firmware_download_complete(iik_fw_download_complete
 
     if (request_data->code_size != total_image_size)
     {
-        DEBUG_PRINTF("firmware_download_complete: received image size (%d) != the code size sent (%d)\n",
+        DEBUG_PRINTF("firmware_download_complete: actual image size (%d) != the code size received (%d)\n",
                       request_data->code_size, total_image_size);
     }
 
@@ -143,15 +142,15 @@ done:
     return status;
 }
 
-static iik_callback_status_t firmware_download_abort(iik_fw_download_abort_t * abort_data)
+static idigi_callback_status_t firmware_download_abort(idigi_fw_download_abort_t * abort_data)
 {
-    iik_callback_status_t   status = iik_callback_continue;
+    idigi_callback_status_t   status = idigi_callback_continue;
 
     /* Server is aborting firmware update */
     DEBUG_PRINTF("firmware_download_abort\n");
     if (abort_data == NULL)
     {
-        DEBUG_PRINTF("firmware_download_abort Error: IDK passes incorrect parameters\n");
+        DEBUG_PRINTF("firmware_download_abort Error: iDigi passes incorrect parameters\n");
         goto done;
     }
 
@@ -159,9 +158,9 @@ done:
     return status;
 }
 
-static iik_callback_status_t firmware_reset(iik_fw_config_t * reset_data)
+static idigi_callback_status_t firmware_reset(idigi_fw_config_t * reset_data)
 {
-    iik_callback_status_t   status = iik_callback_continue;
+    idigi_callback_status_t   status = idigi_callback_continue;
 
     /* Server requests firmware reboot */
     DEBUG_PRINTF("firmware_reset\n");
@@ -169,38 +168,38 @@ static iik_callback_status_t firmware_reset(iik_fw_config_t * reset_data)
     return status;
 }
 
-iik_callback_status_t idigi_firmware_callback(iik_firmware_request_t request,
+idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t request,
                                                   void const * request_data, size_t request_length,
                                                   void * response_data, size_t * response_length)
 {
-    iik_callback_status_t status = iik_callback_continue;
-    iik_fw_config_t * config = (iik_fw_config_t *)request_data;
+    idigi_callback_status_t status = idigi_callback_continue;
+    idigi_fw_config_t * config = (idigi_fw_config_t *)request_data;
 
 
     switch (request)
     {
-    case iik_firmware_target_count:
+    case idigi_firmware_target_count:
     {
         uint16_t * count = (uint16_t *)response_data;
         /* return total number of firmware update targets */
         *count = fimware_list_count;
         break;
     }
-    case iik_firmware_version:
+    case idigi_firmware_version:
     {
         uint32_t * version = (uint32_t *)response_data;
         /* return the target version number */
         *version = fimware_list[config->target].version;
         break;
     }
-    case iik_firmware_code_size:
+    case idigi_firmware_code_size:
     {
         /* Return the target code size */
         uint32_t * code_size = (uint32_t *)response_data;
         *code_size = fimware_list[config->target].code_size;
         break;
     }
-    case iik_firmware_description:
+    case idigi_firmware_description:
     {
         /* return pointer to firmware target description */
         char ** description = (char **)response_data;
@@ -208,7 +207,7 @@ iik_callback_status_t idigi_firmware_callback(iik_firmware_request_t request,
         *response_length = strlen(fimware_list[config->target].description);
        break;
     }
-    case iik_firmware_name_spec:
+    case idigi_firmware_name_spec:
     {
         /* return pointer to firmware target description */
         char ** name_spec = (char **)response_data;
@@ -216,25 +215,25 @@ iik_callback_status_t idigi_firmware_callback(iik_firmware_request_t request,
         *response_length = strlen(fimware_list[config->target].name_spec);
         break;
     }
-    case iik_firmware_download_request:
-        status = firmware_download_request((iik_fw_download_request_t *)request_data, (iik_fw_status_t *)response_data);
+    case idigi_firmware_download_request:
+        status = firmware_download_request((idigi_fw_download_request_t *)request_data, (idigi_fw_status_t *)response_data);
         break;
 
-    case iik_firmware_binary_block:
-        status =  firmware_image_data((iik_fw_image_data_t *) request_data, (iik_fw_status_t *)response_data);
+    case idigi_firmware_binary_block:
+        status =  firmware_image_data((idigi_fw_image_data_t *) request_data, (idigi_fw_status_t *)response_data);
         break;
 
-    case iik_firmware_download_complete:
-        status =  firmware_download_complete((iik_fw_download_complete_request_t *) request_data,
-                                             (iik_fw_download_complete_response_t *) response_data);
+    case idigi_firmware_download_complete:
+        status =  firmware_download_complete((idigi_fw_download_complete_request_t *) request_data,
+                                             (idigi_fw_download_complete_response_t *) response_data);
         break;
 
-    case iik_firmware_download_abort:
-        status =  firmware_download_abort((iik_fw_download_abort_t *) request_data);
+    case idigi_firmware_download_abort:
+        status =  firmware_download_abort((idigi_fw_download_abort_t *) request_data);
         break;
 
-    case iik_firmware_target_reset:
-        status =  firmware_reset((iik_fw_config_t *) request_data);
+    case idigi_firmware_target_reset:
+        status =  firmware_reset((idigi_fw_config_t *) request_data);
         break;
     }
 
