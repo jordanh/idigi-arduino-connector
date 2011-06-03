@@ -24,93 +24,93 @@
  */
 #include "debug.c"
 
-static void init_setting(iik_data_t * iik_ptr)
+static void init_setting(idigi_data_t * idigi_ptr)
 {
-    iik_ptr->edp_state = edp_init_layer;
-    iik_ptr->layer_state = 0;
-    iik_ptr->request_id = 0;
-    iik_ptr->error_code = iik_success;
-    iik_ptr->active_facility = NULL;
-    iik_ptr->rx_ka_time = 0;
-    iik_ptr->tx_ka_time = 0;
+    idigi_ptr->edp_state = edp_init_layer;
+    idigi_ptr->layer_state = 0;
+    idigi_ptr->request_id = 0;
+    idigi_ptr->error_code = idigi_success;
+    idigi_ptr->active_facility = NULL;
+    idigi_ptr->rx_ka_time = 0;
+    idigi_ptr->tx_ka_time = 0;
 
-    iik_ptr->send_packet.total_length = 0;
-    iik_ptr->send_packet.length = 0;
-    iik_ptr->send_packet.ptr = NULL;
-    iik_ptr->receive_packet.total_length = 0;
-    iik_ptr->receive_packet.length = 0;
-    iik_ptr->receive_packet.index = 0;
+    idigi_ptr->send_packet.total_length = 0;
+    idigi_ptr->send_packet.length = 0;
+    idigi_ptr->send_packet.ptr = NULL;
+    idigi_ptr->receive_packet.total_length = 0;
+    idigi_ptr->receive_packet.length = 0;
+    idigi_ptr->receive_packet.index = 0;
 
 
 }
 
-static iik_callback_status_t iik_callback(iik_callback_t const callback, iik_class_t class, iik_request_t request,
+static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, idigi_class_t class_id, idigi_request_t request_id,
                                    void const * request_data, size_t request_length,
                                    void * response_data, size_t * response_length)
 {
-    iik_callback_status_t status;
+    idigi_callback_status_t status;
 
-    status = callback(class, request, request_data, request_length, response_data, response_length);
+    status = callback(class_id, request_id, request_data, request_length, response_data, response_length);
 
-    ASSERT((status == iik_callback_continue) || (status == iik_callback_abort) || (status == iik_callback_busy) || (status == iik_callback_unrecognized));
+    ASSERT((status == idigi_callback_continue) || (status == idigi_callback_abort) || (status == idigi_callback_busy) || (status == idigi_callback_unrecognized));
 
-    if (status == iik_callback_unrecognized)
+    if (status == idigi_callback_unrecognized)
     {
-        /* Application must support all requests in this IIK release
-         * so if application returns unrecognized status, abort IIK.
+        /* Application must support all requests in this iDigi release
+         * so if application returns unrecognized status, abort iDigi.
          */
-        DEBUG_PRINTF("ERROR: Application returns unrecognized request for request=%d class = %d which IIK requires for this version\n", request.config_request, class);
-        status = iik_callback_abort;
+        DEBUG_PRINTF("ERROR: Application returns unrecognized request for request=%d class_id = %d which iDigi requires for this version\n", request_id.config_request, class_id);
+        status = idigi_callback_abort;
     }
 
     return status;
 }
 
 
-static iik_callback_status_t notify_error_status(iik_callback_t callback, iik_class_t class, iik_request_t request, iik_status_t status)
+static idigi_callback_status_t notify_error_status(idigi_callback_t callback, idigi_class_t class_number, idigi_request_t request_number, idigi_status_t status)
 {
-    iik_error_status_t err_status;
-    iik_request_t request_id;
+    idigi_error_status_t err_status;
+    idigi_request_t request_id;
 
-    err_status.class = class;
-    err_status.request = request;
+    err_status.class_id = class_number;
+    err_status.request_id = request_number;
     err_status.status = status;
 
-    request_id.config_request = iik_config_error_status;
-    return iik_callback(callback, iik_class_config, request_id, &err_status, sizeof err_status, NULL, NULL);
+    request_id.config_request = idigi_config_error_status;
+    return idigi_callback(callback, idigi_class_config, request_id, &err_status, sizeof err_status, NULL, NULL);
 }
 
 
-static iik_callback_status_t get_system_time(iik_data_t * iik_ptr, uint32_t * mstime)
+static idigi_callback_status_t get_system_time(idigi_data_t * idigi_ptr, uint32_t * mstime)
 {
     size_t  length;
-    iik_callback_status_t status;
-    iik_request_t request_id;
+    idigi_callback_status_t status;
+    idigi_request_t request_id;
 
-    request_id.os_request = iik_os_system_up_time;
-    status = iik_callback(iik_ptr->callback, iik_class_operating_system, request_id, NULL, 0, mstime, &length);
-    if (status == iik_callback_abort)
+    request_id.os_request = idigi_os_system_up_time;
+    status = idigi_callback(idigi_ptr->callback, idigi_class_operating_system, request_id, NULL, 0, mstime, &length);
+    if (status == idigi_callback_abort)
     {
-        iik_ptr->error_code = iik_configuration_error;
+        idigi_ptr->error_code = idigi_configuration_error;
     }
 
     return status;
 }
 
-static iik_callback_status_t malloc_cb(iik_callback_t const callback, size_t length, void ** ptr)
+static idigi_callback_status_t malloc_cb(idigi_callback_t const callback, size_t length, void ** ptr)
 {
-    iik_callback_status_t status;
+    idigi_callback_status_t status;
     size_t  size = length, len;
-    iik_request_t request_id;
+    idigi_request_t request_id;
     void * p;
 
     if (callback == NULL)
     {
-        status = iik_callback_abort;
+        status = idigi_callback_abort;
     }
-    request_id.os_request = iik_os_malloc;
-    status = iik_callback(callback, iik_class_operating_system, request_id, &size, sizeof size, &p, &len);
-    if (status == iik_callback_continue)
+    request_id.os_request = idigi_os_malloc;
+    status = idigi_callback(callback, idigi_class_operating_system, request_id, &size, sizeof size, &p, &len);
+    if (status == idigi_callback_continue)
     {
         *ptr = p;
         add_malloc_stats(p, size);
@@ -120,31 +120,31 @@ static iik_callback_status_t malloc_cb(iik_callback_t const callback, size_t len
 }
 
 
-static iik_callback_status_t malloc_data(iik_data_t * iik_ptr, size_t length, void ** ptr)
+static idigi_callback_status_t malloc_data(idigi_data_t * idigi_ptr, size_t length, void ** ptr)
 {
-    iik_callback_status_t status;
+    idigi_callback_status_t status;
 
-    status = malloc_cb(iik_ptr->callback, length, ptr);
-    if (status == iik_callback_abort)
+    status = malloc_cb(idigi_ptr->callback, length, ptr);
+    if (status == idigi_callback_abort)
     {
-        iik_ptr->error_code = iik_configuration_error;
+        idigi_ptr->error_code = idigi_configuration_error;
     }
     return status;
 
 }
 
-static iik_callback_status_t free_data(iik_data_t * iik_ptr, void * ptr)
+static idigi_callback_status_t free_data(idigi_data_t * idigi_ptr, void * ptr)
 {
-    iik_callback_status_t   status;
-    iik_request_t request_id;
+    idigi_callback_status_t   status;
+    idigi_request_t request_id;
 
-    request_id.os_request = iik_os_free;
-    status = iik_callback(iik_ptr->callback, iik_class_operating_system, request_id, ptr, sizeof(void *), NULL, NULL);
-    if (status == iik_callback_abort)
+    request_id.os_request = idigi_os_free;
+    status = idigi_callback(idigi_ptr->callback, idigi_class_operating_system, request_id, ptr, sizeof(void *), NULL, NULL);
+    if (status == idigi_callback_abort)
     {
-        iik_ptr->error_code = iik_configuration_error;
+        idigi_ptr->error_code = idigi_configuration_error;
     }
-    else if (status == iik_callback_continue)
+    else if (status == idigi_callback_continue)
     {
         del_malloc_stats(ptr);
     }
@@ -172,12 +172,12 @@ static uint32_t get_timeout_limit_in_seconds(uint32_t max_timeout_in_second, uin
     return time_limit;
 }
 
-static void * get_facility_data(iik_data_t * iik_ptr, uint16_t facility_num)
+static void * get_facility_data(idigi_data_t * idigi_ptr, uint16_t facility_num)
 {
-    iik_facility_t * fac_ptr;
+    idigi_facility_t * fac_ptr;
     void * ptr = NULL;
 
-    for (fac_ptr = iik_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
+    for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
     {
         if (fac_ptr->facility_num == facility_num)
         {
@@ -189,48 +189,55 @@ static void * get_facility_data(iik_data_t * iik_ptr, uint16_t facility_num)
     return ptr;
 }
 
-static iik_callback_status_t add_facility_data(iik_data_t * iik_ptr, uint16_t facility_num, void ** fac_ptr, size_t size,
-                                               iik_facility_process_cb_t discovery_cb, iik_facility_process_cb_t process_cb)
+static idigi_callback_status_t add_facility_data(idigi_data_t * idigi_ptr, uint16_t facility_num, void ** fac_ptr, size_t size,
+                                               idigi_facility_process_cb_t discovery_cb, idigi_facility_process_cb_t process_cb)
 {
-    iik_callback_status_t status;
-    iik_facility_t * facility;
+    idigi_callback_status_t status;
+    idigi_facility_t * facility;
     void * ptr;
-    size_t facility_size = sizeof(iik_facility_t);
+    size_t facility_size = sizeof(idigi_facility_t);
 
     *fac_ptr = NULL;
-    status = malloc_data(iik_ptr, size + facility_size, &ptr);
-    if (status == iik_callback_continue && ptr != NULL)
+    status = malloc_data(idigi_ptr, size + facility_size + sizeof(idigi_buffer_t), &ptr);
+    if (status == idigi_callback_continue && ptr != NULL)
     {
-        facility = (iik_facility_t *)ptr;
+        idigi_buffer_t * buffer_ptr;
+
+        facility = (idigi_facility_t *)ptr;
         facility->facility_num = facility_num;
         facility->size = size;
         facility->discovery_cb = discovery_cb;
         facility->process_cb = process_cb;
         facility->packet = NULL;
-        facility->next = iik_ptr->facility_list;
-        iik_ptr->facility_list = ptr;
+        facility->next = idigi_ptr->facility_list;
+        idigi_ptr->facility_list = ptr;
         facility->facility_data = ptr + facility_size;
         *fac_ptr = facility->facility_data;
+
+        buffer_ptr = ptr + size + facility_size;
+        buffer_ptr->in_used = false;
+        buffer_ptr->next = idigi_ptr->packet_buffer.next;
+        idigi_ptr->packet_buffer.next = buffer_ptr;
     }
 
     return status;
 }
 
-static iik_callback_status_t del_facility_data(iik_data_t * iik_ptr, uint16_t facility_num)
+static idigi_callback_status_t del_facility_data(idigi_data_t * idigi_ptr, uint16_t facility_num)
 {
-    iik_callback_status_t status = iik_callback_continue;
-    iik_facility_t * fac_ptr;
-    iik_facility_t * prev_ptr = NULL;
-    iik_facility_t * next_ptr;
+    idigi_callback_status_t status = idigi_callback_continue;
+    idigi_facility_t * fac_ptr;
+    idigi_facility_t * prev_ptr = NULL;
+    idigi_facility_t * next_ptr;
 
-    for (fac_ptr = iik_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
+    for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
     {
         if (fac_ptr->facility_num == facility_num)
         {
             next_ptr = fac_ptr->next;
 
-            status = free_data(iik_ptr, fac_ptr);
-            if (status == iik_callback_continue)
+            status = free_data(idigi_ptr, fac_ptr);
+            if (status == idigi_callback_continue)
             {
                 if (prev_ptr != NULL)
                 {
@@ -238,7 +245,7 @@ static iik_callback_status_t del_facility_data(iik_data_t * iik_ptr, uint16_t fa
                 }
                 else
                 {
-                    iik_ptr->facility_list = next_ptr;
+                    idigi_ptr->facility_list = next_ptr;
                 }
             }
             break;
