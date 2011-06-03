@@ -30,54 +30,54 @@
 
 #define MANDATORY_FACILITY          -1
 
-typedef iik_callback_status_t (* iik_facility_init_cb_t )(struct iik_data * iik_ptr);
+typedef idigi_callback_status_t (* idigi_facility_init_cb_t )(struct idigi_data * idigi_ptr);
 
 typedef struct {
-    iik_config_request_t  facility;
-    iik_facility_init_cb_t init_cb;
-    iik_facility_init_cb_t delete_cb;
-} iik_facility_init_t;
+    idigi_config_request_t  facility;
+    idigi_facility_init_cb_t init_cb;
+    idigi_facility_init_cb_t delete_cb;
+} idigi_facility_init_t;
 
-/* Table of all facilites that IDK supports.
+/* Table of all facilites that iDigi supports.
  *
- * IDK will call callback to see whether it supports each optional facility.
- * IDK will call init_cb to initialize the facility and delete_cb to remove the facility.
- * The init_cb must call add_facility_data() to add the facility into IDK facility list.
- * The delete_cb is called to delete the facility from IDK facility list when user terminates IDK.
+ * iDigi will call the callback to see whether it supports each optional facility.
+ * iDigi will call init_cb to initialize the facility and delete_cb to remove the facility.
+ * The init_cb must call add_facility_data() to add the facility into iDigi facility list.
+ * The delete_cb is called to delete the facility from iDigi facility list when user terminates iDigi.
  */
-static iik_facility_init_t iik_facility_init_cb[] = {
+static idigi_facility_init_t idigi_facility_init_cb[] = {
         /* mandatory facilities */
-        {(iik_config_request_t)MANDATORY_FACILITY, (iik_facility_init_cb_t)cc_init_facility, (iik_facility_init_cb_t)cc_delete_facility},
-        {(iik_config_request_t)MANDATORY_FACILITY, (iik_facility_init_cb_t)loopback_init_facility, (iik_facility_init_cb_t)loopback_delete_facility},
+        {(idigi_config_request_t)MANDATORY_FACILITY, (idigi_facility_init_cb_t)cc_init_facility, (idigi_facility_init_cb_t)cc_delete_facility},
+        {(idigi_config_request_t)MANDATORY_FACILITY, (idigi_facility_init_cb_t)loopback_init_facility, (idigi_facility_init_cb_t)loopback_delete_facility},
 
         /* list of optional facilities */
-        {iik_config_firmware_facility, (iik_facility_init_cb_t)fw_init_facility, (iik_facility_init_cb_t)fw_delete_facility}
+        {idigi_config_firmware_facility, (idigi_facility_init_cb_t)fw_init_facility, (idigi_facility_init_cb_t)fw_delete_facility}
 };
 
-static size_t iik_facility_count = asizeof(iik_facility_init_cb);
+static size_t idigi_facility_count = asizeof(idigi_facility_init_cb);
 
-static iik_callback_status_t  remove_facility_layer(iik_data_t * iik_ptr)
+static idigi_callback_status_t  remove_facility_layer(idigi_data_t * idigi_ptr)
 {
-    iik_callback_status_t status = iik_callback_continue, rc = iik_callback_continue;
+    idigi_callback_status_t status = idigi_callback_continue, rc = idigi_callback_continue;
 
-    while (iik_ptr->request_id < (int)iik_facility_count)
+    while (idigi_ptr->request_id < (int)idigi_facility_count)
     {
-        if ((iik_ptr->facilities & (0x1 << iik_ptr->request_id)) &&
-             iik_facility_init_cb[iik_ptr->request_id].delete_cb != NULL)
+        if ((idigi_ptr->facilities & (0x1 << idigi_ptr->request_id)) &&
+             idigi_facility_init_cb[idigi_ptr->request_id].delete_cb != NULL)
         {
-            status = iik_facility_init_cb[iik_ptr->request_id].delete_cb(iik_ptr);
-            if (status == iik_callback_continue)
+            status = idigi_facility_init_cb[idigi_ptr->request_id].delete_cb(idigi_ptr);
+            if (status == idigi_callback_continue)
             {
-                iik_ptr->request_id++;
+                idigi_ptr->request_id++;
             }
             else
             {
-                rc = iik_callback_abort;
+                rc = idigi_callback_abort;
             }
         }
         else
         {
-            iik_ptr->request_id++;
+            idigi_ptr->request_id++;
         }
     }
 
@@ -104,136 +104,136 @@ static int msg_add_keepalive_param(uint8_t * buf, uint16_t type, uint16_t value)
     return rc; /* return count of bytes added to buffer */
 }
 
-static iik_callback_status_t discovery_facility_layer(iik_data_t * iik_ptr)
+static idigi_callback_status_t discovery_facility_layer(idigi_data_t * idigi_ptr)
 {
-    iik_callback_status_t status = iik_callback_continue;
-    iik_facility_t * fac_ptr;
+    idigi_callback_status_t status = idigi_callback_continue;
+    idigi_facility_t * fac_ptr;
 
     /* invoke any facility that needs to send any message to server
      * during initialization phase at discovery layer.
      */
-    fac_ptr = iik_ptr->active_facility;
+    fac_ptr = idigi_ptr->active_facility;
     if (fac_ptr == NULL)
     {
-        fac_ptr = iik_ptr->facility_list;
+        fac_ptr = idigi_ptr->facility_list;
     }
 
-    while (fac_ptr != NULL && status == iik_callback_continue)
+    while (fac_ptr != NULL && status == idigi_callback_continue)
     {
         DEBUG_PRINTF("Discovery Facility layer: 0x%x\n", fac_ptr->facility_num);
         if (fac_ptr->discovery_cb == NULL)
         {
-            status = iik_callback_continue;
+            status = idigi_callback_continue;
         }
         else
         {   /* function to send facility discovery */
-            status = fac_ptr->discovery_cb(iik_ptr, fac_ptr);
+            status = fac_ptr->discovery_cb(idigi_ptr, fac_ptr->facility_data, NULL);
         }
 
-        if (status == iik_callback_continue)
+        if (status == idigi_callback_continue)
         {
-            fac_ptr = iik_ptr->active_facility = fac_ptr->next;
+            fac_ptr = idigi_ptr->active_facility = fac_ptr->next;
         }
     }
     return status;
 }
 
-static iik_callback_status_t get_configurations(iik_data_t * iik_ptr)
+static idigi_callback_status_t get_configurations(idigi_data_t * idigi_ptr)
 {
 #define INIT_CONFIG_ID_COUNT    5
-    iik_callback_status_t status = iik_callback_continue;
+    idigi_callback_status_t status = idigi_callback_continue;
     void * data = NULL;
     size_t length;
-    iik_request_t request_id;
+    idigi_request_t request_id;
 
-    unsigned iik_edp_init_config_ids[INIT_CONFIG_ID_COUNT] = {
-            iik_config_server_url, iik_config_rx_keepalive, iik_config_tx_keepalive, iik_config_wait_count, iik_config_password,
+    unsigned idigi_edp_init_config_ids[INIT_CONFIG_ID_COUNT] = {
+            idigi_config_server_url, idigi_config_rx_keepalive, idigi_config_tx_keepalive, idigi_config_wait_count, idigi_config_password,
     };
 
    /* Call callback to get server url, wait count, tx keepalive, rx keepalive, & password.
     * Call error status callback if error is encountered (NULL data, invalid range, invalid size).
     */
-    while(iik_ptr->request_id < INIT_CONFIG_ID_COUNT)
+    while(idigi_ptr->request_id < INIT_CONFIG_ID_COUNT)
     {
-        request_id.config_request = iik_edp_init_config_ids[iik_ptr->request_id];
+        request_id.config_request = idigi_edp_init_config_ids[idigi_ptr->request_id];
 
-        status = iik_callback(iik_ptr->callback, iik_class_config, request_id, NULL, 0, &data, &length);
-        if (status == iik_callback_continue)
+        status = idigi_callback(idigi_ptr->callback, idigi_class_config, request_id, NULL, 0, &data, &length);
+        if (status == idigi_callback_continue)
         {
-            if (request_id.config_request != iik_config_password && data == NULL)
+            if (request_id.config_request != idigi_config_password && data == NULL)
             {
-                /* callback cannot return NULL except iik_config_password */
-                iik_ptr->error_code = iik_invalid_data;
+                /* callback cannot return NULL except idigi_config_password */
+                idigi_ptr->error_code = idigi_invalid_data;
                 goto error;
             }
             else
             {
                 switch(request_id.config_request)
                 {
-                case iik_config_password:
-                    iik_ptr->password = (char *)data;
+                case idigi_config_password:
+                    idigi_ptr->password = (char *)data;
                    break;
-                case iik_config_server_url:
-                    iik_ptr->server_url = (char *)data;
+                case idigi_config_server_url:
+                    idigi_ptr->server_url = (char *)data;
                     if (length == 0 || length > SERVER_URL_LENGTH)
                     {
-                        iik_ptr->error_code = iik_invalid_data_range;
+                        idigi_ptr->error_code = idigi_invalid_data_range;
                         goto error;
                     }
                     break;
-                case iik_config_tx_keepalive:
-                    iik_ptr->tx_keepalive = (uint16_t *)data;
+                case idigi_config_tx_keepalive:
+                    idigi_ptr->tx_keepalive = (uint16_t *)data;
 
-                    if (*iik_ptr->tx_keepalive < MIN_TX_KEEPALIVE_INTERVAL_PER_SECOND || *iik_ptr->tx_keepalive > MAX_TX_KEEPALIVE_INTERVAL_PER_SECOND ||
+                    if (*idigi_ptr->tx_keepalive < MIN_TX_KEEPALIVE_INTERVAL_PER_SECOND || *idigi_ptr->tx_keepalive > MAX_TX_KEEPALIVE_INTERVAL_PER_SECOND ||
                         length != sizeof(uint16_t))
                     {
-                        iik_ptr->error_code = iik_invalid_data_range;
+                        idigi_ptr->error_code = idigi_invalid_data_range;
                         goto error;
                     }
                     break;
-                case iik_config_rx_keepalive:
-                    iik_ptr->rx_keepalive = (uint16_t *)data;
-                    if (*iik_ptr->rx_keepalive < MIN_RX_KEEPALIVE_INTERVAL_PER_SECOND || *iik_ptr->rx_keepalive > MAX_RX_KEEPALIVE_INTERVAL_PER_SECOND ||
+                case idigi_config_rx_keepalive:
+                    idigi_ptr->rx_keepalive = (uint16_t *)data;
+                    if (*idigi_ptr->rx_keepalive < MIN_RX_KEEPALIVE_INTERVAL_PER_SECOND || *idigi_ptr->rx_keepalive > MAX_RX_KEEPALIVE_INTERVAL_PER_SECOND ||
                         length != sizeof(uint16_t))
                     {
-                        iik_ptr->error_code = iik_invalid_data_range;
+                        idigi_ptr->error_code = idigi_invalid_data_range;
                         goto error;
                     }
                     break;
-                case iik_config_wait_count:
-                    iik_ptr->wait_count = (uint8_t *)data;
-                    if (*iik_ptr->wait_count < WAIT_COUNT_MIN || *iik_ptr->wait_count > WAIT_COUNT_MAX ||
+                case idigi_config_wait_count:
+                    idigi_ptr->wait_count = (uint8_t *)data;
+                    if (*idigi_ptr->wait_count < WAIT_COUNT_MIN || *idigi_ptr->wait_count > WAIT_COUNT_MAX ||
                         length != sizeof(uint8_t))
                     {
-                        iik_ptr->error_code = iik_invalid_data_range;
+                        idigi_ptr->error_code = idigi_invalid_data_range;
                         goto error;
                         
                     }
                     break;
-                case iik_config_device_id:
-                case iik_config_vendor_id:
-                case iik_config_device_type:
+                case idigi_config_device_id:
+                case idigi_config_vendor_id:
+                case idigi_config_device_type:
                     /* got these configurations in init function */
                     break;
-                case iik_config_connection_type:
-                case iik_config_mac_addr:
-                case iik_config_link_speed:
-                case iik_config_phone_number:
-                case iik_config_ip_addr:
-                case iik_config_error_status:
-                case iik_config_disconnected:
-                case iik_config_firmware_facility:
+                case idigi_config_connection_type:
+                case idigi_config_mac_addr:
+                case idigi_config_link_speed:
+                case idigi_config_phone_number:
+                case idigi_config_ip_addr:
+                case idigi_config_error_status:
+                case idigi_config_disconnected:
+                case idigi_config_firmware_facility:
                     /* get these configurations from different modules */
                     break;
                 }
-                iik_ptr->request_id++;
+                idigi_ptr->request_id++;
             }
         }
         else
         {
-            if (status == iik_callback_abort && iik_ptr->error_code == iik_success)
+            if (status == idigi_callback_abort && idigi_ptr->error_code == idigi_success)
             {
-                iik_ptr->error_code = iik_configuration_error;
+                idigi_ptr->error_code = idigi_configuration_error;
             }
             goto done;
         }
@@ -241,44 +241,44 @@ static iik_callback_status_t get_configurations(iik_data_t * iik_ptr)
 
 
 error:
-    if (iik_ptr->error_code != iik_success)
+    if (idigi_ptr->error_code != idigi_success)
     {
-        status = notify_error_status(iik_ptr->callback, iik_class_config, request_id, iik_ptr->error_code);
+        status = notify_error_status(idigi_ptr->callback, idigi_class_config, request_id, idigi_ptr->error_code);
     }
 
-    if (status == iik_callback_continue && iik_ptr->request_id != INIT_CONFIG_ID_COUNT)
+    if (status == idigi_callback_continue && idigi_ptr->request_id != INIT_CONFIG_ID_COUNT)
     {
-        status = iik_callback_busy;
+        status = idigi_callback_busy;
     }
 
 done:
     return status;
 }
 
-static iik_callback_status_t initialize_facilites(iik_data_t * iik_ptr)
+static idigi_callback_status_t initialize_facilites(idigi_data_t * idigi_ptr)
 {
-    iik_callback_status_t status;
+    idigi_callback_status_t status;
     bool facility_enable;
     int  idx;
-    iik_request_t request_id;
+    idigi_request_t request_id;
     size_t length;
 
-    /* iik_edp_init_facility_ids[] table includes a list of facilities that IDK supports.
+    /* idigi_facility_init_cb[] table includes a list of facilities that iDigi supports.
      * Call callback to see which facility is supported.
      */
-    iik_ptr->facilities = 0;
-    while (iik_ptr->request_id < iik_facility_count)
+    idigi_ptr->facilities = 0;
+    while (idigi_ptr->request_id < idigi_facility_count)
     {
-        idx = iik_ptr->request_id;
+        idx = idigi_ptr->request_id;
 
-        request_id.config_request = iik_facility_init_cb[idx].facility;
-        if (request_id.config_request != (iik_config_request_t)MANDATORY_FACILITY)
+        request_id.config_request = idigi_facility_init_cb[idx].facility;
+        if (request_id.config_request != (idigi_config_request_t)MANDATORY_FACILITY)
         {   /* this is optional facility so ask application whether it supports this facility */
-            status = iik_callback(iik_ptr->callback, iik_class_config, request_id, NULL, 0, &facility_enable, &length);
-            if (status != iik_callback_continue)
+            status = idigi_callback(idigi_ptr->callback, idigi_class_config, request_id, NULL, 0, &facility_enable, &length);
+            if (status != idigi_callback_continue)
             {
                 DEBUG_PRINTF("initialize_facilities: callback returns %d on facility= %d\n", status, request_id.config_request);
-                iik_ptr->error_code = iik_configuration_error;
+                idigi_ptr->error_code = idigi_configuration_error;
                 goto done;
             }
 
@@ -292,16 +292,16 @@ static iik_callback_status_t initialize_facilites(iik_data_t * iik_ptr)
         if (facility_enable)
         {
             /* let's call facility init_cb function */
-            if (iik_facility_init_cb[idx].init_cb != NULL)
+            if (idigi_facility_init_cb[idx].init_cb != NULL)
             {
-                status = iik_facility_init_cb[idx].init_cb(iik_ptr);
+                status = idigi_facility_init_cb[idx].init_cb(idigi_ptr);
             }
-            iik_ptr->facilities |= (0x01 << idx);
+            idigi_ptr->facilities |= (0x01 << idx);
         }
 
-        if (status == iik_callback_continue)
+        if (status == idigi_callback_continue)
         {
-            iik_ptr->request_id++;
+            idigi_ptr->request_id++;
         }
         else
         {
@@ -313,32 +313,32 @@ static iik_callback_status_t initialize_facilites(iik_data_t * iik_ptr)
 done:
     return status;
 }
-static iik_callback_status_t configuration_layer(iik_data_t * iik_ptr)
+static idigi_callback_status_t configuration_layer(idigi_data_t * idigi_ptr)
 {
     enum {
         configuration_get_configurations,
         configuration_init_facilities,
     };
 
-    iik_callback_status_t status = iik_callback_continue;
+    idigi_callback_status_t status = idigi_callback_continue;
 
     /* This layer is called to get some of the EDP configuration and initialize facilities */
-    if (iik_ptr->layer_state == configuration_get_configurations)
+    if (idigi_ptr->layer_state == configuration_get_configurations)
     {
-        status = get_configurations(iik_ptr);
-        if (status == iik_callback_continue)
+        status = get_configurations(idigi_ptr);
+        if (status == idigi_callback_continue)
         {
-            iik_ptr->facilities = 0;
-            iik_ptr->request_id = 0;
-            iik_ptr->layer_state = configuration_init_facilities;
+            idigi_ptr->facilities = 0;
+            idigi_ptr->request_id = 0;
+            idigi_ptr->layer_state = configuration_init_facilities;
         }
     }
-    if (iik_ptr->layer_state == configuration_init_facilities)
+    if (idigi_ptr->layer_state == configuration_init_facilities)
     {
-        status = initialize_facilites(iik_ptr);
-        if (status == iik_callback_continue)
+        status = initialize_facilites(idigi_ptr);
+        if (status == idigi_callback_continue)
         {
-            set_iik_state(iik_ptr, edp_communication_layer);
+            set_idigi_state(idigi_ptr, edp_communication_layer);
         }
     }
 
@@ -346,7 +346,7 @@ static iik_callback_status_t configuration_layer(iik_data_t * iik_ptr)
 
 }
 
-static iik_callback_status_t communication_layer(iik_data_t * iik_ptr)
+static idigi_callback_status_t communication_layer(idigi_data_t * idigi_ptr)
 {
     enum {
         communication_connect_server,
@@ -355,11 +355,11 @@ static iik_callback_status_t communication_layer(iik_data_t * iik_ptr)
         communication_send_keepalive
     };
 
-    iik_callback_status_t status = iik_callback_continue;
+    idigi_callback_status_t status = idigi_callback_continue;
     uint32_t version;
     uint8_t * ptr;
     int len;
-    iik_packet_t * packet;
+    idigi_packet_t * packet;
 
     /* communitcation layer:
      *  1. establishes connection.
@@ -367,22 +367,22 @@ static iik_callback_status_t communication_layer(iik_data_t * iik_ptr)
      *  3. receives and validates MT version response
      *  4. sends tx, rx, & waitcount parameter
      */
-    if (iik_ptr->layer_state == communication_connect_server)
+    if (idigi_ptr->layer_state == communication_connect_server)
     {
-        if (iik_ptr->network_handle == NULL)
+        if (idigi_ptr->network_handle == NULL)
         {
-            status = connect_server(iik_ptr, iik_ptr->server_url, EDP_MT_PORT);
+            status = connect_server(idigi_ptr, idigi_ptr->server_url, EDP_MT_PORT);
         }
 
-        if (status == iik_callback_continue)
+        if (status == idigi_callback_continue)
         {
-            iik_ptr->request_id = 0;
-            iik_ptr->layer_state = communication_send_version;
+            idigi_ptr->request_id = 0;
+            idigi_ptr->layer_state = communication_send_version;
         }
 
     }
 
-    if (iik_ptr->layer_state == communication_send_version)
+    if (idigi_ptr->layer_state == communication_send_version)
     {
         DEBUG_PRINTF("communication layer: Send MT Version\n");
         /*
@@ -393,7 +393,7 @@ static iik_callback_status_t communication_layer(iik_data_t * iik_ptr)
          * | Type | length | version |
          *  -------------------------
         */
-        packet =(iik_packet_t *) get_packet_buffer(iik_ptr, sizeof(iik_packet_t), &ptr);
+        packet =(idigi_packet_t *) get_packet_buffer(idigi_ptr, sizeof(idigi_packet_t), &ptr);
         if (packet == NULL)
         {
             goto done;
@@ -403,21 +403,24 @@ static iik_callback_status_t communication_layer(iik_data_t * iik_ptr)
 
         StoreBE32(ptr, EDP_MT_VERSION);
 
-        status = enable_send_packet(iik_ptr, packet);
-        if (status == iik_callback_continue)
+        status = enable_send_packet(idigi_ptr, packet);
+        if (status == idigi_callback_continue)
         {
-            iik_ptr->layer_state = communication_receive_version_response;
+            idigi_ptr->layer_state = communication_receive_version_response;
         }
 
     }
 
 
-    else if (iik_ptr->layer_state == communication_receive_version_response)
+    else if (idigi_ptr->layer_state == communication_receive_version_response)
     {
-        status = receive_packet(iik_ptr, &packet);
+        status = receive_packet(idigi_ptr, &packet);
 
-        if (status == iik_callback_continue && packet != NULL)
+        if (status == idigi_callback_continue && packet != NULL)
         {
+            uint16_t type;
+            uint8_t  response_code;
+
             DEBUG_PRINTF("communication layer: receive Mt version\n");
             /*
              * MT version response packet format:
@@ -429,54 +432,57 @@ static iik_callback_status_t communication_layer(iik_data_t * iik_ptr)
              *
              */
 
-            ptr = GET_PACKET_DATA_POINTER(packet, sizeof(iik_packet_t));
+            ptr = GET_PACKET_DATA_POINTER(packet, sizeof(idigi_packet_t));
+            type = packet->type;
+            response_code = *ptr;
 
-            if (packet->type != E_MSG_MT2_TYPE_VERSION_OK)
+            release_receive_packet(idigi_ptr, packet);
+            if (type != E_MSG_MT2_TYPE_VERSION_OK)
             {
-                iik_request_t request_id;
+                idigi_request_t request_id;
                 /*
                  * The received message is not acceptable. Return an error value
                  * appropriate to the message received.
                  */
-                status = iik_callback_abort;
-                switch (packet->type)
+                status = idigi_callback_abort;
+                switch (type)
                 {
                     /* Expected MTv2 message types... */
                     case E_MSG_MT2_TYPE_LEGACY_EDP_VER_RESP:
-                        if (*ptr == SERVER_OVERLOAD_RESPONSE) {
-                            iik_ptr->error_code = iik_server_overload;
+                        if (response_code == SERVER_OVERLOAD_RESPONSE) {
+                            idigi_ptr->error_code = idigi_server_overload;
                         }
                         else {
-                            iik_ptr->error_code = iik_bad_version;
+                            idigi_ptr->error_code = idigi_bad_version;
                         }
                         break;
                     case E_MSG_MT2_TYPE_VERSION_BAD:
-                        iik_ptr->error_code = iik_bad_version;
+                        idigi_ptr->error_code = idigi_bad_version;
                         break;
                     case E_MSG_MT2_TYPE_SERVER_OVERLOAD:
-                        iik_ptr->error_code = iik_server_overload;
+                        idigi_ptr->error_code = idigi_server_overload;
                         break;
                     /* Unexpected/unknown MTv2 message types... */
                     default:
-                        iik_ptr->error_code = iik_invalid_packet;
+                        idigi_ptr->error_code = idigi_invalid_packet;
                 }
                 /* mt version error. let's notify user.
                  *
                  * ignore error status callback return value since server
                  * will close the connection.
                  */
-                request_id.network_request = iik_network_receive;
-                notify_error_status(iik_ptr->callback, iik_class_network, request_id, iik_ptr->error_code);
+                request_id.network_request = idigi_network_receive;
+                notify_error_status(idigi_ptr->callback, idigi_class_network, request_id, idigi_ptr->error_code);
                 goto done;
             }
             else
             {   /* advance to send keepalive parameters */
-                iik_ptr->layer_state = communication_send_keepalive;
+                idigi_ptr->layer_state = communication_send_keepalive;
             }
         }
     }
 
-    else if (iik_ptr->layer_state == communication_send_keepalive)
+    else if (idigi_ptr->layer_state == communication_send_keepalive)
     {
         uint16_t    timeout;
         uint8_t     wait_count;
@@ -506,19 +512,19 @@ static iik_callback_status_t communication_layer(iik_data_t * iik_ptr)
          */
 
 
-        ptr = iik_ptr->send_packet.ptr = iik_ptr->send_packet.buffer;
+        ptr = idigi_ptr->send_packet.ptr = idigi_ptr->send_packet.buffer;
 
-        timeout = *iik_ptr->rx_keepalive;
+        timeout = *idigi_ptr->rx_keepalive;
         len = msg_add_keepalive_param(ptr, E_MSG_MT2_TYPE_KA_RX_INTERVAL, timeout);
         ptr += len;
-        iik_ptr->send_packet.total_length = len;
+        idigi_ptr->send_packet.total_length = len;
 
-        timeout = *iik_ptr->tx_keepalive;
+        timeout = *idigi_ptr->tx_keepalive;
         len = msg_add_keepalive_param(ptr, E_MSG_MT2_TYPE_KA_TX_INTERVAL, timeout);
         ptr += len;
-        iik_ptr->send_packet.total_length += len;
+        idigi_ptr->send_packet.total_length += len;
 
-        wait_count = *iik_ptr->wait_count;
+        wait_count = *idigi_ptr->wait_count;
         len = msg_add_keepalive_param(ptr, E_MSG_MT2_TYPE_KA_WAIT, (uint16_t)wait_count);
         ptr += len;
 
@@ -526,10 +532,10 @@ static iik_callback_status_t communication_layer(iik_data_t * iik_ptr)
          * Set total_length to be sent and clear length to 0
          * for actual length that has been sent.
          */
-        iik_ptr->send_packet.total_length += len;
-        iik_ptr->send_packet.length = 0;
+        idigi_ptr->send_packet.total_length += len;
+        idigi_ptr->send_packet.length = 0;
 
-        set_iik_state(iik_ptr, edp_initialization_layer);
+        set_idigi_state(idigi_ptr, edp_initialization_layer);
 
     }
 
@@ -537,7 +543,7 @@ done:
     return status;
 }
 
-static iik_callback_status_t initialization_layer(iik_data_t * iik_ptr)
+static idigi_callback_status_t initialization_layer(idigi_data_t * idigi_ptr)
 {
     enum {
         initialization_send_protocol_version,
@@ -549,18 +555,20 @@ static iik_callback_status_t initialization_layer(iik_data_t * iik_ptr)
         initialization_version_response_unavailable
     };
 
-    iik_callback_status_t status = iik_callback_continue;
-    iik_packet_t * packet;
-    uint32_t version;
+    idigi_callback_status_t status = idigi_callback_continue;
+    idigi_packet_t * packet;
     uint8_t * ptr;
 
     /* initialization layer:
      * 1. sends protocol version.
      * 2. receives and validates protocol version response
      */
-    switch (iik_ptr->layer_state)
+    switch (idigi_ptr->layer_state)
     {
     case initialization_send_protocol_version:
+    {
+        uint32_t version = EDP_PROTOCOL_VERSION;
+
         DEBUG_PRINTF("initialization layer: send protocol version\n");
         /*
          *  version packet format:
@@ -571,7 +579,7 @@ static iik_callback_status_t initialization_layer(iik_data_t * iik_ptr)
          *  ----------------------------------
         */
 
-        packet =(iik_packet_t *) get_packet_buffer(iik_ptr, sizeof(iik_packet_t), &ptr);
+        packet =(idigi_packet_t *) get_packet_buffer(idigi_ptr, sizeof(idigi_packet_t), &ptr);
         if (packet == NULL)
         {
             goto done;
@@ -579,16 +587,15 @@ static iik_callback_status_t initialization_layer(iik_data_t * iik_ptr)
         packet->length = sizeof(version);
         packet->type = E_MSG_MT2_TYPE_PAYLOAD;
 
-        version = EDP_PROTOCOL_VERSION;
         StoreBE32(ptr, version);
 
-        status = enable_send_packet(iik_ptr, packet);
-        iik_ptr->layer_state = initialization_receive_protocol_version;
+        status = enable_send_packet(idigi_ptr, packet);
+        idigi_ptr->layer_state = initialization_receive_protocol_version;
         break;
-
+    }
     case initialization_receive_protocol_version:
-        status = receive_packet(iik_ptr, &packet);
-        if (status == iik_callback_continue && packet != NULL)
+        status = receive_packet(idigi_ptr, &packet);
+        if (status == idigi_callback_continue && packet != NULL)
         {
             DEBUG_PRINTF("initialization layer: receive protocol version\n");
             /*
@@ -602,27 +609,27 @@ static iik_callback_status_t initialization_layer(iik_data_t * iik_ptr)
             /*
              * Empty data packet
              */
-            if (packet->length < 1)
+            if (packet->length > 0)
             {
-                goto done;
-            }
 
-            /* Parse the version response (0 = version response ok).
-             * If the protocol version number was not acceptable to the server,
-             * tell the application.
-             */
-            ptr = GET_PACKET_DATA_POINTER(packet, sizeof(iik_packet_t));
-            if (*ptr != initialization_version_response_acceptable)
-            {
-                iik_request_t request_id;
-                status = iik_callback_abort;
-                request_id.network_request = iik_network_receive;
-                iik_ptr->error_code = iik_bad_version;
-                notify_error_status(iik_ptr->callback, iik_class_network, request_id, iik_ptr->error_code);
-                goto done;
+                /* Parse the version response (0 = version response ok).
+                 * If the protocol version number was not acceptable to the server,
+                 * tell the application.
+                 */
+                ptr = GET_PACKET_DATA_POINTER(packet, sizeof(idigi_packet_t));
+                if (*ptr != initialization_version_response_acceptable)
+                {
+                    idigi_request_t request_id;
+                    status = idigi_callback_abort;
+                    request_id.network_request = idigi_network_receive;
+                    idigi_ptr->error_code = idigi_bad_version;
+                    notify_error_status(idigi_ptr->callback, idigi_class_network, request_id, idigi_ptr->error_code);
+                    goto done;
 
+                }
+                set_idigi_state(idigi_ptr, edp_security_layer);
             }
-            set_iik_state(iik_ptr, edp_security_layer);
+            release_receive_packet(idigi_ptr, packet);
         }
         break;
     }
@@ -632,7 +639,7 @@ done:
     return status;
 }
 
-static iik_callback_status_t security_layer(iik_data_t * iik_ptr)
+static idigi_callback_status_t security_layer(idigi_data_t * idigi_ptr)
 {
     enum {
             security_send_identity_verification,
@@ -640,8 +647,8 @@ static iik_callback_status_t security_layer(iik_data_t * iik_ptr)
             security_send_server_url,
             security_send_password,
     };
-    iik_callback_status_t status = iik_callback_continue;
-    iik_packet_t * packet;
+    idigi_callback_status_t status = idigi_callback_continue;
+    idigi_packet_t * packet;
     char * pwd = NULL;
     uint16_t len, size;
     uint8_t * ptr, * data_ptr;
@@ -654,14 +661,14 @@ static iik_callback_status_t security_layer(iik_data_t * iik_ptr)
      * 3. sends server URL
      * 4. sends password if identity verification form is PASSWORD identity
      */
-    packet =(iik_packet_t *) get_packet_buffer(iik_ptr, sizeof(iik_packet_t), &ptr);
+    packet =(idigi_packet_t *) get_packet_buffer(idigi_ptr, sizeof(idigi_packet_t), &ptr);
     if (packet == NULL)
     {
         goto done;
     }
     data_ptr = ptr;
 
-    switch (iik_ptr->layer_state)
+    switch (idigi_ptr->layer_state)
     {
     case security_send_identity_verification:
         DEBUG_PRINTF("Security layer: send security form\n");
@@ -687,13 +694,13 @@ static iik_callback_status_t security_layer(iik_data_t * iik_ptr)
             *ptr = (uint8_t)SECURITY_IDENT_FORM_SIMPLE;
         }
 
-        iik_ptr->security_form = *ptr++ ;
+        idigi_ptr->security_form = *ptr++ ;
         packet->type = E_MSG_MT2_TYPE_PAYLOAD;
         packet->length = ptr - data_ptr;
 
-        status = enable_send_packet(iik_ptr, packet);
+        status = enable_send_packet(idigi_ptr, packet);
 
-        iik_ptr->layer_state = security_send_device_id;
+        idigi_ptr->layer_state = security_send_device_id;
         break;
 
     case security_send_device_id:
@@ -714,13 +721,13 @@ static iik_callback_status_t security_layer(iik_data_t * iik_ptr)
         *ptr++ = SECURITY_OPER_DEVICE_ID;
         packet->length = 1;
 
-        device_id = (uint8_t *)iik_ptr->device_id;
+        device_id = (uint8_t *)idigi_ptr->device_id;
 
         memcpy(ptr, device_id, DEVICE_ID_LENGTH);
         packet->length += DEVICE_ID_LENGTH;
 
-        status = enable_send_packet(iik_ptr, packet);
-        iik_ptr->layer_state = security_send_server_url;
+        status = enable_send_packet(idigi_ptr, packet);
+        idigi_ptr->layer_state = security_send_server_url;
         break;
     }
     case security_send_server_url:
@@ -737,7 +744,7 @@ static iik_callback_status_t security_layer(iik_data_t * iik_ptr)
         */
         data_ptr = ptr;
 
-        server_url = (char *)iik_ptr->server_url;
+        server_url = (char *)idigi_ptr->server_url;
 
         len = strlen(server_url) + strlen(URL_PREFIX);
         packet->type = E_MSG_MT2_TYPE_PAYLOAD;
@@ -760,14 +767,14 @@ static iik_callback_status_t security_layer(iik_data_t * iik_ptr)
         }
         packet->length = ptr - data_ptr;
 
-        status = enable_send_packet(iik_ptr, packet);
-        if (iik_ptr->security_form == SECURITY_IDENT_FORM_PASSWORD)
+        status = enable_send_packet(idigi_ptr, packet);
+        if (idigi_ptr->security_form == SECURITY_IDENT_FORM_PASSWORD)
         {
-            iik_ptr->layer_state = security_send_password;
+            idigi_ptr->layer_state = security_send_password;
         }
         else
         {
-            set_iik_state(iik_ptr, edp_discovery_layer);
+            set_idigi_state(idigi_ptr, edp_discovery_layer);
         }
         break;
     }
@@ -781,7 +788,7 @@ static iik_callback_status_t security_layer(iik_data_t * iik_ptr)
          * | Payload Type | length | password opcode | password length | password |
          *  ----------------------------------------------------------------------
         */
-        pwd = (char *)iik_ptr->password;
+        pwd = (char *)idigi_ptr->password;
 
         packet->type = E_MSG_MT2_TYPE_PAYLOAD;
 
@@ -798,14 +805,14 @@ static iik_callback_status_t security_layer(iik_data_t * iik_ptr)
             ptr += len;
         }
         packet->length = ptr - data_ptr;
-        status = enable_send_packet(iik_ptr, packet);
-        set_iik_state(iik_ptr, edp_discovery_layer);
+        status = enable_send_packet(idigi_ptr, packet);
+        set_idigi_state(idigi_ptr, edp_discovery_layer);
         break;
     }
 done:
     return status;
 }
-static iik_callback_status_t discovery_layer(iik_data_t * iik_ptr)
+static idigi_callback_status_t discovery_layer(idigi_data_t * idigi_ptr)
 {
     enum {
         discovery_send_vendor_id,
@@ -813,8 +820,8 @@ static iik_callback_status_t discovery_layer(iik_data_t * iik_ptr)
         discovery_facility,
         discovery_send_complete
     };
-    iik_callback_status_t status = iik_callback_continue;
-    iik_packet_t * packet;
+    idigi_callback_status_t status = idigi_callback_continue;
+    idigi_packet_t * packet;
     uint8_t sec_coding = SECURITY_PROTO_NONE;
     uint8_t * ptr, * data_ptr;
 
@@ -824,14 +831,14 @@ static iik_callback_status_t discovery_layer(iik_data_t * iik_ptr)
      * 3. call each facility to send its own discovery layer
      * 4. send discovery complete message.
     */
-    packet =(iik_packet_t *) get_packet_buffer(iik_ptr, sizeof(iik_packet_t), &ptr);
+    packet =(idigi_packet_t *) get_packet_buffer(idigi_ptr, sizeof(idigi_packet_t), &ptr);
     if (packet == NULL)
     {
         goto done;
     }
     data_ptr = ptr;
 
-    switch (iik_ptr->layer_state)
+    switch (idigi_ptr->layer_state)
     {
     case discovery_send_vendor_id:
     {
@@ -849,16 +856,16 @@ static iik_callback_status_t discovery_layer(iik_data_t * iik_ptr)
 
         *ptr++= sec_coding;
         *ptr++ = DISC_OP_VENDOR_ID;
-        vendor_id = (uint8_t *)iik_ptr->vendor_id;
+        vendor_id = (uint8_t *)idigi_ptr->vendor_id;
         memcpy(ptr, vendor_id, VENDOR_ID_LENGTH);
         ptr += VENDOR_ID_LENGTH;
 
         packet->length = ptr - data_ptr;
         packet->type = E_MSG_MT2_TYPE_PAYLOAD;
 
-        status = enable_send_packet(iik_ptr, packet);
+        status = enable_send_packet(idigi_ptr, packet);
 
-        iik_ptr->layer_state = discovery_send_device_type;
+        idigi_ptr->layer_state = discovery_send_device_type;
         break;
     }
 
@@ -881,7 +888,7 @@ static iik_callback_status_t discovery_layer(iik_data_t * iik_ptr)
         *ptr++ = sec_coding;
         *ptr++ = DISC_OP_DEVICETYPE;
 
-        device_type = (char *)iik_ptr->device_type;
+        device_type = (char *)idigi_ptr->device_type;
         len = strlen(device_type);
 
         size = sizeof len;
@@ -895,18 +902,18 @@ static iik_callback_status_t discovery_layer(iik_data_t * iik_ptr)
         packet->length = ptr - data_ptr;
         packet->type = E_MSG_MT2_TYPE_PAYLOAD;
 
-        status = enable_send_packet(iik_ptr, packet);
-        iik_ptr->layer_state = discovery_facility;
+        status = enable_send_packet(idigi_ptr, packet);
+        idigi_ptr->layer_state = discovery_facility;
         break;
     }
 
     case discovery_facility:
     {
-        status = discovery_facility_layer(iik_ptr);
+        status = discovery_facility_layer(idigi_ptr);
 
-        if (status == iik_callback_continue)
+        if (status == idigi_callback_continue)
         {
-            iik_ptr->layer_state = discovery_send_complete;
+            idigi_ptr->layer_state = discovery_send_complete;
         }
         break;
     }
@@ -927,27 +934,27 @@ static iik_callback_status_t discovery_layer(iik_data_t * iik_ptr)
         packet->length = ptr - data_ptr;
         packet->type = E_MSG_MT2_TYPE_PAYLOAD;
 
-        status = enable_send_packet(iik_ptr, packet);
-        set_iik_state(iik_ptr, edp_facility_layer);
+        status = enable_send_packet(idigi_ptr, packet);
+        set_idigi_state(idigi_ptr, edp_facility_layer);
         break;
     }
 done:
     return status;
 }
 
-static iik_callback_status_t facility_layer(iik_data_t * iik_ptr)
+static idigi_callback_status_t facility_layer(idigi_data_t * idigi_ptr)
 {
     enum {
         facility_receive_message,
         facility_process_message
     };
-    iik_callback_status_t status;
-    iik_facility_packet_t * packet = NULL;
-    iik_facility_t * fac_ptr;
-    uint16_t    facility;
+    idigi_callback_status_t status;
+    idigi_facility_packet_t * packet = NULL;
+    idigi_facility_t * fac_ptr;
+    bool    done_packet = true;
 
 
-    /* Facility layer is the layer that IDK has fully established
+    /* Facility layer is the layer that iDigi has fully established
      * communication with server. It keeps waiting messages from server
      * for each facility:
      * 1. waits message from server
@@ -956,109 +963,107 @@ static iik_callback_status_t facility_layer(iik_data_t * iik_ptr)
      *
      * Once it gets a packet, it parses and passes it to the appropriate facility.
      */
-    if (iik_ptr->layer_state == facility_receive_message)
+    switch (idigi_ptr->layer_state)
     {
+    case facility_receive_message:
         /* wait for a packet */
-        status = receive_packet(iik_ptr, (iik_packet_t **)&packet);
-    }
-    else if (iik_ptr->layer_state == facility_process_message)
-    {
-        /* existing packet */
-        packet = (iik_facility_packet_t *)iik_ptr->receive_packet.data_packet;
-    }
-
-    if (packet != NULL)
-    {
-        unsigned    length;
-
-        iik_ptr->layer_state = facility_receive_message;
-
-        length = packet->length;
-
-        /*
-         * received packet format:
-         *  ----------------------------------------------------------
-         * |  0 - 1  |  2 - 3 |   4    |     5     |  6 - 7   |  8... |
-         *  ----------------------------------------------------------
-         * | Payload | length | coding | discovery | facility | Data  |
-         * |   Type  |        | scheme |  payload  |          |       |
-         *  ----------------------------------------------------------
-        */
-        if (packet->type == E_MSG_MT2_TYPE_PAYLOAD)
+        status = receive_packet(idigi_ptr, (idigi_packet_t **)&packet);
+        if (status == idigi_callback_continue && packet != NULL)
         {
-
-            /* currently we don't support any other security protocol */
-            ASSERT_GOTO(packet->sec_coding == SECURITY_PROTO_NONE, done);
-            /* ignore this packet since it has invalid length */
-            ASSERT_GOTO(length > (PKT_OP_DISCOVERY + PKT_OP_FACILITY), done);
-            /* ignore this packet since it not payload opcode */
-            ASSERT_GOTO(packet->disc_payload == DISC_OP_PAYLOAD, done);
-
-
-            facility = FROM_BE16(packet->facility);
-
-            DEBUG_PRINTF("iik_facility_layer: receive data facility = 0x%04x, type = %d, length=%d\n",
-                                        facility, packet->type, length);
-
-            /* TODO: Removed this fake RCI response */
-            if (facility == E_MSG_FAC_RCI_NUM)
+            /*
+             * received packet format:
+             *  ----------------------------------------------------------
+             * |  0 - 1  |  2 - 3 |   4    |     5     |  6 - 7   |  8... |
+             *  ----------------------------------------------------------
+             * | Payload | length | coding | discovery | facility | Data  |
+             * |   Type  |        | scheme |  payload  |          |       |
+             *  ----------------------------------------------------------
+            */
+            if (packet->type == E_MSG_MT2_TYPE_PAYLOAD)
             {
-                status = rci_process_function(iik_ptr, NULL, packet);
-            }
+                uint16_t    facility;
 
-            /* search facility and copy the data to the facility
-             *
-             * Make sure the facility is not processing previous packet.
-             */
-            for (fac_ptr = iik_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
-            {
-                if (fac_ptr->facility_num  == facility)
+                /* currently we don't support any other security protocol */
+                ASSERT_GOTO(packet->sec_coding == SECURITY_PROTO_NONE, error);
+                /* ignore this packet since it has invalid length */
+                ASSERT_GOTO(packet->length > (PKT_OP_DISCOVERY + PKT_OP_FACILITY), error);
+                /* ignore this packet since it not payload opcode */
+                ASSERT_GOTO(packet->disc_payload == DISC_OP_PAYLOAD, error);
+
+                facility = FROM_BE16(packet->facility);
+
+                DEBUG_PRINTF("idigi_facility_layer: receive data facility = 0x%04x, type = %d, length=%d\n",
+                                            facility, packet->type, packet->length);
+
+                /* TODO: Removed this fake RCI response */
+                if (facility == E_MSG_FAC_RCI_NUM)
                 {
-                    if (fac_ptr->packet == NULL)
-                    {
-                        uint8_t * src_ptr, * dst_ptr;
-
-                        fac_ptr->packet = (iik_facility_packet_t *)fac_ptr->buffer;
-                        fac_ptr->packet->disc_payload= packet->disc_payload;
-                        fac_ptr->packet->sec_coding = packet->sec_coding;
-                        fac_ptr->packet->facility = facility;
-                        /* The packet length includes discovery_payload, security_coding + facility number so
-                         * must subtract all these length to get the length of facility data
-                         */
-                        fac_ptr->packet->length = packet->length - sizeof packet->disc_payload - sizeof packet->sec_coding - sizeof packet->facility;
-                        iik_ptr->active_facility = fac_ptr;
-
-                        src_ptr = GET_PACKET_DATA_POINTER(packet, sizeof(iik_facility_packet_t));
-                        dst_ptr = GET_PACKET_DATA_POINTER(fac_ptr->packet, sizeof(iik_facility_packet_t));
-                        memcpy(dst_ptr, src_ptr, fac_ptr->packet->length);
-                    }
-                    else
-                    { /* Facility is busy so hold on the packet and stop receiving data */
-                        iik_ptr->layer_state = facility_process_message;
-                    }
-                    break;
+                    status = rci_process_function(idigi_ptr, NULL, packet);
+                    goto error;
                 }
+                packet->facility = facility;
+                /* The packet length includes discovery_payload, security_coding + facility number so
+                 * must subtract all these length to get the length of facility data
+                 */
+                packet->length -= (sizeof packet->disc_payload + sizeof packet->sec_coding + sizeof packet->facility);
             }
         }
+        break;
+    case facility_process_message:
+        /* existing packet */
+        packet = (idigi_facility_packet_t *)idigi_ptr->receive_packet.data_packet;
+        break;
+    }
 
+    if (status == idigi_callback_continue && packet != NULL)
+    {
+        /* search facility and copy the data to the facility
+         *
+         * Make sure the facility is not processing previous packet.
+         */
+        idigi_ptr->layer_state = facility_receive_message;
+
+        for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
+        {
+            if (fac_ptr->facility_num  == packet->facility)
+            {
+                if (fac_ptr->packet == NULL)
+                {
+                    fac_ptr->packet = packet;
+                    idigi_ptr->active_facility = fac_ptr;
+                    done_packet = false;
+
+                }
+                else
+                { /* Facility is busy so hold on the packet and stop receiving data */
+                    idigi_ptr->layer_state = facility_process_message;
+                    done_packet = false;
+                }
+                break;
+            }
+        }
+    }
+
+error:
+    if (done_packet && packet != NULL)
+    {
+        release_receive_packet(idigi_ptr, (idigi_packet_t *)packet);
     }
 
     /* invoke facility process */
-    for (fac_ptr = iik_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
+    for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
     {
-        if ( fac_ptr->packet != NULL)
+        if (fac_ptr->packet != NULL)
         {
-            status = fac_ptr->process_cb(iik_ptr, fac_ptr);
-             if (status == iik_callback_abort)
+            status = fac_ptr->process_cb(idigi_ptr, fac_ptr->facility_data, fac_ptr->packet);
+            if (status != idigi_callback_busy)
             {
-                /* error */
-                DEBUG_PRINTF("iik_facility_layer: facility  (0x%x) returns abort with error code %d\n", fac_ptr->facility_num, iik_ptr->error_code);
-                goto done;
+                release_receive_packet(idigi_ptr, (idigi_packet_t *)fac_ptr->packet);
+                fac_ptr->packet = NULL;
             }
         }
     }
 
-done:
     return status;
 }
 
