@@ -10,9 +10,9 @@
 
 include $(IDIGI_RULES)
 
-LIB_DIR=./private
+LIB_SRC_DIR=./private
 SAMPLE_DIR=./public/sample
-OBJDIR=$(LIB_DIR)
+OBJDIR=$(LIB_SRC_DIR)
 
 ifeq ($(LITTLE_ENDIAN),true)
 CFLAGS += -D_LITTLE_ENDIAN
@@ -26,8 +26,8 @@ endif
 
 CFLAGS += -I./public/include -I./private -Wall -Werror
 
-vpath $(LIB_DIR)/%.c
-vpath $(LIB_DIR)/%.h
+vpath $(LIB_SRC_DIR)/%.c
+vpath $(LIB_SRC_DIR)/%.h
 
 LIB =$(LIBDIR)/libidigi.so
 
@@ -35,8 +35,7 @@ all: $(LIB)
 
 OBJS = $(OBJDIR)/idigi_api.o
 
-$(OBJS): $(LIB_DIR)/*.c $(LIB_DIR)/*.h
-
+$(OBJS): $(LIB_SRC_DIR)/*.c $(LIB_SRC_DIR)/*.h
 
 $(LIB): $(OBJS)
 	$(LD) $(LDFLAGS) $@
@@ -60,7 +59,7 @@ clean:
 help:
 	@echo "This makefile only supports the GNU toolchain"
 	@echo "Options:"
-	@echo "    IDIGI_RULES     = Location and  name for toolset"
+	@echo "    IDIGI_RULES   = Location and name of toolset"
 	@echo "    LIBDIR        = Location of library"
 	@echo "    DEBUG         = true or false for debugging"
 	@echo "    LITTLE_ENDIAN = true or false for little endian"
