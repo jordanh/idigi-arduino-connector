@@ -50,12 +50,12 @@ typedef enum {
 } receive_packet_index_t;
 
 
-static bool valid_interval_limit(iik_data_t * iik_ptr, uint32_t start, uint32_t limit)
+static bool valid_interval_limit(idigi_data_t * idigi_ptr, uint32_t start, uint32_t limit)
 {
     uint32_t elapsed;
     bool rc = false;
 
-    if (get_system_time(iik_ptr, &elapsed) == iik_callback_continue)
+    if (get_system_time(idigi_ptr, &elapsed) == idigi_callback_continue)
     {
         elapsed -= start;
         rc = (elapsed < limit);
@@ -64,17 +64,17 @@ static bool valid_interval_limit(iik_data_t * iik_ptr, uint32_t start, uint32_t 
     return rc;
 }
 
-static void set_iik_state(iik_data_t * iik_ptr, int state)
+static void set_idigi_state(idigi_data_t * idigi_ptr, int state)
 {
-    iik_ptr->edp_state = state;
-    iik_ptr->layer_state = 0;
-    iik_ptr->request_id = 0;
+    idigi_ptr->edp_state = state;
+    idigi_ptr->layer_state = 0;
+    idigi_ptr->request_id = 0;
 }
 
 
-static iik_callback_status_t enable_send_packet(iik_data_t * iik_ptr, iik_packet_t * packet)
+static idigi_callback_status_t enable_send_packet(idigi_data_t * idigi_ptr, idigi_packet_t * packet)
 {
-    iik_callback_status_t status = iik_callback_continue;
+    idigi_callback_status_t status = idigi_callback_continue;
     uint16_t length;
     uint16_t msg_type;
 
@@ -82,15 +82,15 @@ static iik_callback_status_t enable_send_packet(iik_data_t * iik_ptr, iik_packet
      * send out the data.
      */
 
-    if (iik_ptr->send_packet.total_length > 0)
+    if (idigi_ptr->send_packet.total_length > 0)
     {
         DEBUG_PRINTF("enable_send_packet: unable to enable another send since previous data is still pending\n");
-        status = iik_callback_busy;
+        status = idigi_callback_busy;
         goto done;
     }
 
-    iik_ptr->send_packet.total_length = packet->length;
-    iik_ptr->send_packet.ptr = (uint8_t *)&packet->type;
+    idigi_ptr->send_packet.total_length = packet->length;
+    idigi_ptr->send_packet.ptr = (uint8_t *)&packet->type;
     length = TO_BE16(packet->length);
 
     /*
@@ -106,19 +106,19 @@ static iik_callback_status_t enable_send_packet(iik_data_t * iik_ptr, iik_packet
     packet->type = msg_type;
     packet->length = length;
     /* The total length must include the type and length fields */
-    iik_ptr->send_packet.total_length += sizeof(packet->type) + sizeof(packet->length);
+    idigi_ptr->send_packet.total_length += sizeof(packet->type) + sizeof(packet->length);
     /* clear the actual number of bytes to be sent */
-    iik_ptr->send_packet.length = 0;
+    idigi_ptr->send_packet.length = 0;
 
 done:
     return status;
 }
 
-static iik_callback_status_t enable_facility_packet(iik_data_t * iik_ptr, uint16_t facility, uint8_t security_code)
+static idigi_callback_status_t enable_facility_packet(idigi_data_t * idigi_ptr, uint16_t facility, uint8_t security_code)
 {
-    iik_facility_packet_t   * packet;
+    idigi_facility_packet_t   * packet;
 
-    packet = (iik_facility_packet_t *)iik_ptr->send_packet.buffer;
+    packet = (idigi_facility_packet_t *)idigi_ptr->send_packet.buffer;
     /* this function is to set up a facility packet to be sent.
      *
      * facility packet:
@@ -137,32 +137,32 @@ static iik_callback_status_t enable_facility_packet(iik_data_t * iik_ptr, uint16
     packet->disc_payload = DISC_OP_PAYLOAD;
     packet->facility = TO_BE16(facility);
     packet->length += sizeof(packet->sec_coding) + sizeof(packet->disc_payload) + sizeof(packet->facility);
-    return enable_send_packet(iik_ptr, (iik_packet_t *)packet);
+    return enable_send_packet(idigi_ptr, (idigi_packet_t *)packet);
 }
 
-static int send_buffer(iik_data_t * iik_ptr, uint8_t * buffer, size_t length)
+static int send_buffer(idigi_data_t * idigi_ptr, uint8_t * buffer, size_t length)
 {
     int bytes_sent = 0;
 
-    iik_callback_status_t status;
-    iik_write_request_t write_data;
+    idigi_callback_status_t status;
+    idigi_write_request_t write_data;
     unsigned tx_ka_timeout;
     unsigned rx_ka_timeout;
     uint32_t time_stamp;
-    iik_request_t request_id;
+    idigi_request_t request_id;
 
     size_t length_written, size;
 
 
-    if (iik_ptr->network_busy || iik_ptr->network_handle == NULL)
+    if (idigi_ptr->network_busy || idigi_ptr->network_handle == NULL)
     {
         /* don't do any network activity */
         goto done;
     }
 
-    if (get_system_time(iik_ptr, &time_stamp) != iik_callback_continue)
+    if (get_system_time(idigi_ptr, &time_stamp) != idigi_callback_continue)
     {
-        bytes_sent = -iik_configuration_error;
+        bytes_sent = -idigi_configuration_error;
         goto done;
     }
 
@@ -174,80 +174,80 @@ static int send_buffer(iik_data_t * iik_ptr, uint8_t * buffer, size_t length)
      *
      * timeout value is in seconds.
      */
-    rx_ka_timeout = get_timeout_limit_in_seconds(*iik_ptr->rx_keepalive, (time_stamp - iik_ptr->rx_ka_time));
-    tx_ka_timeout = get_timeout_limit_in_seconds(*iik_ptr->tx_keepalive, (time_stamp - iik_ptr->tx_ka_time));
+    rx_ka_timeout = get_timeout_limit_in_seconds(*idigi_ptr->rx_keepalive, (time_stamp - idigi_ptr->rx_ka_time));
+    tx_ka_timeout = get_timeout_limit_in_seconds(*idigi_ptr->tx_keepalive, (time_stamp - idigi_ptr->tx_ka_time));
 
     write_data.timeout = MIN_VALUE(rx_ka_timeout, tx_ka_timeout);
 
     write_data.buffer = buffer;
     write_data.length = length;
-    write_data.network_handle = iik_ptr->network_handle;
+    write_data.network_handle = idigi_ptr->network_handle;
 
     size = sizeof length_written;
-    request_id.network_request = iik_network_send;
-    status = iik_callback(iik_ptr->callback, iik_class_network, request_id, &write_data, sizeof write_data, &length_written, &size);
-    if (status == iik_callback_continue && length_written > 0) 
+    request_id.network_request = idigi_network_send;
+    status = idigi_callback(idigi_ptr->callback, idigi_class_network, request_id, &write_data, sizeof write_data, &length_written, &size);
+    if (status == idigi_callback_continue && length_written > 0) 
     {
         bytes_sent = length_written;
 
         /* Retain the "last (RX) message send" time. */
-        status = get_system_time(iik_ptr, &iik_ptr->rx_ka_time);
-        if (status == iik_callback_abort)
+        status = get_system_time(idigi_ptr, &idigi_ptr->rx_ka_time);
+        if (status == idigi_callback_abort)
         {
-            bytes_sent = -iik_configuration_error;
+            bytes_sent = -idigi_configuration_error;
         }
     }
-    else if (status == iik_callback_abort)
+    else if (status == idigi_callback_abort)
     {
-        bytes_sent = -iik_send_error;
+        bytes_sent = -idigi_send_error;
     }
 
 done:
     return bytes_sent;
 }
 
-static iik_packet_t * get_packet_buffer(iik_data_t * iik_ptr, size_t packet_size, uint8_t ** buf)
+static idigi_packet_t * get_packet_buffer(idigi_data_t * idigi_ptr, size_t packet_size, uint8_t ** buf)
 {
-    iik_packet_t * packet = NULL;
+    idigi_packet_t * packet = NULL;
     uint8_t * ptr = NULL;
 
     /* Return an available packet pointer for caller to setup data to be sent to server.
      *
      * make sure send is not pending
      */
-    if (iik_ptr->send_packet.total_length == 0)
+    if (idigi_ptr->send_packet.total_length == 0)
     {
-        packet = (iik_packet_t *)iik_ptr->send_packet.buffer;
-        packet->avail_length = sizeof iik_ptr->send_packet.buffer - sizeof packet->avail_length;
+        packet = (idigi_packet_t *)idigi_ptr->send_packet.buffer;
+        packet->avail_length = sizeof idigi_ptr->send_packet.buffer - sizeof packet->avail_length;
         ptr = GET_PACKET_DATA_POINTER(packet, packet_size);
     }
     *buf = ptr;
     return packet;
 }
 
-static iik_callback_status_t rx_keepalive_process(iik_data_t * iik_ptr)
+static idigi_callback_status_t rx_keepalive_process(idigi_data_t * idigi_ptr)
 {
-#define IIK_MTV2_VERSION            2
+#define IDIGI_MTV2_VERSION            2
 
-    iik_callback_status_t status = iik_callback_continue;
-    iik_packet_t * packet;
+    idigi_callback_status_t status = idigi_callback_continue;
+    idigi_packet_t * packet;
     uint16_t rx_keepalive;
 
-    if (iik_ptr->network_handle == NULL)
+    if (idigi_ptr->network_handle == NULL)
     {
         goto done;
     }
 
     /* Sends rx keepalive if keepalive timing is expired. */
-    rx_keepalive = *iik_ptr->rx_keepalive;
+    rx_keepalive = *idigi_ptr->rx_keepalive;
 
-    if (valid_interval_limit(iik_ptr, iik_ptr->rx_ka_time, (rx_keepalive * MILLISECONDS_PER_SECOND)))
+    if (valid_interval_limit(idigi_ptr, idigi_ptr->rx_ka_time, (rx_keepalive * MILLISECONDS_PER_SECOND)))
     {
         /* not expired yet. no need to send rx keepalive */
         goto done;
     }
 
-    if (iik_ptr->send_packet.total_length > 0)
+    if (idigi_ptr->send_packet.total_length > 0)
     {
         /* time to send rx keepalive but send is still pending */
         goto done;
@@ -255,75 +255,120 @@ static iik_callback_status_t rx_keepalive_process(iik_data_t * iik_ptr)
 
     DEBUG_PRINTF("rx_keepalive_process: time to send Rx keepalive\n");
 
-    packet = (iik_packet_t *)&iik_ptr->rx_keepalive_packet;
+    packet = (idigi_packet_t *)&idigi_ptr->rx_keepalive_packet;
     packet->length = 0;
     packet->type = E_MSG_MT2_TYPE_KA_KEEPALIVE;
-    status = enable_send_packet(iik_ptr, packet);
+    status = enable_send_packet(idigi_ptr, packet);
 
 done:
     return status;
 }
 
-static iik_callback_status_t send_packet_process(iik_data_t * iik_ptr)
+static idigi_callback_status_t send_packet_process(idigi_data_t * idigi_ptr)
 {
     uint8_t * buf;
     size_t  length;
     int bytes_sent;
-    iik_callback_status_t status = iik_callback_continue;
+    idigi_callback_status_t status = idigi_callback_continue;
 
     /* if nothing needs to be sent, check whether we need to send rx keepalive */
-    if (iik_ptr->send_packet.total_length == 0 && iik_ptr->edp_state >= edp_discovery_layer)
+    if (idigi_ptr->send_packet.total_length == 0 && idigi_ptr->edp_state >= edp_discovery_layer)
     {
-        rx_keepalive_process(iik_ptr);
+        rx_keepalive_process(idigi_ptr);
     }
 
-    if (iik_ptr->send_packet.total_length > 0)
+    if (idigi_ptr->send_packet.total_length > 0)
     {
-        buf = iik_ptr->send_packet.ptr + iik_ptr->send_packet.length;
-        length = iik_ptr->send_packet.total_length;
+        buf = idigi_ptr->send_packet.ptr + idigi_ptr->send_packet.length;
+        length = idigi_ptr->send_packet.total_length;
 
-        bytes_sent = send_buffer(iik_ptr, buf, length);
+        bytes_sent = send_buffer(idigi_ptr, buf, length);
         if (bytes_sent > 0)
         {
-            iik_ptr->send_packet.total_length -= bytes_sent;
-            iik_ptr->send_packet.length += bytes_sent;
+            idigi_ptr->send_packet.total_length -= bytes_sent;
+            idigi_ptr->send_packet.length += bytes_sent;
         }
         else
         {
-            iik_ptr->error_code = -bytes_sent;
-            status = iik_callback_abort;
+            idigi_ptr->error_code = -bytes_sent;
+            status = idigi_callback_abort;
         }
     }
 
-    if (status == iik_callback_continue && iik_ptr->send_packet.total_length > 0)
+    if (status == idigi_callback_continue && idigi_ptr->send_packet.total_length > 0)
     {
-        status = iik_callback_busy;
+        status = idigi_callback_busy;
     }
     return status;
 
 }
 
+static idigi_packet_t * new_receive_packet(idigi_data_t * idigi_ptr)
+{
+    idigi_buffer_t * buffer_ptr;
+    idigi_packet_t * packet = NULL;
 
-static int receive_data(iik_data_t * iik_ptr, uint8_t * buffer, size_t length)
+    for (buffer_ptr = &idigi_ptr->packet_buffer; buffer_ptr != NULL; buffer_ptr = buffer_ptr->next)
+    {
+        if (!buffer_ptr->in_used)
+        {
+            buffer_ptr->in_used = true;
+            packet = (idigi_packet_t *)buffer_ptr->buffer;
+            break;
+        }
+    }
+#if defined(DEBUG)
+    if (buffer_ptr == NULL)
+    {
+        DEBUG_PRINTF("new_receive_packet: no buffer available for receiving message from server\n");
+    }
+#endif
+
+    return packet;
+}
+
+static void release_receive_packet(idigi_data_t * idigi_ptr, idigi_packet_t * packet)
+{
+    idigi_buffer_t * buffer_ptr;
+
+    for (buffer_ptr = &idigi_ptr->packet_buffer; buffer_ptr != NULL; buffer_ptr = buffer_ptr->next)
+    {
+        if (buffer_ptr->buffer == (uint8_t *)packet)
+        {
+            buffer_ptr->in_used = false;
+            break;
+        }
+    }
+
+    if (buffer_ptr == NULL)
+    {
+        ASSERT(0);
+        DEBUG_PRINTF("release_receive_packet: unrecognized packet\n");
+    }
+
+    return;
+}
+
+
+static int receive_data(idigi_data_t * idigi_ptr, uint8_t * buffer, size_t length)
 {
     int bytes_received = 0;
 
-    iik_callback_status_t status;
-    iik_read_request_t read_data;
+    idigi_callback_status_t status;
+    idigi_read_request_t read_data;
     unsigned tx_keepalive;
     unsigned tx_ka_timeout;
     unsigned rx_ka_timeout;
-    uint8_t wait_count;
     uint32_t time_stamp;
     size_t  length_read, size;
-    iik_request_t request_id;
+    idigi_request_t request_id;
 
-    if (!iik_ptr->network_busy)
+    if (!idigi_ptr->network_busy)
     {
 
-        if (get_system_time(iik_ptr, &time_stamp) != iik_callback_continue)
+        if (get_system_time(idigi_ptr, &time_stamp) != idigi_callback_continue)
         {
-            bytes_received = -iik_configuration_error;
+            bytes_received = -idigi_configuration_error;
             goto done;
         }
 
@@ -335,26 +380,26 @@ static int receive_data(iik_data_t * iik_ptr, uint8_t * buffer, size_t length)
          *
          * timeout value is in seconds.
          */
-        rx_ka_timeout = get_timeout_limit_in_seconds(*iik_ptr->rx_keepalive, (time_stamp - iik_ptr->rx_ka_time));
-        tx_ka_timeout = get_timeout_limit_in_seconds(*iik_ptr->tx_keepalive, (time_stamp - iik_ptr->tx_ka_time));
+        rx_ka_timeout = get_timeout_limit_in_seconds(*idigi_ptr->rx_keepalive, (time_stamp - idigi_ptr->rx_ka_time));
+        tx_ka_timeout = get_timeout_limit_in_seconds(*idigi_ptr->tx_keepalive, (time_stamp - idigi_ptr->tx_ka_time));
 
         read_data.timeout = MIN_VALUE(tx_ka_timeout, rx_ka_timeout);
 
-        read_data.network_handle = iik_ptr->network_handle;
+        read_data.network_handle = idigi_ptr->network_handle;
         read_data.buffer = buffer;
         read_data.length = length;
 
         size = sizeof length_read;
 
-        request_id.network_request = iik_network_receive;
-        status = iik_callback(iik_ptr->callback, iik_class_network, request_id, &read_data, sizeof read_data, &length_read, &size);
-        if (status == iik_callback_abort)
+        request_id.network_request = idigi_network_receive;
+        status = idigi_callback(idigi_ptr->callback, idigi_class_network, request_id, &read_data, sizeof read_data, &length_read, &size);
+        if (status == idigi_callback_abort)
         {
             DEBUG_PRINTF("receive_data: callback returns abort\n");
-            bytes_received = -iik_receive_error;
+            bytes_received = -idigi_receive_error;
             goto done;
         }
-        else if (status == iik_callback_busy)
+        else if (status == idigi_callback_busy)
         {
             goto done;
         }
@@ -363,19 +408,21 @@ static int receive_data(iik_data_t * iik_ptr, uint8_t * buffer, size_t length)
         {
             bytes_received = (int)length_read;
             /* Retain the "last (TX) message send" time. */
-            if (get_system_time(iik_ptr, &iik_ptr->tx_ka_time) != iik_callback_continue)
+            if (get_system_time(idigi_ptr, &idigi_ptr->tx_ka_time) != idigi_callback_continue)
             {
-                bytes_received = -iik_configuration_error;
+                bytes_received = -idigi_configuration_error;
             }
             goto done;
         }
     }
 
-    tx_keepalive = *iik_ptr->tx_keepalive * MILLISECONDS_PER_SECOND;
+    tx_keepalive = *idigi_ptr->tx_keepalive * MILLISECONDS_PER_SECOND;
     if (tx_keepalive > 0)
     {
-        wait_count = *iik_ptr->wait_count;
-        if (!valid_interval_limit(iik_ptr, iik_ptr->tx_ka_time, (tx_keepalive  * wait_count)))
+        uint8_t wait_count;
+
+        wait_count = *idigi_ptr->wait_count;
+        if (!valid_interval_limit(idigi_ptr, idigi_ptr->tx_ka_time, (tx_keepalive  * wait_count)))
         {
             /*
              * We haven't received a message
@@ -389,10 +436,10 @@ static int receive_data(iik_data_t * iik_ptr, uint8_t * buffer, size_t length)
              * keep-alive failure check never triggers.
              *
              */
-            bytes_received = -iik_keepalive_error;
-            request_id.network_request = iik_network_receive;
-            notify_error_status(iik_ptr->callback, iik_class_config, request_id, iik_keepalive_error);
-            DEBUG_PRINTF("iik_receive: keepalive fail\n");
+            bytes_received = -idigi_keepalive_error;
+            request_id.network_request = idigi_network_receive;
+            notify_error_status(idigi_ptr->callback, idigi_class_config, request_id, idigi_keepalive_error);
+            DEBUG_PRINTF("idigi_receive: keepalive fail\n");
         }
     }
 
@@ -401,50 +448,50 @@ done:
 }
 
 
-static iik_callback_status_t receive_data_status(iik_data_t * iik_ptr)
+static idigi_callback_status_t receive_data_status(idigi_data_t * idigi_ptr)
 {
-    uint8_t * buf;
-    size_t  length;
-    iik_callback_status_t status = iik_callback_continue;
-    int     read_length;
+    idigi_callback_status_t status = idigi_callback_continue;
 
-    if (iik_ptr->receive_packet.length < iik_ptr->receive_packet.total_length)
+    if (idigi_ptr->receive_packet.length < idigi_ptr->receive_packet.total_length)
     {
-        buf = iik_ptr->receive_packet.ptr + iik_ptr->receive_packet.length;
-        length = iik_ptr->receive_packet.total_length - iik_ptr->receive_packet.length;
+        uint8_t * buf;
+        size_t  length;
+        int     read_length;
 
-        read_length = receive_data(iik_ptr, buf, length);
+        buf = idigi_ptr->receive_packet.ptr + idigi_ptr->receive_packet.length;
+        length = idigi_ptr->receive_packet.total_length - idigi_ptr->receive_packet.length;
+
+        read_length = receive_data(idigi_ptr, buf, length);
         if (read_length > 0)
         {
-            iik_ptr->receive_packet.length += read_length;
+            idigi_ptr->receive_packet.length += read_length;
         }
         else if (read_length < 0)
         {
-            iik_ptr->error_code = -read_length;
-            status = iik_callback_abort;
+            idigi_ptr->error_code = -read_length;
+            status = idigi_callback_abort;
             goto done;
         }
     }
 
-    if (iik_ptr->receive_packet.total_length > 0 &&
-        iik_ptr->receive_packet.length < iik_ptr->receive_packet.total_length)
+    if (idigi_ptr->receive_packet.total_length > 0 &&
+        idigi_ptr->receive_packet.length < idigi_ptr->receive_packet.total_length)
     {
-        status = iik_callback_busy;
+        status = idigi_callback_busy;
     }
 done:
     return status;
 }
 
 
-static iik_callback_status_t receive_packet(iik_data_t * iik_ptr, iik_packet_t ** packet)
+static idigi_callback_status_t receive_packet(idigi_data_t * idigi_ptr, idigi_packet_t ** packet)
 {
-    iik_callback_status_t status = iik_callback_continue;
-    uint16_t type_val;
-    iik_request_t request_id;
+    idigi_callback_status_t status = idigi_callback_continue;
+    idigi_request_t request_id;
 
     *packet = NULL;
 
-    if (iik_ptr->network_handle == NULL)
+    if (idigi_ptr->network_handle == NULL)
     {
         goto done;
     }
@@ -483,44 +530,47 @@ static iik_callback_status_t receive_packet(iik_data_t * iik_ptr, iik_packet_t *
      *
      */
 
-    while (iik_ptr->receive_packet.index <= receive_packet_complete)
+    while (idigi_ptr->receive_packet.index <= receive_packet_complete)
     {
-        if (iik_ptr->receive_packet.index != receive_packet_init)
+        if (idigi_ptr->receive_packet.index != receive_packet_init)
         {
-            status = receive_data_status(iik_ptr);
-            if (status != iik_callback_continue)
+            status = receive_data_status(idigi_ptr);
+            if (status != idigi_callback_continue)
             {  /* receive pending */
                 goto done;
             }
         }
 
-        switch (iik_ptr->receive_packet.index)
+        switch (idigi_ptr->receive_packet.index)
         {
         case receive_packet_init:
-            iik_ptr->receive_packet.packet_type = 0;
-            iik_ptr->receive_packet.packet_length = 0;
-            iik_ptr->receive_packet.length = 0;
-            iik_ptr->receive_packet.total_length = 0;
-            iik_ptr->receive_packet.index = 0;
-            iik_ptr->receive_packet.data_packet = (iik_packet_t *)iik_ptr->receive_packet.buffer;
-            iik_ptr->receive_packet.index++;
+            idigi_ptr->receive_packet.packet_type = 0;
+            idigi_ptr->receive_packet.packet_length = 0;
+            idigi_ptr->receive_packet.length = 0;
+            idigi_ptr->receive_packet.total_length = 0;
+            idigi_ptr->receive_packet.index = 0;
+            idigi_ptr->receive_packet.data_packet = new_receive_packet(idigi_ptr);
+            idigi_ptr->receive_packet.index++;
             break;
 
         case receive_packet_type:
             /* set to read the type of the message */
-            iik_ptr->receive_packet.ptr = (uint8_t *)&iik_ptr->receive_packet.packet_type;
-            iik_ptr->receive_packet.length = 0;
-            iik_ptr->receive_packet.total_length = sizeof iik_ptr->receive_packet.packet_type;
-            iik_ptr->receive_packet.index++;
+            idigi_ptr->receive_packet.ptr = (uint8_t *)&idigi_ptr->receive_packet.packet_type;
+            idigi_ptr->receive_packet.length = 0;
+            idigi_ptr->receive_packet.total_length = sizeof idigi_ptr->receive_packet.packet_type;
+            idigi_ptr->receive_packet.index++;
             break;
 
         case receive_packet_length:
+        {
             /* Got message type let's get to message length
              * so make sure we support the message type.
              * Then, set to read message length. 
              */
-            type_val = FROM_BE16(iik_ptr->receive_packet.packet_type);
-            iik_ptr->receive_packet.packet_type = type_val;
+            uint16_t type_val;
+
+            type_val = FROM_BE16(idigi_ptr->receive_packet.packet_type);
+            idigi_ptr->receive_packet.packet_type = type_val;
 
             switch (type_val)
             {
@@ -537,18 +587,18 @@ static iik_callback_status_t receive_packet(iik_data_t * iik_ptr, iik_packet_t *
                      * field bytes.
                      */
                     /* Supply a length of 1 byte. */
-                    iik_ptr->receive_packet.data_packet->length = 1;
-                    iik_ptr->receive_packet.index++;
+                    idigi_ptr->receive_packet.data_packet->length = 1;
+                    idigi_ptr->receive_packet.index++;
 
-                    iik_ptr->receive_packet.total_length = iik_ptr->receive_packet.data_packet->length;
+                    idigi_ptr->receive_packet.total_length = idigi_ptr->receive_packet.data_packet->length;
 
                     /*
                      * Read the actual message data bytes into the packet buffer.
                      */
-                    iik_ptr->receive_packet.ptr = GET_PACKET_DATA_POINTER(iik_ptr->receive_packet.buffer, sizeof(iik_packet_t));
-                    iik_ptr->receive_packet.length = 0;
-                    iik_ptr->receive_packet.total_length = iik_ptr->receive_packet.data_packet->length;
-                    iik_ptr->receive_packet.index++;
+                    idigi_ptr->receive_packet.ptr = GET_PACKET_DATA_POINTER(idigi_ptr->receive_packet.data_packet, sizeof(idigi_packet_t));
+                    idigi_ptr->receive_packet.length = 0;
+                    idigi_ptr->receive_packet.total_length = idigi_ptr->receive_packet.data_packet->length;
+                    idigi_ptr->receive_packet.index++;
 
                     break;
                 case E_MSG_MT2_TYPE_VERSION_OK:
@@ -573,30 +623,30 @@ static iik_callback_status_t receive_packet(iik_data_t * iik_ptr, iik_packet_t *
                      * If callback tells us to continue, we continue reading packet data.
                      */
                     DEBUG_PRINTF("receive_packet: error type 0x%x\n", (unsigned) type_val);
-                    request_id.network_request = iik_network_receive;
-                    iik_ptr->error_code = iik_invalid_packet;
-                    status = notify_error_status(iik_ptr->callback, iik_class_config, request_id, iik_invalid_packet);
-                    if (status == iik_callback_abort)
+                    request_id.network_request = idigi_network_receive;
+                    idigi_ptr->error_code = idigi_invalid_packet;
+                    status = notify_error_status(idigi_ptr->callback, idigi_class_config, request_id, idigi_invalid_packet);
+                    if (status == idigi_callback_abort)
                     {
-                        iik_ptr->receive_packet.index = 0;
+                        idigi_ptr->receive_packet.index = 0;
                         goto done;
                     }
             }
 
             if (type_val != E_MSG_MT2_TYPE_LEGACY_EDP_VER_RESP)
             {   /* set up to read message length */
-                iik_ptr->receive_packet.ptr = (uint8_t *)&iik_ptr->receive_packet.packet_length;
-                iik_ptr->receive_packet.length = 0;
-                iik_ptr->receive_packet.total_length = sizeof iik_ptr->receive_packet.packet_length;
-                iik_ptr->receive_packet.index++;
+                idigi_ptr->receive_packet.ptr = (uint8_t *)&idigi_ptr->receive_packet.packet_length;
+                idigi_ptr->receive_packet.length = 0;
+                idigi_ptr->receive_packet.total_length = sizeof idigi_ptr->receive_packet.packet_length;
+                idigi_ptr->receive_packet.index++;
             }
             break;
-
+        }
         case receive_packet_data:
             /* got packet length so set to read message data */
-            iik_ptr->receive_packet.data_packet->length = FROM_BE16(iik_ptr->receive_packet.packet_length);
-            iik_ptr->receive_packet.packet_length = iik_ptr->receive_packet.data_packet->length;
-            if (iik_ptr->receive_packet.packet_type != E_MSG_MT2_TYPE_PAYLOAD)
+            idigi_ptr->receive_packet.data_packet->length = FROM_BE16(idigi_ptr->receive_packet.packet_length);
+            idigi_ptr->receive_packet.packet_length = idigi_ptr->receive_packet.data_packet->length;
+            if (idigi_ptr->receive_packet.packet_type != E_MSG_MT2_TYPE_PAYLOAD)
             {
                 /*
                  * For all but payload messages, the length field value should be
@@ -607,44 +657,44 @@ static iik_callback_status_t receive_packet(iik_data_t * iik_ptr, iik_packet_t *
                  *    E_MSG_MT2_TYPE_SERVER_OVERLOAD
                  *    E_MSG_MT2_TYPE_KA_KEEPALIVE
                  */
-                if (iik_ptr->receive_packet.packet_length != 0)
+                if (idigi_ptr->receive_packet.packet_length != 0)
                 {
-                    DEBUG_PRINTF("iik_get_receive_packet: Invalid payload\n");
-                    request_id.network_request = iik_network_receive;
-                    iik_ptr->error_code = iik_invalid_payload_packet;
-                    status = notify_error_status(iik_ptr->callback, iik_class_config, request_id, iik_invalid_payload_packet);
-                    if (status == iik_callback_abort)
+                    DEBUG_PRINTF("idigi_get_receive_packet: Invalid payload\n");
+                    request_id.network_request = idigi_network_receive;
+                    idigi_ptr->error_code = idigi_invalid_payload_packet;
+                    status = notify_error_status(idigi_ptr->callback, idigi_class_config, request_id, idigi_invalid_payload_packet);
+                    if (status == idigi_callback_abort)
                     {
-                        iik_ptr->receive_packet.index = 0;
+                        idigi_ptr->receive_packet.index = 0;
                         goto done;
                     }
                 }
             }
             /* set to read message data */
-            iik_ptr->receive_packet.total_length = iik_ptr->receive_packet.data_packet->length;
+            idigi_ptr->receive_packet.total_length = idigi_ptr->receive_packet.data_packet->length;
 
-            if (iik_ptr->receive_packet.data_packet->length == 0)
+            if (idigi_ptr->receive_packet.data_packet->length == 0)
             {
                 /* set to complete data since no data to be read. */
-                iik_ptr->receive_packet.index = 4;
+                idigi_ptr->receive_packet.index = 4;
             }
             else 
             {
                 /*
                  * Read the actual message data bytes into the packet buffer.
                  */
-                iik_ptr->receive_packet.ptr = GET_PACKET_DATA_POINTER(iik_ptr->receive_packet.buffer, sizeof(iik_packet_t));
-                iik_ptr->receive_packet.length = 0;
-                iik_ptr->receive_packet.total_length = iik_ptr->receive_packet.data_packet->length;
-                iik_ptr->receive_packet.index++;
+                idigi_ptr->receive_packet.ptr = GET_PACKET_DATA_POINTER(idigi_ptr->receive_packet.data_packet, sizeof(idigi_packet_t));
+                idigi_ptr->receive_packet.length = 0;
+                idigi_ptr->receive_packet.total_length = idigi_ptr->receive_packet.data_packet->length;
+                idigi_ptr->receive_packet.index++;
 
             }
 
             break;
         case receive_packet_complete:
-            iik_ptr->receive_packet.data_packet->type = iik_ptr->receive_packet.packet_type;
-            iik_ptr->receive_packet.index = receive_packet_init;
-            *packet = iik_ptr->receive_packet.data_packet;
+            idigi_ptr->receive_packet.data_packet->type = idigi_ptr->receive_packet.packet_type;
+            idigi_ptr->receive_packet.index = receive_packet_init;
+            *packet = idigi_ptr->receive_packet.data_packet;
             goto done;
         }
     }
@@ -653,63 +703,63 @@ done:
     return status;
 }
 
-static iik_callback_status_t connect_server(iik_data_t * iik_ptr, char * server_url, unsigned port)
+static idigi_callback_status_t connect_server(idigi_data_t * idigi_ptr, char * server_url, unsigned port)
 {
-    iik_callback_status_t status;
-    iik_connect_request_t request;
+    idigi_callback_status_t status;
+    idigi_connect_request_t request;
     size_t length;
-    iik_request_t request_id;
+    idigi_request_t request_id;
 
     request.host_name = server_url;
     request.port = port;
 
-    request_id.network_request = iik_network_connect;
-    status = iik_callback(iik_ptr->callback, iik_class_network, request_id, &request, sizeof request, &iik_ptr->network_handle, &length);
-    if (status == iik_callback_continue)
+    request_id.network_request = idigi_network_connect;
+    status = idigi_callback(idigi_ptr->callback, idigi_class_network, request_id, &request, sizeof request, &idigi_ptr->network_handle, &length);
+    if (status == idigi_callback_continue)
     {
-        if (iik_ptr->network_handle != NULL && length == sizeof(iik_network_handle_t))
+        if (idigi_ptr->network_handle != NULL && length == sizeof(idigi_network_handle_t))
         {
-            iik_ptr->edp_connected = true;
-            iik_ptr->network_busy = false;
+            idigi_ptr->edp_connected = true;
+            idigi_ptr->network_busy = false;
         }
         else
         {
-            iik_ptr->error_code = (iik_ptr->network_handle == NULL) ? iik_invalid_data : iik_invalid_data_size;
-            request_id.network_request = iik_network_connect;
-            status = notify_error_status(iik_ptr->callback, iik_class_config, request_id, iik_ptr->error_code);
+            idigi_ptr->error_code = (idigi_ptr->network_handle == NULL) ? idigi_invalid_data : idigi_invalid_data_size;
+            request_id.network_request = idigi_network_connect;
+            status = notify_error_status(idigi_ptr->callback, idigi_class_config, request_id, idigi_ptr->error_code);
         }
     }
-    else if (status == iik_callback_abort)
+    else if (status == idigi_callback_abort)
     {
-        iik_ptr->error_code = iik_connect_error;
+        idigi_ptr->error_code = idigi_connect_error;
     }
     return status;
 }
 
-static iik_callback_status_t close_server(iik_data_t * iik_ptr)
+static idigi_callback_status_t close_server(idigi_data_t * idigi_ptr)
 {
-    iik_callback_status_t status = iik_callback_continue;
-    iik_request_t request_id;
+    idigi_callback_status_t status = idigi_callback_continue;
+    idigi_request_t request_id;
 
-    if (iik_ptr->network_handle != NULL)
+    if (idigi_ptr->network_handle != NULL)
     {
-        request_id.network_request = iik_network_close;
-        status = iik_callback(iik_ptr->callback, iik_class_network, request_id, iik_ptr->network_handle, sizeof(iik_network_handle_t *), NULL, NULL);
-        if (status == iik_callback_continue)
+        request_id.network_request = idigi_network_close;
+        status = idigi_callback(idigi_ptr->callback, idigi_class_network, request_id, idigi_ptr->network_handle, sizeof(idigi_network_handle_t *), NULL, NULL);
+        if (status == idigi_callback_continue)
         {
-            iik_ptr->network_handle = NULL;
-            iik_ptr->edp_connected = false;
-            iik_ptr->send_packet.total_length = 0;
-            iik_ptr->receive_packet.index = 0;
+            idigi_ptr->network_handle = NULL;
+            idigi_ptr->edp_connected = false;
+            idigi_ptr->send_packet.total_length = 0;
+            idigi_ptr->receive_packet.index = 0;
 ;
         }
-        else if (status == iik_callback_abort)
+        else if (status == idigi_callback_abort)
         {
             DEBUG_PRINTF("close_server: close callback aborts\n");
-            iik_ptr->network_handle = NULL;
-            iik_ptr->error_code = iik_close_error;
-            iik_ptr->send_packet.total_length = 0;
-            iik_ptr->receive_packet.index = 0;
+            idigi_ptr->network_handle = NULL;
+            idigi_ptr->error_code = idigi_close_error;
+            idigi_ptr->send_packet.total_length = 0;
+            idigi_ptr->receive_packet.index = 0;
         }
     }
     return status;
