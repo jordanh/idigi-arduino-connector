@@ -25,7 +25,7 @@
 
 #if defined(DEBUG)
 #include <malloc.h>
-#include "iik_def.h"
+#include "idigi_def.h"
 
 typedef struct malloc_stats{
     void const * ptr;
