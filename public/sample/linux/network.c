@@ -137,9 +137,9 @@ static void set_socket_blockopt(unsigned sockfd, int block)
 
 }
 
-static iik_callback_status_t network_connect(iik_connect_request_t * connect_data, iik_network_handle_t ** network_handle)
+static idigi_callback_status_t network_connect(idigi_connect_request_t * connect_data, idigi_network_handle_t ** network_handle)
 {
-    iik_callback_status_t rc = iik_callback_abort;
+    idigi_callback_status_t rc = idigi_callback_abort;
 
     struct in_addr ip_addr;
     struct sockaddr_in sin;
@@ -219,7 +219,7 @@ static iik_callback_status_t network_connect(iik_connect_request_t * connect_dat
         }
         else
         {
-            rc = iik_callback_busy;
+            rc = idigi_callback_busy;
             DEBUG_PRINTF("network_connect: select timeout\r\n");
         }
         goto done;
@@ -237,12 +237,12 @@ static iik_callback_status_t network_connect(iik_connect_request_t * connect_dat
 
         /* We're connected! */
         *network_handle = &iDigiSetting.socket_fd;
-        rc = iik_callback_continue;
+        rc = idigi_callback_continue;
         DEBUG_PRINTF("network_connect: connected to %s server\n", connect_data->host_name);
     }
 
 done:
-    if (rc == iik_callback_abort && s >= 0)
+    if (rc == idigi_callback_abort && s >= 0)
     {
         close(s);
         iDigiSetting.socket_fd = -1;
@@ -250,9 +250,9 @@ done:
     return rc;
 }
 
-static iik_callback_status_t network_send(iik_write_request_t * write_data, size_t * sent_length)
+static idigi_callback_status_t network_send(idigi_write_request_t * write_data, size_t * sent_length)
 {
-    iik_callback_status_t rc = iik_callback_continue;
+    idigi_callback_status_t rc = idigi_callback_continue;
     int         ccode;
 
 
@@ -263,14 +263,14 @@ static iik_callback_status_t network_send(iik_write_request_t * write_data, size
         if (err == EAGAIN || err == EWOULDBLOCK)
         {
             iDigiSetting.select_data |= NETWORK_READ_SET;
-            rc = iik_callback_busy;
+            rc = idigi_callback_busy;
         }
         else
         {
             /* if not block (something's wrong),
              * let's abort it.
              */
-            rc = iik_callback_abort;
+            rc = idigi_callback_abort;
             perror("network send fails: ");
         }
     }
@@ -287,9 +287,9 @@ static iik_callback_status_t network_send(iik_write_request_t * write_data, size
     return rc;
 }
 
-static iik_callback_status_t network_receive(iik_read_request_t * read_data, size_t * read_length)
+static idigi_callback_status_t network_receive(idigi_read_request_t * read_data, size_t * read_length)
 {
-    iik_callback_status_t rc = iik_callback_continue;
+    idigi_callback_status_t rc = idigi_callback_continue;
     int ccode;
     int err;
 
@@ -300,7 +300,7 @@ static iik_callback_status_t network_receive(iik_read_request_t * read_data, siz
     {
         /* EOF on input: the connection was closed. */
         DEBUG_PRINTF("network_receive: EOF on TCP socket read\r\n");
-        rc = iik_callback_abort;
+        rc = idigi_callback_abort;
     }
     else if (ccode < 0)
     {
@@ -309,13 +309,13 @@ static iik_callback_status_t network_receive(iik_read_request_t * read_data, siz
         if (err == EAGAIN || err == EWOULDBLOCK)
         {
             iDigiSetting.select_data |= NETWORK_WRITE_SET;
-            rc = iik_callback_busy;
+            rc = idigi_callback_busy;
         }
         else
         {
             perror("network receive fails: ");
             /* if not timeout (no data), let's return error */
-            rc = iik_callback_abort;
+            rc = idigi_callback_abort;
         }
     }
 
@@ -333,9 +333,9 @@ static iik_callback_status_t network_receive(iik_read_request_t * read_data, siz
 }
 
 
-static iik_callback_status_t network_close(iik_network_handle_t * fd)
+static idigi_callback_status_t network_close(idigi_network_handle_t * fd)
 {
-    iik_callback_status_t status = iik_callback_continue;
+    idigi_callback_status_t status = idigi_callback_continue;
     struct linger ling_opt;
 
     ling_opt.l_linger = 1;
@@ -351,7 +351,7 @@ static iik_callback_status_t network_close(iik_network_handle_t * fd)
         perror("network close: setsockopt fails: ");
         if (errno == EAGAIN || errno == EWOULDBLOCK)
         {
-            status = iik_callback_busy;
+            status = idigi_callback_busy;
         }
     }
     if (close(*fd) < 0)
@@ -364,7 +364,7 @@ static iik_callback_status_t network_close(iik_network_handle_t * fd)
     return status;
 }
 
-uint8_t network_select(iik_network_handle_t fd, uint8_t select_set, unsigned wait_time)
+uint8_t network_select(idigi_network_handle_t fd, uint8_t select_set, unsigned wait_time)
 {
     uint8_t actual_set = 0;
     int             ccode;
@@ -420,28 +420,28 @@ done:
 }
 
 
-iik_callback_status_t idigi_network_callback(iik_network_request_t request,
+idigi_callback_status_t idigi_network_callback(idigi_network_request_t request,
                                             void const * request_data, size_t request_length,
                                             void * response_data, size_t * response_length)
 {
-    iik_callback_status_t status = iik_callback_continue;
+    idigi_callback_status_t status = idigi_callback_continue;
 
     switch (request)
     {
-    case iik_network_connect:
-        status = network_connect((iik_connect_request_t *)request_data, (iik_network_handle_t **)response_data);
-        *response_length = sizeof(iik_network_handle_t);
+    case idigi_network_connect:
+        status = network_connect((idigi_connect_request_t *)request_data, (idigi_network_handle_t **)response_data);
+        *response_length = sizeof(idigi_network_handle_t);
 
         break;
-    case iik_network_send:
-        status = network_send((iik_write_request_t *)request_data, (size_t *)response_data);
+    case idigi_network_send:
+        status = network_send((idigi_write_request_t *)request_data, (size_t *)response_data);
         break;
-    case iik_network_receive:
-        status = network_receive((iik_read_request_t *)request_data, (size_t *)response_data);
+    case idigi_network_receive:
+        status = network_receive((idigi_read_request_t *)request_data, (size_t *)response_data);
         break;
 
-    case iik_network_close:
-        status = network_close((iik_network_handle_t *)request_data);
+    case idigi_network_close:
+        status = network_close((idigi_network_handle_t *)request_data);
         break;
 
     }
