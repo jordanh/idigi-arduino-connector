@@ -29,8 +29,6 @@
 #include <net/if.h>
 
 #include "idigi_data.h"
-#include "os.h"
-#include "network.h"
 
 
 uint8_t phone_number[] = {8,8,8,5,5,5,1,0,0,0};
