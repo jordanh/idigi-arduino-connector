@@ -27,7 +27,7 @@
 
 #include <netinet/in.h>
 #include <stdio.h>
-#include "iik_api.h"
+#include "idigi_api.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -51,33 +51,33 @@ typedef struct {
     char            * password;
     uint8_t         * phone_number;
     uint32_t        link_speed;
-    iik_connection_type_t connection_type;
+    idigi_connection_type_t connection_type;
     uint8_t         mac_addr[MAC_ADDR_LENGTH];
 
     uint32_t        ip_addr; /* only IPv4 */
 
-    iik_handle_t             iik_handle;
-    iik_network_handle_t     socket_fd;
+    idigi_handle_t             idigi_handle;
+    idigi_network_handle_t     socket_fd;
     uint8_t                  select_data;
 } idigi_data_t;
 
 extern idigi_data_t iDigiSetting;
 extern time_t  deviceSystemUpStartTime;
 
-iik_callback_status_t idigi_firmware_callback(iik_firmware_request_t request,
+idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t request,
                                               void const * request_data, size_t request_length,
                                               void * response_data, size_t * response_length);
 
-iik_callback_status_t idigi_config_callback(iik_config_request_t request,
+idigi_callback_status_t idigi_config_callback(idigi_config_request_t request,
                                             void const * request_data, size_t request_length,
                                             void * response_data, size_t * response_length);
 
-iik_callback_status_t idigi_network_callback(iik_network_request_t request,
+idigi_callback_status_t idigi_network_callback(idigi_network_request_t request,
                                             void const * request_data, size_t request_length,
                                             void * response_data, size_t * response_length);
-uint8_t network_select(iik_network_handle_t fd, uint8_t select_set, unsigned wait_time);
+uint8_t network_select(idigi_network_handle_t fd, uint8_t select_set, unsigned wait_time);
 
-iik_callback_status_t idigi_os_callback(iik_os_request_t request,
+idigi_callback_status_t idigi_os_callback(idigi_os_request_t request,
                                         void const * request_data, size_t request_length,
                                         void * response_data, size_t * response_length);
 
