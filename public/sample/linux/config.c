@@ -61,7 +61,7 @@ idigi_data_t iDigiSetting = {
     19200,
 
     /* connection type */
-    iik_lan_connection_type,
+    idigi_lan_connection_type,
 
     /* mac address */
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
@@ -84,68 +84,68 @@ idigi_data_t iDigiSetting = {
 #define REDIRECT_ERROR_MESSAGE      "Error in redirect"
 
 
-iik_callback_status_t idigi_error_status(iik_error_status_t * error_data)
+idigi_callback_status_t idigi_error_status(idigi_error_status_t * error_data)
 {
 
-    iik_callback_status_t   status = iik_callback_continue;
-    char const * error_status_string[] = {"iik_success", "iik_init_error",
-                                           "iik_configuration_error",
-                                                       "iik_invalid_data_size",
-                                                      "iik_invalid_data_range", "iik_invalid_payload_packet",
-                                                      "iik_keepalive_error", "iik_server_overload",
-                                                      "iik_bad_version", "iik_invalid_packet",
-                                                      "iik_exceed_timeout", "iik_unsupported_security",
-                                                      "iik_invalid_data", "iik_server_disconnected",
-                                                       "iik_connect_error", "iik_receive_error",
-                                                      "iik_send_error", "iik_close_error",
-                                                      "iik_device_terminated"};
+    idigi_callback_status_t   status = idigi_callback_continue;
+    char const * error_status_string[] = {"idigi_success", "idigi_init_error",
+                                           "idigi_configuration_error",
+                                                       "idigi_invalid_data_size",
+                                                      "idigi_invalid_data_range", "idigi_invalid_payload_packet",
+                                                      "idigi_keepalive_error", "idigi_server_overload",
+                                                      "idigi_bad_version", "idigi_invalid_packet",
+                                                      "idigi_exceed_timeout", "idigi_unsupported_security",
+                                                      "idigi_invalid_data", "idigi_server_disconnected",
+                                                       "idigi_connect_error", "idigi_receive_error",
+                                                      "idigi_send_error", "idigi_close_error",
+                                                      "idigi_device_terminated"};
 
 
-    char const * config_request_string[] = { "iik_config_device_id", "iik_config_vendor_id",
-                                             "iik_config_device_type", "iik_config_server_url",
-                                             "iik_config_password", "iik_config_connection_type",
-                                             "iik_config_mac_addr", "iik_config_link_speed",
-                                             "iik_config_phone_number", "iik_config_tx_keepalive",
-                                             "iik_config_rx_keepalive", "iik_config_wait_count",
-                                             "iik_config_ip_addr", "iik_config_error_status",
-                                              "iik_config_disconnected", "iik_config_firmware_facility" };
+    char const * config_request_string[] = { "idigi_config_device_id", "idigi_config_vendor_id",
+                                             "idigi_config_device_type", "idigi_config_server_url",
+                                             "idigi_config_password", "idigi_config_connection_type",
+                                             "idigi_config_mac_addr", "idigi_config_link_speed",
+                                             "idigi_config_phone_number", "idigi_config_tx_keepalive",
+                                             "idigi_config_rx_keepalive", "idigi_config_wait_count",
+                                             "idigi_config_ip_addr", "idigi_config_error_status",
+                                              "idigi_config_disconnected", "idigi_config_firmware_facility" };
 
-    char const * network_request_string[] = { "iik_config_connect", "iik_config_send",
-                                             "iik_config_receive", "iik_config_close",};
+    char const * network_request_string[] = { "idigi_config_connect", "idigi_config_send",
+                                             "idigi_config_receive", "idigi_config_close",};
 
-    char const * os_request_string[] = { "iik_config_malloc", "iik_config_free",
-                                              "iik_config_system_up_time"};
+    char const * os_request_string[] = { "idigi_config_malloc", "idigi_config_free",
+                                              "idigi_config_system_up_time"};
 
-    char const * firmware_request_string[] = {"iik_firmware_target_count", "iik_firmware_version",
-                                              "iik_firmware_code_size", "iik_firmware_description",
-                                              "iik_firmware_name_spec", "iik_firmware_download_request",
-                                              "iik_firmware_binary_block", "iik_firmware_download_complete",
-                                              "iik_firmware_download_abort", "iik_firmware_target_reset"};
+    char const * firmware_request_string[] = {"idigi_firmware_target_count", "idigi_firmware_version",
+                                              "idigi_firmware_code_size", "idigi_firmware_description",
+                                              "idigi_firmware_name_spec", "idigi_firmware_download_request",
+                                              "idigi_firmware_binary_block", "idigi_firmware_download_complete",
+                                              "idigi_firmware_download_abort", "idigi_firmware_target_reset"};
 
 
 
-    switch (error_data->class)
+    switch (error_data->class_id)
     {
-    case iik_class_config:
-        DEBUG_PRINTF("idigi_error_status: Config - %s (%d)  status = %s (%d)\n", config_request_string[error_data->request.config_request],
-                     error_data->request.config_request, error_status_string[error_data->status],error_data->status);
+    case idigi_class_config:
+        DEBUG_PRINTF("idigi_error_status: Config - %s (%d)  status = %s (%d)\n", config_request_string[error_data->request_id.config_request],
+                     error_data->request_id.config_request, error_status_string[error_data->status],error_data->status);
         break;
-    case iik_class_network:
-        DEBUG_PRINTF("idigi_error_status: Network - %s (%d)  status = %s (%d)\n", network_request_string[error_data->request.network_request],
-                     error_data->request.network_request, error_status_string[error_data->status],error_data->status);
+    case idigi_class_network:
+        DEBUG_PRINTF("idigi_error_status: Network - %s (%d)  status = %s (%d)\n", network_request_string[error_data->request_id.network_request],
+                     error_data->request_id.network_request, error_status_string[error_data->status],error_data->status);
         break;
-    case iik_class_operating_system:
-        DEBUG_PRINTF("idigi_error_status: Operating System - %s (%d)  status = %s (%d)\n", os_request_string[error_data->request.os_request],
-                     error_data->request.os_request, error_status_string[error_data->status],error_data->status);
+    case idigi_class_operating_system:
+        DEBUG_PRINTF("idigi_error_status: Operating System - %s (%d)  status = %s (%d)\n", os_request_string[error_data->request_id.os_request],
+                     error_data->request_id.os_request, error_status_string[error_data->status],error_data->status);
         break;
-    case iik_class_firmware:
+    case idigi_class_firmware:
         DEBUG_PRINTF("idigi_error_status: Firmware facility - %s (%d)  status = %s (%d)\n",
-                     firmware_request_string[error_data->request.firmware_request],
-                     error_data->request.firmware_request,
+                     firmware_request_string[error_data->request_id.firmware_request],
+                     error_data->request_id.firmware_request,
                      error_status_string[error_data->status],error_data->status);
         break;
     default:
-        DEBUG_PRINTF("idigi_error_status: unsupport class = %d status = %d\n", error_data->class, error_data->status);
+        DEBUG_PRINTF("idigi_error_status: unsupport class_id = %d status = %d\n", error_data->class_id, error_data->status);
         break;
     }
     return status;
@@ -230,21 +230,21 @@ static void get_device_id(uint8_t ** id, size_t * size)
     *size = sizeof device_id;
 }
 
-iik_callback_status_t idigi_config_callback(iik_config_request_t request,
+idigi_callback_status_t idigi_config_callback(idigi_config_request_t request,
                                             void const * request_data, size_t request_length,
                                             void * response_data, size_t * response_length)
 {
-    iik_callback_status_t status = iik_callback_continue;
+    idigi_callback_status_t status = idigi_callback_continue;
 
     switch (request)
     {
-    case iik_config_device_id:
+    case idigi_config_device_id:
         /* Return pointer to device ID */
 #error  "Must specify device id";
         get_device_id((uint8_t **)response_data, response_length);
         break;
 
-    case iik_config_vendor_id:
+    case idigi_config_vendor_id:
     {
         /* Return pointer to vendor id */
         uint8_t ** data = (uint8_t **) response_data;
@@ -255,7 +255,7 @@ iik_callback_status_t idigi_config_callback(iik_config_request_t request,
         break;
     }
 
-    case iik_config_device_type:
+    case idigi_config_device_type:
     {
         /* Return pointer to device type */
         char ** data = (char **) response_data;
@@ -265,7 +265,7 @@ iik_callback_status_t idigi_config_callback(iik_config_request_t request,
          break;
     }
 
-    case iik_config_server_url:
+    case idigi_config_server_url:
     {
         /* Return pointer to server url to be connected */
         char ** data = (char **) response_data;
@@ -274,7 +274,7 @@ iik_callback_status_t idigi_config_callback(iik_config_request_t request,
         *response_length = strlen(iDigiSetting.server_url);
         break;
     }
-    case iik_config_password:
+    case idigi_config_password:
     {
         /* Return pointer to password */
         char ** data = (char **) response_data;
@@ -287,17 +287,17 @@ iik_callback_status_t idigi_config_callback(iik_config_request_t request,
         break;
     }
         ;
-    case iik_config_connection_type:
+    case idigi_config_connection_type:
     {
         /* Return pointer to connection type */
-        iik_connection_type_t  ** data = (iik_connection_type_t **) response_data;
+        idigi_connection_type_t  ** data = (idigi_connection_type_t **) response_data;
 
 #error "Specify LAN or WAN connection type";
-        *data = (iik_connection_type_t *)&iDigiSetting.connection_type;
+        *data = (idigi_connection_type_t *)&iDigiSetting.connection_type;
         break;
     };
 
-    case iik_config_mac_addr:
+    case idigi_config_mac_addr:
     {
         /* Return pointer to device MAC address */
         uint8_t ** data = (uint8_t **) response_data;
@@ -307,7 +307,7 @@ iik_callback_status_t idigi_config_callback(iik_config_request_t request,
         break;
     }
 
-    case iik_config_link_speed:
+    case idigi_config_link_speed:
     {
         /* Return pointer to link speed for WAN connection
          * type.
@@ -318,7 +318,7 @@ iik_callback_status_t idigi_config_callback(iik_config_request_t request,
         *response_length = sizeof iDigiSetting.link_speed;
         break;
     }
-    case iik_config_phone_number:
+    case idigi_config_phone_number:
     {
         /* Return pointer to phone number dialed for WAN
          * connection type.
@@ -332,7 +332,7 @@ iik_callback_status_t idigi_config_callback(iik_config_request_t request,
         }
         break;
     }
-    case iik_config_tx_keepalive:
+    case idigi_config_tx_keepalive:
     {
         /* Return pointer to Tx keepalive interval in seconds */
         uint16_t ** data = (uint16_t **) response_data;
@@ -341,7 +341,7 @@ iik_callback_status_t idigi_config_callback(iik_config_request_t request,
         *response_length = sizeof iDigiSetting.tx_keepalive;
         break;
     }
-    case iik_config_rx_keepalive:
+    case idigi_config_rx_keepalive:
     {
         /* Return pointer to Rx keepalive interval in seconds */
         uint16_t ** data = (uint16_t **) response_data;
@@ -352,7 +352,7 @@ iik_callback_status_t idigi_config_callback(iik_config_request_t request,
         break;
     }
 
-    case iik_config_wait_count:
+    case idigi_config_wait_count:
     {
         /* Return pointer to wait count (number of times
          * not receiving Tx keepalive from server.
@@ -365,7 +365,7 @@ iik_callback_status_t idigi_config_callback(iik_config_request_t request,
         break;
     }
 
-    case iik_config_ip_addr:
+    case idigi_config_ip_addr:
     {
         /* return pointer to device IP address */
         uint8_t ** data = (uint8_t **) response_data;
@@ -376,7 +376,7 @@ iik_callback_status_t idigi_config_callback(iik_config_request_t request,
         if (get_device_address(&ip_addr) < 0)
         {
              DEBUG_PRINTF("Error: unable to get device ip address\n");
-             status = iik_callback_abort;
+             status = idigi_callback_abort;
         }
         else
         {
@@ -387,25 +387,25 @@ iik_callback_status_t idigi_config_callback(iik_config_request_t request,
         }
         break;
     }
-    case iik_config_error_status:
-        /* IIK encounters some kind of error */
-        if (request_length != sizeof(iik_error_status_t))
+    case idigi_config_error_status:
+        /* iDigi encounters some kind of error */
+        if (request_length != sizeof(idigi_error_status_t))
         {
-            DEBUG_PRINTF("Error Status from IIK: given incompatible iik_config_error_status size\n");
+            DEBUG_PRINTF("Error Status from iDigi: given incompatible idigi_config_error_status size\n");
         }
         else
         {
-            status = idigi_error_status((iik_error_status_t *)request_data);
+            status = idigi_error_status((idigi_error_status_t *)request_data);
         }
         break;
 
-    case iik_config_disconnected:
+    case idigi_config_disconnected:
        DEBUG_PRINTF("Disconnected from server\n");
-       /* set status to idk_callback_abort to abort IIK or
+       /* set status to idk_callback_abort to abort iDigi or
         * idk_callback_continue to reconnect to server.
         */
         break;
-    case iik_config_firmware_facility:
+    case idigi_config_firmware_facility:
         /* enable Firmware update facility */
         *((bool *)response_data)= true;
 
