@@ -38,7 +38,7 @@ OBJS = $(OBJDIR)/idigi_api.o
 $(OBJS): $(LIB_SRC_DIR)/*.c $(LIB_SRC_DIR)/*.h
 
 $(LIB): $(OBJS)
-	$(LD) $(LDFLAGS) $@
+	$(LD) $(LDFLAGS) $^ -o $@
 
 MAKE= make IDIGI_RULES="../../../$(IDIGI_RULES)" DEBUG="$(DEBUG)" LITTLE_ENDIAN="$(LITTLE_ENDIAN)" LIB="../../../$(LIBDIR)"
 
