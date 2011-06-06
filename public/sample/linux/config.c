@@ -88,6 +88,8 @@ idigi_callback_status_t idigi_error_status(idigi_error_status_t * error_data)
 {
 
     idigi_callback_status_t   status = idigi_callback_continue;
+
+#if defined(DEBUG)
     char const * error_status_string[] = {"idigi_success", "idigi_init_error",
                                            "idigi_configuration_error",
                                                        "idigi_invalid_data_size",
@@ -148,6 +150,7 @@ idigi_callback_status_t idigi_error_status(idigi_error_status_t * error_data)
         DEBUG_PRINTF("idigi_error_status: unsupport class_id = %d status = %d\n", error_data->class_id, error_data->status);
         break;
     }
+#endif
     return status;
 }
 static int get_device_address(struct in_addr * eth_addr)
@@ -369,7 +372,7 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t request,
     {
         /* return pointer to device IP address */
         uint8_t ** data = (uint8_t **) response_data;
-        struct in_addr  ip_addr;
+        struct in_addr  ip_addr = {0};
 
 #error "Specify Device IP address. Return the response_length to 4-byte for IPv4 or 16-byte for IPv6";
 
