@@ -21,7 +21,7 @@ endif
 
 CFLAGS += -Wall -Werror -I../../include
 
-OBJS = main.o firmware.o network.o os.o
+OBJS = main.o firmware.o network.o os.o config.o
 LIBS = -lidigi -lc
 
 # Name of executable to build
