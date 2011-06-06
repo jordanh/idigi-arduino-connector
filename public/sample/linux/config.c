@@ -109,7 +109,8 @@ idigi_callback_status_t idigi_error_status(idigi_error_status_t * error_data)
                                              "idigi_config_phone_number", "idigi_config_tx_keepalive",
                                              "idigi_config_rx_keepalive", "idigi_config_wait_count",
                                              "idigi_config_ip_addr", "idigi_config_error_status",
-                                              "idigi_config_disconnected", "idigi_config_firmware_facility" };
+                                              "idigi_config_disconnected", "idigi_config_firmware_facility",
+					      "idigi_config_data_service" };
 
     char const * network_request_string[] = { "idigi_config_connect", "idigi_config_send",
                                              "idigi_config_receive", "idigi_config_close",};
@@ -407,11 +408,18 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t request,
         * idk_callback_continue to reconnect to server.
         */
         break;
+	
     case idigi_config_firmware_facility:
         /* enable Firmware update facility */
         *((bool *)response_data)= true;
 
         break;
+
+    case idigi_config_data_service:
+        /* enable data service over messaging facility */
+	*((bool *)response_data) = true;
+	break;
+
     }
 
     return status;

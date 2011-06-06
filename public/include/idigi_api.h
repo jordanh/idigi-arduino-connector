@@ -336,6 +336,22 @@ typedef enum {
      */
     idigi_config_firmware_facility,
 
+    /* Request ID to enable data service over messaging facility
+     *
+     * The callback parameters:
+     *  class_id = idigi_class_config
+     *  request_id = idigi_config_data_service
+     *  request_data = NULL
+     *  request_length = 0
+     *  response_data = pointer to memory in boolean (bool) type where callback writes true to support data service over messaging facility
+     *  response_length = ignore
+     *
+     * Callback returns:
+     *  idigi_callback_continue = Callback successfully indicated data service support..
+     *  not idigi_callback_continue =  abort and exit iDigi.
+     */
+    idigi_config_data_service,
+    
 } idigi_config_request_t;
 
 typedef enum {

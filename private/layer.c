@@ -51,7 +51,10 @@ static idigi_facility_init_t idigi_facility_init_cb[] = {
         {(idigi_config_request_t)MANDATORY_FACILITY, (idigi_facility_init_cb_t)loopback_init_facility, (idigi_facility_init_cb_t)loopback_delete_facility},
 
         /* list of optional facilities */
-        {idigi_config_firmware_facility, (idigi_facility_init_cb_t)fw_init_facility, (idigi_facility_init_cb_t)fw_delete_facility}
+        {idigi_config_firmware_facility, (idigi_facility_init_cb_t)fw_init_facility, (idigi_facility_init_cb_t)fw_delete_facility},
+
+        /* list of optional services over messaging facility */
+        {idigi_config_data_service, data_service_init, data_service_delete}
 };
 
 static size_t idigi_facility_count = asizeof(idigi_facility_init_cb);
@@ -223,6 +226,7 @@ static idigi_callback_status_t get_configurations(idigi_data_t * idigi_ptr)
                 case idigi_config_error_status:
                 case idigi_config_disconnected:
                 case idigi_config_firmware_facility:
+                case idigi_config_data_service:
                     /* get these configurations from different modules */
                     break;
                 }

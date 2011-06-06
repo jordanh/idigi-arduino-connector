@@ -30,6 +30,8 @@
 #include "idigi_cc.c"
 #include "idigi_loopbk.c"
 #include "idigi_fw.c"
+#include "idigi_msg.c"
+#include "idigi_data.c"
 #include "idigi_rci.c"
 #include "layer.c"
 
@@ -131,6 +133,7 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
                 case idigi_config_error_status:
                 case idigi_config_disconnected:
                 case idigi_config_firmware_facility:
+                case idigi_config_data_service:
                     ASSERT(0);
                     /* Get these in different modules */
                     break;
