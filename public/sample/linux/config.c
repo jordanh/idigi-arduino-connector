@@ -49,8 +49,7 @@ idigi_data_t iDigiSetting = {
     "Linux Application",
 
     /* server_url */
-//    "developer.idigi.com\0",
-    "10.52.18.85",
+    "developer.idigi.com\0",
 
     /* password */
     NULL,
