@@ -49,7 +49,6 @@ typedef struct {
 static idigi_facility_init_t idigi_facility_init_cb[] = {
         /* mandatory facilities */
         {(idigi_config_request_t)MANDATORY_FACILITY, cc_init_facility, cc_delete_facility},
-        {(idigi_config_request_t)MANDATORY_FACILITY, loopback_init_facility, loopback_delete_facility},
 
         /* list of optional facilities */
         {idigi_config_firmware_facility, fw_init_facility, fw_delete_facility},
