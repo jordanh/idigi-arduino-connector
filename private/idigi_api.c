@@ -28,7 +28,6 @@
 #include "os_intf.c"
 #include "network_intf.c"
 #include "idigi_cc.c"
-#include "idigi_loopbk.c"
 #include "idigi_fw.c"
 #include "idigi_msg.c"
 #include "idigi_data.c"
