@@ -50,18 +50,21 @@
 
 
 typedef struct {
-    uint16_t avail_length;
+    uint16_t    avail_length;  /* not part of EDP protocol */
     uint16_t    type;
     uint16_t    length;
-} idigi_packet_t;
+} idigi_packet_hdr_t;
 
 typedef struct {
-    uint16_t avail_length;
-    uint16_t    type;
-    uint16_t    length;
     uint8_t     sec_coding;
     uint8_t     disc_payload;
     uint16_t    facility;
 } idigi_facility_packet_t;
+
+typedef struct {
+    idigi_packet_hdr_t      header;
+    idigi_facility_packet_t facility;
+} idigi_packet_t;
+
 
 #endif  /* _EI_PACKET_H */
