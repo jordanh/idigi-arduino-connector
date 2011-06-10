@@ -144,10 +144,10 @@ static idigi_callback_status_t send_msg_capabilities(idigi_data_t * idigi_ptr, i
     idigi_callback_status_t status = idigi_callback_continue;
     uint8_t * cur_ptr;
     uint8_t * start_ptr;
-    idigi_facility_packet_t * packet;
+    idigi_packet_t * packet;
 
     /* get packet pointer for constructing capability request */
-    packet =(idigi_facility_packet_t *) get_packet_buffer(idigi_ptr, sizeof(idigi_facility_packet_t), &start_ptr);
+    packet =(idigi_packet_t *) get_packet_buffer(idigi_ptr, E_MSG_FAC_MSG_NUM, sizeof(idigi_packet_t), &start_ptr);
     if ((packet == NULL) || (start_ptr == NULL))
     {
         status = idigi_callback_busy;
@@ -194,8 +194,8 @@ static idigi_callback_status_t send_msg_capabilities(idigi_data_t * idigi_ptr, i
         cur_ptr += (sizeof(uint16_t) * service_count);
     }
 
-    packet->length = cur_ptr - start_ptr;
-    status = enable_facility_packet(idigi_ptr, E_MSG_FAC_MSG_NUM, SECURITY_PROTO_NONE);
+    packet->header.length = cur_ptr - start_ptr;
+    status = enable_facility_packet(idigi_ptr, packet, E_MSG_FAC_MSG_NUM, release_packet_buffer);
 
 error:
     return status;
@@ -267,14 +267,14 @@ static idigi_callback_status_t process_msg_error(idigi_msg_data_t * msg_fac, uin
     return idigi_callback_continue;
 }
 
-static idigi_callback_status_t msg_discovery(idigi_data_t *idigi_ptr, void * facility_data, idigi_facility_packet_t * packet)
+static idigi_callback_status_t msg_discovery(idigi_data_t *idigi_ptr, void * facility_data, idigi_packet_t * packet)
 {
     UNUSED_PARAMETER(packet);
 
     return send_msg_capabilities(idigi_ptr, facility_data, IDIGI_MSG_FLAG_REQUEST);
 }
 
-static idigi_callback_status_t msg_process(idigi_data_t * idigi_ptr, void * facility_data, idigi_facility_packet_t * packet)
+static idigi_callback_status_t msg_process(idigi_data_t * idigi_ptr, void * facility_data, idigi_packet_t * packet)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_msg_data_t * msg_ptr = facility_data;
@@ -285,7 +285,7 @@ static idigi_callback_status_t msg_process(idigi_data_t * idigi_ptr, void * faci
 
     ASSERT_GOTO(packet != NULL, error);
 
-    ptr = GET_PACKET_DATA_POINTER(packet, sizeof(idigi_facility_packet_t));
+    ptr = GET_PACKET_DATA_POINTER(packet, sizeof(idigi_packet_t));
     opcode = *ptr++;
 
     switch (opcode) 
