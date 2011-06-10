@@ -28,6 +28,7 @@
 #include <netinet/in.h>
 #include <stdio.h>
 #include "idigi_api.h"
+#include "idigi_types.h"
 
 #ifdef __cplusplus
 extern "C"
