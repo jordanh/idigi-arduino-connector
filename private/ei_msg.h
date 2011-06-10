@@ -46,6 +46,7 @@
 #define E_MSG_MT2_TYPE_KA_KEEPALIVE         0x0030 /* bi-directional */
 #define E_MSG_MT2_TYPE_PAYLOAD              0x0040 /* bi-directional */
 
+#define E_MSG_MT2_MSG_NUM          0x0000
 #define E_MSG_FAC_FW_NUM           0x0070
 #define E_MSG_FAC_RCI_NUM          0x00a0
 #define E_MSG_FAC_MSG_NUM          0x00c0
