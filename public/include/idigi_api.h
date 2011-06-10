@@ -130,23 +130,6 @@ typedef enum {
      */
     idigi_config_server_url,
 
-    /* Request ID to return password for identity verification
-     *
-     * Callback parameters:
-     *  class_id = idigi_class_config
-     *  request_id = idigi_config_password
-     *  request_data = NULL
-     *  request_length = 0;
-     *  response_data = callback returns pointer to the ASCII password string.
-     *                             Returns NULL for no identity verification.
-     *  response_length = pointer to memory where callback writes the length of the password
-     *
-     * Callback returns:
-     *  idigi_callback_continue = password is successfully returned
-     *  not idigi_callback_continue = error is encountered and abort iDigi.
-     */
-    idigi_config_password,
-
     /* Request ID to return connection type
      *
      * Callback parameters:
@@ -293,11 +276,7 @@ typedef enum {
      *  response_length = NULL
      *
      * Callback returns:
-     *  idigi_callback_continue = iDigi will continue. If this error status callback is called because iDigi
-     *                                       finds error in a  previous callback, iDigi will call the previous callback
-     *                                       to correct the error if idigi_callback_continue is returned.
-     *  not idigi_callbcak_continue = Abort  and exit iDigi.
-     *
+     *  ignore
      */
     idigi_config_error_status,
 
