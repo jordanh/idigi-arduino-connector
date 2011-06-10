@@ -95,9 +95,9 @@ static idigi_callback_status_t firmware_image_data(idigi_fw_image_data_t * image
 
     DEBUG_PRINTF("target = %d\n", image_data->target);
     DEBUG_PRINTF("offset = 0x%04X\n", image_data->offset);
-    DEBUG_PRINTF("data = 0x%x\n", (unsigned)image_data->data);
+    DEBUG_PRINTF("data = %p\n", image_data->data);
     total_image_size += image_data->length;
-    DEBUG_PRINTF("length = %d (total = %d)\n", image_data->length, total_image_size);
+    DEBUG_PRINTF("length = %zu (total = %zu)\n", image_data->length, total_image_size);
 
 
     *data_status = idigi_fw_success;
@@ -120,7 +120,7 @@ static idigi_callback_status_t firmware_download_complete(idigi_fw_download_comp
      * to complete firmware update.
      */
     DEBUG_PRINTF("target = %d\n", request_data->target);
-    DEBUG_PRINTF("code size = %d\n", request_data->code_size);
+    DEBUG_PRINTF("code size = %u\n", request_data->code_size);
     DEBUG_PRINTF("checksum = 0x%x\n", (unsigned)request_data->checksum);
 
     response_data->status = idigi_fw_download_success;
@@ -132,7 +132,7 @@ static idigi_callback_status_t firmware_download_complete(idigi_fw_download_comp
 
     if (request_data->code_size != total_image_size)
     {
-        DEBUG_PRINTF("firmware_download_complete: actual image size (%d) != the code size received (%d)\n",
+        DEBUG_PRINTF("firmware_download_complete: actual image size (%u) != the code size received (%zu)\n",
                       request_data->code_size, total_image_size);
     }
 
