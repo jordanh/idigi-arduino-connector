@@ -97,14 +97,15 @@ typedef enum {
 struct idigi_data;
 struct idigi_facility;
 
-typedef idigi_callback_status_t (* idigi_facility_process_cb_t )(struct idigi_data * idigi_ptr, void * facility_data, idigi_facility_packet_t * packet);
+typedef idigi_callback_status_t (* idigi_facility_process_cb_t )(struct idigi_data * idigi_ptr, void * facility_data, idigi_packet_t * packet);
+typedef void (* send_complete_cb_t)(struct idigi_data * idigi_ptr, idigi_packet_t * packet, idigi_status_t  status);
 
 typedef struct idigi_facility {
     uint16_t facility_num;
     size_t size;
     idigi_facility_process_cb_t discovery_cb;
     idigi_facility_process_cb_t process_cb;
-    idigi_facility_packet_t * packet;
+    idigi_packet_t * packet;
     struct idigi_facility * next;
     void * facility_data;
 } idigi_facility_t;
@@ -112,6 +113,7 @@ typedef struct idigi_facility {
 typedef struct idigi_buffer {
     bool    in_used;
     uint8_t buffer[MSG_MAX_PACKET_SIZE];
+    uint16_t facility;
     struct idigi_buffer * next;
 } idigi_buffer_t;
 
@@ -123,9 +125,8 @@ typedef struct idigi_data {
     uint8_t * device_id;
     uint8_t * vendor_id;
     char * device_type;
-    char * server_url;
-    char * password;
     int  request_id;
+    char server_url[SERVER_URL_LENGTH];
 
     uint16_t facilities;
     idigi_network_handle_t * network_handle;
@@ -135,9 +136,6 @@ typedef struct idigi_data {
     uint8_t  * wait_count;
     uint32_t    rx_ka_time;
     uint32_t    tx_ka_time;
-
-
-    uint8_t security_form;
 
    idigi_edp_state_t edp_state;
    unsigned layer_state;
@@ -152,10 +150,11 @@ typedef struct idigi_data {
 
    idigi_packet_t     rx_keepalive_packet;
    struct {
-        uint8_t buffer[MSG_MAX_PACKET_SIZE];
+        idigi_buffer_t packet_buffer;
         uint8_t * ptr;
         size_t length;
         size_t total_length;
+        send_complete_cb_t complete_cb;
     } send_packet;
 
     struct {
