@@ -30,7 +30,6 @@
 
 #include "idigi_data.h"
 
-
 uint8_t phone_number[] = {8,8,8,5,5,5,1,0,0,0};
 
 idigi_data_t iDigiSetting = {
@@ -39,7 +38,7 @@ idigi_data_t iDigiSetting = {
     {0x00, 0x00, 0x00, 0x00},
 
     /* tx keepalive interval in seconds */
-    40,
+    90,
     /* rx keepalive interval in seconds */
     60,
     /* wait count */
@@ -104,16 +103,15 @@ idigi_callback_status_t idigi_error_status(idigi_error_status_t * error_data)
 
     char const * config_request_string[] = { "idigi_config_device_id", "idigi_config_vendor_id",
                                              "idigi_config_device_type", "idigi_config_server_url",
-                                             "idigi_config_password", "idigi_config_connection_type",
-                                             "idigi_config_mac_addr", "idigi_config_link_speed",
-                                             "idigi_config_phone_number", "idigi_config_tx_keepalive",
-                                             "idigi_config_rx_keepalive", "idigi_config_wait_count",
-                                             "idigi_config_ip_addr", "idigi_config_error_status",
-                                              "idigi_config_disconnected", "idigi_config_firmware_facility",
-					      "idigi_config_data_service" };
+                                             "idigi_config_connection_type", "idigi_config_mac_addr",
+                                             "idigi_config_link_speed", "idigi_config_phone_number",
+                                             "idigi_config_tx_keepalive", "idigi_config_rx_keepalive",
+                                             "idigi_config_wait_count", "idigi_config_ip_addr",
+                                             "idigi_config_error_status", "idigi_config_disconnected",
+                                             "idigi_config_firmware_facility", "idigi_config_data_service"};
 
     char const * network_request_string[] = { "idigi_config_connect", "idigi_config_send",
-                                             "idigi_config_receive", "idigi_config_close",};
+                                             "idigi_config_receive", "idigi_config_close"};
 
     char const * os_request_string[] = { "idigi_config_malloc", "idigi_config_free",
                                               "idigi_config_system_up_time"};
@@ -277,19 +275,7 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t request,
         *response_length = strlen(iDigiSetting.server_url);
         break;
     }
-    case idigi_config_password:
-    {
-        /* Return pointer to password */
-        char ** data = (char **) response_data;
-#error "Specify password for identity verification";
-        *data = (char *)iDigiSetting.password;
-        if (iDigiSetting.password != NULL)
-        {
-            *response_length = strlen(iDigiSetting.password);
-        }
-        break;
-    }
-        ;
+
     case idigi_config_connection_type:
     {
         /* Return pointer to connection type */
@@ -298,7 +284,7 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t request,
 #error "Specify LAN or WAN connection type";
         *data = (idigi_connection_type_t *)&iDigiSetting.connection_type;
         break;
-    };
+    }
 
     case idigi_config_mac_addr:
     {
@@ -417,7 +403,7 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t request,
 
     case idigi_config_data_service:
         /* enable data service over messaging facility */
-	*((bool *)response_data) = true;
+	*((bool *)response_data) = false;
 	break;
 
     }
