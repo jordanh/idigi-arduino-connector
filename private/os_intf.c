@@ -67,7 +67,7 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
 }
 
 
-static idigi_callback_status_t notify_error_status(idigi_callback_t callback, idigi_class_t class_number, idigi_request_t request_number, idigi_status_t status)
+static void notify_error_status(idigi_callback_t callback, idigi_class_t class_number, idigi_request_t request_number, idigi_status_t status)
 {
     idigi_error_status_t err_status;
     idigi_request_t request_id;
@@ -77,7 +77,8 @@ static idigi_callback_status_t notify_error_status(idigi_callback_t callback, id
     err_status.status = status;
 
     request_id.config_request = idigi_config_error_status;
-    return idigi_callback(callback, idigi_class_config, request_id, &err_status, sizeof err_status, NULL, NULL);
+    idigi_callback(callback, idigi_class_config, request_id, &err_status, sizeof err_status, NULL, NULL);
+    return;
 }
 
 
