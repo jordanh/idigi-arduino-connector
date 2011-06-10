@@ -72,11 +72,11 @@ void * idigi_process_thread(void * arg)
 {
     idigi_status_t status;
 
-    printf("iDigi Process thread starts...\n");
+    DEBUG_PRINTF("iDigi Process thread starts...\n");
 
     status = idigi_run((idigi_handle_t)arg);
 
-    printf("iDigi process thread exits... %d\n", status);
+    DEBUG_PRINTF("iDigi process thread exits... %d\n", status);
 
     pthread_exit(arg);
 
@@ -107,7 +107,7 @@ int main (void)
     }
     else
     {
-        printf("unable to initialize iDigi\n");
+        DEBUG_PRINTF("unable to initialize iDigi\n");
     }
 done:
     return 0;
@@ -120,7 +120,7 @@ int main (void)
 
     time(&deviceSystemUpStartTime);
 
-
+    DEBUG_PRINTF("Start iDigi\n");
     iDigiSetting.idigi_handle = idigi_init((idigi_callback_t) idigi_callback);
     if (iDigiSetting.idigi_handle != 0)
     {
@@ -130,21 +130,15 @@ int main (void)
             status = idigi_step(iDigiSetting.idigi_handle);
             iDigiSetting.select_data = 0;
 
-            if (status != idigi_success)
-            {
-                printf("main: idigi_task returns error %d\n", status);
-            }
-            else
+            if (status == idigi_success)
             {
                 iDigiSetting.select_data |= NETWORK_TIMEOUT_SET | NETWORK_READ_SET;
                 network_select(iDigiSetting.socket_fd, iDigiSetting.select_data, ONE_SECOND);
             }
         }
+        DEBUG_PRINTF("idigi status = %d\n", status);
    }
-    else
-    {
-        printf("unable to initialize iDigi\n");
-    }
+   DEBUG_PRINTF("iDigi stops running!\n");
     return 0;
 }
 
