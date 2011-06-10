@@ -58,10 +58,12 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
 
     /* allocate idk data */
     status = malloc_cb(callback, sizeof(idigi_data_t), &handle);
-    if (status != idigi_callback_continue || handle == NULL)
+    if (status != idigi_callback_continue)
     {
         goto done;
     }
+
+    ASSERT_GOTO(handle != NULL, done);
 
     idigi_handle = handle;
 
@@ -85,27 +87,26 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
         size_t length;
         void * data;
         idigi_request_t request_id;
+        idigi_status_t error_status = idigi_success;
 
         request_id.config_request = idigi_config_request_ids[i].request;
         status = idigi_callback(idigi_handle->callback, idigi_class_config, request_id, NULL, 0, &data, &length);
 
         if (status == idigi_callback_continue)
         {
-            /* if error occurs, notify caller and go back to the callback for
-             * caller fixing the problem.
-             */
             if (data == NULL)
             {
-                status = notify_error_status(callback, idigi_class_config, request_id, idigi_invalid_data);
+                error_status = idigi_invalid_data;
             }
-            else if ((idigi_config_request_ids[i].request != idigi_config_device_type) && (length != idigi_config_request_ids[i].length))
+            else if ((idigi_config_request_ids[i].request != idigi_config_device_type) &&
+                     (length != idigi_config_request_ids[i].length))
             {
-                status = notify_error_status(callback, idigi_class_config, request_id, idigi_invalid_data_size);
+                error_status = idigi_invalid_data_size;
             }
             else if ((idigi_config_request_ids[i].request == idigi_config_device_type) &&
                     ((length == 0) || (length > idigi_config_request_ids[i].length)))
             {
-                status = notify_error_status(callback, idigi_class_config, request_id, idigi_invalid_data_size);
+                error_status = idigi_invalid_data_size;
             }
             else
             {
@@ -121,7 +122,6 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
                     idigi_handle->device_type = data;
                     break;
                 case idigi_config_server_url:
-                case idigi_config_password:
                 case idigi_config_connection_type:
                 case idigi_config_mac_addr:
                 case idigi_config_link_speed:
@@ -142,6 +142,14 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
             }
         }
 
+        if (error_status != idigi_success)
+        {
+            /* if error occurs, notify caller then exit the function.
+             */
+            notify_error_status(callback, idigi_class_config, request_id, error_status);
+            status = idigi_callback_abort;
+        }
+
         if (status != idigi_callback_continue)
         {
             DEBUG_PRINTF("idigi_init: base class_id request id = %d callback aborts\n", idigi_config_request_ids[i].request);
@@ -149,6 +157,12 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
             idigi_handle = NULL;
             break;
         }
+    }
+
+    if (idigi_handle != NULL)
+    {
+        status = get_supported_facilities(idigi_handle);
+
     }
 
 done:
@@ -235,6 +249,8 @@ done:
                  * Terminated by idigi_dispatch call
                  * Free all memory.
                  */
+                rc = idigi_device_terminated;
+
                 status = remove_facility_layer(idigi_handle);
                 if (status == idigi_callback_abort)
                 {
@@ -247,7 +263,6 @@ done:
                     DEBUG_PRINTF("idigi_task: close_server returns abort");
                     rc = idigi_configuration_error;
                 }
-               rc = idigi_device_terminated;
             }
             else
             {
