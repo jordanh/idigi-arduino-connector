@@ -12,6 +12,7 @@ include $(IDIGI_RULES)
 
 LIB_SRC_DIR=./private
 SAMPLE_DIR=./public/sample
+PUBLIC_HDR_DIR=./public/include
 OBJDIR=$(LIB_SRC_DIR)
 
 ifeq ($(LITTLE_ENDIAN),true)
@@ -24,7 +25,7 @@ else
 CFLAGS += -DNDEBUG -O2
 endif
 
-CFLAGS += -I./public/include -I./private -Wall -Werror
+CFLAGS += -I$(PUBLIC_HDR_DIR) -I./private -Wall -Werror
 
 vpath $(LIB_SRC_DIR)/%.c
 vpath $(LIB_SRC_DIR)/%.h
@@ -35,7 +36,7 @@ all: $(LIB)
 
 OBJS = $(OBJDIR)/idigi_api.o
 
-$(OBJS): $(LIB_SRC_DIR)/*.c $(LIB_SRC_DIR)/*.h
+$(OBJS): $(LIB_SRC_DIR)/*.c $(LIB_SRC_DIR)/*.h $(PUBLIC_HDR_DIR)/*.h
 
 $(LIB): $(OBJS)
 	$(LD) $(LDFLAGS) $^ -o $@
