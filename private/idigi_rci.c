@@ -26,10 +26,10 @@
 #define RCI_NO_REPLY_REQUESTED_FLAG 0x00
 
 static char const * no_query_state_response = "<rci_replay version=\"1.1\"> <query_state/> </rci_reply>";
-static idigi_status_t rci_process_function(idigi_data_t * idigi_ptr, idigi_facility_t * fac_ptr, idigi_facility_packet_t * packet)
+static idigi_status_t rci_process_function(idigi_data_t * idigi_ptr, idigi_facility_t * fac_ptr, idigi_packet_t * packet)
 {
     idigi_status_t rc = idigi_success;
-    idigi_facility_packet_t   * send_packet;
+    idigi_packet_t   * send_packet;
     uint8_t             * buf, * data_ptr;
     uint32_t            length;
 
@@ -38,7 +38,7 @@ static idigi_status_t rci_process_function(idigi_data_t * idigi_ptr, idigi_facil
 
     DEBUG_PRINTF("rci_process_function: fake response\n");
 
-    send_packet =(idigi_facility_packet_t *) get_packet_buffer(idigi_ptr, sizeof(idigi_facility_packet_t), &buf);
+    send_packet = get_packet_buffer(idigi_ptr, E_MSG_FAC_RCI_NUM, sizeof(idigi_packet_t), &buf);
     if (send_packet == NULL)
     {
         goto done;
@@ -53,9 +53,9 @@ static idigi_status_t rci_process_function(idigi_data_t * idigi_ptr, idigi_facil
     /* now add this target to the target list message */
     memcpy(buf, no_query_state_response, strlen(no_query_state_response));
     buf += strlen(no_query_state_response);
-    send_packet->length = buf - data_ptr;
+    send_packet->header.length = buf - data_ptr;
 
-    rc = enable_facility_packet(idigi_ptr, E_MSG_FAC_RCI_NUM, SECURITY_PROTO_NONE);
+    rc = enable_facility_packet(idigi_ptr, send_packet, E_MSG_FAC_RCI_NUM, release_packet_buffer);
 done:
     return rc;
 }
