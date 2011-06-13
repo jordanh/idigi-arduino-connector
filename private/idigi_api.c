@@ -74,8 +74,8 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
     idigi_handle->facilities = 0;
     idigi_handle->network_busy = false;
     idigi_handle->edp_connected = false;
-    idigi_handle->packet_buffer.in_used = false;
-    idigi_handle->packet_buffer.next = NULL;
+    idigi_handle->receive_packet.packet_buffer.in_used = false;
+    idigi_handle->receive_packet.packet_buffer.next = NULL;
 
 
 
