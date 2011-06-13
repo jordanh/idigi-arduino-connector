@@ -111,8 +111,8 @@ typedef struct idigi_facility {
 } idigi_facility_t;
 
 typedef struct idigi_buffer {
-    bool    in_used;
     uint8_t buffer[MSG_MAX_PACKET_SIZE];
+    bool    in_used;
     uint16_t facility;
     struct idigi_buffer * next;
 } idigi_buffer_t;
@@ -146,8 +146,6 @@ typedef struct idigi_data {
    idigi_facility_t * active_facility;
    idigi_facility_t * facility_list;
 
-   idigi_buffer_t   packet_buffer;
-
    idigi_packet_t     rx_keepalive_packet;
    struct {
         idigi_buffer_t packet_buffer;
@@ -158,6 +156,8 @@ typedef struct idigi_data {
     } send_packet;
 
     struct {
+        idigi_buffer_t   * free_packet_buffer;
+        idigi_buffer_t   packet_buffer;
         int index;
         uint8_t * ptr;
         uint16_t    packet_type;
