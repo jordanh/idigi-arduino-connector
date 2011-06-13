@@ -30,6 +30,8 @@
 
 #define MANDATORY_FACILITY          -1
 
+#define SET_FACILITY_SUPPORT(i) (0x01 << i)
+#define IS_FACILITY_SUPPORTED(idigi_ptr, table_index)    (idigi_ptr->facilities & SET_FACILITY_SUPPORT(table_index))
 
 typedef idigi_callback_status_t (* idigi_facility_init_cb_t )(struct idigi_data * idigi_ptr);
 
@@ -67,8 +69,8 @@ static idigi_callback_status_t  remove_facility_layer(idigi_data_t * idigi_ptr)
     {
         idigi_callback_status_t status = idigi_callback_continue;
 
-        if ((idigi_ptr->facilities & (0x1 << idigi_ptr->request_id)) &&
-             idigi_facility_init_cb[idigi_ptr->request_id].delete_cb != NULL)
+        if (IS_FACILITY_SUPPORTED(idigi_ptr, idigi_ptr->request_id) &&
+            idigi_facility_init_cb[idigi_ptr->request_id].delete_cb != NULL)
         {
             status = idigi_facility_init_cb[idigi_ptr->request_id].delete_cb(idigi_ptr);
             if (status != idigi_callback_continue)
@@ -296,13 +298,11 @@ static idigi_callback_status_t get_supported_facilities(idigi_data_t * idigi_ptr
 
         if (facility_enable)
         {
-            idigi_ptr->facilities |= (0x01 << i);
+            idigi_ptr->facilities |= SET_FACILITY_SUPPORT(i);
         }
     }
     return status;
 }
-
-#define IS_FACILITY_SUPPORTED(idigi_ptr, table_index)    (idigi_ptr->facilities & (0x01 << table_index))
 static idigi_callback_status_t initialize_facilites(idigi_data_t * idigi_ptr)
 {
     idigi_callback_status_t status = idigi_callback_continue;
