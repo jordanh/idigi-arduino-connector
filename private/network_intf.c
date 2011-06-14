@@ -717,18 +717,15 @@ done:
     return status;
 }
 
-static idigi_callback_status_t connect_server(idigi_data_t * idigi_ptr, char * server_url, unsigned port)
+static idigi_callback_status_t connect_server(idigi_data_t * idigi_ptr, char * server_url)
 {
     idigi_callback_status_t status;
-    idigi_connect_request_t request;
     size_t length;
     idigi_request_t request_id;
 
-    request.host_name = server_url;
-    request.port = port;
 
     request_id.network_request = idigi_network_connect;
-    status = idigi_callback(idigi_ptr->callback, idigi_class_network, request_id, &request, sizeof request, &idigi_ptr->network_handle, &length);
+    status = idigi_callback(idigi_ptr->callback, idigi_class_network, request_id, server_url, strlen(server_url), &idigi_ptr->network_handle, &length);
     if (status == idigi_callback_continue)
     {
         if (idigi_ptr->network_handle != NULL && length == sizeof(idigi_network_handle_t))
