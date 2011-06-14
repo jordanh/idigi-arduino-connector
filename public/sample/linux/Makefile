@@ -19,7 +19,7 @@ else
 CFLAGS += -DNDEBUG -O2
 endif
 
-CFLAGS += -Wall -Werror -I../../include
+CFLAGS += -Wall -Werror -Wextra -I../../include
 
 OBJS = main.o firmware.o network.o os.o config.o
 LIBS = -lidigi -lc
