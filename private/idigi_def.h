@@ -41,8 +41,7 @@
 
 #define UNUSED_PARAMETER(x)     ((void)x)
 
-#define EDP_MT_VERSION           2
-#define EDP_MT_PORT              3197
+#define EDP_MT_VERSION      2
 #define MSG_MAX_PACKET_SIZE 1600
 
 #define DEVICE_TYPE_LENGTH  32
