@@ -211,6 +211,7 @@ static void release_packet_buffer(idigi_data_t * idigi_ptr, idigi_packet_t * pac
 {
     UNUSED_PARAMETER(status);
     ASSERT(idigi_ptr->send_packet.packet_buffer.buffer == (uint8_t *)packet);
+    UNUSED_PARAMETER(packet);
 
     idigi_ptr->send_packet.packet_buffer.in_used = false;
     idigi_ptr->send_packet.packet_buffer.facility = E_MSG_MT2_MSG_NUM;
