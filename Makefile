@@ -25,7 +25,7 @@ else
 CFLAGS += -DNDEBUG -O2
 endif
 
-CFLAGS += -I$(PUBLIC_HDR_DIR) -I./private -Wall -Werror
+CFLAGS += -I$(PUBLIC_HDR_DIR) -I./private -Wall -Werror -Wextra
 
 vpath $(LIB_SRC_DIR)/%.c
 vpath $(LIB_SRC_DIR)/%.h
