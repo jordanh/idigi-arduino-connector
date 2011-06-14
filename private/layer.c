@@ -378,7 +378,7 @@ static idigi_callback_status_t communication_layer(idigi_data_t * idigi_ptr)
     case communication_connect_server:
         if (idigi_ptr->network_handle == NULL)
         {
-            status = connect_server(idigi_ptr, idigi_ptr->server_url, EDP_MT_PORT);
+            status = connect_server(idigi_ptr, idigi_ptr->server_url);
         }
 
         if (status == idigi_callback_continue)
