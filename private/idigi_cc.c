@@ -551,7 +551,7 @@ static idigi_callback_status_t  process_redirect(idigi_data_t * idigi_ptr, idigi
                 server_url += prefix_len;
             }
 
-            status = connect_server(idigi_ptr, server_url, EDP_MT_PORT);
+            status = connect_server(idigi_ptr, server_url);
             if (status == idigi_callback_continue && idigi_ptr->network_handle != NULL)
             {
                 cc_ptr->report_code = cc_redirect_success;
