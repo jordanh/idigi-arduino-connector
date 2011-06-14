@@ -52,7 +52,7 @@ static idigi_callback_status_t os_get_system_time(uint32_t * mstime)
 
     time(&curtime);
 
-    *mstime = (uint32_t)(curtime - deviceSystemUpStartTime) * 1000;
+    *mstime = (uint32_t)(curtime - device_data.start_system_up_time) * 1000;
 
     return idigi_callback_continue;
 }
@@ -62,6 +62,9 @@ idigi_callback_status_t idigi_os_callback(idigi_os_request_t request,
                                         void * response_data, size_t * response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
+
+    UNUSED_PARAMETER(request_length);
+    UNUSED_PARAMETER(response_length);
 
     switch (request)
     {
