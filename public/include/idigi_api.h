@@ -33,6 +33,8 @@ extern "C"
 {
 #endif
 
+#define IDIGI_PORT       3197
+#define IDIGI_SSL_PORT   3199
 /* iDigi return status
  *
  */
@@ -340,8 +342,9 @@ typedef enum {
      * Callback parameters:
      *  class_id = idigi_class_network
      *  request_id = idigi_config_connect
-     *  request_data = pointer to idigi_connect_request_t containing server FQDN and
-     *                 port which callback makes connection to.
+     *  request_data = pointer to server FQDN which callback will make connection to.
+     *                 Callback uses IDIGI_PORT or IDIGI_SSL_PORT port number to establish
+     *                 non-secured or secured connection respectively.
      *  request_length = size of idigi_connect_request_t
      *  response_data = callback returns pointer to idigi_network_handle_t.
      *                              (This is used to for send, receive, & close callbacks)
@@ -717,19 +720,6 @@ typedef struct  {
     idigi_status_t status;
 } idigi_error_status_t;
 
-/* network connect structure
- *
- * This structure is used in a callback for idigi_config_connect request ID to
- * establish connection between a device and iDigi server.
- *
- * @param host_name     Pointer to FQDN of iDigi server to connect to.
- * @param port          Port number to connect to.
- *
- */
-typedef struct  {
-    char * host_name;
-    unsigned    port;
-} idigi_connect_request_t;
 
 /* Network write structure
  *
