@@ -30,59 +30,12 @@
 
 #include "idigi_data.h"
 
-uint8_t phone_number[] = {8,8,8,5,5,5,1,0,0,0};
-
-idigi_data_t iDigiSetting = {
-
-     /* vendor id */
-    {0x00, 0x00, 0x00, 0x00},
-
-    /* tx keepalive interval in seconds */
-    90,
-    /* rx keepalive interval in seconds */
-    60,
-    /* wait count */
-    5,
-
-    /* device type */
-    "Linux Application",
-
-    /* server_url */
-    "developer.idigi.com\0",
-
-    /* password */
-    NULL,
-
-    /* phone number */
-    phone_number,
-    /* link speed */
-    19200,
-
-    /* connection type */
-    idigi_lan_connection_type,
-
-    /* mac address */
-    {0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
-
-    /* ip address */
-    0,
-
-    /* idk handle  (application) */
-   NULL,
-
-    /* socket fd */
-    -1,
-
-    /* select data */
-    0
-};
-
 
 #define REDIRECT_SUCCESSFUL_MESSAGE "Redirect"
 #define REDIRECT_ERROR_MESSAGE      "Error in redirect"
 
 
-idigi_callback_status_t idigi_error_status(idigi_error_status_t * error_data)
+static idigi_callback_status_t idigi_error_status(idigi_error_status_t * error_data)
 {
 
     idigi_callback_status_t   status = idigi_callback_continue;
@@ -157,7 +110,7 @@ static int get_device_address(struct in_addr * eth_addr)
     char            * buf = malloc(128* sizeof(struct ifreq));
     struct ifconf   conf;
     unsigned int    entries = 0;
-    int             i;
+    unsigned int    i;
     int             rc = -1;
 
     if (buf == NULL)
@@ -210,25 +163,197 @@ done:
     return rc;
 }
 
-static void get_device_id(uint8_t ** id, size_t * size)
+static uint8_t device_mac_addr[MAC_ADDR_LENGTH] = {0x78, 0xE7, 0xD1, 0x84, 0x47, 0x82};
+
+static idigi_callback_status_t get_mac_addr(uint8_t ** addr, size_t * size)
 {
+//#error "Specify device MAC address for LAN connection type";
+    /* Return pointer to mac address.
+     *
+     */
+
+    *addr = device_mac_addr;
+    *size = sizeof device_mac_addr;
+
+    return idigi_callback_continue;
+}
+
+static idigi_callback_status_t get_device_id(uint8_t ** id, size_t * size)
+{
+//#error  "Must specify device id";
     static uint8_t device_id[DEVICE_ID_LENGTH] = {0};
     /* Return pointer to device_id.
      *
      * Use MAC addr to generate device ID.
      *
      */
-    device_id[8] = iDigiSetting.mac_addr[0];
-    device_id[9] = iDigiSetting.mac_addr[1];
-    device_id[10] = iDigiSetting.mac_addr[2];
+    device_id[8] = device_mac_addr[0];
+    device_id[9] = device_mac_addr[1];
+    device_id[10] = device_mac_addr[2];
     device_id[11] = 0xFF;
     device_id[12] = 0xFF;
-    device_id[13] = iDigiSetting.mac_addr[3];
-    device_id[14] = iDigiSetting.mac_addr[4];
-    device_id[15] = iDigiSetting.mac_addr[5];
+    device_id[13] = device_mac_addr[3];
+    device_id[14] = device_mac_addr[4];
+    device_id[15] = device_mac_addr[5];
 
     *id = device_id;
     *size = sizeof device_id;
+
+    return idigi_callback_continue;
+}
+
+static idigi_callback_status_t get_vendor_id(uint8_t ** id, size_t * size)
+{
+//#error  "Must specify vendor id";
+    static const uint8_t device_vendor_id[VENDOR_ID_LENGTH] = {0x01, 0x00, 0x00, 0x43};
+    /* Return pointer to vendor id.
+     *
+     */
+    *id = (uint8_t *)device_vendor_id;
+    *size = sizeof device_vendor_id;
+
+    return idigi_callback_continue;
+}
+
+static idigi_callback_status_t get_device_type(char ** type, size_t * size)
+{
+//#error "Specify device type";
+    static const char const *device_type = "Linux Application";
+    /* Return pointer to device type.
+     *
+     */
+    *type = (char *)device_type;
+    *size = strlen(device_type);
+
+    return idigi_callback_continue;
+}
+
+static idigi_callback_status_t get_server_url(char ** url, size_t * size)
+{
+//#error "Must specify iDigi Server URL";
+    static const char const *idigi_server_url = "test.idigi.com";
+    /* Return pointer to device type.
+     *
+     */
+    *url = (char *)idigi_server_url;
+    *size = strlen(idigi_server_url);
+
+    return idigi_callback_continue;
+}
+
+static idigi_callback_status_t get_connection_type(idigi_connection_type_t ** type)
+{
+//#error "Must specify LAN or WAN connection type";
+    /* Return pointer to connection type */
+    static idigi_connection_type_t  device_connection_type = idigi_lan_connection_type;
+
+    *type = &device_connection_type;
+
+    return idigi_callback_continue;
+}
+
+static idigi_callback_status_t get_link_speed(uint32_t ** speed, size_t * size)
+{
+//#error "Specify LINK SPEED for WAN connection type";
+    UNUSED_PARAMETER(speed);
+    UNUSED_PARAMETER(size);
+    DEBUG_PRINTF("Return link speed for WAN connection\n");
+    return idigi_callback_continue;
+}
+
+static idigi_callback_status_t get_phone_number(uint8_t ** number, size_t * size)
+{
+//#error "Specify phone number dialed for WAN connection type";
+    /* Return pointer to phone number dialed for WAN
+     * connection type.
+     */
+    UNUSED_PARAMETER(number);
+    UNUSED_PARAMETER(size);
+    DEBUG_PRINTF("Return phone number dialed for WAN connection\n");
+
+    return idigi_callback_continue;
+}
+
+static idigi_callback_status_t get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
+{
+//#error "Must specify TX keepalive interval in seconds";
+#define DEVICE_TX_KEEPALIVE_INTERVAL_PER_SECOND     90
+    /* Return pointer to Tx keepalive interval in seconds */
+    static uint16_t device_tx_keepalive_interval = DEVICE_TX_KEEPALIVE_INTERVAL_PER_SECOND;
+    *interval = (uint16_t *)&device_tx_keepalive_interval;
+    *size = sizeof device_tx_keepalive_interval;
+
+    return idigi_callback_continue;
+}
+
+static idigi_callback_status_t get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
+{
+//#error "Must specify RX keepalive interval in seconds";
+#define DEVICE_RX_KEEPALIVE_INTERVAL_PER_SECOND     60
+    /* Return pointer to Rx keepalive interval in seconds */
+    static uint16_t device_rx_keepalive_interval = DEVICE_RX_KEEPALIVE_INTERVAL_PER_SECOND;
+    *interval = (uint16_t *)&device_rx_keepalive_interval;
+    *size = sizeof device_rx_keepalive_interval;
+
+    return idigi_callback_continue;
+}
+
+static idigi_callback_status_t get_wait_count(uint8_t ** count, size_t * size)
+{
+//#error "Must specify number of times not receiving keepalive messages from server";
+#define DEVICE_WAIT_COUNT     5
+    /* Return pointer to wait count (number of times
+     * not receiving Tx keepalive from server.
+     */
+    static uint8_t device_wait_count = DEVICE_WAIT_COUNT;
+    *count = (uint8_t *)&device_wait_count;
+    *size = sizeof device_wait_count;
+
+    return idigi_callback_continue;
+}
+
+static idigi_callback_status_t get_ip_addr(uint8_t ** ip, size_t * size)
+{
+//#error "Specify Device IP address. Return the response_length to 4-byte for IPv4 or 16-byte for IPv6";
+
+    idigi_callback_status_t status = idigi_callback_continue;
+
+    /* return pointer to device IP address */
+    struct in_addr  ip_addr = {0};
+
+
+    if (get_device_address(&ip_addr) < 0)
+    {
+         DEBUG_PRINTF("Error: unable to get device ip address\n");
+         status = idigi_callback_abort;
+    }
+    else
+    {
+        /* IPv4 address */
+        *ip = (uint8_t *)&ip_addr.s_addr;
+        *size = sizeof ip_addr.s_addr;
+    }
+
+    return status;
+}
+
+static idigi_callback_status_t server_disconnected(void)
+{
+
+    DEBUG_PRINTF("Disconnected from server\n");
+    /* socket should be already closed. */
+    assert(device_data.socket_fd == -1);
+    return idigi_callback_continue;
+}
+
+static bool get_firmware_support(void)
+{
+    return true;
+}
+
+static bool get_data_service_support(void)
+{
+    return true;
 }
 
 idigi_callback_status_t idigi_config_callback(idigi_config_request_t request,
@@ -237,174 +362,88 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t request,
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
+    UNUSED_PARAMETER(request_length);
+
     switch (request)
     {
     case idigi_config_device_id:
         /* Return pointer to device ID */
-#error  "Must specify device id";
-        get_device_id((uint8_t **)response_data, response_length);
+        status = get_device_id((uint8_t **)response_data, response_length);
         break;
 
     case idigi_config_vendor_id:
-    {
         /* Return pointer to vendor id */
-        uint8_t ** data = (uint8_t **) response_data;
-
-#error "Must specify vendor id";
-        *data = (uint8_t *)iDigiSetting.vendor_id;
-        *response_length = sizeof iDigiSetting.vendor_id;
+        status = get_vendor_id((uint8_t **)response_data, response_length);
         break;
-    }
 
     case idigi_config_device_type:
-    {
         /* Return pointer to device type */
-        char ** data = (char **) response_data;
-#error "Specify device type";
-        * data = (char *)iDigiSetting.device_type;
-        *response_length = strlen(iDigiSetting.device_type);
-         break;
-    }
-
-    case idigi_config_server_url:
-    {
-        /* Return pointer to server url to be connected */
-        char ** data = (char **) response_data;
-#error "Specify iDigi server url";
-        *data = (char *)iDigiSetting.server_url;
-        *response_length = strlen(iDigiSetting.server_url);
+        status = get_device_type((char **)response_data, response_length);
         break;
-    }
+    case idigi_config_server_url:
+        /* Return pointer to server url to be connected */
+        status = get_server_url((char **)response_data, response_length);
+        break;
 
     case idigi_config_connection_type:
-    {
-        /* Return pointer to connection type */
-        idigi_connection_type_t  ** data = (idigi_connection_type_t **) response_data;
-
-#error "Specify LAN or WAN connection type";
-        *data = (idigi_connection_type_t *)&iDigiSetting.connection_type;
+       /* Return pointer to connection type */
+        status = get_connection_type((idigi_connection_type_t **)response_data);
         break;
-    }
 
     case idigi_config_mac_addr:
-    {
-        /* Return pointer to device MAC address */
-        uint8_t ** data = (uint8_t **) response_data;
-#error "Specify device MAC address for LAN connection type";
-        *data = (uint8_t *)iDigiSetting.mac_addr;
-        *response_length = sizeof iDigiSetting.mac_addr;
+        /* Return pointer to mac address for LAN connection */
+        status = get_mac_addr((uint8_t **)response_data, response_length);
         break;
-    }
 
     case idigi_config_link_speed:
-    {
-        /* Return pointer to link speed for WAN connection
-         * type.
-         */
-        uint32_t ** data = (uint32_t **) response_data;
-#error "Specify LINK SPEED for WAN connection type";
-        *data = (uint32_t *)&iDigiSetting.link_speed;
-        *response_length = sizeof iDigiSetting.link_speed;
+        status = get_link_speed((uint32_t **)response_data, response_length);
         break;
-    }
+
     case idigi_config_phone_number:
-    {
         /* Return pointer to phone number dialed for WAN
          * connection type.
          */
-        uint8_t ** data = (uint8_t **) response_data;
-#error "Specify phone number dialed for WAN connection type";
-        *data = (uint8_t *)iDigiSetting.phone_number;
-        if (iDigiSetting.phone_number != NULL)
-        {
-            *response_length = sizeof phone_number;
-        }
-        break;
-    }
+        status = get_phone_number((uint8_t **)response_data, response_length);
+       break;
     case idigi_config_tx_keepalive:
-    {
         /* Return pointer to Tx keepalive interval in seconds */
-        uint16_t ** data = (uint16_t **) response_data;
-#error "Specify TX keepalive interval in seconds";
-        *data = (uint16_t *)&iDigiSetting.tx_keepalive;
-        *response_length = sizeof iDigiSetting.tx_keepalive;
+        status = get_tx_keepalive_interval((uint16_t **)response_data, response_length);
         break;
-    }
     case idigi_config_rx_keepalive:
-    {
         /* Return pointer to Rx keepalive interval in seconds */
-        uint16_t ** data = (uint16_t **) response_data;
-
-#error "Specify RX keepalive interval in seconds";
-        *data = (uint16_t *)&iDigiSetting.rx_keepalive;
-        *response_length = sizeof iDigiSetting.rx_keepalive;
+        status = get_rx_keepalive_interval((uint16_t **)response_data, response_length);
         break;
-    }
 
     case idigi_config_wait_count:
-    {
         /* Return pointer to wait count (number of times
          * not receiving Tx keepalive from server.
          */
-        uint8_t ** data = (uint8_t **) response_data;
-
-#error "Specify wait count for not receiving TX keepalive";
-        *data = (uint8_t *)&iDigiSetting.wait_count;
-        *response_length = sizeof iDigiSetting.wait_count;
+        status = get_wait_count((uint8_t **)response_data, response_length);
         break;
-    }
 
     case idigi_config_ip_addr:
-    {
         /* return pointer to device IP address */
-        uint8_t ** data = (uint8_t **) response_data;
-        struct in_addr  ip_addr = {0};
-
-#error "Specify Device IP address. Return the response_length to 4-byte for IPv4 or 16-byte for IPv6";
-
-        if (get_device_address(&ip_addr) < 0)
-        {
-             DEBUG_PRINTF("Error: unable to get device ip address\n");
-             status = idigi_callback_abort;
-        }
-        else
-        {
-            /* IPv4 address */
-            iDigiSetting.ip_addr = (uint32_t)ip_addr.s_addr;
-            *data = (uint8_t *)&iDigiSetting.ip_addr;
-            *response_length = sizeof iDigiSetting.ip_addr;
-        }
+        status = get_ip_addr((uint8_t **)response_data, response_length);
         break;
-    }
     case idigi_config_error_status:
         /* iDigi encounters some kind of error */
-        if (request_length != sizeof(idigi_error_status_t))
-        {
-            DEBUG_PRINTF("Error Status from iDigi: given incompatible idigi_config_error_status size\n");
-        }
-        else
-        {
-            status = idigi_error_status((idigi_error_status_t *)request_data);
-        }
+        status = idigi_error_status((idigi_error_status_t *)request_data);
         break;
 
     case idigi_config_disconnected:
-       DEBUG_PRINTF("Disconnected from server\n");
-       /* set status to idk_callback_abort to abort iDigi or
-        * idk_callback_continue to reconnect to server.
-        */
-        break;
-	
+       status = server_disconnected();
+       break;
+
     case idigi_config_firmware_facility:
         /* enable Firmware update facility */
-        *((bool *)response_data)= true;
+        *((bool *)response_data)= get_firmware_support();
 
         break;
 
     case idigi_config_data_service:
         /* enable data service over messaging facility */
-	*((bool *)response_data) = false;
-	break;
+        *((bool *)response_data) = get_data_service_support();
+        break;
 
     }
 
