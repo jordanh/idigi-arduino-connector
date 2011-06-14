@@ -163,11 +163,11 @@ done:
     return rc;
 }
 
-static uint8_t device_mac_addr[MAC_ADDR_LENGTH] = {0x78, 0xE7, 0xD1, 0x84, 0x47, 0x82};
+static uint8_t device_mac_addr[MAC_ADDR_LENGTH] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 static idigi_callback_status_t get_mac_addr(uint8_t ** addr, size_t * size)
 {
-//#error "Specify device MAC address for LAN connection type";
+#error "Specify device MAC address for LAN connection type";
     /* Return pointer to mac address.
      *
      */
@@ -180,7 +180,7 @@ static idigi_callback_status_t get_mac_addr(uint8_t ** addr, size_t * size)
 
 static idigi_callback_status_t get_device_id(uint8_t ** id, size_t * size)
 {
-//#error  "Must specify device id";
+#error  "Must specify device id";
     static uint8_t device_id[DEVICE_ID_LENGTH] = {0};
     /* Return pointer to device_id.
      *
@@ -204,8 +204,8 @@ static idigi_callback_status_t get_device_id(uint8_t ** id, size_t * size)
 
 static idigi_callback_status_t get_vendor_id(uint8_t ** id, size_t * size)
 {
-//#error  "Must specify vendor id";
-    static const uint8_t device_vendor_id[VENDOR_ID_LENGTH] = {0x01, 0x00, 0x00, 0x43};
+#error  "Must specify vendor id";
+    static const uint8_t device_vendor_id[VENDOR_ID_LENGTH] = {0x00, 0x00, 0x00, 0x00};
     /* Return pointer to vendor id.
      *
      */
@@ -217,7 +217,7 @@ static idigi_callback_status_t get_vendor_id(uint8_t ** id, size_t * size)
 
 static idigi_callback_status_t get_device_type(char ** type, size_t * size)
 {
-//#error "Specify device type";
+#error "Specify device type";
     static const char const *device_type = "Linux Application";
     /* Return pointer to device type.
      *
@@ -230,7 +230,7 @@ static idigi_callback_status_t get_device_type(char ** type, size_t * size)
 
 static idigi_callback_status_t get_server_url(char ** url, size_t * size)
 {
-//#error "Must specify iDigi Server URL";
+#error "Must specify iDigi Server URL";
     static const char const *idigi_server_url = "test.idigi.com";
     /* Return pointer to device type.
      *
@@ -243,7 +243,7 @@ static idigi_callback_status_t get_server_url(char ** url, size_t * size)
 
 static idigi_callback_status_t get_connection_type(idigi_connection_type_t ** type)
 {
-//#error "Must specify LAN or WAN connection type";
+#error "Must specify LAN or WAN connection type";
     /* Return pointer to connection type */
     static idigi_connection_type_t  device_connection_type = idigi_lan_connection_type;
 
@@ -254,7 +254,7 @@ static idigi_callback_status_t get_connection_type(idigi_connection_type_t ** ty
 
 static idigi_callback_status_t get_link_speed(uint32_t ** speed, size_t * size)
 {
-//#error "Specify LINK SPEED for WAN connection type";
+#error "Specify LINK SPEED for WAN connection type";
     UNUSED_PARAMETER(speed);
     UNUSED_PARAMETER(size);
     DEBUG_PRINTF("Return link speed for WAN connection\n");
@@ -263,7 +263,7 @@ static idigi_callback_status_t get_link_speed(uint32_t ** speed, size_t * size)
 
 static idigi_callback_status_t get_phone_number(uint8_t ** number, size_t * size)
 {
-//#error "Specify phone number dialed for WAN connection type";
+#error "Specify phone number dialed for WAN connection type";
     /* Return pointer to phone number dialed for WAN
      * connection type.
      */
@@ -276,7 +276,7 @@ static idigi_callback_status_t get_phone_number(uint8_t ** number, size_t * size
 
 static idigi_callback_status_t get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
 {
-//#error "Must specify TX keepalive interval in seconds";
+#error "Must specify TX keepalive interval in seconds";
 #define DEVICE_TX_KEEPALIVE_INTERVAL_PER_SECOND     90
     /* Return pointer to Tx keepalive interval in seconds */
     static uint16_t device_tx_keepalive_interval = DEVICE_TX_KEEPALIVE_INTERVAL_PER_SECOND;
@@ -288,7 +288,7 @@ static idigi_callback_status_t get_tx_keepalive_interval(uint16_t ** interval, s
 
 static idigi_callback_status_t get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
 {
-//#error "Must specify RX keepalive interval in seconds";
+#error "Must specify RX keepalive interval in seconds";
 #define DEVICE_RX_KEEPALIVE_INTERVAL_PER_SECOND     60
     /* Return pointer to Rx keepalive interval in seconds */
     static uint16_t device_rx_keepalive_interval = DEVICE_RX_KEEPALIVE_INTERVAL_PER_SECOND;
@@ -300,7 +300,7 @@ static idigi_callback_status_t get_rx_keepalive_interval(uint16_t ** interval, s
 
 static idigi_callback_status_t get_wait_count(uint8_t ** count, size_t * size)
 {
-//#error "Must specify number of times not receiving keepalive messages from server";
+#error "Must specify number of times not receiving keepalive messages from server";
 #define DEVICE_WAIT_COUNT     5
     /* Return pointer to wait count (number of times
      * not receiving Tx keepalive from server.
@@ -314,7 +314,7 @@ static idigi_callback_status_t get_wait_count(uint8_t ** count, size_t * size)
 
 static idigi_callback_status_t get_ip_addr(uint8_t ** ip, size_t * size)
 {
-//#error "Specify Device IP address. Return the response_length to 4-byte for IPv4 or 16-byte for IPv6";
+#error "Specify Device IP address. Return the response_length to 4-byte for IPv4 or 16-byte for IPv6";
 
     idigi_callback_status_t status = idigi_callback_continue;
 
