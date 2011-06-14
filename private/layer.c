@@ -263,7 +263,7 @@ done:
 static idigi_callback_status_t get_supported_facilities(idigi_data_t * idigi_ptr)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    int  i;
+    size_t  i;
     idigi_request_t request_id;
     size_t length;
     bool facility_enable;
@@ -306,7 +306,7 @@ static idigi_callback_status_t get_supported_facilities(idigi_data_t * idigi_ptr
 static idigi_callback_status_t initialize_facilites(idigi_data_t * idigi_ptr)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    int  i;
+    size_t  i;
 
     for (i=idigi_ptr->request_id; (i < idigi_facility_count) && (status == idigi_callback_continue); i++)
     {
