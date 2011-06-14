@@ -54,7 +54,7 @@
  * return value is -1, and the value of the data item pointed to by the
  * parameter ip_addr is undefined.
  */
-static int e_dns_resolve(char const *domain_name, struct in_addr * ip_addr)
+static int e_dns_resolve(char const *domain_name, in_addr_t * ip_addr)
 {
     int rc;
     struct addrinfo *res0;
@@ -81,13 +81,13 @@ static int e_dns_resolve(char const *domain_name, struct in_addr * ip_addr)
     {
         if (res->ai_family == PF_INET)  /* v4 address? */
         {
-        ip_addr->s_addr = ((struct sockaddr_in*)res->ai_addr)->sin_addr.s_addr;
+        *ip_addr = ((struct sockaddr_in*)res->ai_addr)->sin_addr.s_addr;
         rc = 0;     /* Success! */
         break;
         }
     }
 
-    DEBUG_PRINTF("e_dns_resolve: ip address = %s\n", inet_ntoa(*ip_addr));
+    DEBUG_PRINTF("e_dns_resolve: ip address = %s\n", inet_ntoa(((struct sockaddr_in*)res->ai_addr)->sin_addr));
 
     freeaddrinfo(res0);
     if (rc < 0)
@@ -137,11 +137,11 @@ static void set_socket_blockopt(unsigned sockfd, int block)
 
 }
 
-static idigi_callback_status_t network_connect(idigi_connect_request_t * connect_data, idigi_network_handle_t ** network_handle)
+static idigi_callback_status_t network_connect(char * host_name, idigi_network_handle_t ** network_handle)
 {
     idigi_callback_status_t rc = idigi_callback_abort;
 
-    struct in_addr ip_addr;
+    in_addr_t ip_addr;
     struct sockaddr_in sin;
     int s=-1;
     int ccode;
@@ -150,19 +150,19 @@ static idigi_callback_status_t network_connect(idigi_connect_request_t * connect
     fd_set set_wr;       /* writable socket descriptor set for selectsocket() */
     struct timeval conn_to; /* timeout value for selectsocket() */
 
-    if (iDigiSetting.socket_fd == -1)
+    if (device_data.socket_fd == -1)
     {
         /*
          * check if it's a dotted-notation IP address.
          * If it's a domain name, attempt to resolve it.
          */
-        ip_addr.s_addr = inet_addr(connect_data->host_name);
-        if (ip_addr.s_addr == -1)
+        ip_addr = inet_addr(host_name);
+        if (ip_addr == INADDR_NONE)
         {
             /* Resolve domain name */
-            if (e_dns_resolve(connect_data->host_name, &ip_addr) < 0)
+            if (e_dns_resolve(host_name, &ip_addr) < 0)
             {
-                DEBUG_PRINTF("network_connect: Can't resolve DNS for %s\n", connect_data->host_name);
+                DEBUG_PRINTF("network_connect: Can't resolve DNS for %s\n", host_name);
                 /* Can't resolve it either */
                 goto done;
             }
@@ -173,7 +173,7 @@ static idigi_callback_status_t network_connect(idigi_connect_request_t * connect
             goto done;
         }
 
-        iDigiSetting.socket_fd = s;
+        device_data.socket_fd = s;
 
         /* Make socket non-blocking */
         set_socket_blockopt(s, 0);
@@ -181,7 +181,7 @@ static idigi_callback_status_t network_connect(idigi_connect_request_t * connect
         /* try to connect */
         memset((char *)&sin, 0, sizeof(sin));
         memcpy(&sin.sin_addr, &ip_addr, sizeof sin.sin_addr);
-        sin.sin_port = htons(connect_data->port);
+        sin.sin_port = htons(IDIGI_PORT);
         sin.sin_family = AF_INET;
         ccode = connect(s, (struct sockaddr *)&sin, sizeof(sin));
         if (ccode < 0)
@@ -194,7 +194,7 @@ static idigi_callback_status_t network_connect(idigi_connect_request_t * connect
         }
     }
 
-    s = iDigiSetting.socket_fd;
+    s = device_data.socket_fd;
     /*
      *
      * Wait for the connection initiated by the non-blocking connect()
@@ -236,16 +236,16 @@ static idigi_callback_status_t network_connect(idigi_connect_request_t * connect
         }
 
         /* We're connected! */
-        *network_handle = &iDigiSetting.socket_fd;
+        *network_handle = &device_data.socket_fd;
         rc = idigi_callback_continue;
-        DEBUG_PRINTF("network_connect: connected to %s server\n", connect_data->host_name);
+        DEBUG_PRINTF("network_connect: connected to %s server\n", host_name);
     }
 
 done:
     if (rc == idigi_callback_abort && s >= 0)
     {
         close(s);
-        iDigiSetting.socket_fd = -1;
+        device_data.socket_fd = -1;
     }
     return rc;
 }
@@ -262,7 +262,7 @@ static idigi_callback_status_t network_send(idigi_write_request_t * write_data, 
 
         if (err == EAGAIN || err == EWOULDBLOCK)
         {
-            iDigiSetting.select_data |= NETWORK_READ_SET;
+            device_data.select_data |= NETWORK_READ_SET;
             rc = idigi_callback_busy;
         }
         else
@@ -275,13 +275,13 @@ static idigi_callback_status_t network_send(idigi_write_request_t * write_data, 
         }
     }
     *sent_length = ccode;
-    if (ccode < write_data->length)
+    if (ccode < (int)write_data->length)
     {
-        iDigiSetting.select_data |= NETWORK_READ_SET;
+        device_data.select_data |= NETWORK_READ_SET;
     }
     else
     {
-        iDigiSetting.select_data &= ~NETWORK_READ_SET;
+        device_data.select_data &= ~NETWORK_READ_SET;
     }
     /* Return success (the number of bytes sent). */
     return rc;
@@ -308,7 +308,7 @@ static idigi_callback_status_t network_receive(idigi_read_request_t * read_data,
         err = errno;
         if (err == EAGAIN || err == EWOULDBLOCK)
         {
-            iDigiSetting.select_data |= NETWORK_WRITE_SET;
+            device_data.select_data |= NETWORK_WRITE_SET;
             rc = idigi_callback_busy;
         }
         else
@@ -320,13 +320,13 @@ static idigi_callback_status_t network_receive(idigi_read_request_t * read_data,
     }
 
     *read_length = (size_t)ccode;
-    if (ccode < read_data->length)
+    if (ccode < (int)read_data->length)
     {
-        iDigiSetting.select_data |= NETWORK_WRITE_SET;
+        device_data.select_data |= NETWORK_WRITE_SET;
     }
     else
     {
-        iDigiSetting.select_data &= ~NETWORK_WRITE_SET;
+        device_data.select_data &= ~NETWORK_WRITE_SET;
     }
 
     return rc;
@@ -341,9 +341,9 @@ static idigi_callback_status_t network_close(idigi_network_handle_t * fd)
     ling_opt.l_linger = 1;
     ling_opt.l_onoff = 1;
 
-    if (*fd != iDigiSetting.socket_fd)
+    if (*fd != device_data.socket_fd)
     {
-        DEBUG_PRINTF("network_close: mis-match network handle callback %d != local %d\n", *fd, iDigiSetting.socket_fd);
+        DEBUG_PRINTF("network_close: mis-match network handle callback %d != local %d\n", *fd, device_data.socket_fd);
     }
 
     if (setsockopt(*fd, SOL_SOCKET, SO_LINGER, (char*)&ling_opt, sizeof(ling_opt) ) < 0)
@@ -358,7 +358,7 @@ static idigi_callback_status_t network_close(idigi_network_handle_t * fd)
     {
         perror("network close: close fails: ");
     }
-    iDigiSetting.socket_fd = -1;
+    device_data.socket_fd = -1;
 
 
     return status;
@@ -426,10 +426,12 @@ idigi_callback_status_t idigi_network_callback(idigi_network_request_t request,
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
+    UNUSED_PARAMETER(request_length);
+
     switch (request)
     {
     case idigi_network_connect:
-        status = network_connect((idigi_connect_request_t *)request_data, (idigi_network_handle_t **)response_data);
+        status = network_connect((char *)request_data, (idigi_network_handle_t **)response_data);
         *response_length = sizeof(idigi_network_handle_t);
 
         break;
