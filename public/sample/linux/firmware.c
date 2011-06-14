@@ -162,6 +162,7 @@ static idigi_callback_status_t firmware_reset(idigi_fw_config_t * reset_data)
 {
     idigi_callback_status_t   status = idigi_callback_continue;
 
+    UNUSED_PARAMETER(reset_data);
     /* Server requests firmware reboot */
     DEBUG_PRINTF("firmware_reset\n");
 
@@ -175,6 +176,7 @@ idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t request
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_fw_config_t * config = (idigi_fw_config_t *)request_data;
 
+    UNUSED_PARAMETER(request_length);
 
     switch (request)
     {
