@@ -58,8 +58,8 @@ idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t request
                                               void const * request_data, size_t request_length,
                                               void * response_data, size_t * response_length);
 
-idigi_callback_status_t idigi_config_callback(idigi_config_request_t request,
-                                            void const * request_data, size_t request_length,
+idigi_callback_status_t idigi_config_callback(idigi_config_request_t const request,
+                                            void const * request_data, size_t const request_length,
                                             void * response_data, size_t * response_length);
 
 idigi_callback_status_t idigi_network_callback(idigi_network_request_t request,
@@ -70,6 +70,8 @@ uint8_t network_select(idigi_network_handle_t fd, uint8_t select_set, unsigned w
 idigi_callback_status_t idigi_os_callback(idigi_os_request_t request,
                                         void const * request_data, size_t request_length,
                                         void * response_data, size_t * response_length);
+
+bool os_time(time_t *curtime);
 
 
 #ifdef __cplusplus
