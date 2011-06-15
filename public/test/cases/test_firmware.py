@@ -4,7 +4,6 @@ import time
 import unittest
 
 from base64 import encodestring
-import argparse
 import configuration
 
 import xml.dom.minidom
@@ -331,12 +330,5 @@ class FirmwareTestCase(unittest.TestCase):
         
         
 if __name__ == '__main__':
-
-    # Parse configuration file from prompt
-    parser = argparse.ArgumentParser(description='Test for the Connection Control Facility.')
-    parser.add_argument('--config_file', dest="config_file", default="exampleconfig.ini", help='device configuration file')
-    args = parser.parse_args()
-    
-    config = configuration.DeviceConfiguration(args.config_file)
-    
+    config = configuration.DeviceConfiguration()
     unittest.main(argv=" ")

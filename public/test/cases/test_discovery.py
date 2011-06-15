@@ -2,7 +2,6 @@ import idigi_ws_api
 import logging
 import time
 import unittest
-import argparse
 import configuration
 
 config = configuration.DeviceConfiguration()
@@ -52,11 +51,5 @@ class DiscoveryTestCase(unittest.TestCase):
 
         
 if __name__ == '__main__':
-    # Parse configuration file from prompt
-    parser = argparse.ArgumentParser(description='Test for the Connection Control Facility.')
-    parser.add_argument('--config_file', dest="config_file", default="exampleconfig.ini", help='device configuration file')
-    args = parser.parse_args()
-    
-    config = configuration.DeviceConfiguration(args.config_file)
-    
+    config = configuration.DeviceConfiguration()
     unittest.main(argv=" ")
