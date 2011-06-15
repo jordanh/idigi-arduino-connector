@@ -25,7 +25,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <time.h>
 
 #include "idigi_data.h"
 
@@ -67,7 +66,7 @@ int main (void)
 {
     idigi_status_t status = idigi_success;
 
-    time(&device_data.start_system_up_time);
+    os_time(&device_data.start_system_up_time);
     device_data.idigi_handle = NULL;
     device_data.select_data = 0;
     device_data.socket_fd = INADDR_NONE;
