@@ -18,7 +18,7 @@ handler.setFormatter(formatter)
 log.addHandler(handler)
 
 
-def determine_disconnect_reconnect(instance, last_connected, wait_time=12):
+def determine_disconnect_reconnect(instance, last_connected, wait_time=15):
     log.info("Determining if Device %s disconnected." 
             % config.device_id)
     new_device_core = config.api.get_first('DeviceCore', 
@@ -28,26 +28,30 @@ def determine_disconnect_reconnect(instance, last_connected, wait_time=12):
     instance.assertEqual('0', new_device_core.dpConnectionStatus,
             "Device %s did not disconnect." % config.device_id)
         
-    log.info("Waiting %i seconds for device to reconnect." % wait_time)
+    log.info("Waiting up to %i seconds for device to reconnect." % wait_time)
     # We'll assume that the device reconnects within 10 seconds.
-    time.sleep(wait_time)
         
     log.info("Determining if Device %s reconnected." \
             % config.device_id)
-    new_device_core = config.api.get_first('DeviceCore', 
+    
+    for i in range(wait_time/5):
+        time.sleep(5)
+        new_device_core = config.api.get_first('DeviceCore', 
                             condition="devConnectwareId='%s'" % config.device_id)
-        
+        if new_device_core.dpConnectionStatus == "1":
+            break
+           
     # Ensure device has reconnected.
     instance.assertEqual('1', new_device_core.dpConnectionStatus,
-            "Device %s did not reconnect." % config.device_id)
+                    "Device %s did not reconnect." % config.device_id)
 
     log.info("Initial Last Connect Time: %s." % last_connected)
     log.info("New Last Connect Time: %s." 
             % new_device_core.dpLastConnectTime)
     # Ensure that Last Connection Time has changed from initial Device State
-    #instance.assertNotEqual(last_connected, new_device_core.dpLastConnectTime)
+    # instance.assertNotEqual(last_connected, new_device_core.dpLastConnectTime)
     
-#@unittest.skip("skip redirects... they take waaaay too long.")
+
 class RedirectTestCase(unittest.TestCase):
     
     def setUp(self):
@@ -163,7 +167,7 @@ class RedirectTestCase(unittest.TestCase):
         error = response.find("error")
         self.assertNotEqual(-1, error, "Received unexpected response from invalid redirect.")
     
-   
+    #@unittest.skip("skip three destinations -- FAILS in DEBUG mode")
     def test_redirect_three_destinations(self):
         log.info("Beginnning Redirect Test with three destination URLs.")
         last_connected = self.device_core.dpLastConnectTime
@@ -236,4 +240,4 @@ class DisconnectTestCase(unittest.TestCase):
 if __name__ == '__main__':
     config = configuration.DeviceConfiguration()
     
-    unittest.main(argv=" ")
+    unittest.main()

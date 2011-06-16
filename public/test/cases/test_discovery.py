@@ -52,4 +52,5 @@ class DiscoveryTestCase(unittest.TestCase):
         
 if __name__ == '__main__':
     config = configuration.DeviceConfiguration()
-    unittest.main(argv=" ")
+    unittest.main()
+

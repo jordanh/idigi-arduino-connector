@@ -11,6 +11,8 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 log.addHandler(handler)
 
+
+
 class DeviceConfiguration:
     
     def __init__(self, config_file = "config.ini"):
