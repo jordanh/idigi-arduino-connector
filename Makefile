@@ -19,6 +19,10 @@ ifeq ($(LITTLE_ENDIAN),true)
 CFLAGS += -D_LITTLE_ENDIAN
 endif
 
+ifneq ($(FACILITY_FW), false)
+CFLAGS += -D_FIRMWARE_FACILITY
+endif
+
 ifeq ($(DEBUG),true)
 CFLAGS += -DDEBUG -g
 else
@@ -64,6 +68,7 @@ help:
 	@echo "    LIBDIR        = Location of library"
 	@echo "    DEBUG         = true or false for debugging"
 	@echo "    LITTLE_ENDIAN = true or false for little endian"
+	@echo "    FACILITY_FW   = true or false for firmware upgrade capability"
 	@echo "Targets:"
 	@echo "    all           - Build idigi library"
 	@echo "    linux         - Build linux sample"
