@@ -28,7 +28,9 @@
 #include "os_intf.c"
 #include "network_intf.c"
 #include "idigi_cc.c"
+#if defined(_FIRMWARE_FACILITY)
 #include "idigi_fw.c"
+#endif
 #include "idigi_msg.c"
 #include "idigi_data.c"
 #include "idigi_rci.c"
