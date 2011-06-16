@@ -33,25 +33,25 @@
 device_data_t device_data;
 
 
-idigi_callback_status_t idigi_callback(idigi_class_t class, idigi_request_t request,
+idigi_callback_status_t idigi_callback(idigi_class_t class_id, idigi_request_t request_id,
                                     void const * request_data, size_t request_length,
                                     void * response_data, size_t * response_length)
 {
     idigi_callback_status_t   status = idigi_callback_continue;
 
-    switch (class)
+    switch (class_id)
     {
     case idigi_class_config:
-        status = idigi_config_callback(request.config_request, request_data, request_length, response_data, response_length);
+        status = idigi_config_callback(request_id.config_request, request_data, request_length, response_data, response_length);
         break;
     case idigi_class_operating_system:
-        status = idigi_os_callback(request.os_request, request_data, request_length, response_data, response_length);
+        status = idigi_os_callback(request_id.os_request, request_data, request_length, response_data, response_length);
         break;
     case idigi_class_network:
-        status = idigi_network_callback(request.network_request, request_data, request_length, response_data, response_length);
+        status = idigi_network_callback(request_id.network_request, request_data, request_length, response_data, response_length);
         break;
     case idigi_class_firmware:
-        status = idigi_firmware_callback(request.firmware_request, request_data, request_length, response_data, response_length);
+        status = idigi_firmware_callback(request_id.firmware_request, request_data, request_length, response_data, response_length);
         break;
     default:
         /* not supported */
