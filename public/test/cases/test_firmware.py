@@ -4,7 +4,6 @@ import time
 import unittest
 
 from base64 import encodestring
-import argparse
 import configuration
 
 import xml.dom.minidom
