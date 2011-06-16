@@ -282,25 +282,6 @@ typedef enum {
      */
     idigi_config_error_status,
 
-    /* Request ID for server disconnected notification. This is used to tell the callback
-     * that server disconnects iDigi.
-     *
-     * Callback parameters:
-     *  class_id = idigi_class_config
-     *  request_id = idigi_config_disconnected
-     *  request_data = NULL
-     *  request_length = 0
-     *  response_data = NULL
-     *  response_length = NULL
-     *
-     * Callback returns:
-     *  idigi_callback_continue = Callback acknowledges it.
-     *  idigi_callback_abort =  abort iDigi.
-     *  idigi_callback_busy = Callback is busy and needs to be called again.
-     */
-    idigi_config_disconnected,
-
-
     /* Request ID to enable firmware facility
      *
      * The callback parameters:
@@ -409,6 +390,25 @@ typedef enum {
      *  not idigi_callback_continue =  abort and exit iDigi.
      */
     idigi_network_close,
+
+    /* Request ID for server disconnected notification. This is used to tell the callback
+     * that server disconnects iDigi.
+     *
+     * Callback parameters:
+     *  class_id = idigi_class_network
+     *  request_id = idigi_network_disconnected
+     *  request_data = NULL
+     *  request_length = 0
+     *  response_data = NULL
+     *  response_length = NULL
+     *
+     * Callback returns:
+     *  idigi_callback_continue = Callback acknowledges it.
+     *  idigi_callback_abort =  abort iDigi.
+     *  idigi_callback_busy = Callback is busy and needs to be called again.
+     */
+    idigi_network_disconnected,
+
 
 } idigi_network_request_t;
 
