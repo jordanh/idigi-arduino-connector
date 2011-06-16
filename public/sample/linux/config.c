@@ -40,7 +40,7 @@
  */
 static bool get_ip_address(uint8_t ** ip_address, size_t *size)
 {
-    int             fd;
+    int             fd = -1;
     bool            status=false;
     char            *buf = malloc(MAX_INTERFACES*sizeof(struct ifreq));
     struct ifconf   conf;
@@ -171,7 +171,7 @@ static bool get_device_type(char ** type, size_t * size)
 static bool get_server_url(char ** url, size_t * size)
 {
 #error "Specify iDigi Server URL"
-    static const char const *idigi_server_url = "test.idigi.com";
+    static const char const *idigi_server_url = "developer.idigi.com";
 
     /* Return pointer to device type. */
     *url = (char *)idigi_server_url;
@@ -250,16 +250,6 @@ static bool get_wait_count(uint8_t ** count, size_t * size)
     *count = (uint8_t *)&device_wait_count;
     *size = sizeof device_wait_count;
 
-    return true;
-}
-
-
-static bool server_disconnected(void)
-{
-
-    DEBUG_PRINTF("Disconnected from server\n");
-    /* socket should be already closed. */
-    ASSERT(device_data.socket_fd == -1);
     return true;
 }
 
@@ -440,10 +430,6 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
     case idigi_config_error_status:
         ret = idigi_config_error((idigi_error_status_t *)request_data);
         break;
-
-    case idigi_config_disconnected:
-       ret = server_disconnected();
-       break;
 
     case idigi_config_firmware_facility:
         ret = get_firmware_support();
