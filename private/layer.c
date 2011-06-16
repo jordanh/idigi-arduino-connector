@@ -232,7 +232,6 @@ static idigi_callback_status_t get_configurations(idigi_data_t * idigi_ptr)
                 case idigi_config_phone_number:
                 case idigi_config_ip_addr:
                 case idigi_config_error_status:
-                case idigi_config_disconnected:
                 case idigi_config_firmware_facility:
                 case idigi_config_data_service:
                     /* get these configurations from different modules */
