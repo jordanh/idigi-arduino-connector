@@ -339,12 +339,5 @@ class FirmwareTestCase(unittest.TestCase):
         determine_disconnect_reconnect(self, last_connected)
         
 if __name__ == '__main__':
-
-    # Parse configuration file from prompt
-    parser = argparse.ArgumentParser(description='Test for the Connection Control Facility.')
-    parser.add_argument('--config_file', dest="config_file", default="config.ini", help='device configuration file')
-    args = parser.parse_args()
-    
-    config = configuration.DeviceConfiguration(args.config_file)
-    
-    unittest.main(argv=" ")
+    config = configuration.DeviceConfiguration()
+    unittest.main()
