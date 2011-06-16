@@ -438,9 +438,9 @@ static idigi_callback_status_t process_disconnect(idigi_data_t * idigi_ptr, idig
     if (status == idigi_callback_continue)
     {
         idigi_request_t request_id;
-        request_id.config_request = idigi_config_disconnected;
+        request_id.network_request = idigi_network_disconnected;
 
-        status = idigi_callback(idigi_ptr->callback, idigi_class_config, request_id, NULL, 0, NULL, NULL);
+        status = idigi_callback(idigi_ptr->callback, idigi_class_network, request_id, NULL, 0, NULL, NULL);
         if (status == idigi_callback_continue)
         {
             init_setting(idigi_ptr);
