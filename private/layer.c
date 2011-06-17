@@ -30,6 +30,8 @@
 
 #define MANDATORY_FACILITY          -1
 
+#define SET_FACILITY_SUPPORT(i) (0x01 << i)
+#define IS_FACILITY_SUPPORTED(idigi_ptr, table_index)    (idigi_ptr->facilities & SET_FACILITY_SUPPORT(table_index))
 
 typedef idigi_callback_status_t (* idigi_facility_init_cb_t )(struct idigi_data * idigi_ptr);
 
@@ -51,10 +53,13 @@ static idigi_facility_init_t idigi_facility_init_cb[] = {
         {(idigi_config_request_t)MANDATORY_FACILITY, cc_init_facility, cc_delete_facility},
 
         /* list of optional facilities */
+#if defined(_FIRMWARE_FACILITY)
         {idigi_config_firmware_facility, fw_init_facility, fw_delete_facility},
-
+#endif
         /* list of optional services over messaging facility */
+#if defined(_DATA_SERVICE)
         {idigi_config_data_service, data_service_init, data_service_delete}
+#endif
 };
 
 static size_t idigi_facility_count = asizeof(idigi_facility_init_cb);
@@ -67,8 +72,8 @@ static idigi_callback_status_t  remove_facility_layer(idigi_data_t * idigi_ptr)
     {
         idigi_callback_status_t status = idigi_callback_continue;
 
-        if ((idigi_ptr->facilities & (0x1 << idigi_ptr->request_id)) &&
-             idigi_facility_init_cb[idigi_ptr->request_id].delete_cb != NULL)
+        if (IS_FACILITY_SUPPORTED(idigi_ptr, idigi_ptr->request_id) &&
+            idigi_facility_init_cb[idigi_ptr->request_id].delete_cb != NULL)
         {
             status = idigi_facility_init_cb[idigi_ptr->request_id].delete_cb(idigi_ptr);
             if (status != idigi_callback_continue)
@@ -230,7 +235,6 @@ static idigi_callback_status_t get_configurations(idigi_data_t * idigi_ptr)
                 case idigi_config_phone_number:
                 case idigi_config_ip_addr:
                 case idigi_config_error_status:
-                case idigi_config_disconnected:
                 case idigi_config_firmware_facility:
                 case idigi_config_data_service:
                     /* get these configurations from different modules */
@@ -261,7 +265,7 @@ done:
 static idigi_callback_status_t get_supported_facilities(idigi_data_t * idigi_ptr)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    int  i;
+    size_t  i;
     idigi_request_t request_id;
     size_t length;
     bool facility_enable;
@@ -296,17 +300,15 @@ static idigi_callback_status_t get_supported_facilities(idigi_data_t * idigi_ptr
 
         if (facility_enable)
         {
-            idigi_ptr->facilities |= (0x01 << i);
+            idigi_ptr->facilities |= SET_FACILITY_SUPPORT(i);
         }
     }
     return status;
 }
-
-#define IS_FACILITY_SUPPORTED(idigi_ptr, table_index)    (idigi_ptr->facilities & (0x01 << table_index))
 static idigi_callback_status_t initialize_facilites(idigi_data_t * idigi_ptr)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    int  i;
+    size_t  i;
 
     for (i=idigi_ptr->request_id; (i < idigi_facility_count) && (status == idigi_callback_continue); i++)
     {
@@ -378,7 +380,7 @@ static idigi_callback_status_t communication_layer(idigi_data_t * idigi_ptr)
     case communication_connect_server:
         if (idigi_ptr->network_handle == NULL)
         {
-            status = connect_server(idigi_ptr, idigi_ptr->server_url, EDP_MT_PORT);
+            status = connect_server(idigi_ptr, idigi_ptr->server_url);
         }
 
         if (status == idigi_callback_continue)

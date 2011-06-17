@@ -438,9 +438,9 @@ static idigi_callback_status_t process_disconnect(idigi_data_t * idigi_ptr, idig
     if (status == idigi_callback_continue)
     {
         idigi_request_t request_id;
-        request_id.config_request = idigi_config_disconnected;
+        request_id.network_request = idigi_network_disconnected;
 
-        status = idigi_callback(idigi_ptr->callback, idigi_class_config, request_id, NULL, 0, NULL, NULL);
+        status = idigi_callback(idigi_ptr->callback, idigi_class_network, request_id, NULL, 0, NULL, NULL);
         if (status == idigi_callback_continue)
         {
             init_setting(idigi_ptr);
@@ -551,7 +551,7 @@ static idigi_callback_status_t  process_redirect(idigi_data_t * idigi_ptr, idigi
                 server_url += prefix_len;
             }
 
-            status = connect_server(idigi_ptr, server_url, EDP_MT_PORT);
+            status = connect_server(idigi_ptr, server_url);
             if (status == idigi_callback_continue && idigi_ptr->network_handle != NULL)
             {
                 cc_ptr->report_code = cc_redirect_success;

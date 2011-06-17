@@ -309,23 +309,26 @@ static idigi_callback_status_t process_capabilities(idigi_data_t * idigi_ptr, id
 
 static idigi_callback_status_t process_msg_start(idigi_data_t * idigi_ptr, idigi_msg_data_t * msg_fac, uint8_t *ptr)
 {
-    (void)msg_fac;
-    (void)ptr;
+    UNUSED_PARAMETER(idigi_ptr);
+    UNUSED_PARAMETER(msg_fac);
+    UNUSED_PARAMETER(ptr);
 
     return idigi_callback_continue;
 }
 
 static idigi_callback_status_t process_msg_data(idigi_data_t * idigi_ptr, idigi_msg_data_t * msg_fac, uint8_t *ptr)
 {
-    (void)msg_fac;
-    (void)ptr;
+    UNUSED_PARAMETER(idigi_ptr);
+    UNUSED_PARAMETER(msg_fac);
+    UNUSED_PARAMETER(ptr);
 
     return idigi_callback_continue;
 }
 
 static idigi_callback_status_t process_msg_ack(idigi_data_t * idigi_ptr, idigi_msg_data_t * msg_fac, uint8_t *ptr)
 {
-    
+    UNUSED_PARAMETER(idigi_ptr);
+
     ptr++; /* flags, not used at this point */
     ptr += sizeof(uint16_t); /* session id */
 

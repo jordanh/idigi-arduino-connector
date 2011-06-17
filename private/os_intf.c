@@ -40,6 +40,7 @@ static void init_setting(idigi_data_t * idigi_ptr)
     idigi_ptr->receive_packet.total_length = 0;
     idigi_ptr->receive_packet.length = 0;
     idigi_ptr->receive_packet.index = 0;
+    idigi_ptr->receive_packet.free_packet_buffer = &idigi_ptr->receive_packet.packet_buffer;
 
 
 }
@@ -217,8 +218,9 @@ static idigi_callback_status_t add_facility_data(idigi_data_t * idigi_ptr, uint1
 
         buffer_ptr = ptr + size + facility_size;
         buffer_ptr->in_used = false;
-        buffer_ptr->next = idigi_ptr->packet_buffer.next;
-        idigi_ptr->packet_buffer.next = buffer_ptr;
+        /* set up an additional receive buffer to the idigi data */
+        buffer_ptr->next = idigi_ptr->receive_packet.packet_buffer.next;
+        idigi_ptr->receive_packet.packet_buffer.next = buffer_ptr;
     }
 
     return status;

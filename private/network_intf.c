@@ -209,7 +209,9 @@ done:
 
 static void release_packet_buffer(idigi_data_t * idigi_ptr, idigi_packet_t * packet, idigi_status_t status)
 {
+    UNUSED_PARAMETER(status);
     ASSERT(idigi_ptr->send_packet.packet_buffer.buffer == (uint8_t *)packet);
+    UNUSED_PARAMETER(packet);
 
     idigi_ptr->send_packet.packet_buffer.in_used = false;
     idigi_ptr->send_packet.packet_buffer.facility = E_MSG_MT2_MSG_NUM;
@@ -334,14 +336,12 @@ static idigi_packet_t * new_receive_packet(idigi_data_t * idigi_ptr)
     idigi_buffer_t * buffer_ptr;
     idigi_packet_t * packet = NULL;
 
-    for (buffer_ptr = &idigi_ptr->packet_buffer; buffer_ptr != NULL; buffer_ptr = buffer_ptr->next)
+    buffer_ptr = idigi_ptr->receive_packet.free_packet_buffer;
+    if (buffer_ptr != NULL)
     {
-        if (!buffer_ptr->in_used)
-        {
-            buffer_ptr->in_used = true;
-            packet = (idigi_packet_t *)buffer_ptr->buffer;
-            break;
-        }
+        packet = (idigi_packet_t *)buffer_ptr->buffer;
+        packet->header.avail_length = sizeof buffer_ptr->buffer - sizeof(idigi_packet_hdr_t);
+        idigi_ptr->receive_packet.free_packet_buffer = buffer_ptr->next;
     }
 #if defined(DEBUG)
     if (buffer_ptr == NULL)
@@ -355,23 +355,15 @@ static idigi_packet_t * new_receive_packet(idigi_data_t * idigi_ptr)
 
 static void release_receive_packet(idigi_data_t * idigi_ptr, idigi_packet_t * packet)
 {
-    idigi_buffer_t * buffer_ptr;
+    idigi_buffer_t * buffer_ptr = (idigi_buffer_t *)packet;
 
-    for (buffer_ptr = &idigi_ptr->packet_buffer; buffer_ptr != NULL; buffer_ptr = buffer_ptr->next)
+    ASSERT(packet != NULL);
+
+    if (packet != NULL)
     {
-        if (buffer_ptr->buffer == (uint8_t *)packet)
-        {
-            buffer_ptr->in_used = false;
-            break;
-        }
+        buffer_ptr->next = idigi_ptr->receive_packet.free_packet_buffer;
+        idigi_ptr->receive_packet.free_packet_buffer = buffer_ptr;
     }
-
-    if (buffer_ptr == NULL)
-    {
-        ASSERT(0);
-        DEBUG_PRINTF("release_receive_packet: unrecognized packet\n");
-    }
-
     return;
 }
 
@@ -464,7 +456,9 @@ static int receive_data(idigi_data_t * idigi_ptr, uint8_t * buffer, size_t lengt
              */
             bytes_received = -idigi_keepalive_error;
             request_id.network_request = idigi_network_receive;
-            notify_error_status(idigi_ptr->callback, idigi_class_config, request_id, idigi_keepalive_error);
+            status = idigi_callback_abort;
+            idigi_ptr->error_code = idigi_keepalive_error;
+            notify_error_status(idigi_ptr->callback, idigi_class_config, request_id, idigi_ptr->error_code);
             DEBUG_PRINTF("idigi_receive: keepalive fail\n");
         }
     }
@@ -575,7 +569,10 @@ static idigi_callback_status_t receive_packet(idigi_data_t * idigi_ptr, idigi_pa
             idigi_ptr->receive_packet.total_length = 0;
             idigi_ptr->receive_packet.index = 0;
             idigi_ptr->receive_packet.data_packet = new_receive_packet(idigi_ptr);
-            ASSERT_GOTO(idigi_ptr->receive_packet.data_packet != NULL, done);
+            if (idigi_ptr->receive_packet.data_packet == NULL)
+            {
+                goto done;
+            }
             idigi_ptr->receive_packet.index++;
             break;
 
@@ -696,6 +693,7 @@ static idigi_callback_status_t receive_packet(idigi_data_t * idigi_ptr, idigi_pa
             }
             else 
             {
+                ASSERT(idigi_ptr->receive_packet.data_packet->header.length < idigi_ptr->receive_packet.data_packet->header.avail_length);
                 /*
                  * Read the actual message data bytes into the packet buffer.
                  */
@@ -719,18 +717,15 @@ done:
     return status;
 }
 
-static idigi_callback_status_t connect_server(idigi_data_t * idigi_ptr, char * server_url, unsigned port)
+static idigi_callback_status_t connect_server(idigi_data_t * idigi_ptr, char * server_url)
 {
     idigi_callback_status_t status;
-    idigi_connect_request_t request;
     size_t length;
     idigi_request_t request_id;
 
-    request.host_name = server_url;
-    request.port = port;
 
     request_id.network_request = idigi_network_connect;
-    status = idigi_callback(idigi_ptr->callback, idigi_class_network, request_id, &request, sizeof request, &idigi_ptr->network_handle, &length);
+    status = idigi_callback(idigi_ptr->callback, idigi_class_network, request_id, server_url, strlen(server_url), &idigi_ptr->network_handle, &length);
     if (status == idigi_callback_continue)
     {
         if (idigi_ptr->network_handle != NULL && length == sizeof(idigi_network_handle_t))

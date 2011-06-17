@@ -19,13 +19,21 @@ ifeq ($(LITTLE_ENDIAN),true)
 CFLAGS += -D_LITTLE_ENDIAN
 endif
 
+ifneq ($(FACILITY_FW), false)
+CFLAGS += -D_FIRMWARE_FACILITY
+endif
+
+ifneq ($(DATA_SERVICE), false)
+CFLAGS += -D_DATA_SERVICE
+endif
+
 ifeq ($(DEBUG),true)
 CFLAGS += -DDEBUG -g
 else
 CFLAGS += -DNDEBUG -O2
 endif
 
-CFLAGS += -I$(PUBLIC_HDR_DIR) -I./private -Wall -Werror
+CFLAGS += -I$(PUBLIC_HDR_DIR) -I./private -Wall -Werror -Wextra
 
 vpath $(LIB_SRC_DIR)/%.c
 vpath $(LIB_SRC_DIR)/%.h
@@ -64,6 +72,8 @@ help:
 	@echo "    LIBDIR        = Location of library"
 	@echo "    DEBUG         = true or false for debugging"
 	@echo "    LITTLE_ENDIAN = true or false for little endian"
+	@echo "    FACILITY_FW   = true or false for firmware upgrade capability"
+	@echo "    DATA_SERVICE  = true or false for data service capability"
 	@echo "Targets:"
 	@echo "    all           - Build idigi library"
 	@echo "    linux         - Build linux sample"

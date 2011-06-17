@@ -55,7 +55,7 @@
 
 #ifdef _LITTLE_ENDIAN
 
-static unsigned long
+static inline unsigned long
 swap32(unsigned long value)
 {
     uint32_t v = (value << 16) | (value >> 16);

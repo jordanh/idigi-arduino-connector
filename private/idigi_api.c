@@ -28,9 +28,15 @@
 #include "os_intf.c"
 #include "network_intf.c"
 #include "idigi_cc.c"
+#if defined(_FIRMWARE_FACILITY)
 #include "idigi_fw.c"
+#endif
+#if defined(_DATA_SERVICE) || defined(_FILE_SERVICE)
 #include "idigi_msg.c"
+#endif
+#if defined(_DATA_SERVICE)
 #include "idigi_data.c"
+#endif
 #include "idigi_rci.c"
 #include "layer.c"
 
@@ -74,8 +80,8 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
     idigi_handle->facilities = 0;
     idigi_handle->network_busy = false;
     idigi_handle->edp_connected = false;
-    idigi_handle->packet_buffer.in_used = false;
-    idigi_handle->packet_buffer.next = NULL;
+    idigi_handle->receive_packet.packet_buffer.in_used = false;
+    idigi_handle->receive_packet.packet_buffer.next = NULL;
 
 
 
@@ -130,7 +136,6 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
                 case idigi_config_wait_count:
                 case idigi_config_ip_addr:
                 case idigi_config_error_status:
-                case idigi_config_disconnected:
                 case idigi_config_firmware_facility:
                 case idigi_config_data_service:
                     ASSERT(0);

@@ -22,56 +22,67 @@
  * =======================================================================
  *
  */
-#include <sys/stat.h>
-#include <fcntl.h>
+#include <malloc.h>
+#include <time.h>
 #include <unistd.h>
-#include <errno.h>
-
+#include "idigi_struct.h"
 #include "idigi_data.h"
 
-idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t request,
-                                                  void const * request_data, size_t request_length,
-                                                  void * response_data, size_t * response_length)
+
+static idigi_callback_status_t os_malloc(size_t size, void ** ptr)
+{
+    idigi_callback_status_t rc = idigi_callback_continue;
+    *ptr = malloc(size);
+    if (*ptr == NULL)
+    {
+        rc = idigi_callback_busy;
+    }
+    return rc;
+}
+
+static idigi_callback_status_t os_free(void * ptr)
+{
+    free(ptr);
+    return idigi_callback_continue;
+}
+
+
+static idigi_callback_status_t os_get_system_time(uint32_t * mstime)
+{
+    time_t      curtime;
+
+    time(&curtime);
+
+    *mstime = (uint32_t)(curtime - iDigiSetting.start_system_up_time) * 1000;
+
+    return idigi_callback_continue;
+}
+
+idigi_callback_status_t idigi_os_callback(idigi_os_request_t request,
+                                        void const * request_data, size_t request_length,
+                                        void * response_data, size_t * response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
     UNUSED_PARAMETER(request_length);
-    UNUSED_PARAMETER(response_data);
     UNUSED_PARAMETER(response_length);
 
     switch (request)
     {
-    case idigi_data_service_send_complete:
-    {
-        idigi_data_send_t const * send_info = request_data;
-
-        UNUSED_PARAMETER(send_info);
-        DEBUG_PRINTF("Handle: %d, status: %d, sent: %d bytes\n", send_info->handle, send_info->status, send_info->bytes_sent);
-        break;
-    }
-
-    case idigi_data_service_error:
-    {
-        idigi_data_error_t const * error_block = request_data;
-
-        UNUSED_PARAMETER(error_block);
-        DEBUG_PRINTF("Handle: %d, error: %d\n", error_block->handle, error_block->error);
-        break;
-    }
-
-    case idigi_data_service_response:
-    {
-        idigi_data_response_t const * response = request_data;
-
-        UNUSED_PARAMETER(response);
-        DEBUG_PRINTF("Handle: %d, status: %d, message: %s\n", response->handle, response->status, response->message);
-        break;
-    }
-
-    default:
+    case idigi_os_malloc:
+        status = os_malloc(*((size_t *)request_data), (void **)response_data);
         break;
 
+    case idigi_os_free:
+        status = os_free((void *)request_data);
+        break;
+
+    case idigi_os_system_up_time:
+        status = os_get_system_time((uint32_t *)response_data);
+        break;
     }
 
     return status;
 }
+
+

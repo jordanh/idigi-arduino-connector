@@ -1,0 +1,5 @@
+LDFLAGS=-G -lc
+LITTLE_ENDIAN=true
+CFLAGS=-fPIC
+LIBDIR=private
+DEBUG=true

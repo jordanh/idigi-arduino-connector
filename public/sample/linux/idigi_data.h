@@ -34,6 +34,9 @@
 extern "C"
 {
 #endif
+
+#define UNUSED_PARAMETER(x)     ((void)x)
+
 #define DEVICE_ID_LENGTH    16
 #define VENDOR_ID_LENGTH    4
 #define MAC_ADDR_LENGTH     6
@@ -43,34 +46,20 @@ extern "C"
 #define NETWORK_TIMEOUT_SET   0x01 << 2
 
 typedef struct {
-    uint8_t         vendor_id[VENDOR_ID_LENGTH];
-    uint16_t        tx_keepalive;
-    uint16_t        rx_keepalive;
-    uint8_t         wait_count;
-    char            * device_type;
-    char            * server_url;
-    char            * password;
-    uint8_t         * phone_number;
-    uint32_t        link_speed;
-    idigi_connection_type_t connection_type;
-    uint8_t         mac_addr[MAC_ADDR_LENGTH];
-
-    uint32_t        ip_addr; /* only IPv4 */
-
-    idigi_handle_t             idigi_handle;
-    idigi_network_handle_t     socket_fd;
+    time_t                   start_system_up_time;
+    idigi_handle_t           idigi_handle;
+    idigi_network_handle_t   socket_fd;
     uint8_t                  select_data;
-} idigi_data_t;
+} device_data_t;
 
-extern idigi_data_t iDigiSetting;
-extern time_t  deviceSystemUpStartTime;
+extern device_data_t device_data;
 
 idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t request,
                                               void const * request_data, size_t request_length,
                                               void * response_data, size_t * response_length);
 
-idigi_callback_status_t idigi_config_callback(idigi_config_request_t request,
-                                            void const * request_data, size_t request_length,
+idigi_callback_status_t idigi_config_callback(idigi_config_request_t const request,
+                                            void const * request_data, size_t const request_length,
                                             void * response_data, size_t * response_length);
 
 idigi_callback_status_t idigi_network_callback(idigi_network_request_t request,
@@ -85,6 +74,8 @@ idigi_callback_status_t idigi_os_callback(idigi_os_request_t request,
 idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t request,
                                                   void const * request_data, size_t request_length,
                                                   void * response_data, size_t * response_length);
+bool os_time(time_t *curtime);
+
 
 #ifdef __cplusplus
 }

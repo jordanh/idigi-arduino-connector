@@ -25,39 +25,36 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <time.h>
 
 #include "idigi_data.h"
 
-/* If set, iDigi will start as a separated thread calling idigi_run */
-#define IDIGI_THREAD  0
-
 #define ONE_SECOND  1
-time_t  deviceSystemUpStartTime;
+
+device_data_t device_data;
 
 
-idigi_callback_status_t idigi_callback(idigi_class_t class, idigi_request_t request,
+idigi_callback_status_t idigi_callback(idigi_class_t class_id, idigi_request_t request_id,
                                     void const * request_data, size_t request_length,
                                     void * response_data, size_t * response_length)
 {
     idigi_callback_status_t   status = idigi_callback_continue;
 
-    switch (class)
+    switch (class_id)
     {
     case idigi_class_config:
-        status = idigi_config_callback(request.config_request, request_data, request_length, response_data, response_length);
+        status = idigi_config_callback(request_id.config_request, request_data, request_length, response_data, response_length);
         break;
     case idigi_class_operating_system:
-        status = idigi_os_callback(request.os_request, request_data, request_length, response_data, response_length);
+        status = idigi_os_callback(request_id.os_request, request_data, request_length, response_data, response_length);
         break;
     case idigi_class_network:
-        status = idigi_network_callback(request.network_request, request_data, request_length, response_data, response_length);
+        status = idigi_network_callback(request_id.network_request, request_data, request_length, response_data, response_length);
         break;
     case idigi_class_firmware:
-        status = idigi_firmware_callback(request.firmware_request, request_data, request_length, response_data, response_length);
+        status = idigi_firmware_callback(request_id.firmware_request, request_data, request_length, response_data, response_length);
         break;
     case idigi_class_data_service:
-        status = idigi_data_service_callback(request.data_service_request, request_data, request_length, response_data, response_length);
+        status = idigi_data_service_callback(request_id.data_service_request, request_data, request_length, response_data, response_length);
         break;
     default:
         /* not supported */
@@ -67,76 +64,30 @@ idigi_callback_status_t idigi_callback(idigi_class_t class, idigi_request_t requ
 }
 
 
-#if IDIGI_THREAD
-
-#include <pthread.h>
-
-void * idigi_process_thread(void * arg)
-{
-    idigi_status_t status;
-
-    DEBUG_PRINTF("iDigi Process thread starts...\n");
-
-    status = idigi_run((idigi_handle_t)arg);
-
-    DEBUG_PRINTF("iDigi process thread exits... %d\n", status);
-
-    pthread_exit(arg);
-
-}
-
-int main (void)
-{
-    pthread_t   idigi_thread;
-    void * idkdone;
-
-    time(&deviceSystemUpStartTime);
-
-    iDigiSetting.idigi_handle = idigi_init((idigi_callback_t) idigi_callback);
-    if (iDigiSetting.idigi_handle != 0)
-    {
-
-        if (pthread_create(&idigi_thread, NULL, idigi_process_thread, iDigiSetting.idigi_handle) != 0)
-        {
-            perror("thread_create() error on idigi_process_thread");
-            goto done;
-        }
-
-        if (pthread_join(idigi_thread, &idkdone) != 0)
-        {
-            perror("thread_join() error on my_process_thread");
-            goto done;
-        }
-    }
-    else
-    {
-        DEBUG_PRINTF("unable to initialize iDigi\n");
-    }
-done:
-    return 0;
-}
-#else
 
 int main (void)
 {
     idigi_status_t status = idigi_success;
 
-    time(&deviceSystemUpStartTime);
+    os_time(&device_data.start_system_up_time);
+    device_data.idigi_handle = NULL;
+    device_data.select_data = 0;
+    device_data.socket_fd = INADDR_NONE;
 
     DEBUG_PRINTF("Start iDigi\n");
-    iDigiSetting.idigi_handle = idigi_init((idigi_callback_t) idigi_callback);
-    if (iDigiSetting.idigi_handle != 0)
+    device_data.idigi_handle = idigi_init((idigi_callback_t) idigi_callback);
+    if (device_data.idigi_handle != 0)
     {
 
         while (status == idigi_success)
         {
-            status = idigi_step(iDigiSetting.idigi_handle);
-            iDigiSetting.select_data = 0;
+            status = idigi_step(device_data.idigi_handle);
+            device_data.select_data = 0;
 
             if (status == idigi_success)
             {
-                iDigiSetting.select_data |= NETWORK_TIMEOUT_SET | NETWORK_READ_SET;
-                network_select(iDigiSetting.socket_fd, iDigiSetting.select_data, ONE_SECOND);
+                device_data.select_data |= NETWORK_TIMEOUT_SET | NETWORK_READ_SET;
+                network_select(device_data.socket_fd, device_data.select_data, ONE_SECOND);
             }
         }
         DEBUG_PRINTF("idigi status = %d\n", status);
@@ -145,4 +96,3 @@ int main (void)
     return 0;
 }
 
-#endif

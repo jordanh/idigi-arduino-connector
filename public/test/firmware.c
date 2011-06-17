@@ -28,26 +28,15 @@
 #include <errno.h>
 
 #include "idigi_data.h"
+#include "firmware.h"
 
 #define asizeof(array)      (sizeof(array)/sizeof(array[0]))
 
-typedef struct {
-    uint32_t    version;
-    uint32_t    code_size;
-    char        * name_spec;
-    char        * description;
-} firmware_list_t;
-
-/* list of all supported firmware target info */
-static firmware_list_t fimware_list[] = {
-    /* version     code_size     name_spec          description */
-    {0x01000000, (uint32_t)-1, ".*\\.a",            "Library Image"}, /* any *.a files */
-    {0x00000100, (uint32_t)-1, ".*\\.[bB][iI][nN]", "Binary Image" }  /* any *.bin files */
-};
-static uint16_t fimware_list_count = asizeof(fimware_list);
-
 static bool firmware_download_started = false;
 static size_t total_image_size = 0;
+
+firmware_list_t* firmware_list;
+uint8_t firmware_list_count;
 
 static idigi_callback_status_t firmware_download_request(idigi_fw_download_request_t * download_data, idigi_fw_status_t * download_status)
 {
@@ -139,6 +128,8 @@ static idigi_callback_status_t firmware_download_complete(idigi_fw_download_comp
     firmware_download_started = false;
 
 done:
+    // Insert arbitrary 5 second sleep to simulate processing of firmware.  This will likely be removed later.
+    sleep(5);
     return status;
 }
 
@@ -162,7 +153,6 @@ static idigi_callback_status_t firmware_reset(idigi_fw_config_t * reset_data)
 {
     idigi_callback_status_t   status = idigi_callback_continue;
 
-    UNUSED_PARAMETER(reset_data);
     /* Server requests firmware reboot */
     DEBUG_PRINTF("firmware_reset\n");
 
@@ -176,7 +166,6 @@ idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t request
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_fw_config_t * config = (idigi_fw_config_t *)request_data;
 
-    UNUSED_PARAMETER(request_length);
 
     switch (request)
     {
@@ -184,37 +173,37 @@ idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t request
     {
         uint16_t * count = (uint16_t *)response_data;
         /* return total number of firmware update targets */
-        *count = fimware_list_count;
+        *count = firmware_list_count;
         break;
     }
     case idigi_firmware_version:
     {
         uint32_t * version = (uint32_t *)response_data;
         /* return the target version number */
-        *version = fimware_list[config->target].version;
+        *version = firmware_list[config->target].version;
         break;
     }
     case idigi_firmware_code_size:
     {
         /* Return the target code size */
         uint32_t * code_size = (uint32_t *)response_data;
-        *code_size = fimware_list[config->target].code_size;
+        *code_size = firmware_list[config->target].code_size;
         break;
     }
     case idigi_firmware_description:
     {
         /* return pointer to firmware target description */
         char ** description = (char **)response_data;
-        *description = fimware_list[config->target].description;
-        *response_length = strlen(fimware_list[config->target].description);
+        *description = firmware_list[config->target].description;
+        *response_length = strlen(firmware_list[config->target].description);
        break;
     }
     case idigi_firmware_name_spec:
     {
         /* return pointer to firmware target description */
         char ** name_spec = (char **)response_data;
-        *name_spec = fimware_list[config->target].name_spec;
-        *response_length = strlen(fimware_list[config->target].name_spec);
+        *name_spec = firmware_list[config->target].name_spec;
+        *response_length = strlen(firmware_list[config->target].name_spec);
         break;
     }
     case idigi_firmware_download_request:

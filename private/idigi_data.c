@@ -46,7 +46,11 @@ typedef struct
     bool in_use;
     uint32_t bytes_sent;
     idigi_data_request_t const * req_ptr;
-    uint8_t buffer[MSG_MAX_PACKET_SIZE];
+    union
+    {
+        idigi_packet_t pkt_header;
+        uint8_t buffer[MSG_MAX_PACKET_SIZE];
+    };
 } data_service_record_t;
 
 /* one active transaction at any time */
@@ -139,14 +143,13 @@ static idigi_status_t data_service_send_chunk(idigi_data_t * data_ptr, bool firs
     uint16_t session_id = MSG_INVALID_SESSION_ID;
     data_service_record_t * service = &data_service_record;
     idigi_data_request_t const * request = service->req_ptr;
-    idigi_packet_t * packet = (idigi_packet_t *)service->buffer;
+    size_t pkt_length;
     uint8_t * data;
     
     {
         bool const start_requested = (request->flag & IDIGI_DATA_REQUEST_START) != 0;
-        bool const first_chunk = (service->bytes_sent == 0);
         bool const start_bit = (start_requested && first_chunk);
-        size_t const header_len = sizeof *packet + (start_bit ? DATA_SERVICE_MSG_START_LENGTH : DATA_SERVICE_MSG_DATA_LENGTH);
+        size_t const header_len = sizeof(idigi_packet_t) + (start_bit ? DATA_SERVICE_MSG_START_LENGTH : DATA_SERVICE_MSG_DATA_LENGTH);
 
         data = service->buffer + header_len;
         if (start_bit) 
@@ -166,19 +169,25 @@ static idigi_status_t data_service_send_chunk(idigi_data_t * data_ptr, bool firs
         data += filled_len; 
     }
 
-    packet->header.length = (uint16_t)(data - service->buffer); /* includes header */
+    pkt_length = (data - service->buffer); /* includes header */
+    ASSERT_GOTO(pkt_length < MSG_MAX_PACKET_SIZE, error);
 
     {
-        size_t const available = MSG_MAX_PACKET_SIZE - packet->header.length;
+        size_t const available = MSG_MAX_PACKET_SIZE - pkt_length;
         size_t const remaining = request->payload_length - service->bytes_sent;
         size_t const bytes = (remaining > available) ? available : remaining;
 
-        memcpy(data, request->payload, bytes);
-        packet->header.length += bytes;
+        memcpy(data, &request->payload[service->bytes_sent], bytes);
+        pkt_length += bytes;
         service->bytes_sent += bytes;
     }
 
-    status = msg_send_data(data_ptr, session_id, packet, request->flag, data_service_send_complete);
+    {
+        idigi_packet_t * packet = &service->pkt_header;
+
+        packet->header.length = (uint16_t)pkt_length;
+        status = msg_send_data(data_ptr, session_id, packet, request->flag, data_service_send_complete);
+    }
 
 error:
     return session_id;

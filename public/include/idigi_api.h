@@ -33,6 +33,8 @@ extern "C"
 {
 #endif
 
+#define IDIGI_PORT       3197
+#define IDIGI_SSL_PORT   3199
 /* iDigi return status
  *
  */
@@ -281,25 +283,6 @@ typedef enum {
      */
     idigi_config_error_status,
 
-    /* Request ID for server disconnected notification. This is used to tell the callback
-     * that server disconnects iDigi.
-     *
-     * Callback parameters:
-     *  class_id = idigi_class_config
-     *  request_id = idigi_config_disconnected
-     *  request_data = NULL
-     *  request_length = 0
-     *  response_data = NULL
-     *  response_length = NULL
-     *
-     * Callback returns:
-     *  idigi_callback_continue = Callback acknowledges it.
-     *  idigi_callback_abort =  abort iDigi.
-     *  idigi_callback_busy = Callback is busy and needs to be called again.
-     */
-    idigi_config_disconnected,
-
-
     /* Request ID to enable firmware facility
      *
      * The callback parameters:
@@ -341,8 +324,9 @@ typedef enum {
      * Callback parameters:
      *  class_id = idigi_class_network
      *  request_id = idigi_config_connect
-     *  request_data = pointer to idigi_connect_request_t containing server FQDN and
-     *                 port which callback makes connection to.
+     *  request_data = pointer to server FQDN which callback will make connection to.
+     *                 Callback uses IDIGI_PORT or IDIGI_SSL_PORT port number to establish
+     *                 non-secured or secured connection respectively.
      *  request_length = size of idigi_connect_request_t
      *  response_data = callback returns pointer to idigi_network_handle_t.
      *                              (This is used to for send, receive, & close callbacks)
@@ -407,6 +391,25 @@ typedef enum {
      *  not idigi_callback_continue =  abort and exit iDigi.
      */
     idigi_network_close,
+
+    /* Request ID for server disconnected notification. This is used to tell the callback
+     * that server disconnects iDigi.
+     *
+     * Callback parameters:
+     *  class_id = idigi_class_network
+     *  request_id = idigi_network_disconnected
+     *  request_data = NULL
+     *  request_length = 0
+     *  response_data = NULL
+     *  response_length = NULL
+     *
+     * Callback returns:
+     *  idigi_callback_continue = Callback acknowledges it.
+     *  idigi_callback_abort =  abort iDigi.
+     *  idigi_callback_busy = Callback is busy and needs to be called again.
+     */
+    idigi_network_disconnected,
+
 
 } idigi_network_request_t;
 
@@ -643,8 +646,8 @@ typedef enum {
 
 typedef enum {
     idigi_data_service_send_complete,
-    idigi_data_service_error,
-    idigi_data_service_response
+    idigi_data_service_response,
+    idigi_data_service_error    
 } idigi_data_service_request_t;
 
 typedef enum {
@@ -725,19 +728,6 @@ typedef struct  {
     idigi_status_t status;
 } idigi_error_status_t;
 
-/* network connect structure
- *
- * This structure is used in a callback for idigi_config_connect request ID to
- * establish connection between a device and iDigi server.
- *
- * @param host_name     Pointer to FQDN of iDigi server to connect to.
- * @param port          Port number to connect to.
- *
- */
-typedef struct  {
-    char * host_name;
-    unsigned    port;
-} idigi_connect_request_t;
 
 /* Network write structure
  *

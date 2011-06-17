@@ -27,54 +27,90 @@
 #include <unistd.h>
 #include "idigi_data.h"
 
+/* OS interface routines for the IIK */
 
-static idigi_callback_status_t os_malloc(size_t size, void ** ptr)
+static bool os_malloc(size_t const size, void ** ptr)
 {
-    idigi_callback_status_t rc = idigi_callback_continue;
+    bool status=true;
+
     *ptr = malloc(size);
-    if (*ptr == NULL)
+    ASSERT(*ptr != NULL);
+    if (*ptr != NULL)
     {
-        rc = idigi_callback_busy;
+        status = true;
     }
-    return rc;
+
+    return status;
 }
 
-static idigi_callback_status_t os_free(void * ptr)
+static idigi_callback_status_t os_free(void * const ptr)
 {
-    free(ptr);
-    return idigi_callback_continue;
+    bool status=false;
+    ASSERT(ptr != NULL);
+
+    if (ptr != NULL)
+    {
+        free(ptr);
+        status = true;
+    }
+    return status;
 }
 
-
-static idigi_callback_status_t os_get_system_time(uint32_t * mstime)
+bool os_time(time_t * curtime)
 {
-    time_t      curtime;
 
-    time(&curtime);
+    time(curtime);
 
-    *mstime = (uint32_t)(curtime - deviceSystemUpStartTime) * 1000;
-
-    return idigi_callback_continue;
+    return true;
 }
 
-idigi_callback_status_t idigi_os_callback(idigi_os_request_t request,
+/* End of OS specific routines */
+
+static bool os_get_system_time(uint32_t * const mstime)
+{
+    time_t curtime;
+    bool ret = os_time(&curtime);
+
+    if (ret)
+    {
+        *mstime = (uint32_t)(curtime - device_data.start_system_up_time) * 1000;
+    }
+    else
+    {
+        *mstime = 0; /* Time is not available */
+    }
+
+    return ret;
+}
+
+idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
                                         void const * request_data, size_t request_length,
                                         void * response_data, size_t * response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
+    bool ret=false;
+
+    UNUSED_PARAMETER(request_length);
+    UNUSED_PARAMETER(response_length);
 
     switch (request)
     {
     case idigi_os_malloc:
-        status = os_malloc(*((size_t *)request_data), (void **)response_data);
+        ret    = os_malloc(*((size_t *)request_data), (void **)response_data);
+        status = (ret == true) ? idigi_callback_continue : idigi_callback_busy;
         break;
 
     case idigi_os_free:
-        status = os_free((void *)request_data);
+        ret    = os_free((void *)request_data);
+        status = (ret == true) ? idigi_callback_continue : idigi_callback_abort;
         break;
 
     case idigi_os_system_up_time:
-        status = os_get_system_time((uint32_t *)response_data);
+        ret    = os_get_system_time((uint32_t *)response_data);
+        status = (ret == true) ? idigi_callback_continue : idigi_callback_abort;
+        break;
+    default:
+        DEBUG_PRINTF("idigi_os_callback: unrecognized request [%d]\n", request);
         break;
     }
 
