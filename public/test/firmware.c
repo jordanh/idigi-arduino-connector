@@ -128,6 +128,8 @@ static idigi_callback_status_t firmware_download_complete(idigi_fw_download_comp
     firmware_download_started = false;
 
 done:
+    // Insert arbitrary 5 second sleep to simulate processing of firmware.  This will likely be removed later.
+    sleep(5);
     return status;
 }
 

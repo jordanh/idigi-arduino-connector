@@ -53,8 +53,9 @@ static idigi_facility_init_t idigi_facility_init_cb[] = {
         {(idigi_config_request_t)MANDATORY_FACILITY, cc_init_facility, cc_delete_facility},
 
         /* list of optional facilities */
+#if defined(_FIRMWARE_FACILITY)
         {idigi_config_firmware_facility, fw_init_facility, fw_delete_facility},
-
+#endif
         /* list of optional services over messaging facility */
         {idigi_config_data_service, data_service_init, data_service_delete}
 };
@@ -232,7 +233,6 @@ static idigi_callback_status_t get_configurations(idigi_data_t * idigi_ptr)
                 case idigi_config_phone_number:
                 case idigi_config_ip_addr:
                 case idigi_config_error_status:
-                case idigi_config_disconnected:
                 case idigi_config_firmware_facility:
                 case idigi_config_data_service:
                     /* get these configurations from different modules */

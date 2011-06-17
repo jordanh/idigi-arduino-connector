@@ -83,7 +83,8 @@ static int handle_config(void *user, const char* section, const char* name, cons
 			config->server_url = strdup(value);
 		}
 		else if(strcmp(name, "vendor_id") == 0){
-			int vendor_id = atoi(value);
+			long vendor_id = atol(value);
+      
 			config->vendor_id[3] = (uint8_t)(vendor_id);
 			config->vendor_id[2] = (uint8_t)(vendor_id >> 8);
 			config->vendor_id[1] = (uint8_t)(vendor_id >> 16);

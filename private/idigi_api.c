@@ -28,7 +28,9 @@
 #include "os_intf.c"
 #include "network_intf.c"
 #include "idigi_cc.c"
+#if defined(_FIRMWARE_FACILITY)
 #include "idigi_fw.c"
+#endif
 #include "idigi_msg.c"
 #include "idigi_data.c"
 #include "idigi_rci.c"
@@ -130,7 +132,6 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
                 case idigi_config_wait_count:
                 case idigi_config_ip_addr:
                 case idigi_config_error_status:
-                case idigi_config_disconnected:
                 case idigi_config_firmware_facility:
                 case idigi_config_data_service:
                     ASSERT(0);
