@@ -377,15 +377,6 @@ static bool server_disconnected(void)
     return true;
 }
 
-static bool server_disconnected(void)
-{
-
-    DEBUG_PRINTF("Disconnected from server\n");
-    /* socket should be already closed. */
-    ASSERT(device_data.socket_fd == -1);
-    return true;
-}
-
 uint8_t network_select(idigi_network_handle_t fd, uint8_t select_set, unsigned wait_time)
 {
     uint8_t actual_set = 0;
