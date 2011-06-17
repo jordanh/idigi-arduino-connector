@@ -296,27 +296,30 @@ idigi_status_t idigi_run(idigi_handle_t const handle)
 }
 
 
-idigi_status_t idigi_initiate_action(idigi_handle_t handle, idigi_dispatch_request_t request, void const * request_data, void  * response_data)
+idigi_status_t idigi_initiate_action(idigi_handle_t handle, idigi_initiate_request_t request, void const * request_data, void  * response_data)
 {
     idigi_status_t rc = idigi_init_error;
     idigi_data_t * idigi_ptr = (idigi_data_t *)handle;
 
-    ASSERT_GOTO(handle != NULL, done);
-
-    UNUSED_PARAMETER(request_data);
-    UNUSED_PARAMETER(response_data);
+    ASSERT_GOTO(handle != NULL, error);
 
     rc = idigi_success;
     switch (request)
     {
-    case idigi_dispatch_terminate:
+    case idigi_initiate_terminate:
         idigi_ptr->active_state = idigi_device_terminate;
         break;
-    case idigi_dispatch_put_service:
-        /* TODO: implement */
+
+    case idigi_initiate_data_service:
+        ASSERT_GOTO(request_data != NULL, error);
+        rc = data_service_initiate(idigi_ptr, request_data, response_data);
+        break;
+
+    default:
         break;
     }
-done:
+
+error:
     return rc;
 }
 
