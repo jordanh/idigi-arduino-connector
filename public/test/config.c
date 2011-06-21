@@ -329,13 +329,6 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t request,
             status = idigi_error_status((idigi_error_status_t *)request_data);
         }
         break;
-
-    case idigi_config_disconnected:
-       DEBUG_PRINTF("Disconnected from server\n");
-       /* set status to idk_callback_abort to abort iDigi or
-        * idk_callback_continue to reconnect to server.
-        */
-        break;
 	
     case idigi_config_firmware_facility:
         /* enable Firmware update facility */
