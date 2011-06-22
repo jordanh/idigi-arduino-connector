@@ -151,9 +151,8 @@ error:
     return session_id;
 }
 
-static idigi_callback_status_t msg_delete_session(idigi_data_t * idigi_ptr, uint16_t const service_id)
+static void msg_delete_session(idigi_data_t * idigi_ptr, uint16_t const service_id)
 {
-    idigi_callback_status_t status = idigi_callback_abort;
     idigi_msg_data_t * msg_ptr = (idigi_msg_data_t *)get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
     msg_session_t * session = msg_find_session(msg_ptr,service_id);
 
@@ -172,10 +171,10 @@ static idigi_callback_status_t msg_delete_session(idigi_data_t * idigi_ptr, uint
             msg_ptr->session_head = next; 
     }
 
-    status = free_data(idigi_ptr, session);
+    free_data(idigi_ptr, session);
 
 error:
-    return status;
+    return;
 }
 
 static uint8_t update_compression_list(idigi_msg_data_t * msg_ptr, uint8_t * buffer)
@@ -269,7 +268,7 @@ static idigi_callback_status_t send_msg_capabilities(idigi_data_t * idigi_ptr, i
     }
 
     packet->header.length = cur_ptr - start_ptr;
-    status = enable_facility_packet(idigi_ptr, packet, E_MSG_FAC_MSG_NUM, release_packet_buffer);
+    status = enable_facility_packet(idigi_ptr, packet, E_MSG_FAC_MSG_NUM, release_packet_buffer, NULL);
 
 error:
     return status;
@@ -404,7 +403,7 @@ static idigi_status_t msg_send_data(idigi_data_t *idigi_ptr, uint16_t session_id
 
     /* packet length is already updated in the above layer */
     {
-        idigi_callback_status_t status = enable_facility_packet(idigi_ptr, packet, E_MSG_FAC_MSG_NUM, complete_cb);
+        idigi_callback_status_t status = enable_facility_packet(idigi_ptr, packet, E_MSG_FAC_MSG_NUM, complete_cb, NULL);
 
         ASSERT_GOTO(status == idigi_callback_continue, error);
     }
