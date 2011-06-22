@@ -45,6 +45,7 @@ typedef enum {
 #define FAC_CC_REDIRECT_TO_SDA      0x03
 #define FAC_CC_REDIRECT_REPORT      0x04
 #define FAC_CC_CONNECTION_REPORT    0x05
+#define FAC_CC_REBOOT               0x06
 
 #define FAC_CC_CLIENTTYPE_DEVICE    1
 
@@ -57,7 +58,6 @@ enum {
 };
 
 typedef struct {
-    idigi_facility_t facility;
     char    server_url[CC_REDIRECT_SERVER_COUNT][SERVER_URL_LENGTH];
     char    origin_url[SERVER_URL_LENGTH];
     uint8_t report_code;
@@ -115,7 +115,7 @@ static idigi_callback_status_t send_redirect_report(idigi_data_t * idigi_ptr, id
     packet->header.length = ptr - start_ptr;
     cc_ptr->item = idigi_config_ip_addr;
 
-    status = enable_facility_packet(idigi_ptr, packet, E_MSG_FAC_CC_NUM, release_packet_buffer);
+    status = enable_facility_packet(idigi_ptr, packet, E_MSG_FAC_CC_NUM, release_packet_buffer, NULL);
 done:
     return status;
 }
@@ -419,13 +419,13 @@ static idigi_callback_status_t send_connection_report(idigi_data_t * idigi_ptr, 
         packet->header.length += length;
 
     }
-    status = enable_facility_packet(idigi_ptr, packet, E_MSG_FAC_CC_NUM, release_packet_buffer);
+    status = enable_facility_packet(idigi_ptr, packet, E_MSG_FAC_CC_NUM, release_packet_buffer, NULL);
 
 done:
     return status;
 }
 
-static idigi_callback_status_t process_disconnect(idigi_data_t * idigi_ptr, idigi_cc_data_t * cc_ptr)
+static idigi_callback_status_t process_connection_control(idigi_data_t * idigi_ptr, idigi_cc_data_t * cc_ptr, idigi_network_request_t request)
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
@@ -438,7 +438,7 @@ static idigi_callback_status_t process_disconnect(idigi_data_t * idigi_ptr, idig
     if (status == idigi_callback_continue)
     {
         idigi_request_t request_id;
-        request_id.network_request = idigi_network_disconnected;
+        request_id.network_request = request;
 
         status = idigi_callback(idigi_ptr->callback, idigi_class_network, request_id, NULL, 0, NULL, NULL);
         if (status == idigi_callback_continue)
@@ -453,6 +453,7 @@ static idigi_callback_status_t process_disconnect(idigi_data_t * idigi_ptr, idig
 
     return status;
 }
+
 
 static idigi_callback_status_t  process_redirect(idigi_data_t * idigi_ptr, idigi_cc_data_t * cc_ptr, idigi_packet_t * packet)
 {
@@ -605,17 +606,19 @@ static idigi_callback_status_t cc_process(idigi_data_t * idigi_ptr, void * facil
         ptr = GET_PACKET_DATA_POINTER(packet, sizeof(idigi_packet_t));
         opcode = *ptr;
 
-        if (opcode == FAC_CC_DISCONNECT)
+        switch (opcode)
         {
-            status = process_disconnect(idigi_ptr, cc_ptr);
-        }
-        else if (opcode == FAC_CC_REDIRECT_TO_SDA)
-        {
+        case FAC_CC_DISCONNECT:
+            status = process_connection_control(idigi_ptr, cc_ptr, idigi_network_disconnected);
+            break;
+        case FAC_CC_REDIRECT_TO_SDA:
             status = process_redirect(idigi_ptr, cc_ptr, packet);
-        }
-        else
-        {
+            break;
+        case FAC_CC_REBOOT:
+            status = process_connection_control(idigi_ptr, cc_ptr, idigi_network_reboot);
+        default:
             DEBUG_PRINTF("idigi_cc_process: unsupported opcode %u\n", opcode);
+            break;
         }
     }
 
