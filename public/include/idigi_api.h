@@ -967,6 +967,12 @@ typedef struct
     uint8_t error;
 } idigi_data_error_t;
 
+typedef struct {
+    unsigned timeout;
+    idigi_rci_request_t compression;
+    uint8_t * data;
+    uint32_t length;
+} idigi_rci_data_t;
 /*
  * iDigi callback.
  *
