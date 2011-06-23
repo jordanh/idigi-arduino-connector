@@ -23,7 +23,6 @@
  *
  */
 
-#include "zlib.h"
 
 #define RCI_COMMAND_REQUEST_START_OPCODE    0x01
 #define RCI_COMMAND_REQUEST_DATA_OPCODE     0x02
@@ -97,127 +96,6 @@ typedef struct {
 
 static idigi_callback_status_t rci_discovery(idigi_data_t * idigi_ptr, void * facility_data, idigi_packet_t * packet);
 
-static int libz_deflate(uint8_t *uncompr, uint32_t uncomprLen, uint8_t *compr, uint32_t *comprLen)
-{
-#define RCI_ZLIB_COMPRESSION_LEVEL  6
-    z_stream c_stream; /* compression stream */
-    int err;
-
-    // Validate parameters.
-    if (uncompr == NULL || uncomprLen == 0 ||
-        compr == NULL || comprLen == NULL || *comprLen == 0)
-    {
-        return -1;
-    }
-
-    // Initialize deflate.
-    DEBUG_PRINTF("RCI libz_deflate start: in=%u outMax=%u\r\n", uncomprLen, *comprLen);
-    c_stream.zalloc = (alloc_func)0;
-    c_stream.zfree = (free_func)0;
-    c_stream.opaque = (voidpf)0;
-    err = deflateInit(&c_stream, RCI_ZLIB_COMPRESSION_LEVEL);
-    if (err != Z_OK)
-    {
-        // Initialization failed.
-        *comprLen = 0;
-        return -2;
-    }
-
-    // Deflate original data.
-    c_stream.next_out = compr;
-    c_stream.avail_out = (uInt)*comprLen;
-    c_stream.next_in = uncompr;
-    c_stream.avail_in = (uInt)uncomprLen;
-    err = deflate(&c_stream, Z_FINISH);
-    *comprLen = (uint32_t)c_stream.total_out;
-    if (err != Z_STREAM_END)
-    {
-        // On success, deflate should report Z_STREAM_END (but it didn't).
-        deflateEnd(&c_stream);
-        return -3;
-    }
-    DEBUG_PRINTF("RCI libz_deflate done: in=%u out=%u\r\n",
-            (uint32_t)c_stream.total_in, (uint32_t)c_stream.total_out);
-    err = deflateEnd(&c_stream);
-    if (err != Z_OK)
-    {
-        // Cleanup failed.
-        return -4;
-    }
-
-    return 0;
-}
-
-static bool libz_inflate(uint8_t * compressed_data, uint32_t compressed_length, uint8_t * uncompressed_buf, uint32_t * uncompressed_length)
-{
-    z_stream d_stream; /* decompression stream */
-    int err;
-    bool rc = false;
-
-    if (compressed_data == NULL || compressed_length == 0 ||
-            uncompressed_buf == NULL || uncompressed_length == NULL || *uncompressed_length == 0)
-    {
-        goto done;
-    }
-
-    /* Initialize deflate. */
-    DEBUG_PRINTF("libz_inflate: start in = %d outMax = %d\n", compressed_length, *uncompressed_length);
-    d_stream.zalloc = (alloc_func)0;
-    d_stream.zfree = (free_func)0;
-    d_stream.opaque = (voidpf)0;
-    d_stream.next_in = compressed_data;
-    d_stream.avail_in = (uInt)compressed_length;
-    err = inflateInit(&d_stream);
-    if (err != Z_OK)
-    {
-        /* Initialization failed. */
-        *uncompressed_length = 0;
-        DEBUG_PRINTF("libz_inflate: inflateInit fails\n");
-        goto done;
-    }
-
-    /* Inflate original data.*/
-#if 1
-    d_stream.next_out = uncompressed_buf;
-    d_stream.avail_out = (uInt)*uncompressed_length;
-    err = inflate(&d_stream, Z_FINISH);
-    *uncompressed_length = (uint32_t)d_stream.total_out;
-    if (err != Z_STREAM_END)
-    {
-        /* On success, inflate should report Z_STREAM_END (but it didn't). */
-        inflateEnd(&d_stream);
-        DEBUG_PRINTF("lib_inflate: invalid inflate return status %d\n", err);
-        goto done;
-    }
-#else /* 0 */
-    // Test/debug only: just inflate and get size of result.
-    for (;;)
-    {
-        d_stream.next_out = uncompr;            /* discard the output */
-        d_stream.avail_out = (uInt)*uncomprLen;
-        err = inflate(&d_stream, Z_NO_FLUSH);
-        if (err == Z_STREAM_END)
-        {
-            break;
-        }
-    }
-    *uncomprLen = (uint32_t)d_stream.total_out;
-#endif /* 0 */
-    DEBUG_PRINTF("lib_inflate: inflate done. in = %u out = %u\n",
-                (uint32_t)d_stream.total_in, (uint32_t)d_stream.total_out);
-    err = inflateEnd(&d_stream);
-    if (err != Z_OK)
-    {
-        /* Cleanup failed. */
-        DEBUG_PRINTF("lib_inflate: invalid inflateEnd return status %d\n", err);
-        goto done;
-    }
-
-    rc = true;
-
-done:
-    return rc;
-}
 #if 0
 static int send_message(idigi_data_t * idigi_ptr, uint8_t opcode, int error,
              uint32_t uncomp_len, uint32_t comp_len,
@@ -322,11 +200,15 @@ static void rci_done_request(idigi_data_t * idigi_ptr, rci_data_t * rci_ptr)
     /* these buffers are pointer from malloc callback, we need to release them */
     if (rci_ptr->request.buffer != NULL)
     {
-        free_data(idigi_ptr, rci_ptr->request.buffer );
+        idigi_request_t request_id;
+        request_id.rci_request = idigi_rci_decompress_data_done;
+        idigi_callback(idigi_ptr->callback, idigi_class_rci, request_id, NULL, NULL, NULL, NULL);
     }
     if (rci_ptr->response.buffer != NULL)
     {
-        free_data(idigi_ptr, rci_ptr->response.buffer );
+        idigi_request_t request_id;
+        request_id.rci_request = idigi_rci_compress_data_done;
+        idigi_callback(idigi_ptr->callback, idigi_class_rci, request_id, NULL, NULL, NULL, NULL);
     }
     rci_ptr->request.buffer = NULL;
     rci_ptr->response.buffer = NULL;
@@ -408,48 +290,12 @@ static idigi_callback_status_t rci_send_response(idigi_data_t * idigi_ptr, rci_d
 
     if (rci_ptr->compression == RCI_ZLIB_COMPRESSION)
     {
-        /* Allocate a compression output buffer and deflate the data. */
-        uint8_t * comp_buf = NULL;
-        uint32_t comp_size;
-        void * buf;
-
-        comp_size = rci_ptr->response.length + RCI_ZLIB_COMPRESSION_LENGTH;
-        status = malloc_data(idigi_ptr, comp_size, &buf);
+        idigi_request_t request_id;
+        request_id.rci_request = idigi_rci_compress_data;
+        status = idigi_callback(idigi_ptr->callback, idigi_class_rci, request_id, NULL, NULL, NULL, NULL);
         if (status != idigi_callback_continue)
         {
             goto done;
-        }
-        comp_buf = buf;
-        if (comp_buf != NULL)
-        {
-            bool is_decompressed;
-            /* We couldn't allocate a buffer for compression.
-             * Send the original uncompressed data.
-             */
-
-            /* Compress the data. If we gain nothing by compression, just
-             * send the data uncompressed.
-             */
-            is_decompressed = libz_deflate(rci_ptr->response.data, rci_ptr->response.data_length, comp_buf, &comp_size);
-            if (!is_decompressed || comp_size >= rci_ptr->response.data_length || comp_size == 0)
-            {
-                /* The compression failed or produced nothing useful.
-                 * Send the original uncompressed data.
-                 */
-                DEBUG_PRINTF("RCI send_response: compression fails; send uncompressed response\n");
-                rci_ptr->compression = RCI_NO_COMPRESSION;
-                 free_data(idigi_ptr, comp_buf);
-            }
-            else
-            {
-                rci_ptr->response.pointer = comp_buf;
-                rci_ptr->response.buffer = comp_buf;
-                rci_ptr->response.length = comp_size;
-            }
-        }
-        else
-        {
-            rci_ptr->compression = RCI_NO_COMPRESSION;
         }
     }
     *ptr++ = RCI_COMMAND_REPLY_START_OPCODE;
@@ -497,43 +343,16 @@ static idigi_callback_status_t rci_process_request_data(idigi_data_t * idigi_ptr
         rci_ptr->compression = RCI_NO_COMPRESSION;
     }
 
-    if (rci_ptr->compression == RCI_ZLIB_COMPRESSION)
+    if (rci_ptr->compression != RCI_NO_COMPRESSION)
     {
-        bool is_decompressed;
-        uint32_t uncomp_size = rci_ptr->request.uncompressed_length + RCI_ZLIB_COMPRESSION_LENGTH;
-
-        /* let's assume we're doing the compression (not callback)
-         *
-         * Allocate a decompression output buffer and inflate the data.
-         */
-        status = malloc_data(idigi_ptr, rci_ptr->request.length, &uncomp_buf);
+        idigi_request_t request_id;
+        request_id.rci_request = idigi_rci_decompress_data;
+        status = idigi_callback(idigi_ptr->callback, idigi_class_rci, request_id, NULL, NULL, NULL, NULL);
         if (status != idigi_callback_continue)
         {
             goto done;
         }
-        ASSERT(buf != NULL);
-        if (buf == NULL)
-        {
-            rci_ptr->error_code = rci_decompression_error;
-            goto done;
-        }
-
-        // Decompress the data.
-        is_decompressed = libz_inflate(data, length, uncomp_buf, &uncomp_size);
-        if (!is_decompressed || uncomp_size != rci_ptr->request.uncompressed_length)
-        {
-            /* The decompression failed. */
-            rci_ptr->error_code = rci_decompression_error;
-            goto done;
-        }
-        /* Decompression succeeded.
-         * Aim the "data" pointer at the uncompressed buffer, and
-         * set "length" to the uncompressed size for use below.
-         */
-        buf = uncomp_buf;
-        buf_length = uncomp_size;
     }
-
     /* SAX parser request data
      * TODO: add SAX parser process
      */
