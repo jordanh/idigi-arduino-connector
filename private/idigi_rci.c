@@ -78,13 +78,16 @@ typedef struct {
     struct {
         uint32_t total_length;
         uint32_t uncompressed_length;
+        uint8_t * uncompressed_buffer;
         uint8_t * buffer;
         uint8_t * pointer;
         uint32_t length;
     } request;
 
     struct {
-        uint8_t * buffer;
+        uint8_t * compressed_buffer;
+        uint8_t compressed_length;
+
         uint8_t * pointer;
         uint32_t length;
         uint8_t * data;
@@ -96,6 +99,71 @@ typedef struct {
 
 static idigi_callback_status_t rci_discovery(idigi_data_t * idigi_ptr, void * facility_data, idigi_packet_t * packet);
 
+static idigi_callback_status_t rci_config(idigi_data_t * idigi_ptr, idigi_rci_request_t rci_request,
+                                          void * request, size_t request_size,
+                                          void * response, size_t * response_size)
+{
+    idigi_callback_status_t status;
+    idigi_request_t request_id;
+    uint32_t rx_keepalive;
+    uint32_t tx_keepalive;
+    uint32_t start_time_stamp;
+    uint32_t end_time_stamp;
+    unsigned timeout;
+
+    /* Calculate the timeout value (when to send rx keepalive or
+     * receive tx keepalive) from last rx keepalive or tx keepalive.
+     *
+     * If callback exceeds the timeout value, error status callback
+     * will be called.
+     * Also, make sure the response size from the callback matches
+     * the given response_size.
+     */
+    status = get_system_time(idigi_ptr, &start_time_stamp);
+    if (status != idigi_callback_continue)
+    {
+        goto done;
+    }
+
+    rx_keepalive = get_timeout_limit_in_seconds(*idigi_ptr->rx_keepalive, (start_time_stamp - idigi_ptr->rx_ka_time));
+    tx_keepalive = get_timeout_limit_in_seconds(*idigi_ptr->tx_keepalive, (start_time_stamp - idigi_ptr->tx_ka_time));
+
+    timeout = MIN_VALUE(rx_keepalive, tx_keepalive);
+
+    /* put the timeout value in the request pointer
+     * (1st field is timeout field for all fw callback)
+     */
+    if (request != NULL)
+    {
+        *((unsigned *)request) = timeout;
+    }
+
+    request_id.rci_request = rci_request;
+    status = idigi_callback(idigi_ptr->callback, idigi_class_rci, request_id, request,
+                            request_size, response, response_size);
+    if (status == idigi_callback_abort)
+    {
+        idigi_ptr->error_code = idigi_configuration_error;
+        goto done;
+    }
+
+    if (get_system_time(idigi_ptr, &end_time_stamp) != idigi_callback_continue)
+    {
+        idigi_ptr->error_code = idigi_configuration_error;
+        status = idigi_callback_abort;
+        goto done;
+    }
+    if ((end_time_stamp- start_time_stamp) > (timeout * MILLISECONDS_PER_SECOND))
+    {
+        /* callback exceeds timeout value.
+         * No need to abort just notify caller.
+         */
+        DEBUG_PRINTF("rci_config: callback exceeds timeout > %d seconds\n", (int)timeout);
+        notify_error_status(idigi_ptr->callback, idigi_class_rci, request_id, idigi_exceed_timeout);
+    }
+done:
+    return status;
+}
 #if 0
 static int send_message(idigi_data_t * idigi_ptr, uint8_t opcode, int error,
              uint32_t uncomp_len, uint32_t comp_len,
@@ -197,21 +265,32 @@ done:
 
 static void rci_done_request(idigi_data_t * idigi_ptr, rci_data_t * rci_ptr)
 {
-    /* these buffers are pointer from malloc callback, we need to release them */
     if (rci_ptr->request.buffer != NULL)
     {
-        idigi_request_t request_id;
-        request_id.rci_request = idigi_rci_decompress_data_done;
-        idigi_callback(idigi_ptr->callback, idigi_class_rci, request_id, NULL, 0, NULL, NULL);
+        /* free this buffer if we allocate to store entire request data */
+        free_data(idigi_ptr, rci_ptr->request.buffer);
     }
-    if (rci_ptr->response.buffer != NULL)
+    if (rci_ptr->request.uncompressed_buffer != NULL)
     {
-        idigi_request_t request_id;
-        request_id.rci_request = idigi_rci_compress_data_done;
-        idigi_callback(idigi_ptr->callback, idigi_class_rci, request_id, NULL, 0, NULL, NULL);
+        idigi_rci_data_t request_data;
+
+        request_data.compression = rci_ptr->compression;
+        request_data.data = rci_ptr->request.uncompressed_buffer;
+        request_data.length = rci_ptr->request.uncompressed_length;
+        rci_config(idigi_ptr, idigi_rci_decompress_data_done, &request_data, sizeof request_data, NULL, NULL);
+    }
+    if (rci_ptr->response.compressed_buffer != NULL)
+    {
+        idigi_rci_data_t request_data;
+
+        request_data.compression = rci_ptr->compression;
+        request_data.data = rci_ptr->response.compressed_buffer;
+        request_data.length = rci_ptr->response.compressed_length;
+        rci_config(idigi_ptr, idigi_rci_compress_data_done, &request_data, sizeof request_data, NULL, NULL);
     }
     rci_ptr->request.buffer = NULL;
-    rci_ptr->response.buffer = NULL;
+    rci_ptr->request.uncompressed_buffer = NULL;
+    rci_ptr->response.compressed_buffer = NULL;
     rci_ptr->state = rci_configured_state;
 }
 
@@ -284,7 +363,7 @@ static idigi_callback_status_t rci_send_response(idigi_data_t * idigi_ptr, rci_d
     }
     start_ptr = ptr;
 
-    rci_ptr->response.buffer = NULL;
+    rci_ptr->response.compressed_buffer = NULL;
     rci_ptr->response.pointer = rci_ptr->response.data;
     rci_ptr->response.length = rci_ptr->response.data_length;
 
@@ -309,8 +388,8 @@ static idigi_callback_status_t rci_send_response(idigi_data_t * idigi_ptr, rci_d
 
     if (rci_ptr->compression == RCI_ZLIB_COMPRESSION)
     {
-        StoreBE32(ptr, send_length);
-        ptr += sizeof send_length;
+        StoreBE32(ptr, rci_ptr->response.compressed_length);
+        ptr += sizeof rci_ptr->response.compressed_length;
     }
 
     /* now add this target to the target list message */
@@ -327,10 +406,37 @@ done:
     return status;
 }
 
+static idigi_rci_request_t get_rci_compression_request(uint8_t compression)
+{
+    struct {
+        idigi_rci_request_t request_id;
+        uint8_t compression;
+    } supported_compression[] = {
+            {idigi_rci_zlib_compression, RCI_ZLIB_COMPRESSION}
+    };
+    size_t supported_compression_count = asizeof(supported_compression);
+    size_t i;
+    idigi_rci_request_t compression_id = (idigi_rci_request_t)-1;
+
+    for (i=0; i < supported_compression_count; i++)
+    {
+        if (supported_compression[i].compression == compression)
+        {
+            compression_id = supported_compression[i].request_id;
+            break;
+        }
+    }
+    ASSERT(i == supported_compression_count);
+    return compression_id;
+}
+
+
 static idigi_callback_status_t rci_process_request_data(idigi_data_t * idigi_ptr, rci_data_t * rci_ptr, uint8_t * data, uint32_t length)
 {
 
     idigi_callback_status_t status = idigi_callback_continue;
+    uint8_t * data_ptr = data;
+    uint32_t data_length = length;
 
     ASSERT_GOTO(data != NULL, done);
     ASSERT_GOTO(length > 0, done);
@@ -342,13 +448,26 @@ static idigi_callback_status_t rci_process_request_data(idigi_data_t * idigi_ptr
 
     if (rci_ptr->compression != RCI_NO_COMPRESSION)
     {
-        idigi_request_t request_id;
-        request_id.rci_request = idigi_rci_decompress_data;
-        status = idigi_callback(idigi_ptr->callback, idigi_class_rci, request_id, NULL, 0, NULL, NULL);
+        idigi_rci_data_t request_data;
+        idigi_rci_data_t response_data;
+        size_t size = sizeof response_data;
+
+        request_data.compression = get_rci_compression_request(rci_ptr->compression);
+        request_data.data = data;
+        request_data.length = length;
+
+        status = rci_config(idigi_ptr, idigi_rci_decompress_data, &request_data,
+                            sizeof request_data, &response_data, &size);
         if (status != idigi_callback_continue)
         {
             goto done;
         }
+
+        data_ptr = response_data.data;
+        data_length = response_data.length;
+        rci_ptr->request.uncompressed_buffer = data_ptr;
+        rci_ptr->request.uncompressed_length = data_length;
+
     }
     /* SAX parser request data
      * TODO: add SAX parser process
@@ -578,7 +697,8 @@ static idigi_callback_status_t rci_discovery(idigi_data_t * idigi_ptr, void * fa
         idigi_request_t request_id;
         bool compression_supported;
 
-        status = idigi_callback(idigi_ptr->callback, idigi_class_rci, request_id, &compression_supported, sizeof compression_supported, NULL, NULL);
+        status = idigi_callback(idigi_ptr->callback, idigi_class_rci, request_id, NULL, 0,
+                                &compression_supported, NULL);
         if (status != idigi_callback_continue)
         {
             goto done;
@@ -673,7 +793,7 @@ static idigi_callback_status_t rci_init_facility(idigi_data_t * idigi_ptr)
         rci_ptr->supported_compression = 0;
         rci_ptr->error_code = rci_no_error;
         rci_ptr->request.buffer = NULL;
-        rci_ptr->response.buffer = NULL;
+        rci_ptr->response.compressed_buffer = NULL;
 
     }
 
