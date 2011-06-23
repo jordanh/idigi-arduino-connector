@@ -202,13 +202,13 @@ static void rci_done_request(idigi_data_t * idigi_ptr, rci_data_t * rci_ptr)
     {
         idigi_request_t request_id;
         request_id.rci_request = idigi_rci_decompress_data_done;
-        idigi_callback(idigi_ptr->callback, idigi_class_rci, request_id, NULL, NULL, NULL, NULL);
+        idigi_callback(idigi_ptr->callback, idigi_class_rci, request_id, NULL, 0, NULL, NULL);
     }
     if (rci_ptr->response.buffer != NULL)
     {
         idigi_request_t request_id;
         request_id.rci_request = idigi_rci_compress_data_done;
-        idigi_callback(idigi_ptr->callback, idigi_class_rci, request_id, NULL, NULL, NULL, NULL);
+        idigi_callback(idigi_ptr->callback, idigi_class_rci, request_id, NULL, 0, NULL, NULL);
     }
     rci_ptr->request.buffer = NULL;
     rci_ptr->response.buffer = NULL;
@@ -292,7 +292,7 @@ static idigi_callback_status_t rci_send_response(idigi_data_t * idigi_ptr, rci_d
     {
         idigi_request_t request_id;
         request_id.rci_request = idigi_rci_compress_data;
-        status = idigi_callback(idigi_ptr->callback, idigi_class_rci, request_id, NULL, NULL, NULL, NULL);
+        status = idigi_callback(idigi_ptr->callback, idigi_class_rci, request_id, NULL, 0, NULL, NULL);
         if (status != idigi_callback_continue)
         {
             goto done;
@@ -331,9 +331,6 @@ static idigi_callback_status_t rci_process_request_data(idigi_data_t * idigi_ptr
 {
 
     idigi_callback_status_t status = idigi_callback_continue;
-    uint8_t * buf = data;
-    uint32_t buf_length = length;
-    void * uncomp_buf = NULL;
 
     ASSERT_GOTO(data != NULL, done);
     ASSERT_GOTO(length > 0, done);
@@ -347,7 +344,7 @@ static idigi_callback_status_t rci_process_request_data(idigi_data_t * idigi_ptr
     {
         idigi_request_t request_id;
         request_id.rci_request = idigi_rci_decompress_data;
-        status = idigi_callback(idigi_ptr->callback, idigi_class_rci, request_id, NULL, NULL, NULL, NULL);
+        status = idigi_callback(idigi_ptr->callback, idigi_class_rci, request_id, NULL, 0, NULL, NULL);
         if (status != idigi_callback_continue)
         {
             goto done;
@@ -363,10 +360,6 @@ static idigi_callback_status_t rci_process_request_data(idigi_data_t * idigi_ptr
 
 
 done:
-    if (uncomp_buf != NULL)
-    {
-         free_data(idigi_ptr, uncomp_buf);
-    }
     return status;
 }
 
