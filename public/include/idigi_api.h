@@ -315,6 +315,25 @@ typedef enum {
      */
     idigi_config_data_service,
     
+    /* Request ID to enable data service over messaging facility
+     *
+     * The callback parameters:
+     *  class_id = idigi_class_config
+     *  request_id = idigi_config_rci_service
+     *  request_data = NULL
+     *  request_length = 0
+     *  response_data = pointer to memory in boolean (bool) type where callback writes true to support RCI
+     *                  which allows user to remotely configure, control, and exchange device's information
+     *                  via iDigi server.
+     *
+     *  response_length = ignore
+     *
+     * Callback returns:
+     *  idigi_callback_continue = Callback successfully indicated RCI support..
+     *  not idigi_callback_continue =  abort and exit iDigi.
+     */
+    idigi_config_rci_facility
+
 } idigi_config_request_t;
 
 typedef enum {
@@ -410,6 +429,23 @@ typedef enum {
      */
     idigi_network_disconnected,
 
+    /* Request ID for reboot  This is called when server requests to reboot
+     * the device.
+     *
+     * Callback parameters:
+     *  class_id = idigi_class_network
+     *  request_id = idigi_network_reboot
+     *  request_data = NULL
+     *  request_length = 0
+     *  response_data = NULL
+     *  response_length = NULL
+     *
+     * Callback returns:
+     *  idigi_callback_continue = Callback acknowledges it.
+     *  idigi_callback_abort =  abort iDigi.
+     *  idigi_callback_busy = Callback is busy and needs to be called again.
+     */
+    idigi_network_reboot
 
 } idigi_network_request_t;
 
@@ -699,6 +735,17 @@ typedef enum {
    idigi_fw_download_not_complete
 } idigi_fw_download_complete_status_t;
 
+typedef enum {
+    idigi_rci_zlib_compression,
+    idigi_rci_query_setting,
+    idigi_rci_query_state,
+    idigi_rci_set_setting,
+    idigi_rci_set_state,
+    idigi_rci_set_default,
+    idigi_rci_do_command,
+    idigi_rci_get_setting_descriptor,
+    idigi_rci_get_state_descriptor
+} idigi_rci_request_t;
 
 typedef union {
    idigi_config_request_t config_request;
@@ -706,6 +753,7 @@ typedef union {
    idigi_os_request_t os_request;
    idigi_firmware_request_t firmware_request;
    idigi_data_service_request_t data_service_request;
+   idigi_rci_request_t rci_request;
 } idigi_request_t;
 
 #define idigi_handle_t void *
