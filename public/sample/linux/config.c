@@ -446,15 +446,18 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
         break;
 
     case idigi_config_firmware_facility:
-        ret = get_firmware_support();
+        *((bool *)response_data) = get_firmware_support();
+        ret = true;
         break;
 
     case idigi_config_data_service:
-        ret = get_data_service_support();
+        *((bool *)response_data) = get_data_service_support();
+        ret = true;
         break;
 
     case idigi_config_rci_facility:
-        ret = get_rci_support();
+        *((bool *)response_data) = get_rci_support();
+        ret = true;
         break;
 
     }
