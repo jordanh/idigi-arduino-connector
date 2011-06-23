@@ -27,7 +27,7 @@ ifneq ($(DATA_SERVICE), false)
 CFLAGS += -D_DATA_SERVICE
 endif
 
-ifeq ($(FACILITY_RCI), true)
+ifneq ($(FACILITY_RCI), false)
 CFLAGS += -D_RCI_FACILITY
 endif
 
