@@ -135,23 +135,15 @@ static idigi_callback_status_t malloc_data(idigi_data_t * idigi_ptr, size_t leng
 
 }
 
-static idigi_callback_status_t free_data(idigi_data_t * idigi_ptr, void * ptr)
+static void free_data(idigi_data_t * idigi_ptr, void * ptr)
 {
-    idigi_callback_status_t   status;
     idigi_request_t request_id;
 
     request_id.os_request = idigi_os_free;
-    status = idigi_callback(idigi_ptr->callback, idigi_class_operating_system, request_id, ptr, sizeof(void *), NULL, NULL);
-    if (status == idigi_callback_abort)
-    {
-        idigi_ptr->error_code = idigi_configuration_error;
-    }
-    else if (status == idigi_callback_continue)
-    {
-        del_malloc_stats(ptr);
-    }
+    idigi_callback(idigi_ptr->callback, idigi_class_operating_system, request_id, ptr, sizeof(void *), NULL, NULL);
+    del_malloc_stats(ptr);
 
-    return status;
+    return;
 }
 
 static uint32_t get_timeout_limit_in_seconds(uint32_t max_timeout_in_second, uint32_t system_up_time_in_millisecond)
@@ -239,17 +231,14 @@ static idigi_callback_status_t del_facility_data(idigi_data_t * idigi_ptr, uint1
         {
             next_ptr = fac_ptr->next;
 
-            status = free_data(idigi_ptr, fac_ptr);
-            if (status == idigi_callback_continue)
+            free_data(idigi_ptr, fac_ptr);
+            if (prev_ptr != NULL)
             {
-                if (prev_ptr != NULL)
-                {
-                    prev_ptr->next = next_ptr;
-                }
-                else
-                {
-                    idigi_ptr->facility_list = next_ptr;
-                }
+                prev_ptr->next = next_ptr;
+            }
+            else
+            {
+                idigi_ptr->facility_list = next_ptr;
             }
             break;
         }
