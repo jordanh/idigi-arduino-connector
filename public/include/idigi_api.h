@@ -744,7 +744,11 @@ typedef enum {
     idigi_rci_set_default,
     idigi_rci_do_command,
     idigi_rci_get_setting_descriptor,
-    idigi_rci_get_state_descriptor
+    idigi_rci_get_state_descriptor,
+    idigi_rci_compress_data,
+    idigi_rci_compress_data_done,
+    idig_rci_decompress_data,
+    idigi_rci_decompress_data_done
 } idigi_rci_request_t;
 
 typedef union {
