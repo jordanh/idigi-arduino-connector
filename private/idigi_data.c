@@ -55,7 +55,7 @@ typedef struct
 
 /* one active transaction at any time */
 static data_service_record_t data_service_record;
-static void data_service_send_complete(idigi_data_t * idigi_ptr, idigi_packet_t * packet, idigi_status_t status);
+static void data_service_send_complete(idigi_data_t * idigi_ptr, idigi_packet_t * packet, idigi_status_t status, void * user_data);
 
 static idigi_callback_status_t data_service_callback(idigi_data_t * idigi_ptr, msg_opcode_t msg_type, uint8_t * data, size_t length)
 {
@@ -203,9 +203,10 @@ error:
     return status;
 }
 
-static void data_service_send_complete(idigi_data_t * idigi_ptr, idigi_packet_t * packet, idigi_status_t status)
+static void data_service_send_complete(idigi_data_t * idigi_ptr, idigi_packet_t * packet, idigi_status_t status, void * user_data)
 {
     UNUSED_PARAMETER(packet);
+    UNUSED_PARAMETER(user_data);
 
     if (status == idigi_success) 
     {

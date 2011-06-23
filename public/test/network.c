@@ -447,6 +447,14 @@ idigi_callback_status_t idigi_network_callback(idigi_network_request_t request,
         status = network_close((idigi_network_handle_t *)request_data);
         break;
 
+    case idigi_network_disconnected:
+    	DEBUG_PRINTF("Disconnected from server\n");
+        /* set status to idk_callback_abort to abort iDigi or
+         * idk_callback_continue to reconnect to server.
+         */
+        break;
+
+
     }
 
     return status;

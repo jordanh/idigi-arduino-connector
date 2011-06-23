@@ -27,6 +27,10 @@ ifneq ($(DATA_SERVICE), false)
 CFLAGS += -D_DATA_SERVICE
 endif
 
+ifneq ($(FACILITY_RCI), false)
+CFLAGS += -D_RCI_FACILITY
+endif
+
 ifeq ($(DEBUG),true)
 CFLAGS += -DDEBUG -g
 else
@@ -74,6 +78,7 @@ help:
 	@echo "    LITTLE_ENDIAN = true or false for little endian"
 	@echo "    FACILITY_FW   = true or false for firmware upgrade capability"
 	@echo "    DATA_SERVICE  = true or false for data service capability"
+	@echo "    FACILITY_RCI  = true or false for RCI capability"
 	@echo "Targets:"
 	@echo "    all           - Build idigi library"
 	@echo "    linux         - Build linux sample"

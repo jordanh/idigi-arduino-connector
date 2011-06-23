@@ -97,7 +97,7 @@ struct idigi_data;
 struct idigi_facility;
 
 typedef idigi_callback_status_t (* idigi_facility_process_cb_t )(struct idigi_data * idigi_ptr, void * facility_data, idigi_packet_t * packet);
-typedef void (* send_complete_cb_t)(struct idigi_data * idigi_ptr, idigi_packet_t * packet, idigi_status_t  status);
+typedef void (* send_complete_cb_t)(struct idigi_data * idigi_ptr, idigi_packet_t * packet, idigi_status_t  status, void * user_data);
 
 typedef struct idigi_facility {
     uint16_t facility_num;
@@ -152,6 +152,7 @@ typedef struct idigi_data {
         size_t length;
         size_t total_length;
         send_complete_cb_t complete_cb;
+        void * user_data;
     } send_packet;
 
     struct {
