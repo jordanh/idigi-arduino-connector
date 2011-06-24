@@ -56,11 +56,26 @@ static idigi_callback_status_t firmware_download_request(idigi_fw_download_reque
     }
 
     DEBUG_PRINTF("target = %d\n", download_data->target);
+
     DEBUG_PRINTF("version = 0x%04X\n", download_data->version);
     DEBUG_PRINTF("code size = %d\n", download_data->code_size);
     DEBUG_PRINTF("desc_string = %s\n", download_data->desc_string);
     DEBUG_PRINTF("file name spec = %s\n", download_data->file_name_spec);
     DEBUG_PRINTF("filename = %s\n", download_data->filename);
+
+    // Predefined failure targets to test error conditions.
+    if(download_data->target == 0x30){
+    	*download_status = idigi_fw_user_abort;
+    	goto done;
+    }
+    if(download_data->target == 0x31){
+    	*download_status = idigi_fw_device_error;
+    	goto done;
+    }
+    if(download_data->target == 0x34){
+    	*download_status = idigi_fw_hardware_error;
+    	goto done;
+    }
 
     total_image_size = 0;
     firmware_download_started = true;
@@ -88,6 +103,15 @@ static idigi_callback_status_t firmware_image_data(idigi_fw_image_data_t * image
     total_image_size += image_data->length;
     DEBUG_PRINTF("length = %zu (total = %zu)\n", image_data->length, total_image_size);
 
+    // Predefined failure targets to test error conditions.
+    if(image_data->target == 0x32){
+    	*data_status = idigi_fw_invalid_offset;
+    	goto done;
+    }
+    if(image_data->target == 0x33){
+    	*data_status = idigi_fw_invalid_data;
+    	goto done;
+    }
 
     *data_status = idigi_fw_success;
 done:
