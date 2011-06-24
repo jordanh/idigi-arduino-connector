@@ -66,35 +66,26 @@ static idigi_callback_status_t firmware_download_request(idigi_fw_download_reque
     // Predefined failure targets to test error conditions.
 
     switch(download_data->target){
-    case 0x21:
+    case 5:
     	*download_status = idigi_fw_download_denied;
     	break;
-    case 0x22:
+    case 6:
     	*download_status = idigi_fw_download_invalid_size;
     	break;
-    case 0x23:
+    case 7:
     	*download_status = idigi_fw_download_invalid_version;
     	break;
-    case 0x24:
+    case 8:
     	*download_status = idigi_fw_download_unauthenticated;
     	break;
-    case 0x25:
+    case 9:
     	*download_status = idigi_fw_download_not_allowed;
     	break;
-    case 0x26:
+    case 10:
     	*download_status = idigi_fw_download_configured_to_reject;
     	break;
-    case 0x27:
+    case 11:
     	*download_status = idigi_fw_encountered_error;
-    	break;
-    case 0x30:
-    	*download_status = idigi_fw_user_abort;
-    	break;
-    case 0x31:
-    	*download_status = idigi_fw_device_error;
-    	break;
-    case 0x34:
-    	*download_status = idigi_fw_hardware_error;
     	break;
     default:
     	total_image_size = 0;
@@ -124,12 +115,21 @@ static idigi_callback_status_t firmware_image_data(idigi_fw_image_data_t * image
     DEBUG_PRINTF("length = %zu (total = %zu)\n", image_data->length, total_image_size);
 
     // Predefined failure targets to test error conditions.
-    if(image_data->target == 0x32){
+    switch(image_data->target){
+    case 12:
+    	*data_status = idigi_fw_user_abort;
+    	goto done;
+    case 13:
+    	*data_status = idigi_fw_device_error;
+    	goto done;
+    case 14:
     	*data_status = idigi_fw_invalid_offset;
     	goto done;
-    }
-    else if(image_data->target == 0x33){
+    case 15:
     	*data_status = idigi_fw_invalid_data;
+    	goto done;
+    case 16:
+    	*data_status = idigi_fw_hardware_error;
     	goto done;
     }
 
