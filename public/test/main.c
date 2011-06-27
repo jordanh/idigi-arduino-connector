@@ -32,10 +32,13 @@
 #include "idigi_data.h"
 #include "firmware.h"
 
+firmware_list_t* temp_fw;
+
 /* If set, iDigi will start as a separated thread calling idigi_run */
 
 #define ONE_SECOND  1
 time_t  deviceSystemUpStartTime;
+char* cur_section = "";
 idigi_callback_status_t idigi_callback(idigi_class_t class, idigi_request_t request,
                                     void const * request_data, size_t request_length,
                                     void * response_data, size_t * response_length)
@@ -104,32 +107,42 @@ static int handle_config(void *user, const char* section, const char* name, cons
 		if(strcmp(name, "num_targets") == 0){
 			firmware_list_count = atoi(value);
 			firmware_list = malloc(firmware_list_count * sizeof (firmware_list_t));
+			temp_fw = firmware_list;
 		}
 	}
 	else{
 		int i;
 		char f_section[50];
-		for(i = 0; i < firmware_list_count; i++){
+		for(i = 0; i < 0xFF; i++){
 			sprintf(f_section, "firmware.target.%d", i);
 			if(strcmp(section, f_section) == 0){
+				if(strcmp(cur_section, "") == 0){
+					cur_section = strdup(section);
+					temp_fw->target = i;
+				}
+				else if(strcmp(section, cur_section) != 0){
+					temp_fw++;
+					cur_section = strdup(section);
+					temp_fw->target = i;
+				}
 				if(strcmp(name, "name_spec") == 0){
-					(&firmware_list[i])->name_spec = strdup(value);
+					temp_fw->name_spec = strdup(value);
 				}
 				else if(strcmp(name, "description") == 0){
-					(&firmware_list[i])->description = strdup(value);
+					temp_fw->description = strdup(value);
 				}
 				else if(strcmp(name, "version") == 0){
 					uint8_t version[4];
 					sscanf(value, "%hhu.%hhu.%hhu.%hhu",
 							&version[0], &version[1], &version[2], &version[3]);
 
-					(&firmware_list[i])->version += version[0] << 24;
-					(&firmware_list[i])->version += version[1] << 16;
-					(&firmware_list[i])->version += version[2] << 8;
-					(&firmware_list[i])->version += version[3] << 0;
+					temp_fw->version += version[0] << 24;
+					temp_fw->version += version[1] << 16;
+					temp_fw->version += version[2] << 8;
+					temp_fw->version += version[3] << 0;
 				}
 				else if(strcmp(name, "file") == 0){
-					(&firmware_list[i])->code_size = (uint32_t)-1;
+					temp_fw->code_size = (uint32_t)-1;
 				}
 			}
 		}
