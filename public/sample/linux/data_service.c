@@ -76,8 +76,8 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
     return status;
 }
 
-#define DATA_LOG_INTERVAL   120
-#define DATA_BLOCK_SIZE     8192
+#define DATA_LOG_INTERVAL   300
+#define DATA_BLOCK_SIZE     1024
 
 static uint8_t big_data[DATA_BLOCK_SIZE];
 

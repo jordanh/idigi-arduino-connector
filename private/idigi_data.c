@@ -45,6 +45,7 @@ typedef struct
 {
     bool in_use;
     uint32_t bytes_sent;
+    bool flow_controlled;
     idigi_data_request_t const * req_ptr;
     union
     {
@@ -83,6 +84,17 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * idigi_ptr, m
             break;
         }
 
+        case msg_opcode_ack:
+        {
+            if (data_service_record.flow_controlled) 
+            {
+                data_service_record.flow_controlled = false;
+                data_service_send_complete(idigi_ptr, NULL, idigi_success, NULL);
+            }
+
+            break;
+        }
+
         case msg_opcode_start:
         case msg_opcode_data:
         {
@@ -93,6 +105,7 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * idigi_ptr, m
             response.handle = data_service_record.req_ptr->handle;
             response.status = *data++;
             response.msg_length = length - 2;
+            data[response.msg_length] = '\0';
             response.message = data;
 
             {                
@@ -147,6 +160,7 @@ static idigi_status_t data_service_send_chunk(idigi_data_t * data_ptr, bool firs
     idigi_data_request_t const * request = service->req_ptr;
     uint16_t flag = request->flag;
     size_t pkt_length;
+    size_t bytes;
     uint8_t * data;
     
     {
@@ -182,8 +196,8 @@ static idigi_status_t data_service_send_chunk(idigi_data_t * data_ptr, bool firs
         size_t const available = MSG_MAX_PACKET_SIZE - pkt_length;
         size_t const remaining = request->payload_length - service->bytes_sent;
         bool const more = (remaining > available);
-        size_t const bytes = more ? available : remaining;
 
+        bytes = more ? available : remaining;
         if (more) 
             flag &= ~IDIGI_DATA_REQUEST_LAST;
 
@@ -197,6 +211,15 @@ static idigi_status_t data_service_send_chunk(idigi_data_t * data_ptr, bool firs
 
         packet->header.length = (uint16_t)pkt_length;
         status = msg_send_data(data_ptr, session_id, packet, flag, data_service_send_complete);
+        if (status != idigi_success) 
+        {
+            service->bytes_sent -= bytes;
+            if (status == idigi_service_busy) 
+            {
+                service->flow_controlled = true;
+                status = idigi_success;
+            }
+        }
     }
 
 error:
@@ -263,6 +286,7 @@ static idigi_status_t data_service_initiate(idigi_data_t * data_ptr,  void const
     }
 
     service->in_use = true;
+    service->flow_controlled = false;
     service->req_ptr = request;
     service->bytes_sent = 0;
     

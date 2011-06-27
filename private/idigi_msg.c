@@ -72,6 +72,7 @@ typedef struct msg_session_t
 {
     uint16_t session_id;
     uint16_t service_id;
+    uint32_t available;
     idigi_msg_callback_t * cb_func;
     uint8_t compression_id;
     struct msg_session_t * next;
@@ -140,6 +141,7 @@ static uint16_t msg_create_session(idigi_data_t * idigi_ptr, uint16_t const serv
         session->service_id = service_id;
         session->cb_func = service_cb;
         session->session_id = find_next_available_id(msg_ptr);
+        session->available = msg_ptr->window_size;
         session->compression_id = MSG_NO_COMPRESSION;
         session->prev = NULL;
         session->next = msg_ptr->session_head;
@@ -309,7 +311,7 @@ static idigi_callback_status_t process_capabilities(idigi_data_t * idigi_ptr, id
     return status;
 }
 
-static idigi_callback_status_t process_message(idigi_data_t * idigi_ptr, idigi_msg_data_t * msg_fac, uint8_t *ptr, uint16_t length, bool start)
+static idigi_callback_status_t process_msg_data(idigi_data_t * idigi_ptr, idigi_msg_data_t * msg_fac, uint8_t *ptr, uint16_t length, bool start)
 {
     idigi_callback_status_t status = idigi_callback_abort;
     uint16_t service_id;
@@ -345,7 +347,7 @@ static idigi_callback_status_t process_message(idigi_data_t * idigi_ptr, idigi_m
             ASSERT_GOTO(session != NULL, error);
         }
         
-        length = (ptr - start_ptr);
+        length -= (ptr - start_ptr);
         status = session->cb_func(idigi_ptr, start ? msg_opcode_start : msg_opcode_data, ptr, length);
     }
 
@@ -355,10 +357,20 @@ error:
 
 static idigi_callback_status_t process_msg_ack(idigi_data_t * idigi_ptr, idigi_msg_data_t * msg_fac, uint8_t *ptr)
 {
+    idigi_callback_status_t status = idigi_callback_abort;
+    msg_session_t * session;
+
     UNUSED_PARAMETER(idigi_ptr);
 
     ptr++; /* flags, not used at this point */
-    ptr += sizeof(uint16_t); /* session id */
+
+    {
+        uint16_t session_id = LoadBE16(ptr);        
+
+        session = msg_find_session(msg_fac, session_id);
+        ASSERT_GOTO(session != NULL, error);
+        ptr += sizeof session_id;
+    }
 
     {
         uint32_t ack_count = LoadBE32(ptr);
@@ -366,9 +378,11 @@ static idigi_callback_status_t process_msg_ack(idigi_data_t * idigi_ptr, idigi_m
         ptr += sizeof ack_count;
     }
 
-    msg_fac->window_size = LoadBE32(ptr);
+    session->available = LoadBE32(ptr); /* window size */
+    status = session->cb_func(idigi_ptr, msg_opcode_ack, NULL, 0);
 
-    return idigi_callback_continue;
+error:
+    return status;
 }
 
 static idigi_callback_status_t process_msg_error(idigi_data_t * idigi_ptr, idigi_msg_data_t * msg_fac, uint8_t *ptr)
@@ -391,7 +405,7 @@ error:
 
 static idigi_status_t msg_send_data(idigi_data_t *idigi_ptr, uint16_t session_id, idigi_packet_t * packet, uint8_t const flags, send_complete_cb_t complete_cb)
 {
-    idigi_status_t ret_status = idigi_service_busy;
+    idigi_status_t ret_status = idigi_configuration_error;
     uint8_t * ptr = GET_PACKET_DATA_POINTER(packet, sizeof(idigi_packet_t));
     bool const start = ((flags & IDIGI_DATA_REQUEST_START) != 0);
 
@@ -424,6 +438,14 @@ static idigi_status_t msg_send_data(idigi_data_t *idigi_ptr, uint16_t session_id
         idigi_msg_data_t * msg_ptr = (idigi_msg_data_t *)get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
         msg_session_t * session = msg_find_session(msg_ptr, session_id);
 
+        ASSERT_GOTO(session != NULL, error);
+        if (session->available < packet->header.length) 
+        {
+            ret_status = idigi_service_busy;
+            goto error;
+        }
+
+        session->available -= packet->header.length;
         StoreBE16(ptr, session->service_id);
         ptr += sizeof session->service_id;
 
@@ -463,6 +485,7 @@ static idigi_callback_status_t msg_process(idigi_data_t * idigi_ptr, void * faci
 
     ptr = GET_PACKET_DATA_POINTER(packet, sizeof(idigi_packet_t));
     opcode = *ptr++;
+    packet->header.length -= 1;
 
     switch (opcode) 
     {
@@ -471,11 +494,11 @@ static idigi_callback_status_t msg_process(idigi_data_t * idigi_ptr, void * faci
             break;
 
         case msg_opcode_start:
-            status = process_message(idigi_ptr, msg_ptr, ptr, packet->header.length, true);
+            status = process_msg_data(idigi_ptr, msg_ptr, ptr, packet->header.length, true);
             break;
 
         case msg_opcode_data:
-            status = process_message(idigi_ptr, msg_ptr, ptr, packet->header.length, false);
+            status = process_msg_data(idigi_ptr, msg_ptr, ptr, packet->header.length, false);
             break;
 
         case msg_opcode_ack:
