@@ -34,6 +34,8 @@
 #define IDIGI_MSG_FACILITY_VERSION  0x01
 #define IDIGI_MSG_MAX_TRANSACTIONS  1
 
+#define MSG_NO_COMPRESSION          0
+
 #define MSG_INVALID_SESSION_ID      0xFFFF
 
 #define MSG_DATA_RESPONSE   0x00
@@ -138,6 +140,7 @@ static uint16_t msg_create_session(idigi_data_t * idigi_ptr, uint16_t const serv
         session->service_id = service_id;
         session->cb_func = service_cb;
         session->session_id = find_next_available_id(msg_ptr);
+        session->compression_id = MSG_NO_COMPRESSION;
         session->prev = NULL;
         session->next = msg_ptr->session_head;
         if (msg_ptr->session_head != NULL) 
@@ -306,22 +309,48 @@ static idigi_callback_status_t process_capabilities(idigi_data_t * idigi_ptr, id
     return status;
 }
 
-static idigi_callback_status_t process_msg_start(idigi_data_t * idigi_ptr, idigi_msg_data_t * msg_fac, uint8_t *ptr)
+static idigi_callback_status_t process_message(idigi_data_t * idigi_ptr, idigi_msg_data_t * msg_fac, uint8_t *ptr, uint16_t length, bool start)
 {
-    UNUSED_PARAMETER(idigi_ptr);
-    UNUSED_PARAMETER(msg_fac);
-    UNUSED_PARAMETER(ptr);
+    idigi_callback_status_t status = idigi_callback_abort;
+    uint16_t service_id;
+    uint8_t * start_ptr = ptr;
 
-    return idigi_callback_continue;
-}
+    ptr++; /* flag? */
 
-static idigi_callback_status_t process_msg_data(idigi_data_t * idigi_ptr, idigi_msg_data_t * msg_fac, uint8_t *ptr)
-{
-    UNUSED_PARAMETER(idigi_ptr);
-    UNUSED_PARAMETER(msg_fac);
-    UNUSED_PARAMETER(ptr);
+    {
+        uint16_t session_id = LoadBE16(ptr);        
+        msg_session_t * session = msg_find_session(msg_fac, session_id);
 
-    return idigi_callback_continue;
+        ptr += sizeof session_id;
+
+        if (start)
+        {
+            service_id = LoadBE16(ptr);
+    
+            if (session != NULL) 
+            {
+                ASSERT_GOTO(session->service_id == service_id, error);
+            }
+            else
+            {
+                /* TODO: server originated call, create a new session */
+    
+            }
+
+            ptr += sizeof service_id;
+            ptr++; /* compression? */
+        }
+        else
+        {
+            ASSERT_GOTO(session != NULL, error);
+        }
+        
+        length = (ptr - start_ptr);
+        status = session->cb_func(idigi_ptr, start ? msg_opcode_start : msg_opcode_data, ptr, length);
+    }
+
+error:
+    return status;
 }
 
 static idigi_callback_status_t process_msg_ack(idigi_data_t * idigi_ptr, idigi_msg_data_t * msg_fac, uint8_t *ptr)
@@ -442,11 +471,11 @@ static idigi_callback_status_t msg_process(idigi_data_t * idigi_ptr, void * faci
             break;
 
         case msg_opcode_start:
-            status = process_msg_start(idigi_ptr, msg_ptr, ptr);
+            status = process_message(idigi_ptr, msg_ptr, ptr, packet->header.length, true);
             break;
 
         case msg_opcode_data:
-            status = process_msg_data(idigi_ptr, msg_ptr, ptr);
+            status = process_message(idigi_ptr, msg_ptr, ptr, packet->header.length, false);
             break;
 
         case msg_opcode_ack:

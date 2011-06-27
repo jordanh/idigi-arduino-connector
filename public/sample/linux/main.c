@@ -67,7 +67,6 @@ idigi_callback_status_t idigi_callback(idigi_class_t class_id, idigi_request_t r
 }
 
 
-
 int main (void)
 {
     idigi_status_t status = idigi_success;
@@ -91,11 +90,13 @@ int main (void)
             {
                 device_data.select_data |= NETWORK_TIMEOUT_SET | NETWORK_READ_SET;
                 network_select(device_data.socket_fd, device_data.select_data, ONE_SECOND);
+                status = initiate_data_service(device_data.idigi_handle);
             }
         }
         DEBUG_PRINTF("idigi status = %d\n", status);
-   }
-   DEBUG_PRINTF("iDigi stops running!\n");
+    }
+
+    DEBUG_PRINTF("iDigi stops running!\n");
     return 0;
 }
 
