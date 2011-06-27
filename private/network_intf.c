@@ -238,6 +238,7 @@ static idigi_packet_t * get_packet_buffer(idigi_data_t * idigi_ptr, uint16_t fac
         packet->header.avail_length = sizeof idigi_ptr->send_packet.packet_buffer.buffer - header_size;
         ptr = GET_PACKET_DATA_POINTER(packet, header_size);
         idigi_ptr->send_packet.packet_buffer.in_used = true;
+        idigi_ptr->send_packet.packet_buffer.facility = facility;
     }
     else
     {
