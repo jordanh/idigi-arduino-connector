@@ -99,8 +99,8 @@ idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
         break;
 
     case idigi_os_free:
-        ret    = os_free(request_data);
-        status = (ret == true) ? idigi_callback_continue : idigi_callback_abort;
+        os_free(request_data);
+        status = idigi_callback_continue;
         break;
 
     case idigi_os_system_up_time:

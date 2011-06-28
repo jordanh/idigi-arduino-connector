@@ -1049,7 +1049,7 @@ idigi_status_t idigi_run(idigi_handle_t const handle);
                             idigi_initiate_termiate: data is not used
                             idigi_initiate_data_service: Starting packet response will hold session ID.
  */
-idigi_status_t idigi_initiate_action(idigi_handle_t handle, idigi_dispatch_request_t request, void * const request_data, void * response_data);
+idigi_status_t idigi_initiate_action(idigi_handle_t handle, idigi_initiate_request_t request, void * const request_data, void * response_data);
 
 #ifdef __cplusplus
 }
