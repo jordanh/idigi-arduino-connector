@@ -779,9 +779,9 @@ static idigi_callback_status_t discovery_layer(idigi_data_t * idigi_ptr)
         discovery_send_complete
     };
     idigi_callback_status_t status = idigi_callback_continue;
-    idigi_packet_t * packet;
+    idigi_packet_t * packet = NULL;
     uint8_t sec_coding = SECURITY_PROTO_NONE;
-    uint8_t * ptr, * start_ptr;
+    uint8_t * ptr, * start_ptr = NULL;
 
     /* discovery layer:
      * 1. send vendor ID
@@ -908,7 +908,7 @@ static idigi_callback_status_t facility_layer(idigi_data_t * idigi_ptr)
         facility_receive_message,
         facility_process_message
     };
-    idigi_callback_status_t status;
+    idigi_callback_status_t status = idigi_callback_continue;
     idigi_packet_t * packet = NULL;
     idigi_facility_t * fac_ptr;
     bool    done_packet = true;
