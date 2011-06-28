@@ -300,7 +300,7 @@ idigi_status_t idigi_run(idigi_handle_t const handle)
 
 
 
-idigi_status_t idigi_initiate_action(idigi_handle_t handle, idigi_dispatch_request_t request, void * const request_data, void  * response_data)
+idigi_status_t idigi_initiate_action(idigi_handle_t handle, idigi_initiate_request_t request, void * const request_data, void  * response_data)
 {
     idigi_status_t rc = idigi_init_error;
     idigi_data_t * idigi_ptr = (idigi_data_t *)handle;
