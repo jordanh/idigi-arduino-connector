@@ -118,22 +118,25 @@ static idigi_callback_status_t firmware_image_data(idigi_fw_image_data_t * image
     switch(image_data->target){
     case 12:
     	*data_status = idigi_fw_user_abort;
-    	goto done;
+	goto error;
     case 13:
     	*data_status = idigi_fw_device_error;
-    	goto done;
+    	goto error;
     case 14:
     	*data_status = idigi_fw_invalid_offset;
-    	goto done;
+    	goto error;
     case 15:
     	*data_status = idigi_fw_invalid_data;
-    	goto done;
+    	goto error;
     case 16:
     	*data_status = idigi_fw_hardware_error;
-    	goto done;
+    	goto error;
     }
 
     *data_status = idigi_fw_success;
+    return status;
+error:
+    firmware_download_started = false;
 done:
     return status;
 }
@@ -204,7 +207,7 @@ static idigi_callback_status_t firmware_reset(idigi_fw_config_t * reset_data)
 }
 
 idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t request,
-                                                  void const * request_data, size_t request_length,
+                                                  void * const request_data, size_t request_length,
                                                   void * response_data, size_t * response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;

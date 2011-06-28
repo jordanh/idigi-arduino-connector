@@ -381,7 +381,7 @@ static bool idigi_config_error(idigi_error_status_t * const error_data)
  * Configuration callback routine.
  */
 idigi_callback_status_t idigi_config_callback(idigi_config_request_t const request,
-                                              void const * request_data,
+                                              void * const request_data,
                                               size_t const request_length,
                                               void * response_data,
                                               size_t * response_length)
