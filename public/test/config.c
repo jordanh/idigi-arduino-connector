@@ -187,7 +187,7 @@ static void get_device_id(uint8_t ** id, size_t * size)
 }
 
 idigi_callback_status_t idigi_config_callback(idigi_config_request_t request,
-                                            void const * request_data, size_t request_length,
+                                            void * const request_data, size_t request_length,
                                             void * response_data, size_t * response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
