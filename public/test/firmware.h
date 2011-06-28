@@ -1,4 +1,5 @@
 typedef struct {
+	uint32_t    target;
     uint32_t    version;
     uint32_t    code_size;
     char        * name_spec;

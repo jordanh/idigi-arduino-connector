@@ -58,6 +58,7 @@ typedef enum {
    idigi_send_error,
    idigi_close_error,
    idigi_device_terminated,
+   idigi_service_busy,
 } idigi_status_t;
 
 typedef enum {
@@ -66,7 +67,7 @@ typedef enum {
     idigi_class_operating_system,
     idigi_class_firmware,
     idigi_class_rci,
-    idigi_class_messaging
+    idigi_class_data_service
 } idigi_class_t;
 
 typedef enum {
@@ -314,6 +315,25 @@ typedef enum {
      */
     idigi_config_data_service,
     
+    /* Request ID to enable data service over messaging facility
+     *
+     * The callback parameters:
+     *  class_id = idigi_class_config
+     *  request_id = idigi_config_rci_service
+     *  request_data = NULL
+     *  request_length = 0
+     *  response_data = pointer to memory in boolean (bool) type where callback writes true to support RCI
+     *                  which allows user to remotely configure, control, and exchange device's information
+     *                  via iDigi server.
+     *
+     *  response_length = ignore
+     *
+     * Callback returns:
+     *  idigi_callback_continue = Callback successfully indicated RCI support..
+     *  not idigi_callback_continue =  abort and exit iDigi.
+     */
+    idigi_config_rci_facility
+
 } idigi_config_request_t;
 
 typedef enum {
@@ -409,6 +429,23 @@ typedef enum {
      */
     idigi_network_disconnected,
 
+    /* Request ID for reboot  This is called when server requests to reboot
+     * the device.
+     *
+     * Callback parameters:
+     *  class_id = idigi_class_network
+     *  request_id = idigi_network_reboot
+     *  request_data = NULL
+     *  request_length = 0
+     *  response_data = NULL
+     *  response_length = NULL
+     *
+     * Callback returns:
+     *  idigi_callback_continue = Callback acknowledges it.
+     *  idigi_callback_abort =  abort iDigi.
+     *  idigi_callback_busy = Callback is busy and needs to be called again.
+     */
+    idigi_network_reboot
 
 } idigi_network_request_t;
 
@@ -644,9 +681,15 @@ typedef enum {
 } idigi_firmware_request_t;
 
 typedef enum {
-    idigi_dispatch_terminate,
-    idigi_dispatch_put_service
-} idigi_dispatch_request_t;
+    idigi_data_service_send_complete,
+    idigi_data_service_response,
+    idigi_data_service_error    
+} idigi_data_service_request_t;
+
+typedef enum {
+    idigi_initiate_terminate,
+    idigi_initiate_data_service
+} idigi_initiate_request_t;
 
 typedef enum {
    idigi_lan_connection_type,
@@ -692,12 +735,29 @@ typedef enum {
    idigi_fw_download_not_complete
 } idigi_fw_download_complete_status_t;
 
+typedef enum {
+    idigi_rci_zlib_compression,
+    idigi_rci_query_setting,
+    idigi_rci_query_state,
+    idigi_rci_set_setting,
+    idigi_rci_set_state,
+    idigi_rci_set_default,
+    idigi_rci_do_command,
+    idigi_rci_get_setting_descriptor,
+    idigi_rci_get_state_descriptor,
+    idigi_rci_compress_data,
+    idigi_rci_compress_data_done,
+    idigi_rci_decompress_data,
+    idigi_rci_decompress_data_done
+} idigi_rci_request_t;
 
 typedef union {
    idigi_config_request_t config_request;
    idigi_network_request_t network_request;
    idigi_os_request_t os_request;
    idigi_firmware_request_t firmware_request;
+   idigi_data_service_request_t data_service_request;
+   idigi_rci_request_t rci_request;
 } idigi_request_t;
 
 #define idigi_handle_t void *
@@ -869,7 +929,50 @@ typedef struct {
     idigi_fw_status_t status;
 } idigi_fw_download_abort_t;
 
+#define IDIGI_DATA_REQUEST_START        0x01
+#define IDIGI_DATA_REQUEST_LAST         0x02
+#define IDIGI_DATA_REQUEST_ARCHIVE      0x04
+#define IDIGI_DATA_REQUEST_COMPRESSED   0x08
 
+typedef struct
+{
+    uint16_t handle;
+    uint16_t flag;
+    uint8_t  path_length;
+    uint8_t  *path;
+    uint8_t  content_type_length;
+    uint8_t  *content_type;
+    size_t   payload_length;
+    uint8_t  *payload;
+} idigi_data_request_t;
+
+typedef struct
+{
+    uint16_t handle;
+    uint8_t  status;
+    uint8_t  msg_length;
+    uint8_t  *message;
+} idigi_data_response_t;
+
+typedef struct
+{
+    uint16_t handle;
+    idigi_status_t status;
+    size_t bytes_sent;
+} idigi_data_send_t;
+
+typedef struct
+{
+    uint16_t handle;
+    uint8_t error;
+} idigi_data_error_t;
+
+typedef struct {
+    unsigned timeout;
+    idigi_rci_request_t compression;
+    uint8_t * data;
+    uint32_t length;
+} idigi_rci_data_t;
 /*
  * iDigi callback.
  *
@@ -911,7 +1014,7 @@ idigi_handle_t idigi_init(idigi_callback_t const callback);
  * @return idigi_success      No error is encountered and it allows caller to gain back the system control.
  *                          Caller must call this function again to continue iDigi process.
  * @return not idigi_success  Error is encountered and iDigi has closed the connection. Applciation
- *                          may call this function to restart IRL or idigi_dispatch to terminated IRL.
+ *                          may call this function to restart IRL or idigi_initiate_action to terminated IRL.
  *
  *
  */
@@ -925,7 +1028,7 @@ idigi_status_t idigi_step(idigi_handle_t const handle);
  * @param handler       handler returned from idigi_init.
  *
   * @return not idigi_success  Error is encountered and iDigi has closed the connection. Applciation
- *                          may call this function to restart IRL or idigi_dispatch to terminated IRL.
+ *                          may call this function to restart IRL or idigi_initiate_action to terminated IRL.
  */
 idigi_status_t idigi_run(idigi_handle_t const handle);
 
@@ -939,10 +1042,12 @@ idigi_status_t idigi_run(idigi_handle_t const handle);
  *                       and return. Once iDigi is terminated, iDigi cannot restart unless idigi_init is called again.
  *@param request_data   Pointer to requested data.
                         For Request ID:
-                            idigi_dispatch_termiated: data is not used
+                            idigi_initiate_termiate: data is not used
+                            idigi_initiate_data_service: contains put service info
  *@param response_data  Pointer to response data.
                         For Request ID:
-                            idigi_dispatch_termiated: data is not used
+                            idigi_initiate_termiate: data is not used
+                            idigi_initiate_data_service: Starting packet response will hold session ID.
  */
 idigi_status_t idigi_initiate_action(idigi_handle_t handle, idigi_dispatch_request_t request, void * const request_data, void * response_data);
 

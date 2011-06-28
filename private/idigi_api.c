@@ -31,9 +31,15 @@
 #if defined(_FIRMWARE_FACILITY)
 #include "idigi_fw.c"
 #endif
+#if defined(_DATA_SERVICE) || defined(_FILE_SERVICE)
 #include "idigi_msg.c"
+#endif
+#if defined(_DATA_SERVICE)
 #include "idigi_data.c"
+#endif
+#if defined(_RCI_FACILITY)
 #include "idigi_rci.c"
+#endif
 #include "layer.c"
 
 idigi_handle_t idigi_init(idigi_callback_t const callback)
@@ -134,6 +140,7 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
                 case idigi_config_error_status:
                 case idigi_config_firmware_facility:
                 case idigi_config_data_service:
+                case idigi_config_rci_facility:
                     ASSERT(0);
                     /* Get these in different modules */
                     break;
@@ -257,12 +264,7 @@ done:
                     rc = idigi_handle->error_code;
                 }
 
-                status = free_data(idigi_handle, idigi_handle);
-                if (status != idigi_callback_continue)
-                {
-                    DEBUG_PRINTF("idigi_task: close_server returns abort");
-                    rc = idigi_configuration_error;
-                }
+                free_data(idigi_handle, idigi_handle);
             }
             else
             {
@@ -297,27 +299,31 @@ idigi_status_t idigi_run(idigi_handle_t const handle)
 }
 
 
+
 idigi_status_t idigi_initiate_action(idigi_handle_t handle, idigi_dispatch_request_t request, void * const request_data, void  * response_data)
 {
     idigi_status_t rc = idigi_init_error;
     idigi_data_t * idigi_ptr = (idigi_data_t *)handle;
 
-    ASSERT_GOTO(handle != NULL, done);
-
-    UNUSED_PARAMETER(request_data);
-    UNUSED_PARAMETER(response_data);
+    ASSERT_GOTO(handle != NULL, error);
 
     rc = idigi_success;
     switch (request)
     {
-    case idigi_dispatch_terminate:
+    case idigi_initiate_terminate:
         idigi_ptr->active_state = idigi_device_terminate;
         break;
-    case idigi_dispatch_put_service:
-        /* TODO: implement */
+
+    case idigi_initiate_data_service:
+        ASSERT_GOTO(request_data != NULL, error);
+        rc = data_service_initiate(idigi_ptr, request_data, response_data);
+        break;
+
+    default:
         break;
     }
-done:
+
+error:
     return rc;
 }
 

@@ -43,17 +43,15 @@ static bool os_malloc(size_t const size, void ** ptr)
     return status;
 }
 
-static idigi_callback_status_t os_free(void * const ptr)
+static void os_free(void * const ptr)
 {
-    bool status=false;
     ASSERT(ptr != NULL);
 
     if (ptr != NULL)
     {
         free(ptr);
-        status = true;
     }
-    return status;
+    return;
 }
 
 bool os_time(time_t * curtime)

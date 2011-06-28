@@ -53,13 +53,18 @@ idigi_callback_status_t idigi_callback(idigi_class_t class_id, idigi_request_t r
     case idigi_class_firmware:
         status = idigi_firmware_callback(request_id.firmware_request, request_data, request_length, response_data, response_length);
         break;
+    case idigi_class_data_service:
+        status = idigi_data_service_callback(request_id.data_service_request, request_data, request_length, response_data, response_length);
+        break;
+    case idigi_class_rci:
+        status = idigi_rci_callback(request_id.rci_request, request_data, request_length, response_data, response_length);
+        break;
     default:
         /* not supported */
         break;
     }
     return status;
 }
-
 
 
 int main (void)
@@ -85,11 +90,13 @@ int main (void)
             {
                 device_data.select_data |= NETWORK_TIMEOUT_SET | NETWORK_READ_SET;
                 network_select(device_data.socket_fd, device_data.select_data, ONE_SECOND);
+                status = initiate_data_service(device_data.idigi_handle);
             }
         }
         DEBUG_PRINTF("idigi status = %d\n", status);
-   }
-   DEBUG_PRINTF("iDigi stops running!\n");
+    }
+
+    DEBUG_PRINTF("iDigi stops running!\n");
     return 0;
 }
 

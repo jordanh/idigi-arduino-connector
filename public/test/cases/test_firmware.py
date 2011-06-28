@@ -13,7 +13,7 @@ impl = getDOMImplementation()
 
 config = configuration.DeviceConfiguration()
 
-log = logging.getLogger('test_redirect')
+log = logging.getLogger('test_firmware')
 log.setLevel(logging.INFO)
 
 handler = logging.StreamHandler()
@@ -122,7 +122,7 @@ class FirmwareTestCase(unittest.TestCase):
                             condition="devConnectwareId='%s'" % config.device_id)
         # Ensure firmware version is correct
         self.assertEqual(new_device_core.dpFirmwareLevelDesc, config.firmware_version,
-                            "Firmware Version (%s) is incorrect.")
+                            "Firmware Version (%s) does not match expected (%s)" % (new_device_core.dpFirmwareLevelDesc, config.firmware_version))
     
 
     def test_validate_firmware_targets(self):

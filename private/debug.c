@@ -30,6 +30,7 @@
 typedef struct malloc_stats{
     void const * ptr;
     size_t length;
+    struct malloc_stats * prev;
     struct malloc_stats * next;
 } malloc_stats_t;
 
@@ -54,8 +55,16 @@ static void add_malloc_stats(void const * const ptr, size_t length)
     {
         pMalloc->ptr = ptr;
         pMalloc->length = length;
-        pMalloc->next = malloc_list;
-
+        if (malloc_list != NULL)
+        {
+            malloc_list->prev = pMalloc;
+            pMalloc->next = malloc_list;
+        }
+        else
+        {
+            pMalloc->next = NULL;
+        }
+        pMalloc->prev = NULL;
         malloc_list = pMalloc;
 
         total_malloc_length += length;
@@ -71,15 +80,19 @@ static void add_malloc_stats(void const * const ptr, size_t length)
 /* free and remove allocated memory */
 static void del_malloc_stats(void const * const ptr)
 {
-    malloc_stats_t   * pMalloc, * pMalloc1 = NULL;
+    malloc_stats_t   * pMalloc;
 
     for (pMalloc = malloc_list; pMalloc != NULL; pMalloc = pMalloc->next)
     {
         if (pMalloc->ptr == ptr)
         {
-            if (pMalloc1 != NULL)
+            if (pMalloc->next != NULL)
             {
-                pMalloc1->next = pMalloc->next;
+                pMalloc->next->prev = pMalloc->prev;
+            }
+            if (pMalloc->prev != NULL)
+            {
+                pMalloc->prev->next = pMalloc->next;
             }
             if (pMalloc == malloc_list)
             {
@@ -90,7 +103,6 @@ static void del_malloc_stats(void const * const ptr)
             free(pMalloc);
             break;
         }
-        pMalloc1 = pMalloc;
     }
 
     if (pMalloc == NULL)

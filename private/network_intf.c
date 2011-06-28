@@ -74,7 +74,7 @@ static void set_idigi_state(idigi_data_t * idigi_ptr, int state)
 }
 
 
-static idigi_callback_status_t enable_send_packet(idigi_data_t * idigi_ptr, idigi_packet_t * packet, send_complete_cb_t send_complete_cb)
+static idigi_callback_status_t enable_send_packet(idigi_data_t * idigi_ptr, idigi_packet_t * packet, send_complete_cb_t send_complete_cb, void * user_data)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     uint16_t length;
@@ -112,12 +112,12 @@ static idigi_callback_status_t enable_send_packet(idigi_data_t * idigi_ptr, idig
     /* clear the actual number of bytes to be sent */
     idigi_ptr->send_packet.length = 0;
     idigi_ptr->send_packet.complete_cb = send_complete_cb;
-
+    idigi_ptr->send_packet.user_data = user_data;
 done:
     return status;
 }
 
-static idigi_callback_status_t enable_facility_packet(idigi_data_t * idigi_ptr, idigi_packet_t * packet, uint16_t facility, send_complete_cb_t send_complete_cb)
+static idigi_callback_status_t enable_facility_packet(idigi_data_t * idigi_ptr, idigi_packet_t * packet, uint16_t facility, send_complete_cb_t send_complete_cb, void * user_data)
 {
     /* this function is to set up a facility packet to be sent.
      *
@@ -138,7 +138,7 @@ static idigi_callback_status_t enable_facility_packet(idigi_data_t * idigi_ptr, 
     packet->facility.facility = TO_BE16(facility);
     packet->header.length += sizeof(packet->facility.sec_coding) + sizeof(packet->facility.disc_payload) + sizeof(packet->facility.facility);
 
-    return enable_send_packet(idigi_ptr, packet, send_complete_cb);
+    return enable_send_packet(idigi_ptr, packet, send_complete_cb, user_data);
 }
 
 static int send_buffer(idigi_data_t * idigi_ptr, uint8_t * buffer, size_t length)
@@ -207,11 +207,12 @@ done:
     return bytes_sent;
 }
 
-static void release_packet_buffer(idigi_data_t * idigi_ptr, idigi_packet_t * packet, idigi_status_t status)
+static void release_packet_buffer(idigi_data_t * idigi_ptr, idigi_packet_t * packet, idigi_status_t status, void * user_data)
 {
     UNUSED_PARAMETER(status);
     ASSERT(idigi_ptr->send_packet.packet_buffer.buffer == (uint8_t *)packet);
     UNUSED_PARAMETER(packet);
+    UNUSED_PARAMETER(user_data);
 
     idigi_ptr->send_packet.packet_buffer.in_used = false;
     idigi_ptr->send_packet.packet_buffer.facility = E_MSG_MT2_MSG_NUM;
@@ -237,6 +238,7 @@ static idigi_packet_t * get_packet_buffer(idigi_data_t * idigi_ptr, uint16_t fac
         packet->header.avail_length = sizeof idigi_ptr->send_packet.packet_buffer.buffer - header_size;
         ptr = GET_PACKET_DATA_POINTER(packet, header_size);
         idigi_ptr->send_packet.packet_buffer.in_used = true;
+        idigi_ptr->send_packet.packet_buffer.facility = facility;
     }
     else
     {
@@ -279,7 +281,7 @@ static idigi_callback_status_t rx_keepalive_process(idigi_data_t * idigi_ptr)
     packet = (idigi_packet_t *)&idigi_ptr->rx_keepalive_packet;
     packet->header.length = 0;
     packet->header.type = E_MSG_MT2_TYPE_KA_KEEPALIVE;
-    status = enable_send_packet(idigi_ptr, packet, NULL);
+    status = enable_send_packet(idigi_ptr, packet, NULL, NULL);
 
 done:
     return status;
@@ -319,7 +321,7 @@ static idigi_callback_status_t send_packet_process(idigi_data_t * idigi_ptr)
         }
         if ((idigi_ptr->send_packet.total_length == 0) && (idigi_ptr->send_packet.complete_cb != NULL))
         {
-            idigi_ptr->send_packet.complete_cb(idigi_ptr, packet, idigi_ptr->error_code);
+            idigi_ptr->send_packet.complete_cb(idigi_ptr, packet, idigi_ptr->error_code, idigi_ptr->send_packet.user_data);
         }
     }
 

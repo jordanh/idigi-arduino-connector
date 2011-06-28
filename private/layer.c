@@ -56,8 +56,12 @@ static idigi_facility_init_t idigi_facility_init_cb[] = {
 #if defined(_FIRMWARE_FACILITY)
         {idigi_config_firmware_facility, fw_init_facility, fw_delete_facility},
 #endif
-        /* list of optional services over messaging facility */
+#if defined(_RCI_FACILITY)
+        {idigi_config_rci_facility, rci_init_facility, rci_delete_facility},
+#endif
+#if defined(_DATA_SERVICE)
         {idigi_config_data_service, data_service_init, data_service_delete}
+#endif
 };
 
 static size_t idigi_facility_count = asizeof(idigi_facility_init_cb);
@@ -233,6 +237,7 @@ static idigi_callback_status_t get_configurations(idigi_data_t * idigi_ptr)
                 case idigi_config_phone_number:
                 case idigi_config_ip_addr:
                 case idigi_config_error_status:
+                case idigi_config_rci_facility:
                 case idigi_config_firmware_facility:
                 case idigi_config_data_service:
                     /* get these configurations from different modules */
@@ -406,7 +411,7 @@ static idigi_callback_status_t communication_layer(idigi_data_t * idigi_ptr)
 
             StoreBE32(ptr, EDP_MT_VERSION);
 
-            status = enable_send_packet(idigi_ptr, packet, release_packet_buffer);
+            status = enable_send_packet(idigi_ptr, packet, release_packet_buffer, NULL);
             if (status == idigi_callback_continue)
             {
                 idigi_ptr->layer_state = communication_receive_version_response;
@@ -594,7 +599,7 @@ static idigi_callback_status_t initialization_layer(idigi_data_t * idigi_ptr)
 
         StoreBE32(ptr, version);
 
-        status = enable_send_packet(idigi_ptr, packet, release_packet_buffer);
+        status = enable_send_packet(idigi_ptr, packet, release_packet_buffer, NULL);
         idigi_ptr->layer_state = initialization_receive_protocol_version;
         break;
     }
@@ -690,7 +695,7 @@ static idigi_callback_status_t security_layer(idigi_data_t * idigi_ptr)
         packet->header.type = E_MSG_MT2_TYPE_PAYLOAD;
         packet->header.length = ptr - start_ptr;
 
-        status = enable_send_packet(idigi_ptr, packet, release_packet_buffer);
+        status = enable_send_packet(idigi_ptr, packet, release_packet_buffer, NULL);
 
         idigi_ptr->layer_state = security_send_device_id;
         break;
@@ -718,7 +723,7 @@ static idigi_callback_status_t security_layer(idigi_data_t * idigi_ptr)
         memcpy(ptr, device_id, DEVICE_ID_LENGTH);
         packet->header.length += DEVICE_ID_LENGTH;
 
-        status = enable_send_packet(idigi_ptr, packet, release_packet_buffer);
+        status = enable_send_packet(idigi_ptr, packet, release_packet_buffer, NULL);
         idigi_ptr->layer_state = security_send_server_url;
         break;
     }
@@ -757,7 +762,7 @@ static idigi_callback_status_t security_layer(idigi_data_t * idigi_ptr)
         }
         packet->header.length = ptr - start_ptr;
 
-        status = enable_send_packet(idigi_ptr, packet, release_packet_buffer);
+        status = enable_send_packet(idigi_ptr, packet, release_packet_buffer, NULL);
         set_idigi_state(idigi_ptr, edp_discovery_layer);
     }
     } /* switch */
@@ -774,9 +779,9 @@ static idigi_callback_status_t discovery_layer(idigi_data_t * idigi_ptr)
         discovery_send_complete
     };
     idigi_callback_status_t status = idigi_callback_continue;
-    idigi_packet_t * packet;
+    idigi_packet_t * packet = NULL;
     uint8_t sec_coding = SECURITY_PROTO_NONE;
-    uint8_t * ptr, * start_ptr;
+    uint8_t * ptr, * start_ptr = NULL;
 
     /* discovery layer:
      * 1. send vendor ID
@@ -818,7 +823,7 @@ static idigi_callback_status_t discovery_layer(idigi_data_t * idigi_ptr)
         packet->header.length = ptr - start_ptr;
         packet->header.type = E_MSG_MT2_TYPE_PAYLOAD;
 
-        status = enable_send_packet(idigi_ptr, packet, release_packet_buffer);
+        status = enable_send_packet(idigi_ptr, packet, release_packet_buffer, NULL);
 
         idigi_ptr->layer_state = discovery_send_device_type;
         break;
@@ -857,7 +862,7 @@ static idigi_callback_status_t discovery_layer(idigi_data_t * idigi_ptr)
         packet->header.length = ptr - start_ptr;
         packet->header.type = E_MSG_MT2_TYPE_PAYLOAD;
 
-        status = enable_send_packet(idigi_ptr, packet, release_packet_buffer);
+        status = enable_send_packet(idigi_ptr, packet, release_packet_buffer, NULL);
         idigi_ptr->layer_state = discovery_facility;
         break;
     }
@@ -889,7 +894,7 @@ static idigi_callback_status_t discovery_layer(idigi_data_t * idigi_ptr)
         packet->header.length = ptr - start_ptr;
         packet->header.type = E_MSG_MT2_TYPE_PAYLOAD;
 
-        status = enable_send_packet(idigi_ptr, packet, release_packet_buffer);
+        status = enable_send_packet(idigi_ptr, packet, release_packet_buffer, NULL);
         set_idigi_state(idigi_ptr, edp_facility_layer);
         break;
     }
@@ -903,7 +908,7 @@ static idigi_callback_status_t facility_layer(idigi_data_t * idigi_ptr)
         facility_receive_message,
         facility_process_message
     };
-    idigi_callback_status_t status;
+    idigi_callback_status_t status = idigi_callback_continue;
     idigi_packet_t * packet = NULL;
     idigi_facility_t * fac_ptr;
     bool    done_packet = true;
@@ -950,12 +955,6 @@ static idigi_callback_status_t facility_layer(idigi_data_t * idigi_ptr)
                 DEBUG_PRINTF("idigi_facility_layer: receive data facility = 0x%04x, type = %d, length=%d\n",
                                             facility, packet->header.type, packet->header.length);
 
-                /* TODO: Removed this fake RCI response */
-                if (facility == E_MSG_FAC_RCI_NUM)
-                {
-                    status = rci_process_function(idigi_ptr, NULL, packet);
-                    goto error;
-                }
                 packet->facility.facility = facility;
                 /* The packet length includes discovery_payload, security_coding + facility number so
                  * must subtract all these length to get the length of facility data

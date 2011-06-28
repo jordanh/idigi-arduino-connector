@@ -56,16 +56,42 @@ static idigi_callback_status_t firmware_download_request(idigi_fw_download_reque
     }
 
     DEBUG_PRINTF("target = %d\n", download_data->target);
+
     DEBUG_PRINTF("version = 0x%04X\n", download_data->version);
     DEBUG_PRINTF("code size = %d\n", download_data->code_size);
     DEBUG_PRINTF("desc_string = %s\n", download_data->desc_string);
     DEBUG_PRINTF("file name spec = %s\n", download_data->file_name_spec);
     DEBUG_PRINTF("filename = %s\n", download_data->filename);
 
-    total_image_size = 0;
-    firmware_download_started = true;
+    // Predefined failure targets to test error conditions.
 
-    *download_status = idigi_fw_success;
+    switch(download_data->target){
+    case 5:
+    	*download_status = idigi_fw_download_denied;
+    	break;
+    case 6:
+    	*download_status = idigi_fw_download_invalid_size;
+    	break;
+    case 7:
+    	*download_status = idigi_fw_download_invalid_version;
+    	break;
+    case 8:
+    	*download_status = idigi_fw_download_unauthenticated;
+    	break;
+    case 9:
+    	*download_status = idigi_fw_download_not_allowed;
+    	break;
+    case 10:
+    	*download_status = idigi_fw_download_configured_to_reject;
+    	break;
+    case 11:
+    	*download_status = idigi_fw_encountered_error;
+    	break;
+    default:
+    	total_image_size = 0;
+    	firmware_download_started = true;
+    	*download_status = idigi_fw_success;
+    }
 
 done:
     return status;
@@ -88,8 +114,29 @@ static idigi_callback_status_t firmware_image_data(idigi_fw_image_data_t * image
     total_image_size += image_data->length;
     DEBUG_PRINTF("length = %zu (total = %zu)\n", image_data->length, total_image_size);
 
+    // Predefined failure targets to test error conditions.
+    switch(image_data->target){
+    case 12:
+    	*data_status = idigi_fw_user_abort;
+	goto error;
+    case 13:
+    	*data_status = idigi_fw_device_error;
+    	goto error;
+    case 14:
+    	*data_status = idigi_fw_invalid_offset;
+    	goto error;
+    case 15:
+    	*data_status = idigi_fw_invalid_data;
+    	goto error;
+    case 16:
+    	*data_status = idigi_fw_hardware_error;
+    	goto error;
+    }
 
     *data_status = idigi_fw_success;
+    return status;
+error:
+    firmware_download_started = false;
 done:
     return status;
 }

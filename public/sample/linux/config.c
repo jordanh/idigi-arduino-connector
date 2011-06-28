@@ -263,6 +263,10 @@ static bool get_data_service_support(void)
     return true;
 }
 
+static bool get_rci_support(void)
+{
+    return true;
+}
 
 /* End of IIK configuration routines */
 
@@ -293,7 +297,8 @@ static bool idigi_config_error(idigi_error_status_t * const error_data)
                                           "idigi_receive_error",
                                           "idigi_send_error",
                                           "idigi_close_error",
-                                          "idigi_device_terminated"};
+                                          "idigi_device_terminated",
+                                          "idigi_service_busy"};
 
     char const * config_request_string[] = { "idigi_config_device_id",
                                              "idigi_config_vendor_id",
@@ -332,6 +337,9 @@ static bool idigi_config_error(idigi_error_status_t * const error_data)
                                               "idigi_firmware_download_abort",
                                               "idigi_firmware_target_reset"};
 
+    char const * data_service_string[] = {"idigi_data_service_send_complete",
+                                          "idigi_data_service_response",
+                                          "idigi_data_service_error"};
     switch (error_data->class_id)
     {
     case idigi_class_config:
@@ -350,6 +358,12 @@ static bool idigi_config_error(idigi_error_status_t * const error_data)
         DEBUG_PRINTF("idigi_error_status: Firmware facility - %s (%d)  status = %s (%d)\n",
                      firmware_request_string[error_data->request_id.firmware_request],
                      error_data->request_id.firmware_request,
+                     error_status_string[error_data->status],error_data->status);
+        break;
+    case idigi_class_data_service:
+        DEBUG_PRINTF("idigi_error_status: Data service - %s (%d)  status = %s (%d)\n",
+                     data_service_string[error_data->request_id.data_service_request],
+                     error_data->request_id.data_service_request,
                      error_status_string[error_data->status],error_data->status);
         break;
     default:
@@ -373,7 +387,7 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
                                               size_t * response_length)
 {
     idigi_callback_status_t status;
-    bool ret;
+    bool ret = false;
 
     UNUSED_PARAMETER(request_length);
 
@@ -432,11 +446,18 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
         break;
 
     case idigi_config_firmware_facility:
-        ret = get_firmware_support();
+        *((bool *)response_data) = get_firmware_support();
+        ret = true;
         break;
 
     case idigi_config_data_service:
-        ret = get_data_service_support();
+        *((bool *)response_data) = get_data_service_support();
+        ret = true;
+        break;
+
+    case idigi_config_rci_facility:
+        *((bool *)response_data) = get_rci_support();
+        ret = true;
         break;
 
     }
