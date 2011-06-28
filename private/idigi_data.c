@@ -58,7 +58,7 @@ typedef struct
 static data_service_record_t data_service_record;
 static void data_service_send_complete(idigi_data_t * idigi_ptr, idigi_packet_t * packet, idigi_status_t status, void * user_data);
 
-static idigi_callback_status_t data_service_callback(idigi_data_t * idigi_ptr, msg_opcode_t msg_type, uint8_t * data, size_t length)
+static idigi_callback_status_t data_service_callback(idigi_data_t * idigi_ptr, msg_opcode_t const msg_type, uint8_t * data, size_t const length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
@@ -125,7 +125,7 @@ error:
     return status;
 }
 
-static size_t fill_data_service_header(idigi_data_request_t const * request, uint8_t *data)
+static size_t fill_data_service_header(idigi_data_request_t const * const request, uint8_t * data)
 {
     uint8_t * ptr = data;
 
@@ -152,7 +152,7 @@ static size_t fill_data_service_header(idigi_data_request_t const * request, uin
     return (ptr - data);
 }
 
-static idigi_status_t data_service_send_chunk(idigi_data_t * data_ptr, bool first_chunk, uint16_t * handle)
+static idigi_status_t data_service_send_chunk(idigi_data_t * data_ptr, bool const first_chunk, uint16_t * const handle)
 {
     idigi_status_t status = idigi_send_error;
     uint16_t session_id = MSG_INVALID_SESSION_ID;
@@ -226,7 +226,7 @@ error:
     return status;
 }
 
-static void data_service_send_complete(idigi_data_t * idigi_ptr, idigi_packet_t * packet, idigi_status_t status, void * user_data)
+static void data_service_send_complete(idigi_data_t * idigi_ptr, idigi_packet_t * packet, idigi_status_t const status, void * user_data)
 {
     UNUSED_PARAMETER(packet);
     UNUSED_PARAMETER(user_data);
@@ -235,8 +235,8 @@ static void data_service_send_complete(idigi_data_t * idigi_ptr, idigi_packet_t 
     {
         if (data_service_record.bytes_sent < data_service_record.req_ptr->payload_length)
         {
-            status = data_service_send_chunk(idigi_ptr, false, NULL);
-            if (status == idigi_success) 
+            idigi_status_t ret = data_service_send_chunk(idigi_ptr, false, NULL);
+            if (ret == idigi_success) 
                 goto done;
         }
     }
@@ -247,8 +247,8 @@ static void data_service_send_complete(idigi_data_t * idigi_ptr, idigi_packet_t 
         idigi_data_request_t const * request = service->req_ptr;
         idigi_data_send_t send_info = {.handle = request->handle, .status = status, .bytes_sent = service->bytes_sent};
 
-       // if ((status != idigi_success) || ((request->flag & IDIGI_DATA_REQUEST_LAST) != 0))
-       //     msg_delete_session(idigi_ptr, request->handle);
+       if (status != idigi_success) /* send failed? abort the session */
+           msg_delete_session(idigi_ptr, request->handle);
 
         request_id.data_service_request = idigi_data_service_send_complete;
 
