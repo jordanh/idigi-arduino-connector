@@ -78,6 +78,3 @@ help:
 	@echo "    LD            - Pointer to linker"
 	@echo "    CFLAGS        - Options to the compiler"
 	@echo "    LDFLAGS       - Options to the linker"
-	@echo "NOTES:"
-	@echo "    If you only wish to build a sample you can type make in the"
-	@echo "    sample subdirectory once the idigi library is built."

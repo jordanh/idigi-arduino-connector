@@ -49,7 +49,7 @@
  * return value is -1, and the value of the data item pointed to by the
  * parameter ip_addr is undefined.
  */
-static int dns_resolve_name(char const *domain_name, in_addr_t * ip_addr)
+static int dns_resolve_name(char const * const domain_name, in_addr_t * ip_addr)
 {
     int rc;
     struct addrinfo *res0;
@@ -139,7 +139,7 @@ static void set_socket_blockopt(unsigned const sockfd, bool const block)
  * Setup a connection to the server specified in the host_name, fill in a
  * network handle which is then passed to subsequent networking calls.
  */
-static idigi_callback_status_t network_connect(char * const host_name, idigi_network_handle_t ** network_handle)
+static idigi_callback_status_t network_connect(char const * const host_name, idigi_network_handle_t ** network_handle)
 {
     idigi_callback_status_t rc = idigi_callback_abort;
     in_addr_t ip_addr;
@@ -252,7 +252,7 @@ done:
  * EAGAIN or EWOULDBLOCK error, 0 bytes must be returned and IIK will continue
  * calling this function.
  */
-static idigi_callback_status_t network_send(idigi_write_request_t * const write_data,
+static idigi_callback_status_t network_send(idigi_write_request_t const * const write_data,
                                             size_t * sent_length)
 {
     idigi_callback_status_t rc = idigi_callback_continue;
@@ -433,7 +433,7 @@ done:
  *  Callback routine to handle all networking related calls.
  */
 idigi_callback_status_t idigi_network_callback(idigi_network_request_t request,
-                                            void const * request_data, size_t request_length,
+                                            void * const request_data, size_t request_length,
                                             void * response_data, size_t * response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
