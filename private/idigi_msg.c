@@ -67,7 +67,7 @@ typedef enum
     msg_opcode_count
 } msg_opcode_t;
 
-typedef idigi_callback_status_t idigi_msg_callback_t(idigi_data_t * idigi_ptr, msg_opcode_t const msg_type, uint8_t * buffer, size_t const length);
+typedef idigi_callback_status_t idigi_msg_callback_t(idigi_data_t * idigi_ptr, msg_opcode_t const msg_type, uint16_t session_id, uint8_t * buffer, size_t const length);
 
 typedef struct msg_session_t
 {
@@ -349,7 +349,7 @@ static idigi_callback_status_t process_msg_data(idigi_data_t * idigi_ptr, idigi_
         }
         
         length -= (ptr - start_ptr);
-        status = session->cb_func(idigi_ptr, start ? msg_opcode_start : msg_opcode_data, ptr, length);
+        status = session->cb_func(idigi_ptr, start ? msg_opcode_start : msg_opcode_data, session_id, ptr, length);
     }
 
 error:
@@ -360,16 +360,15 @@ static idigi_callback_status_t process_msg_ack(idigi_data_t * idigi_ptr, idigi_m
 {
     idigi_callback_status_t status = idigi_callback_abort;
     msg_session_t * session;
+    uint16_t session_id;
 
     ptr++; /* flags, not used at this point */
 
-    {
-        uint16_t session_id = LoadBE16(ptr);        
+    session_id = LoadBE16(ptr);        
 
-        session = msg_find_session(msg_fac, session_id);
-        ASSERT_GOTO(session != NULL, error);
-        ptr += sizeof session_id;
-    }
+    session = msg_find_session(msg_fac, session_id);
+    ASSERT_GOTO(session != NULL, error);
+    ptr += sizeof session_id;
 
     {
         uint32_t ack_count = LoadBE32(ptr);
@@ -378,7 +377,7 @@ static idigi_callback_status_t process_msg_ack(idigi_data_t * idigi_ptr, idigi_m
     }
 
     session->available = LoadBE32(ptr); /* window size */
-    status = session->cb_func(idigi_ptr, msg_opcode_ack, NULL, 0);
+    status = session->cb_func(idigi_ptr, msg_opcode_ack, session_id, NULL, 0);
 
 error:
     return status;
@@ -395,7 +394,8 @@ static idigi_callback_status_t process_msg_error(idigi_data_t * idigi_ptr, idigi
         msg_session_t * session = msg_find_session(msg_fac, session_id);
         
         ASSERT_GOTO(session != NULL, error);
-        status = session->cb_func(idigi_ptr, msg_opcode_error, ptr, (sizeof session_id + sizeof(uint8_t)));
+        ptr += sizeof session_id;
+        status = session->cb_func(idigi_ptr, msg_opcode_error, session_id, ptr, sizeof(uint8_t));
     }
 
 error:
