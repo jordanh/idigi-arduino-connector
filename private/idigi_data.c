@@ -54,7 +54,7 @@ typedef struct
     };
 } data_service_record_t;
 
-/* one active transaction at any time */
+/* one active transaction at any time, but supports multiple sessions */
 static data_service_record_t data_service_record;
 static void data_service_send_complete(idigi_data_t * idigi_ptr, idigi_packet_t * packet, idigi_status_t status, void * user_data);
 
@@ -62,7 +62,6 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * idigi_ptr, m
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
-    /* need to call user callback here */
     switch (msg_type) 
     {
         case msg_opcode_error:
@@ -107,13 +106,12 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * idigi_ptr, m
             data[response.msg_length] = '\0';
             response.message = data;
 
-            {                
+            {
                 idigi_request_t request_id;
 
                 request_id.data_service_request = idigi_data_service_response;
                 status = idigi_callback(idigi_ptr->callback, idigi_class_data_service, request_id, &response, sizeof response, NULL, 0);
             }
-
 
             msg_delete_session(idigi_ptr, session_id);
             break;
@@ -173,9 +171,9 @@ static idigi_status_t data_service_send_chunk(idigi_data_t * data_ptr, bool cons
         data = service->buffer + header_len;
         if (start_bit) 
         {
+            ASSERT_GOTO(session_id_ptr != NULL, error);
             session_id = msg_create_session(data_ptr, msg_service_id_data, data_service_callback);
             ASSERT_GOTO(session_id != MSG_INVALID_SESSION_ID, error);
-            ASSERT_GOTO(session_id_ptr != NULL, error);
             *session_id_ptr = session_id;
 
             {
