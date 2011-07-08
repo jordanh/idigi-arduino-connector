@@ -936,7 +936,7 @@ typedef struct {
 
 typedef struct
 {
-    uint16_t handle;
+    uint16_t session_id;
     uint16_t flag;
     uint8_t  path_length;
     uint8_t  *path;
@@ -948,7 +948,7 @@ typedef struct
 
 typedef struct
 {
-    uint16_t handle;
+    uint16_t session_id;
     uint8_t  status;
     uint8_t  msg_length;
     uint8_t  *message;
@@ -956,14 +956,14 @@ typedef struct
 
 typedef struct
 {
-    uint16_t handle;
+    uint16_t session_id;
     idigi_status_t status;
     size_t bytes_sent;
 } idigi_data_send_t;
 
 typedef struct
 {
-    uint16_t handle;
+    uint16_t session_id;
     uint8_t error;
 } idigi_data_error_t;
 

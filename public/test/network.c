@@ -422,7 +422,7 @@ done:
 
 
 idigi_callback_status_t idigi_network_callback(idigi_network_request_t request,
-                                            void const * request_data, size_t request_length,
+                                            void * const request_data, size_t request_length,
                                             void * response_data, size_t * response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
@@ -446,6 +446,11 @@ idigi_callback_status_t idigi_network_callback(idigi_network_request_t request,
     case idigi_network_close:
         status = network_close((idigi_network_handle_t *)request_data);
         break;
+
+    case idigi_network_reboot:
+    	// Do nothing for now.
+    	DEBUG_PRINTF("Rebooting Device\n");
+    	break;
 
     case idigi_network_disconnected:
     	DEBUG_PRINTF("Disconnected from server\n");

@@ -182,7 +182,7 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * fw_ptr, idi
         *response_size = length;
     }
 
-    if ((end_time_stamp- start_time_stamp) > (timeout * MILLISECONDS_PER_SECOND))
+    if ((end_time_stamp- start_time_stamp) > timeout)
     {
         /* callback exceeds timeout value.
          * No need to abort just notify caller.
@@ -197,7 +197,7 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * fw_ptr, idi
          * Check whether we need to send target list message
          * to keep server alive.
          */
-        fw_ptr->keepalive = ((end_time_stamp - fw_ptr->ka_time) >= (FW_TARGET_LIST_MSG_INTERVAL_PER_SECOND * MILLISECONDS_PER_SECOND));
+        fw_ptr->keepalive = ((end_time_stamp - fw_ptr->ka_time) >= FW_TARGET_LIST_MSG_INTERVAL_PER_SECOND);
     }
     else
     {
