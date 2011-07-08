@@ -264,7 +264,7 @@ static idigi_callback_status_t rx_keepalive_process(idigi_data_t * idigi_ptr)
     /* Sends rx keepalive if keepalive timing is expired. */
     rx_keepalive = *idigi_ptr->rx_keepalive;
 
-    if (valid_interval_limit(idigi_ptr, idigi_ptr->rx_ka_time, (rx_keepalive * MILLISECONDS_PER_SECOND)))
+    if (valid_interval_limit(idigi_ptr, idigi_ptr->rx_ka_time, rx_keepalive))
     {
         /* not expired yet. no need to send rx keepalive */
         goto done;
@@ -436,7 +436,7 @@ static int receive_data(idigi_data_t * idigi_ptr, uint8_t * buffer, size_t lengt
         }
     }
 
-    tx_keepalive = *idigi_ptr->tx_keepalive * MILLISECONDS_PER_SECOND;
+    tx_keepalive = *idigi_ptr->tx_keepalive;
     if (tx_keepalive > 0)
     {
         uint8_t wait_count;
