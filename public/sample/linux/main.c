@@ -34,7 +34,7 @@ device_data_t device_data;
 
 
 idigi_callback_status_t idigi_callback(idigi_class_t class_id, idigi_request_t request_id,
-                                    void const * request_data, size_t request_length,
+                                    void * const request_data, size_t request_length,
                                     void * response_data, size_t * response_length)
 {
     idigi_callback_status_t   status = idigi_callback_continue;

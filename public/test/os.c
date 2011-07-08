@@ -59,7 +59,7 @@ static idigi_callback_status_t os_get_system_time(uint32_t * mstime)
 }
 
 idigi_callback_status_t idigi_os_callback(idigi_os_request_t request,
-                                        void const * request_data, size_t request_length,
+                                        void * const request_data, size_t request_length,
                                         void * response_data, size_t * response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;

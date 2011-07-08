@@ -46,7 +46,7 @@ static malloc_stats_t * malloc_list = NULL;
  *
  * This is for debugging only.
  */
-static void add_malloc_stats(void const * ptr, size_t length)
+static void add_malloc_stats(void const * const ptr, size_t length)
 {
     malloc_stats_t   * pMalloc;
 
@@ -78,7 +78,7 @@ static void add_malloc_stats(void const * ptr, size_t length)
 }
 
 /* free and remove allocated memory */
-static void del_malloc_stats(void const * ptr)
+static void del_malloc_stats(void const * const ptr)
 {
     malloc_stats_t   * pMalloc;
 

@@ -170,7 +170,7 @@ static idigi_callback_status_t firmware_reset(idigi_fw_config_t * reset_data)
 }
 
 idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t request,
-                                                  void const * request_data, size_t request_length,
+                                                  void * const request_data, size_t request_length,
                                                   void * response_data, size_t * response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;

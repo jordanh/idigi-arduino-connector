@@ -40,7 +40,7 @@ firmware_list_t* temp_fw;
 time_t  deviceSystemUpStartTime;
 char* cur_section = "";
 idigi_callback_status_t idigi_callback(idigi_class_t class, idigi_request_t request,
-                                    void const * request_data, size_t request_length,
+                                    void * const request_data, size_t request_length,
                                     void * response_data, size_t * response_length)
 {
     idigi_callback_status_t   status = idigi_callback_continue;

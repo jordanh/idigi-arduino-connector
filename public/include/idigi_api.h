@@ -936,7 +936,7 @@ typedef struct {
 
 typedef struct
 {
-    uint16_t handle;
+    uint16_t session_id;
     uint16_t flag;
     uint8_t  path_length;
     uint8_t  *path;
@@ -948,7 +948,7 @@ typedef struct
 
 typedef struct
 {
-    uint16_t handle;
+    uint16_t session_id;
     uint8_t  status;
     uint8_t  msg_length;
     uint8_t  *message;
@@ -956,14 +956,14 @@ typedef struct
 
 typedef struct
 {
-    uint16_t handle;
+    uint16_t session_id;
     idigi_status_t status;
     size_t bytes_sent;
 } idigi_data_send_t;
 
 typedef struct
 {
-    uint16_t handle;
+    uint16_t session_id;
     uint8_t error;
 } idigi_data_error_t;
 
@@ -988,7 +988,7 @@ typedef struct {
  * @return idigi_callback_abort       iDigi will stop and exit
  */
 typedef idigi_callback_status_t (* idigi_callback_t) (idigi_class_t class_id, idigi_request_t request_id,
-                                                  void const * request_data, size_t request_length, 
+                                                  void * const request_data, size_t request_length, 
                                                   void * response_data, size_t * response_length);
 
 /*
@@ -1049,7 +1049,7 @@ idigi_status_t idigi_run(idigi_handle_t const handle);
                             idigi_initiate_termiate: data is not used
                             idigi_initiate_data_service: Starting packet response will hold session ID.
  */
-idigi_status_t idigi_initiate_action(idigi_handle_t handle, idigi_initiate_request_t request, void const * request_data, void * response_data);
+idigi_status_t idigi_initiate_action(idigi_handle_t handle, idigi_initiate_request_t request, void * const request_data, void * response_data);
 
 #ifdef __cplusplus
 }

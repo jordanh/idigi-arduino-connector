@@ -82,7 +82,7 @@ static bool os_get_system_time(uint32_t * const mstime)
 }
 
 idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
-                                        void const * request_data, size_t request_length,
+                                        void * const request_data, size_t request_length,
                                         void * response_data, size_t * response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
@@ -99,7 +99,8 @@ idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
         break;
 
     case idigi_os_free:
-        os_free((void *)request_data);
+        os_free(request_data);
+        status = idigi_callback_continue;
         break;
 
     case idigi_os_system_up_time:
