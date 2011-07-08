@@ -65,7 +65,6 @@
 
 #define MIN_VALUE(x,y)        (((x) < (y))? (x): (y))
 #define MAX_VALUE(x,y)        (((x) > (y))? (x): (y))
-#define MILLISECONDS_PER_SECOND            1000
 
 #define URL_PREFIX  "en://"
 #define GET_PACKET_DATA_POINTER(p, s)  (uint8_t *)(((uint8_t *)p) + (s))
