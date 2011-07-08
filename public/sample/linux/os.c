@@ -54,28 +54,19 @@ static void os_free(void * const ptr)
     return;
 }
 
-bool os_time(time_t * curtime)
-{
-
-    time(curtime);
-
-    return true;
-}
-
-/* End of OS specific routines */
-
-static bool os_get_system_time(uint32_t * const mstime)
+static bool os_get_system_time(uint32_t * const uptime)
 {
     time_t curtime;
-    bool ret = os_time(&curtime);
+    bool ret = time(&curtime);
 
     if (ret)
     {
-        *mstime = (uint32_t)(curtime - device_data.start_system_up_time) * 1000;
+        /* Up time in seconds */
+        *uptime = curtime - device_data.start_system_up_time;
     }
     else
     {
-        *mstime = 0; /* Time is not available */
+        *uptime = 0; /* Time is not available */
     }
 
     return ret;

@@ -50,6 +50,7 @@ typedef struct {
     idigi_handle_t           idigi_handle;
     idigi_network_handle_t   socket_fd;
     uint8_t                  select_data;
+    bool                     connected;
 } device_data_t;
 
 extern device_data_t device_data;
@@ -65,7 +66,7 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
 idigi_callback_status_t idigi_network_callback(idigi_network_request_t request,
                                             void * const request_data, size_t request_length,
                                             void * response_data, size_t * response_length);
-uint8_t network_select(idigi_network_handle_t fd, uint8_t select_set, unsigned wait_time);
+uint8_t network_select(idigi_network_handle_t fd, uint8_t select_set, struct timeval *timeout);
 
 idigi_callback_status_t idigi_os_callback(idigi_os_request_t request,
                                         void * const request_data, size_t request_length,

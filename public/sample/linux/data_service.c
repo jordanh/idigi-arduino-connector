@@ -26,8 +26,64 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+#include "time.h"
 
 #include "idigi_data.h"
+
+
+#define DATA_LOG_INTERVAL   300
+#define DATA_BLOCK_SIZE     1024
+
+static uint8_t test_data[DATA_BLOCK_SIZE];
+
+static void initialize_request(idigi_data_request_t * request)
+{
+    static uint8_t path[] = "test/data.txt";
+    static uint8_t type[] = "text/plain";
+    int i;
+
+    for (i = 0; i < DATA_BLOCK_SIZE; i++) 
+        test_data[i] = (i%0x5B)+0x20;
+
+    request->flag                   = IDIGI_DATA_REQUEST_START | IDIGI_DATA_REQUEST_LAST;
+    request->path_length            = sizeof path - 1;
+    request->path                   = path;
+    request->content_type_length    = sizeof type - 1;
+    request->content_type           = type;
+    request->payload_length         = DATA_BLOCK_SIZE;
+    request->payload                = test_data;
+}
+
+idigi_status_t initiate_data_service(idigi_handle_t handle) 
+{
+    idigi_status_t status = idigi_success;
+    static time_t last_time = 0;
+    time_t current_time;
+    static idigi_data_request_t request;
+    
+    time(&current_time);
+    if (last_time == 0) 
+    {
+        initialize_request(&request);
+        last_time = current_time;
+        goto done;
+    }
+
+    if ((current_time - last_time) >= DATA_LOG_INTERVAL) 
+    {
+        uint16_t session_id;
+
+        last_time = current_time;
+        initialize_request(&request);
+        status = idigi_initiate_action(handle, idigi_initiate_data_service, &request, &session_id);
+        request.handle = session_id;
+
+        DEBUG_PRINTF("Status: %d, Session: %d\n", status, session_id);
+    }
+
+done:
+    return status;
+}
 
 idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t request,
                                                   void const * request_data, size_t request_length,
@@ -75,60 +131,3 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
 
     return status;
 }
-
-#define DATA_LOG_INTERVAL   300
-#define DATA_BLOCK_SIZE     1024
-
-static uint8_t big_data[DATA_BLOCK_SIZE];
-
-static void fill_data_request(idigi_data_request_t * request)
-{
-    static uint8_t path[] = "test/big_data.txt";
-    static uint8_t type[] = "text/plain";
-
-    {
-        int i;
-
-        for (i = 0; i < DATA_BLOCK_SIZE; i++) 
-            big_data[i] = (i%0x5B)+0x20;
-    }
-
-    request->flag = IDIGI_DATA_REQUEST_START | IDIGI_DATA_REQUEST_LAST;
-    request->path_length = sizeof path - 1;
-    request->path = path;
-    request->content_type_length = sizeof type - 1;
-    request->content_type = type;
-    request->payload_length = DATA_BLOCK_SIZE;
-    request->payload = big_data;
-}
-
-idigi_status_t initiate_data_service(idigi_handle_t handle)
-{
-    idigi_status_t status = idigi_success;
-    static time_t last_time = 0;
-    time_t current_time;
-    
-    os_time(&current_time);
-    if (last_time == 0) 
-    {
-        last_time = current_time;
-        goto done;
-    }
-
-    if ((current_time - last_time) >= DATA_LOG_INTERVAL) 
-    {
-        static idigi_data_request_t request;
-        uint16_t session_id;
-
-        last_time = current_time;
-        fill_data_request(&request);
-        status = idigi_initiate_action(handle, idigi_initiate_data_service, &request, &session_id);
-        request.handle = session_id;
-
-        DEBUG_PRINTF("Status: %d, Session: %d\n", status, session_id);
-    }
-
-done:
-    return status;
-}
-
