@@ -83,14 +83,14 @@ static void notify_error_status(idigi_callback_t callback, idigi_class_t class_n
 }
 
 
-static idigi_callback_status_t get_system_time(idigi_data_t * idigi_ptr, uint32_t * mstime)
+static idigi_callback_status_t get_system_time(idigi_data_t * idigi_ptr, uint32_t * uptime)
 {
     size_t  length;
     idigi_callback_status_t status;
     idigi_request_t request_id;
 
     request_id.os_request = idigi_os_system_up_time;
-    status = idigi_callback(idigi_ptr->callback, idigi_class_operating_system, request_id, NULL, 0, mstime, &length);
+    status = idigi_callback(idigi_ptr->callback, idigi_class_operating_system, request_id, NULL, 0, uptime, &length);
     if (status == idigi_callback_abort)
     {
         idigi_ptr->error_code = idigi_configuration_error;
@@ -146,22 +146,21 @@ static void free_data(idigi_data_t * idigi_ptr, void * ptr)
     return;
 }
 
-static uint32_t get_timeout_limit_in_seconds(uint32_t max_timeout_in_second, uint32_t system_up_time_in_millisecond)
+static uint32_t get_timeout_limit_in_seconds(uint32_t max_timeout, uint32_t system_up_time)
 {
     uint32_t time_limit;
-    uint32_t system_up_time = system_up_time_in_millisecond;
+    uint32_t up_time = system_up_time;
 
-    time_limit = (max_timeout_in_second * MILLISECONDS_PER_SECOND);
+    time_limit = max_timeout;
     if (time_limit > 0)
     {
-        if (system_up_time_in_millisecond > time_limit)
+        if (system_up_time > time_limit)
         {
-            system_up_time %=time_limit;
-            system_up_time *= time_limit;
+            up_time %=time_limit;
+            up_time *= time_limit;
         }
 
-        time_limit -= system_up_time;
-        time_limit /= MILLISECONDS_PER_SECOND;
+        time_limit -= up_time;
     }
     return time_limit;
 }
