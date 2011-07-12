@@ -36,13 +36,19 @@
 #define MSG_MAX_RECV_TRANSACTIONS   1
 #define MSG_UNLIMITED_TRANSACTIONS  0
 
-#define MSG_NO_COMPRESSION          0
-
 #define MSG_INVALID_SESSION_ID      0xFFFF
 
 #define MSG_DATA_RESPONSE   0x00
 #define MSG_DATA_REQUEST    0x01
 #define MSG_DATA_LAST       0x02
+
+#define MSG_NO_COMPRESSION          0
+#define MSG_COMPRESSION_LIBZ        0xFF
+
+/* opcode (1) + flags (1) + transaction id (2) + session id (2) + compression ID (1) */
+#define MSG_START_LENGTH   0x07
+/* opcode (1) + flags (1) + transaction id (2) */
+#define MSG_DATA_LENGTH    0x04
 
 typedef enum
 {
@@ -51,13 +57,6 @@ typedef enum
     msg_service_id_file,
     msg_service_id_count
 } msg_service_id_t;
-
-typedef enum
-{
-    msg_compression_none,
-    msg_compression_libz,
-    msg_compression_count
-} msg_compression_t;
 
 typedef enum
 {
@@ -77,7 +76,7 @@ typedef struct msg_session_t
     uint16_t service_id;
     uint32_t available;
     idigi_msg_callback_t * cb_func;
-    uint8_t compression_id;
+    void * compression_handle;
     struct msg_session_t * next;
     struct msg_session_t * prev;
 } msg_session_t;
@@ -86,7 +85,6 @@ typedef struct
 {
     uint32_t window_size; /* peer window size */
     uint16_t service_ids[msg_service_id_count];
-    uint8_t  compression_list[msg_compression_count];
     uint16_t cur_id;
     uint8_t max_transactions;
     uint8_t active_transactions;
@@ -162,7 +160,6 @@ static uint16_t msg_create_session(idigi_data_t * idigi_ptr, uint16_t const serv
         session->service_id = service_id;
         session->cb_func = service_cb;
         session->available = msg_ptr->window_size;
-        session->compression_id = MSG_NO_COMPRESSION;
 
         session->prev = NULL;
         session->next = msg_ptr->session_head;
@@ -209,23 +206,6 @@ static void msg_delete_session(idigi_data_t * idigi_ptr, uint16_t const session_
 
 error:
     return;
-}
-
-static uint8_t frame_compression_list(idigi_msg_data_t const * const msg_ptr, uint8_t * buffer)
-{
-    uint8_t count = 0;
-    uint8_t i;
-
-    for (i = 0; i < msg_compression_count; i++)
-    {
-        if (msg_ptr->compression_list[i] != msg_compression_none) 
-        {
-            *buffer++ = msg_ptr->compression_list[i];
-            count++;
-        }
-    }
-
-    return count;
 }
 
 static uint16_t frame_service_list(idigi_msg_data_t const * const msg_ptr, uint8_t * buffer)
@@ -282,12 +262,12 @@ static idigi_callback_status_t send_msg_capabilities(idigi_data_t * idigi_ptr, i
     }
 
     /* append compression algorithms supported */
-    {
-        uint8_t algo_count = frame_compression_list(msg_data, cur_ptr+1);
-
-        *cur_ptr++ = algo_count;
-        cur_ptr += algo_count;
-    }
+#if (defined _COMPRESSION)
+    *cur_ptr++ = 1;
+    *cur_ptr++ = MSG_COMPRESSION_LIBZ;
+#else
+    *cur_ptr++ = 0;
+#endif
 
     /* append service IDs of all listeners */
     {
@@ -363,7 +343,20 @@ static idigi_callback_status_t process_msg_data(idigi_data_t * idigi_ptr, idigi_
             }
 
             ptr += sizeof service_id;
-            ptr++; /* compression? */
+#if (defined _COMPRESSION)
+            {
+                unit8_t compression = *ptr++;
+
+                if (compression != MSG_NO_COMPRESSION)
+                {
+                    ASSERT_GOTO(compression == MSG_COMPRESSION_LIBZ, error);
+
+                    /* TODO: decompress the data and pass it to user */
+                }
+            }
+#else
+            ptr++; /* ignore compression */
+#endif
         }
         else
         {
@@ -425,6 +418,33 @@ error:
     return status;
 }
 
+#if (defined _COMPRESSION)
+static uint16_t msg_compress_data(idigi_data_t *idigi_ptr,  msg_session_t * session, uint8_t * data, uint16_t length, uint8_t const flags)
+{
+    uint16_t out_length = 0;
+    idigi_callback_status_t status = idigi_callback_continue;
+
+    if (flags & IDIGI_DATA_REQUEST_START) 
+    {
+        status = idigi_callback(idigi_ptr->callback, idigi_class_data_service, request_id, &error_info, sizeof error_info, NULL, 0);
+
+        session->compression_handle = ;
+    }
+
+    /* compress the data part */
+    ASSERT_GOTO(session->compression_handle != NULL, error);
+    status = idigi_callback(idigi_ptr->callback, idigi_class_data_service, request_id, &error_info, sizeof error_info, NULL, 0);
+
+    if (flags & IDIGI_DATA_REQUEST_LAST) 
+    {
+        status = idigi_callback(idigi_ptr->callback, idigi_class_data_service, request_id, &error_info, sizeof error_info, NULL, 0);
+    }
+
+error:
+    return out_length;
+}
+#endif
+
 static idigi_status_t msg_send_data(idigi_data_t *idigi_ptr, uint16_t const session_id, idigi_packet_t * packet, uint8_t const flags, send_complete_cb_t complete_cb)
 {
     idigi_status_t ret_status = idigi_configuration_error;
@@ -473,7 +493,24 @@ static idigi_status_t msg_send_data(idigi_data_t *idigi_ptr, uint16_t const sess
         StoreBE16(ptr, session->service_id);
         ptr += sizeof session->service_id;
 
-        *ptr++ = session->compression_id;
+#if (defined _COMPRESSION)
+        {
+            bool const compress = (flags & IDIGI_DATA_REQUEST_COMPRESSED) != 0;
+
+            *ptr++ = compress ? MSG_COMPRESSION_LIBZ : MSG_NO_COMPRESSION;
+            if (compress)
+            {
+                uint16_t const msg_header_length = start ? MSG_START_LENGTH : MSG_DATA_LENGTH;
+                uint16_t const data_length = packet->header.length - msg_header_length;
+                uint16_t const new_length = msg_compress_data(idigi_ptr, session, ptr, data_length, flags);
+
+                ASSERT_GOTO(new_length > 0, error);
+                packet->header.length = new_length + msg_header_length;
+            }
+        }
+#else
+        *ptr++ = MSG_NO_COMPRESSION;
+#endif
     }
 
     /* packet length is already updated in the above layer */
@@ -607,9 +644,6 @@ static uint16_t msg_init_facility(idigi_data_t *idigi_ptr, uint16_t service_id)
 
                 for (i = 0; i < msg_service_id_count; i++) 
                     msg_ptr->service_ids[i] = msg_service_id_none;
-
-                for (i = 0; i < msg_compression_count; i++)
-                    msg_ptr->compression_list[i] = msg_compression_none;
             }
         }
 

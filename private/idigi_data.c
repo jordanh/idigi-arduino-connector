@@ -26,11 +26,6 @@
 #define DATA_SERVICE_REQUEST_OPCODE     0x00
 #define DATA_SERVICE_RESPONSE_OPCODE    0x01
 
-/* opcode (1) + flags (1) + transaction id (2) + session id (2) + compression ID (1) */
-#define DATA_SERVICE_MSG_START_LENGTH   0x07
-/* opcode (1) + flags (1) + transaction id (2) */
-#define DATA_SERVICE_MSG_DATA_LENGTH    0x04
-
 enum
 {
     parameter_id_content_type,
@@ -166,7 +161,7 @@ static idigi_status_t data_service_send_chunk(idigi_data_t * data_ptr, bool cons
     {
         bool const start_requested = (flag & IDIGI_DATA_REQUEST_START) != 0;
         bool const start_bit = (start_requested && first_chunk);
-        size_t const header_len = sizeof(idigi_packet_t) + (start_bit ? DATA_SERVICE_MSG_START_LENGTH : DATA_SERVICE_MSG_DATA_LENGTH);
+        size_t const header_len = sizeof(idigi_packet_t) + (start_bit ? MSG_START_LENGTH : MSG_DATA_LENGTH);
 
         data = service->buffer + header_len;
         if (start_bit) 
