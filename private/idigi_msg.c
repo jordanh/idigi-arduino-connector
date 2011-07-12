@@ -421,27 +421,7 @@ error:
 #if (defined _COMPRESSION)
 static uint16_t msg_compress_data(idigi_data_t *idigi_ptr,  msg_session_t * session, uint8_t * data, uint16_t length, uint8_t const flags)
 {
-    uint16_t out_length = 0;
-    idigi_callback_status_t status = idigi_callback_continue;
 
-    if (flags & IDIGI_DATA_REQUEST_START) 
-    {
-        status = idigi_callback(idigi_ptr->callback, idigi_class_data_service, request_id, &error_info, sizeof error_info, NULL, 0);
-
-        session->compression_handle = ;
-    }
-
-    /* compress the data part */
-    ASSERT_GOTO(session->compression_handle != NULL, error);
-    status = idigi_callback(idigi_ptr->callback, idigi_class_data_service, request_id, &error_info, sizeof error_info, NULL, 0);
-
-    if (flags & IDIGI_DATA_REQUEST_LAST) 
-    {
-        status = idigi_callback(idigi_ptr->callback, idigi_class_data_service, request_id, &error_info, sizeof error_info, NULL, 0);
-    }
-
-error:
-    return out_length;
 }
 #endif
 
