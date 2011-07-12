@@ -153,7 +153,7 @@ static idigi_callback_status_t rci_config(idigi_data_t * idigi_ptr, idigi_rci_re
         status = idigi_callback_abort;
         goto done;
     }
-    if ((end_time_stamp- start_time_stamp) > (timeout * MILLISECONDS_PER_SECOND))
+    if ((end_time_stamp- start_time_stamp) > timeout)
     {
         /* callback exceeds timeout value.
          * No need to abort just notify caller.

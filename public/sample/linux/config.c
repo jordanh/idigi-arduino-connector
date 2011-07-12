@@ -48,7 +48,7 @@ static bool get_ip_address(uint8_t ** ip_address, size_t *size)
     unsigned int    i;
     static struct in_addr  ip_addr; /* Used to store the IP address */
 
-/* Remove this #error statement once you modify this routine */
+/* Remove this #error statement once you modify this routine to return the correct IP address */
 #error "Specify device IP address. Set size to 4 (bytes) for IPv4 or 16 (bytes) for IPv6"
 
     if (buf == NULL)
@@ -213,25 +213,29 @@ static bool get_phone_number(uint8_t ** number, size_t * size)
     return true;
 }
 
+/* Keep alives are from the prospective of the server */
+/* This keep alive is sent from the server to the device */
 static bool get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
 {
-#error "Specify TX keepalive interval in seconds"
+#error "Specify server to device TX keepalive interval in seconds"
 
-#define DEVICE_TX_KEEPALIVE_INTERVAL_PER_SECOND     90
+#define DEVICE_TX_KEEPALIVE_INTERVAL_IN_SECONDS     90
     /* Return pointer to Tx keepalive interval in seconds */
-    static uint16_t device_tx_keepalive_interval = DEVICE_TX_KEEPALIVE_INTERVAL_PER_SECOND;
+    static uint16_t device_tx_keepalive_interval = DEVICE_TX_KEEPALIVE_INTERVAL_IN_SECONDS;
     *interval = (uint16_t *)&device_tx_keepalive_interval;
     *size = sizeof device_tx_keepalive_interval;
 
     return true;
 }
 
+
+/* This keep alive is sent from the device to the server  */
 static bool get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
 {
-#error "Specify RX keepalive interval in seconds"
-#define DEVICE_RX_KEEPALIVE_INTERVAL_PER_SECOND     60
+#error "Specify server to device RX keepalive interval in seconds"
+#define DEVICE_RX_KEEPALIVE_INTERVAL_IN_SECONDS     60
     /* Return pointer to Rx keepalive interval in seconds */
-    static uint16_t device_rx_keepalive_interval = DEVICE_RX_KEEPALIVE_INTERVAL_PER_SECOND;
+    static uint16_t device_rx_keepalive_interval = DEVICE_RX_KEEPALIVE_INTERVAL_IN_SECONDS;
     *interval = (uint16_t *)&device_rx_keepalive_interval;
     *size = sizeof device_rx_keepalive_interval;
 
@@ -240,11 +244,11 @@ static bool get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
 
 static bool get_wait_count(uint8_t ** count, size_t * size)
 {
-#error "Specify number of times not receiving keepalive messages from server"
+#error "Specify the number of times that not receiving keepalive messages from server is allowed"
 #define DEVICE_WAIT_COUNT     5
     /* 
      * Return pointer to wait count (number of times not receiving Tx keepalive 
-     * from server.
+     * from server is allowed).
      */
     static uint8_t device_wait_count = DEVICE_WAIT_COUNT;
     *count = (uint8_t *)&device_wait_count;

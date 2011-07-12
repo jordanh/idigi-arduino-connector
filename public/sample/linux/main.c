@@ -25,10 +25,12 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
+#include <unistd.h>
 
 #include "idigi_data.h"
 
-#define ONE_SECOND  1
+#define STEP_DELAY_IN_MS  100
 
 device_data_t device_data;
 
@@ -71,7 +73,7 @@ int main (void)
 {
     idigi_status_t status = idigi_success;
 
-    os_time(&device_data.start_system_up_time);
+    time(&device_data.start_system_up_time);
     device_data.idigi_handle = NULL;
     device_data.select_data = 0;
     device_data.socket_fd = INADDR_NONE;
@@ -83,14 +85,19 @@ int main (void)
 
         while (status == idigi_success)
         {
+            struct timeval delay = { .tv_sec = 0, .tv_usec = STEP_DELAY_IN_MS };
             status = idigi_step(device_data.idigi_handle);
             device_data.select_data = 0;
 
-            if (status == idigi_success)
+            if (device_data.connected)
             {
                 device_data.select_data |= NETWORK_TIMEOUT_SET | NETWORK_READ_SET;
-                network_select(device_data.socket_fd, device_data.select_data, ONE_SECOND);
+                network_select(device_data.socket_fd, device_data.select_data, &delay);
                 status = initiate_data_service(device_data.idigi_handle);
+            }
+            else
+            {
+                sleep(1);
             }
         }
         DEBUG_PRINTF("idigi status = %d\n", status);

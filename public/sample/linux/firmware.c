@@ -49,12 +49,10 @@ static uint16_t fimware_list_count = asizeof(fimware_list);
 static bool firmware_download_started = false;
 static size_t total_image_size = 0;
 
-static idigi_callback_status_t firmware_download_request(idigi_fw_download_request_t * download_data, idigi_fw_status_t * download_status)
+static void firmware_download_request(idigi_fw_download_request_t * download_info, idigi_fw_status_t * download_status)
 {
-    idigi_callback_status_t status = idigi_callback_continue;
 
-    /* Server requests firmware image update.*/
-    if (download_data == NULL || download_status == NULL)
+    if ((download_info == NULL) || (download_status == NULL))
     {
         DEBUG_PRINTF("firmware_download_request ERROR: iDigi passes incorrect parameters\n");
         *download_status = idigi_fw_download_denied;
@@ -66,12 +64,12 @@ static idigi_callback_status_t firmware_download_request(idigi_fw_download_reque
         goto done;
     }
 
-    DEBUG_PRINTF("target = %d\n", download_data->target);
-    DEBUG_PRINTF("version = 0x%04X\n", download_data->version);
-    DEBUG_PRINTF("code size = %d\n", download_data->code_size);
-    DEBUG_PRINTF("desc_string = %s\n", download_data->desc_string);
-    DEBUG_PRINTF("file name spec = %s\n", download_data->file_name_spec);
-    DEBUG_PRINTF("filename = %s\n", download_data->filename);
+    DEBUG_PRINTF("target = %d\n",         download_info->target);
+    DEBUG_PRINTF("version = 0x%04X\n",    download_info->version);
+    DEBUG_PRINTF("code size = %d\n",      download_info->code_size);
+    DEBUG_PRINTF("desc_string = %s\n",    download_info->desc_string);
+    DEBUG_PRINTF("file name spec = %s\n", download_info->file_name_spec);
+    DEBUG_PRINTF("filename = %s\n",       download_info->filename);
 
     total_image_size = 0;
     firmware_download_started = true;
@@ -79,14 +77,11 @@ static idigi_callback_status_t firmware_download_request(idigi_fw_download_reque
     *download_status = idigi_fw_success;
 
 done:
-    return status;
+    return;
 }
 
-static idigi_callback_status_t firmware_image_data(idigi_fw_image_data_t * image_data, idigi_fw_status_t * data_status)
+static void firmware_image_data(idigi_fw_image_data_t * image_data, idigi_fw_status_t * data_status)
 {
-    idigi_callback_status_t   status = idigi_callback_continue;
-
-    /* Server sends image data for firmware update */
     if (image_data == NULL)
     {
         DEBUG_PRINTF("firmware_image_data ERROR: iDigi passes incorrect parameters\n");
@@ -102,44 +97,41 @@ static idigi_callback_status_t firmware_image_data(idigi_fw_image_data_t * image
 
     *data_status = idigi_fw_success;
 done:
-    return status;
+    return;
 }
 
 
-static idigi_callback_status_t firmware_download_complete(idigi_fw_download_complete_request_t * request_data, idigi_fw_download_complete_response_t * response_data)
+static void firmware_download_complete(idigi_fw_download_complete_request_t * complete_request, idigi_fw_download_complete_response_t * complete_response)
 {
-    idigi_callback_status_t   status = idigi_callback_continue;
 
-    if (request_data == NULL || response_data == NULL)
+    if ((complete_request == NULL) || (complete_response == NULL))
     {
         DEBUG_PRINTF("firmware_download_complete Error: iDigi passes incorrect parameters\n");
         goto done;
     }
 
-    /* Server is done sending all image data and asks application
-     * to complete firmware update.
-     */
-    DEBUG_PRINTF("target = %d\n", request_data->target);
-    DEBUG_PRINTF("code size = %u\n", request_data->code_size);
-    DEBUG_PRINTF("checksum = 0x%x\n", (unsigned)request_data->checksum);
+    DEBUG_PRINTF("target    = %d\n",    complete_request->target);
+    DEBUG_PRINTF("code size = %u\n",    complete_request->code_size);
+    DEBUG_PRINTF("checksum  = 0x%x\n", (unsigned)complete_request->checksum);
 
-    response_data->status = idigi_fw_download_success;
+    complete_response->status = idigi_fw_download_success;
 
-    /* Server currently use calculated checksum field for write status.
+    /* 
+     * The server currently use calculated checksum field for write status.
      * 0 means no error.
      */
-    response_data->calculated_checksum = 0;
+    complete_response->calculated_checksum = 0;
 
-    if (request_data->code_size != total_image_size)
+    if (complete_request->code_size != total_image_size)
     {
         DEBUG_PRINTF("firmware_download_complete: actual image size (%u) != the code size received (%zu)\n",
-                      request_data->code_size, total_image_size);
+                      complete_request->code_size, total_image_size);
     }
 
     firmware_download_started = false;
 
 done:
-    return status;
+    return;
 }
 
 static idigi_callback_status_t firmware_download_abort(idigi_fw_download_abort_t * abort_data)
@@ -218,16 +210,16 @@ idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t request
         break;
     }
     case idigi_firmware_download_request:
-        status = firmware_download_request((idigi_fw_download_request_t *)request_data, (idigi_fw_status_t *)response_data);
+        firmware_download_request((idigi_fw_download_request_t *)request_data, (idigi_fw_status_t *)response_data);
         break;
 
     case idigi_firmware_binary_block:
-        status =  firmware_image_data((idigi_fw_image_data_t *) request_data, (idigi_fw_status_t *)response_data);
+        firmware_image_data((idigi_fw_image_data_t *) request_data, (idigi_fw_status_t *)response_data);
         break;
 
     case idigi_firmware_download_complete:
-        status =  firmware_download_complete((idigi_fw_download_complete_request_t *) request_data,
-                                             (idigi_fw_download_complete_response_t *) response_data);
+        firmware_download_complete((idigi_fw_download_complete_request_t *) request_data,
+                                  (idigi_fw_download_complete_response_t *) response_data);
         break;
 
     case idigi_firmware_download_abort:
