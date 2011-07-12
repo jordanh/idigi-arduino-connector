@@ -48,6 +48,7 @@ typedef enum {
 #define FAC_CC_REBOOT               0x06
 
 #define FAC_CC_CLIENTTYPE_DEVICE    1
+#define FAC_CC_CLIENTTYPE_REBOOTABLE_DEVICE 2
 
 #define CC_REDIRECT_SERVER_COUNT    2
 
@@ -306,7 +307,7 @@ static idigi_callback_status_t send_connection_report(idigi_data_t * idigi_ptr, 
     if (cc_ptr->item == idigi_config_ip_addr)
     {
         *ptr++ = FAC_CC_CONNECTION_REPORT;  /* opcode */
-        *ptr++ = FAC_CC_CLIENTTYPE_DEVICE;  /* client type */
+        *ptr++ = FAC_CC_CLIENTTYPE_REBOOTABLE_DEVICE;
         packet->header.length = 2;
 
         status = get_ip_addr(idigi_ptr, ptr);
@@ -616,6 +617,7 @@ static idigi_callback_status_t cc_process(idigi_data_t * idigi_ptr, void * facil
             break;
         case FAC_CC_REBOOT:
             status = process_connection_control(idigi_ptr, cc_ptr, idigi_network_reboot);
+            break;
         default:
             DEBUG_PRINTF("idigi_cc_process: unsupported opcode %u\n", opcode);
             break;
