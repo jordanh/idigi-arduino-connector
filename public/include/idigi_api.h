@@ -934,24 +934,33 @@ typedef struct {
 #define IDIGI_DATA_REQUEST_ARCHIVE      0x04
 #define IDIGI_DATA_REQUEST_COMPRESSED   0x08
 
+
 typedef struct
 {
-    uint16_t session_id;
+    uint8_t * value;
+    uint8_t size;
+} idigi_data_block_t;
+
+typedef struct
+{
+    uint8_t * data;
+    size_t size;
+} idigi_data_payload_t;
+
+typedef struct
+{
+    void * session;
     uint16_t flag;
-    uint8_t  path_length;
-    uint8_t  *path;
-    uint8_t  content_type_length;
-    uint8_t  *content_type;
-    size_t   payload_length;
-    uint8_t  *payload;
+    idigi_data_block_t path;
+    idigi_data_block_t content_type;
+    idigi_data_payload_t payload;
 } idigi_data_request_t;
 
 typedef struct
 {
     uint16_t session_id;
     uint8_t  status;
-    uint8_t  msg_length;
-    uint8_t  *message;
+    idigi_data_block_t message;
 } idigi_data_response_t;
 
 typedef struct

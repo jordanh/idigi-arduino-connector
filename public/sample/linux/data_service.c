@@ -32,26 +32,21 @@
 
 
 #define DATA_LOG_INTERVAL   300
-#define DATA_BLOCK_SIZE     1024
 
-static uint8_t test_data[DATA_BLOCK_SIZE];
+static uint8_t test_data[] = "Welcome to iDigi Data Service sample test!";
 
 static void initialize_request(idigi_data_request_t * request)
 {
-    static uint8_t path[] = "test/data.txt";
+    static uint8_t path[] = "test/sample.txt";
     static uint8_t type[] = "text/plain";
-    int i;
-
-    for (i = 0; i < DATA_BLOCK_SIZE; i++) 
-        test_data[i] = (i%0x5B)+0x20;
 
     request->flag                   = IDIGI_DATA_REQUEST_START | IDIGI_DATA_REQUEST_LAST;
-    request->path_length            = sizeof path - 1;
-    request->path                   = path;
-    request->content_type_length    = sizeof type - 1;
-    request->content_type           = type;
-    request->payload_length         = DATA_BLOCK_SIZE;
-    request->payload                = test_data;
+    request->path.size              = sizeof path - 1;
+    request->path.value             = path;
+    request->content_type.size      = sizeof type - 1;
+    request->content_type.value     = type;
+    request->payload.size           = sizeof(test_data);
+    request->payload.data           = test_data;
 }
 
 
@@ -72,14 +67,13 @@ idigi_status_t initiate_data_service(idigi_handle_t handle)
 
     if ((current_time - last_time) >= DATA_LOG_INTERVAL) 
     {
-        uint16_t session_id;
+        unsigned int session;
 
         last_time = current_time;
-        initialize_request(&request);
-        status = idigi_initiate_action(handle, idigi_initiate_data_service, &request, &session_id);
-        request.session_id = session_id;
+        status = idigi_initiate_action(handle, idigi_initiate_data_service, &request, &session);
+        request.session = (void *)session;
 
-        DEBUG_PRINTF("Status: %d, Session: %d\n", status, session_id);
+        DEBUG_PRINTF("Status: %d, Session: 0x%X\n", status, session);
     }
 
 done:
@@ -121,7 +115,8 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
         idigi_data_response_t const * response = request_data;
 
         UNUSED_PARAMETER(response);
-        DEBUG_PRINTF("Handle: %d, status: %d, message: %s\n", response->session_id, response->status, response->message);
+        response->message.value[response->message.size] = '\0';
+        DEBUG_PRINTF("Handle: %d, status: %d, message: %s\n", response->session_id, response->status, response->message.value);
         break;
     }
 
