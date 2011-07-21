@@ -23,6 +23,10 @@ ifneq ($(FACILITY_FW), false)
 CFLAGS += -D_FIRMWARE_FACILITY
 endif
 
+ifneq ($(COMPRESSION), false)
+CFLAGS += -D_COMPRESSION
+endif
+
 ifneq ($(DATA_SERVICE), false)
 CFLAGS += -D_DATA_SERVICE
 endif
@@ -42,6 +46,12 @@ CFLAGS += -I$(PUBLIC_HDR_DIR) -I./private -Wall -Werror -Wextra
 vpath $(LIB_SRC_DIR)/%.c
 vpath $(LIB_SRC_DIR)/%.h
 
+PLIBS =
+
+ifneq ($(COMPRESSION), false)
+PLIBS += -lz
+endif
+
 LIB =$(LIBDIR)/libidigi.so
 
 all: $(LIB)
@@ -51,7 +61,7 @@ OBJS = $(OBJDIR)/idigi_api.o
 $(OBJS): $(LIB_SRC_DIR)/*.c $(LIB_SRC_DIR)/*.h $(PUBLIC_HDR_DIR)/*.h
 
 $(LIB): $(OBJS)
-	$(LD) $(LDFLAGS) $^ -o $@
+	$(LD) $(LDFLAGS) $(PLIBS) $^ -o $@
 
 MAKE= make IDIGI_RULES="../../../$(IDIGI_RULES)" DEBUG="$(DEBUG)" LITTLE_ENDIAN="$(LITTLE_ENDIAN)" LIB="../../../$(LIBDIR)"
 

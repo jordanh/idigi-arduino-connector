@@ -50,7 +50,7 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * idigi_ptr, m
 
             request.data_service_request = idigi_data_service_error;
             status = idigi_callback(idigi_ptr->callback, idigi_class_data_service, request, &error_info, sizeof error_info, NULL, 0);
-            msg_delete_session(idigi_ptr, session_id);
+            msg_delete_session(idigi_ptr, session_id, msg_type_tx);
             break;
         }
 
@@ -63,7 +63,8 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * idigi_ptr, m
             break;
         }
 
-        case msg_status_response:
+        case msg_status_start:
+        case msg_status_end:
         {
             idigi_data_response_t response;
 
@@ -76,7 +77,7 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * idigi_ptr, m
 
             request.data_service_request = idigi_data_service_response;
             status = idigi_callback(idigi_ptr->callback, idigi_class_data_service, request, &response, sizeof response, NULL, 0);
-            msg_delete_session(idigi_ptr, session_id);
+            msg_delete_session(idigi_ptr, session_id, msg_type_tx);
             break;
         }
 
@@ -126,7 +127,7 @@ static idigi_callback_status_t data_service_delete(idigi_data_t * data_ptr)
 
 static idigi_callback_status_t data_service_init(idigi_data_t * data_ptr)
 {
-    return msg_init_facility(data_ptr, msg_service_id_data);
+    return msg_init_facility(data_ptr, msg_service_id_data, data_service_callback);
 }
 
 static idigi_status_t data_service_initiate(idigi_data_t * data_ptr,  void const * request, void  * response)
@@ -145,7 +146,7 @@ static idigi_status_t data_service_initiate(idigi_data_t * data_ptr,  void const
         {
             void ** const session_ptr = response;
             msg_data_info_t info = {.header_length = header_length, .header = header, .payload_length = service->payload.size, .payload = service->payload.data, .flag = service->flag};
-            *session_ptr = msg_send_start(data_ptr, msg_service_id_data, data_service_callback, &info);
+            *session_ptr = msg_send_start(data_ptr, msg_service_id_data, &info);
 
             status = (*session_ptr != NULL) ? idigi_success : idigi_configuration_error;
         }
