@@ -86,10 +86,11 @@ typedef struct {
     size_t desc_length;
     size_t spec_length;
     char filename[FW_ID_STRING_LENGTH];
+    uint16_t discovery_length;
 } idigi_firmware_data_t;
 
 
-static idigi_callback_status_t fw_discovery(idigi_data_t *idigi_ptr, void * facility_data, idigi_packet_t * packet);
+static idigi_callback_status_t fw_discovery(idigi_data_t *idigi_ptr, void * facility_data, uint8_t * packet);
 
 static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * fw_ptr, idigi_firmware_request_t request_id,
                                            void * request, size_t request_size,
@@ -254,7 +255,7 @@ static idigi_callback_status_t send_fw_abort(idigi_data_t * idigi_ptr, uint8_t t
 
     uint8_t * ptr;
     uint8_t status_code = status;
-    idigi_packet_t   * packet;
+    uint8_t * edp_header;
 
     /* send abort or error
      *  --------------------------
@@ -265,8 +266,8 @@ static idigi_callback_status_t send_fw_abort(idigi_data_t * idigi_ptr, uint8_t t
      *
      *  Firmware ID string: [descr]0xa[file name spec]
      */
-    packet =get_packet_buffer(idigi_ptr, E_MSG_FAC_FW_NUM, sizeof(idigi_packet_t), &ptr);
-    if (packet == NULL)
+    edp_header =get_packet_buffer(idigi_ptr, E_MSG_FAC_FW_NUM, &ptr);
+    if (edp_header == NULL)
     {
         status = idigi_callback_busy;
         goto done;
@@ -284,25 +285,21 @@ static idigi_callback_status_t send_fw_abort(idigi_data_t * idigi_ptr, uint8_t t
     *ptr++ = msg_opcode;
     *ptr++ = target;
     *ptr++ = status_code;  /* adjust the Firmware download abort status code */
-    packet->header.length = FW_SEND_ABORT_LENGTH;
 
-
-    status = enable_facility_packet(idigi_ptr, packet, E_MSG_FAC_FW_NUM, release_packet_buffer, NULL);
+    status = enable_facility_packet(idigi_ptr, edp_header, FW_SEND_ABORT_LENGTH, E_MSG_FAC_FW_NUM, release_packet_buffer, NULL);
 
 done:
     return status;
 
 }
 
-static idigi_callback_status_t  process_fw_info_request(idigi_firmware_data_t * fw_ptr, idigi_packet_t * packet)
+static idigi_callback_status_t  process_fw_info_request(idigi_firmware_data_t * fw_ptr, uint8_t * message, uint16_t length)
 {
 #define FW_INFO_REQUEST_ID_COUNT    4
 
     idigi_data_t * idigi_ptr = fw_ptr->idigi_ptr;
     idigi_callback_status_t status = idigi_callback_continue;
     uint8_t target;
-    uint8_t * ptr, * data_ptr;
-    idigi_packet_t * send_packet;
     idigi_firmware_request_t request_list[FW_INFO_REQUEST_ID_COUNT] = { idigi_firmware_version, idigi_firmware_code_size,
                                               idigi_firmware_description, idigi_firmware_name_spec};
 
@@ -313,24 +310,15 @@ static idigi_callback_status_t  process_fw_info_request(idigi_firmware_data_t * 
      *  -----------------
      * | opcode | target |
      *  -----------------
-     *
-     * build and send firmware info response
-     *  ---------------------------------------------------
-     * |   0    |    1   |  2 - 5  |  6 - 9    |  10 ...   |
-     *  ---------------------------------------------------
-     * | opcode | target | version | Available | Firmware  |
-     * |        |        |         | code size | ID string |
-     *  ---------------------------------------------------
-     *
-     *  Firmware ID string = [descr]0xa[file name spec]
      */
     fw_ptr->ka_time = 0;
     fw_ptr->keepalive = false;
 
     /* let's get the request target number from the request packet */
-    ptr = GET_PACKET_DATA_POINTER(packet, sizeof(idigi_packet_t));
-    ptr++; /* skip the opcode */
-    target = *ptr;
+    message++; /* skip opcode */
+    length--;
+
+    target = *message;
 
     /* let's get and build target info response */
     while (fw_ptr->request_id < FW_INFO_REQUEST_ID_COUNT)
@@ -407,16 +395,29 @@ static idigi_callback_status_t  process_fw_info_request(idigi_firmware_data_t * 
 
     /* once it's done getting all firmware info,
      * let's build a response.
+     * build and send firmware info response
+     *  ---------------------------------------------------
+     * |   0    |    1   |  2 - 5  |  6 - 9    |  10 ...   |
+     *  ---------------------------------------------------
+     * | opcode | target | version | Available | Firmware  |
+     * |        |        |         | code size | ID string |
+     *  ---------------------------------------------------
+     *
+     *  Firmware ID string = [descr]0xa[file name spec]
      */
     if (fw_ptr->request_id == FW_INFO_REQUEST_ID_COUNT)
     {
-        send_packet = get_packet_buffer(idigi_ptr, E_MSG_FAC_FW_NUM, sizeof(idigi_packet_t), &ptr);
-        if (send_packet == NULL)
+        uint8_t * edp_header;
+        uint8_t * ptr;
+        uint8_t * start_ptr;
+
+        edp_header = get_packet_buffer(idigi_ptr, E_MSG_FAC_FW_NUM, &ptr);
+        if (edp_header == NULL)
         {
             status = idigi_callback_busy;
             goto done;
         }
-        data_ptr = ptr;
+        start_ptr = ptr;
 
         *ptr++ = fw_info_response_opcode;
         *ptr++ = target;  /* target number */
@@ -441,14 +442,13 @@ static idigi_callback_status_t  process_fw_info_request(idigi_firmware_data_t * 
             ptr += fw_ptr->spec_length;
         }
 
-        send_packet->header.length = (uint16_t)(ptr - data_ptr);
         /* reset back to initial values */
         fw_ptr->version = 0;
         fw_ptr->code_size = 0;
         fw_ptr->desc_length = 0;
         fw_ptr->spec_length = 0;
         fw_ptr->request_id = idigi_firmware_target_count;
-        status = enable_facility_packet(idigi_ptr, send_packet, E_MSG_FAC_FW_NUM, release_packet_buffer, NULL);
+        status = enable_facility_packet(idigi_ptr, edp_header, (ptr-start_ptr), E_MSG_FAC_FW_NUM, release_packet_buffer, NULL);
     }
 
 done:
@@ -477,7 +477,7 @@ static uint8_t * get_newline_terminated_pointer(uint8_t * ptr, uint16_t * length
     *length = i;
     return pointer;
 }
-static idigi_callback_status_t process_fw_download_request(idigi_firmware_data_t * fw_ptr, idigi_packet_t * packet)
+static idigi_callback_status_t process_fw_download_request(idigi_firmware_data_t * fw_ptr, uint8_t * message, uint16_t length)
 {
 
     idigi_data_t * idigi_ptr = fw_ptr->idigi_ptr;
@@ -485,16 +485,12 @@ static idigi_callback_status_t process_fw_download_request(idigi_firmware_data_t
     uint32_t value;
     idigi_fw_download_request_t request_data;
     idigi_fw_status_t response_status = idigi_fw_user_abort;
-    idigi_packet_t   * send_packet;
-    uint8_t * buf;
-    uint16_t length;
-    uint16_t len;
+    uint8_t   * packet;
     uint8_t * send_ptr;
-    uint8_t * temp_ptr;
 
 
-    send_packet = get_packet_buffer(idigi_ptr, E_MSG_FAC_FW_NUM, sizeof(idigi_packet_t), &send_ptr);
-    if (send_packet == NULL)
+    packet = get_packet_buffer(idigi_ptr, E_MSG_FAC_FW_NUM, &send_ptr);
+    if (packet == NULL)
     {
         status = idigi_callback_busy;
         goto done;
@@ -515,57 +511,64 @@ static idigi_callback_status_t process_fw_download_request(idigi_firmware_data_t
      *  Call the callback with these values and send download request response.
      */
 
-    /* get the requested target number from the request packet */
-    buf = GET_PACKET_DATA_POINTER(packet, sizeof(idigi_packet_t));
-    buf++; /* skip opcode */
-    length = packet->header.length-1;
-
-    request_data.target = *buf;
+    message++; /* skip opcode */
     length--;
-    buf++;
 
-    value = *((uint32_t *)buf);
+    request_data.target = *message;
+    length--;
+    message++;
+
+    value = *((uint32_t *)message);
     request_data.version = FROM_BE32(value);
     length -= sizeof value;
-    buf += sizeof value;
+    message += sizeof value;
 
-    value = *((uint32_t *)buf);
+    value = *((uint32_t *)message);
     request_data.code_size = FROM_BE32(value);
     length -= sizeof value;
-    buf += sizeof value;
+    message += sizeof value;
 
-    /* parse firmware ID String for label, filename spec and
-     * file name separated by 0x0a.
-     */
-    len = length;
-    request_data.desc_string = (char *)get_newline_terminated_pointer(buf, &len);
-    buf += len;
-    length -= len;
-
-    /* get filename spec */
-    len = length;
-    request_data.file_name_spec = (char *)get_newline_terminated_pointer(buf, &len);
-    buf += len;
-    length -= len;
-
-    /* get filename */
-    len = length;
-    temp_ptr = get_newline_terminated_pointer(buf, &len);
-    buf += len;
-    length -= len;
-    if (temp_ptr != NULL)
     {
-        memcpy(fw_ptr->filename, temp_ptr, len);
-        fw_ptr->filename[len]= FW_NULL_ASCII;
-        request_data.filename = (char *)fw_ptr->filename;
+        uint16_t len;
+
+        /* parse firmware ID String for label, filename spec and
+         * file name separated by 0x0a.
+         */
+        len = length;
+        request_data.desc_string = (char *)get_newline_terminated_pointer(message, &len);
+        message += len;
+        length -= len;
+
+        /* get filename spec */
+        len = length;
+        request_data.file_name_spec = (char *)get_newline_terminated_pointer(message, &len);
+        message += len;
+        length -= len;
     }
 
+    /* get filename */
+    {
+        uint8_t * temp_ptr;
+        uint16_t len;
+
+        len = length;
+        temp_ptr = get_newline_terminated_pointer(message, &len);
+        message += len;
+        length -= len;
+        if (temp_ptr != NULL)
+        {
+            memcpy(fw_ptr->filename, temp_ptr, len);
+            fw_ptr->filename[len]= FW_NULL_ASCII;
+            request_data.filename = (char *)fw_ptr->filename;
+        }
+    }
+
+    /* call callback */
     status = get_fw_config(fw_ptr, idigi_firmware_download_request, &request_data, sizeof request_data, &response_status, NULL, fw_equal);
-
-
     if (status != idigi_callback_busy)
     {
-        uint8_t * data_ptr;
+        uint8_t * start_ptr;
+
         if (response_status > idigi_fw_user_abort)
         {
             send_fw_abort(idigi_ptr, request_data.target, fw_download_abort_opcode, response_status);
@@ -582,37 +585,34 @@ static idigi_callback_status_t process_fw_download_request(idigi_firmware_data_t
          *  Firmware ID string: [descr]0xa[file name spec]
          */
 
-        data_ptr = send_ptr;
+        start_ptr = send_ptr;
 
         /* now add this target to the target list message */
         *send_ptr++ = fw_download_response_opcode;
         *send_ptr++ = request_data.target;  /* target number */
         *send_ptr++ = response_status;
 
-        send_packet->header.length = send_ptr - data_ptr;
-        status = enable_facility_packet(idigi_ptr, send_packet, E_MSG_FAC_FW_NUM, release_packet_buffer, NULL);
+        status = enable_facility_packet(idigi_ptr, packet, (send_ptr - start_ptr), E_MSG_FAC_FW_NUM, release_packet_buffer, NULL);
     }
 done:
     return status;
 }
 
 
-static idigi_callback_status_t process_fw_binary_block(idigi_firmware_data_t * fw_ptr, idigi_packet_t * packet)
+static idigi_callback_status_t process_fw_binary_block(idigi_firmware_data_t * fw_ptr, uint8_t * message, uint16_t length)
 {
     idigi_data_t * idigi_ptr = fw_ptr->idigi_ptr;
     idigi_callback_status_t status;
     uint32_t value;
     uint8_t ack_required;
     idigi_fw_image_data_t request_data;
-    idigi_packet_t * send_packet;
-    uint8_t * buf;
-    uint16_t length;
+    uint8_t * packet;
     uint8_t * ptr;
     idigi_fw_status_t response_status = idigi_fw_user_abort;
 
 
-    send_packet = get_packet_buffer(idigi_ptr, E_MSG_FAC_FW_NUM, sizeof(idigi_packet_t), &ptr);
-    if (send_packet == NULL)
+    packet = get_packet_buffer(idigi_ptr, E_MSG_FAC_FW_NUM, &ptr);
+    if (packet == NULL)
     {
         status = idigi_callback_busy;
         goto done;
@@ -627,27 +627,24 @@ static idigi_callback_status_t process_fw_binary_block(idigi_firmware_data_t * f
      *
      */
 
-    buf = GET_PACKET_DATA_POINTER(packet, sizeof(idigi_packet_t));
-    buf++; /* skip opcode */
-
-    length = packet->header.length-1;
-
-    request_data.target = *buf;
+    message++; /* skip opcode */
     length--;
-    buf++;
 
-    ack_required = *buf;
+    request_data.target = *message++;
     length--;
-    buf++;
 
-    value = *((uint32_t *)buf);
+    ack_required = *message++;
+    length--;
+
+    value = *((uint32_t *)message);
     request_data.offset = FROM_BE32(value);
     length -= sizeof value;
-    buf += sizeof value;
+    message += sizeof value;
 
-    request_data.data = buf;
+    request_data.data = message;
     request_data.length = length;
 
+    /* call callback */
     status = get_fw_config(fw_ptr, idigi_firmware_binary_block, &request_data, sizeof request_data, &response_status, NULL, fw_equal);
 
 
@@ -665,9 +662,9 @@ static idigi_callback_status_t process_fw_binary_block(idigi_firmware_data_t * f
              *
              *  Firmware ID string: [descr]0xa[file name spec]
              */
-            uint8_t * data_ptr;
+            uint8_t * start_ptr;
 
-            data_ptr = ptr;
+            start_ptr = ptr;
 
             /* now add this target to the target list message */
             *ptr++ = fw_binary_block_ack_opcode;
@@ -678,9 +675,7 @@ static idigi_callback_status_t process_fw_binary_block(idigi_firmware_data_t * f
 
             *ptr++ = idigi_fw_success;
 
-            send_packet->header.length = ptr - data_ptr;
-
-            status = enable_facility_packet(idigi_ptr, send_packet, E_MSG_FAC_FW_NUM, release_packet_buffer, NULL);
+            status = enable_facility_packet(idigi_ptr, packet, (ptr - start_ptr), E_MSG_FAC_FW_NUM, release_packet_buffer, NULL);
         }
     }
     else if (status != idigi_callback_busy)
@@ -691,12 +686,10 @@ done:
     return status;
 }
 
-static idigi_callback_status_t process_fw_abort(idigi_firmware_data_t * fw_ptr, idigi_packet_t * packet)
+static idigi_callback_status_t process_fw_abort(idigi_firmware_data_t * fw_ptr, uint8_t * message, uint16_t length)
 {
     idigi_callback_status_t status;
     idigi_fw_download_abort_t request_data;
-    uint8_t * buf;
-    uint16_t length;
 
     /* parse firmware download abort
      *  --------------------------
@@ -706,37 +699,33 @@ static idigi_callback_status_t process_fw_abort(idigi_firmware_data_t * fw_ptr, 
      *  --------------------------
      *
      */
-    buf = GET_PACKET_DATA_POINTER(packet, sizeof(idigi_packet_t));
-    buf++;
-    length = packet->header.length-1;
-
-    request_data.target = *buf;
+    message++;  /* skip opcode */
     length--;
-    buf++;
 
-    request_data.status = *buf;
+    request_data.target = *message++;
     length--;
-    buf++;
 
+    request_data.status = *message++;
+    length--;
+
+    /* call callback */
     status = get_fw_config(fw_ptr, idigi_firmware_download_abort, &request_data, sizeof request_data, NULL, NULL, fw_equal);
     fw_ptr->ka_time = 0;
     return status;
 
 }
-static idigi_callback_status_t process_fw_complete(idigi_firmware_data_t * fw_ptr, idigi_packet_t * packet)
+static idigi_callback_status_t process_fw_complete(idigi_firmware_data_t * fw_ptr, uint8_t * message, uint16_t length)
 {
     idigi_data_t * idigi_ptr = fw_ptr->idigi_ptr;
     idigi_callback_status_t status;
     uint32_t value;
     idigi_fw_download_complete_request_t request_data;
     idigi_fw_download_complete_response_t response_data;
-    idigi_packet_t * send_packet;
-    uint8_t * buf;
-    uint16_t length;
+    uint8_t * packet;
     uint8_t * ptr;
 
-    send_packet = get_packet_buffer(idigi_ptr, E_MSG_FAC_FW_NUM, sizeof(idigi_packet_t), &ptr);
-    if (send_packet == NULL)
+    packet = get_packet_buffer(idigi_ptr, E_MSG_FAC_FW_NUM, &ptr);
+    if (packet == NULL)
     {
         status = idigi_callback_busy;
         goto done;
@@ -751,25 +740,23 @@ static idigi_callback_status_t process_fw_complete(idigi_firmware_data_t * fw_pt
      *
      */
 
-    buf = GET_PACKET_DATA_POINTER(packet, sizeof(idigi_packet_t));
-    buf++;
-    length = packet->header.length-1;
-
-    request_data.target = *buf;
+    message++;  /* skip opcode */
     length--;
-    buf++;
 
-    value = *((uint32_t *)buf);
+    request_data.target = *message++;
+    length--;
+
+    value = *((uint32_t *)message);
     request_data.code_size = FROM_BE32(value);
     length -= sizeof value;
-    buf += sizeof value;
+    message += sizeof value;
 
-    value = *((uint32_t *)buf);
+    value = *((uint32_t *)message);
     request_data.checksum = FROM_BE32(value);
     length -= sizeof value;
-    buf += sizeof value;
+    message += sizeof value;
 
-    length = sizeof response_data;
+    /* call callback */
     status = get_fw_config(fw_ptr, idigi_firmware_download_complete, &request_data, sizeof request_data, &response_data, NULL, fw_equal);
     if (status == idigi_callback_continue)
     {
@@ -783,9 +770,9 @@ static idigi_callback_status_t process_fw_complete(idigi_firmware_data_t * fw_pt
          *
          *  Firmware ID string: [descr]0xa[file name spec]
          */
-        uint8_t * data_ptr;
+        uint8_t * start_ptr;
 
-        data_ptr = ptr;
+        start_ptr = ptr;
 
         /* now add this target to the target list message */
         *ptr++ = fw_download_complete_response_opcode;
@@ -799,12 +786,10 @@ static idigi_callback_status_t process_fw_complete(idigi_firmware_data_t * fw_pt
 
         *ptr++ = response_data.status;
 
-        send_packet->header.length = ptr - data_ptr;
-
         fw_ptr->ka_time = 0;
         fw_ptr->keepalive = false;
 
-        status = enable_facility_packet(idigi_ptr, send_packet, E_MSG_FAC_FW_NUM, release_packet_buffer, NULL);
+        status = enable_facility_packet(idigi_ptr, packet, (ptr-start_ptr), E_MSG_FAC_FW_NUM, release_packet_buffer, NULL);
     }
     else if (status == idigi_callback_abort)
     {
@@ -816,13 +801,12 @@ done:
 
 }
 
-static idigi_callback_status_t process_target_reset(idigi_firmware_data_t * fw_ptr, idigi_packet_t * packet)
+static idigi_callback_status_t process_target_reset(idigi_firmware_data_t * fw_ptr, uint8_t * message, uint16_t length)
 {
     idigi_callback_status_t status;
     idigi_fw_config_t request;
-    uint8_t             * buf;
-    uint16_t            length;
 
+    UNUSED_PARAMETER(length);
     /* Parse firmware target reset
      *  -----------------
      * |   0    |   1    |
@@ -831,25 +815,23 @@ static idigi_callback_status_t process_target_reset(idigi_firmware_data_t * fw_p
      *  -----------------
      *
      */
-    buf = GET_PACKET_DATA_POINTER(packet, sizeof(idigi_packet_t));
-    buf++;
-    length = packet->header.length;
+    message++; /* skip opcode */
 
-    request.target = *buf;
-    length--;
-    buf++;
+    request.target = *message;
 
     status = get_fw_config(fw_ptr, idigi_firmware_target_reset, &request, sizeof request, NULL, NULL, fw_equal);
 
     return status;
 }
 
-static idigi_callback_status_t fw_process(idigi_data_t * idigi_ptr, void * facility_data, idigi_packet_t * packet)
+static idigi_callback_status_t fw_process(idigi_data_t * idigi_ptr, void * facility_data, uint8_t * packet)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     uint8_t opcode, target;
     uint8_t * ptr;
     idigi_firmware_data_t * fw_ptr = facility_data;
+    uint16_t length;
+    uint8_t * edp_header = packet;
 
 
     if (fw_ptr->keepalive)
@@ -882,7 +864,7 @@ static idigi_callback_status_t fw_process(idigi_data_t * idigi_ptr, void * facil
         DEBUG_PRINTF("fw_process: No Packet\n");
         goto done;
     }
-    ptr = GET_PACKET_DATA_POINTER(packet, sizeof(idigi_packet_t));
+    ptr = GET_PACKET_DATA_POINTER(packet, PACKET_EDP_FACILITY_SIZE);
     opcode = *ptr;
     target = *(ptr+1);
     if (target >= fw_ptr->target_count)
@@ -892,6 +874,7 @@ static idigi_callback_status_t fw_process(idigi_data_t * idigi_ptr, void * facil
         goto done;
     }
 
+    length = message_load_be16(edp_header, length);
 
     if (opcode == fw_download_complete_opcode)
     {
@@ -908,24 +891,24 @@ static idigi_callback_status_t fw_process(idigi_data_t * idigi_ptr, void * facil
     switch(opcode)
     {
     case fw_info_request_opcode:
-        status = process_fw_info_request(fw_ptr, packet);
+        status = process_fw_info_request(fw_ptr, ptr, length);
         break;
     case fw_download_request_opcode:
-        status = process_fw_download_request(fw_ptr, packet);
+        status = process_fw_download_request(fw_ptr, ptr, length);
         break;
     case fw_binary_block_opcode:
-        status = process_fw_binary_block(fw_ptr, packet);
+        status = process_fw_binary_block(fw_ptr, ptr, length);
         break;
     case fw_download_abort_opcode:
-        status = process_fw_abort(fw_ptr, packet);
+        status = process_fw_abort(fw_ptr, ptr, length);
         fw_ptr->ka_time = 0;
         fw_ptr->keepalive = false;
         break;
     case fw_download_complete_opcode:
-        status = process_fw_complete(fw_ptr, packet);
+        status = process_fw_complete(fw_ptr, ptr, length);
         break;
     case fw_target_reset_opcode:
-        status = process_target_reset(fw_ptr, packet);
+        status = process_target_reset(fw_ptr, ptr, length);
         fw_ptr->ka_time = 0;
         fw_ptr->keepalive = false;
         break;
@@ -938,10 +921,10 @@ done:
     return status;
 }
 
-static idigi_callback_status_t fw_discovery(idigi_data_t *idigi_ptr, void * facility_data, idigi_packet_t * packet)
+static idigi_callback_status_t fw_discovery(idigi_data_t *idigi_ptr, void * facility_data, uint8_t * packet)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    idigi_packet_t * send_packet;
+    uint8_t * send_packet;
     uint8_t * ptr;
     idigi_firmware_data_t * fw_ptr = facility_data;
 
@@ -949,7 +932,7 @@ static idigi_callback_status_t fw_discovery(idigi_data_t *idigi_ptr, void * faci
     /* Firmware Access facility needs to send target list info during initialization phase at discovery layer */
 
     /* get packet pointer for constructing target list info */
-    send_packet = get_packet_buffer(idigi_ptr, E_MSG_FAC_FW_NUM, sizeof(idigi_packet_t), &ptr);
+    send_packet = get_packet_buffer(idigi_ptr, E_MSG_FAC_FW_NUM, &ptr);
     if (send_packet == NULL)
     {
         status = idigi_callback_busy;
@@ -959,6 +942,13 @@ static idigi_callback_status_t fw_discovery(idigi_data_t *idigi_ptr, void * faci
     /* Construct a target list message.
      * Get target count and then get version for each target to build target list message
      *
+     * --------------------------------------------------------
+     * |   0    |    1   |  2 - 5  |  6 ...                    |
+     *  -------------------------------------------------------
+     * | opcode | target | version | Additional target-version |
+     * |        |        |         |       pairs               |
+     *  -------------------------------------------------------
+     *
      */
     if (fw_ptr->request_id == idigi_firmware_target_count)
     {
@@ -967,9 +957,10 @@ static idigi_callback_status_t fw_discovery(idigi_data_t *idigi_ptr, void * faci
         status = get_fw_config(fw_ptr, idigi_firmware_target_count, &timeout, sizeof timeout, &fw_ptr->target_count, NULL, fw_equal);
         if (status == idigi_callback_continue)
         {
-            send_packet->header.length = 0;
-            *ptr = fw_target_list_opcode;
-            send_packet->header.length++;
+            ASSERT_GOTO(fw_ptr->target_count > 0, done);
+
+            *ptr++ = fw_target_list_opcode;
+            fw_ptr->discovery_length= 1;
             fw_ptr->target = 0;
             fw_ptr->request_id = idigi_firmware_version;
         }
@@ -977,7 +968,7 @@ static idigi_callback_status_t fw_discovery(idigi_data_t *idigi_ptr, void * faci
 
     if (fw_ptr->request_id == idigi_firmware_version)
     {
-        ptr += send_packet->header.length;
+        ptr += fw_ptr->discovery_length;
 
         while (fw_ptr->target < fw_ptr->target_count)
         {
@@ -986,35 +977,29 @@ static idigi_callback_status_t fw_discovery(idigi_data_t *idigi_ptr, void * faci
 
             /* get the current firmware version for this target */
             request.target = fw_ptr->target;
-
+            /* call callback */
             status = get_fw_config(fw_ptr, idigi_firmware_version, &request, sizeof request, &version, NULL, fw_equal);
             if (status == idigi_callback_continue)
             {
-                /*
-                 * --------------------------------------------------------
-                 * |   0    |    1   |  2 - 5  |  6 ...                    |
-                 *  -------------------------------------------------------
-                 * | opcode | target | version | Additional target-version |
-                 * |        |        |         |       pairs               |
-                 *  -------------------------------------------------------
-                 */
 
                 *ptr = fw_ptr->target;  /* target number */
                 ptr++;
-                send_packet->header.length++;
+                fw_ptr->discovery_length++;
                 StoreBE32(ptr, version);
                 ptr += sizeof version;
-                send_packet->header.length += sizeof version;
+                fw_ptr->discovery_length += sizeof version;
                 fw_ptr->target++;
             }
         }
 
         if (fw_ptr->target == fw_ptr->target_count)
         {
-            status = enable_facility_packet(idigi_ptr, send_packet, E_MSG_FAC_FW_NUM, release_packet_buffer, NULL);
-            fw_ptr->request_id = idigi_firmware_target_count;;
+            status = enable_facility_packet(idigi_ptr, send_packet, fw_ptr->discovery_length,  E_MSG_FAC_FW_NUM, release_packet_buffer, NULL);
+            fw_ptr->request_id = idigi_firmware_target_count;
+            fw_ptr->discovery_length = 0;
             fw_ptr->target = 0;
         }
+
     }
 
 
@@ -1052,8 +1037,8 @@ static idigi_callback_status_t fw_init_facility(idigi_data_t *idigi_ptr)
         }
         fw_ptr = (idigi_firmware_data_t *)ptr;
    }
-    fw_ptr->request_id = 0;
-    fw_ptr->target_count = idigi_firmware_target_count;
+    fw_ptr->request_id = idigi_firmware_target_count;
+    fw_ptr->target_count = 0;
     fw_ptr->target = 0;
     fw_ptr->ka_time = 0;
     fw_ptr->keepalive = false;
