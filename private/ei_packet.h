@@ -48,14 +48,16 @@
     } while (0)
 
 #define message_load_be16(record, field) LoadBE16(record + field_named_data(record, field, offset))
+   
 
-#define message_store_be8(record, field, value) \
+#define message_store_u8(record, field, value) \
     do { \
         ASSERT(field_named_data(record, field, size) == sizeof (uint8_t)); \
-        *(record + field_named_data(record, field, offset)) = (uint8_t) (value); \
+        *(record + field_named_data(record, field, offset)) = (value); \
     } while (0)
 
-#define message_load_be8(record, field) (uint8_t)*(record + field_named_data(record, field, offset))
+#define message_load_u8(record, field) *(record + field_named_data(record, field, offset))
+
 
 #define PACKET_EDP_PROTOCOL_SIZE     record_bytes(edp_protocol)
 #define PACKET_EDP_HEADER_SIZE       record_bytes(edp_header)
