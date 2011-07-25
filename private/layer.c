@@ -959,8 +959,8 @@ static idigi_callback_status_t facility_layer(idigi_data_t * idigi_ptr)
 
                 length = message_load_be16(edp_header, length);
                 facility = message_load_be16(edp_protocol, facility);
-                sec_code = message_load_be8(edp_protocol, sec_coding);
-                payload = message_load_be8(edp_protocol, payload);
+                sec_code = message_load_u8(edp_protocol, sec_coding);
+                payload = message_load_u8(edp_protocol, payload);
 
                 /* currently we don't support any other security protocol */
                 ASSERT_GOTO(sec_code == SECURITY_PROTO_NONE, error);
