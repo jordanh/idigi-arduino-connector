@@ -132,8 +132,8 @@ static idigi_callback_status_t enable_facility_packet(idigi_data_t * idigi_ptr, 
      *   |    EDP Header      |
      *    --------------------
      */
-    message_store_be8(edp_protocol, sec_coding, SECURITY_PROTO_NONE);
-    message_store_be8(edp_protocol, payload, DISC_OP_PAYLOAD);
+    message_store_u8(edp_protocol, sec_coding, SECURITY_PROTO_NONE);
+    message_store_u8(edp_protocol, payload, DISC_OP_PAYLOAD);
     message_store_be16(edp_protocol, facility, facility);
 
     return enable_send_packet(idigi_ptr, edp_header,
