@@ -91,7 +91,7 @@ typedef struct msg_session_t
     uint32_t available_window;
     union
     {
-        idigi_packet_t packet;
+        uint8_t packet;
         uint8_t frame[MSG_MAX_PACKET_SIZE];
     };
     uint8_t * user_data;
@@ -128,7 +128,7 @@ typedef struct
     uint16_t flag;
 } msg_data_info_t;
 
-static void msg_send_complete(idigi_data_t * idigi_ptr, idigi_packet_t * packet, idigi_status_t status, void * user_data);
+static void msg_send_complete(idigi_data_t * idigi_ptr, uint8_t * packet, idigi_status_t status, void * user_data);
 
 static msg_session_t * msg_find_session(idigi_msg_data_t const * const msg_ptr, uint16_t const id, msg_type_t const type)
 {
@@ -285,10 +285,10 @@ static idigi_callback_status_t send_msg_capabilities(idigi_data_t * idigi_ptr, i
     idigi_callback_status_t status = idigi_callback_busy;
     uint8_t * cur_ptr;
     uint8_t * start_ptr;
-    idigi_packet_t * packet;
+    uint8_t * packet;
 
     /* get packet pointer for constructing capability request */
-    packet =(idigi_packet_t *) get_packet_buffer(idigi_ptr, E_MSG_FAC_MSG_NUM, sizeof(idigi_packet_t), &start_ptr);
+    packet =(uint8_t *) get_packet_buffer(idigi_ptr, E_MSG_FAC_MSG_NUM, &start_ptr);
     if ((packet == NULL) || (start_ptr == NULL))
         goto error;
 
@@ -332,8 +332,7 @@ static idigi_callback_status_t send_msg_capabilities(idigi_data_t * idigi_ptr, i
         cur_ptr += (sizeof(uint16_t) * service_count);
     }
 
-    packet->header.length = cur_ptr - start_ptr;
-    status = enable_facility_packet(idigi_ptr, packet, E_MSG_FAC_MSG_NUM, release_packet_buffer, NULL);
+    status = enable_facility_packet(idigi_ptr, packet, (cur_ptr - start_ptr), E_MSG_FAC_MSG_NUM, release_packet_buffer, NULL);
 
 error:
     return status;
@@ -341,8 +340,8 @@ error:
 
 static idigi_callback_status_t msg_send_uncompressed(idigi_data_t *idigi_ptr, msg_session_t * session, msg_data_info_t * info, uint8_t * data)
 {
-    uint8_t * start = GET_PACKET_DATA_POINTER(session->frame, sizeof(idigi_packet_t));
     idigi_callback_status_t status = idigi_callback_busy;
+    uint8_t * start = GET_PACKET_DATA_POINTER(session->frame, PACKET_EDP_FACILITY_SIZE);
 
     if (info != NULL) 
     {
@@ -386,10 +385,9 @@ static idigi_callback_status_t msg_send_uncompressed(idigi_data_t *idigi_ptr, ms
     }
 
     {
-        idigi_packet_t * packet = &session->packet;
+        uint8_t * packet = &session->packet;
 
-        packet->header.length = data - start;
-        status = enable_facility_packet(idigi_ptr, packet, E_MSG_FAC_MSG_NUM, msg_send_complete, session);
+        status = enable_facility_packet(idigi_ptr, packet, (data-start), E_MSG_FAC_MSG_NUM, msg_send_complete, session);
     }
 
 done:
@@ -453,8 +451,8 @@ static idigi_callback_status_t msg_send_compressed(idigi_data_t *idigi_ptr, msg_
 
         if (send_now) 
         {
-            uint8_t * start = GET_PACKET_DATA_POINTER(session->frame, sizeof(idigi_packet_t));
-            idigi_packet_t * packet = &session->packet;
+            uint8_t * start = GET_PACKET_DATA_POINTER(session->frame, PACKET_EDP_PROTOCOL_SIZE);
+            uint8_t * packet = &session->packet;
             size_t const out_length = chunk_size - zlib_ptr->avail_out; 
             #define FLAG_BYTE_POSITION  1
 
@@ -467,8 +465,7 @@ static idigi_callback_status_t msg_send_compressed(idigi_data_t *idigi_ptr, msg_
             /* restricting to greater than chunk size to avoid compression complexity */
             session->flow_controlled = (session->available_window > chunk_size);
 
-            packet->header.length =  out_length + (data - start);
-            status = enable_facility_packet(idigi_ptr, packet, E_MSG_FAC_MSG_NUM, msg_send_complete, session);
+            status = enable_facility_packet(idigi_ptr, packet, (out_length + (data - start)), E_MSG_FAC_MSG_NUM, msg_send_complete, session);
         }
         else
         {
@@ -499,7 +496,7 @@ static idigi_callback_status_t msg_send_packet(idigi_data_t *idigi_ptr, msg_sess
 
 static idigi_callback_status_t msg_send_data(idigi_data_t *idigi_ptr, msg_session_t * session, msg_data_info_t * info)
 {
-    uint8_t * ptr = GET_PACKET_DATA_POINTER(session->frame, sizeof(idigi_packet_t));
+    uint8_t * ptr = GET_PACKET_DATA_POINTER(session->frame, PACKET_EDP_FACILITY_SIZE);
 
     /*
      * ---------------------------------------
@@ -533,7 +530,7 @@ static void * msg_send_start(idigi_data_t *idigi_ptr, uint16_t const service_id,
     session->bytes_to_send = info->payload_length;
     session->user_data = info->payload;
 
-    ptr = GET_PACKET_DATA_POINTER(session->frame, sizeof(idigi_packet_t));
+    ptr = GET_PACKET_DATA_POINTER(session->frame, PACKET_EDP_FACILITY_SIZE);
 
     /*
      * -----------------------------------------------------------------
@@ -576,7 +573,7 @@ error:
     return session;
 }
 
-static void msg_send_complete(idigi_data_t * idigi_ptr, idigi_packet_t * packet, idigi_status_t status, void * user_data)
+static void msg_send_complete(idigi_data_t * idigi_ptr, uint8_t * packet, idigi_status_t status, void * user_data)
 {
     msg_session_t * session = user_data;
 
@@ -828,27 +825,29 @@ error:
     return status;
 }
 
-static idigi_callback_status_t msg_discovery(idigi_data_t *idigi_ptr, void * facility_data, idigi_packet_t * packet)
+static idigi_callback_status_t msg_discovery(idigi_data_t *idigi_ptr, void * facility_data, uint8_t * packet)
 {
     UNUSED_PARAMETER(packet);
 
     return send_msg_capabilities(idigi_ptr, facility_data, MSG_FLAG_REQUEST);
 }
 
-static idigi_callback_status_t msg_process(idigi_data_t * idigi_ptr, void * facility_data, idigi_packet_t * packet)
+static idigi_callback_status_t msg_process(idigi_data_t * idigi_ptr, void * facility_data, uint8_t * packet)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_msg_data_t * const msg_ptr = facility_data;
     uint8_t opcode;
     uint8_t * ptr;
+    uint16_t length;
+    uint8_t * edp_header = packet;
 
     DEBUG_PRINTF("idigi_msg_process...\n");
 
     ASSERT_GOTO(packet != NULL, error);
 
-    ptr = GET_PACKET_DATA_POINTER(packet, sizeof(idigi_packet_t));
+    ptr = GET_PACKET_DATA_POINTER(packet, PACKET_EDP_FACILITY_SIZE);
     opcode = *ptr++;
-    packet->header.length--;
+    length = message_load_be16(edp_header, length)-1;
 
     switch (opcode) 
     {
@@ -857,11 +856,11 @@ static idigi_callback_status_t msg_process(idigi_data_t * idigi_ptr, void * faci
             break;
 
         case msg_opcode_start:
-            status = process_msg_data(idigi_ptr, msg_ptr, ptr, packet->header.length, true);
+            status = process_msg_data(idigi_ptr, msg_ptr, ptr, length, true);
             break;
 
         case msg_opcode_data:
-            status = process_msg_data(idigi_ptr, msg_ptr, ptr, packet->header.length, false);
+            status = process_msg_data(idigi_ptr, msg_ptr, ptr, length, false);
             break;
 
         case msg_opcode_ack:
