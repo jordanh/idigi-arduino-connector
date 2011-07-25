@@ -25,46 +25,55 @@
 #ifndef _EI_PACKET_H
 #define _EI_PACKET_H
 
-#define PKT_MT_LENGTH        4  /* size of MTv2 type+length fields */
-                                /* (also suffices for MTv1 length field) */
-#define PKT_OP_SECURITY      1  /* size of security layer opcode field */
-#define PKT_OP_DISCOVERY     1  /* size of discovery layer opcode field */
-#define PKT_OP_MUX           2  /* size of mux layer opcode field */
-#define PKT_OP_FACILITY       2 /* size of mux layer opcode field */
-#define PKT_PRE_SECURITY     PKT_MT_LENGTH
-#define PKT_PRE_DISCOVERY    (PKT_PRE_SECURITY + PKT_OP_SECURITY)
-#define PKT_PRE_MUX          (PKT_PRE_DISCOVERY + PKT_OP_DISCOVERY)
-#define PKT_PRE_FACILITY     (PKT_PRE_MUX + PKT_OP_MUX)
-#define PKT_PRE_FAC_CC       PKT_PRE_FACILITY
-#define PKT_PRE_FAC_FS       PKT_PRE_FACILITY
-#define PKT_PRE_FAC_FU       PKT_PRE_FACILITY
-#define PKT_PRE_FAC_LOG      PKT_PRE_FACILITY
-#define PKT_PRE_FAC_MB       PKT_PRE_FACILITY
-#define PKT_PRE_FAC_MON      PKT_PRE_FACILITY
-#define PKT_PRE_FAC_MP       PKT_PRE_FACILITY
-#define PKT_PRE_FAC_MSG      PKT_PRE_FACILITY
-#define PKT_PRE_FAC_PIO      PKT_PRE_FACILITY
-#define PKT_PRE_FAC_RCI      PKT_PRE_FACILITY
-#define PKT_PRE_FAC_TRANS    PKT_PRE_FACILITY
-#define PKT_PRE_APPLICATION  PKT_PRE_FAC_MP
 
+#define field_name(record, field)               record ## _ ## field
+#define field_data(name, data)                  field_name(name, data)
 
-typedef struct {
-    uint16_t    avail_length;  /* not part of EDP protocol */
-    uint16_t    type;
-    uint16_t    length;
-} idigi_packet_hdr_t;
+#define field_named_data(record, field, data)   field_data(field_name(record, field), data)
 
-typedef struct {
-    uint8_t     sec_coding;
-    uint8_t     disc_payload;
-    uint16_t    facility;
-} idigi_facility_packet_t;
+#define field_allocate(name, type)              field_data(name, offset), \
+                                                field_data(name, size) = (sizeof(type)), \
+                                                field_data(name, next) = (field_data(name, offset) + field_data(name, size) - 1)
 
-typedef struct {
-    idigi_packet_hdr_t      header;
-    idigi_facility_packet_t facility;
-} idigi_packet_t;
+#define field_define(record, field, type)       field_allocate(field_name(record, field), type)
+
+#define record_end(name)                        field_data(name, bytes)
+
+#define record_bytes(name)                      field_data(name, bytes)
+
+#define message_store_be16(record, field, value) \
+    do { \
+        ASSERT(field_named_data(record, field, size) == sizeof (uint16_t)); \
+        StoreBE16(record + field_named_data(record, field, offset), (value)); \
+    } while (0)
+
+#define message_load_be16(record, field) LoadBE16(record + field_named_data(record, field, offset))
+
+#define message_store_be8(record, field, value) \
+    do { \
+        ASSERT(field_named_data(record, field, size) == sizeof (uint8_t)); \
+        *(record + field_named_data(record, field, offset)) = (uint8_t) (value); \
+    } while (0)
+
+#define message_load_be8(record, field) (uint8_t)*(record + field_named_data(record, field, offset))
+
+#define PACKET_EDP_PROTOCOL_SIZE     record_bytes(edp_protocol)
+#define PACKET_EDP_HEADER_SIZE       record_bytes(edp_header)
+#define PACKET_EDP_FACILITY_SIZE     PACKET_EDP_PROTOCOL_SIZE + PACKET_EDP_HEADER_SIZE
+
+/* private definitions */
+enum edp_header {
+    field_define(edp_header, type, uint16_t),
+    field_define(edp_header, length, uint16_t),
+    record_end(edp_header),
+};
+
+enum edp_protocol {
+    field_define(edp_protocol, sec_coding, uint8_t),
+    field_define(edp_protocol, payload, uint8_t),
+    field_define(edp_protocol, facility, uint16_t),
+    record_end(edp_protocol)
+};
 
 
 #endif  /* _EI_PACKET_H */
