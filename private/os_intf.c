@@ -53,7 +53,8 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
 
     status = callback(class_id, request_id, request_data, request_length, response_data, response_length);
 
-    ASSERT((status == idigi_callback_continue) || (status == idigi_callback_abort) || (status == idigi_callback_busy) || (status == idigi_callback_unrecognized));
+    ASSERT((status == idigi_callback_continue) || (status == idigi_callback_abort) ||
+           (status == idigi_callback_busy) || (status == idigi_callback_unrecognized));
 
     if (status == idigi_callback_unrecognized)
     {
@@ -63,7 +64,12 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
         DEBUG_PRINTF("ERROR: Application returns unrecognized request for request=%d class_id = %d which iDigi requires for this version\n", request_id.config_request, class_id);
         status = idigi_callback_abort;
     }
-
+#if defined(DEBUG)
+    else if (status == idigi_callback_abort)
+    {
+        DEBUG_PRINTF("idigi_callback: callback for class id = %d request id = %d returned abort\n", class_id, request_id.config_request);
+    }
+#endif
     return status;
 }
 
