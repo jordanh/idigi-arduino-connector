@@ -25,9 +25,9 @@
 #ifndef _EI_PACKET_H
 #define _EI_PACKET_H
 
-
-#define field_name(record, field)               record ## _ ## field
-#define field_data(name, data)                  field_name(name, data)
+#define field_glue(left, right)                 left ## _ ## right
+#define field_name(record, field)               field_glue(record,field)
+#define field_data(name, data)                  field_glue(name, data)
 
 #define field_named_data(record, field, data)   field_data(field_name(record, field), data)
 
@@ -47,8 +47,8 @@
         StoreBE16(record + field_named_data(record, field, offset), (value)); \
     } while (0)
 
-#define message_load_be16(record, field) LoadBE16(record + field_named_data(record, field, offset))
-   
+#define message_load_be16(record, field) (ASSERT(field_named_data(record, field, size) == sizeof (uint16_t)), LoadBE16(record + field_named_data(record, field, offset)))
+
 
 #define message_store_u8(record, field, value) \
     do { \
@@ -56,12 +56,12 @@
         *(record + field_named_data(record, field, offset)) = (value); \
     } while (0)
 
-#define message_load_u8(record, field) *(record + field_named_data(record, field, offset))
+#define message_load_u8(record, field) (ASSERT(field_named_data(record, field, size) == sizeof (uint8_t)), *(record + field_named_data(record, field, offset)))
 
 
-#define PACKET_EDP_PROTOCOL_SIZE     record_bytes(edp_protocol)
-#define PACKET_EDP_HEADER_SIZE       record_bytes(edp_header)
-#define PACKET_EDP_FACILITY_SIZE     PACKET_EDP_PROTOCOL_SIZE + PACKET_EDP_HEADER_SIZE
+#define PACKET_EDP_PROTOCOL_SIZE        record_bytes(edp_protocol)
+#define PACKET_EDP_HEADER_SIZE          record_bytes(edp_header)
+#define PACKET_EDP_FACILITY_SIZE        PACKET_EDP_PROTOCOL_SIZE + PACKET_EDP_HEADER_SIZE
 
 /* private definitions */
 enum edp_header {
