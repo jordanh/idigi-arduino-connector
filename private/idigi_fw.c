@@ -489,6 +489,7 @@ static idigi_callback_status_t process_fw_download_request(idigi_firmware_data_t
     uint8_t * send_ptr;
 
 
+    DEBUG_PRINTF("Firmware Facility: process download request\n");
     packet = get_packet_buffer(idigi_ptr, E_MSG_FAC_FW_NUM, &send_ptr);
     if (packet == NULL)
     {
@@ -691,6 +692,8 @@ static idigi_callback_status_t process_fw_abort(idigi_firmware_data_t * fw_ptr, 
     idigi_callback_status_t status;
     idigi_fw_download_abort_t request_data;
 
+    DEBUG_PRINTF("Firmware Facility: process server abort\n");
+
     /* parse firmware download abort
      *  --------------------------
      * |   0    |   1    |   2    |
@@ -723,6 +726,8 @@ static idigi_callback_status_t process_fw_complete(idigi_firmware_data_t * fw_pt
     idigi_fw_download_complete_response_t response_data;
     uint8_t * packet;
     uint8_t * ptr;
+
+    DEBUG_PRINTF("Firmware Facility: process download complete\n");
 
     packet = get_packet_buffer(idigi_ptr, E_MSG_FAC_FW_NUM, &ptr);
     if (packet == NULL)
@@ -806,6 +811,7 @@ static idigi_callback_status_t process_target_reset(idigi_firmware_data_t * fw_p
     idigi_callback_status_t status;
     idigi_fw_config_t request;
 
+    DEBUG_PRINTF("Firmware Facility: process target reset\n");
     UNUSED_PARAMETER(length);
     /* Parse firmware target reset
      *  -----------------
@@ -886,7 +892,6 @@ static idigi_callback_status_t fw_process(idigi_data_t * idigi_ptr, void * facil
             fw_ptr->ka_time = idigi_ptr->tx_ka_time;
         }
     }
-
 
     switch(opcode)
     {
