@@ -37,6 +37,7 @@ typedef struct malloc_stats{
 /* These are used for debugging and tracking memory
  * usage and high water mark.
  */
+static size_t high_malloc_mark = 0;
 static size_t total_malloc_length = 0;
 static malloc_stats_t * malloc_list = NULL;
 
@@ -68,7 +69,10 @@ static void add_malloc_stats(void const * const ptr, size_t length)
         malloc_list = pMalloc;
 
         total_malloc_length += length;
-
+        if (total_malloc_length > high_malloc_mark)
+        {
+            high_malloc_mark = total_malloc_length;
+        }
     }
     else
     {

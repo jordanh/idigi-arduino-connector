@@ -42,7 +42,6 @@ static void init_setting(idigi_data_t * idigi_ptr)
     idigi_ptr->receive_packet.index = 0;
     idigi_ptr->receive_packet.free_packet_buffer = &idigi_ptr->receive_packet.packet_buffer;
 
-
 }
 
 static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, idigi_class_t class_id, idigi_request_t request_id,
@@ -51,6 +50,7 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
 {
     idigi_callback_status_t status;
 
+    /* call callback */
     status = callback(class_id, request_id, request_data, request_length, response_data, response_length);
 
     ASSERT((status == idigi_callback_continue) || (status == idigi_callback_abort) ||
@@ -58,10 +58,12 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
 
     if (status == idigi_callback_unrecognized)
     {
-        /* Application must support all requests in this iDigi release
-         * so if application returns unrecognized status, abort iDigi.
+        /* Application must support all requests in this iDigi release.
+         * If application returns unrecognized status, abort iDigi for now.
+         * TODO: future release.
          */
-        DEBUG_PRINTF("ERROR: Application returns unrecognized request for request=%d class_id = %d which iDigi requires for this version\n", request_id.config_request, class_id);
+        DEBUG_PRINTF("ERROR: Application returns unrecognized request for request=%d class_id = %d which iDigi requires for this version\n",
+                        request_id.config_request, class_id);
         status = idigi_callback_abort;
     }
 #if defined(DEBUG)
@@ -79,6 +81,7 @@ static void notify_error_status(idigi_callback_t callback, idigi_class_t class_n
     idigi_error_status_t err_status;
     idigi_request_t request_id;
 
+    /* call error-status callback to notify application */
     err_status.class_id = class_number;
     err_status.request_id = request_number;
     err_status.status = status;
@@ -95,6 +98,7 @@ static idigi_callback_status_t get_system_time(idigi_data_t * idigi_ptr, uint32_
     idigi_callback_status_t status;
     idigi_request_t request_id;
 
+    /* Call callback to get system up time in second */
     request_id.os_request = idigi_os_system_up_time;
     status = idigi_callback(idigi_ptr->callback, idigi_class_operating_system, request_id, NULL, 0, uptime, &length);
     if (status == idigi_callback_abort)
@@ -176,6 +180,7 @@ static void * get_facility_data(idigi_data_t * idigi_ptr, uint16_t facility_num)
     idigi_facility_t * fac_ptr;
     void * ptr = NULL;
 
+    /* search and return the facility data which allocated from add_facility_data() */
     for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
     {
         if (fac_ptr->facility_num == facility_num)
@@ -196,12 +201,14 @@ static idigi_callback_status_t add_facility_data(idigi_data_t * idigi_ptr, uint1
     void * ptr;
     size_t facility_size = sizeof(idigi_facility_t);
 
+    /* allocate facility data and buffer*/
     *fac_ptr = NULL;
     status = malloc_data(idigi_ptr, size + facility_size + sizeof(idigi_buffer_t), &ptr);
     if (status == idigi_callback_continue && ptr != NULL)
     {
         idigi_buffer_t * buffer_ptr;
 
+        /* add facility to idigi facility list */
         facility = (idigi_facility_t *)ptr;
         facility->facility_num = facility_num;
         facility->size = size;
@@ -210,11 +217,14 @@ static idigi_callback_status_t add_facility_data(idigi_data_t * idigi_ptr, uint1
         facility->packet = NULL;
         facility->next = idigi_ptr->facility_list;
         idigi_ptr->facility_list = ptr;
+
+        /* setup facility data */
         facility->facility_data = ptr + facility_size;
         *fac_ptr = facility->facility_data;
 
         buffer_ptr = ptr + size + facility_size;
         buffer_ptr->in_used = false;
+
         /* set up an additional receive buffer to the idigi data */
         buffer_ptr->next = idigi_ptr->receive_packet.packet_buffer.next;
         idigi_ptr->receive_packet.packet_buffer.next = buffer_ptr;
@@ -230,6 +240,7 @@ static idigi_callback_status_t del_facility_data(idigi_data_t * idigi_ptr, uint1
     idigi_facility_t * prev_ptr = NULL;
     idigi_facility_t * next_ptr;
 
+    /* find and free the facility */
     for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
     {
         if (fac_ptr->facility_num == facility_num)
