@@ -30,7 +30,6 @@
 
 #include "idigi_data.h"
 
-
 #define DATA_LOG_INTERVAL   300
 
 static uint8_t test_data[] = "Welcome to iDigi Data Service sample test!";
@@ -40,7 +39,7 @@ static void initialize_request(idigi_data_request_t * request)
     static uint8_t path[] = "test/sample.txt";
     static uint8_t type[] = "text/plain";
 
-    request->flag                   = IDIGI_DATA_REQUEST_START | IDIGI_DATA_REQUEST_LAST;
+    request->flag                   = IDIGI_DATA_REQUEST_START | IDIGI_DATA_REQUEST_LAST | IDIGI_DATA_REQUEST_COMPRESSED;
     request->path.size              = sizeof path - 1;
     request->path.value             = path;
     request->content_type.size      = sizeof type - 1;
@@ -67,13 +66,10 @@ idigi_status_t initiate_data_service(idigi_handle_t handle)
 
     if ((current_time - last_time) >= DATA_LOG_INTERVAL) 
     {
-        unsigned int session;
-
         last_time = current_time;
-        status = idigi_initiate_action(handle, idigi_initiate_data_service, &request, &session);
-        request.session = (void *)session;
+        status = idigi_initiate_action(handle, idigi_initiate_data_service, &request, &request.session);
 
-        DEBUG_PRINTF("Status: %d, Session: 0x%X\n", status, session);
+        DEBUG_PRINTF("Status: %d, Session: %p\n", status, request.session);
     }
 
 done:

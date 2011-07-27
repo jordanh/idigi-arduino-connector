@@ -37,7 +37,7 @@ enum
 #define DATA_NO_ARCHIVE                 0x00
 #define DATA_SERVICE_HEADER_MAX_LENGTH  256
 
-static idigi_callback_status_t data_service_callback(idigi_data_t * idigi_ptr, msg_status_t const msg_status, uint16_t session_id, uint8_t * data, size_t const length)
+static idigi_callback_status_t data_service_callback(idigi_data_t * idigi_ptr, msg_status_t const msg_status, uint16_t const session_id, uint8_t * data, size_t const length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_request_t request;
@@ -136,16 +136,17 @@ static idigi_status_t data_service_initiate(idigi_data_t * data_ptr,  void const
     idigi_data_request_t const * service = request;
 
     ASSERT_GOTO(request != NULL, error);
-    ASSERT_GOTO(response != NULL, error);
 
     if ((service->flag & IDIGI_DATA_REQUEST_START) != 0)
     {
         uint8_t header[DATA_SERVICE_HEADER_MAX_LENGTH];
         size_t header_length = fill_data_service_header(service, header);
 
+        ASSERT_GOTO(response != NULL, error);
+
         {
             void ** const session_ptr = response;
-            msg_data_info_t info = {.header_length = header_length, .header = header, .payload_length = service->payload.size, .payload = service->payload.data, .flag = service->flag};
+            msg_data_info_t const info = {.header_length = header_length, .header = header, .payload_length = service->payload.size, .payload = service->payload.data, .flag = service->flag};
             *session_ptr = msg_send_start(data_ptr, msg_service_id_data, &info);
 
             status = (*session_ptr != NULL) ? idigi_success : idigi_configuration_error;
@@ -153,7 +154,7 @@ static idigi_status_t data_service_initiate(idigi_data_t * data_ptr,  void const
     }
     else
     {
-        msg_data_info_t info = {.header_length = 0, .header = NULL, .payload_length = service->payload.size, .payload = service->payload.data,  .flag = service->flag};
+        msg_data_info_t const info = {.header_length = 0, .header = NULL, .payload_length = service->payload.size, .payload = service->payload.data,  .flag = service->flag};
         idigi_callback_status_t ret_status = msg_send_data(data_ptr, service->session, &info);
 
         status = (ret_status == idigi_callback_continue) ? idigi_success : idigi_configuration_error;

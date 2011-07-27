@@ -238,6 +238,8 @@ idigi_status_t idigi_step(idigi_handle_t const handle)
     if (status != idigi_callback_abort && idigi_handle->edp_connected)
     {
         status = send_packet_process(idigi_handle);
+        if (status == idigi_callback_continue) 
+            status = msg_process_pending(idigi_handle);
     }
     if (status == idigi_callback_abort)
     {
