@@ -643,7 +643,7 @@ static idigi_callback_status_t rci_discovery(idigi_data_t * idigi_ptr, void * fa
      */
     if (rci_ptr->state == rci_idle_state)
     {
-        idigi_request_t request_id;
+        idigi_request_t request_id = {idigi_rci_zlib_compression};
         bool compression_supported;
 
         status = idigi_callback(idigi_ptr->callback, idigi_class_rci, request_id, NULL, 0,

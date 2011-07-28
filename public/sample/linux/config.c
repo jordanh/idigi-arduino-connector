@@ -264,7 +264,11 @@ static bool get_firmware_support(void)
 
 static bool get_data_service_support(void)
 {
+#if (defined _DATA_SERVICE)
     return true;
+#else
+    return false;
+#endif
 }
 
 static bool get_rci_support(void)
