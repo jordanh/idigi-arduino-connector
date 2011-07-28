@@ -352,6 +352,13 @@ static bool server_disconnected(void)
     return true;
 }
 
+static bool server_reboot(void)
+{
+
+    DEBUG_PRINTF("Reboot from server\n");
+    /* should not return from rebooting the system */
+    return true;
+}
 uint8_t network_select(idigi_network_handle_t fd, uint8_t select_set, struct timeval *timeout)
 {
     uint8_t actual_set = 0;
@@ -431,6 +438,11 @@ idigi_callback_status_t idigi_network_callback(idigi_network_request_t request,
        ret = server_disconnected();
        status = (ret == true) ? idigi_callback_continue : idigi_callback_abort;
        break;
+
+    case idigi_network_reboot:
+        ret = server_reboot();
+        status = (ret == true) ? idigi_callback_continue : idigi_callback_abort;
+        break;
 
     default:
         DEBUG_PRINTF("idigi_network_callback: unrecognized callback request [%d]\n", request);
