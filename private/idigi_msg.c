@@ -947,7 +947,7 @@ static idigi_callback_status_t msg_process_pending(idigi_data_t * idigi_ptr)
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_msg_data_t * const msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
 
-    if (msg_ptr->pending != NULL) 
+    if ((msg_ptr != NULL) && (msg_ptr->pending != NULL))
     {
         msg_session_t * const session = msg_ptr->pending;
 
