@@ -94,8 +94,6 @@ typedef enum
     msg_state_data_and_end
 } msg_state_t;
 
-typedef idigi_callback_status_t idigi_msg_callback_t(idigi_data_t * idigi_ptr, msg_status_t const msg_status, uint16_t const session_id, uint8_t * buffer, size_t const length);
-
 typedef struct msg_session_t
 {
     uint16_t session_id;
@@ -117,6 +115,8 @@ typedef struct msg_session_t
     struct msg_session_t * next;
     struct msg_session_t * prev;
 } msg_session_t;
+
+typedef idigi_callback_status_t idigi_msg_callback_t(idigi_data_t * idigi_ptr, msg_status_t const msg_status, msg_session_t * const session, uint8_t * buffer, size_t const length);
 
 typedef struct 
 {
@@ -140,6 +140,7 @@ typedef struct
     uint8_t * payload;
     uint16_t flag;
 } msg_data_info_t;
+
 
 static void msg_send_complete(idigi_data_t * idigi_ptr, uint8_t * packet, idigi_status_t status, void * user_data);
 
@@ -233,10 +234,9 @@ error:
     return session;
 }
 
-static void msg_delete_session(idigi_data_t * idigi_ptr, uint16_t const session_id, msg_type_t const type)
+static void msg_delete_session(idigi_data_t * idigi_ptr,  msg_session_t * const session, msg_type_t const type)
 {
     idigi_msg_data_t * const msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
-    msg_session_t * session = msg_find_session(msg_ptr, session_id, type);
 
     ASSERT_GOTO(msg_ptr != NULL, error);
     ASSERT_GOTO(session != NULL, error);
@@ -668,7 +668,7 @@ static void msg_send_complete(idigi_data_t * idigi_ptr, uint8_t * packet, idigi_
 
         session->bytes_sent = 0;
         ASSERT_GOTO(cb_fn != NULL, done);
-        cb_fn(idigi_ptr, msg_status_send_complete, session->session_id, NULL, bytes);
+        cb_fn(idigi_ptr, msg_status_send_complete, session, NULL, bytes);
     }
 
 done:
@@ -745,10 +745,10 @@ static idigi_callback_status_t msg_recv_compressed(idigi_data_t * idigi_ptr, idi
             else
                 state = (zlib_ptr->total_in == length) ? msg_status_start : msg_status_data;
             
-            status = cb_fn(idigi_ptr, state, session->session_id, session->frame, uncompressed_length);
+            status = cb_fn(idigi_ptr, state, session, session->frame, uncompressed_length);
 
             if (session->last_chunk && (zlib_ptr->avail_out == 0))
-                msg_delete_session(idigi_ptr, session->session_id, msg_type_rx);
+                msg_delete_session(idigi_ptr, session, msg_type_rx);
         }
 
     } while (zlib_ptr->avail_in > 0);
@@ -818,9 +818,9 @@ static idigi_callback_status_t msg_process_data(idigi_data_t * idigi_ptr, idigi_
 
         if (last)
             state = msg_status_end;
-        status = cb_fn(idigi_ptr, state, session_id, ptr, length);
+        status = cb_fn(idigi_ptr, state, session, ptr, length);
         if (last) 
-            msg_delete_session(idigi_ptr, session_id, msg_type_rx);
+            msg_delete_session(idigi_ptr, session, msg_type_rx);
     }
 
     if ((*start_ptr & MSG_FLAG_REQUEST) != 0)
@@ -884,7 +884,7 @@ static idigi_callback_status_t msg_process_error(idigi_data_t * idigi_ptr, idigi
         {
             idigi_msg_callback_t * cb_fn = msg_fac->service_cb[session->service_id];
 
-            status = cb_fn(idigi_ptr, msg_status_error, session_id, ptr, sizeof *ptr);
+            status = cb_fn(idigi_ptr, msg_status_error, session, ptr, sizeof *ptr);
         }
     }
 

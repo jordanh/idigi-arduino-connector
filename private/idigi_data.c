@@ -37,26 +37,28 @@ enum
 #define DATA_NO_ARCHIVE                 0x00
 #define DATA_SERVICE_HEADER_MAX_LENGTH  256
 
-static idigi_callback_status_t data_service_callback(idigi_data_t * idigi_ptr, msg_status_t const msg_status, uint16_t const session_id, uint8_t * data, size_t const length)
+static idigi_callback_status_t data_service_callback(idigi_data_t * idigi_ptr, msg_status_t const msg_status, msg_session_t * const session, uint8_t * data, size_t const length)
 {
-    idigi_callback_status_t status = idigi_callback_continue;
+    idigi_callback_status_t status = idigi_callback_abort;
     idigi_request_t request;
+
+    ASSERT_GOTO(session != NULL, error);
 
     switch (msg_status) 
     {
         case msg_status_error:
         {
-            idigi_data_error_t error_info = {.session_id = session_id, .error = *data};
+            idigi_data_error_t error_info = {.session_id = session->session_id, .error = *data};
 
             request.data_service_request = idigi_data_service_error;
             status = idigi_callback(idigi_ptr->callback, idigi_class_data_service, request, &error_info, sizeof error_info, NULL, 0);
-            msg_delete_session(idigi_ptr, session_id, msg_type_tx);
+            msg_delete_session(idigi_ptr, session, msg_type_tx);
             break;
         }
 
         case msg_status_send_complete:
         {
-            idigi_data_send_t send_info = {.session_id = session_id, .status = idigi_success, .bytes_sent = length};
+            idigi_data_send_t send_info = {.session_id = session->session_id, .status = idigi_success, .bytes_sent = length};
 
             request.data_service_request = idigi_data_service_send_complete;
             status = idigi_callback(idigi_ptr->callback, idigi_class_data_service, request, &send_info, sizeof send_info, NULL, 0);
@@ -71,13 +73,13 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * idigi_ptr, m
             ASSERT_GOTO(*data++ == DATA_SERVICE_RESPONSE_OPCODE, error);
             response.status = *data++;
             
-            response.session_id = session_id;
+            response.session_id = session->session_id;
             response.message.size = length - 2; /* opcode(1 byte) + status(1 byte) */
             response.message.value = data;
 
             request.data_service_request = idigi_data_service_response;
             status = idigi_callback(idigi_ptr->callback, idigi_class_data_service, request, &response, sizeof response, NULL, 0);
-            msg_delete_session(idigi_ptr, session_id, msg_type_tx);
+            msg_delete_session(idigi_ptr, session, msg_type_tx);
             break;
         }
 
