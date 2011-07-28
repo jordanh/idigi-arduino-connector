@@ -282,6 +282,7 @@ static void rci_send_packet_callback(idigi_data_t * idigi_ptr, uint8_t * packet,
         uint16_t send_length;
         uint8_t * start_ptr;
         uint8_t opcode;
+        idigi_callback_status_t ccode;
 #if 0
         if (rci_ptr->response.length >= packet->header.avail_length)
         {
@@ -309,8 +310,8 @@ static void rci_send_packet_callback(idigi_data_t * idigi_ptr, uint8_t * packet,
         rci_ptr->response.pointer += send_length;
         rci_ptr->response.length -= send_length;
         DEBUG_PRINTF("rci_send_packet_callback: send chunk length %d\n", send_length);
-        status = enable_facility_packet(idigi_ptr, packet, (ptr - start_ptr), E_MSG_FAC_RCI_NUM, rci_send_packet_callback, rci_ptr);
-        ASSERT(status == idigi_callback_continue);
+        ccode = enable_facility_packet(idigi_ptr, packet, (ptr - start_ptr), E_MSG_FAC_RCI_NUM, rci_send_packet_callback, rci_ptr);
+        ASSERT(ccode == idigi_callback_continue);
     }
     else
     {
