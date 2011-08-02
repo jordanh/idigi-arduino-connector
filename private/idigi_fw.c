@@ -100,28 +100,28 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * fw_ptr, idi
     idigi_callback_status_t   status;
     unsigned timeout;
     uint32_t start_time_stamp, end_time_stamp;
-    uint32_t rx_keepalive;
-    uint32_t tx_keepalive;
+    uint16_t rx_keepalive;
+    uint16_t tx_keepalive;
     unsigned * req_timeout;
     size_t  length;
     idigi_request_t rid;
 
-    /* Calculate the timeout value (when to send rx keepalive or 
+    /* Calculate the timeout value (when to send rx keepalive or
      * receive tx keepalive) from last rx keepalive or tx keepalive.
      *
      * If callback exceeds the timeout value, error status callback
      * will be called. 
-     * Also, make sure the response size from the callback matches 
-     * the given response_size.
      */
-    status = get_system_time(idigi_ptr, &start_time_stamp);
-    if (status != idigi_callback_continue)
+    status =  get_keepalive_timeout(idigi_ptr, &rx_keepalive, &tx_keepalive, &start_time_stamp);
+    if (rx_keepalive == 0 || status != idigi_callback_continue)
     {
+        if (rx_keepalive == 0)
+        {
+            /*  needs to return immediately for rx_keepalive. */
+            status = idigi_callback_busy;
+        }
         goto done;
     }
-
-    rx_keepalive = get_timeout_limit_in_seconds(*idigi_ptr->rx_keepalive, (start_time_stamp - idigi_ptr->rx_ka_time));
-    tx_keepalive = get_timeout_limit_in_seconds(*idigi_ptr->tx_keepalive, (start_time_stamp - idigi_ptr->tx_ka_time));
 
     timeout = MIN_VALUE(rx_keepalive, tx_keepalive);
 
@@ -133,9 +133,9 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * fw_ptr, idi
          * set when we receive fw_download_complete_opcode to trigger
          * the keepalive time for sending target list message.
          *
-         * see this is min timeout value to the callback.
          */
-        ka_timeout = get_timeout_limit_in_seconds(FW_TARGET_LIST_MSG_INTERVAL_PER_SECOND, (start_time_stamp - fw_ptr->ka_time));
+        ka_timeout = get_elapsed_value(FW_TARGET_LIST_MSG_INTERVAL_PER_SECOND, fw_ptr->ka_time, start_time_stamp);
+
         timeout = MIN_VALUE( timeout, ka_timeout);
     }
 
