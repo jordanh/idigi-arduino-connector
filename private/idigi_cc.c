@@ -253,7 +253,8 @@ static idigi_callback_status_t get_mac_addr(idigi_data_t * idigi_ptr, uint8_t * 
     /* callback for MAC addr for LAN connection type */
     request_id.config_request = idigi_config_mac_addr;
     status = idigi_callback(idigi_ptr->callback, idigi_class_config, request_id, NULL, 0, &mac, &length);
-    if (status != idigi_callback_continue)
+
+    if (status == idigi_callback_abort && status != idigi_callback_busy)
     {
         idigi_ptr->error_code = idigi_configuration_error;
     }
@@ -367,7 +368,10 @@ static idigi_callback_status_t send_connection_report(idigi_data_t * idigi_ptr, 
         status = idigi_callback(idigi_ptr->callback, idigi_class_config, request_id, NULL, 0, &link_speed, &length);
         if (status != idigi_callback_continue)
         {
-            idigi_ptr->error_code = idigi_configuration_error;
+            if (status == idigi_callback_abort)
+            {
+                idigi_ptr->error_code =  idigi_configuration_error;
+            }
             goto done;
         }
 
@@ -397,7 +401,10 @@ static idigi_callback_status_t send_connection_report(idigi_data_t * idigi_ptr, 
 
         if (status != idigi_callback_continue)
         {
-            idigi_ptr->error_code = idigi_configuration_error;
+            if (status == idigi_callback_abort)
+            {
+                idigi_ptr->error_code = idigi_configuration_error;
+            }
             goto done;
         }
 
