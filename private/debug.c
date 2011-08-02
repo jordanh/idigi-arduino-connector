@@ -47,11 +47,13 @@ static malloc_stats_t * malloc_list = NULL;
  *
  * This is for debugging only.
  */
-static void add_malloc_stats(void const * const ptr, size_t length)
+static void add_malloc_stats(void const * const ptr, size_t const length)
 {
     malloc_stats_t   * pMalloc;
 
-    pMalloc = (malloc_stats_t *)malloc(sizeof(malloc_stats_t));
+    pMalloc = (malloc_stats_t *)malloc(sizeof *pMalloc);
+    ASSERT(pMalloc != NULL);
+
     if (pMalloc != NULL)
     {
         pMalloc->ptr = ptr;
@@ -59,12 +61,9 @@ static void add_malloc_stats(void const * const ptr, size_t length)
         if (malloc_list != NULL)
         {
             malloc_list->prev = pMalloc;
-            pMalloc->next = malloc_list;
         }
-        else
-        {
-            pMalloc->next = NULL;
-        }
+
+        pMalloc->next = malloc_list;
         pMalloc->prev = NULL;
         malloc_list = pMalloc;
 
@@ -73,11 +72,6 @@ static void add_malloc_stats(void const * const ptr, size_t length)
         {
             high_malloc_mark = total_malloc_length;
         }
-    }
-    else
-    {
-
-        DEBUG_PRINTF("add_malloc_stats: malloc failed\n");
     }
 }
 
@@ -109,10 +103,7 @@ static void del_malloc_stats(void const * const ptr)
         }
     }
 
-    if (pMalloc == NULL)
-    {
-        DEBUG_PRINTF("del_malloc_stats: free invalid pointer\n");
-    }
+    ASSERT(pMalloc != NULL);
 }
 #else
 #define add_malloc_stats(ptr, size)

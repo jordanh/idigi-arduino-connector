@@ -247,6 +247,7 @@ static idigi_callback_status_t get_configurations(idigi_data_t * idigi_ptr)
         }
         else
         {
+            /* set error code if it has not been set */
             if (status == idigi_callback_abort && idigi_ptr->error_code == idigi_success)
             {
                 idigi_ptr->error_code = idigi_configuration_error;
@@ -289,8 +290,11 @@ static idigi_callback_status_t get_supported_facilities(idigi_data_t * idigi_ptr
             status = idigi_callback(idigi_ptr->callback, idigi_class_config, request_id, NULL, 0, &facility_enable, &length);
             if (status != idigi_callback_continue)
             {
-                DEBUG_PRINTF("initialize_facilities: callback returns %d on facility= %d\n", status, request_id.config_request);
-                idigi_ptr->error_code = idigi_configuration_error;
+                if (status == idigi_callback_abort)
+                {
+                    DEBUG_PRINTF("initialize_facilities: callback returns %d on facility= %d\n", status, request_id.config_request);
+                    idigi_ptr->error_code = idigi_configuration_error;
+                }
                 break;
             }
 
@@ -308,7 +312,7 @@ static idigi_callback_status_t get_supported_facilities(idigi_data_t * idigi_ptr
     }
     return status;
 }
-static idigi_callback_status_t initialize_facilites(idigi_data_t * idigi_ptr)
+static idigi_callback_status_t initialize_facilities(idigi_data_t * idigi_ptr)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     size_t  i;
@@ -324,6 +328,24 @@ static idigi_callback_status_t initialize_facilites(idigi_data_t * idigi_ptr)
     }
 
     idigi_ptr->request_id = i;
+
+    if (status == idigi_callback_continue)
+    {
+        if (i < idigi_facility_count)
+        {
+            status = idigi_callback_busy;
+        }
+        else
+        {
+            idigi_facility_t * fac_ptr;
+
+            for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
+            {
+                fac_ptr->packet = NULL;
+            }
+        }
+    }
+
     return status;
 }
 static idigi_callback_status_t configuration_layer(idigi_data_t * idigi_ptr)
@@ -347,7 +369,7 @@ static idigi_callback_status_t configuration_layer(idigi_data_t * idigi_ptr)
     }
     if (idigi_ptr->layer_state == configuration_init_facilities)
     {
-        status = initialize_facilites(idigi_ptr);
+        status = initialize_facilities(idigi_ptr);
         if (status == idigi_callback_continue)
         {
             set_idigi_state(idigi_ptr, edp_communication_layer);
@@ -1027,18 +1049,38 @@ error:
         release_receive_packet(idigi_ptr, packet);
     }
 
-    /* invoke facility process */
-    for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
+    if (status != idigi_callback_abort)
     {
-        if (fac_ptr->packet != NULL)
+        /* invoke facility process */
+        for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
         {
-            status = fac_ptr->process_cb(idigi_ptr, fac_ptr->facility_data, fac_ptr->packet);
-            if (status != idigi_callback_busy)
-            {   /* release the packet when it's done */
-                release_receive_packet(idigi_ptr, fac_ptr->packet);
-                fac_ptr->packet = NULL;
+            if (fac_ptr->packet != NULL)
+            {
+                /* let's facility to process if not abort.
+                 * If abort, release the facility packet anyway.
+                 */
+                status = fac_ptr->process_cb(idigi_ptr, fac_ptr->facility_data, fac_ptr->packet);
+                if (status != idigi_callback_busy)
+                {   /* release the packet when it's done */
+                    release_receive_packet(idigi_ptr, fac_ptr->packet);
+                    fac_ptr->packet = NULL;
+                }
+
+                if (status != idigi_callback_abort)
+                {
+                    uint16_t rx_keepalive;
+                    uint16_t tx_keepalive;
+                    uint32_t current_system_time;
+                    /* check rx_keepalive and tx_keepalive timing */
+                    status =  get_keepalive_timeout(idigi_ptr, &rx_keepalive, &tx_keepalive, &current_system_time);
+                    if (rx_keepalive == 0 || tx_keepalive == 0 || status != idigi_callback_continue)
+                    {
+                        break;
+                    }
+               }
+
             }
-        }
+        }/* for */
     }
 
     return status;

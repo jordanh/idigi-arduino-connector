@@ -54,7 +54,6 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * idigi_ptr, m
 
             request.data_service_request = idigi_data_service_error;
             status = idigi_callback(idigi_ptr->callback, idigi_class_data_service, request, &error_info, sizeof error_info, NULL, 0);
-            msg_delete_session(idigi_ptr, session, msg_type_tx);
             break;
         }
 
@@ -81,7 +80,6 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * idigi_ptr, m
 
             request.data_service_request = idigi_data_service_response;
             status = idigi_callback(idigi_ptr->callback, idigi_class_data_service, request, &response, sizeof response, NULL, 0);
-            msg_delete_session(idigi_ptr, session, msg_type_tx);
             break;
         }
 

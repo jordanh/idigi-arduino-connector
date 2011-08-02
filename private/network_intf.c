@@ -42,6 +42,7 @@
 #define E_MSG_MT2_TYPE_KA_KEEPALIVE             0x0030 /* bi-directional */
 #define E_MSG_MT2_TYPE_PAYLOAD                  0x0040 /* bi-directional */
 
+#define ONE_SECOND  1
 
 typedef enum {
     receive_packet_init,
@@ -149,8 +150,8 @@ static int send_buffer(idigi_data_t * idigi_ptr, uint8_t * buffer, size_t length
 
     idigi_callback_status_t status;
     idigi_write_request_t write_data;
-    unsigned tx_ka_timeout;
-    unsigned rx_ka_timeout;
+    uint16_t tx_ka_timeout;
+    uint16_t rx_ka_timeout;
     uint32_t time_stamp;
     idigi_request_t request_id;
 
@@ -166,22 +167,22 @@ static int send_buffer(idigi_data_t * idigi_ptr, uint8_t * buffer, size_t length
         goto done;
     }
 
-    if (get_system_time(idigi_ptr, &time_stamp) != idigi_callback_continue)
-    {
-        bytes_sent = -idigi_configuration_error;
-        goto done;
-    }
-
     /* Get rx keepalive timeout that we need to send a keepalive packet:
      *   = configured keepalive time  - (current time - last time we sent a packet);
      *      
      * Get tx keepalive timeout that we expect a keepalive packet from server:
      *   = configured keepalive time  - (current time - last time we received a packet);
-     *
-     * timeout value is in seconds.
      */
-    rx_ka_timeout = get_timeout_limit_in_seconds(*idigi_ptr->rx_keepalive, (time_stamp - idigi_ptr->rx_ka_time));
-    tx_ka_timeout = get_timeout_limit_in_seconds(*idigi_ptr->tx_keepalive, (time_stamp - idigi_ptr->tx_ka_time));
+    status =  get_keepalive_timeout(idigi_ptr, &rx_ka_timeout, &tx_ka_timeout, &time_stamp);
+    if (status != idigi_callback_continue)
+    {
+        /*  needs to return immediately for rx_keepalive. */
+        if (status == idigi_callback_abort)
+        {
+            bytes_sent = -idigi_ptr->error_code;
+        }
+        goto done;
+    }
 
     write_data.timeout = MIN_VALUE(rx_ka_timeout, tx_ka_timeout);
 
@@ -298,6 +299,14 @@ done:
     return status;
 }
 
+static void done_send_packet(idigi_data_t * const idigi_ptr)
+{
+    if ( (idigi_ptr->send_packet.complete_cb != NULL))
+    {   /* sent complete so let's call the complete callback */
+        idigi_ptr->send_packet.complete_cb(idigi_ptr, idigi_ptr->send_packet.ptr, idigi_ptr->error_code, idigi_ptr->send_packet.user_data);
+    }
+}
+
 static idigi_callback_status_t send_packet_process(idigi_data_t * idigi_ptr)
 {
     uint8_t * buf;
@@ -314,8 +323,6 @@ static idigi_callback_status_t send_packet_process(idigi_data_t * idigi_ptr)
     if (idigi_ptr->send_packet.total_length > 0)
     {
         /* We have something to be sent */
-        uint8_t * packet = (uint8_t *)idigi_ptr->send_packet.ptr;
-
         buf = idigi_ptr->send_packet.ptr + idigi_ptr->send_packet.length;
         length = idigi_ptr->send_packet.total_length;
 
@@ -331,9 +338,9 @@ static idigi_callback_status_t send_packet_process(idigi_data_t * idigi_ptr)
             status = idigi_callback_abort;
         }
 
-        if ((idigi_ptr->send_packet.total_length == 0) && (idigi_ptr->send_packet.complete_cb != NULL))
+        if (idigi_ptr->send_packet.total_length == 0)
         {   /* sent complete so let's call the complete callback */
-            idigi_ptr->send_packet.complete_cb(idigi_ptr, packet, idigi_ptr->error_code, idigi_ptr->send_packet.user_data);
+            done_send_packet(idigi_ptr);
         }
     }
 
@@ -386,26 +393,19 @@ static void release_receive_packet(idigi_data_t * idigi_ptr, uint8_t * packet)
 static int receive_data(idigi_data_t * idigi_ptr, uint8_t * buffer, size_t length)
 {
     int bytes_received = 0;
-
-    idigi_callback_status_t status;
-    idigi_read_request_t read_data;
-    unsigned tx_keepalive;
-    unsigned tx_ka_timeout;
-    unsigned rx_ka_timeout;
-    uint32_t time_stamp;
-    size_t  length_read, size;
     idigi_request_t request_id;
 
     /* Call callback to receive data from server */
 
     if (!idigi_ptr->network_busy)
     {
-        /* sets up timeout value which callback must return within the timeout vaoue */
-        if (get_system_time(idigi_ptr, &time_stamp) != idigi_callback_continue)
-        {
-            bytes_received = -idigi_configuration_error;
-            goto done;
-        }
+        idigi_read_request_t read_data;
+        idigi_callback_status_t status;
+        uint16_t tx_ka_timeout;
+        uint16_t rx_ka_timeout;
+        uint32_t time_stamp;
+        size_t  length_read;
+        size_t size;
 
         /* rx keepalive timeout that we need to send a keepalive packet:
          *   = configured keepalive time  - (current time - last time we sent a packet);
@@ -413,12 +413,25 @@ static int receive_data(idigi_data_t * idigi_ptr, uint8_t * buffer, size_t lengt
          * tx keepalive timeout that we expect a keepalive packet from server:
          *   = configured keepalive time  - (current time - last time we received a packet);
          *
-         * timeout value is in seconds.
          */
-        rx_ka_timeout = get_timeout_limit_in_seconds(*idigi_ptr->rx_keepalive, (time_stamp - idigi_ptr->rx_ka_time));
-        tx_ka_timeout = get_timeout_limit_in_seconds(*idigi_ptr->tx_keepalive, (time_stamp - idigi_ptr->tx_ka_time));
-
-        read_data.timeout = MIN_VALUE(tx_ka_timeout, rx_ka_timeout);
+        status =  get_keepalive_timeout(idigi_ptr, &rx_ka_timeout, &tx_ka_timeout, &time_stamp);
+        if (status != idigi_callback_continue)
+        {
+            /*  needs to return immediately for rx_keepalive. */
+            if (status == idigi_callback_abort)
+            {
+                bytes_received = -idigi_ptr->error_code;
+            }
+            goto done;
+        }
+        if (tx_ka_timeout == 0 || rx_ka_timeout == 0)
+        {
+            read_data.timeout = ONE_SECOND;
+        }
+        else
+        {
+            read_data.timeout = MIN_VALUE(tx_ka_timeout, rx_ka_timeout);
+        }
 
         read_data.network_handle = idigi_ptr->network_handle;
         read_data.buffer = buffer;
@@ -452,13 +465,12 @@ static int receive_data(idigi_data_t * idigi_ptr, uint8_t * buffer, size_t lengt
     }
 
     /* check Tx keepalive timing */
-    tx_keepalive = *idigi_ptr->tx_keepalive;
-    if (tx_keepalive > 0)
+    if (*idigi_ptr->tx_keepalive > 0)
     {
-        uint8_t wait_count;
+        uint8_t wait_count = * idigi_ptr->wait_count;
+        uint32_t max_timeout = *idigi_ptr->tx_keepalive * wait_count;
 
-        wait_count = *idigi_ptr->wait_count;
-        if (!valid_interval_limit(idigi_ptr, idigi_ptr->tx_ka_time, (tx_keepalive  * wait_count)))
+        if (!valid_interval_limit(idigi_ptr, idigi_ptr->tx_ka_time, max_timeout))
         {
             /*
              * We haven't received a message
@@ -474,7 +486,6 @@ static int receive_data(idigi_data_t * idigi_ptr, uint8_t * buffer, size_t lengt
              */
             bytes_received = -idigi_keepalive_error;
             request_id.network_request = idigi_network_receive;
-            status = idigi_callback_abort;
             idigi_ptr->error_code = idigi_keepalive_error;
             notify_error_status(idigi_ptr->callback, idigi_class_config, request_id, idigi_ptr->error_code);
             DEBUG_PRINTF("idigi_receive: keepalive fail\n");

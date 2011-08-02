@@ -243,6 +243,7 @@ idigi_status_t idigi_step(idigi_handle_t const handle)
             status = msg_process_pending(idigi_handle);
 #endif
     }
+
     if (status == idigi_callback_abort)
     {
         rc = idigi_handle->error_code;
@@ -276,7 +277,9 @@ done:
                 {
                     rc = idigi_handle->error_code;
                 }
+                done_send_packet(idigi_handle);
                 init_setting(idigi_handle);
+
 
             }
         }
