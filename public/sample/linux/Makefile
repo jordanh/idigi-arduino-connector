@@ -9,17 +9,7 @@
 
 include $(IDIGI_RULES)
 
-ifeq ($(LITTLE_ENDIAN),true)
-CFLAGS += -D_LITTLE_ENDIAN
-endif
-
-ifeq ($(DEBUG),true)
-CFLAGS += -DDEBUG -g
-else
-CFLAGS += -DNDEBUG -O2
-endif
-
-CFLAGS += -Wall -Werror -Wextra -I../../include
+CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -I../../include
 
 OBJS = main.o firmware.o network.o os.o config.o data_service.o rci.o
 LIBS = -lidigi -lc

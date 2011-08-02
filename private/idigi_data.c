@@ -30,11 +30,13 @@ enum
 {
     parameter_id_content_type,
     parameter_id_archive,
+    parameter_id_append,
     parameter_count
 };
 
-#define DATA_ARCHIVE_REQUEST            0x01
-#define DATA_NO_ARCHIVE                 0x00
+#define DATA_ARCHIVE_REQUEST    0x01
+#define DATA_APPEND_REQUEST     0x01
+
 #define DATA_SERVICE_HEADER_MAX_LENGTH  256
 
 static idigi_callback_status_t data_service_callback(idigi_data_t * idigi_ptr, msg_status_t const msg_status, msg_session_t * const session, uint8_t * data, size_t const length)
@@ -105,19 +107,34 @@ static size_t fill_data_service_header(idigi_data_request_t const * const reques
 {
     uint8_t * ptr = data;
     size_t blk_length;
+    bool const archive = (request->flag & IDIGI_DATA_REQUEST_ARCHIVE) != 0;
+    bool const append = (request->flag & IDIGI_DATA_REQUEST_APPEND) != 0;
+    uint8_t params = 1;
 
     *ptr++ = DATA_SERVICE_REQUEST_OPCODE;
 
     blk_length = fill_data_block(&request->path, ptr);
     ptr += blk_length;
 
-    *ptr++ = parameter_count;
+    if (archive) params++;
+    if (append) params++;
+
+    *ptr++ = params;
     *ptr++ = parameter_id_content_type;
     blk_length = fill_data_block(&request->content_type, ptr);
     ptr += blk_length;
 
-    *ptr++ = parameter_id_archive;
-    *ptr++ = ((request->flag & IDIGI_DATA_REQUEST_ARCHIVE) != 0) ? DATA_ARCHIVE_REQUEST : DATA_NO_ARCHIVE;
+    if (archive)
+    {
+        *ptr++ = parameter_id_archive;
+        *ptr++ = DATA_ARCHIVE_REQUEST;
+    }
+
+    if (append)
+    {
+        *ptr++ = parameter_id_append;
+        *ptr++ = DATA_APPEND_REQUEST;
+    }
 
     return (ptr - data);
 }

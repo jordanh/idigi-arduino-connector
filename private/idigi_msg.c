@@ -253,6 +253,7 @@ static void msg_delete_session(idigi_data_t * idigi_ptr,  msg_session_t * const 
         {
             msg_session_t ** head_ptr = (type == msg_type_tx) ? &msg_ptr->tx_session_head : &msg_ptr->rx_session_head;
 
+            ASSERT_GOTO(*head_ptr != NULL, error);
             if (session == *head_ptr)
                 *head_ptr = next; 
         }

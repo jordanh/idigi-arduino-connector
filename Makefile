@@ -16,32 +16,32 @@ PUBLIC_HDR_DIR=./public/include
 OBJDIR=$(LIB_SRC_DIR)
 
 ifeq ($(LITTLE_ENDIAN),true)
-CFLAGS += -D_LITTLE_ENDIAN
+DFLAGS += -D_LITTLE_ENDIAN
 endif
 
 ifneq ($(FACILITY_FW), false)
-CFLAGS += -D_FIRMWARE_FACILITY
+DFLAGS += -D_FIRMWARE_FACILITY
 endif
 
 ifneq ($(COMPRESSION), false)
-CFLAGS += -D_COMPRESSION
+DFLAGS += -D_COMPRESSION
 endif
 
 ifneq ($(DATA_SERVICE), false)
-CFLAGS += -D_DATA_SERVICE
+DFLAGS += -D_DATA_SERVICE
 endif
 
 ifneq ($(FACILITY_RCI), false)
-CFLAGS += -D_RCI_FACILITY
+DFLAGS += -D_RCI_FACILITY
 endif
 
 ifeq ($(DEBUG),true)
-CFLAGS += -DDEBUG -g
+DFLAGS += -DDEBUG -g
 else
-CFLAGS += -DNDEBUG -O2
+DFLAGS += -DNDEBUG -O2
 endif
 
-CFLAGS += -I$(PUBLIC_HDR_DIR) -I./private -Wall -Werror -Wextra
+CFLAGS += $(DFLAGS) -I$(PUBLIC_HDR_DIR) -I./private -Wall -Werror -Wextra
 
 vpath $(LIB_SRC_DIR)/%.c
 vpath $(LIB_SRC_DIR)/%.h
@@ -63,7 +63,7 @@ $(OBJS): $(LIB_SRC_DIR)/*.c $(LIB_SRC_DIR)/*.h $(PUBLIC_HDR_DIR)/*.h
 $(LIB): $(OBJS)
 	$(LD) $(LDFLAGS) $(PLIBS) $^ -o $@
 
-MAKE= make IDIGI_RULES="../../../$(IDIGI_RULES)" DEBUG="$(DEBUG)" LITTLE_ENDIAN="$(LITTLE_ENDIAN)" LIB="../../../$(LIBDIR)"
+MAKE= make IDIGI_RULES="../../../$(IDIGI_RULES)" DEBUG="$(DEBUG)" DFLAGS="$(DFLAGS)" LIB="../../../$(LIBDIR)"
 
 linux:
 	echo "building" $(SAMPLE_DIR)/linux;\

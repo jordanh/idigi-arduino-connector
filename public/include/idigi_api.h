@@ -929,11 +929,11 @@ typedef struct {
     idigi_fw_status_t status;
 } idigi_fw_download_abort_t;
 
-#define IDIGI_DATA_REQUEST_START        0x01
-#define IDIGI_DATA_REQUEST_LAST         0x02
-#define IDIGI_DATA_REQUEST_ARCHIVE      0x04
-#define IDIGI_DATA_REQUEST_COMPRESSED   0x08
-
+#define IDIGI_DATA_REQUEST_START        0x0001
+#define IDIGI_DATA_REQUEST_LAST         0x0002
+#define IDIGI_DATA_REQUEST_ARCHIVE      0x0004
+#define IDIGI_DATA_REQUEST_COMPRESSED   0x0008
+#define IDIGI_DATA_REQUEST_APPEND       0x0010
 
 typedef struct
 {
