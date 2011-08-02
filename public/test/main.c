@@ -182,6 +182,7 @@ int main (int argc, char* argv[])
             {
                 iDigiSetting.select_data |= NETWORK_TIMEOUT_SET | NETWORK_READ_SET;
                 network_select(iDigiSetting.socket_fd, iDigiSetting.select_data, ONE_SECOND);
+                status = initiate_data_service(iDigiSetting.idigi_handle);
             }
         }
         DEBUG_PRINTF("idigi status = %d\n", status);
