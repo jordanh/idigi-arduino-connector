@@ -102,6 +102,7 @@ typedef struct idigi_facility {
     uint8_t * packet;                               /* message packet data */
     void * facility_data;                           /* pointer to facility data */
     struct idigi_facility * next;                   /* next facility */
+    struct idigi_facility * prev;                   /* prev facility */
 } idigi_facility_t;
 
 typedef struct idigi_buffer {
