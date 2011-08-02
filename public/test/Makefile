@@ -1,3 +1,4 @@
+IDIGI_RULES=../../idigi.rules
 include $(IDIGI_RULES)
 
 ifeq ($(LITTLE_ENDIAN),true)
@@ -10,11 +11,11 @@ else
 CFLAGS += -DNDEBUG -O2
 endif
 
-SRC=main.c config.c firmware.c os.c network.c inih/ini.c
+SRC=main.c config.c firmware.c os.c network.c data_service.c inih/ini.c
 OBJS=${SRC:.c=.o}
 EXEC=iik_test
 
-CFLAGS += -I../include -I../sample/linux -L../../private -lidigi
+CFLAGS += -I../include -I../sample/linux -L../../ -lidigi
 
 all: $(EXEC)
 

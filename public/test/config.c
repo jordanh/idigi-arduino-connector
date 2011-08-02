@@ -77,7 +77,9 @@ idigi_callback_status_t idigi_error_status(idigi_error_status_t * error_data)
                                               "idigi_firmware_binary_block", "idigi_firmware_download_complete",
                                               "idigi_firmware_download_abort", "idigi_firmware_target_reset"};
 
-
+    char const * data_service_string[] = {"idigi_data_service_send_complete",
+                                    "idigi_data_service_response",
+                                    "idigi_data_service_error"};
 
     switch (error_data->class_id)
     {
@@ -97,6 +99,12 @@ idigi_callback_status_t idigi_error_status(idigi_error_status_t * error_data)
         DEBUG_PRINTF("idigi_error_status: Firmware facility - %s (%d)  status = %s (%d)\n",
                      firmware_request_string[error_data->request_id.firmware_request],
                      error_data->request_id.firmware_request,
+                     error_status_string[error_data->status],error_data->status);
+        break;
+    case idigi_class_data_service:
+        DEBUG_PRINTF("idigi_error_status: Data service - %s (%d)  status = %s (%d)\n",
+                     data_service_string[error_data->request_id.data_service_request],
+                     error_data->request_id.data_service_request,
                      error_status_string[error_data->status],error_data->status);
         break;
     default:
@@ -337,9 +345,9 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t request,
         break;
 
     case idigi_config_data_service:
-        /* enable data service over messaging facility */
-	*((bool *)response_data) = false;
-	break;
+        *((bool *)response_data) = true;
+        
+        break;
 
     }
 

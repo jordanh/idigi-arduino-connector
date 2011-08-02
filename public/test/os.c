@@ -53,7 +53,7 @@ static idigi_callback_status_t os_get_system_time(uint32_t * mstime)
 
     time(&curtime);
 
-    *mstime = (uint32_t)(curtime - iDigiSetting.start_system_up_time) * 1000;
+    *mstime = (uint32_t)(curtime - iDigiSetting.start_system_up_time);
 
     return idigi_callback_continue;
 }
