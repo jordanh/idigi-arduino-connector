@@ -670,6 +670,8 @@ static void msg_send_complete(idigi_data_t * idigi_ptr, uint8_t * packet, idigi_
         session->bytes_sent = 0;
         ASSERT_GOTO(cb_fn != NULL, done);
         cb_fn(idigi_ptr, msg_status_send_complete, session, NULL, bytes);
+        if ((status != idigi_success) || (!session->more_data && session->last_chunk))
+            msg_delete_session(idigi_ptr, session, msg_type_tx);
     }
 
 done:
@@ -835,7 +837,7 @@ error:
 
 static idigi_callback_status_t msg_process_ack(idigi_data_t * idigi_ptr, idigi_msg_data_t const * const msg_fac, uint8_t const * ptr)
 {
-    idigi_callback_status_t status = idigi_callback_abort;
+    idigi_callback_status_t status = idigi_callback_continue;
     msg_session_t * session;
     uint16_t session_id;
 
@@ -844,7 +846,9 @@ static idigi_callback_status_t msg_process_ack(idigi_data_t * idigi_ptr, idigi_m
     session_id = LoadBE16(ptr);        
 
     session = msg_find_session(msg_fac, session_id, msg_type_tx);
-    ASSERT_GOTO(session != NULL, error);
+    if (session == NULL)
+        goto error; /* already done sending all data */
+
     ptr += sizeof session_id;
 
     {
@@ -853,7 +857,6 @@ static idigi_callback_status_t msg_process_ack(idigi_data_t * idigi_ptr, idigi_m
         ptr += sizeof ack_count;
     }
 
-    status = idigi_callback_continue;
     session->available_window = LoadBE32(ptr); /* window size */
     if (session->available_window > 0)
     {
@@ -886,6 +889,7 @@ static idigi_callback_status_t msg_process_error(idigi_data_t * idigi_ptr, idigi
             idigi_msg_callback_t * cb_fn = msg_fac->service_cb[session->service_id];
 
             status = cb_fn(idigi_ptr, msg_status_error, session, ptr, sizeof *ptr);
+            msg_delete_session(idigi_ptr, session, msg_type_tx);
         }
     }
 
@@ -968,6 +972,17 @@ static idigi_callback_status_t msg_process_pending(idigi_data_t * idigi_ptr)
     return status;
 }
 
+static void msg_delete_all_sessions(idigi_data_t * idigi_ptr,  msg_session_t * session, msg_type_t const type)
+{
+    while(session != NULL)
+    {
+        msg_session_t * next_session = session->next;
+
+        msg_delete_session(idigi_ptr, session, type);
+        session = next_session;
+    }
+}
+
 static idigi_callback_status_t msg_delete_facility(idigi_data_t * idigi_ptr, uint16_t const service_id)
 {
     idigi_callback_status_t status = idigi_callback_abort;
@@ -993,8 +1008,12 @@ static idigi_callback_status_t msg_delete_facility(idigi_data_t * idigi_ptr, uin
             }
         }
 
-        if (is_empty) 
+        if (is_empty)
+        {
+            msg_delete_all_sessions(idigi_ptr, msg_ptr->tx_session_head, msg_type_tx);
+            msg_delete_all_sessions(idigi_ptr, msg_ptr->rx_session_head, msg_type_rx);
             status = del_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
+        }
         else
             status = idigi_callback_continue;
     }
