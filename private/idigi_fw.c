@@ -964,7 +964,7 @@ static idigi_callback_status_t fw_discovery(idigi_data_t *idigi_ptr, void * faci
         {
             ASSERT_GOTO(fw_ptr->target_count > 0, done);
 
-            *ptr++ = fw_target_list_opcode;
+            *ptr = fw_target_list_opcode;
             fw_ptr->discovery_length= 1;
             fw_ptr->target = 0;
             fw_ptr->request_id = idigi_firmware_version;
