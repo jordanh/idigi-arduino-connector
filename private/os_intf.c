@@ -24,7 +24,7 @@
  */
 #include "debug.c"
 
-static void init_setting(idigi_data_t * idigi_ptr)
+static void init_setting(idigi_data_t * const idigi_ptr)
 {
     idigi_ptr->edp_state = edp_init_layer;
     idigi_ptr->layer_state = 0;
@@ -37,16 +37,20 @@ static void init_setting(idigi_data_t * idigi_ptr)
     idigi_ptr->send_packet.total_length = 0;
     idigi_ptr->send_packet.length = 0;
     idigi_ptr->send_packet.ptr = NULL;
+    idigi_ptr->send_packet.packet_buffer.in_used = false;
+
     idigi_ptr->receive_packet.total_length = 0;
     idigi_ptr->receive_packet.length = 0;
     idigi_ptr->receive_packet.index = 0;
+    idigi_ptr->receive_packet.packet_buffer.in_used = false;
+
     idigi_ptr->receive_packet.free_packet_buffer = &idigi_ptr->receive_packet.packet_buffer;
 
 }
 
-static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, idigi_class_t class_id, idigi_request_t request_id,
-                                   void * const request_data, size_t request_length,
-                                   void * response_data, size_t * response_length)
+static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, idigi_class_t const class_id,  idigi_request_t const request_id,
+                                                                       void * const request_data, size_t const request_length,
+                                                                       void * const response_data, size_t * const response_length)
 {
     idigi_callback_status_t status;
 
@@ -54,7 +58,7 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
     status = callback(class_id, request_id, request_data, request_length, response_data, response_length);
 
     ASSERT((status == idigi_callback_continue) || (status == idigi_callback_abort) ||
-           (status == idigi_callback_busy) || (status == idigi_callback_unrecognized));
+                 (status == idigi_callback_busy) || (status == idigi_callback_unrecognized));
 
     if (status == idigi_callback_unrecognized)
     {
@@ -76,30 +80,23 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
 }
 
 
-static void notify_error_status(idigi_callback_t callback, idigi_class_t class_number, idigi_request_t request_number, idigi_status_t status)
+static void notify_error_status(idigi_callback_t const callback, idigi_class_t const class_number, idigi_request_t const request_number, idigi_status_t const status)
 {
-    idigi_error_status_t err_status;
-    idigi_request_t request_id;
+    idigi_error_status_t err_status = {class_number, request_number, status};
+    idigi_request_t request_id = {idigi_config_error_status};
 
-    /* call error-status callback to notify application */
-    err_status.class_id = class_number;
-    err_status.request_id = request_number;
-    err_status.status = status;
-
-    request_id.config_request = idigi_config_error_status;
     idigi_callback(callback, idigi_class_config, request_id, &err_status, sizeof err_status, NULL, NULL);
     return;
 }
 
 
-static idigi_callback_status_t get_system_time(idigi_data_t * idigi_ptr, uint32_t * uptime)
+static idigi_callback_status_t get_system_time(idigi_data_t * const idigi_ptr, uint32_t * const uptime)
 {
     size_t  length;
     idigi_callback_status_t status;
-    idigi_request_t request_id;
+    idigi_request_t request_id = {idigi_os_system_up_time};
 
     /* Call callback to get system up time in second */
-    request_id.os_request = idigi_os_system_up_time;
     status = idigi_callback(idigi_ptr->callback, idigi_class_operating_system, request_id, NULL, 0, uptime, &length);
     if (status == idigi_callback_abort)
     {
@@ -109,30 +106,24 @@ static idigi_callback_status_t get_system_time(idigi_data_t * idigi_ptr, uint32_
     return status;
 }
 
-static idigi_callback_status_t malloc_cb(idigi_callback_t const callback, size_t length, void ** ptr)
+static idigi_callback_status_t malloc_cb(idigi_callback_t const callback, size_t const length, void ** ptr)
 {
     idigi_callback_status_t status;
     size_t  size = length, len;
     idigi_request_t request_id;
-    void * p;
 
-    if (callback == NULL)
-    {
-        status = idigi_callback_abort;
-    }
     request_id.os_request = idigi_os_malloc;
-    status = idigi_callback(callback, idigi_class_operating_system, request_id, &size, sizeof size, &p, &len);
+    status = idigi_callback(callback, idigi_class_operating_system, request_id, &size, sizeof size, ptr, &len);
     if (status == idigi_callback_continue)
     {
-        *ptr = p;
-        add_malloc_stats(p, size);
+        add_malloc_stats(*ptr, size);
     }
     return status;
 
 }
 
 
-static idigi_callback_status_t malloc_data(idigi_data_t * idigi_ptr, size_t length, void ** ptr)
+static idigi_callback_status_t malloc_data(idigi_data_t * const idigi_ptr, size_t const length, void ** ptr)
 {
     idigi_callback_status_t status;
 
@@ -145,37 +136,69 @@ static idigi_callback_status_t malloc_data(idigi_data_t * idigi_ptr, size_t leng
 
 }
 
-static void free_data(idigi_data_t * idigi_ptr, void * ptr)
+static void free_data(idigi_data_t * const idigi_ptr, void * const ptr)
 {
-    idigi_request_t request_id;
+    idigi_request_t request_id = {idigi_os_free};
 
-    request_id.os_request = idigi_os_free;
-    idigi_callback(idigi_ptr->callback, idigi_class_operating_system, request_id, ptr, sizeof(void *), NULL, NULL);
+    idigi_callback(idigi_ptr->callback, idigi_class_operating_system, request_id, ptr, sizeof ptr, NULL, NULL);
     del_malloc_stats(ptr);
 
     return;
 }
 
-static uint32_t get_timeout_limit_in_seconds(uint32_t max_timeout, uint32_t system_up_time)
+static uint16_t get_elapsed_value(uint16_t const max_value, uint32_t const last_value, uint32_t const current_value)
 {
-    uint32_t time_limit;
-    uint32_t up_time = system_up_time;
+    uint16_t elapsed_value;
+    uint16_t the_value = max_value;
 
-    time_limit = max_timeout;
-    if (time_limit > 0)
+    ASSERT(current_value >= last_value);
+
+    elapsed_value = (current_value - last_value);
+    if (max_value > 0)
     {
-        if (system_up_time > time_limit)
+        if (elapsed_value > max_value)
         {
-            up_time %=time_limit;
-            up_time *= time_limit;
+            /* already over the value so return 0 */
+            elapsed_value = max_value;
         }
 
-        time_limit -= up_time;
+        the_value -= elapsed_value;
     }
-    return time_limit;
+    return the_value;
 }
 
-static void * get_facility_data(idigi_data_t * idigi_ptr, uint16_t facility_num)
+static idigi_callback_status_t get_keepalive_timeout(idigi_data_t * const idigi_ptr, uint16_t * const rx_timeout, uint16_t * const tx_timeout, uint32_t * const cur_system_time)
+{
+    idigi_callback_status_t status = idigi_callback_continue;
+
+    /* Calculate the timeout value (when to send rx keepalive or
+     * receive tx keepalive) from last rx keepalive or tx keepalive.
+     *
+     * If callback exceeds the timeout value, error status callback
+     * will be called.
+     */
+
+    ASSERT(cur_system_time != NULL);
+
+    status = get_system_time(idigi_ptr, cur_system_time);
+    if (status != idigi_callback_continue)
+    {
+        goto done;
+    }
+
+    if (rx_timeout != NULL)
+    {
+        *rx_timeout =  get_elapsed_value(*idigi_ptr->rx_keepalive, idigi_ptr->rx_ka_time, *cur_system_time);
+    }
+    if (tx_timeout != NULL)
+    {
+        *tx_timeout =  get_elapsed_value(*idigi_ptr->tx_keepalive, idigi_ptr->tx_ka_time, *cur_system_time);
+    }
+done:
+    return status;
+}
+
+static void * get_facility_data(idigi_data_t * const idigi_ptr, uint16_t const facility_num)
 {
     idigi_facility_t * fac_ptr;
     void * ptr = NULL;
@@ -193,13 +216,13 @@ static void * get_facility_data(idigi_data_t * idigi_ptr, uint16_t facility_num)
     return ptr;
 }
 
-static idigi_callback_status_t add_facility_data(idigi_data_t * idigi_ptr, uint16_t facility_num, void ** fac_ptr, size_t size,
+static idigi_callback_status_t add_facility_data(idigi_data_t * const idigi_ptr, uint16_t const facility_num, void ** fac_ptr, size_t const size,
                                                idigi_facility_process_cb_t discovery_cb, idigi_facility_process_cb_t process_cb)
 {
     idigi_callback_status_t status;
     idigi_facility_t * facility;
     void * ptr;
-    size_t facility_size = sizeof(idigi_facility_t);
+    const size_t facility_size = sizeof *facility;
 
     /* allocate facility data and buffer*/
     *fac_ptr = NULL;
@@ -209,13 +232,19 @@ static idigi_callback_status_t add_facility_data(idigi_data_t * idigi_ptr, uint1
         idigi_buffer_t * buffer_ptr;
 
         /* add facility to idigi facility list */
-        facility = (idigi_facility_t *)ptr;
+        facility = ptr;
         facility->facility_num = facility_num;
         facility->size = size;
         facility->discovery_cb = discovery_cb;
         facility->process_cb = process_cb;
-        facility->packet = NULL;
+//        facility->packet = NULL;
+        if (idigi_ptr->facility_list != NULL)
+        {
+            idigi_ptr->facility_list->prev = ptr;
+        }
         facility->next = idigi_ptr->facility_list;
+        facility->prev = NULL;
+
         idigi_ptr->facility_list = ptr;
 
         /* setup facility data */
@@ -233,32 +262,34 @@ static idigi_callback_status_t add_facility_data(idigi_data_t * idigi_ptr, uint1
     return status;
 }
 
-static idigi_callback_status_t del_facility_data(idigi_data_t * idigi_ptr, uint16_t facility_num)
+static idigi_callback_status_t del_facility_data(idigi_data_t * const idigi_ptr, uint16_t const facility_num)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_facility_t * fac_ptr;
-    idigi_facility_t * prev_ptr = NULL;
-    idigi_facility_t * next_ptr;
 
     /* find and free the facility */
     for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
     {
         if (fac_ptr->facility_num == facility_num)
         {
-            next_ptr = fac_ptr->next;
 
+            if (fac_ptr->next != NULL)
+            {
+                fac_ptr->next->prev = fac_ptr->prev;
+            }
+            if (fac_ptr->prev != NULL)
+            {
+                fac_ptr->prev->next = fac_ptr->next;
+            }
+
+
+            if (fac_ptr == idigi_ptr->facility_list)
+            {
+                idigi_ptr->facility_list = fac_ptr->next;
+            }
             free_data(idigi_ptr, fac_ptr);
-            if (prev_ptr != NULL)
-            {
-                prev_ptr->next = next_ptr;
-            }
-            else
-            {
-                idigi_ptr->facility_list = next_ptr;
-            }
             break;
         }
-        prev_ptr = fac_ptr;
     }
     return status;
 }
