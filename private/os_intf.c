@@ -57,11 +57,13 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
     /* call callback */
     status = callback(class_id, request_id, request_data, request_length, response_data, response_length);
 
-    ASSERT((status == idigi_callback_continue) || (status == idigi_callback_abort) ||
-                 (status == idigi_callback_busy) || (status == idigi_callback_unrecognized));
-
-    if (status == idigi_callback_unrecognized)
+    switch (status)
     {
+    case idigi_callback_continue:
+    case idigi_callback_busy:
+        break;
+
+    case idigi_callback_unrecognized:
         /* Application must support all requests in this iDigi release.
          * If application returns unrecognized status, abort iDigi for now.
          * TODO: future release.
@@ -69,16 +71,19 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
         DEBUG_PRINTF("ERROR: Application returns unrecognized request for request=%d class_id = %d which iDigi requires for this version\n",
                         request_id.config_request, class_id);
         status = idigi_callback_abort;
-    }
+        break;
+    case idigi_callback_abort:
 #if defined(DEBUG)
-    else if (status == idigi_callback_abort)
-    {
         DEBUG_PRINTF("idigi_callback: callback for class id = %d request id = %d returned abort\n", class_id, request_id.config_request);
-    }
 #endif
+        break;
+    default:
+        ASSERT(0);
+        break;
+    }
+
     return status;
 }
-
 
 static void notify_error_status(idigi_callback_t const callback, idigi_class_t const class_number, idigi_request_t const request_number, idigi_status_t const status)
 {
@@ -146,10 +151,10 @@ static void free_data(idigi_data_t * const idigi_ptr, void * const ptr)
     return;
 }
 
-static uint16_t get_elapsed_value(uint16_t const max_value, uint32_t const last_value, uint32_t const current_value)
+static uint32_t get_elapsed_value(uint32_t const max_value, uint32_t const last_value, uint32_t const current_value)
 {
-    uint16_t elapsed_value;
-    uint16_t the_value = max_value;
+    uint32_t elapsed_value;
+    uint32_t the_value = max_value;
 
     ASSERT(current_value >= last_value);
 
@@ -167,7 +172,7 @@ static uint16_t get_elapsed_value(uint16_t const max_value, uint32_t const last_
     return the_value;
 }
 
-static idigi_callback_status_t get_keepalive_timeout(idigi_data_t * const idigi_ptr, uint16_t * const rx_timeout, uint16_t * const tx_timeout, uint32_t * const cur_system_time)
+static idigi_callback_status_t get_keepalive_timeout(idigi_data_t * const idigi_ptr, uint32_t * const rx_timeout, uint32_t * const tx_timeout, uint32_t * const cur_system_time)
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
@@ -188,11 +193,11 @@ static idigi_callback_status_t get_keepalive_timeout(idigi_data_t * const idigi_
 
     if (rx_timeout != NULL)
     {
-        *rx_timeout =  get_elapsed_value(*idigi_ptr->rx_keepalive, idigi_ptr->rx_ka_time, *cur_system_time);
+        *rx_timeout =  get_elapsed_value((uint32_t const)*idigi_ptr->rx_keepalive, idigi_ptr->rx_ka_time, *cur_system_time);
     }
     if (tx_timeout != NULL)
     {
-        *tx_timeout =  get_elapsed_value(*idigi_ptr->tx_keepalive, idigi_ptr->tx_ka_time, *cur_system_time);
+        *tx_timeout =  get_elapsed_value((uint32_t const)*idigi_ptr->tx_keepalive, idigi_ptr->tx_ka_time, *cur_system_time);
     }
 done:
     return status;
@@ -222,30 +227,24 @@ static idigi_callback_status_t add_facility_data(idigi_data_t * const idigi_ptr,
     idigi_callback_status_t status;
     idigi_facility_t * facility;
     void * ptr;
-    const size_t facility_size = sizeof *facility;
+    size_t const facility_size = sizeof *facility;
 
     /* allocate facility data and buffer*/
     *fac_ptr = NULL;
     status = malloc_data(idigi_ptr, size + facility_size + sizeof(idigi_buffer_t), &ptr);
-    if (status == idigi_callback_continue && ptr != NULL)
+    if (status == idigi_callback_continue)
     {
         idigi_buffer_t * buffer_ptr;
 
+        ASSERT(ptr != NULL);
         /* add facility to idigi facility list */
         facility = ptr;
         facility->facility_num = facility_num;
         facility->size = size;
         facility->discovery_cb = discovery_cb;
         facility->process_cb = process_cb;
-//        facility->packet = NULL;
-        if (idigi_ptr->facility_list != NULL)
-        {
-            idigi_ptr->facility_list->prev = ptr;
-        }
-        facility->next = idigi_ptr->facility_list;
-        facility->prev = NULL;
 
-        idigi_ptr->facility_list = ptr;
+        add_node(&idigi_ptr->facility_list, facility);
 
         /* setup facility data */
         facility->facility_data = ptr + facility_size;
@@ -273,20 +272,8 @@ static idigi_callback_status_t del_facility_data(idigi_data_t * const idigi_ptr,
         if (fac_ptr->facility_num == facility_num)
         {
 
-            if (fac_ptr->next != NULL)
-            {
-                fac_ptr->next->prev = fac_ptr->prev;
-            }
-            if (fac_ptr->prev != NULL)
-            {
-                fac_ptr->prev->next = fac_ptr->next;
-            }
+            add_node(&idigi_ptr->facility_list, fac_ptr);
 
-
-            if (fac_ptr == idigi_ptr->facility_list)
-            {
-                idigi_ptr->facility_list = fac_ptr->next;
-            }
             free_data(idigi_ptr, fac_ptr);
             break;
         }
