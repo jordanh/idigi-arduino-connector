@@ -1,4 +1,3 @@
-IDIGI_RULES=../../idigi.rules
 include $(IDIGI_RULES)
 
 ifeq ($(LITTLE_ENDIAN),true)
