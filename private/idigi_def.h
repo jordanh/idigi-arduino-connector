@@ -94,6 +94,35 @@ struct idigi_facility;
 typedef idigi_callback_status_t (* idigi_facility_process_cb_t )(struct idigi_data * idigi_ptr, void * facility_data, uint8_t * packet);
 typedef void (* send_complete_cb_t)(struct idigi_data * idigi_ptr, uint8_t * packet, idigi_status_t  status, void * user_data);
 
+#define add_node(head, node) \
+    do { \
+        ASSERT(node != NULL); \
+        if (*head != NULL) \
+        {\
+            *head->prev = node;\
+        }\
+        node->next = *head;\
+        node->prev = NULL;\
+        *head = node;\
+   } while (0)
+
+#define del_node(head, node) \
+    do { \
+        if (node->next != NULL) \
+        {\
+            node->next->prev = node->prev;\
+        }\
+        if (node->prev != NULL) \
+        {\
+            node->prev->next = node->next;\
+        }\
+        if (node == *head)\
+        {\
+            *head = node->next;\
+        }\
+    } while (0)
+
+
 typedef struct idigi_facility {
     uint16_t facility_num;                          /* facility opcode */
     size_t size;                                    /* size of facility data */
