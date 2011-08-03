@@ -51,21 +51,15 @@ static void add_malloc_stats(void const * const ptr, size_t const length)
 {
     malloc_stats_t   * pMalloc;
 
-    pMalloc = (malloc_stats_t *)malloc(sizeof *pMalloc);
+    pMalloc = malloc(sizeof *pMalloc);
     ASSERT(pMalloc != NULL);
 
     if (pMalloc != NULL)
     {
         pMalloc->ptr = ptr;
         pMalloc->length = length;
-        if (malloc_list != NULL)
-        {
-            malloc_list->prev = pMalloc;
-        }
 
-        pMalloc->next = malloc_list;
-        pMalloc->prev = NULL;
-        malloc_list = pMalloc;
+        add_node(&malloc_list, pMalloc);
 
         total_malloc_length += length;
         if (total_malloc_length > high_malloc_mark)
@@ -84,18 +78,7 @@ static void del_malloc_stats(void const * const ptr)
     {
         if (pMalloc->ptr == ptr)
         {
-            if (pMalloc->next != NULL)
-            {
-                pMalloc->next->prev = pMalloc->prev;
-            }
-            if (pMalloc->prev != NULL)
-            {
-                pMalloc->prev->next = pMalloc->next;
-            }
-            if (pMalloc == malloc_list)
-            {
-                malloc_list = pMalloc->next;
-            }
+            del_node(&malloc_list, pMalloc);
 
             total_malloc_length -= pMalloc->length;
             free(pMalloc);

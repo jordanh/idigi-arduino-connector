@@ -150,8 +150,8 @@ static int send_buffer(idigi_data_t * idigi_ptr, uint8_t * buffer, size_t length
 
     idigi_callback_status_t status;
     idigi_write_request_t write_data;
-    uint16_t tx_ka_timeout;
-    uint16_t rx_ka_timeout;
+    uint32_t tx_ka_timeout;
+    uint32_t rx_ka_timeout;
     uint32_t time_stamp;
     idigi_request_t request_id;
 
@@ -301,9 +301,10 @@ done:
 
 static void done_send_packet(idigi_data_t * const idigi_ptr)
 {
-    if ( (idigi_ptr->send_packet.complete_cb != NULL))
-    {   /* sent complete so let's call the complete callback */
+    if (idigi_ptr->send_packet.complete_cb != NULL)
+    {   /* still have active send_complete callback  so let's call the complete callback */
         idigi_ptr->send_packet.complete_cb(idigi_ptr, idigi_ptr->send_packet.ptr, idigi_ptr->error_code, idigi_ptr->send_packet.user_data);
+        idigi_ptr->send_packet.complete_cb = NULL;
     }
 }
 
@@ -401,8 +402,8 @@ static int receive_data(idigi_data_t * idigi_ptr, uint8_t * buffer, size_t lengt
     {
         idigi_read_request_t read_data;
         idigi_callback_status_t status;
-        uint16_t tx_ka_timeout;
-        uint16_t rx_ka_timeout;
+        uint32_t tx_ka_timeout;
+        uint32_t rx_ka_timeout;
         uint32_t time_stamp;
         size_t  length_read;
         size_t size;
