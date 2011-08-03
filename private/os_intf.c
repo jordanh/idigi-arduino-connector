@@ -272,7 +272,7 @@ static idigi_callback_status_t del_facility_data(idigi_data_t * const idigi_ptr,
         if (fac_ptr->facility_num == facility_num)
         {
 
-            add_node(&idigi_ptr->facility_list, fac_ptr);
+            del_node(&idigi_ptr->facility_list, fac_ptr);
 
             free_data(idigi_ptr, fac_ptr);
             break;
