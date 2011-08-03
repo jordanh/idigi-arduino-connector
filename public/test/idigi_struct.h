@@ -66,6 +66,7 @@ typedef struct {
 } idigi_data_t;
 
 extern idigi_data_t iDigiSetting;
+extern idigi_data_request_t * data_service_request;
 extern time_t  deviceSystemUpStartTime;
 
 

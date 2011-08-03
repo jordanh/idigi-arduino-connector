@@ -29,47 +29,19 @@
 #include "time.h"
 
 #include "idigi_data.h"
+#include "idigi_struct.h"
 
-#define DATA_LOG_INTERVAL   1800
-
-static uint8_t test_data[] = "Welcome to iDigi Data Service sample test!";
-
-static void initialize_request(idigi_data_request_t * request)
-{
-    static uint8_t path[] = "test/sample.txt";
-    static uint8_t type[] = "text/plain";
-
-    request->flag                   = IDIGI_DATA_REQUEST_START | IDIGI_DATA_REQUEST_LAST | IDIGI_DATA_REQUEST_COMPRESSED;
-    request->path.size              = sizeof path - 1;
-    request->path.value             = path;
-    request->content_type.size      = sizeof type - 1;
-    request->content_type.value     = type;
-    request->payload.size           = sizeof(test_data);
-    request->payload.data           = test_data;
-}
-
+idigi_data_request_t * data_service_request;
 
 idigi_status_t initiate_data_service(idigi_handle_t handle) 
 {
     idigi_status_t status = idigi_success;
-    static time_t last_time = 0;
-    time_t current_time;
-    static idigi_data_request_t request;
-    
-    time(&current_time);
-    if (last_time == 0) 
-    {
-        initialize_request(&request);
-        last_time = current_time;
-        goto done;
-    }
 
-    if ((current_time - last_time) >= DATA_LOG_INTERVAL) 
-    {
-        last_time = current_time;
-        status = idigi_initiate_action(handle, idigi_initiate_data_service, &request, &request.session);
+    if(data_service_request != NULL){
+        status = idigi_initiate_action(handle, idigi_initiate_data_service, data_service_request, &data_service_request->session);
 
-        DEBUG_PRINTF("Status: %d, Session: %p\n", status, request.session);
+        DEBUG_PRINTF("Status: %d, Session: %p\n", status, data_service_request->session);
+        data_service_request = NULL;
     }
 
 done:

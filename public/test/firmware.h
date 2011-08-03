@@ -1,9 +1,12 @@
 typedef struct {
-	uint32_t    target;
-    uint32_t    version;
-    uint32_t    code_size;
-    char        * name_spec;
-    char        * description;
+	uint32_t                target;
+    uint32_t                version;
+    uint32_t                code_size;
+    uint8_t                 data_service_enabled;
+    char                    * name_spec;
+    char                    * description;
+    idigi_data_request_t    * data_service_request;
+    
 } firmware_list_t;
 
 extern firmware_list_t* firmware_list;

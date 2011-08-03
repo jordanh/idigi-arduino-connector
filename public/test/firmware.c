@@ -27,6 +27,7 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include "idigi_struct.h"
 #include "idigi_data.h"
 #include "firmware.h"
 
@@ -37,6 +38,9 @@ static size_t total_image_size = 0;
 
 firmware_list_t* firmware_list;
 uint8_t firmware_list_count;
+
+idigi_data_request_t * data_service_request;
+
 
 static idigi_callback_status_t firmware_download_request(idigi_fw_download_request_t * download_data, idigi_fw_status_t * download_status)
 {
@@ -64,6 +68,12 @@ static idigi_callback_status_t firmware_download_request(idigi_fw_download_reque
     DEBUG_PRINTF("filename = %s\n", download_data->filename);
 
     // Predefined failure targets to test error conditions.
+
+    if(firmware_list[download_data->target].data_service_enabled == 1){
+        data_service_request = firmware_list[download_data->target].data_service_request;
+        *download_status = idigi_fw_download_configured_to_reject;
+        goto done;
+    }
 
     switch(download_data->target){
     case 5:

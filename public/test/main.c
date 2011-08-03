@@ -33,12 +33,18 @@
 #include "firmware.h"
 
 firmware_list_t* temp_fw;
+static uint8_t default_payload[] = "Default iDigi Data Service Push";
+static uint8_t default_content_type[] = "text/plain";
+static uint8_t default_path[] = "default.txt";
 
 /* If set, iDigi will start as a separated thread calling idigi_run */
 
 #define ONE_SECOND  1
 time_t  deviceSystemUpStartTime;
 char* cur_section = "";
+
+idigi_data_t iDigiSetting;
+
 idigi_callback_status_t idigi_callback(idigi_class_t class, idigi_request_t request,
                                     void * const request_data, size_t request_length,
                                     void * response_data, size_t * response_length)
@@ -58,6 +64,12 @@ idigi_callback_status_t idigi_callback(idigi_class_t class, idigi_request_t requ
         break;
     case idigi_class_firmware:
         status = idigi_firmware_callback(request.firmware_request, request_data, request_length, response_data, response_length);
+        break;
+    case idigi_class_data_service:
+        status = idigi_data_service_callback(request.data_service_request, request_data, request_length, response_data, response_length);
+        break;
+    case idigi_class_rci:
+        status = idigi_rci_callback(request.rci_request, request_data, request_length, response_data, response_length);
         break;
     default:
         /* not supported */
@@ -116,14 +128,22 @@ static int handle_config(void *user, const char* section, const char* name, cons
 		for(i = 0; i < 0xFF; i++){
 			sprintf(f_section, "firmware.target.%d", i);
 			if(strcmp(section, f_section) == 0){
-				if(strcmp(cur_section, "") == 0){
+				if(strcmp(cur_section, "") == 0 || strcmp(section, cur_section) != 0){
+				    if(strcmp(cur_section, "") != 0){
+				        // increment fw pointer, but only if not initial.
+                        temp_fw++;
+                    }
 					cur_section = strdup(section);
 					temp_fw->target = i;
-				}
-				else if(strcmp(section, cur_section) != 0){
-					temp_fw++;
-					cur_section = strdup(section);
-					temp_fw->target = i;
+					// establish data service request.
+                    temp_fw->data_service_request = malloc( sizeof(idigi_data_request_t));
+                    temp_fw->data_service_request->flag = IDIGI_DATA_REQUEST_START | IDIGI_DATA_REQUEST_LAST;
+                    temp_fw->data_service_request->payload.size = strlen(default_payload);
+                    temp_fw->data_service_request->payload.data = default_payload;
+                    temp_fw->data_service_request->content_type.size = strlen(default_content_type);
+                    temp_fw->data_service_request->content_type.value = default_content_type;
+                    temp_fw->data_service_request->path.size = strlen(default_path);
+                    temp_fw->data_service_request->path.value = default_path;
 				}
 				if(strcmp(name, "name_spec") == 0){
 					temp_fw->name_spec = strdup(value);
@@ -143,6 +163,42 @@ static int handle_config(void *user, const char* section, const char* name, cons
 				}
 				else if(strcmp(name, "file") == 0){
 					temp_fw->code_size = (uint32_t)-1;
+				}
+				else if(strcmp(name, "data_service") == 0){
+				    if(strcmp(value, "True") == 0 || strcmp(value, "true") == 0 || strcmp(value, "1") == 0){
+                        temp_fw->data_service_enabled = 1;
+                    }
+                    else{
+                        temp_fw->data_service_enabled = 0;
+                    }
+				}
+				else if(strcmp(name, "content_type") == 0){
+                    temp_fw->data_service_request->content_type.size = strlen(value);
+                    temp_fw->data_service_request->content_type.value = strdup(value);
+				}
+				else if(strcmp(name, "path") == 0){
+                    temp_fw->data_service_request->path.size = strlen(value);
+                    temp_fw->data_service_request->path.value = strdup(value);
+				}
+				else if(strcmp(name, "payload") == 0){
+                    temp_fw->data_service_request->payload.size = strlen(value);
+                    temp_fw->data_service_request->payload.data = strdup(value);
+				}
+				else if(strcmp(name, "data_flag") == 0){
+				    if(strcmp(value, "Archive") == 0 || strcmp(value, "archive") == 0){
+                        temp_fw->data_service_request->flag |= IDIGI_DATA_REQUEST_ARCHIVE;
+				    }
+				    else if(strcmp(value, "Append") == 0 || strcmp(value, "append") == 0){
+                        temp_fw->data_service_request->flag |= IDIGI_DATA_REQUEST_APPEND;
+				    }
+				    else if(strcmp(value, "Both") == 0 || strcmp(value, "both") == 0){
+				        temp_fw->data_service_request->flag |= IDIGI_DATA_REQUEST_APPEND | IDIGI_DATA_REQUEST_ARCHIVE;
+				    }
+				}
+				else if(strcmp(name, "compression") == 0){
+				    if(strcmp(value, "True") == 0 || strcmp(value, "true") == 0 || strcmp(value, "1") == 0){
+                        temp_fw->data_service_request->flag |= IDIGI_DATA_REQUEST_COMPRESSED;
+                    }
 				}
 			}
 		}
