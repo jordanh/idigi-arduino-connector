@@ -59,6 +59,7 @@ typedef enum {
    idigi_close_error,
    idigi_device_terminated,
    idigi_service_busy,
+   idigi_invalid_response,
 } idigi_status_t;
 
 typedef enum {
