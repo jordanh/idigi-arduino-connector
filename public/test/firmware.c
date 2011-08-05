@@ -23,6 +23,7 @@
  *
  */
 #include <sys/stat.h>
+#include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
@@ -40,7 +41,6 @@ firmware_list_t* firmware_list;
 uint8_t firmware_list_count;
 
 idigi_data_request_t * data_service_request;
-
 
 static idigi_callback_status_t firmware_download_request(idigi_fw_download_request_t * download_data, idigi_fw_status_t * download_status)
 {
@@ -71,8 +71,12 @@ static idigi_callback_status_t firmware_download_request(idigi_fw_download_reque
 
     if(firmware_list[download_data->target].data_service_enabled == 1){
         data_service_request = firmware_list[download_data->target].data_service_request;
-        *download_status = idigi_fw_download_configured_to_reject;
-        goto done;
+        // free pre-existing payload from memory.  This isn't really safe, but since we're allocating here only, shouldn't be an issue.
+        if(data_service_request->payload.data != NULL){
+            free(data_service_request->payload.data);
+        }
+        data_service_request->payload.data = (uint8_t *)malloc(download_data->code_size * sizeof(uint8_t));
+        data_service_request->payload.size = download_data->code_size;
     }
 
     switch(download_data->target){
@@ -123,6 +127,19 @@ static idigi_callback_status_t firmware_image_data(idigi_fw_image_data_t * image
     DEBUG_PRINTF("data = %p\n", image_data->data);
     total_image_size += image_data->length;
     DEBUG_PRINTF("length = %zu (total = %zu)\n", image_data->length, total_image_size);
+    
+    // Copy data into data service request payload at the correct offset.
+    if(firmware_list[image_data->target].data_service_enabled == 1){
+        data_service_request = firmware_list[image_data->target].data_service_request;
+        uint8_t * data_pointer = data_service_request->payload.data;
+        data_pointer += image_data->offset;
+        memcpy((void *)data_pointer, (void *)image_data->data, image_data->length);
+        // Now that we've consumed all data, abort to prevent a disconnect.
+        if (total_image_size == data_service_request->payload.size){
+            *data_status = idigi_fw_user_abort;
+            goto error;
+        }
+    }
 
     // Predefined failure targets to test error conditions.
     switch(image_data->target){

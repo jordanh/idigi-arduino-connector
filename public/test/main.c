@@ -33,7 +33,6 @@
 #include "firmware.h"
 
 firmware_list_t* temp_fw;
-static uint8_t default_payload[] = "Default iDigi Data Service Push";
 static uint8_t default_content_type[] = "text/plain";
 static uint8_t default_path[] = "default.txt";
 
@@ -138,8 +137,6 @@ static int handle_config(void *user, const char* section, const char* name, cons
 					// establish data service request.
                     temp_fw->data_service_request = malloc( sizeof(idigi_data_request_t));
                     temp_fw->data_service_request->flag = IDIGI_DATA_REQUEST_START | IDIGI_DATA_REQUEST_LAST;
-                    temp_fw->data_service_request->payload.size = strlen(default_payload);
-                    temp_fw->data_service_request->payload.data = default_payload;
                     temp_fw->data_service_request->content_type.size = strlen(default_content_type);
                     temp_fw->data_service_request->content_type.value = default_content_type;
                     temp_fw->data_service_request->path.size = strlen(default_path);
@@ -179,10 +176,6 @@ static int handle_config(void *user, const char* section, const char* name, cons
 				else if(strcmp(name, "path") == 0){
                     temp_fw->data_service_request->path.size = strlen(value);
                     temp_fw->data_service_request->path.value = strdup(value);
-				}
-				else if(strcmp(name, "payload") == 0){
-                    temp_fw->data_service_request->payload.size = strlen(value);
-                    temp_fw->data_service_request->payload.data = strdup(value);
 				}
 				else if(strcmp(name, "data_flag") == 0){
 				    if(strcmp(value, "Archive") == 0 || strcmp(value, "archive") == 0){
