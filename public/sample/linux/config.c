@@ -306,7 +306,8 @@ static bool idigi_config_error(idigi_error_status_t * const error_data)
                                           "idigi_send_error",
                                           "idigi_close_error",
                                           "idigi_device_terminated",
-                                          "idigi_service_busy"};
+                                          "idigi_service_busy",
+                                          "idigi_invalid_response"};
 
     char const * config_request_string[] = { "idigi_config_device_id",
                                              "idigi_config_vendor_id",
