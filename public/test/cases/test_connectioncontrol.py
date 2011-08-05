@@ -65,7 +65,6 @@ class RedirectTestCase(unittest.TestCase):
             self.assertEqual('1', self.device_core.dpConnectionStatus, 
                 "Device %s not connected." % config.device_id)
     
-    @unittest.skip("")
     def test_redirect(self):
         log.info("Beginning Redirect Test")
         last_connected = self.device_core.dpLastConnectTime
@@ -91,7 +90,6 @@ class RedirectTestCase(unittest.TestCase):
         # Determine if device disconnected and reconnected
         determine_disconnect_reconnect(self, last_connected, 15)
     
-    @unittest.skip("")
     def test_redirect_multi_urls_first_nonidigi(self):
         log.info("Beginning Redirect Test with multiple URLs (first non-iDigi).")
         last_connected = self.device_core.dpLastConnectTime
@@ -117,7 +115,6 @@ class RedirectTestCase(unittest.TestCase):
         # Determine if device disconnected and reconnected
         determine_disconnect_reconnect(self, last_connected, 45)
         
-    @unittest.skip("")
     def test_redirect_singleurl_nondigi(self):
         log.info("Beginning Redirect Test with single non-iDigi URL.")
         last_connected = self.device_core.dpLastConnectTime
@@ -142,7 +139,6 @@ class RedirectTestCase(unittest.TestCase):
         # Determine if device disconnected and reconnected
         determine_disconnect_reconnect(self, last_connected, 45)
     
-    @unittest.skip("")
     def test_redirect_zero_destinations(self):
         log.info("Beginnning Redirect Test with zero destination URLs.")
         
@@ -167,7 +163,6 @@ class RedirectTestCase(unittest.TestCase):
         error = response.find("error")
         self.assertNotEqual(-1, error, "Received unexpected response from invalid redirect.")
     
-    @unittest.skip("skip three destinations -- FAILS in DEBUG mode")
     def test_redirect_three_destinations(self):
         log.info("Beginnning Redirect Test with three destination URLs.")
         last_connected = self.device_core.dpLastConnectTime
@@ -214,7 +209,6 @@ class DisconnectTestCase(unittest.TestCase):
             self.assertEqual('1', self.device_core.dpConnectionStatus, 
                 "Device %s not connected." % config.device_id)
     
-    @unittest.skip("")
     def test_disconnect(self):
         log.info("Beginning Disconnect Test")
         last_connected = self.device_core.dpLastConnectTime
