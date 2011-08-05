@@ -78,8 +78,15 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
 #endif
         break;
     default:
+    {
+        idigi_error_status_t err_status = {class_id, request_id, idigi_invalid_response};
+        idigi_request_t err_id = {idigi_config_error_status};
+
+        callback(idigi_class_config, err_id, &err_status, sizeof err_status, NULL, NULL);
+        status = idigi_callback_abort;
         ASSERT(0);
         break;
+    }
     }
 
     return status;
@@ -193,11 +200,11 @@ static idigi_callback_status_t get_keepalive_timeout(idigi_data_t * const idigi_
 
     if (rx_timeout != NULL)
     {
-        *rx_timeout =  get_elapsed_value((uint32_t const)*idigi_ptr->rx_keepalive, idigi_ptr->rx_ka_time, *cur_system_time);
+        *rx_timeout =  get_elapsed_value(*idigi_ptr->rx_keepalive, idigi_ptr->rx_ka_time, *cur_system_time);
     }
     if (tx_timeout != NULL)
     {
-        *tx_timeout =  get_elapsed_value((uint32_t const)*idigi_ptr->tx_keepalive, idigi_ptr->tx_ka_time, *cur_system_time);
+        *tx_timeout =  get_elapsed_value(*idigi_ptr->tx_keepalive, idigi_ptr->tx_ka_time, *cur_system_time);
     }
 done:
     return status;
