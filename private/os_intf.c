@@ -49,7 +49,7 @@ static void init_setting(idigi_data_t * const idigi_ptr)
 }
 
 static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, idigi_class_t const class_id,  idigi_request_t const request_id,
-                                                                       void * const request_data, size_t const request_length,
+                                                                       void const * const request_data, size_t const request_length,
                                                                        void * const response_data, size_t * const response_length)
 {
     idigi_callback_status_t status;
@@ -96,7 +96,7 @@ static void notify_error_status(idigi_callback_t const callback, idigi_class_t c
     idigi_error_status_t err_status = {class_number, request_number, status};
     idigi_request_t request_id = {idigi_config_error_status};
 
-    idigi_callback(callback, idigi_class_config, request_id, &err_status, sizeof err_status, NULL, NULL);
+    idigi_callback_no_response(callback, idigi_class_config, request_id, &err_status, sizeof err_status);
     return;
 }
 
@@ -151,7 +151,7 @@ static void free_data(idigi_data_t * const idigi_ptr, void * const ptr)
 {
     idigi_request_t request_id = {idigi_os_free};
 
-    idigi_callback(idigi_ptr->callback, idigi_class_operating_system, request_id, ptr, sizeof ptr, NULL, NULL);
+    idigi_callback_no_response(idigi_ptr->callback, idigi_class_operating_system, request_id, ptr, sizeof ptr);
     del_malloc_stats(ptr);
 
     return;
