@@ -84,7 +84,6 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
 
         callback(idigi_class_config, err_id, &err_status, sizeof err_status, NULL, NULL);
         status = idigi_callback_abort;
-        ASSERT(0);
         break;
     }
     }
