@@ -314,6 +314,10 @@ idigi_status_t idigi_initiate_action(idigi_handle_t const handle, idigi_initiate
 
     ASSERT_GOTO(handle != NULL, error);
 
+#if (!defined _DATA_SERVICE)
+    UNUSED_PARAMETER(request_data);
+    UNUSED_PARAMETER(response_data);
+#endif
     rc = idigi_success;
     switch (request)
     {
