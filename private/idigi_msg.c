@@ -23,7 +23,7 @@
  *
  */
 
-#if (defined _COMPRESSION)
+#if (defined _IDIGI_COMPRESSION_BUILTIN)
 #include "zlib.h"
 #endif
 
@@ -82,16 +82,17 @@ typedef enum
 typedef enum
 {
     msg_type_tx,
-    msg_type_rx
+    msg_type_rx,
+    msg_type_count
 } msg_type_t;
 
 typedef enum
 {
     msg_state_init,
     msg_state_start,
-    msg_state_start_and_end,
+    msg_state_start_and_last,
     msg_state_data,
-    msg_state_data_and_end
+    msg_state_data_and_last
 } msg_state_t;
 
 typedef struct msg_session_t
@@ -103,13 +104,13 @@ typedef struct msg_session_t
     uint8_t frame[MSG_MAX_PACKET_SIZE];
     uint8_t * user_data;
     size_t bytes_to_send;
-    size_t bytes_sent;
+    size_t total_bytes;
     size_t bytes_in_frame;
     uint8_t compression;
     bool last_chunk;
     bool flow_controlled;
     bool more_data;
-#if (defined _COMPRESSION)
+#if (defined _IDIGI_COMPRESSION_BUILTIN)
     z_stream zlib;
 #endif
     struct msg_session_t * next;
@@ -127,15 +128,15 @@ typedef struct
     uint8_t active_transactions;
     uint8_t peer_compression;
     bool in_use;
-    msg_session_t * tx_session_head;
-    msg_session_t * rx_session_head;
+    msg_session_t * session_head[msg_type_count];
     msg_session_t * pending;
 } idigi_msg_data_t;
 
 typedef struct
 {
+    #define DATA_SERVICE_HEADER_MAX_LENGTH  256
     size_t header_length;
-    uint8_t * header;
+    uint8_t header[DATA_SERVICE_HEADER_MAX_LENGTH];
     size_t payload_length;
     uint8_t * payload;
     uint16_t flag;
@@ -143,10 +144,11 @@ typedef struct
 
 
 static void msg_send_complete(idigi_data_t * idigi_ptr, uint8_t * packet, idigi_status_t status, void * user_data);
+#define PeerSupportsUnlimitedTransactions(msg_ptr)  (msg_ptr->max_transactions == MSG_UNLIMITED_TRANSACTIONS)
 
 static msg_session_t * msg_find_session(idigi_msg_data_t const * const msg_ptr, uint16_t const id, msg_type_t const type)
 {
-    msg_session_t * session = (type == msg_type_tx) ? msg_ptr->tx_session_head : msg_ptr->rx_session_head;
+    msg_session_t * session = msg_ptr->session_head[type];
 
     while (session != NULL) 
     {
@@ -191,7 +193,7 @@ static msg_session_t * msg_create_session(idigi_data_t * idigi_ptr, uint16_t con
     ASSERT_GOTO(idigi_ptr != NULL, error);
     ASSERT_GOTO(msg_ptr != NULL, error);
 
-    if ((msg_ptr->max_transactions != MSG_UNLIMITED_TRANSACTIONS) && 
+    if (!PeerSupportsUnlimitedTransactions(msg_ptr) && 
         (msg_ptr->active_transactions >= msg_ptr->max_transactions))
     {
         goto error;
@@ -217,17 +219,7 @@ static msg_session_t * msg_create_session(idigi_data_t * idigi_ptr, uint16_t con
     session->compression = MSG_NO_COMPRESSION;
     session->state = msg_state_init;
 
-    {
-        msg_session_t ** head_ptr = (type == msg_type_tx) ? &msg_ptr->tx_session_head : &msg_ptr->rx_session_head;
-        msg_session_t * head = *head_ptr;
-
-        session->prev = NULL;
-        session->next = head;
-        if (head != NULL) 
-            head->prev = session;
-        *head_ptr = session;
-    }
-    
+    add_node(&msg_ptr->session_head[type], session);    
     msg_ptr->active_transactions++;
 
 error:
@@ -241,25 +233,9 @@ static void msg_delete_session(idigi_data_t * idigi_ptr,  msg_session_t * const 
     ASSERT_GOTO(msg_ptr != NULL, error);
     ASSERT_GOTO(session != NULL, error);
 
-    {
-        msg_session_t * next = session->next;
-        msg_session_t * prev = session->prev;
+    del_node(&msg_ptr->session_head[type], session);
 
-        if (next != NULL)
-            next->prev = prev;
-        if (prev != NULL)
-            prev->next = next;
-
-        {
-            msg_session_t ** head_ptr = (type == msg_type_tx) ? &msg_ptr->tx_session_head : &msg_ptr->rx_session_head;
-
-            ASSERT_GOTO(*head_ptr != NULL, error);
-            if (session == *head_ptr)
-                *head_ptr = next; 
-        }
-    }
-
-#if (defined _COMPRESSION)
+#if (defined _IDIGI_COMPRESSION_BUILTIN)
     if (session->compression == MSG_COMPRESSION_LIBZ) 
     {
         if (type == msg_type_tx)
@@ -270,7 +246,7 @@ static void msg_delete_session(idigi_data_t * idigi_ptr,  msg_session_t * const 
 #endif
 
     free_data(idigi_ptr, session);
-    ASSERT_GOTO((msg_ptr->active_transactions > 0) || (msg_ptr->max_transactions == MSG_UNLIMITED_TRANSACTIONS), error);
+    ASSERT_GOTO((msg_ptr->active_transactions > 0) || PeerSupportsUnlimitedTransactions(msg_ptr), error);
     msg_ptr->active_transactions--;
 
 error:
@@ -320,27 +296,38 @@ static idigi_callback_status_t msg_send_capabilities(idigi_data_t * idigi_ptr, i
 
     /* append window size */
     {
-        uint32_t window = MSG_RECV_WINDOW_SIZE;
+        uint32_t const window = MSG_RECV_WINDOW_SIZE;
 
         StoreBE32(cur_ptr, window);
         cur_ptr += sizeof window;
     }
 
     /* append compression algorithms supported */
-#if (defined _COMPRESSION)
-    *cur_ptr++ = 1;
-    *cur_ptr++ = MSG_COMPRESSION_LIBZ;
-#else
-    *cur_ptr++ = 0;
-#endif
+    {
+        #if (defined _IDIGI_COMPRESSION_BUILTIN)
+        uint8_t const compression_length =  1;
+        #else
+        uint8_t const compression_length =  0;
+        #endif
+
+        *cur_ptr++ = compression_length;
+        if (compression_length > 0)
+            *cur_ptr++ = MSG_COMPRESSION_LIBZ;
+    }
 
     /* append service IDs of all listeners */
     {
-        uint16_t service_count = msg_frame_service_list(msg_data, cur_ptr + 2);
+        uint16_t service_count;
+        uint8_t * service_list = cur_ptr + sizeof service_count;
 
+        service_count = msg_frame_service_list(msg_data, service_list);
         StoreBE16(cur_ptr, service_count);
         cur_ptr += sizeof service_count;
-        cur_ptr += (sizeof(uint16_t) * service_count);
+        {
+            uint16_t const service_list_length = sizeof(uint16_t) * service_count;
+
+            cur_ptr += service_list_length;
+        }
     }
 
     status = enable_facility_packet(idigi_ptr, packet, (cur_ptr - start_ptr), E_MSG_FAC_MSG_NUM, release_packet_buffer, NULL);
@@ -352,17 +339,14 @@ error:
 static bool msg_fill_data(msg_session_t * const session, uint8_t * dest_ptr)
 {
     bool success = false;
-    size_t available_space = sizeof session->frame - (dest_ptr - session->frame);
+    size_t const available_space = sizeof session->frame - (dest_ptr - session->frame);
+    size_t const bytes = (available_space < session->bytes_to_send) ? available_space : session->bytes_to_send;
 
-    if (available_space > session->bytes_to_send)
-        available_space = session->bytes_to_send;
-
-    ASSERT_GOTO(available_space > 0, done);
-    memcpy(dest_ptr, session->user_data, available_space);
-    session->user_data += available_space;
-    session->bytes_to_send -= available_space;
-    session->bytes_sent += available_space;
-    session->bytes_in_frame += available_space;
+    ASSERT_GOTO(bytes > 0, done);
+    memcpy(dest_ptr, session->user_data, bytes);
+    session->user_data += bytes;
+    session->bytes_to_send -= bytes;
+    session->bytes_in_frame += bytes;
     session->more_data = (session->bytes_to_send > 0);
     success = true;
 
@@ -391,7 +375,7 @@ static bool msg_frame_uncompressed(msg_session_t * const session, msg_data_info_
         session->bytes_in_frame = MSG_START_HEADER_LEN + info->header_length;
         success = msg_fill_data(session, out_ptr);
         if (session->last_chunk && !session->more_data)
-            session->state = msg_state_start_and_end;
+            session->state = msg_state_start_and_last;
         break;
     
     case msg_state_data:
@@ -399,7 +383,7 @@ static bool msg_frame_uncompressed(msg_session_t * const session, msg_data_info_
         session->bytes_in_frame = MSG_DATA_HEADER_LEN;
         success = msg_fill_data(session, out_ptr);
         if (session->last_chunk && !session->more_data)
-            session->state = msg_state_data_and_end;
+            session->state = msg_state_data_and_last;
         break;
 
     default:
@@ -411,7 +395,7 @@ error:
     return success;
 }
 
-#if (defined _COMPRESSION)
+#if (defined _IDIGI_COMPRESSION_BUILTIN)
 #define MSG_FILL_ZLIB(z, inp, in_len, outp, out_len)  \
     do { \
         z->next_in = inp;\
@@ -442,7 +426,7 @@ static bool msg_frame_compressed(msg_session_t * const session, msg_data_info_t 
         out_ptr += MSG_START_HEADER_LEN;
         chunk_size -= MSG_START_HEADER_LEN;
 
-        MSG_FILL_ZLIB(zlib_ptr, info->header, info->header_length, out_ptr, chunk_size);
+        MSG_FILL_ZLIB(zlib_ptr, (uint8_t *)info->header, info->header_length, out_ptr, chunk_size);
         zret = deflate(zlib_ptr, Z_NO_FLUSH);
         ASSERT_GOTO(zret == Z_OK, error);
         ASSERT_GOTO(zlib_ptr->avail_in == 0, error);
@@ -476,10 +460,10 @@ static bool msg_frame_compressed(msg_session_t * const session, msg_data_info_t 
                 /* is compressed size more than uncompressed? */
                 if (zlib_ptr->total_out > zlib_ptr->total_in)
                     goto error;
-                session->state = msg_state_start_and_end;
+                session->state = msg_state_start_and_last;
             }
             else
-                session->state = msg_state_data_and_end;
+                session->state = msg_state_data_and_last;
 
             session->bytes_in_frame = frame_size - zlib_ptr->avail_out;
         }
@@ -494,7 +478,6 @@ static bool msg_frame_compressed(msg_session_t * const session, msg_data_info_t 
 
             session->user_data += bytes_processed;
             session->bytes_to_send -= bytes_processed;
-            session->bytes_sent += bytes_processed;
         }
         break;
 
@@ -518,7 +501,7 @@ static idigi_callback_status_t msg_send_packet(idigi_data_t * idigi_ptr, msg_ses
     switch (session->state) 
     {
     case msg_state_start:
-    case msg_state_start_and_end:
+    case msg_state_start_and_last:
         /*
          * -----------------------------------------------------------------
          * |   0    |    1  |   2-3   |    4-5     |    6    |     7 ... n |
@@ -527,7 +510,7 @@ static idigi_callback_status_t msg_send_packet(idigi_data_t * idigi_ptr, msg_ses
          *  ----------------------------------------------------------------
          */
         *ptr++ = msg_opcode_start;
-        *ptr++ = MSG_DATA_REQUEST | ((session->state ==  msg_state_start_and_end) ? MSG_DATA_LAST : 0);
+        *ptr++ = MSG_DATA_REQUEST | ((session->state ==  msg_state_start_and_last) ? MSG_DATA_LAST : 0);
 
         StoreBE16(ptr, session->session_id);
         ptr += sizeof session->session_id;
@@ -541,7 +524,7 @@ static idigi_callback_status_t msg_send_packet(idigi_data_t * idigi_ptr, msg_ses
         break;
 
     case msg_state_data:
-    case msg_state_data_and_end:
+    case msg_state_data_and_last:
         /*
          * ---------------------------------------
          * |   0    |    1  |   2-3   |  4 ... n |
@@ -550,7 +533,7 @@ static idigi_callback_status_t msg_send_packet(idigi_data_t * idigi_ptr, msg_ses
          *  --------------------------------------
          */
         *ptr++ = msg_opcode_data;
-        *ptr++ = MSG_DATA_REQUEST | ((session->state ==  msg_state_data_and_end) ? MSG_DATA_LAST : 0);
+        *ptr++ = MSG_DATA_REQUEST | ((session->state ==  msg_state_data_and_last) ? MSG_DATA_LAST : 0);
 
         StoreBE16(ptr, session->session_id);
         ptr += sizeof session->session_id;
@@ -578,16 +561,18 @@ static idigi_callback_status_t msg_send_data(idigi_data_t * idigi_ptr, msg_sessi
 
     ASSERT_GOTO(session != NULL, error);
     ASSERT_GOTO(msg_ptr != NULL, error);
-    ASSERT_GOTO(msg_ptr->in_use == false, error);
+
+    if(msg_ptr->in_use)
+        goto error;
 
     if (info != NULL) 
     {
         session->bytes_to_send = info->payload_length;
         session->user_data = info->payload;
+        session->total_bytes = info->payload_length;
         session->bytes_in_frame = 0;
-        session->bytes_sent = 0;
         session->last_chunk = (info->flag & IDIGI_DATA_REQUEST_LAST) != 0;
-        #if (defined _COMPRESSION)
+        #if (defined _IDIGI_COMPRESSION_BUILTIN)
         session->compression = (info->flag & IDIGI_DATA_REQUEST_COMPRESSED) ? msg_ptr->peer_compression : MSG_NO_COMPRESSION;
         #endif
     }
@@ -595,7 +580,7 @@ static idigi_callback_status_t msg_send_data(idigi_data_t * idigi_ptr, msg_sessi
     {
         bool success = false; 
 
-        #if (defined _COMPRESSION)
+        #if (defined _IDIGI_COMPRESSION_BUILTIN)
         if (session->compression == MSG_COMPRESSION_LIBZ)
             success = msg_frame_compressed(session, info);
         #endif
@@ -665,9 +650,8 @@ static void msg_send_complete(idigi_data_t * idigi_ptr, uint8_t * packet, idigi_
 
     {
         idigi_msg_callback_t * cb_fn = msg_ptr->service_cb[session->service_id];
-        size_t const bytes = session->bytes_sent;
+        size_t const bytes = session->total_bytes - session->bytes_to_send;
 
-        session->bytes_sent = 0;
         ASSERT_GOTO(cb_fn != NULL, done);
         cb_fn(idigi_ptr, msg_status_send_complete, session, NULL, bytes);
         if ((status != idigi_success) || (!session->more_data && session->last_chunk))
@@ -681,19 +665,15 @@ done:
 static idigi_callback_status_t msg_process_capabilities(idigi_data_t * idigi_ptr, idigi_msg_data_t * const msg_fac, uint8_t * ptr)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    uint8_t const request = *ptr++;
+    bool const request_capabilities = ((*ptr++ & MSG_DATA_REQUEST) == MSG_DATA_REQUEST);
     uint8_t const version = *ptr++;
 
-    if (version != MSG_FACILITY_VERSION)
-    {
-        DEBUG_PRINTF("msg_process_capabilities invalid version [%d]\n", version);
-    }
-
+    ASSERT_GOTO(version == MSG_FACILITY_VERSION, error);
     msg_fac->max_transactions = *ptr++;
 
     /* update window size */
     {
-        uint32_t window = LoadBE32(ptr);
+        uint32_t const window = LoadBE32(ptr);
 
         msg_fac->peer_window = window;
         ptr += sizeof window;
@@ -713,14 +693,17 @@ static idigi_callback_status_t msg_process_capabilities(idigi_data_t * idigi_ptr
         }
     }
 
-    if (request) 
+    if (request_capabilities)
+    {
         status = msg_send_capabilities(idigi_ptr, msg_fac, MSG_CAPABILITIES_RESPONSE);
+    }
 
+error:
     return status;
 }
 
 
-#if (defined _COMPRESSION)
+#if (defined _IDIGI_COMPRESSION_BUILTIN)
 static idigi_callback_status_t msg_recv_compressed(idigi_data_t * idigi_ptr, idigi_msg_data_t const * const msg_fac, msg_session_t * const session, uint8_t * ptr, uint16_t length)
 {
     idigi_callback_status_t status = idigi_callback_abort;
@@ -768,7 +751,7 @@ static idigi_callback_status_t msg_process_data(idigi_data_t * idigi_ptr, idigi_
     idigi_callback_status_t status = idigi_callback_abort;
     msg_session_t * session;
     uint8_t const * start_ptr = ptr;
-    bool const last = ((*ptr++ & MSG_FLAG_LAST_DATA) != 0) ? true : false;
+    bool const last = ((*ptr++ & MSG_FLAG_LAST_DATA) == MSG_FLAG_LAST_DATA);
     uint16_t const session_id = LoadBE16(ptr);
 
     ptr += sizeof session_id;
@@ -784,12 +767,13 @@ static idigi_callback_status_t msg_process_data(idigi_data_t * idigi_ptr, idigi_
         session->last_chunk = last;
         session->compression = *ptr++;
 
-        #if (defined _COMPRESSION)
+        #if (defined _IDIGI_COMPRESSION_BUILTIN)
         if (session->compression == MSG_COMPRESSION_LIBZ)
         {
-            memset(&session->zlib, 0, sizeof session->zlib); /* sorry, needed to avoid using uninitialized fields */
+            z_streamp zlib_ptr = &session->zlib;
+
+            memset(zlib_ptr, 0, sizeof session->zlib);
             {
-                z_streamp zlib_ptr = &session->zlib;
                 int const ret = inflateInit(zlib_ptr);
 
                 ASSERT_GOTO(ret == Z_OK, error);
@@ -808,7 +792,7 @@ static idigi_callback_status_t msg_process_data(idigi_data_t * idigi_ptr, idigi_
     length -= (ptr - start_ptr);
     if (session->compression == MSG_COMPRESSION_LIBZ) 
     {
-        #if (defined _COMPRESSION)
+        #if (defined _IDIGI_COMPRESSION_BUILTIN)
         status = msg_recv_compressed(idigi_ptr, msg_fac, session, ptr, length);
         #else
         ASSERT_GOTO(false, error);
@@ -826,7 +810,7 @@ static idigi_callback_status_t msg_process_data(idigi_data_t * idigi_ptr, idigi_
             msg_delete_session(idigi_ptr, session, msg_type_rx);
     }
 
-    if ((*start_ptr & MSG_FLAG_REQUEST) != 0)
+    if ((*start_ptr & MSG_FLAG_REQUEST) == MSG_FLAG_REQUEST)
     {
         /* TODO: send response, needed for file handling */
     }
@@ -841,7 +825,11 @@ static idigi_callback_status_t msg_process_ack(idigi_data_t * idigi_ptr, idigi_m
     msg_session_t * session;
     uint16_t session_id;
 
-    ptr++; /* flags, not used at this point */
+    {
+        uint8_t const flag = *ptr++;
+
+        UNUSED_PARAMETER(flag);
+    }
 
     session_id = LoadBE16(ptr);        
 
@@ -876,7 +864,11 @@ static idigi_callback_status_t msg_process_error(idigi_data_t * idigi_ptr, idigi
 {
     idigi_callback_status_t status = idigi_callback_abort;
 
-    ptr++; /* for flag */
+    {
+        uint8_t const flag = *ptr++;
+
+        UNUSED_PARAMETER(flag);
+    }
 
     {
         uint16_t session_id = LoadBE16(ptr);        
@@ -972,14 +964,22 @@ static idigi_callback_status_t msg_process_pending(idigi_data_t * idigi_ptr)
     return status;
 }
 
-static void msg_delete_all_sessions(idigi_data_t * idigi_ptr,  msg_session_t * session, msg_type_t const type)
+static void msg_delete_all_sessions(idigi_data_t * idigi_ptr,  idigi_msg_data_t * const msg_ptr, uint16_t const service_id)
 {
-    while(session != NULL)
-    {
-        msg_session_t * next_session = session->next;
+    msg_type_t msg_type;
 
-        msg_delete_session(idigi_ptr, session, type);
-        session = next_session;
+    for (msg_type = msg_type_tx; msg_type < msg_type_count; msg_type++) 
+    {
+        msg_session_t * session = msg_ptr->session_head[msg_type];
+
+        while(session != NULL)
+        {
+            msg_session_t * next_session = session->next;
+
+            if (session->service_id ==service_id )
+                msg_delete_session(idigi_ptr, session, msg_type);
+            session = next_session;
+        }
     }
 }
 
@@ -1008,14 +1008,8 @@ static idigi_callback_status_t msg_delete_facility(idigi_data_t * idigi_ptr, uin
             }
         }
 
-        if (is_empty)
-        {
-            msg_delete_all_sessions(idigi_ptr, msg_ptr->tx_session_head, msg_type_tx);
-            msg_delete_all_sessions(idigi_ptr, msg_ptr->rx_session_head, msg_type_rx);
-            status = del_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
-        }
-        else
-            status = idigi_callback_continue;
+        msg_delete_all_sessions(idigi_ptr, msg_ptr, service_id);
+        status = is_empty ? del_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM) : idigi_callback_continue;
     }
 
 error:
@@ -1042,12 +1036,7 @@ static uint16_t msg_init_facility(idigi_data_t *idigi_ptr, uint16_t service_id, 
         msg_ptr->in_use = false;
         msg_ptr->pending = NULL;
 
-        {
-            uint16_t i;
-
-            for (i = 0; i < msg_service_id_count; i++) 
-                msg_ptr->service_cb[i] = NULL;
-        }
+        memset(msg_ptr->service_cb, 0, sizeof msg_ptr->service_cb);
     }
 
     msg_ptr->service_cb[service_id] = callback;

@@ -93,7 +93,9 @@ int main (void)
             {
                 device_data.select_data |= NETWORK_TIMEOUT_SET | NETWORK_READ_SET;
                 network_select(device_data.socket_fd, device_data.select_data, &delay);
+                #if (defined _IDIGI_DATA_SERVICE)
                 status = initiate_data_service(device_data.idigi_handle);
+                #endif
             }
             else
             {

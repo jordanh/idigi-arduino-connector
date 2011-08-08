@@ -31,10 +31,10 @@
 #if defined(_FIRMWARE_FACILITY)
 #include "idigi_fw.c"
 #endif
-#if defined(_DATA_SERVICE) || defined(_FILE_SERVICE)
+#if defined(_IDIGI_DATA_SERVICE) || defined(_FILE_SERVICE)
 #include "idigi_msg.c"
 #endif
-#if defined(_DATA_SERVICE)
+#if defined(_IDIGI_DATA_SERVICE)
 #include "idigi_data.c"
 #endif
 #if defined(_RCI_FACILITY)
@@ -238,7 +238,7 @@ idigi_status_t idigi_step(idigi_handle_t const handle)
     if (status != idigi_callback_abort && idigi_handle->edp_connected)
     {
         status = send_packet_process(idigi_handle);
-#if (defined _DATA_SERVICE)
+#if (defined _IDIGI_DATA_SERVICE)
         if (status == idigi_callback_continue) 
             status = msg_process_pending(idigi_handle);
 #endif
@@ -323,7 +323,7 @@ idigi_status_t idigi_initiate_action(idigi_handle_t handle, idigi_initiate_reque
         idigi_ptr->active_state = idigi_device_terminate;
         break;
 
-#if (defined _DATA_SERVICE)
+#if (defined _IDIGI_DATA_SERVICE)
     case idigi_initiate_data_service:
         ASSERT_GOTO(request_data != NULL, error);
         rc = data_service_initiate(idigi_ptr, request_data, response_data);
