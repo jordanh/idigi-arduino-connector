@@ -277,7 +277,7 @@ done:
                 {
                     rc = idigi_handle->error_code;
                 }
-                done_send_packet(idigi_handle);
+                send_complete_callback(idigi_handle);
                 init_setting(idigi_handle);
 
 
@@ -307,13 +307,11 @@ idigi_status_t idigi_run(idigi_handle_t const handle)
 
 
 
-idigi_status_t idigi_initiate_action(idigi_handle_t handle, idigi_initiate_request_t request, void * const request_data, void  * response_data)
+idigi_status_t idigi_initiate_action(idigi_handle_t const handle, idigi_initiate_request_t const request, void const * const request_data, void  * const response_data)
 {
     idigi_status_t rc = idigi_init_error;
     idigi_data_t * idigi_ptr = (idigi_data_t *)handle;
 
-    UNUSED_PARAMETER(request_data);
-    UNUSED_PARAMETER(response_data);
     ASSERT_GOTO(handle != NULL, error);
 
     rc = idigi_success;
