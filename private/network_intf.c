@@ -30,20 +30,19 @@
  * MT version 2 message type defines.
  * Refer to EDP specification rev. 14.2 for a description of MT version 2.
  */
-#define E_MSG_MT2_TYPE_VERSION                          0x0004 /* C -> S */
-#define E_MSG_MT2_TYPE_LEGACY_EDP_VERSION     0x0004 /* C -> S */
-#define E_MSG_MT2_TYPE_LEGACY_EDP_VER_RESP   0x0001 /* C <- S */
-#define E_MSG_MT2_TYPE_VERSION_OK                    0x0010 /* C <- S */
-#define E_MSG_MT2_TYPE_VERSION_BAD                  0x0011 /* C <- S */
-#define E_MSG_MT2_TYPE_SERVER_OVERLOAD         0x0012 /* C <- S */
-#define E_MSG_MT2_TYPE_KA_RX_INTERVAL              0x0020 /* C -> S */
-#define E_MSG_MT2_TYPE_KA_TX_INTERVAL              0x0021 /* C -> S */
-#define E_MSG_MT2_TYPE_KA_WAIT                          0x0022 /* C -> S */
-#define E_MSG_MT2_TYPE_KA_KEEPALIVE                 0x0030 /* bi-directional */
-#define E_MSG_MT2_TYPE_PAYLOAD                         0x0040 /* bi-directional */
+#define E_MSG_MT2_TYPE_VERSION              0x0004 /* C -> S */
+#define E_MSG_MT2_TYPE_LEGACY_EDP_VERSION   0x0004 /* C -> S */
+#define E_MSG_MT2_TYPE_LEGACY_EDP_VER_RESP  0x0001 /* C <- S */
+#define E_MSG_MT2_TYPE_VERSION_OK           0x0010 /* C <- S */
+#define E_MSG_MT2_TYPE_VERSION_BAD          0x0011 /* C <- S */
+#define E_MSG_MT2_TYPE_SERVER_OVERLOAD      0x0012 /* C <- S */
+#define E_MSG_MT2_TYPE_KA_RX_INTERVAL       0x0020 /* C -> S */
+#define E_MSG_MT2_TYPE_KA_TX_INTERVAL       0x0021 /* C -> S */
+#define E_MSG_MT2_TYPE_KA_WAIT              0x0022 /* C -> S */
+#define E_MSG_MT2_TYPE_KA_KEEPALIVE         0x0030 /* bi-directional */
+#define E_MSG_MT2_TYPE_PAYLOAD              0x0040 /* bi-directional */
 
 #define ONE_SECOND  1
-
 
 static bool valid_timing_limit(idigi_data_t * const idigi_ptr, uint32_t const start, uint32_t const limit)
 {
@@ -67,8 +66,9 @@ static void set_idigi_state(idigi_data_t * const idigi_ptr, int const state)
     idigi_ptr->request_id = 0;
 }
 
-
-static idigi_callback_status_t enable_send_packet(idigi_data_t * const idigi_ptr, uint8_t * const packet, uint16_t const length, uint16_t const type, send_complete_cb_t send_complete_cb, void * const user_data)
+static idigi_callback_status_t initiate_send_packet(idigi_data_t * const idigi_ptr, uint8_t * const packet,
+                                                  uint16_t const length, uint16_t const type,
+                                                  send_complete_cb_t send_complete_cb, void * const user_data)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     uint8_t * const edp_header = packet;
@@ -79,7 +79,7 @@ static idigi_callback_status_t enable_send_packet(idigi_data_t * const idigi_ptr
 
     if (idigi_ptr->send_packet.total_length > 0)
     {
-        DEBUG_PRINTF("enable_send_packet: unable to trigger another send since previous data is still pending\n");
+        DEBUG_PRINTF("initiate_send_packet: unable to trigger another send since previous data is still pending\n");
         status = idigi_callback_busy;
         goto done;
     }
@@ -87,9 +87,14 @@ static idigi_callback_status_t enable_send_packet(idigi_data_t * const idigi_ptr
     /*
      * MTv2 (and later)...
      * Packet format for MT version:
-     *   | type | length | data |
+     *    ------------------------
+     *   | 0 - 1 | 2 - 3  | 4 ... |
+     *    ------------------------
+     *   |  type | length |  data |
+     *    ------------------------
+     *   |   EDP Header   |
+     *    ----------------
      *
-     * It has a 2-octet type field and the 2-octet length field and followed by data.
      *
      */
     message_store_be16(edp_header, type, type);
@@ -107,9 +112,9 @@ done:
     return status;
 }
 
-static idigi_callback_status_t enable_facility_packet(idigi_data_t * const idigi_ptr, uint8_t * const edp_header,
-                                                                                       uint16_t const length, uint16_t const facility,
-                                                                                       send_complete_cb_t send_complete_cb, void * const user_data)
+static idigi_callback_status_t initiate_send_facility_packet(idigi_data_t * const idigi_ptr, uint8_t * const edp_header,
+                                                      uint16_t const length, uint16_t const facility,
+                                                      send_complete_cb_t send_complete_cb, void * const user_data)
 {
     uint8_t * const edp_protocol = edp_header + PACKET_EDP_HEADER_SIZE;
 
@@ -118,19 +123,19 @@ static idigi_callback_status_t enable_facility_packet(idigi_data_t * const idigi
      * Setup security coding, discovery payload & facility.
      *
      * facility packet:
-     *    ----------------------------------------------------------------------------------------------------------------------------------
-     *   |             1 - 4             |               5                 |              6             |  7 - 8   |       9...       |
-     *    -----------------------------------------------------------------------------------------------------------------------------------
-     *   | MTv2 packet format | data security coding | discovery payload | facility | facility data|
-     *    -----------------------------------------------------------------------------------------------------------------------------------
-     *   |       EDP Header       |                           EDP  Protocol                                                 |
-     *    -----------------------------------------------------------------------------------------------------------------------------------
+     *    -------------------------------------------------------------------------------------
+     *   | 0 - 1 | 2 - 3  |         4            |        5          |  6 - 7   |     8...     |
+     *    -------------------------------------------------------------------------------------
+     *   |  type | length | data security coding | discovery payload | facility | facility data|
+     *    -------------------------------------------------------------------------------------
+     *   |   EDP Header   |                   EDP  Protocol                     |
+     *    ----------------------------------------------------------------------
      */
     message_store_u8(edp_protocol, sec_coding, SECURITY_PROTO_NONE);
     message_store_u8(edp_protocol, payload, DISC_OP_PAYLOAD);
     message_store_be16(edp_protocol, facility, facility);
 
-    return enable_send_packet(idigi_ptr, edp_header,
+    return initiate_send_packet(idigi_ptr, edp_header,
                               (length + PACKET_EDP_PROTOCOL_SIZE),
                               E_MSG_MT2_TYPE_PAYLOAD,
                               send_complete_cb,
@@ -224,8 +229,8 @@ static uint8_t * get_packet_buffer(idigi_data_t * const idigi_ptr, uint16_t cons
 
     /* Return a  pointer to caller to setup data to be sent to server.
      * Must call release_packet_buffer() to release the buffer (pass this
-     * release_packet_buffer as complete_callback to enable_send_packet()
-     * or enable_facility_packet().
+     * release_packet_buffer as complete_callback to initiate_send_packet()
+     * or initiate_send_facility_packet().
      */
 
      /* make sure no send is pending */
@@ -277,7 +282,7 @@ static idigi_callback_status_t rx_keepalive_process(idigi_data_t * const idigi_p
 
     DEBUG_PRINTF("rx_keepalive_process: time to send Rx keepalive\n");
 
-    status = enable_send_packet(idigi_ptr, (uint8_t * const)&idigi_ptr->rx_keepalive_packet, 0, E_MSG_MT2_TYPE_KA_KEEPALIVE, NULL, NULL);
+    status = initiate_send_packet(idigi_ptr, (uint8_t * const)&idigi_ptr->rx_keepalive_packet, 0, E_MSG_MT2_TYPE_KA_KEEPALIVE, NULL, NULL);
 
 done:
     return status;
