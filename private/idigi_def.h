@@ -71,6 +71,10 @@
 
 #define asizeof(array)  (sizeof array/sizeof array[0])
 
+#define idigi_callback_no_response(callback, class_id, request_id, request_data, request_length) idigi_callback((callback), (class_id), (request_id), (request_data), (request_length), NULL, NULL)
+
+
+
 /* IRL EDP States */
 typedef enum {
     edp_init_layer,
@@ -91,8 +95,8 @@ typedef enum {
 struct idigi_data;
 struct idigi_facility;
 
-typedef idigi_callback_status_t (* idigi_facility_process_cb_t )(struct idigi_data * idigi_ptr, void * facility_data, uint8_t * packet);
-typedef void (* send_complete_cb_t)(struct idigi_data * idigi_ptr, uint8_t * packet, idigi_status_t  status, void * user_data);
+typedef idigi_callback_status_t (* idigi_facility_process_cb_t )(struct idigi_data * const idigi_ptr, void * const facility_data, uint8_t * const packet);
+typedef void (* send_complete_cb_t)(struct idigi_data * const idigi_ptr, uint8_t const * const packet, idigi_status_t const status, void * const user_data);
 
 #define add_node(head, node) \
     do { \
@@ -142,35 +146,35 @@ typedef struct idigi_buffer {
 } idigi_buffer_t;
 
 typedef struct idigi_data {
-    idigi_active_state_t active_state;          /* active state of the idigi */
-
-    idigi_callback_t callback;                  /* user's callback */
 
     uint8_t * device_id;                        /* pointer to device id */
     uint8_t * vendor_id;                        /* pointer to vendor id */
     char * device_type;                         /* pointer to device type */
-    int  request_id;                            /* request id to callback back */
-    char server_url[SERVER_URL_LENGTH];         /* server URL */
-
-    uint16_t facilities;                        /* bit mask of supported facilities */
-    idigi_network_handle_t * network_handle;    /* handler for network class callbacks */
-
     uint16_t * tx_keepalive;                    /* pointer to Tx keepalive configuration */
     uint16_t * rx_keepalive;                    /* pointer to Rx keepalive configuration */
     uint8_t  * wait_count;                      /* wait count for keepalive messages */
-    uint32_t rx_ka_time;                        /* Time sent last Rx keepalive message */
-    uint32_t tx_ka_time;                        /* Time received last Tx keepalive message */
+    uint32_t rx_ka_time;                        /* time sent last Rx keepalive message */
+    uint32_t tx_ka_time;                        /* time received last Tx keepalive message */
 
+    idigi_facility_t * active_facility;         /* current active facility */
+    idigi_facility_t * facility_list;           /* list of supported facilities */
+
+    idigi_network_handle_t * network_handle;    /* handler for network class callbacks */
+
+    idigi_callback_t callback;                  /* user's callback */
+
+    idigi_active_state_t active_state;          /* active state of the idigi */
    idigi_edp_state_t edp_state;                 /* which layer that EDP is in */
-   unsigned layer_state;                        /* layer state of each layer */
    idigi_status_t error_code;                   /* error code */
+
+   unsigned layer_state;                        /* layer state of each layer */
+   int  request_id;                             /* request id to callback back */
+   uint16_t facilities;                         /* bit mask of supported facilities */
    bool network_busy;                           /* busy network */
    bool edp_connected;                          /* whether connection was established */
 
-   idigi_facility_t * active_facility;          /* current active facility */
-   idigi_facility_t * facility_list;            /* list of supported facilities */
-
-   uint8_t     rx_keepalive_packet[PACKET_EDP_HEADER_SIZE]; /* buffer to send Rx keepalive message */
+   char server_url[SERVER_URL_LENGTH];                  /* server URL */
+   uint8_t rx_keepalive_packet[PACKET_EDP_HEADER_SIZE]; /* buffer to send Rx keepalive message */
    struct {
         idigi_buffer_t packet_buffer;           /* buffer for send message to server */
         uint8_t * ptr;                          /* current pointer to message to be sent */
@@ -183,13 +187,13 @@ typedef struct idigi_data {
     struct {
         idigi_buffer_t * free_packet_buffer;  /* pointer to a list of message that is available for receive data */
         idigi_buffer_t packet_buffer;         /* active packet buffer that is being used */
-        int index;                              /* index used for receiving a complete message from server */
+        uint8_t * data_packet;                  /* current data message */
         uint8_t * ptr;                          /* pointer for receive data */
+        int index;                              /* index used for receiving a complete message from server */
         uint16_t  packet_type;                  /* packet type of a received message */
         uint16_t  packet_length;                /* packet length of a received message */
         size_t length;                          /* length has been received */
         size_t total_length;                    /* total length that needs to be received */
-        uint8_t * data_packet;                  /* current data message */
     } receive_packet;
 
 } idigi_data_t;
