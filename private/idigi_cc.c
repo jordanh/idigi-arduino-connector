@@ -443,7 +443,7 @@ static idigi_callback_status_t process_connection_control(idigi_data_t * idigi_p
         idigi_request_t request_id;
         request_id.network_request = request;
 
-        status = idigi_callback(idigi_ptr->callback, idigi_class_network, request_id, NULL, 0, NULL, NULL);
+        status = idigi_callback_no_response(idigi_ptr->callback, idigi_class_network, request_id, NULL, 0);
         if (status == idigi_callback_continue)
         {
             init_setting(idigi_ptr);
