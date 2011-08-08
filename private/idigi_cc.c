@@ -115,7 +115,7 @@ static idigi_callback_status_t send_redirect_report(idigi_data_t * idigi_ptr, id
 
     cc_ptr->item = idigi_config_ip_addr;
 
-    status = enable_facility_packet(idigi_ptr, edp_header, (ptr-start_ptr), E_MSG_FAC_CC_NUM, release_packet_buffer, NULL);
+    status = initiate_send_facility_packet(idigi_ptr, edp_header, (ptr-start_ptr), E_MSG_FAC_CC_NUM, release_packet_buffer, NULL);
 done:
     return status;
 }
@@ -422,7 +422,7 @@ static idigi_callback_status_t send_connection_report(idigi_data_t * idigi_ptr, 
 
     }
 
-    status = enable_facility_packet(idigi_ptr, edp_header,cc_ptr->report_length, E_MSG_FAC_CC_NUM, release_packet_buffer, NULL);
+    status = initiate_send_facility_packet(idigi_ptr, edp_header,cc_ptr->report_length, E_MSG_FAC_CC_NUM, release_packet_buffer, NULL);
 
 done:
     return status;
