@@ -260,7 +260,7 @@ static idigi_callback_status_t send_error_message(idigi_data_t * idigi_ptr, uint
     *ptr++ = RCI_ERROR_DETECTED_OPCODE;
     *ptr++ = error_code;
 
-    status = enable_facility_packet(idigi_ptr, packet, (ptr-start_ptr), E_MSG_FAC_RCI_NUM, release_packet_buffer, NULL);
+    status = initiate_send_facility_packet(idigi_ptr, packet, (ptr-start_ptr), E_MSG_FAC_RCI_NUM, release_packet_buffer, NULL);
 done:
     return status;
 }
@@ -312,7 +312,7 @@ static void rci_send_packet_callback(idigi_data_t * const idigi_ptr, uint8_t con
         rci_ptr->response.pointer += send_length;
         rci_ptr->response.length -= send_length;
         DEBUG_PRINTF("rci_send_packet_callback: send chunk length %d\n", send_length);
-        ccode = enable_facility_packet(idigi_ptr, edp_header, (ptr - start_ptr), E_MSG_FAC_RCI_NUM, rci_send_packet_callback, rci_ptr);
+        ccode = initiate_send_facility_packet(idigi_ptr, edp_header, (ptr - start_ptr), E_MSG_FAC_RCI_NUM, rci_send_packet_callback, rci_ptr);
         ASSERT(ccode == idigi_callback_continue);
     }
     else
@@ -370,7 +370,7 @@ static idigi_callback_status_t rci_send_response(idigi_data_t * idigi_ptr, rci_d
     rci_ptr->response.pointer += send_length;
     rci_ptr->response.length -= send_length;
 
-    status = enable_facility_packet(idigi_ptr, packet, (ptr - start_ptr), E_MSG_FAC_RCI_NUM, rci_send_packet_callback, rci_ptr);
+    status = initiate_send_facility_packet(idigi_ptr, packet, (ptr - start_ptr), E_MSG_FAC_RCI_NUM, rci_send_packet_callback, rci_ptr);
 
 done:
     return status;
@@ -705,7 +705,7 @@ static idigi_callback_status_t rci_discovery(idigi_data_t * idigi_ptr, void * fa
     *ptr++ = RCI_COMPRESSION_COUNT;
     *ptr++ = rci_ptr->supported_compression;
 
-    status = enable_facility_packet(idigi_ptr, response_packet, (ptr - start_ptr), E_MSG_FAC_RCI_NUM, release_packet_buffer, NULL);
+    status = initiate_send_facility_packet(idigi_ptr, response_packet, (ptr - start_ptr), E_MSG_FAC_RCI_NUM, release_packet_buffer, NULL);
 
 done:
     return status;
