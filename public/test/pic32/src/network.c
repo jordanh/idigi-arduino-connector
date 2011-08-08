@@ -32,13 +32,8 @@ static idigi_callback_status_t network_connect(char * host_name,
         // sent across the link, keep trying until successful.
         // TODO: quit after a number of tries.
         int status;
-        int tries = 0;
         while((status = connect(sock, (struct sockaddr *)&sin, sizeof(sin))) < 0){
             if(status != SOCKET_CNXN_IN_PROGRESS){ // Not a socket Error.
-                closesocket(sock);
-                return idigi_callback_abort;
-            }
-            if(++tries >= 4096){
                 closesocket(sock);
                 return idigi_callback_abort;
             }
@@ -78,9 +73,15 @@ static idigi_callback_status_t network_receive(idigi_read_request_t * read_data,
     int rc;
     int sock = *read_data->network_handle;
     
-    while((rc = recv(sock, (char *)read_data->buffer, (int)read_data->length, 0)) < 0){
+    while((rc = recv(sock, (char *)read_data->buffer, (int)read_data->length, 0)) <= 0){
         // Error encountered receiving data on socket.
-        return idigi_callback_abort;
+        if(rc < 0){
+            return idigi_callback_abort;
+        }
+        else if(rc == 0){ // No data, since tcpip implementation is non blocking, we reread.
+            // Eventually sleep here a bit and timeout, rather than continually reading.
+            continue;
+        }
     }
     // If result from recv > 0, rc is number of bytes received.
     *read_length = (size_t)rc;
