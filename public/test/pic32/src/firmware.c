@@ -22,140 +22,253 @@
  * =======================================================================
  *
  */
+#include <stdbool.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <stdbool.h>
 #include "idigi.h"
+#include "firmware.h"
 
 #define asizeof(array)      (sizeof(array)/sizeof(array[0]))
-
-typedef struct {
-    uint32_t    version;
-    uint32_t    code_size;
-    char        * name_spec;
-    char        * description;
-} firmware_list_t;
-
-/* list of all supported firmware target info */
-static firmware_list_t fimware_list[] = {
-    /* version     code_size     name_spec          description */
-    {0x01000000, (uint32_t)-1, ".*\\.a",            "Library Image"}, /* any *.a files */
-    {0x00000100, (uint32_t)-1, ".*\\.[bB][iI][nN]", "Binary Image" }  /* any *.bin files */
-};
-static uint16_t fimware_list_count = asizeof(fimware_list);
 
 static bool firmware_download_started = false;
 static size_t total_image_size = 0;
 
-static void firmware_download_request(idigi_fw_download_request_t * download_info, idigi_fw_status_t * download_status)
+firmware_list_t* firmware_list;
+uint8_t firmware_list_count;
+
+//idigi_data_request_t * data_service_request;
+
+void initialize_firmware(){
+
+    // [firmware]
+    // num_targets = 6
+    firmware_list_count = 6;
+    
+    firmware_list = malloc(firmware_list_count * sizeof (firmware_list_t));
+
+    // [firmware.target.0]
+    // name_spec = .*\.[bB][iI][nN]
+    // description = Binary Image
+    // version = 0.0.1.0
+    // file = /var/lib/hudson/tools/iik/firmware.bin
+    firmware_list[0].description = "Binary Image";
+    firmware_list[0].name_spec = ".*\\.[bB][iI][nN]";
+    firmware_list[0].version = 0x00000100;
+    firmware_list[0].code_size = 8;
+    firmware_list[0].data_service_enabled = false;
+
+    // [firmware.target.1]
+    // name_spec = .*\.a
+    // description = Library Image
+    // version = 1.0.0.0
+    // file = ../../private/libidigi.so
+    firmware_list[1].description = "Library Image";
+    firmware_list[1].name_spec = ".*\\.a";
+    firmware_list[1].version = 0x01000000;
+    firmware_list[1].code_size = 8;
+    firmware_list[1].data_service_enabled = false;
+
+
+    // [firmware.target.2]
+    // name_spec = .*\.[Ee][Xx][Ee]
+    // description = Executable
+    // version = 13.1.1.4
+    // file = /var/lib/hudson/tools/iik/firmware.bin
+    firmware_list[2].description = "Executable";
+    firmware_list[2].name_spec = ".*\\.[Ee][Xx][Ee]";
+    firmware_list[2].version = 0x0D010104;
+    firmware_list[2].code_size = 8;
+    firmware_list[2].data_service_enabled = false;
+
+
+    // [firmware.target.3]
+    // name_spec = .*\.[Ee][Xx][Ii]
+    // description = Executable
+    // version = 13.1.1.12
+    // file = /var/lib/hudson/tools/iik/firmware.bin
+    firmware_list[3].description = "Executable";
+    firmware_list[3].name_spec = ".*\\.[Ee][Xx][Ei]";
+    firmware_list[3].version = 0x0D01010E;
+    firmware_list[3].code_size = 8;
+    firmware_list[3].data_service_enabled = false;
+
+    // [firmware.target.4]
+    // name_spec = .*\.[Ee][Xx][Nn]
+    // description = Executable
+    // version = 13.1.1.23
+    // file = /var/lib/hudson/tools/iik/firmware.bin
+    firmware_list[4].description = "Executable";
+    firmware_list[4].name_spec = ".*\\.[Ee][Xx][NN]";
+    firmware_list[4].version = 0x0D010117;
+    firmware_list[4].code_size = 8;
+    firmware_list[4].data_service_enabled = false;
+
+    // [firmware.target.5]
+    // name_spec = .*\.[Ee][Xx][Nn]
+    // description = Download Denied
+    // version = 21.0.0.0
+    // file = /var/lib/hudson/tools/iik/firmware.bin
+    firmware_list[5].description = "Download Denied";
+    firmware_list[5].name_spec = ".*\\.[Ee][Xx][Nn]";
+    firmware_list[5].version = 0x15000000;
+    firmware_list[5].code_size = 8;
+    firmware_list[5].data_service_enabled = false;
+    /*
+    // [firmware.target.6]
+    // name_spec = .*\.[Ee][Xx][Nn]
+    // description = Download Invalid Size
+    // version = 22.0.0.0
+    // file = /var/lib/hudson/tools/iik/firmware.bin
+    firmware_list[6].description = "Download Invalid Size";
+    firmware_list[6].name_spec = ".*\\.[Ee][Xx][Nn]";
+    firmware_list[6].version = 0x16000000;
+    firmware_list[6].code_size = (uint32_t)-1;
+    firmware_list[6].data_service_enabled = false;
+
+    // [firmware.target.7]
+    // name_spec = .*\.[Ee][Xx][Nn]
+    // description = Download Invalid Version
+    // version = 23.0.0.0
+    // file = /var/lib/hudson/tools/iik/firmware.bin
+    firmware_list[7].description = "Download Invalid Version";
+    firmware_list[7].name_spec = ".*\\.[Ee][Xx][Nn]";
+    firmware_list[7].version = 0x17000000;
+    firmware_list[7].code_size = (uint32_t)-1;
+    firmware_list[7].data_service_enabled = false;
+
+    // [firmware.target.8]
+    // name_spec = .*\.[Ee][Xx][Nn]
+    // description = Download Unauthenticated
+    // version = 24.0.0.0
+    // file = /var/lib/hudson/tools/iik/firmware.bin
+    firmware_list[8].description = "Download Unauthenticated";
+    firmware_list[8].name_spec = ".*\\.[Ee][Xx][Nn]";
+    firmware_list[8].version = 0x18000000;
+    firmware_list[8].code_size = (uint32_t)-1;
+    firmware_list[8].data_service_enabled = false;
+
+    // [firmware.target.9]
+    // name_spec = .*\.[Ee][Xx][Nn]
+    // description = Download Not Allowed
+    // version = 25.0.0.0
+    // file = /var/lib/hudson/tools/iik/firmware.bin
+    firmware_list[9].description = "Download Not Allowed";
+    firmware_list[9].name_spec = ".*\\.[Ee][Xx][Nn]";
+    firmware_list[9].version = 0x19000000;
+    firmware_list[9].code_size = (uint32_t)-1;
+    firmware_list[9].data_service_enabled = false;
+    
+    // [firmware.target.10]
+    // name_spec = .*\.[Ee][Xx][Nn]
+    // description = Download Configured to Reject
+    // version = 26.0.0.0
+    // file = /var/lib/hudson/tools/iik/firmware.bin
+    firmware_list[10].description = "Download Configured to Reject";
+    firmware_list[10].name_spec = ".*\\.[Ee][Xx][Nn]";
+    firmware_list[10].version = 0x1A000000;
+    firmware_list[10].code_size = (uint32_t)-1;
+    firmware_list[10].data_service_enabled = false;
+
+    // [firmware.target.11]
+    // name_spec = .*\.[Ee][Xx][Nn]
+    // description = Encountered Error
+    // version = 27.0.0.0
+    // file = /var/lib/hudson/tools/iik/firmware.bin
+    firmware_list[11].description = "Encountered Error";
+    firmware_list[11].name_spec = ".*\\.[Ee][Xx][Nn]";
+    firmware_list[11].version = 0x1B000000;
+    firmware_list[11].code_size = (uint32_t)-1;
+    firmware_list[11].data_service_enabled = false;
+
+    // [firmware.target.12]
+    // name_spec = .*\.[Ee][Xx][Nn]
+    // description = User Abort
+    // version = 30.0.0.0
+    // file = /var/lib/hudson/tools/iik/firmware.bin
+    firmware_list[12].description = "User Abort";
+    firmware_list[12].name_spec = ".*\\.[Ee][Xx][Nn]";
+    firmware_list[12].version = 0x1E000000;
+    firmware_list[12].code_size = (uint32_t)-1;
+    firmware_list[12].data_service_enabled = false;
+
+    // [firmware.target.13]
+    // name_spec = .*\.[Ee][Xx][Nn]
+    // description = Device Error
+    // version = 31.0.0.0
+    // file = /var/lib/hudson/tools/iik/firmware.bin
+    firmware_list[13].description = "Device Error";
+    firmware_list[13].name_spec = ".*\\.[Ee][Xx][Nn]";
+    firmware_list[13].version = 0x1F000000;
+    firmware_list[13].code_size = (uint32_t)-1;
+    firmware_list[13].data_service_enabled = false;
+
+    // [firmware.target.14]
+    // name_spec = .*\.[Ee][Xx][Nn]
+    // description = Invalid Offset
+    // version = 32.0.0.0
+    // file = /var/lib/hudson/tools/iik/firmware.bin
+    firmware_list[14].description = "Invalid Offset";
+    firmware_list[14].name_spec = ".*\\.[Ee][Xx][Nn]";
+    firmware_list[14].version = 0x20000000;
+    firmware_list[14].code_size = (uint32_t)-1;
+    firmware_list[14].data_service_enabled = false;
+
+    // [firmware.target.15]
+    // name_spec = .*\.[Ee][Xx][Nn]
+    // description = Invalid Data
+    // version = 33.0.0.0
+    // file = /var/lib/hudson/tools/iik/firmware.bin
+    firmware_list[15].description = "Invalid Data";
+    firmware_list[15].name_spec = ".*\\.[Ee][Xx][Nn]";
+    firmware_list[15].version = 0x21000000;
+    firmware_list[15].code_size = (uint32_t)-1;
+    firmware_list[15].data_service_enabled = false;
+
+
+    // [firmware.target.16]
+    // name_spec = .*\.[Ee][Xx][Nn]
+    // description = Hardware Error
+    // version = 34.0.0.0
+    // file = /var/lib/hudson/tools/iik/firmware.bin
+    firmware_list[16].description = "Hardware Error";
+    firmware_list[16].name_spec = ".*\\.[Ee][Xx][Nn]";
+    firmware_list[16].version = 0x22000000;
+    firmware_list[16].code_size = (uint32_t)-1;
+    firmware_list[16].data_service_enabled = false;*/
+}
+
+static idigi_callback_status_t firmware_download_request(idigi_fw_download_request_t * download_data, idigi_fw_status_t * download_status)
 {
-
-    if ((download_info == NULL) || (download_status == NULL))
-    {
-        DEBUG_PRINTF("firmware_download_request ERROR: iDigi passes incorrect parameters\n");
-        *download_status = idigi_fw_download_denied;
-        goto done;
-    }
-    if (firmware_download_started)
-    {
-        *download_status = idigi_fw_device_error;
-        goto done;
-    }
-
-    DEBUG_PRINTF("target = %d\n",         download_info->target);
-    DEBUG_PRINTF("version = 0x%04X\n",    download_info->version);
-    DEBUG_PRINTF("code size = %d\n",      download_info->code_size);
-    DEBUG_PRINTF("desc_string = %s\n",    download_info->desc_string);
-    DEBUG_PRINTF("file name spec = %s\n", download_info->file_name_spec);
-    DEBUG_PRINTF("filename = %s\n",       download_info->filename);
-
-    total_image_size = 0;
-    firmware_download_started = true;
-
+    idigi_callback_status_t status = idigi_callback_continue;
     *download_status = idigi_fw_success;
-
-done:
-    return;
+    return status;
 }
 
-static void firmware_image_data(idigi_fw_image_data_t * image_data, idigi_fw_status_t * data_status)
+static idigi_callback_status_t firmware_image_data(idigi_fw_image_data_t * image_data, idigi_fw_status_t * data_status)
 {
-    if (image_data == NULL)
-    {
-        DEBUG_PRINTF("firmware_image_data ERROR: iDigi passes incorrect parameters\n");
-        goto done;
-    }
-
-    DEBUG_PRINTF("target = %d\n", image_data->target);
-    DEBUG_PRINTF("offset = 0x%04X\n", image_data->offset);
-    DEBUG_PRINTF("data = %p\n", image_data->data);
-    total_image_size += image_data->length;
-    DEBUG_PRINTF("length = %zu (total = %zu)\n", image_data->length, total_image_size);
-
-
+    idigi_callback_status_t   status = idigi_callback_continue;
     *data_status = idigi_fw_success;
-done:
-    return;
+    return status;
 }
 
 
-static void firmware_download_complete(idigi_fw_download_complete_request_t * complete_request, idigi_fw_download_complete_response_t * complete_response)
+static idigi_callback_status_t firmware_download_complete(idigi_fw_download_complete_request_t * request_data, idigi_fw_download_complete_response_t * response_data)
 {
-
-    if ((complete_request == NULL) || (complete_response == NULL))
-    {
-        DEBUG_PRINTF("firmware_download_complete Error: iDigi passes incorrect parameters\n");
-        goto done;
-    }
-
-    DEBUG_PRINTF("target    = %d\n",    complete_request->target);
-    DEBUG_PRINTF("code size = %u\n",    complete_request->code_size);
-    DEBUG_PRINTF("checksum  = 0x%x\n", (unsigned)complete_request->checksum);
-
-    complete_response->status = idigi_fw_download_success;
-
-    /* 
-     * The server currently use calculated checksum field for write status.
-     * 0 means no error.
-     */
-    complete_response->calculated_checksum = 0;
-
-    if (complete_request->code_size != total_image_size)
-    {
-        DEBUG_PRINTF("firmware_download_complete: actual image size (%u) != the code size received (%zu)\n",
-                      complete_request->code_size, total_image_size);
-    }
-
-    firmware_download_started = false;
-
-done:
-    return;
+    idigi_callback_status_t   status = idigi_callback_continue;
+    response_data->status = idigi_fw_download_success;
+    response_data->calculated_checksum = 0;
+    return status;
 }
 
 static idigi_callback_status_t firmware_download_abort(idigi_fw_download_abort_t * abort_data)
 {
     idigi_callback_status_t   status = idigi_callback_continue;
-
-    /* Server is aborting firmware update */
-    DEBUG_PRINTF("firmware_download_abort\n");
-    if (abort_data == NULL)
-    {
-        DEBUG_PRINTF("firmware_download_abort Error: iDigi passes incorrect parameters\n");
-        goto done;
-    }
-
-done:
     return status;
 }
 
 static idigi_callback_status_t firmware_reset(idigi_fw_config_t * reset_data)
 {
     idigi_callback_status_t   status = idigi_callback_continue;
-
-    UNUSED_PARAMETER(reset_data);
-    /* Server requests firmware reboot */
-    DEBUG_PRINTF("firmware_reset\n");
-
     return status;
 }
 
@@ -166,7 +279,6 @@ idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t request
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_fw_config_t * config = (idigi_fw_config_t *)request_data;
 
-    UNUSED_PARAMETER(request_length);
 
     switch (request)
     {
@@ -174,50 +286,50 @@ idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t request
     {
         uint16_t * count = (uint16_t *)response_data;
         /* return total number of firmware update targets */
-        *count = fimware_list_count;
+        *count = firmware_list_count;
         break;
     }
     case idigi_firmware_version:
     {
         uint32_t * version = (uint32_t *)response_data;
         /* return the target version number */
-        *version = fimware_list[config->target].version;
+        *version = firmware_list[config->target].version;
         break;
     }
     case idigi_firmware_code_size:
     {
         /* Return the target code size */
         uint32_t * code_size = (uint32_t *)response_data;
-        *code_size = fimware_list[config->target].code_size;
+        *code_size = firmware_list[config->target].code_size;
         break;
     }
     case idigi_firmware_description:
     {
         /* return pointer to firmware target description */
         char ** description = (char **)response_data;
-        *description = fimware_list[config->target].description;
-        *response_length = strlen(fimware_list[config->target].description);
+        *description = firmware_list[config->target].description;
+        *response_length = strlen(firmware_list[config->target].description);
        break;
     }
     case idigi_firmware_name_spec:
     {
         /* return pointer to firmware target description */
         char ** name_spec = (char **)response_data;
-        *name_spec = fimware_list[config->target].name_spec;
-        *response_length = strlen(fimware_list[config->target].name_spec);
+        *name_spec = firmware_list[config->target].name_spec;
+        *response_length = strlen(firmware_list[config->target].name_spec);
         break;
     }
     case idigi_firmware_download_request:
-        firmware_download_request((idigi_fw_download_request_t *)request_data, (idigi_fw_status_t *)response_data);
+        status = firmware_download_request((idigi_fw_download_request_t *)request_data, (idigi_fw_status_t *)response_data);
         break;
 
     case idigi_firmware_binary_block:
-        firmware_image_data((idigi_fw_image_data_t *) request_data, (idigi_fw_status_t *)response_data);
+        status =  firmware_image_data((idigi_fw_image_data_t *) request_data, (idigi_fw_status_t *)response_data);
         break;
 
     case idigi_firmware_download_complete:
-        firmware_download_complete((idigi_fw_download_complete_request_t *) request_data,
-                                  (idigi_fw_download_complete_response_t *) response_data);
+        status =  firmware_download_complete((idigi_fw_download_complete_request_t *) request_data,
+                                             (idigi_fw_download_complete_response_t *) response_data);
         break;
 
     case idigi_firmware_download_abort:
