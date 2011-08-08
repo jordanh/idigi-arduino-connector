@@ -12,4 +12,4 @@ LITTLE_ENDIAN=true
 DEBUG=false
 LIBDIR=public/test/pic32/lib
 COMPRESSION=false
-DATA_SERVICE=false
+DATA_SERVICE=true
