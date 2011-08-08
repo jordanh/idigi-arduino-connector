@@ -343,7 +343,7 @@ static idigi_callback_status_t msg_send_capabilities(idigi_data_t * idigi_ptr, i
         cur_ptr += (sizeof(uint16_t) * service_count);
     }
 
-    status = enable_facility_packet(idigi_ptr, packet, (cur_ptr - start_ptr), E_MSG_FAC_MSG_NUM, release_packet_buffer, NULL);
+    status = initiate_send_facility_packet(idigi_ptr, packet, (cur_ptr - start_ptr), E_MSG_FAC_MSG_NUM, release_packet_buffer, NULL);
 
 error:
     return status;
@@ -563,7 +563,7 @@ static idigi_callback_status_t msg_send_packet(idigi_data_t * idigi_ptr, msg_ses
 
     session->available_window -= session->bytes_in_frame;
     session->flow_controlled = (session->available_window < sizeof session->frame);
-    status = enable_facility_packet(idigi_ptr, session->frame, session->bytes_in_frame, E_MSG_FAC_MSG_NUM, msg_send_complete, session);
+    status = initiate_send_facility_packet(idigi_ptr, session->frame, session->bytes_in_frame, E_MSG_FAC_MSG_NUM, msg_send_complete, session);
     if (status == idigi_callback_continue)
         session->bytes_in_frame = 0;
 
@@ -959,7 +959,7 @@ static idigi_callback_status_t msg_process_pending(idigi_data_t * idigi_ptr)
         msg_ptr->pending = NULL;
         if (session->bytes_in_frame > 0) 
         {
-            status = enable_facility_packet(idigi_ptr, session->frame, session->bytes_in_frame, E_MSG_FAC_MSG_NUM, msg_send_complete, session);
+            status = initiate_send_facility_packet(idigi_ptr, session->frame, session->bytes_in_frame, E_MSG_FAC_MSG_NUM, msg_send_complete, session);
             if (status == idigi_callback_continue)
                 session->bytes_in_frame = 0;
             else
