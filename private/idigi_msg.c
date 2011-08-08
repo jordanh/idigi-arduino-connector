@@ -142,7 +142,7 @@ typedef struct
 } msg_data_info_t;
 
 
-static void msg_send_complete(idigi_data_t * idigi_ptr, uint8_t * packet, idigi_status_t status, void * user_data);
+static void msg_send_complete(idigi_data_t * const idigi_ptr, uint8_t const * const packet, idigi_status_t const status, void * const user_data);
 
 static msg_session_t * msg_find_session(idigi_msg_data_t const * const msg_ptr, uint16_t const id, msg_type_t const type)
 {
@@ -643,7 +643,7 @@ error:
     return session;
 }
 
-static void msg_send_complete(idigi_data_t * idigi_ptr, uint8_t * packet, idigi_status_t status, void * user_data)
+static void msg_send_complete(idigi_data_t * const idigi_ptr, uint8_t const * const packet, idigi_status_t const status, void * const user_data)
 {
     idigi_msg_data_t * const msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
     msg_session_t * const session = user_data;
