@@ -485,14 +485,14 @@ typedef enum {
      */
     idigi_os_free,
 
-    /* Request ID to return system time in millisecond
+    /* Request ID to return system time in seconds
      *
      * The callback parameters:
      *  class_id = idigi_class_operating_system
      *  request_id = idigi_config_system_time
      *  request_data = NULL
      *  request_length = 0
-     *  response_data = pointer to 4 octet integer memory where callback writes the system time in millisecond.
+     *  response_data = pointer to 4 octet integer memory where callback writes the system time in seconds.
      *  response_length = ignore
      *
      * Callback returns:
