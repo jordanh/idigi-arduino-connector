@@ -22,9 +22,23 @@
  * =======================================================================
  *
  */
-#include "ei_discover.h"
-#include "ei_security.h"
-#include "ei_msg.h"
+/* Identity verification form codes... */
+#define SECURITY_IDENT_FORM_SIMPLE   0x00 /* simple verification */
+#define SECURITY_IDENT_FORM_PASSWORD 0x02 /* simple+passwd */
+
+/* The data security coding schemes (a.k.a. encryption types)... */
+#define SECURITY_PROTO_NONE          0x00 /* no encryption, no authentication */
+
+/* The security operations other than encryption... */
+#define SECURITY_OPER_IDENT_FORM     0x80
+#define SECURITY_OPER_DEVICE_ID      0x81
+#define SECURITY_OPER_URL            0x86
+
+/* Discovery layer opcodes */
+#define DISC_OP_PAYLOAD       0
+#define DISC_OP_DEVICETYPE    4
+#define DISC_OP_INITCOMPLETE  5
+#define DISC_OP_VENDOR_ID     6
 
 /*
  * MT version 2 message type defines.
@@ -41,6 +55,15 @@
 #define E_MSG_MT2_TYPE_KA_WAIT              0x0022 /* C -> S */
 #define E_MSG_MT2_TYPE_KA_KEEPALIVE         0x0030 /* bi-directional */
 #define E_MSG_MT2_TYPE_PAYLOAD              0x0040 /* bi-directional */
+
+/* facility opcodes */
+#define E_MSG_MT2_MSG_NUM          0x0000
+#define E_MSG_FAC_FW_NUM           0x0070
+#define E_MSG_FAC_RCI_NUM          0x00a0
+#define E_MSG_FAC_MSG_NUM          0x00c0
+#define E_MSG_FAC_DEV_LOOP_NUM     0xff00
+#define E_MSG_FAC_CC_NUM           0xffff
+
 
 #define ONE_SECOND  1
 
@@ -67,8 +90,8 @@ static void set_idigi_state(idigi_data_t * const idigi_ptr, int const state)
 }
 
 static idigi_callback_status_t initiate_send_packet(idigi_data_t * const idigi_ptr, uint8_t * const packet,
-                                                  uint16_t const length, uint16_t const type,
-                                                  send_complete_cb_t send_complete_cb, void * const user_data)
+                                                    uint16_t const length, uint16_t const type,
+                                                    send_complete_cb_t send_complete_cb, void * const user_data)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     uint8_t * const edp_header = packet;
@@ -113,8 +136,8 @@ done:
 }
 
 static idigi_callback_status_t initiate_send_facility_packet(idigi_data_t * const idigi_ptr, uint8_t * const edp_header,
-                                                      uint16_t const length, uint16_t const facility,
-                                                      send_complete_cb_t send_complete_cb, void * const user_data)
+                                                             uint16_t const length, uint16_t const facility,
+                                                             send_complete_cb_t send_complete_cb, void * const user_data)
 {
     uint8_t * const edp_protocol = edp_header + PACKET_EDP_HEADER_SIZE;
 
@@ -136,10 +159,10 @@ static idigi_callback_status_t initiate_send_facility_packet(idigi_data_t * cons
     message_store_be16(edp_protocol, facility, facility);
 
     return initiate_send_packet(idigi_ptr, edp_header,
-                              (length + PACKET_EDP_PROTOCOL_SIZE),
-                              E_MSG_MT2_TYPE_PAYLOAD,
-                              send_complete_cb,
-                              user_data);
+                                (length + PACKET_EDP_PROTOCOL_SIZE),
+                                E_MSG_MT2_TYPE_PAYLOAD,
+                                send_complete_cb,
+                                user_data);
 }
 
 static int send_buffer(idigi_data_t * const idigi_ptr, uint8_t * const buffer, size_t const length)
@@ -180,7 +203,6 @@ static int send_buffer(idigi_data_t * const idigi_ptr, uint8_t * const buffer, s
     }
 
     write_data.timeout = MIN_VALUE(rx_ka_timeout, tx_ka_timeout);
-
     write_data.buffer = buffer;
     write_data.length = length;
     write_data.network_handle = idigi_ptr->network_handle;
@@ -227,8 +249,8 @@ static uint8_t * get_packet_buffer(idigi_data_t * const idigi_ptr, uint16_t cons
     uint8_t * packet = NULL;
     uint8_t * ptr = NULL;
 
-    /* Return a  pointer to caller to setup data to be sent to server.
-     * Must call release_packet_buffer() to release the buffer (pass this
+    /* Return a pointer to caller to setup data to be sent to server.
+     * Must call release_packet_buffer() to release the buffer (pass the
      * release_packet_buffer as complete_callback to initiate_send_packet()
      * or initiate_send_facility_packet().
      */
@@ -290,10 +312,12 @@ done:
 
 static void send_complete_callback(idigi_data_t * const idigi_ptr)
 {
-    if (idigi_ptr->send_packet.complete_cb != NULL)
+    send_complete_cb_t callback = idigi_ptr->send_packet.complete_cb;
+
+    if (callback != NULL)
     {
-        idigi_ptr->send_packet.complete_cb(idigi_ptr, idigi_ptr->send_packet.ptr, idigi_ptr->error_code, idigi_ptr->send_packet.user_data);
         idigi_ptr->send_packet.complete_cb = NULL;
+        callback(idigi_ptr, idigi_ptr->send_packet.ptr, idigi_ptr->error_code, idigi_ptr->send_packet.user_data);
     }
 }
 
