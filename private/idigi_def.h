@@ -92,11 +92,6 @@ typedef enum {
     idigi_device_terminate
 } idigi_active_state_t;
 
-struct idigi_data;
-struct idigi_facility;
-
-typedef idigi_callback_status_t (* idigi_facility_process_cb_t )(struct idigi_data * const idigi_ptr, void * const facility_data, uint8_t * const packet);
-typedef void (* send_complete_cb_t)(struct idigi_data * const idigi_ptr, uint8_t const * const packet, idigi_status_t const status, void * const user_data);
 
 #define add_node(head, node) \
     do { \
@@ -126,6 +121,11 @@ typedef void (* send_complete_cb_t)(struct idigi_data * const idigi_ptr, uint8_t
         }\
     } while (0)
 
+struct idigi_data;
+struct idigi_facility;
+
+typedef idigi_callback_status_t (* idigi_facility_process_cb_t )(struct idigi_data * const idigi_ptr, void * const facility_data, uint8_t * const packet);
+typedef void (* send_complete_cb_t)(struct idigi_data * const idigi_ptr, uint8_t const * const packet, idigi_status_t const status, void * const user_data);
 
 typedef struct idigi_facility {
     uint16_t facility_num;                          /* facility opcode */
