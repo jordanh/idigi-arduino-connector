@@ -41,6 +41,12 @@
 
 #define record_bytes(name)                      field_data(name, bytes)
 
+#define message_store_be32(record, field, value) \
+    do { \
+        ASSERT(field_named_data(record, field, size) == sizeof (uint32_t)); \
+        StoreBE32(record + field_named_data(record, field, offset), (value)); \
+    } while (0)
+
 #define message_store_be16(record, field, value) \
     do { \
         ASSERT(field_named_data(record, field, size) == sizeof (uint16_t)); \
@@ -54,9 +60,11 @@
     } while (0)
 
 #if defined(DEBUG)
+#define message_load_be32(record, field) (ASSERT(field_named_data(record, field, size) == sizeof (uint32_t)), LoadBE32(record + field_named_data(record, field, offset)))
 #define message_load_be16(record, field) (ASSERT(field_named_data(record, field, size) == sizeof (uint16_t)), LoadBE16(record + field_named_data(record, field, offset)))
 #define message_load_u8(record, field) (ASSERT(field_named_data(record, field, size) == sizeof (uint8_t)), *(record + field_named_data(record, field, offset)))
 #else
+#define message_load_be32(record, field) LoadBE32(record + field_named_data(record, field, offset))
 #define message_load_be16(record, field) LoadBE16(record + field_named_data(record, field, offset))
 #define message_load_u8(record, field) *(record + field_named_data(record, field, offset))
 #endif
