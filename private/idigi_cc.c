@@ -22,13 +22,22 @@
  * =======================================================================
  *
  */
-#include "ei_msg.h"
-
 #define CC_IPV6_ADDRESS_LENGTH 16
 #define CC_IPV4_ADDRESS_LENGTH 4
 
 #define CC_ZERO_IP_ADDR         0x00000000
 #define CC_BOARDCAST_IP_ADDR    0xFFFFFFFF
+
+#define FAC_CC_DISCONNECT           0x00
+#define FAC_CC_REDIRECT_TO_SDA      0x03
+#define FAC_CC_REDIRECT_REPORT      0x04
+#define FAC_CC_CONNECTION_REPORT    0x05
+#define FAC_CC_REBOOT               0x06
+
+#define FAC_CC_CLIENTTYPE_DEVICE            1
+#define FAC_CC_CLIENTTYPE_REBOOTABLE_DEVICE 2
+
+#define CC_REDIRECT_SERVER_COUNT    2
 
 typedef enum {
     cc_not_redirect,
@@ -41,17 +50,6 @@ typedef enum {
     ppp_over_modem_type
 } cc_connection_type_t;
 
-#define FAC_CC_DISCONNECT           0x00
-#define FAC_CC_REDIRECT_TO_SDA      0x03
-#define FAC_CC_REDIRECT_REPORT      0x04
-#define FAC_CC_CONNECTION_REPORT    0x05
-#define FAC_CC_REBOOT               0x06
-
-#define FAC_CC_CLIENTTYPE_DEVICE    1
-#define FAC_CC_CLIENTTYPE_REBOOTABLE_DEVICE 2
-
-#define CC_REDIRECT_SERVER_COUNT    2
-
 enum {
     cc_state_redirect_report,
     cc_state_connect_report,
@@ -61,21 +59,33 @@ enum {
 typedef struct {
     char    server_url[CC_REDIRECT_SERVER_COUNT][SERVER_URL_LENGTH];
     char    origin_url[SERVER_URL_LENGTH];
-    uint16_t report_length;
     int     state;
     unsigned item;
+    uint16_t report_length;
     uint8_t report_code;
 } idigi_cc_data_t;
 
-#define  idigi_config_connection_control idigi_config_connection_type
 
-static idigi_callback_status_t send_redirect_report(idigi_data_t * idigi_ptr, idigi_cc_data_t * cc_ptr)
+static idigi_callback_status_t send_redirect_report(idigi_data_t * const idigi_ptr, idigi_cc_data_t * const cc_ptr)
 {
+
+enum cc_redirect_report {
+    field_define(redirect_report, opcode, uint8_t),
+    field_define(redirect_report, code, uint8_t),
+    field_define(redirect_report, message_length, uint8_t),
+    /* TODO: fix this enum if message_length > 0. For now, message length is always 0 */
+    field_define(redirect_report, url_length, uint16_t),
+    record_end(redirect_report)
+};
+
+#define REPORT_MESSAGE_LENGTH  0
+#define REDIRECT_REPORT_HEADER_SIZE record_bytes(redirect_report)
+
+
     idigi_callback_status_t status;
     uint8_t             * edp_header;
-    uint8_t             report_msg_length = 0;
     uint16_t            url_length;
-    uint8_t             * ptr, * start_ptr;
+    uint8_t             * redirect_report;
 
     DEBUG_PRINTF("Connection Control: send redirect_report\n");
 
@@ -88,47 +98,42 @@ static idigi_callback_status_t send_redirect_report(idigi_data_t * idigi_ptr, id
      *  ----------------------------------------------------
      */
 
-    edp_header = get_packet_buffer(idigi_ptr, E_MSG_FAC_CC_NUM, &ptr);
+    edp_header = get_packet_buffer(idigi_ptr, E_MSG_FAC_CC_NUM, &redirect_report);
     if (edp_header == NULL)
     {
         status = idigi_callback_busy;
         goto done;
     }
-    start_ptr = ptr;
 
-    *ptr++ = FAC_CC_REDIRECT_REPORT;  /* opcode */
-    *ptr++ = cc_ptr->report_code;    /* report code */
-
-    /* report message length */
-    *ptr++ = report_msg_length;
-    ptr += report_msg_length;
+    message_store_u8(redirect_report, opcode, FAC_CC_REDIRECT_REPORT);
+    message_store_u8(redirect_report, code, cc_ptr->report_code);
+    message_store_u8(redirect_report, message_length, REPORT_MESSAGE_LENGTH);
 
     url_length = strlen(cc_ptr->origin_url);
-    StoreBE16(ptr, (url_length));
-    ptr += sizeof(url_length);
+    message_store_be16(redirect_report, url_length, url_length);
+    redirect_report += REDIRECT_REPORT_HEADER_SIZE;
 
     if (url_length > 0)
     {   /* URL */
-        memcpy(ptr, cc_ptr->origin_url, url_length);
-        ptr += url_length;
+        memcpy(redirect_report, cc_ptr->origin_url, url_length);
     }
 
     cc_ptr->item = idigi_config_ip_addr;
 
-    status = initiate_send_facility_packet(idigi_ptr, edp_header, (ptr-start_ptr), E_MSG_FAC_CC_NUM, release_packet_buffer, NULL);
+    status = initiate_send_facility_packet(idigi_ptr, edp_header, REDIRECT_REPORT_HEADER_SIZE + url_length, E_MSG_FAC_CC_NUM, release_packet_buffer, NULL);
 done:
     return status;
 }
-static idigi_callback_status_t get_ip_addr(idigi_data_t * idigi_ptr, uint8_t * ipv6_addr)
+
+static idigi_callback_status_t get_ip_addr(idigi_data_t * const idigi_ptr, uint8_t * ipv6_addr)
 {
     idigi_callback_status_t status;
 
     uint8_t * ip_addr = NULL;
-    idigi_request_t request_id;
+    idigi_request_t const request_id = {idigi_config_ip_addr};
     size_t length;
 
   /* Get IP address */
-    request_id.config_request = idigi_config_ip_addr;
     status = idigi_callback(idigi_ptr->callback, idigi_class_config, request_id, NULL, 0, &ip_addr, &length);
     if (status != idigi_callback_continue)
     {
@@ -192,30 +197,18 @@ done:
     return status;
 
 }
-static idigi_callback_status_t get_connection_type(idigi_data_t * idigi_ptr, uint8_t * connection_type)
+static idigi_callback_status_t get_connection_type(idigi_data_t * const idigi_ptr, uint8_t * const connection_type)
 {
     idigi_callback_status_t status;
-
-    idigi_request_t request_id;
-    idigi_connection_type_t * type;
+    idigi_request_t const request_id = {idigi_config_connection_type};
     idigi_status_t error_code = idigi_success;
+    idigi_connection_type_t * type;
 
     /* callback for connection type */
-    request_id.config_request = idigi_config_connection_type;
     status = idigi_callback(idigi_ptr->callback, idigi_class_config, request_id, NULL, 0, &type, NULL);
-    if (status != idigi_callback_continue)
+    if (status == idigi_callback_continue)
     {
-        idigi_ptr->error_code = idigi_configuration_error;
-        goto done;
-    }
-
-    if (type == NULL)
-    {
-        /* bad connection type */
-        error_code = idigi_invalid_data;
-    }
-    else
-    {
+        ASSERT(type != NULL);
         switch (*type)
         {
         case idigi_lan_connection_type:
@@ -228,8 +221,11 @@ static idigi_callback_status_t get_connection_type(idigi_data_t * idigi_ptr, uin
             error_code = idigi_invalid_data;
             break;
         }
-
-   }
+    }
+    else if (status == idigi_callback_abort)
+    {
+        idigi_ptr->error_code = idigi_configuration_error;
+    }
 
     if (error_code != idigi_success)
     {
@@ -237,49 +233,61 @@ static idigi_callback_status_t get_connection_type(idigi_data_t * idigi_ptr, uin
         notify_error_status(idigi_ptr->callback, idigi_class_config, request_id, idigi_ptr->error_code);
         status = idigi_callback_abort;
     }
-
-done:
     return status;
 }
 
-static idigi_callback_status_t get_mac_addr(idigi_data_t * idigi_ptr, uint8_t * mac_addr)
+static idigi_callback_status_t get_mac_addr(idigi_data_t * const idigi_ptr, uint8_t * const mac_addr)
 {
-    idigi_callback_status_t status = idigi_callback_continue;;
-    idigi_request_t request_id;
+    idigi_callback_status_t status = idigi_callback_continue;
+    idigi_request_t const request_id = {idigi_config_mac_addr};
     size_t length;
-
     uint8_t * mac;
 
     /* callback for MAC addr for LAN connection type */
-    request_id.config_request = idigi_config_mac_addr;
     status = idigi_callback(idigi_ptr->callback, idigi_class_config, request_id, NULL, 0, &mac, &length);
 
-    if (status == idigi_callback_abort && status != idigi_callback_busy)
+    if (status == idigi_callback_continue)
+    {
+        ASSERT(mac != NULL);
+        if (length != MAC_ADDR_LENGTH)
+        {
+            /* bad connection type */
+            idigi_ptr->error_code = idigi_invalid_data_size;
+            notify_error_status(idigi_ptr->callback, idigi_class_config, request_id, idigi_ptr->error_code);
+            status = idigi_callback_abort;
+        }
+        else
+        {
+            memcpy(mac_addr, mac, MAC_ADDR_LENGTH);
+        }
+    }
+    else if (status == idigi_callback_abort)
     {
         idigi_ptr->error_code = idigi_configuration_error;
-    }
-    else if (mac == NULL || length != MAC_ADDR_LENGTH)
-    {
-        /* bad connection type */
-        idigi_ptr->error_code = idigi_invalid_data_size;
-        notify_error_status(idigi_ptr->callback, idigi_class_config, request_id, idigi_ptr->error_code);
-        status = idigi_callback_abort;
-    }
-    else
-    {
-        memcpy(mac_addr, mac, MAC_ADDR_LENGTH);
     }
 
     return status;
 }
 
-static idigi_callback_status_t send_connection_report(idigi_data_t * idigi_ptr, idigi_cc_data_t * cc_ptr)
+static idigi_callback_status_t send_connection_report(idigi_data_t * const idigi_ptr, idigi_cc_data_t * const cc_ptr)
 {
 
-    idigi_callback_status_t status = idigi_callback_continue;;
-    uint8_t * edp_header;
-    uint8_t * ptr;
+enum cc_connection_report {
+    field_define(connection_report, opcode, uint8_t),
+    field_define(connection_report, client_type, uint8_t),
+    field_define(connection_report, ip1, uint32_t),
+    field_define(connection_report, ip2, uint32_t),
+    field_define(connection_report, ip3, uint32_t),
+    field_define(connection_report, ip4, uint32_t),
+    field_define(connection_report, connection_type, uint8_t),
+    /* link_speed is only for WAN connection type */
+    field_define(connection_report, link_speed, uint32_t),
+    record_end(connection_report)
+};
 
+    idigi_callback_status_t status = idigi_callback_continue;
+    uint8_t * edp_header;
+    uint8_t * connection_report;
 
     DEBUG_PRINTF("Connection Control: send connection report\n");
 
@@ -297,7 +305,7 @@ static idigi_callback_status_t send_connection_report(idigi_data_t * idigi_ptr, 
      * 4. if connection type is WAN, call callback to get and build link speed for connection information
      * 5. if connection type is WAN, call callback to get and build phone number for connection information
      */
-    edp_header = get_packet_buffer(idigi_ptr, E_MSG_FAC_CC_NUM, &ptr);
+    edp_header = get_packet_buffer(idigi_ptr, E_MSG_FAC_CC_NUM, &connection_report);
     if (edp_header == NULL)
     {
         status = idigi_callback_busy;
@@ -307,11 +315,11 @@ static idigi_callback_status_t send_connection_report(idigi_data_t * idigi_ptr, 
 
     if (cc_ptr->item == idigi_config_ip_addr)
     {
-        *ptr++ = FAC_CC_CONNECTION_REPORT;  /* opcode */
-        *ptr++ = FAC_CC_CLIENTTYPE_REBOOTABLE_DEVICE;
-        cc_ptr->report_length = 2;
+        message_store_u8(connection_report, opcode, FAC_CC_CONNECTION_REPORT);
+        message_store_u8(connection_report, client_type, FAC_CC_CLIENTTYPE_REBOOTABLE_DEVICE);
+        cc_ptr->report_length = field_named_data(connection_report, opcode, size)+field_named_data(connection_report, client_type, size);
 
-        status = get_ip_addr(idigi_ptr, ptr);
+        status = get_ip_addr(idigi_ptr, (connection_report+cc_ptr->report_length));
         if (status != idigi_callback_continue)
         {
             goto done;
@@ -319,19 +327,21 @@ static idigi_callback_status_t send_connection_report(idigi_data_t * idigi_ptr, 
 
         cc_ptr->item = idigi_config_connection_type;
         cc_ptr->report_length += CC_IPV6_ADDRESS_LENGTH;
-    }
 
-    ptr += PACKET_EDP_PROTOCOL_SIZE;
-    ptr += cc_ptr->report_length;
+    }
 
     if (cc_ptr->item == idigi_config_connection_type)
     {
-        status = get_connection_type(idigi_ptr, ptr);
+        uint8_t type;
+
+        status = get_connection_type(idigi_ptr, &type);
         if (status != idigi_callback_continue)
         {
             goto done;
         }
-        if (*ptr == ethernet_type)
+
+        message_store_u8(connection_report, connection_type, type);
+        if (type == ethernet_type)
         {
             cc_ptr->item = idigi_config_mac_addr;
         }
@@ -346,7 +356,7 @@ static idigi_callback_status_t send_connection_report(idigi_data_t * idigi_ptr, 
 
     if (cc_ptr->item == idigi_config_mac_addr)
     {
-        status = get_mac_addr(idigi_ptr, ptr);
+        status = get_mac_addr(idigi_ptr, connection_report + cc_ptr->report_length);
         if (status != idigi_callback_continue)
         {
             goto done;
@@ -360,12 +370,11 @@ static idigi_callback_status_t send_connection_report(idigi_data_t * idigi_ptr, 
     if (cc_ptr->item == idigi_config_link_speed)
     {
         /* callback for Link speed for WAN connection type */
-        idigi_request_t request_id;
+        idigi_request_t const request_id = {idigi_config_link_speed};
         size_t length;
-        uint32_t * link_speed;
+        uint32_t * speed;
 
-        request_id.config_request = idigi_config_link_speed;
-        status = idigi_callback(idigi_ptr->callback, idigi_class_config, request_id, NULL, 0, &link_speed, &length);
+        status = idigi_callback(idigi_ptr->callback, idigi_class_config, request_id, NULL, 0, &speed, &length);
         if (status != idigi_callback_continue)
         {
             if (status == idigi_callback_abort)
@@ -375,7 +384,7 @@ static idigi_callback_status_t send_connection_report(idigi_data_t * idigi_ptr, 
             goto done;
         }
 
-        if (link_speed == NULL || length != sizeof(*link_speed))
+        if (speed == NULL || length != sizeof(*speed))
         {
             /* bad connection type */
             idigi_ptr->error_code = idigi_invalid_data_size;
@@ -383,20 +392,17 @@ static idigi_callback_status_t send_connection_report(idigi_data_t * idigi_ptr, 
             status = idigi_callback_abort;
             goto done;
         }
-
-        StoreBE32(ptr, *link_speed);
-        cc_ptr->report_length += sizeof(*link_speed);
-        cc_ptr->item = idigi_config_phone_number;
+        message_store_u8(connection_report, link_speed, *speed);
+        cc_ptr->report_length += field_named_data(connection_report, link_speed, size);
     }
 
     if (cc_ptr->item == idigi_config_phone_number)
     {
         /* callback for phone number for WAN connection type */
-        idigi_request_t request_id;
+        idigi_request_t const request_id = {idigi_config_phone_number};
         size_t length;
         uint8_t * phone = NULL;
 
-        request_id.config_request = idigi_config_phone_number;
         status = idigi_callback(idigi_ptr->callback, idigi_class_config, request_id, NULL, 0, &phone, &length);
 
         if (status != idigi_callback_continue)
@@ -417,9 +423,8 @@ static idigi_callback_status_t send_connection_report(idigi_data_t * idigi_ptr, 
             goto done;
         }
 
-        memcpy(ptr, phone, length);
+        memcpy(connection_report+cc_ptr->report_length, phone, length);
         cc_ptr->report_length += length;
-
     }
 
     status = initiate_send_facility_packet(idigi_ptr, edp_header,cc_ptr->report_length, E_MSG_FAC_CC_NUM, release_packet_buffer, NULL);
@@ -428,21 +433,22 @@ done:
     return status;
 }
 
-static idigi_callback_status_t process_connection_control(idigi_data_t * idigi_ptr, idigi_cc_data_t * cc_ptr, idigi_network_request_t request)
+static idigi_callback_status_t process_connection_control(idigi_data_t * const idigi_ptr, idigi_cc_data_t * const cc_ptr, idigi_network_request_t const request)
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
     UNUSED_PARAMETER(cc_ptr);
 
-    DEBUG_PRINTF("process_disconnect: Connection Disconnect\n");
+    /* server either disconnects or reboots us */
+    DEBUG_PRINTF("process_connection_control: Connection request %d\n", request);
     idigi_ptr->network_busy = true;
 
     status = close_server(idigi_ptr);
+
     if (status == idigi_callback_continue)
     {
         idigi_request_t request_id;
         request_id.network_request = request;
-
         status = idigi_callback_no_response(idigi_ptr->callback, idigi_class_network, request_id, NULL, 0);
         if (status == idigi_callback_continue)
         {
@@ -458,16 +464,23 @@ static idigi_callback_status_t process_connection_control(idigi_data_t * idigi_p
 }
 
 
-static idigi_callback_status_t  process_redirect(idigi_data_t * idigi_ptr, idigi_cc_data_t * cc_ptr, uint8_t * packet)
+static idigi_callback_status_t  process_redirect(idigi_data_t * const idigi_ptr, idigi_cc_data_t * const cc_ptr, uint8_t const * const packet)
 {
+enum cc_redirect {
+    field_define(redirect, opcode, uint8_t),
+    field_define(redirect, count, uint8_t),
+    record_end(redirect)
+};
+enum cc_redirect_url {
+    field_define(redirect_url, length, uint16_t),
+    record_end(redirect_url)
+};
+
+
     idigi_callback_status_t status = idigi_callback_continue;
     uint8_t     url_count;
-    uint16_t    url_length;
-    uint8_t     * buf;
-    uint16_t    length;
-    char        * server_url;
+    uint8_t     * redirect;
     uint16_t prefix_len;
-    uint8_t * edp_header = packet;
 
 
     DEBUG_PRINTF("process_redirect:  redirect to new destination\n");
@@ -486,13 +499,8 @@ static idigi_callback_status_t  process_redirect(idigi_data_t * idigi_ptr, idigi
      *  --------------------------------------------------------------------
      *
     */
-    buf = GET_PACKET_DATA_POINTER(packet, PACKET_EDP_FACILITY_SIZE);
-    buf++; /* skip redirect opcode */
-    length = message_load_be16(edp_header, length);
-
-    url_count = *buf;
-    buf++;
-    length--;
+    redirect = GET_PACKET_DATA_POINTER(packet, PACKET_EDP_FACILITY_SIZE);
+    url_count = message_load_u8(redirect, count);
 
     if (url_count == 0)
     {   /* nothing to redirect */
@@ -500,17 +508,21 @@ static idigi_callback_status_t  process_redirect(idigi_data_t * idigi_ptr, idigi
         goto done;
     }
     ASSERT(url_count <= CC_REDIRECT_SERVER_COUNT);
-
     if (url_count > CC_REDIRECT_SERVER_COUNT)
     {
         url_count = CC_REDIRECT_SERVER_COUNT;
     }
 
+    /* skip en:// prefix */
     prefix_len = strlen(URL_PREFIX);
 
+    /* let's start parsing url length and url string */
     if (cc_ptr->state != cc_state_redirect_server)
     {
         int i;
+        uint16_t url_length;
+        uint8_t * redirect_url = redirect + record_bytes(redirect);
+
         /* Close the connection before parsing new destination url */
         status = close_server(idigi_ptr);
         if (status != idigi_callback_continue)
@@ -525,28 +537,30 @@ static idigi_callback_status_t  process_redirect(idigi_data_t * idigi_ptr, idigi
         cc_ptr->server_url[0][0] = 0x0;
         cc_ptr->server_url[1][0] = 0x0;
 
+        /* let parse url length and url string */
         for (i = 0; i < url_count; i++)
         {
-            url_length = FROM_BE16(*((uint16_t *)buf));
-            buf += sizeof url_length;
+            url_length = message_load_be16(redirect_url, length);
+            redirect_url += record_bytes(redirect_url);
+
             ASSERT_GOTO(url_length < sizeof cc_ptr->server_url[i], done);
 
-            strncpy(cc_ptr->server_url[i],(const char *) buf, url_length);
+            strncpy(cc_ptr->server_url[i],(const char *) redirect_url, url_length);
             cc_ptr->server_url[i][url_length] = '\0';
             cc_ptr->state = cc_state_redirect_server;
-            buf += url_length;
-            length -= url_length;
+            redirect_url += url_length;
         }
         cc_ptr->item = 0;
 
     }
-
+    /* let's start redirecting to new server */
     if (cc_ptr->state == cc_state_redirect_server)
     {
         /* We got the new destination url and try connecting to it.
          *
          * We must first remove en:// prefix.
          */
+        char * server_url;
 
         do {
             server_url = cc_ptr->server_url[cc_ptr->item];
@@ -566,7 +580,7 @@ static idigi_callback_status_t  process_redirect(idigi_data_t * idigi_ptr, idigi
             }
             if (status != idigi_callback_busy)
             {
-                /* consider this is not error since we're
+                /* this is not error and we're
                  * going to connect to the origin server.
                  */
                 cc_ptr->item++;
@@ -576,6 +590,7 @@ static idigi_callback_status_t  process_redirect(idigi_data_t * idigi_ptr, idigi
             }
         } while (cc_ptr->item < url_count);
     }
+
     if (status != idigi_callback_busy)
     {
         /* Reset iDigi to inital state to establish communication with the server.
@@ -593,7 +608,7 @@ done:
     return status;
 }
 
-static idigi_callback_status_t cc_process(idigi_data_t * idigi_ptr, void * facility_data, uint8_t * packet)
+static idigi_callback_status_t cc_process(idigi_data_t * const idigi_ptr, void * const facility_data, uint8_t * const packet)
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
@@ -629,7 +644,7 @@ static idigi_callback_status_t cc_process(idigi_data_t * idigi_ptr, void * facil
 
     return status;
 }
-static idigi_callback_status_t cc_discovery(idigi_data_t * idigi_ptr, void * facility_data, uint8_t * packet)
+static idigi_callback_status_t cc_discovery(idigi_data_t * const idigi_ptr, void * const facility_data, uint8_t * const packet)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_cc_data_t * cc_ptr = facility_data;
@@ -655,12 +670,12 @@ static idigi_callback_status_t cc_discovery(idigi_data_t * idigi_ptr, void * fac
     return status;
 }
 
-static idigi_callback_status_t cc_delete_facility(idigi_data_t * idigi_ptr)
+static idigi_callback_status_t cc_delete_facility(idigi_data_t * const idigi_ptr)
 {
     return del_facility_data(idigi_ptr, E_MSG_FAC_CC_NUM);
 }
 
-static idigi_callback_status_t cc_init_facility(idigi_data_t * idigi_ptr)
+static idigi_callback_status_t cc_init_facility(idigi_data_t * const idigi_ptr)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_cc_data_t * cc_ptr;
@@ -677,7 +692,7 @@ static idigi_callback_status_t cc_init_facility(idigi_data_t * idigi_ptr)
     {
         void * ptr;
 
-        status = add_facility_data(idigi_ptr, E_MSG_FAC_CC_NUM, &ptr, sizeof(idigi_cc_data_t), cc_discovery, cc_process);
+        status = add_facility_data(idigi_ptr, E_MSG_FAC_CC_NUM, &ptr, sizeof *cc_ptr, cc_discovery, cc_process);
 
         if (status == idigi_callback_abort || ptr == NULL)
         {
