@@ -296,7 +296,7 @@ static idigi_callback_status_t msg_send_capabilities(idigi_data_t * idigi_ptr, i
 
     /* append window size */
     {
-        uint32_t const window = MSG_RECV_WINDOW_SIZE;
+        uint32_t window = MSG_RECV_WINDOW_SIZE;
 
         StoreBE32(cur_ptr, window);
         cur_ptr += sizeof window;
@@ -338,20 +338,19 @@ error:
 
 static bool msg_fill_data(msg_session_t * const session, uint8_t * dest_ptr)
 {
-    bool success = false;
     size_t const available_space = sizeof session->frame - (dest_ptr - session->frame);
     size_t const bytes = (available_space < session->bytes_to_send) ? available_space : session->bytes_to_send;
 
-    ASSERT_GOTO(bytes > 0, done);
-    memcpy(dest_ptr, session->user_data, bytes);
-    session->user_data += bytes;
-    session->bytes_to_send -= bytes;
-    session->bytes_in_frame += bytes;
-    session->more_data = (session->bytes_to_send > 0);
-    success = true;
+    if (bytes > 0)
+    {
+        memcpy(dest_ptr, session->user_data, bytes);
+        session->user_data += bytes;
+        session->bytes_to_send -= bytes;
+        session->bytes_in_frame += bytes;
+        session->more_data = (session->bytes_to_send > 0);
+    }
 
-done:
-    return success;
+    return true;
 }
 
 static bool msg_frame_uncompressed(msg_session_t * const session, msg_data_info_t const * const info)
@@ -546,13 +545,9 @@ static idigi_callback_status_t msg_send_packet(idigi_data_t * idigi_ptr, msg_ses
 
     session->available_window -= session->bytes_in_frame;
     session->flow_controlled = (session->available_window < sizeof session->frame);
-    DEBUG_PRINTF("Sending on session %d\n", session->session_id);
     status = initiate_send_facility_packet(idigi_ptr, session->frame, session->bytes_in_frame, E_MSG_FAC_MSG_NUM, msg_send_complete, session);
     if (status == idigi_callback_continue)
-    {
-        DEBUG_PRINTF("Sent %d bytes on session %d\n", session->bytes_in_frame, session->session_id);
         session->bytes_in_frame = 0;
-    }
 
 error:
     return status;
@@ -640,7 +635,6 @@ static void msg_send_complete(idigi_data_t * const idigi_ptr, uint8_t const * co
     UNUSED_PARAMETER(packet);
     ASSERT_GOTO(session != NULL, done);
 
-    DEBUG_PRINTF("Send complete on %d\n", session->session_id);
     msg_ptr->in_use = false;
     if (status == idigi_success)
     {
@@ -879,7 +873,6 @@ static idigi_callback_status_t msg_process_error(idigi_data_t * idigi_ptr, idigi
         uint16_t session_id = LoadBE16(ptr);        
         msg_session_t * const session = msg_find_session(msg_fac, session_id, msg_type_tx);
         
-        DEBUG_PRINTF("Session: %d error\n", session_id);      
         ASSERT_GOTO(session != NULL, error);
         ptr += sizeof session_id;
 
@@ -909,8 +902,6 @@ static idigi_callback_status_t msg_process(idigi_data_t * idigi_ptr, void * faci
     uint8_t * ptr = GET_PACKET_DATA_POINTER(edp_header, PACKET_EDP_FACILITY_SIZE);
     uint16_t const length = message_load_be16(edp_header, length)-1;    
     uint8_t const opcode = *ptr++;
-
-    DEBUG_PRINTF("idigi_msg_process...\n");
 
     ASSERT_GOTO(edp_header != NULL, error);
 
