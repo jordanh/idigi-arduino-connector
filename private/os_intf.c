@@ -54,7 +54,6 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
 {
     idigi_callback_status_t status;
 
-    /* call callback */
     status = callback(class_id, request_id, request_data, request_length, response_data, response_length);
 
     switch (status)
@@ -73,15 +72,15 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
         status = idigi_callback_abort;
         break;
     case idigi_callback_abort:
-#if defined(DEBUG)
         DEBUG_PRINTF("idigi_callback: callback for class id = %d request id = %d returned abort\n", class_id, request_id.config_request);
-#endif
         break;
     default:
     {
+        /* callback returns invalid return code */
         idigi_error_status_t err_status = {class_id, request_id, idigi_invalid_response};
         idigi_request_t err_id = {idigi_config_error_status};
 
+        DEBUG_PRINTF("idigi_callback: callback for class id = %d request id = %d returned invalid return code %d\n", class_id, request_id.config_request, status);
         callback(idigi_class_config, err_id, &err_status, sizeof err_status, NULL, NULL);
         status = idigi_callback_abort;
         break;
@@ -199,10 +198,12 @@ static idigi_callback_status_t get_keepalive_timeout(idigi_data_t * const idigi_
 
     if (rx_timeout != NULL)
     {
+       /* Get the elapsed time between the configured rx keepalive interval and the last time we sent rx keepalive (rx_ka_time) */
         *rx_timeout =  get_elapsed_value(*idigi_ptr->rx_keepalive, idigi_ptr->rx_ka_time, *cur_system_time);
     }
     if (tx_timeout != NULL)
     {
+        /* Get the elapsed time between the configured tx keepalive interval and the last time we received tx keepalive (tx_ka_time) */
         *tx_timeout =  get_elapsed_value(*idigi_ptr->tx_keepalive, idigi_ptr->tx_ka_time, *cur_system_time);
     }
 done:
