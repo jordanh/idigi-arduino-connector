@@ -177,10 +177,6 @@ static int handle_config(void *user, const char* section, const char* name, cons
                     temp_fw->data_service_request->path.size = strlen(value);
                     temp_fw->data_service_request->path.value = strdup(value);
 				}
-				else if(strcmp(name, "payload") == 0){
-                    temp_fw->data_service_request->payload.size = strlen(value);
-                    temp_fw->data_service_request->payload.data = strdup(value);
-				}
 				else if(strcmp(name, "data_flag") == 0){
 				    if(strcmp(value, "Archive") == 0 || strcmp(value, "archive") == 0){
                         temp_fw->data_service_request->flag |= IDIGI_DATA_REQUEST_ARCHIVE;

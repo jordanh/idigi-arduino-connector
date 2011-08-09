@@ -33,7 +33,7 @@ extern "C"
 {
 #endif
 
-#define IDIGI_PORT       3197
+#define IDIGI_PORT          3197
 #define IDIGI_SSL_PORT   3199
 /* iDigi return status
  *
@@ -59,6 +59,7 @@ typedef enum {
    idigi_close_error,
    idigi_device_terminated,
    idigi_service_busy,
+   idigi_invalid_response,
 } idigi_status_t;
 
 typedef enum {
@@ -345,8 +346,8 @@ typedef enum {
      *  request_id = idigi_config_connect
      *  request_data = pointer to server FQDN which callback will make connection to.
      *                 Callback uses IDIGI_PORT or IDIGI_SSL_PORT port number to establish
-     *                 non-secured or secured connection respectively.
-     *  request_length = size of idigi_connect_request_t
+     *                 non-secure or secure connection respectively.
+     *  request_length = length of the server
      *  response_data = callback returns pointer to idigi_network_handle_t.
      *                              (This is used to for send, receive, & close callbacks)
      *  response_length = pointer to memory where callback writes the size of idigi_network_handle_t.
@@ -401,7 +402,7 @@ typedef enum {
      *  request_id = idigi_config_close
      *  request_data = pointer to idigi_network_handle_t associated with a connection through
      *                 the idigi_config_connect callback.
-     *  request_length = size of idigi_network_handle_t pointer
+     *  request_length = size of idigi_network_handle_t
      *  response_data = NULL
      *  response_length = NULL
      *
@@ -479,8 +480,7 @@ typedef enum {
      *  response_length = NULL
      *
      * Callback returns:
-     *  idigi_callback_continue = Callback successfully freed memory.
-     *  not idigi_callback_continue =  abort and exit iDigi.
+     *    ignore.
      *
      */
     idigi_os_free,
@@ -774,10 +774,10 @@ typedef union {
  *
  */
 typedef struct  {
-    idigi_class_t class_id;
-    idigi_request_t request_id;
+    idigi_class_t const class_id;
+    idigi_request_t const request_id;
  
-    idigi_status_t status;
+    idigi_status_t const status;
 } idigi_error_status_t;
 
 
@@ -795,8 +795,8 @@ typedef struct  {
  *                          The connection may be disconnected if keepalive fails.
  */
 typedef struct  {
-   idigi_network_handle_t * network_handle;
-    uint8_t     * buffer;
+   idigi_network_handle_t *  network_handle;
+    uint8_t  const *  buffer;
     size_t      length;
     unsigned    timeout;
 } idigi_write_request_t;
@@ -816,7 +816,7 @@ typedef struct  {
  */
 typedef struct  {
    idigi_network_handle_t * network_handle;
-    uint8_t     * buffer;
+    uint8_t  * buffer;
     size_t      length;
     unsigned    timeout;
 } idigi_read_request_t;
@@ -996,17 +996,17 @@ typedef struct {
  * @return idigi_callback_busy        iDigi will call the callback again
  * @return idigi_callback_abort       iDigi will stop and exit
  */
-typedef idigi_callback_status_t (* idigi_callback_t) (idigi_class_t class_id, idigi_request_t request_id,
-                                                  void * const request_data, size_t request_length, 
-                                                  void * response_data, size_t * response_length);
+typedef idigi_callback_status_t (* idigi_callback_t) (idigi_class_t const class_id, idigi_request_t const request_id,
+                                                  void const * const request_data, size_t const request_length,
+                                                  void * response_data, size_t * const response_length);
 
 /*
- * device type configurations. This function returns iDigi handle if iDigi is ready.
+ * Initializes iDigi and returns iDigi handle.
  *
  * @param callback      callback function to communicate with iDigi
  *
- * @return 0x0          Unable to initialize IRL or error is encountered.
- * @return handler      IRL Handler used throughout IRL API.
+ * @return 0x0          Unable to initialize iDigi or error is encountered.
+ * @return handle      iDigi Handle used throughout iDigi APIs.
  *
  */
 idigi_handle_t idigi_init(idigi_callback_t const callback);
@@ -1018,18 +1018,18 @@ idigi_handle_t idigi_init(idigi_callback_t const callback);
  *
  * iDigi only process one request at a time.
  *
- * @param handler       handler returned from idigi_init.
+ * @param handle       handle returned from idigi_init.
  *
  * @return idigi_success      No error is encountered and it allows caller to gain back the system control.
  *                          Caller must call this function again to continue iDigi process.
  * @return not idigi_success  Error is encountered and iDigi has closed the connection. Applciation
- *                          may call this function to restart IRL or idigi_initiate_action to terminated IRL.
+ *                          may call this function to restart iDigi or idigi_initiate_action to terminated iDigi.
  *
  *
  */
 idigi_status_t idigi_step(idigi_handle_t const handle);
 
-/* Starts and run iDigi. This function is similar to idigi_step except it does not
+/* Starts and runs iDigi. This function is similar to idigi_step except it does not
  * return control to caller unless it encounters error.
  *
  * This function is recommended to be executed as a thread.
@@ -1037,7 +1037,7 @@ idigi_status_t idigi_step(idigi_handle_t const handle);
  * @param handler       handler returned from idigi_init.
  *
   * @return not idigi_success  Error is encountered and iDigi has closed the connection. Applciation
- *                          may call this function to restart IRL or idigi_initiate_action to terminated IRL.
+ *                          may call this function to restart iDigi or idigi_initiate_action to terminated iDigi.
  */
 idigi_status_t idigi_run(idigi_handle_t const handle);
 
@@ -1049,16 +1049,23 @@ idigi_status_t idigi_run(idigi_handle_t const handle);
  *                       all allocated memory. If caller calls idigi_step, caller must call idigi_step again
  *                       for iDigi to be terminated. If caller is using idigi_run, idigi_run will be terminated
  *                       and return. Once iDigi is terminated, iDigi cannot restart unless idigi_init is called again.
+ *
+ *                      idigi_initiate_terminate: terminates and stops iDigi from running. It closes
+ *                                                           the connection to the iDigi server and frees all allocated memory.
+ *                                                           If the application is using idigi_step , the next call to idigi_step will
+ *                                                           terminate the iDigi. If caller is using idigi_run, idigi_run will terminate
+ *                                                           and return. Once iDigi is terminated, iDigi cannot restart unless idigi_init is called again.
+ *                      idigi_initiate_data_service: this is used to send data to the iDigi server, the data is stored in a file on the server.
+ *
  *@param request_data   Pointer to requested data.
-                        For Request ID:
-                            idigi_initiate_termiate: data is not used
-                            idigi_initiate_data_service: contains put service info
+ *                         idigi_initiate_terminate: NULL
+ *                         idigi_initiate_data_service: Pointer to idigi_data_request_t
+ *
  *@param response_data  Pointer to response data.
-                        For Request ID:
-                            idigi_initiate_termiate: data is not used
-                            idigi_initiate_data_service: Starting packet response will hold session ID.
+ *                          idigi_initiate_termiate: NULL
+ *                          idigi_initiate_data_service: pointer to the session handle passed in idigi_data_request_t for subsequent calls
  */
-idigi_status_t idigi_initiate_action(idigi_handle_t handle, idigi_initiate_request_t request, void * const request_data, void * response_data);
+idigi_status_t idigi_initiate_action(idigi_handle_t const handle, idigi_initiate_request_t const request, void const * const request_data, void * const response_data);
 
 #ifdef __cplusplus
 }

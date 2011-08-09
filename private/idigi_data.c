@@ -29,7 +29,6 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_
     idigi_request_t request;
 
     ASSERT_GOTO(idigi_ptr != NULL, error);
-    ASSERT_GOTO(data != NULL, error);
     ASSERT_GOTO(session != NULL, error);
 
     switch (msg_status) 
@@ -172,6 +171,7 @@ static idigi_status_t data_service_initiate(idigi_data_t * data_ptr,  void const
         info.header_length = fill_data_service_header(service, info.header);
         info.payload = service->payload.data;
         info.payload_length = service->payload.size;
+        info.flag = service->flag;
 
         {
             void ** const session_ptr = response;

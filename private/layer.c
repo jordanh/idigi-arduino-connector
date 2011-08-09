@@ -430,7 +430,7 @@ static idigi_callback_status_t communication_layer(idigi_data_t * idigi_ptr)
         {
             StoreBE32(ptr, EDP_MT_VERSION);
 
-            status = enable_send_packet(idigi_ptr, packet, sizeof(uint32_t),
+            status = initiate_send_packet(idigi_ptr, packet, sizeof(uint32_t),
                                         E_MSG_MT2_TYPE_VERSION,
                                         release_packet_buffer,
                                         NULL);
@@ -622,7 +622,7 @@ static idigi_callback_status_t initialization_layer(idigi_data_t * idigi_ptr)
         }
         StoreBE32(ptr, version);
 
-        status = enable_send_packet(idigi_ptr, edp_header, sizeof version,
+        status = initiate_send_packet(idigi_ptr, edp_header, sizeof version,
                                     E_MSG_MT2_TYPE_PAYLOAD,
                                     release_packet_buffer,
                                     NULL);
@@ -720,7 +720,7 @@ static idigi_callback_status_t security_layer(idigi_data_t * idigi_ptr)
         *ptr++ = SECURITY_OPER_IDENT_FORM;
         *ptr++ = SECURITY_IDENT_FORM_SIMPLE;
 
-        status = enable_send_packet(idigi_ptr, edp_header, (ptr-start_ptr),
+        status = initiate_send_packet(idigi_ptr, edp_header, (ptr-start_ptr),
                                     E_MSG_MT2_TYPE_PAYLOAD,
                                     release_packet_buffer,
                                     NULL);
@@ -744,7 +744,7 @@ static idigi_callback_status_t security_layer(idigi_data_t * idigi_ptr)
         memcpy(ptr, idigi_ptr->device_id, DEVICE_ID_LENGTH);
         ptr += DEVICE_ID_LENGTH;
 
-        status = enable_send_packet(idigi_ptr, edp_header, (ptr-start_ptr),
+        status = initiate_send_packet(idigi_ptr, edp_header, (ptr-start_ptr),
                                     E_MSG_MT2_TYPE_PAYLOAD,
                                     release_packet_buffer,
                                     NULL);
@@ -784,7 +784,7 @@ static idigi_callback_status_t security_layer(idigi_data_t * idigi_ptr)
             ptr += len;
         }
 
-        status = enable_send_packet(idigi_ptr, edp_header, (ptr-start_ptr),
+        status = initiate_send_packet(idigi_ptr, edp_header, (ptr-start_ptr),
                                     E_MSG_MT2_TYPE_PAYLOAD,
                                     release_packet_buffer,
                                     NULL);
@@ -845,7 +845,7 @@ static idigi_callback_status_t discovery_layer(idigi_data_t * idigi_ptr)
         memcpy(ptr, vendor_id, VENDOR_ID_LENGTH);
         ptr += VENDOR_ID_LENGTH;
 
-        status = enable_send_packet(idigi_ptr, edp_header,
+        status = initiate_send_packet(idigi_ptr, edp_header,
                                     (ptr-start_ptr),
                                     E_MSG_MT2_TYPE_PAYLOAD,
                                     release_packet_buffer,
@@ -886,7 +886,7 @@ static idigi_callback_status_t discovery_layer(idigi_data_t * idigi_ptr)
 
         /* Send the message. */
 
-        status = enable_send_packet(idigi_ptr, edp_header,
+        status = initiate_send_packet(idigi_ptr, edp_header,
                                     (ptr-start_ptr),
                                     E_MSG_MT2_TYPE_PAYLOAD,
                                     release_packet_buffer,
@@ -920,7 +920,7 @@ static idigi_callback_status_t discovery_layer(idigi_data_t * idigi_ptr)
         *ptr++ = sec_coding;
         *ptr++ = DISC_OP_INITCOMPLETE;
 
-        status = enable_send_packet(idigi_ptr, edp_header,
+        status = initiate_send_packet(idigi_ptr, edp_header,
                                     (ptr-start_ptr),
                                     E_MSG_MT2_TYPE_PAYLOAD,
                                     release_packet_buffer,

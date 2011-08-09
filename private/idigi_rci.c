@@ -260,7 +260,7 @@ static idigi_callback_status_t send_error_message(idigi_data_t * idigi_ptr, uint
     *ptr++ = RCI_ERROR_DETECTED_OPCODE;
     *ptr++ = error_code;
 
-    status = enable_facility_packet(idigi_ptr, packet, (ptr-start_ptr), E_MSG_FAC_RCI_NUM, release_packet_buffer, NULL);
+    status = initiate_send_facility_packet(idigi_ptr, packet, (ptr-start_ptr), E_MSG_FAC_RCI_NUM, release_packet_buffer, NULL);
 done:
     return status;
 }
@@ -272,7 +272,7 @@ static void rci_done_request(idigi_data_t * idigi_ptr, rci_data_t * rci_ptr)
 }
 
 static char const * no_query_state_response = "<rci_replay version=\"1.1\"> <query_state/> </rci_reply>";
-static void rci_send_packet_callback(idigi_data_t * idigi_ptr, uint8_t * packet, idigi_status_t status, void * user_data)
+static void rci_send_packet_callback(idigi_data_t * const idigi_ptr, uint8_t const * const packet, idigi_status_t const status, void * const user_data)
 {
     rci_data_t * rci_ptr = user_data;
     uint8_t * ptr;
@@ -283,6 +283,8 @@ static void rci_send_packet_callback(idigi_data_t * idigi_ptr, uint8_t * packet,
         uint8_t * start_ptr;
         uint8_t opcode;
         idigi_callback_status_t ccode;
+        uint8_t * edp_header;
+
 #if 0
         if (rci_ptr->response.length >= packet->header.avail_length)
         {
@@ -295,8 +297,8 @@ static void rci_send_packet_callback(idigi_data_t * idigi_ptr, uint8_t * packet,
             send_length = rci_ptr->response.length;
             opcode = RCI_COMMAND_REPLY_END_OPCODE;
         }
-        packet =get_packet_buffer(idigi_ptr, E_MSG_FAC_FW_NUM, &ptr);
-        ASSERT_GOTO(packet != NULL, done);
+        edp_header =get_packet_buffer(idigi_ptr, E_MSG_FAC_FW_NUM, &ptr);
+        ASSERT_GOTO(edp_header != NULL, done);
         start_ptr = ptr;
         *ptr++ = opcode;
         *ptr++ = rci_ptr->compression;
@@ -310,7 +312,7 @@ static void rci_send_packet_callback(idigi_data_t * idigi_ptr, uint8_t * packet,
         rci_ptr->response.pointer += send_length;
         rci_ptr->response.length -= send_length;
         DEBUG_PRINTF("rci_send_packet_callback: send chunk length %d\n", send_length);
-        ccode = enable_facility_packet(idigi_ptr, packet, (ptr - start_ptr), E_MSG_FAC_RCI_NUM, rci_send_packet_callback, rci_ptr);
+        ccode = initiate_send_facility_packet(idigi_ptr, edp_header, (ptr - start_ptr), E_MSG_FAC_RCI_NUM, rci_send_packet_callback, rci_ptr);
         ASSERT(ccode == idigi_callback_continue);
     }
     else
@@ -368,7 +370,7 @@ static idigi_callback_status_t rci_send_response(idigi_data_t * idigi_ptr, rci_d
     rci_ptr->response.pointer += send_length;
     rci_ptr->response.length -= send_length;
 
-    status = enable_facility_packet(idigi_ptr, packet, (ptr - start_ptr), E_MSG_FAC_RCI_NUM, rci_send_packet_callback, rci_ptr);
+    status = initiate_send_facility_packet(idigi_ptr, packet, (ptr - start_ptr), E_MSG_FAC_RCI_NUM, rci_send_packet_callback, rci_ptr);
 
 done:
     return status;
@@ -703,7 +705,7 @@ static idigi_callback_status_t rci_discovery(idigi_data_t * idigi_ptr, void * fa
     *ptr++ = RCI_COMPRESSION_COUNT;
     *ptr++ = rci_ptr->supported_compression;
 
-    status = enable_facility_packet(idigi_ptr, response_packet, (ptr - start_ptr), E_MSG_FAC_RCI_NUM, release_packet_buffer, NULL);
+    status = initiate_send_facility_packet(idigi_ptr, response_packet, (ptr - start_ptr), E_MSG_FAC_RCI_NUM, release_packet_buffer, NULL);
 
 done:
     return status;
