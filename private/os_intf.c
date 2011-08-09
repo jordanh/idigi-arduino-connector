@@ -254,10 +254,10 @@ static idigi_callback_status_t add_facility_data(idigi_data_t * const idigi_ptr,
         add_node(&idigi_ptr->facility_list, facility);
 
         /* setup facility data */
-        facility->facility_data = ptr + facility_size;
-        *fac_ptr = facility->facility_data;
+        facility->facility_data = (char *)ptr + facility_size;
+         *fac_ptr = facility->facility_data;
 
-        buffer_ptr = ptr + size + facility_size;
+        buffer_ptr = (idigi_buffer_t *) ((char *)ptr + size + facility_size);
         buffer_ptr->in_used = false;
 
         /* set up an additional receive buffer to the idigi data */
