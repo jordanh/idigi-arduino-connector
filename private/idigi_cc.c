@@ -280,11 +280,13 @@ enum cc_connection_report {
     field_define(connection_report, ip3, uint32_t),
     field_define(connection_report, ip4, uint32_t),
     field_define(connection_report, connection_type, uint8_t),
-    /* link_speed is only for WAN connection type */
-    field_define(connection_report, link_speed, uint32_t),
     record_end(connection_report)
 };
 
+enum cc_connection_info {
+    field_define(connection_info, link_speed, uint32_t),
+    record_end(connection_info)
+};
     idigi_callback_status_t status = idigi_callback_continue;
     uint8_t * edp_header;
     uint8_t * connection_report;
@@ -311,7 +313,6 @@ enum cc_connection_report {
         status = idigi_callback_busy;
         goto done;
     }
-
 
     if (cc_ptr->item == idigi_config_ip_addr)
     {
@@ -349,7 +350,7 @@ enum cc_connection_report {
         {
             cc_ptr->item = idigi_config_link_speed;
         }
-        cc_ptr->report_length++;
+        cc_ptr->report_length += field_named_data(connection_report, connection_type, size);
 
     }
 
@@ -373,6 +374,7 @@ enum cc_connection_report {
         idigi_request_t const request_id = {idigi_config_link_speed};
         size_t length;
         uint32_t * speed;
+        uint8_t * connection_info = connection_report + record_bytes(connection_report);
 
         status = idigi_callback(idigi_ptr->callback, idigi_class_config, request_id, NULL, 0, &speed, &length);
         if (status != idigi_callback_continue)
@@ -392,8 +394,9 @@ enum cc_connection_report {
             status = idigi_callback_abort;
             goto done;
         }
-        message_store_u8(connection_report, link_speed, *speed);
-        cc_ptr->report_length += field_named_data(connection_report, link_speed, size);
+        message_store_be32(connection_info, link_speed, *speed);
+        cc_ptr->report_length += field_named_data(connection_info, link_speed, size);
+        cc_ptr->item = idigi_config_phone_number;
     }
 
     if (cc_ptr->item == idigi_config_phone_number)
@@ -422,7 +425,6 @@ enum cc_connection_report {
             status = idigi_callback_abort;
             goto done;
         }
-
         memcpy(connection_report+cc_ptr->report_length, phone, length);
         cc_ptr->report_length += length;
     }
