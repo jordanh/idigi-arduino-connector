@@ -100,8 +100,8 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * fw_ptr, idi
     idigi_callback_status_t   status;
     unsigned timeout;
     uint32_t start_time_stamp, end_time_stamp;
-    uint32_t rx_keepalive;
-    uint32_t tx_keepalive;
+    uint32_t time_to_send_rx_keepalive;
+    uint32_t time_to_receive_tx_keepalive;
     unsigned * req_timeout;
     size_t  length;
     idigi_request_t rid;
@@ -112,10 +112,10 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * fw_ptr, idi
      * If callback exceeds the timeout value, error status callback
      * will be called. 
      */
-    status =  get_keepalive_timeout(idigi_ptr, &rx_keepalive, &tx_keepalive, &start_time_stamp);
-    if (rx_keepalive == 0 || status != idigi_callback_continue)
+    status =  get_keepalive_timeout(idigi_ptr, &time_to_send_rx_keepalive, &time_to_receive_tx_keepalive, &start_time_stamp);
+    if (time_to_send_rx_keepalive == 0 || status != idigi_callback_continue)
     {
-        if (rx_keepalive == 0)
+        if (time_to_send_rx_keepalive == 0)
         {
             /*  needs to return immediately for rx_keepalive. */
             status = idigi_callback_busy;
@@ -123,7 +123,7 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * fw_ptr, idi
         goto done;
     }
 
-    timeout = MIN_VALUE(rx_keepalive, tx_keepalive);
+    timeout = MIN_VALUE(time_to_send_rx_keepalive, time_to_receive_tx_keepalive);
 
     if (fw_ptr->ka_time > 0)
     {
@@ -889,7 +889,7 @@ static idigi_callback_status_t fw_process(idigi_data_t * idigi_ptr, void * facil
             /* start firmware keepalive (which requires device to
              * send target list message).
              */
-            fw_ptr->ka_time = idigi_ptr->tx_ka_time;
+            fw_ptr->ka_time = idigi_ptr->last_tx_keepalive_received_time;
         }
     }
 
