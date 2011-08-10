@@ -171,9 +171,9 @@ static int send_buffer(idigi_data_t * const idigi_ptr, uint8_t * const buffer, s
 
     idigi_callback_status_t status;
     idigi_write_request_t write_data;
-    uint32_t tx_ka_timeout;
-    uint32_t rx_ka_timeout;
-    uint32_t time_stamp;
+    uint32_t tx_keepalive_timeout;
+    uint32_t rx_keepalive_timeout;
+    uint32_t current_system_time;
     idigi_request_t const request_id = {idigi_network_send};
 
     size_t length_written, size;
@@ -191,7 +191,7 @@ static int send_buffer(idigi_data_t * const idigi_ptr, uint8_t * const buffer, s
      * Get rx keepalive timeout that we need to send a keepalive packet and
      * tx keepalive timeout that we expect a keepalive packet from server.
      */
-    status =  get_keepalive_timeout(idigi_ptr, &rx_ka_timeout, &tx_ka_timeout, &time_stamp);
+    status =  get_keepalive_timeout(idigi_ptr, &rx_keepalive_timeout, &tx_keepalive_timeout, &current_system_time);
     if (status != idigi_callback_continue)
     {
         /*  needs to return immediately for rx_keepalive. */
@@ -202,7 +202,7 @@ static int send_buffer(idigi_data_t * const idigi_ptr, uint8_t * const buffer, s
         goto done;
     }
 
-    write_data.timeout = MIN_VALUE(rx_ka_timeout, tx_ka_timeout);
+    write_data.timeout = MIN_VALUE(rx_keepalive_timeout, tx_keepalive_timeout);
     write_data.buffer = buffer;
     write_data.length = length;
     write_data.network_handle = idigi_ptr->network_handle;
@@ -214,7 +214,7 @@ static int send_buffer(idigi_data_t * const idigi_ptr, uint8_t * const buffer, s
         bytes_sent = length_written;
 
         /* Retain the "last (RX) message send" time. */
-        status = get_system_time(idigi_ptr, &idigi_ptr->rx_ka_time);
+        status = get_system_time(idigi_ptr, &idigi_ptr->last_rx_keepalive_sent_time);
         if (status == idigi_callback_abort)
         {
             bytes_sent = -idigi_configuration_error;
@@ -293,10 +293,9 @@ static idigi_callback_status_t rx_keepalive_process(idigi_data_t * const idigi_p
 
     /* Sends rx keepalive if keepalive timing is expired.
      *
-     * rx_ka_time is last time we sent Rx keepalive.
-     * rx_keepalive is Rx keepalive message frequency.
+     * last_rx_keeplive_time is last time we sent Rx keepalive.
      */
-    if (valid_timing_limit(idigi_ptr, idigi_ptr->rx_ka_time, *idigi_ptr->rx_keepalive))
+    if (valid_timing_limit(idigi_ptr, idigi_ptr->last_rx_keepalive_sent_time, *idigi_ptr->rx_keepalive_interval))
     {
         /* not expired yet. no need to send rx keepalive */
         goto done;
@@ -416,32 +415,32 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
     {
         idigi_read_request_t read_data;
         idigi_callback_status_t status;
-        uint32_t tx_ka_timeout;
-        uint32_t rx_ka_timeout;
-        uint32_t time_stamp;
+        uint32_t tx_keepalive_timeout;
+        uint32_t rx_keepalive_timeout;
+        uint32_t current_system_time;
         size_t  length_read;
         size_t size;
 
         /* Get rx keepalive timeout that we need to send a keepalive packet and
          * tx keepalive timeout that we expect a keepalive packet from server.
          */
-        status =  get_keepalive_timeout(idigi_ptr, &rx_ka_timeout, &tx_ka_timeout, &time_stamp);
+        status =  get_keepalive_timeout(idigi_ptr, &rx_keepalive_timeout, &tx_keepalive_timeout, &current_system_time);
         if (status != idigi_callback_continue)
         {
-            /*  needs to return immediately for rx_keepalive. */
+            /*  needs to return immediately for rx keepalive. */
             if (status == idigi_callback_abort)
             {
                 bytes_received = -idigi_ptr->error_code;
             }
             goto done;
         }
-        if (tx_ka_timeout == 0 || rx_ka_timeout == 0)
+        if (tx_keepalive_timeout == 0 || rx_keepalive_timeout == 0)
         {
             read_data.timeout = ONE_SECOND;
         }
         else
         {
-            read_data.timeout = MIN_VALUE(tx_ka_timeout, rx_ka_timeout);
+            read_data.timeout = MIN_VALUE(tx_keepalive_timeout, rx_keepalive_timeout);
         }
 
         read_data.network_handle = idigi_ptr->network_handle;
@@ -466,7 +465,7 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
         {
             bytes_received = (int)length_read;
             /* Retain the "last (tx keepalive) message send" time. */
-            if (get_system_time(idigi_ptr, &idigi_ptr->tx_ka_time) != idigi_callback_continue)
+            if (get_system_time(idigi_ptr, &idigi_ptr->last_tx_keepalive_received_time) != idigi_callback_continue)
             {
                 bytes_received = -idigi_configuration_error;
             }
@@ -475,12 +474,12 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
     }
 
     /* check Tx keepalive timing */
-    if (*idigi_ptr->tx_keepalive > 0)
+    if (*idigi_ptr->tx_keepalive_interval > 0)
     {
         uint8_t wait_count = * idigi_ptr->wait_count;
-        uint32_t max_timeout = *idigi_ptr->tx_keepalive * wait_count;
+        uint32_t max_timeout = *idigi_ptr->tx_keepalive_interval * wait_count;
 
-        if (!valid_timing_limit(idigi_ptr, idigi_ptr->tx_ka_time, max_timeout))
+        if (!valid_timing_limit(idigi_ptr, idigi_ptr->last_tx_keepalive_received_time, max_timeout))
         {
             /*
              * We haven't received a message
