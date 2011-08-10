@@ -150,11 +150,11 @@ typedef struct idigi_data {
     uint8_t * device_id;                        /* pointer to device id */
     uint8_t * vendor_id;                        /* pointer to vendor id */
     char * device_type;                         /* pointer to device type */
-    uint16_t * tx_keepalive;                    /* pointer to Tx keepalive configuration */
-    uint16_t * rx_keepalive;                    /* pointer to Rx keepalive configuration */
+    uint16_t * tx_keepalive_interval;           /* pointer to Tx keepalive configuration */
+    uint16_t * rx_keepalive_interval;           /* pointer to Rx keepalive configuration */
     uint8_t  * wait_count;                      /* wait count for keepalive messages */
-    uint32_t rx_ka_time;                        /* time sent last Rx keepalive message */
-    uint32_t tx_ka_time;                        /* time received last Tx keepalive message */
+    uint32_t last_rx_keepalive_sent_time;       /* time sent last Rx keepalive message */
+    uint32_t last_tx_keepalive_received_time;   /* time received last Tx keepalive message */
 
     idigi_facility_t * active_facility;         /* current active facility */
     idigi_facility_t * facility_list;           /* list of supported facilities */
