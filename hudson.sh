@@ -21,7 +21,7 @@ if [ "$TARGET" == "release_full_x86" ]; then
   nosetests --with-xunit
   kill -9 $child_pid_user
   cd ../admin_tests
-  nosetests --with-xuint
+  nosetests --with-xunit
   kill -9 $child_pid_admin
 else
   echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?> \
