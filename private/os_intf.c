@@ -31,8 +31,8 @@ static void init_setting(idigi_data_t * const idigi_ptr)
     idigi_ptr->request_id = 0;
     idigi_ptr->error_code = idigi_success;
     idigi_ptr->active_facility = NULL;
-    idigi_ptr->rx_ka_time = 0;
-    idigi_ptr->tx_ka_time = 0;
+    idigi_ptr->last_rx_keepalive_sent_time = 0;
+    idigi_ptr->last_tx_keepalive_received_time = 0;
 
     idigi_ptr->send_packet.total_length = 0;
     idigi_ptr->send_packet.length = 0;
@@ -198,13 +198,13 @@ static idigi_callback_status_t get_keepalive_timeout(idigi_data_t * const idigi_
 
     if (rx_timeout != NULL)
     {
-       /* Get the elapsed time between the configured rx keepalive interval and the last time we sent rx keepalive (rx_ka_time) */
-        *rx_timeout =  get_elapsed_value(*idigi_ptr->rx_keepalive, idigi_ptr->rx_ka_time, *cur_system_time);
+       /* Get the elapsed time between the configured rx keepalive interval and the last time we sent rx keepalive (last_rx_keepalive_sent_time) */
+        *rx_timeout =  get_elapsed_value(*idigi_ptr->rx_keepalive_interval, idigi_ptr->last_rx_keepalive_sent_time, *cur_system_time);
     }
     if (tx_timeout != NULL)
     {
-        /* Get the elapsed time between the configured tx keepalive interval and the last time we received tx keepalive (tx_ka_time) */
-        *tx_timeout =  get_elapsed_value(*idigi_ptr->tx_keepalive, idigi_ptr->tx_ka_time, *cur_system_time);
+        /* Get the elapsed time between the configured tx keepalive interval and the last time we received tx keepalive (last_tx_keepalive_received_time) */
+        *tx_timeout =  get_elapsed_value(*idigi_ptr->tx_keepalive_interval, idigi_ptr->last_tx_keepalive_received_time, *cur_system_time);
     }
 done:
     return status;
@@ -235,13 +235,13 @@ static idigi_callback_status_t add_facility_data(idigi_data_t * const idigi_ptr,
     idigi_facility_t * facility;
     void * ptr;
     size_t const facility_size = sizeof *facility;
+    idigi_buffer_t * buffer_ptr;
 
     /* allocate facility data and buffer*/
     *fac_ptr = NULL;
-    status = malloc_data(idigi_ptr, size + facility_size + sizeof(idigi_buffer_t), &ptr);
+    status = malloc_data(idigi_ptr, size + facility_size + sizeof *buffer_ptr, &ptr);
     if (status == idigi_callback_continue)
     {
-        idigi_buffer_t * buffer_ptr;
 
         ASSERT(ptr != NULL);
         /* add facility to idigi facility list */
@@ -253,14 +253,14 @@ static idigi_callback_status_t add_facility_data(idigi_data_t * const idigi_ptr,
 
         add_node(&idigi_ptr->facility_list, facility);
 
-        /* setup facility data */
-        facility->facility_data = (char *)ptr + facility_size;
+        /* setup facility data which is at the end of idigi_facility_t */
+        facility->facility_data = facility + 1;
          *fac_ptr = facility->facility_data;
 
-        buffer_ptr = (idigi_buffer_t *) ((char *)ptr + size + facility_size);
+        /* set up an additional receive buffer to the idigi_data_t */
+        buffer_ptr = (idigi_buffer_t *)((char *)facility->facility_data + size);
         buffer_ptr->in_used = false;
 
-        /* set up an additional receive buffer to the idigi data */
         buffer_ptr->next = idigi_ptr->receive_packet.packet_buffer.next;
         idigi_ptr->receive_packet.packet_buffer.next = buffer_ptr;
     }
