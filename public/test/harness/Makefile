@@ -14,7 +14,7 @@ SRC=src/config.c src/data_service.c src/firmware.c src/main.c src/network.c src/
 OBJS=${SRC:.c=.o}
 EXEC=iik_test
 
-CFLAGS += -I../../include -I./include -L../../../ -lidigi
+CFLAGS += -I../../include -I./include -L$(LIBDIR) -lidigi
 
 all: $(EXEC)
 
