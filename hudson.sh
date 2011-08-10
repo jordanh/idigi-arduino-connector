@@ -17,4 +17,9 @@ if [ "$TARGET" == "release_full_x86" ]; then
   cd cases
   nosetests --with-xunit
   kill -9 $child_pid
+else
+  echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?> \
+    <testsuite name=\"nosetests\" tests=\"0\" errors=\"0\" skip=\"0\"> \
+        <testcase classname=\"empty_test.NoTestsExecuted\" name=\"notest\" time=\"0\"/> \
+    </testsuite>" > public/test/harness/cases/nosetests.xml
 fi
