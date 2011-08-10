@@ -23,7 +23,7 @@
  *
  */
 
-#if (defined _IDIGI_COMPRESSION_BUILTIN)
+#if (defined IDIGI_COMPRESSION_BUILTIN)
 #include "zlib.h"
 #endif
 
@@ -110,14 +110,14 @@ typedef struct msg_session_t
     bool last_chunk;
     bool flow_controlled;
     bool more_data;
-#if (defined _IDIGI_COMPRESSION_BUILTIN)
+#if (defined IDIGI_COMPRESSION_BUILTIN)
     z_stream zlib;
 #endif
     struct msg_session_t * next;
     struct msg_session_t * prev;
 } msg_session_t;
 
-typedef idigi_callback_status_t idigi_msg_callback_t(idigi_data_t * idigi_ptr, msg_status_t const msg_status, msg_session_t * const session, uint8_t * buffer, size_t const length);
+typedef idigi_callback_status_t idigi_msg_callback_t(idigi_data_t * idigi_ptr, msg_status_t const msg_status, msg_session_t * const session, uint8_t const * buffer, size_t const length);
 
 typedef struct 
 {
@@ -134,9 +134,12 @@ typedef struct
 
 typedef struct
 {
-    #define DATA_SERVICE_HEADER_MAX_LENGTH  256
+    #define SERVICE_PATH_MAX_LENGTH    256
+    #define SERVICE_PARAM_MAX_LENGTH   32
+    #define SERVICE_HEADER_MAX_LENGTH  (SERVICE_PATH_MAX_LENGTH + SERVICE_PARAM_MAX_LENGTH)
+
     size_t header_length;
-    uint8_t header[DATA_SERVICE_HEADER_MAX_LENGTH];
+    uint8_t header[SERVICE_HEADER_MAX_LENGTH];
     size_t payload_length;
     uint8_t * payload;
     uint16_t flag;
@@ -168,7 +171,7 @@ static uint16_t msg_find_next_available_id(idigi_msg_data_t * const msg_ptr, msg
 
     do
     {
-        msg_ptr->cur_id++; /* wraps after 64k */
+        msg_ptr->cur_id++; /* wraps around at 64k to search entire range */
 
         if (msg_ptr->cur_id == MSG_INVALID_SESSION_ID)
             continue;
@@ -235,7 +238,7 @@ static void msg_delete_session(idigi_data_t * idigi_ptr,  msg_session_t * const 
 
     del_node(&msg_ptr->session_head[type], session);
 
-#if (defined _IDIGI_COMPRESSION_BUILTIN)
+#if (defined IDIGI_COMPRESSION_BUILTIN)
     if (session->compression == MSG_COMPRESSION_LIBZ) 
     {
         if (type == msg_type_tx)
@@ -304,7 +307,7 @@ static idigi_callback_status_t msg_send_capabilities(idigi_data_t * idigi_ptr, i
 
     /* append compression algorithms supported */
     {
-        #if (defined _IDIGI_COMPRESSION_BUILTIN)
+        #if (defined IDIGI_COMPRESSION_BUILTIN)
         uint8_t const compression_length =  1;
         #else
         uint8_t const compression_length =  0;
@@ -394,7 +397,7 @@ error:
     return success;
 }
 
-#if (defined _IDIGI_COMPRESSION_BUILTIN)
+#if (defined IDIGI_COMPRESSION_BUILTIN)
 #define MSG_FILL_ZLIB(z, inp, in_len, outp, out_len)  \
     do { \
         z->next_in = inp;\
@@ -571,7 +574,7 @@ static idigi_callback_status_t msg_send_data(idigi_data_t * idigi_ptr, msg_sessi
         session->total_bytes = info->payload_length;
         session->bytes_in_frame = 0;
         session->last_chunk = (info->flag & IDIGI_DATA_REQUEST_LAST) != 0;
-        #if (defined _IDIGI_COMPRESSION_BUILTIN)
+        #if (defined IDIGI_COMPRESSION_BUILTIN)
         session->compression = (info->flag & IDIGI_DATA_REQUEST_COMPRESSED) ? msg_ptr->peer_compression : MSG_NO_COMPRESSION;
         #endif
     }
@@ -579,7 +582,7 @@ static idigi_callback_status_t msg_send_data(idigi_data_t * idigi_ptr, msg_sessi
     {
         bool success = false; 
 
-        #if (defined _IDIGI_COMPRESSION_BUILTIN)
+        #if (defined IDIGI_COMPRESSION_BUILTIN)
         if (session->compression == MSG_COMPRESSION_LIBZ)
             success = msg_frame_compressed(session, info);
         #endif
@@ -652,7 +655,7 @@ static void msg_send_complete(idigi_data_t * const idigi_ptr, uint8_t const * co
         size_t const bytes = session->total_bytes - session->bytes_to_send;
 
         ASSERT_GOTO(cb_fn != NULL, done);
-        cb_fn(idigi_ptr, msg_status_send_complete, session, NULL, bytes);
+        cb_fn(idigi_ptr, msg_status_send_complete, session, (session->user_data - bytes), bytes);
         if ((status != idigi_success) || (!session->more_data && session->last_chunk))
             msg_delete_session(idigi_ptr, session, msg_type_tx);
     }
@@ -702,7 +705,7 @@ error:
 }
 
 
-#if (defined _IDIGI_COMPRESSION_BUILTIN)
+#if (defined IDIGI_COMPRESSION_BUILTIN)
 static idigi_callback_status_t msg_recv_compressed(idigi_data_t * idigi_ptr, idigi_msg_data_t const * const msg_fac, msg_session_t * const session, uint8_t * ptr, uint16_t length)
 {
     idigi_callback_status_t status = idigi_callback_abort;
@@ -766,7 +769,7 @@ static idigi_callback_status_t msg_process_data(idigi_data_t * idigi_ptr, idigi_
         session->last_chunk = last;
         session->compression = *ptr++;
 
-        #if (defined _IDIGI_COMPRESSION_BUILTIN)
+        #if (defined IDIGI_COMPRESSION_BUILTIN)
         if (session->compression == MSG_COMPRESSION_LIBZ)
         {
             z_streamp zlib_ptr = &session->zlib;
@@ -791,7 +794,7 @@ static idigi_callback_status_t msg_process_data(idigi_data_t * idigi_ptr, idigi_
     length -= (ptr - start_ptr);
     if (session->compression == MSG_COMPRESSION_LIBZ) 
     {
-        #if (defined _IDIGI_COMPRESSION_BUILTIN)
+        #if (defined IDIGI_COMPRESSION_BUILTIN)
         status = msg_recv_compressed(idigi_ptr, msg_fac, session, ptr, length);
         #else
         ASSERT_GOTO(false, error);

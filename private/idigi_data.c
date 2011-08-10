@@ -23,7 +23,7 @@
  *
  */
 
-static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_ptr, msg_status_t const msg_status, msg_session_t * const session, uint8_t * data, size_t const length)
+static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_ptr, msg_status_t const msg_status, msg_session_t * const session, uint8_t const * data, size_t const length)
 {
     idigi_callback_status_t status = idigi_callback_abort;
     idigi_request_t request;
@@ -31,11 +31,18 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_
     ASSERT_GOTO(idigi_ptr != NULL, error);
     ASSERT_GOTO(session != NULL, error);
 
+    {
+        bool const non_empty_data = ((data != NULL) && (length > 0));
+        bool const empty_data = ((data == NULL) && (length == 0));
+
+        ASSERT_GOTO(non_empty_data || empty_data, error);
+    }
+
     switch (msg_status) 
     {
         case msg_status_error:
         {
-            idigi_data_error_t error_info = {.session_id = session->session_id, .error = *data};
+            idigi_data_error_t const error_info = {session->session_id, *data};
 
             request.data_service_request = idigi_data_service_error;
             status = idigi_callback_no_response(idigi_ptr->callback, idigi_class_data_service, request, &error_info, sizeof error_info);
@@ -44,7 +51,7 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_
 
         case msg_status_send_complete:
         {
-            idigi_data_send_t send_info = {.session_id = session->session_id, .status = idigi_success, .bytes_sent = length};
+            idigi_data_send_t const send_info = {session->session_id, idigi_success, length};
 
             request.data_service_request = idigi_data_service_send_complete;
             status = idigi_callback_no_response(idigi_ptr->callback, idigi_class_data_service, request, &send_info, sizeof send_info);
@@ -82,32 +89,33 @@ error:
     return status;
 }
 
-static size_t fill_data_block(idigi_data_block_t const * const block, uint8_t * data)
+static uint8_t * fill_data_block(idigi_data_block_t const * const block, uint8_t * data)
 {
     *data++ = block->size;
 
     ASSERT(block->size > 0);
-    if (block->size > 0) 
+    if (block->size > 0)
+    {
         memcpy(data, block->value, block->size);
+        data += block->size;
+    }
 
-    return block->size + sizeof block->size;  /* total length */
+    return data;
 }
 
-static size_t fill_data_service_header(idigi_data_request_t const * const request, uint8_t * data)
+static uint8_t * fill_parameter_request(uint8_t const param_id, uint8_t * data)
+{    
+    uint8_t const param_request = 1;
+
+    *data++ = param_id;
+    *data++ = param_request;
+
+    return data;
+}
+
+static size_t fill_data_service_header(idigi_data_request_t const * const request, uint8_t * const data)
 {
     uint8_t * ptr = data;
-    size_t blk_length;
-    bool const archive = (request->flag & IDIGI_DATA_REQUEST_ARCHIVE) == IDIGI_DATA_REQUEST_ARCHIVE;
-    bool const append = (request->flag & IDIGI_DATA_REQUEST_APPEND) == IDIGI_DATA_REQUEST_APPEND;
-    uint8_t params = 1;
-
-    enum
-    {
-        parameter_id_content_type,
-        parameter_id_archive,
-        parameter_id_append,
-        parameter_count
-    };
 
     {
         uint8_t const data_service_request = 0;
@@ -115,31 +123,33 @@ static size_t fill_data_service_header(idigi_data_request_t const * const reques
         *ptr++ = data_service_request;
     }
 
-    blk_length = fill_data_block(&request->path, ptr);
-    ptr += blk_length;
+    ptr = fill_data_block(&request->path, ptr);
 
-    if (archive) params++;
-    if (append) params++;
-
-    *ptr++ = params;
-    *ptr++ = parameter_id_content_type;
-    blk_length = fill_data_block(&request->content_type, ptr);
-    ptr += blk_length;
-
-    if (archive)
     {
-        uint8_t const archive_request = 1;
+        bool const archive = (request->flag & IDIGI_DATA_REQUEST_ARCHIVE) == IDIGI_DATA_REQUEST_ARCHIVE;
+        bool const append = (request->flag & IDIGI_DATA_REQUEST_APPEND) == IDIGI_DATA_REQUEST_APPEND;
+        uint8_t params = 1;
 
-        *ptr++ = parameter_id_archive;
-        *ptr++ = archive_request;
-    }
+        enum
+        {
+            parameter_id_content_type,
+            parameter_id_archive,
+            parameter_id_append,
+            parameter_count
+        };
 
-    if (append)
-    {
-        uint8_t const append_request = 1;
-
-        *ptr++ = parameter_id_append;
-        *ptr++ = append_request;
+        if (archive) params++;
+        if (append) params++;
+    
+        *ptr++ = params;
+        *ptr++ = parameter_id_content_type;
+        ptr = fill_data_block(&request->content_type, ptr);
+    
+        if (archive)
+            ptr = fill_parameter_request(parameter_id_archive, ptr);
+    
+        if (append)
+            ptr = fill_parameter_request(parameter_id_append, ptr);
     }
 
     return (ptr - data);
@@ -182,7 +192,7 @@ static idigi_status_t data_service_initiate(idigi_data_t * data_ptr,  void const
     }
     else
     {
-        msg_data_info_t const info = {.header_length = 0, .payload_length = service->payload.size, .payload = service->payload.data, .flag = service->flag};
+        msg_data_info_t const info = {0, {0}, service->payload.size, service->payload.data, service->flag};
         idigi_callback_status_t const ret_status = msg_send_data(data_ptr, service->session, &info);
 
         status = (ret_status == idigi_callback_continue) ? idigi_success : idigi_configuration_error;

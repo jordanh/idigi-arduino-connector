@@ -60,7 +60,7 @@ idigi_status_t initiate_data_service(idigi_handle_t handle)
         goto done;
     }
 
-#define DATA_LOG_INTERVAL_IN_SECONDS   300
+#define DATA_LOG_INTERVAL_IN_SECONDS   30
     if ((current_time - last_time) >= DATA_LOG_INTERVAL_IN_SECONDS) 
     {
         last_time = current_time;
@@ -106,10 +106,11 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
     case idigi_data_service_response:
     {
         idigi_data_response_t const * response = request_data;
+        char * data = (char *)response->message.value;
 
         UNUSED_PARAMETER(response);
-        response->message.value[response->message.size] = '\0';
-        DEBUG_PRINTF("Handle: %d, status: %d, message: %s\n", response->session_id, response->status, response->message.value);
+        data[response->message.size] = '\0';
+        DEBUG_PRINTF("Handle: %d, status: %d, message: %s\n", response->session_id, response->status, data);
         break;
     }
 

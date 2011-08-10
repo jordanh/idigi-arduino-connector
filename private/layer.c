@@ -59,7 +59,7 @@ static idigi_facility_init_t idigi_facility_init_cb[] = {
 #if defined(_RCI_FACILITY)
         {idigi_config_rci_facility, rci_init_facility, rci_delete_facility},
 #endif
-#if defined(_IDIGI_DATA_SERVICE)
+#if defined(IDIGI_DATA_SERVICE)
         {idigi_config_data_service, data_service_init, data_service_delete}
 #endif
 };

@@ -937,7 +937,7 @@ typedef struct {
 
 typedef struct
 {
-    uint8_t * value;
+    uint8_t const * value;
     uint8_t size;
 } idigi_data_block_t;
 

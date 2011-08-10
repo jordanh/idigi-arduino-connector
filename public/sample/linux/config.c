@@ -264,7 +264,7 @@ static bool get_firmware_support(void)
 
 static bool get_data_service_support(void)
 {
-#if (defined _IDIGI_DATA_SERVICE)
+#if (defined IDIGI_DATA_SERVICE)
     return true;
 #else
     return false;
