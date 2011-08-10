@@ -147,17 +147,18 @@ class FirmwareTestCase(unittest.TestCase):
                 % (len(targets), len(config.firmware_target)))
                 
         for i in range(len(targets)):
+            target = int(targets[i].getAttribute("number"))
             parse_firmware_target = [getText(targets[i].getElementsByTagName("name")[0]),
                                     getText(targets[i].getElementsByTagName("pattern")[0]),
                                     getText(targets[i].getElementsByTagName("version")[0]),
                                     getText(targets[i].getElementsByTagName("code_size")[0])]
-            log.info("firmware target %i name: %s" % (i, parse_firmware_target[0]))
-            log.info("firmware target %i pattern: %s" % (i, parse_firmware_target[1]))
-            log.info("firmware target %i version: %s" % (i, parse_firmware_target[2]))
-            log.info("firmware target %i code size: %s" % (i, parse_firmware_target[3]))
-            log.info("Determining if firmware target %s matches given target" % i)
-            self.assertEqual(parse_firmware_target, config.firmware_target[i], 
-                            "Firmware Target does not match given target")
+            log.info("firmware target %i name: %s" % (target, parse_firmware_target[0]))
+            log.info("firmware target %i pattern: %s" % (target, parse_firmware_target[1]))
+            log.info("firmware target %i version: %s" % (target, parse_firmware_target[2]))
+            log.info("firmware target %i code size: %s" % (target, parse_firmware_target[3]))
+            log.info("Determining if firmware target %s matches given target" % target)
+            self.assertEqual(parse_firmware_target, config.firmware_target[target], 
+                            "Firmware Target %s does not match given target %s" %  (parse_firmware_target, config.firmware_target[target])) 
     
 
     def test_update_firmware_bytarget_multitargets(self):

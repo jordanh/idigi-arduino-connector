@@ -141,6 +141,7 @@ static int handle_config(void *user, const char* section, const char* name, cons
                     temp_fw->data_service_request->content_type.value = default_content_type;
                     temp_fw->data_service_request->path.size = strlen(default_path);
                     temp_fw->data_service_request->path.value = default_path;
+                    temp_fw->code_size = (uint32_t)-1;
 				}
 				if(strcmp(name, "name_spec") == 0){
 					temp_fw->name_spec = strdup(value);

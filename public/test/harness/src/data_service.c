@@ -26,26 +26,25 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+#include <stdbool.h>
 #include "time.h"
 
 #include "idigi_data.h"
 #include "idigi_struct.h"
 
 idigi_data_request_t * data_service_request;
+bool data_service_ready;
 
 idigi_status_t initiate_data_service(idigi_handle_t handle) 
 {
     idigi_status_t status = idigi_success;
 
     if(data_service_request != NULL){
-        if(strlen(data_service_request->payload.data) >= data_service_request->payload.size){
+        if(data_service_ready == true){
             status = idigi_initiate_action(handle, idigi_initiate_data_service, data_service_request, &data_service_request->session);
             DEBUG_PRINTF("Status: %d, Session: %p\n", status, data_service_request->session);
             data_service_request = NULL;   
-        }
-        else{
-            DEBUG_PRINTF("Data Service Payload Length (%d).  Expected Payload Length (%d).\n", strlen(data_service_request->payload.data), 
-                data_service_request->payload.size);
+            data_service_ready = false;
         }
     }
 

@@ -10,16 +10,26 @@ if [ "$TARGET" == "release_full_x86" ]; then
   export LD_LIBRARY_PATH=${OUTPUT_DIR}
   cd public/test/harness
   make clean all IDIGI_RULES=../rules/${TARGET}.rules
-  (./iik_test cases/config.ini; ) &
-  child_pid=$!
+  (./iik_test cases/admin_tests/config.ini; ) &
+  child_pid_admin=$!
+  (./iik_test cases/user_tests/config.ini; ) &
+  child_pid_user=$!
   echo "Sleeping 20 seconds to allow Device to connect."
   sleep 20
-  cd cases
+  export PYTHONPATH=../
+  cd cases/user_tests
   nosetests --with-xunit
-  kill -9 $child_pid
+  kill -9 $child_pid_user
+  cd ../admin_tests
+  nosetests --with-xuint
+  kill -9 $child_pid_admin
 else
   echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?> \
     <testsuite name=\"nosetests\" tests=\"0\" errors=\"0\" skip=\"0\"> \
         <testcase classname=\"empty_test.NoTestsExecuted\" name=\"notest\" time=\"0\"/> \
-    </testsuite>" > public/test/harness/cases/nosetests.xml
+    </testsuite>" > public/test/harness/cases/admin_tests/nosetests.xml
+  echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?> \
+    <testsuite name=\"nosetests\" tests=\"0\" errors=\"0\" skip=\"0\"> \
+        <testcase classname=\"empty_test.NoTestsExecuted\" name=\"notest\" time=\"0\"/> \
+    </testsuite>" > public/test/harness/cases/user_tests/nosetests.xml
 fi

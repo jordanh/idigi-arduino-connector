@@ -27,6 +27,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+#include <stdbool.h>
 
 #include "idigi_struct.h"
 #include "idigi_data.h"
@@ -41,6 +42,7 @@ firmware_list_t* firmware_list;
 uint8_t firmware_list_count;
 
 idigi_data_request_t * data_service_request;
+bool data_service_ready = false;
 
 static idigi_callback_status_t firmware_download_request(idigi_fw_download_request_t * download_data, idigi_fw_status_t * download_status)
 {
@@ -77,6 +79,11 @@ static idigi_callback_status_t firmware_download_request(idigi_fw_download_reque
         }
         data_service_request->payload.data = (uint8_t *)malloc(download_data->code_size * sizeof(uint8_t));
         data_service_request->payload.size = download_data->code_size;
+        if(data_service_request->payload.size == 0){
+            data_service_ready = true;
+            *download_status = idigi_fw_download_denied;
+            goto done;
+        }
     }
 
     switch(download_data->target){
@@ -134,8 +141,10 @@ static idigi_callback_status_t firmware_image_data(idigi_fw_image_data_t * image
         uint8_t * data_pointer = data_service_request->payload.data;
         data_pointer += image_data->offset;
         memcpy((void *)data_pointer, (void *)image_data->data, image_data->length);
+        DEBUG_PRINTF("Appended %d bytes data at offset %d.\n", image_data->length, image_data->offset);
         // Now that we've consumed all data, abort to prevent a disconnect.
         if (total_image_size == data_service_request->payload.size){
+            data_service_ready = true;
             *data_status = idigi_fw_user_abort;
             goto error;
         }
@@ -198,7 +207,6 @@ static idigi_callback_status_t firmware_download_complete(idigi_fw_download_comp
         DEBUG_PRINTF("firmware_download_complete: actual image size (%u) != the code size received (%zu)\n",
                       request_data->code_size, total_image_size);
     }
-
     firmware_download_started = false;
 
 done:

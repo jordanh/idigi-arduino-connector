@@ -361,6 +361,27 @@ class Api:
             raise Exception('Return Non 200 Status Code %d : %s.  Data = %s'
                             % (response.status, response.reason, response_str))
 
+    def get_raw(self, resource, **params):
+        connection = httplib.HTTPSConnection(self.hostname)
+        url = '%s/%s' % (self.ws_root, resource)
+        
+        if params:
+            url += '?' + urllib.urlencode([(key,params[key]) for key in params])
+        
+        connection.request('GET', url, headers = self.headers)
+        
+        log.info("Sending GET to %s" %url)
+        response = connection.getresponse()
+        response_str = response.read()
+        connection.close()
+        
+        if response.status == 200:
+            return response_str
+            
+        else:
+            raise Exception ('Return Non 200 Status Code %d : %s. Data = %s'
+                             % (response.status, response.reason, response_str))
+
     def get_first(self, resource, **params):
         result = self.get(resource, **params)
         if result and result.resources:

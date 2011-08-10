@@ -37,14 +37,54 @@ class DeviceConfiguration:
         self.num_firmware_targets = config.getint("firmware", "num_targets")
         self.firmware_target = []
         self.firmware_target_file = []
+        self.data_service_target = {}
+        
         for i in range(self.num_firmware_targets):
-            self.firmware_target_file.append(config.get("firmware.target.%d" % i, "file"))
+            try:
+                file = config.get("firmware.target.%d" % i, "file")
+                self.firmware_target_file.append(file)
+            except ConfigParser.NoOptionError:
+                self.firmware_target_file.append(None)
             self.firmware_target.append([config.get("firmware.target.%d" % i, "description"),
                             config.get("firmware.target.%d" % i, "name_spec"),
                             config.get("firmware.target.%d" % i, "version"),
                             "4294967295"])
     #                       os.stat(firmware_target_file[i])[ST_SIZE])
-    
+            try:
+                data_service = config.get("firmware.target.%d" % i, "data_service")
+                if data_service == "True":
+                    try:
+                        description = config.get("firmware.target.%d" % i, "description")
+                        self.data_service_target[description] = {"target":i,}
+                        
+                        try:
+                            data_flag = config.get("firmware.target.%d" % i, "data_flag")
+                            self.data_service_target[description]['data_flag'] = data_flag
+                        except ConfigParser.NoOptionError:
+                            pass
+                        try:
+                            file_name = config.get("firmware.target.%d" % i, "path")
+                            self.data_service_target[description]['file_name'] = file_name
+                        except ConfigParser.NoOptionError:
+                            pass
+                        try:
+                            interval = config.get("firmware.target.%d" % i, "interval")
+                            duration = config.get("firmware.target.%d" % i, "duration")
+                            self.data_service_target[description]['interval'] = interval
+                            self.data_service_target[description]['duration'] = duration
+                        except ConfigParser.NoOptionError:
+                            pass
+                        try:
+                            compression_flag = config.get("firmware.target.%d" % i, "compression")
+                            self.data_service_target[description]['compression'] = compression_flag
+                        except ConfigParser.NoOptionError:
+                            pass
+                    except ConfigParser.NoOptionError:
+                        log.info("Data Service Firmware Target %d is improperly formatted" % i)
+            except ConfigParser.NoOptionError:
+                pass
+                    
+        
         if self.firmware_target[0]:
             self.firmware_version = self.firmware_target[0][2]
         else:
@@ -54,3 +94,15 @@ class DeviceConfiguration:
         password = config.get("credentials", "password")
         self.api = idigi_ws_api.Api(user_id, password, host)
         
+if __name__ == '__main__':
+    config = DeviceConfiguration("configTest.ini")
+    
+    log.info("archive firmware target = %d\n file_name = %s" % 
+        (config.data_service_target['Archive']['target'], 
+        config.data_service_target['Archive']['file_name']))
+    log.info(config.data_service_target)
+    """try:
+        log.info("append firmware target =  %d\n file_name = %s" % config.data_service_target['Append'])
+        
+    except KeyError:
+        log.info("No 'Append' target exists")"""
