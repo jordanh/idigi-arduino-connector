@@ -9,7 +9,7 @@ if [ "$TARGET" == "release_full_x86" ]; then
   echo "Executing Test Harness Against Release"
   export LD_LIBRARY_PATH=${OUTPUT_DIR}
   cd public/test/harness
-  make clean all IDIGI_RULES=../rules/${TARGET}.rules
+  make clean all IDIGI_RULES=../rules/${TARGET}.rules LIBDIR=${OUTPUT_DIR}
   (./iik_test cases/admin_tests/config.ini; ) &
   child_pid_admin=$!
   (./iik_test cases/user_tests/config.ini; ) &
