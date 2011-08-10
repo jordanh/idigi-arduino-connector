@@ -204,7 +204,7 @@ static idigi_callback_status_t get_configurations(idigi_data_t * idigi_ptr)
                         idigi_ptr->error_code = idigi_invalid_data_range;
                         goto error;
                     }
-                    idigi_ptr->tx_keepalive = (uint16_t *)data;
+                    idigi_ptr->tx_keepalive_interval = (uint16_t *)data;
                     break;
                 case idigi_config_rx_keepalive:
                     if ((*((uint16_t *)data) < MIN_RX_KEEPALIVE_INTERVAL_PER_SECOND) ||
@@ -214,7 +214,7 @@ static idigi_callback_status_t get_configurations(idigi_data_t * idigi_ptr)
                         idigi_ptr->error_code = idigi_invalid_data_range;
                         goto error;
                     }
-                    idigi_ptr->rx_keepalive = (uint16_t *)data;
+                    idigi_ptr->rx_keepalive_interval = (uint16_t *)data;
                     break;
                 case idigi_config_wait_count:
                     if ((*((uint8_t *)data) < WAIT_COUNT_MIN) ||
@@ -547,12 +547,12 @@ static idigi_callback_status_t communication_layer(idigi_data_t * idigi_ptr)
         ptr = (uint8_t *)packet;
 ;
 
-        timeout = *idigi_ptr->rx_keepalive;
+        timeout = *idigi_ptr->rx_keepalive_interval;
         len = msg_add_keepalive_param(ptr, E_MSG_MT2_TYPE_KA_RX_INTERVAL, timeout);
         ptr += len;
         idigi_ptr->send_packet.total_length = len;
 
-        timeout = *idigi_ptr->tx_keepalive;
+        timeout = *idigi_ptr->tx_keepalive_interval;
         len = msg_add_keepalive_param(ptr, E_MSG_MT2_TYPE_KA_TX_INTERVAL, timeout);
         ptr += len;
         idigi_ptr->send_packet.total_length += len;
