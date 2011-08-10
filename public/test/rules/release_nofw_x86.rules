@@ -1,0 +1,3 @@
+LDFLAGS=-G -lc
+LITTLE_ENDIAN=true
+FACILITY_FW=false

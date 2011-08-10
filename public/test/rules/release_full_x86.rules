@@ -1,0 +1,2 @@
+LDFLAGS=-G -lc
+LITTLE_ENDIAN=true
