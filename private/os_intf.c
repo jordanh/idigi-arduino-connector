@@ -77,8 +77,12 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
     default:
     {
         /* callback returns invalid return code */
-        idigi_error_status_t err_status = {class_id, request_id, idigi_invalid_response};
-        idigi_request_t err_id = {idigi_config_error_status};
+        idigi_error_status_t err_status ;
+        idigi_request_t const err_id = {idigi_config_error_status};
+
+        err_status.class_id = class_id;
+        err_status.request_id = request_id;
+        err_status.status = idigi_invalid_response;
 
         DEBUG_PRINTF("idigi_callback: callback for class id = %d request id = %d returned invalid return code %d\n", class_id, request_id.config_request, status);
         callback(idigi_class_config, err_id, &err_status, sizeof err_status, NULL, NULL);
@@ -92,8 +96,12 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
 
 static void notify_error_status(idigi_callback_t const callback, idigi_class_t const class_number, idigi_request_t const request_number, idigi_status_t const status)
 {
-    idigi_error_status_t err_status = {class_number, request_number, status};
-    idigi_request_t request_id = {idigi_config_error_status};
+    idigi_error_status_t err_status;
+    idigi_request_t const request_id = {idigi_config_error_status};
+
+    err_status.class_id = class_number;
+    err_status.request_id = request_number;
+    err_status.status = status;
 
     idigi_callback_no_response(callback, idigi_class_config, request_id, &err_status, sizeof err_status);
     return;

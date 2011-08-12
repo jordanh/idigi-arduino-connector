@@ -55,13 +55,6 @@
 
 #ifdef _LITTLE_ENDIAN
 
-static inline unsigned long
-swap32(unsigned long value)
-{
-    uint32_t v = (value << 16) | (value >> 16);
-    return ((v >> 8) & 0x00ff00ff) | ((v << 8) & 0xff00ff00);
-}
-
 /* These are the definitions for LITTLE_ENDIAN */
 
 #define TO_LE32(x)	(x)
@@ -69,9 +62,9 @@ swap32(unsigned long value)
 #define FROM_LE32(x)	(x)
 #define FROM_LE16(x)	(x)
 
-#define TO_BE32(x)	(swap32(x))
-#define TO_BE16(x)	((unsigned short)(((x) >> 8 | (x) << 8) & 0xFFFF))
-#define FROM_BE32(x)	(swap32(x))
+#define TO_BE32(x)    ((((((x) << 16) | ((x) >> 16)) >> 8) & 0x00ff00ff) | (((((x) << 16) | ((x) >> 16)) << 8) & 0xff00ff00))
+#define TO_BE16(x)	  ((unsigned short)(((x) >> 8 | (x) << 8) & 0xFFFF))
+#define FROM_BE32(x)	((((((x) << 16) | ((x) >> 16)) >> 8) & 0x00ff00ff) | (((((x) << 16) | ((x) >> 16)) << 8) & 0xff00ff00))
 #define FROM_BE16(x)	((unsigned short)(((x) >> 8 | (x) << 8) & 0xFFFF))
 
 #define LoadNative16(array)    LoadLE16(array)
@@ -166,7 +159,7 @@ extern void WE16cpy(void *dst, void *src, int n);
     do {((unsigned char *)(array))[0] = (dw) >> 24; \
         ((unsigned char *)(array))[1] = (dw) >> 16; \
     ((unsigned char *)(array))[2] = (dw) >> 8; \
-        ((unsigned char *)(array))[3] = (dw); } while (0)
+        ((unsigned char *)(array))[3] = (unsigned char)(dw); } while (0)
 
 /* DWord LoadBE32(char array[4]);
  *  Loads BigEndian 32-bit value from char array and returns it as 32-bit value.

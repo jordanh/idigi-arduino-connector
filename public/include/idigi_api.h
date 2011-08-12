@@ -774,10 +774,10 @@ typedef union {
  *
  */
 typedef struct  {
-    idigi_class_t const class_id;
-    idigi_request_t const request_id;
+    idigi_class_t class_id;
+    idigi_request_t request_id;
  
-    idigi_status_t const status;
+    idigi_status_t status;
 } idigi_error_status_t;
 
 
