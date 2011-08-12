@@ -120,7 +120,7 @@ enum cc_redirect_report {
 
     cc_ptr->item = idigi_config_ip_addr;
 
-    status = initiate_send_facility_packet(idigi_ptr, edp_header, REDIRECT_REPORT_HEADER_SIZE + url_length, E_MSG_FAC_CC_NUM, release_packet_buffer, NULL);
+    status = initiate_send_facility_packet(idigi_ptr, edp_header, (uint16_t)(REDIRECT_REPORT_HEADER_SIZE + url_length), E_MSG_FAC_CC_NUM, release_packet_buffer, NULL);
 done:
     return status;
 }
