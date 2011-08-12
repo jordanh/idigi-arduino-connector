@@ -155,12 +155,20 @@ extern void WE16cpy(void *dst, void *src, int n);
 /* void StoreBE32(char array[4], DWord dw);
  *  Stores 32-bit value as BigEndian 32-bit value in char array.
  */
+#if 1
 #define StoreBE32(array, dw)    \
-    do {((unsigned char *)(array))[0] = (dw) >> 24; \
-        ((unsigned char *)(array))[1] = (dw) >> 16; \
-    ((unsigned char *)(array))[2] = (dw) >> 8; \
+    do {((unsigned char *)(array))[0] = (unsigned char)((dw) >> 24); \
+        ((unsigned char *)(array))[1] = (unsigned char)((dw) >> 16); \
+        ((unsigned char *)(array))[2] = (unsigned char)((dw) >> 8); \
         ((unsigned char *)(array))[3] = (unsigned char)(dw); } while (0)
+#else
 
+#define StoreBE32(array, dw)    \
+    do {((unsigned char *)(array))[0] = ((dw) >> 24); \
+        ((unsigned char *)(array))[1] = ((dw) >> 16); \
+        ((unsigned char *)(array))[2] = (dw) >> 8; \
+        ((unsigned char *)(array))[3] = (unsigned char)(dw); } while (0)
+#endif
 /* DWord LoadBE32(char array[4]);
  *  Loads BigEndian 32-bit value from char array and returns it as 32-bit value.
  */
