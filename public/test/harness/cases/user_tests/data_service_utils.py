@@ -80,8 +80,7 @@ def update_and_verify(instance, api, device_id, target, content,
     
     # Verify file's contents
     instance.assertEqual(expected_content, file_content, 
-        "File's contents (%s) do not match what is expected (%s)"
-        % (file_content, expected_content))
+        "File's contents do not match what is expected")
     
     # Check that FileData is correct
     log.info("Verifying file's metadata")
@@ -137,7 +136,7 @@ def check_filedatahistory(instance, fdh, datetime_created,
     data = getText(fdh[file].getElementsByTagName("fdData")[0])
     
     instance.assertEqual(data, encoded_content, 
-        "File's contents do not match what is expected (%s != %s)." % (data, encoded_content))
+        "File's contents do not match what is expected.")
      
     # Verify that file's Last Modified Date/time is within 2 minutes of
     # sampled date/time
