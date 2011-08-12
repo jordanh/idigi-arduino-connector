@@ -480,7 +480,7 @@ static uint8_t * get_newline_terminated_pointer(uint8_t * const ptr, uint16_t * 
     }
 
     *length = i;
-    return &pointer[i];
+    return pointer;
 }
 
 static idigi_callback_status_t process_fw_download_request(idigi_firmware_data_t * const fw_ptr, uint8_t * fw_download_request, uint16_t const length)
@@ -548,6 +548,8 @@ enum fw_download_response {
         uint16_t len = length - FW_DOWNLOAD_REQUEST_HEADER_SIZE;
 
         string_id_length = len;
+
+        fw_download_request += FW_DOWNLOAD_REQUEST_HEADER_SIZE;
         /* parse firmware ID String for label, filename spec and
          * file name separated by 0x0a.
          */
