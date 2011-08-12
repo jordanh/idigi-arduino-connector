@@ -1,5 +1,6 @@
 import ConfigParser
 import logging
+import os
 import idigi_ws_api
 
 log = logging.getLogger('configuration')
@@ -21,6 +22,7 @@ class DeviceConfiguration:
         config = ConfigParser.SafeConfigParser()
         config.read(config_file)
     
+        # Parse device section of configuration file
         self.tx_keepalive = config.getint("device", "tx_keepalive")
         self.rx_keepalive = config.getint("device", "rx_keepalive")
         self.wait_count = config.getint("device", "wait_count")
@@ -34,6 +36,7 @@ class DeviceConfiguration:
         host = config.get("device", "server_url")
         self.ip_address = config.get("device", "ip_address")
     
+        # Parse firmware targets
         self.num_firmware_targets = config.getint("firmware", "num_targets")
         self.firmware_target = []
         self.firmware_target_file = []
@@ -45,11 +48,10 @@ class DeviceConfiguration:
                 self.firmware_target_file.append(file)
             except ConfigParser.NoOptionError:
                 self.firmware_target_file.append(None)
+                
             self.firmware_target.append([config.get("firmware.target.%d" % i, "description"),
                             config.get("firmware.target.%d" % i, "name_spec"),
-                            config.get("firmware.target.%d" % i, "version"),
-                            "4294967295"])
-    #                       os.stat(firmware_target_file[i])[ST_SIZE])
+                            config.get("firmware.target.%d" % i, "version")])
             try:
                 data_service = config.get("firmware.target.%d" % i, "data_service")
                 if data_service == "True":
@@ -97,12 +99,3 @@ class DeviceConfiguration:
 if __name__ == '__main__':
     config = DeviceConfiguration("configTest.ini")
     
-    log.info("archive firmware target = %d\n file_name = %s" % 
-        (config.data_service_target['Archive']['target'], 
-        config.data_service_target['Archive']['file_name']))
-    log.info(config.data_service_target)
-    """try:
-        log.info("append firmware target =  %d\n file_name = %s" % config.data_service_target['Append'])
-        
-    except KeyError:
-        log.info("No 'Append' target exists")"""

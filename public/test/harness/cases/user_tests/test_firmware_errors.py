@@ -1,17 +1,13 @@
-import idigi_ws_api
 import logging
 import time
 import unittest
-import configuration
-
-from base64 import encodestring
-
 import xml.dom.minidom
-from xml.dom.minidom import getDOMImplementation
-impl = getDOMImplementation()
 
+import idigi_ws_api
+import configuration
+from utils import update_firmware
 
-config = configuration.DeviceConfiguration()
+config = configuration.DeviceConfiguration('config.ini')
 
 log = logging.getLogger('test_firmware_errors')
 log.setLevel(logging.INFO)
@@ -22,58 +18,34 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 log.addHandler(handler)
 
-
-def update_firmware(device,
-                    input_firmware,
-                    target):
-    request = impl.createDocument(None, "sci_request", None)
-    sci_element = request.documentElement
-    
-    update_firmware_element = request.createElement("update_firmware")
-    
-    targets = request.createElement("targets")
-    update_firmware_element.appendChild(targets)
-    device_element = request.createElement("device")
-    device_element.setAttribute("id", device)
-    targets.appendChild(device_element)
-        
-    sci_element.appendChild(update_firmware_element)
-    
-        
-    data = request.createElement("data")
-    f = open(input_firmware, 'rb')
-    data_value = request.createTextNode(encodestring(f.read()))
-    f.close()
-    data.appendChild(data_value)
-    
-    update_firmware_element.appendChild(data)
-            
-    if target:
-        update_firmware_element.setAttribute("firmware_target", target)
-
-    return config.api.sci(request.toprettyxml())
     
 def firmware_update_with_error(instance, config, target, error_message):
     # send request to update firmware
     log.info("Sending request to update firmware.")
-    response = update_firmware(config.device_id, config.firmware_target_file[target], "%d" % target)
+    response = update_firmware(config.api, config.device_id, 
+        config.firmware_target_file[target], "%d" % target)
         
     # print response
     log.info("response: \n%s" % response)
         
-    # Determine if response is correct
     log.info("Determining if correct error response was returned.")
-        
+    
+    # Parse response to verify an error was returned.
     dom = xml.dom.minidom.parseString(response)
     error_exists = dom.getElementsByTagName("error")
     instance.assertTrue(error_exists, "Response is not an error message.")
-        
+    
+    # Verify that correct error message was returned
     correct_error = response.find(error_message)
     instance.assertNotEqual(-1, correct_error,
             "The expected error message (%s) was not returned."
             % error_message)
     
 class FirmwareErrorsTestCase(unittest.TestCase):
+
+    """ Performs a series of tests against several different firmware targets
+    and verifies that the correct error response is returned.
+    """
 
     def setUp(self):
         # Ensure device is connected.
@@ -92,8 +64,7 @@ class FirmwareErrorsTestCase(unittest.TestCase):
         error_message = 'the firmware upgrade deferred by client'
         
         firmware_update_with_error(self, config, target, error_message)
-        
-        
+           
     def test_download_invalid_size(self):
         log.info("Beginning Test - Firmware Download Invalid Size.")
         target = 6
@@ -170,3 +141,7 @@ class FirmwareErrorsTestCase(unittest.TestCase):
         error_message = 'Aborted By Target'
         
         firmware_update_with_error(self, config, target, error_message)
+
+if __name__ == '__main__':
+
+    unittest.main()
