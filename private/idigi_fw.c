@@ -1076,6 +1076,9 @@ static idigi_callback_status_t fw_init_facility(idigi_data_t *idigi_ptr)
     fw_ptr->request_id = idigi_firmware_target_count;
     fw_ptr->target_count = 0;
     fw_ptr->target = 0;
+    fw_ptr->desc_length = 0;
+    fw_ptr->spec_length = 0;
+    fw_ptr->discovery_length = 0;
     fw_ptr->last_fw_keepalive_sent_time = 0;
     fw_ptr->fw_keepalive_start = false;
     fw_ptr->idigi_ptr = idigi_ptr;
