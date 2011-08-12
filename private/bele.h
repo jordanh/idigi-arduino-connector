@@ -159,7 +159,7 @@ extern void WE16cpy(void *dst, void *src, int n);
     do {((unsigned char *)(array))[0] = (dw) >> 24; \
         ((unsigned char *)(array))[1] = (dw) >> 16; \
     ((unsigned char *)(array))[2] = (dw) >> 8; \
-        ((unsigned char *)(array))[3] = (dw); } while (0)
+        ((unsigned char *)(array))[3] = (unsigned char)(dw); } while (0)
 
 /* DWord LoadBE32(char array[4]);
  *  Loads BigEndian 32-bit value from char array and returns it as 32-bit value.
