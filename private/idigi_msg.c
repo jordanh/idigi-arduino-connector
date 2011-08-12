@@ -353,7 +353,10 @@ static idigi_callback_status_t msg_send_capabilities(idigi_data_t * idigi_ptr, i
 
         message_store_u8(capabilty_packet, compression_count, compression_length);
         if (compression_length > 0)
+        {
             *variable_data_ptr++ = MSG_COMPRESSION_LIBZ;
+            packet_len++;
+        }
     }
 
     /* append service IDs of all listeners */
@@ -363,18 +366,19 @@ static idigi_callback_status_t msg_send_capabilities(idigi_data_t * idigi_ptr, i
 
         StoreBE16(variable_data_ptr, services);
         variable_data_ptr += sizeof services;
-        
+        packet_len += sizeof services;
+
         for (service_id = 0; service_id < msg_service_id_count; service_id++) 
         {
             if (msg_data->service_cb[service_id] !=  NULL)
             {
                 StoreBE16(variable_data_ptr, service_id);
                 variable_data_ptr += sizeof service_id;
+                packet_len += sizeof service_id;
             }
         }
     }
 
-    packet_len += (variable_data_ptr - capabilty_packet);
     status = initiate_send_facility_packet(idigi_ptr, packet, packet_len, E_MSG_FAC_MSG_NUM, release_packet_buffer, NULL);
 
 error:

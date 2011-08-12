@@ -60,7 +60,7 @@ idigi_status_t initiate_data_service(idigi_handle_t handle)
         goto done;
     }
 
-#define DATA_LOG_INTERVAL_IN_SECONDS   30
+#define DATA_LOG_INTERVAL_IN_SECONDS   300
     if ((current_time - last_time) >= DATA_LOG_INTERVAL_IN_SECONDS) 
     {
         last_time = current_time;
