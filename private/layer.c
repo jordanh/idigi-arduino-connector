@@ -163,7 +163,7 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
     idigi_callback_status_t status = idigi_callback_continue;
     void * data = NULL;
     size_t length;
-    idigi_request_t request_id;
+    idigi_request_t request_id = {idigi_config_server_url};
 
     unsigned idigi_edp_init_config_ids[INIT_CONFIG_ID_COUNT] = {
             idigi_config_server_url, idigi_config_rx_keepalive, idigi_config_tx_keepalive, idigi_config_wait_count,
@@ -430,7 +430,7 @@ static idigi_callback_status_t communication_layer(idigi_data_t * const idigi_pt
      *  1. establishes connection.
      *  2. sends MT version
      *  3. receives and validates MT version response
-     *  4. sends tx, rx, & waitcount parameter
+     *  4. sends tx, rx, & waitcount parameters
      */
     switch (idigi_ptr->layer_state)
     {
@@ -537,9 +537,9 @@ static idigi_callback_status_t communication_layer(idigi_data_t * const idigi_pt
     {
         uint8_t * ptr;
         uint8_t * packet;
-        uint16_t    timeout;
-        uint8_t     wait_count;
-        uint8_t     * data_ptr;
+        uint16_t  timeout;
+        uint8_t   wait_count;
+        uint8_t   * data_ptr;
         int len;
 
         DEBUG_PRINTF("communication layer: send keepalive params \n");
