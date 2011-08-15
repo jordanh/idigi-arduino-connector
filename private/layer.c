@@ -902,7 +902,7 @@ static idigi_callback_status_t discovery_layer(idigi_data_t * const idigi_ptr)
         /* Send the message. */
 
         status = initiate_send_packet(idigi_ptr, edp_header,
-                                    (EDP_DEVICE_TYPE_HEADER_SIZE + len),
+                                    (uint16_t)(EDP_DEVICE_TYPE_HEADER_SIZE + len),
                                     E_MSG_MT2_TYPE_PAYLOAD,
                                     release_packet_buffer,
                                     NULL);
