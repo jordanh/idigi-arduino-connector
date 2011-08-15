@@ -973,6 +973,13 @@ typedef struct
 typedef struct
 {
     uint16_t session_id;
+} idigi_data_session_t;
+
+#define IDIGI_DATA_GET_SESSION_ID(session)    ((idigi_data_session_t *)session)->session_id
+
+typedef struct
+{
+    uint16_t session_id;
     uint8_t error;
 } idigi_data_error_t;
 

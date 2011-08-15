@@ -127,7 +127,6 @@ typedef struct
     uint8_t max_transactions;
     uint8_t active_transactions;
     uint8_t peer_compression;
-    bool in_use;
     msg_session_t * session_head[msg_type_count];
     msg_session_t * pending;
 } idigi_msg_data_t;
@@ -269,6 +268,8 @@ static msg_session_t * msg_create_session(idigi_data_t * idigi_ptr, uint16_t con
     session->available_window = msg_ptr->peer_window;
     session->compression = MSG_NO_COMPRESSION;
     session->state = msg_state_init;
+    session->bytes_in_frame = 0;
+    session->bytes_to_send = 0;
 
     add_node(&msg_ptr->session_head[type], session);    
     msg_ptr->active_transactions++;
@@ -283,6 +284,9 @@ static void msg_delete_session(idigi_data_t * idigi_ptr,  msg_session_t * const 
 
     ASSERT_GOTO(msg_ptr != NULL, error);
     ASSERT_GOTO(session != NULL, error);
+
+    if (msg_ptr->pending == session)
+        msg_ptr->pending = session->prev;
 
     del_node(&msg_ptr->session_head[type], session);
 
@@ -353,10 +357,7 @@ static idigi_callback_status_t msg_send_capabilities(idigi_data_t * idigi_ptr, i
 
         message_store_u8(capabilty_packet, compression_count, compression_length);
         if (compression_length > 0)
-        {
             *variable_data_ptr++ = MSG_COMPRESSION_LIBZ;
-            packet_len++;
-        }
     }
 
     /* append service IDs of all listeners */
@@ -366,19 +367,18 @@ static idigi_callback_status_t msg_send_capabilities(idigi_data_t * idigi_ptr, i
 
         StoreBE16(variable_data_ptr, services);
         variable_data_ptr += sizeof services;
-        packet_len += sizeof services;
-
+        
         for (service_id = 0; service_id < msg_service_id_count; service_id++) 
         {
             if (msg_data->service_cb[service_id] !=  NULL)
             {
                 StoreBE16(variable_data_ptr, service_id);
                 variable_data_ptr += sizeof service_id;
-                packet_len += sizeof service_id;
             }
         }
     }
 
+    packet_len = variable_data_ptr - capabilty_packet;
     status = initiate_send_facility_packet(idigi_ptr, packet, packet_len, E_MSG_FAC_MSG_NUM, release_packet_buffer, NULL);
 
 error:
@@ -545,7 +545,7 @@ error:
 }
 #endif
 
-static idigi_callback_status_t msg_send_packet(idigi_data_t * idigi_ptr, msg_session_t * const session)
+static idigi_callback_status_t msg_send_packet(msg_session_t * const session)
 {
     idigi_callback_status_t status = idigi_callback_abort;
     uint8_t * ptr = GET_PACKET_DATA_POINTER(session->frame, PACKET_EDP_FACILITY_SIZE);
@@ -609,9 +609,7 @@ static idigi_callback_status_t msg_send_packet(idigi_data_t * idigi_ptr, msg_ses
 
     session->available_window -= session->bytes_in_frame;
     session->flow_controlled = (session->available_window < sizeof session->frame);
-    status = initiate_send_facility_packet(idigi_ptr, session->frame, session->bytes_in_frame, E_MSG_FAC_MSG_NUM, msg_send_complete, session);
-    if (status == idigi_callback_continue)
-        session->bytes_in_frame = 0;
+    status = idigi_callback_continue;
 
 error:
     return status;
@@ -625,11 +623,11 @@ static idigi_callback_status_t msg_send_data(idigi_data_t * idigi_ptr, msg_sessi
     ASSERT_GOTO(session != NULL, error);
     ASSERT_GOTO(msg_ptr != NULL, error);
 
-    if(msg_ptr->in_use)
-        goto error;
-
     if (info != NULL) 
     {
+        if (session->bytes_to_send > 0)
+            goto error;
+
         session->bytes_to_send = info->payload_length;
         session->user_data = info->payload;
         session->total_bytes = info->payload_length;
@@ -657,19 +655,9 @@ static idigi_callback_status_t msg_send_data(idigi_data_t * idigi_ptr, msg_sessi
         ASSERT_GOTO(success, error);
     }
 
-    if (session->bytes_in_frame > 0)
-    {
-        msg_ptr->in_use = true;
-        status = msg_send_packet(idigi_ptr, session);
-    }
-    
-    if (status == idigi_callback_busy)
-    {
-        ASSERT_GOTO(msg_ptr->pending == NULL, error);
-        msg_ptr->in_use = true;
+    status = (session ->bytes_in_frame > 0) ? msg_send_packet(session) : idigi_callback_continue;
+    if (msg_ptr->pending == NULL)
         msg_ptr->pending = session;
-        status = idigi_callback_continue;
-    }
 
 error:
     return status;
@@ -699,7 +687,6 @@ static void msg_send_complete(idigi_data_t * const idigi_ptr, uint8_t const * co
     UNUSED_PARAMETER(packet);
     ASSERT_GOTO(session != NULL, done);
 
-    msg_ptr->in_use = false;
     if (status == idigi_success)
     {
         if (session->more_data)
@@ -1005,16 +992,22 @@ static idigi_callback_status_t msg_process_pending(idigi_data_t * idigi_ptr)
 
     if ((msg_ptr != NULL) && (msg_ptr->pending != NULL))
     {
-        msg_session_t * const session = msg_ptr->pending;
+        msg_session_t * session = msg_ptr->pending;
 
-        msg_ptr->pending = NULL;
         if (session->bytes_in_frame > 0) 
         {
             status = initiate_send_facility_packet(idigi_ptr, session->frame, session->bytes_in_frame, E_MSG_FAC_MSG_NUM, msg_send_complete, session);
             if (status == idigi_callback_continue)
+            {
                 session->bytes_in_frame = 0;
-            else
-                msg_ptr->pending = session;
+                if (!session->more_data)
+                {
+                    session = session->prev;
+
+                    if ((session != NULL) && (session->bytes_in_frame > 0)) 
+                        msg_ptr->pending = session;
+                }
+            }
         }
         else
             msg_send_complete(idigi_ptr, NULL, idigi_success, session);
@@ -1092,7 +1085,6 @@ static uint16_t msg_init_facility(idigi_data_t *idigi_ptr, uint16_t service_id, 
         msg_ptr = fac_ptr;
         msg_ptr->peer_window = 0;
         msg_ptr->cur_id = MSG_INVALID_SESSION_ID;
-        msg_ptr->in_use = false;
         msg_ptr->pending = NULL;
 
         memset(msg_ptr->service_cb, 0, sizeof msg_ptr->service_cb);
