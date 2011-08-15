@@ -77,12 +77,15 @@ static idigi_callback_status_t firmware_download_request(idigi_fw_download_reque
         if(data_service_request->payload.data != NULL){
             free(data_service_request->payload.data);
         }
-        data_service_request->payload.data = (uint8_t *)malloc(download_data->code_size * sizeof(uint8_t));
         data_service_request->payload.size = download_data->code_size;
         if(data_service_request->payload.size == 0){
             data_service_ready = true;
+            data_service_request->payload.data = NULL;
             *download_status = idigi_fw_download_denied;
             goto done;
+        }
+        else{
+            data_service_request->payload.data = (uint8_t *)malloc(download_data->code_size * sizeof(uint8_t));
         }
     }
 
