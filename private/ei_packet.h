@@ -37,8 +37,8 @@
 
 #define field_define(record, field, type)       field_allocate(field_name(record, field), type)
 
-#define field_allocate_array(name, count)       field_data(name, offset), \
-                                                field_data(name, size) = (count), \
+#define field_allocate_array(name, bytes)       field_data(name, offset), \
+                                                field_data(name, size) = (bytes), \
                                                 field_data(name, next) = (field_data(name, offset) + field_data(name, size) - 1)
 
 #define field_define_array(record, field, count) field_allocate_array(field_name(record, field), count)
