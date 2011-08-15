@@ -113,7 +113,6 @@ enum cc_redirect_report {
     message_store_be16(redirect_report, url_length, url_length);
     redirect_report += REDIRECT_REPORT_HEADER_SIZE;
 
-    ASSERT_GOTO(url_length > 0, done);
     memcpy(redirect_report, cc_ptr->origin_url, url_length);
     cc_ptr->item = idigi_config_ip_addr;
 
