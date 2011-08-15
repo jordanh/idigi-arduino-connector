@@ -66,7 +66,7 @@ idigi_status_t initiate_data_service(idigi_handle_t handle)
         last_time = current_time;
         status = idigi_initiate_action(handle, idigi_initiate_data_service, &request, &request.session);
 
-        DEBUG_PRINTF("Status: %d, Session: %p\n", status, request.session);
+        DEBUG_PRINTF("Status: %d, Session id: %d\n", status, IDIGI_DATA_GET_SESSION_ID(request.session));
     }
 
 done:
