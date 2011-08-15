@@ -323,7 +323,7 @@ done:
 
 }
 
-static idigi_callback_status_t  process_fw_info_request(idigi_firmware_data_t * const fw_ptr, uint8_t * const message, uint16_t const length)
+static idigi_callback_status_t  process_fw_info_request(idigi_firmware_data_t * const fw_ptr, uint8_t * const fw_message, uint16_t const length)
 {
 /* firmware info response message format:
  *  ---------------------------------------------------
@@ -367,7 +367,7 @@ enum fw_info {
     ASSERT_GOTO(length == MAX_FW_INFO_REQUEST_LENGTH, done);
 
     /* let's get the request target number from the request packet */
-    target = *(message+1);
+    target = message_load_u8(fw_message, target);
 
     /* let's get and build target info response */
     while (fw_ptr->request_id < FW_INFO_REQUEST_ID_COUNT)
