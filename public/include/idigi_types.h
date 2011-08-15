@@ -35,6 +35,8 @@ typedef int idigi_network_handle_t;
 
 
 #if defined(DEBUG)
+#include <stdio.h>
+#include <stdlib.h>  /* for malloc */
 #define DEBUG_PRINTF(...)   printf(__VA_ARGS__)
 #define ASSERT(cond)        assert(cond)
 

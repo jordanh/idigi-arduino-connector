@@ -119,13 +119,15 @@ static idigi_callback_status_t initiate_send_packet(idigi_data_t * const idigi_p
      *    ----------------
      *
      *
-     */
-    message_store_be16(edp_header, type, type);
-    message_store_be16(edp_header, length, length);
+    */
 
     /* total bytes to be sent to server (packet data length + the edp header length) */
     idigi_ptr->send_packet.total_length = length + PACKET_EDP_HEADER_SIZE;
     idigi_ptr->send_packet.ptr = (uint8_t *)packet;
+
+    message_store_be16(edp_header, type, type);
+    message_store_be16(edp_header, length, length);
+
 
     /* clear the actual number of bytes to be sent */
     idigi_ptr->send_packet.length = 0;
@@ -159,7 +161,7 @@ static idigi_callback_status_t initiate_send_facility_packet(idigi_data_t * cons
     message_store_be16(edp_protocol, facility, facility);
 
     return initiate_send_packet(idigi_ptr, edp_header,
-                                (length + PACKET_EDP_PROTOCOL_SIZE),
+                                (uint16_t)(length + PACKET_EDP_PROTOCOL_SIZE),
                                 E_MSG_MT2_TYPE_PAYLOAD,
                                 send_complete_cb,
                                 user_data);

@@ -82,7 +82,7 @@ enum cc_redirect_report {
 #define REDIRECT_REPORT_HEADER_SIZE record_bytes(redirect_report)
 
 
-    idigi_callback_status_t status;
+    idigi_callback_status_t status = idigi_callback_abort;
     uint8_t             * edp_header;
     uint16_t            url_length;
     uint8_t             * redirect_report;
@@ -113,14 +113,10 @@ enum cc_redirect_report {
     message_store_be16(redirect_report, url_length, url_length);
     redirect_report += REDIRECT_REPORT_HEADER_SIZE;
 
-    if (url_length > 0)
-    {   /* URL */
-        memcpy(redirect_report, cc_ptr->origin_url, url_length);
-    }
-
+    memcpy(redirect_report, cc_ptr->origin_url, url_length);
     cc_ptr->item = idigi_config_ip_addr;
 
-    status = initiate_send_facility_packet(idigi_ptr, edp_header, REDIRECT_REPORT_HEADER_SIZE + url_length, E_MSG_FAC_CC_NUM, release_packet_buffer, NULL);
+    status = initiate_send_facility_packet(idigi_ptr, edp_header, (uint16_t)(REDIRECT_REPORT_HEADER_SIZE + url_length), E_MSG_FAC_CC_NUM, release_packet_buffer, NULL);
 done:
     return status;
 }
@@ -175,8 +171,8 @@ static idigi_callback_status_t get_ip_addr(idigi_data_t * const idigi_ptr, uint8
              * then the ipv4 addr
              */
 
-            unsigned char ipv6_padding_for_ipv4[] = {0,0,0,0,0,0,0,0,0,0,0xff,0xff};
-            size_t padding_length = sizeof ipv6_padding_for_ipv4/sizeof ipv6_padding_for_ipv4[0];
+            unsigned char const ipv6_padding_for_ipv4[] = {0,0,0,0,0,0,0,0,0,0,0xff,0xff};
+            size_t const padding_length = sizeof ipv6_padding_for_ipv4/sizeof ipv6_padding_for_ipv4[0];
 
             ASSERT(padding_length == (CC_IPV6_ADDRESS_LENGTH - CC_IPV4_ADDRESS_LENGTH));
 
@@ -372,8 +368,9 @@ enum cc_connection_info {
     {
         /* callback for Link speed for WAN connection type */
         idigi_request_t const request_id = {idigi_config_link_speed};
-        size_t length;
-        uint32_t * speed;
+        /* set for invalid size to cause an error if callback doesn't set it */
+        size_t length = sizeof(uint16_t);
+        uint32_t * speed = NULL;
         uint8_t * connection_info = connection_report + record_bytes(connection_report);
 
         status = idigi_callback(idigi_ptr->callback, idigi_class_config, request_id, NULL, 0, &speed, &length);
@@ -403,7 +400,7 @@ enum cc_connection_info {
     {
         /* callback for phone number for WAN connection type */
         idigi_request_t const request_id = {idigi_config_phone_number};
-        size_t length;
+        size_t length = 0;
         uint8_t * phone = NULL;
 
         status = idigi_callback(idigi_ptr->callback, idigi_class_config, request_id, NULL, 0, &phone, &length);
@@ -482,8 +479,7 @@ enum cc_redirect_url {
     idigi_callback_status_t status = idigi_callback_continue;
     uint8_t     url_count;
     uint8_t     * redirect;
-    uint16_t prefix_len;
-
+    size_t const prefix_len = sizeof URL_PREFIX;
 
     DEBUG_PRINTF("process_redirect:  redirect to new destination\n");
     /* Redirect to new destination:
@@ -515,8 +511,6 @@ enum cc_redirect_url {
         url_count = CC_REDIRECT_SERVER_COUNT;
     }
 
-    /* skip en:// prefix */
-    prefix_len = strlen(URL_PREFIX);
 
     /* let's start parsing url length and url string */
     if (cc_ptr->state != cc_state_redirect_server)
@@ -535,9 +529,6 @@ enum cc_redirect_url {
         /* save original server url that we connected before */
         strcpy(cc_ptr->origin_url, URL_PREFIX);
         strcpy((cc_ptr->origin_url + prefix_len), idigi_ptr->server_url);
-
-        cc_ptr->server_url[0][0] = 0x0;
-        cc_ptr->server_url[1][0] = 0x0;
 
         /* let parse url length and url string */
         for (i = 0; i < url_count; i++)
@@ -681,6 +672,7 @@ static idigi_callback_status_t cc_init_facility(idigi_data_t * const idigi_ptr)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_cc_data_t * cc_ptr;
+    int i;
 
     /* Add Connection control facility to iDigi
      *
@@ -700,15 +692,18 @@ static idigi_callback_status_t cc_init_facility(idigi_data_t * const idigi_ptr)
         {
             goto done;
         }
-        cc_ptr = (idigi_cc_data_t *)ptr;
+        cc_ptr = ptr;
 
     }
     cc_ptr->report_code = cc_not_redirect;
-    cc_ptr->server_url[0][0] = '\0';
-    cc_ptr->server_url[1][0] = '\0';
+
     cc_ptr->origin_url[0] = '\0';
     cc_ptr->state = cc_state_redirect_report;
     cc_ptr->item = 0;
+    for (i=0; i < CC_REDIRECT_SERVER_COUNT; i++)
+    {
+        cc_ptr->server_url[i][0] = '\0';
+    }
 
 done:
     return status;
