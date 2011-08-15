@@ -89,7 +89,7 @@ int main (void)
             status = idigi_step(device_data.idigi_handle);
             device_data.select_data = 0;
 
-            if (device_data.connected)
+            if (device_data.connected && status == idigi_success)
             {
                 device_data.select_data |= NETWORK_TIMEOUT_SET | NETWORK_READ_SET;
                 network_select(device_data.socket_fd, device_data.select_data, &delay);
