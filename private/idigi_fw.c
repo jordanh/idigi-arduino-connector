@@ -303,11 +303,11 @@ static idigi_callback_status_t send_fw_abort(idigi_data_t * const idigi_ptr, uin
         goto done;
     }
     /* need to adjust abort status code in the fw_status_t */
-    if (msg_opcode != fw_error_opcode && (status < idigi_fw_user_abort || status > idigi_fw_hardware_error))
+    if (msg_opcode != fw_error_opcode && (abort_status < idigi_fw_user_abort || abort_status > idigi_fw_hardware_error))
     { /* set fw_device_error for non-abort status */
         abort_code = fw_device_error;
     }
-    else if (status >= idigi_fw_user_abort)
+    else if (abort_status >= idigi_fw_user_abort)
     {
         abort_code = get_abort_status_code(abort_status);
     }
