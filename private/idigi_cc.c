@@ -479,7 +479,8 @@ enum cc_redirect_url {
     idigi_callback_status_t status = idigi_callback_continue;
     uint8_t     url_count;
     uint8_t     * redirect;
-    size_t const prefix_len = sizeof URL_PREFIX;
+    size_t const prefix_len = sizeof URL_PREFIX -1;
+
 
     DEBUG_PRINTF("process_redirect:  redirect to new destination\n");
     /* Redirect to new destination:
