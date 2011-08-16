@@ -115,7 +115,7 @@ static idigi_callback_status_t get_system_time(idigi_data_t * const idigi_ptr, u
     idigi_request_t request_id = {idigi_os_system_up_time};
 
     /* Call callback to get system up time in second */
-    status = idigi_callback(idigi_ptr->callback, idigi_class_operating_system, request_id, NULL, 0, uptime, &length);
+    status = idigi_callback_no_request(idigi_ptr->callback, idigi_class_operating_system, request_id, uptime, &length);
     if (status == idigi_callback_abort)
     {
         idigi_ptr->error_code = idigi_configuration_error;
