@@ -97,7 +97,7 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
         idigi_status_t error_status = idigi_success;
 
         request_id.config_request = idigi_config_request_ids[i].request;
-        status = idigi_callback(idigi_handle->callback, idigi_class_config, request_id, NULL, 0, &data, &length);
+        status = idigi_callback_no_request(idigi_handle->callback, idigi_class_config, request_id, &data, &length);
 
         if (status == idigi_callback_continue)
         {

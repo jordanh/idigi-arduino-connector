@@ -28,8 +28,18 @@
 
 #include <string.h>
 #include <assert.h>
-#include <stdint.h>
-#include <stdbool.h>
+
+#if __STDC_VERSION__ >= 199901L
+  #include <stdint.h>
+  #include <stdbool.h>
+#else
+  typedef unsigned char uint8_t;
+  typedef unsigned short uint16_t;
+  typedef unsigned long uint32_t;
+  typedef int bool;
+  #define true    1
+  #define false   0
+#endif
 
 typedef int idigi_network_handle_t;
 
