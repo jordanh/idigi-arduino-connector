@@ -176,7 +176,7 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
     {
         request_id.config_request = idigi_edp_init_config_ids[idigi_ptr->request_id];
 
-        status = idigi_callback(idigi_ptr->callback, idigi_class_config, request_id, NULL, 0, &data, &length);
+        status = idigi_callback_no_request(idigi_ptr->callback, idigi_class_config, request_id, &data, &length);
         if (status == idigi_callback_continue)
         {
             if (data == NULL)
@@ -289,7 +289,7 @@ static idigi_callback_status_t get_supported_facilities(idigi_data_t * const idi
         request_id.config_request = idigi_supported_facility_table[i].facility;
         if (request_id.config_request != (idigi_config_request_t)MANDATORY_FACILITY)
         {   /* this is optional facility so ask application whether it supports this facility */
-            status = idigi_callback(idigi_ptr->callback, idigi_class_config, request_id, NULL, 0, &facility_enable, &length);
+            status = idigi_callback_no_request(idigi_ptr->callback, idigi_class_config, request_id, &facility_enable, &length);
             if (status != idigi_callback_continue)
             {
                 if (status == idigi_callback_abort)
