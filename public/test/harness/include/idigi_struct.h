@@ -22,9 +22,6 @@
  * =======================================================================
  *
  */
-#ifndef APP_DEF_H_
-#define APP_DEF_H_
-
 #ifndef _MSC_VER
   #include <netinet/in.h>
 #endif
@@ -75,5 +72,3 @@ extern time_t  deviceSystemUpStartTime;
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* APP_DEF_H_ */

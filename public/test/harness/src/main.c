@@ -23,6 +23,9 @@
  *
  */
 
+#include "inih/ini.h"
+#include "firmware.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -30,7 +33,6 @@
 
 #include "idigi_struct.h"
 #include "idigi_data.h"
-#include "firmware.h"
 
 firmware_list_t* temp_fw;
 static uint8_t default_content_type[] = "text/plain";
@@ -41,8 +43,6 @@ static uint8_t default_path[] = "default.txt";
 #define ONE_SECOND  1
 time_t  deviceSystemUpStartTime;
 char* cur_section = "";
-
-idigi_data_t iDigiSetting;
 
 idigi_callback_status_t idigi_callback(idigi_class_t class, idigi_request_t request,
                                     void * const request_data, size_t request_length,
@@ -77,7 +77,7 @@ idigi_callback_status_t idigi_callback(idigi_class_t class, idigi_request_t requ
     return status;
 }
 
-static void handle_config(void *user, const char* section, const char* name, const char* value){
+static int handle_config(void *user, const char* section, const char* name, const char* value){
 	idigi_data_t* config = (idigi_data_t*)user;
 
 	if(strcmp(section, "device") == 0){
@@ -198,12 +198,13 @@ static void handle_config(void *user, const char* section, const char* name, con
 			}
 		}
 	}
+  return 0;
 }
 
 int main (int argc, char* argv[])
 {
-    char* config_file;
-    idigi_status_t status;
+  char* config_file;
+  idigi_status_t status;
     
 	if(argc < 2){
 		perror("Usage: iik_test config_file\n");
@@ -211,36 +212,35 @@ int main (int argc, char* argv[])
 	}
     
 	config_file = argv[1];
-    status = idigi_success;
+  status = idigi_success;
 	iDigiSetting.socket_fd = -1;
     
-    if(ini_parse(config_file, handle_config, &iDigiSetting) < 0){
-		fprintf(stderr, "Can't load configuration from '%s'.\n", config_file);
-		exit(-2);
-	}
+  if(ini_parse(config_file, handle_config, &iDigiSetting) < 0){
+    fprintf(stderr, "Can't load configuration from '%s'.\n", config_file);
+    exit(-2);
+  }
 
-    time(&deviceSystemUpStartTime);
-    time(&iDigiSetting.start_system_up_time);
-    DEBUG_PRINTF("Start iDigi\n");
-    iDigiSetting.idigi_handle = idigi_init((idigi_callback_t) idigi_callback);
-    if (iDigiSetting.idigi_handle != 0)
+  time(&deviceSystemUpStartTime);
+  time(&iDigiSetting.start_system_up_time);
+  DEBUG_PRINTF("Start iDigi\n");
+  iDigiSetting.idigi_handle = idigi_init((idigi_callback_t) idigi_callback);
+  if (iDigiSetting.idigi_handle != 0)
+  {
+    while (status == idigi_success)
     {
-
-        while (status == idigi_success)
-        {
-            status = idigi_step(iDigiSetting.idigi_handle);
-            iDigiSetting.select_data = 0;
-
-            if (status == idigi_success)
-            {
-                iDigiSetting.select_data |= NETWORK_TIMEOUT_SET | NETWORK_READ_SET;
-                network_select(iDigiSetting.socket_fd, iDigiSetting.select_data, ONE_SECOND);
-                status = initiate_data_service(iDigiSetting.idigi_handle);
-            }
-        }
-        DEBUG_PRINTF("idigi status = %d\n", status);
-   }
-   DEBUG_PRINTF("iDigi stops running!\n");
-
-   return 0;
+      status = idigi_step(iDigiSetting.idigi_handle);
+      iDigiSetting.select_data = 0;
+      
+      if (status == idigi_success)
+      {
+        iDigiSetting.select_data |= NETWORK_TIMEOUT_SET | NETWORK_READ_SET;
+        network_select(iDigiSetting.socket_fd, iDigiSetting.select_data, (struct timeval *)ONE_SECOND);
+        status = initiate_data_service(iDigiSetting.idigi_handle);
+      }
+    }
+    DEBUG_PRINTF("idigi status = %d\n", status);
+  }
+  DEBUG_PRINTF("iDigi stops running!\n");
+  
+  return 0;
 }

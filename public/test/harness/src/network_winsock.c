@@ -30,7 +30,6 @@
 #include <stdio.h>
  
 #include "idigi_struct.h"
-#include "idigi_data.h"
 
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "Dnsapi.lib")

@@ -26,6 +26,7 @@
 
 #include "idigi_struct.h"
 #include "idigi_data.h"
+
 uint8_t phone_number[] = {8,8,8,5,5,5,1,0,0,0};
 
 #define REDIRECT_SUCCESSFUL_MESSAGE "Redirect"

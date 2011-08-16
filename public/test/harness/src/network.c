@@ -22,25 +22,26 @@
  * =======================================================================
  *
  */
+#include <sys/socket.h>
+#include <linux/if.h>
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
-#include <sys/socket.h>
+#include <sys/select.h>
+#include <sys/types.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#include <net/if.h>
 
 #include <sys/ioctl.h>
 
 #include <errno.h>
 
 #include "idigi_struct.h"
-#include "idigi_data.h"
-
 
 /*
  * e_dns_resolve

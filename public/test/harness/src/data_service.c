@@ -27,7 +27,6 @@
 #include <errno.h>
 #include "time.h"
 
-#include "idigi_data.h"
 #include "idigi_struct.h"
 
 idigi_data_request_t * data_service_request;

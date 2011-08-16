@@ -27,11 +27,12 @@
 #include <fcntl.h>
 #ifdef _MSC_VER
     #include <windows.h> // for Sleep
+#else
+    #include <unistd.h> // for Sleep
 #endif
 #include <errno.h>
 
 #include "idigi_struct.h"
-#include "idigi_data.h"
 #include "firmware.h"
 
 #define asizeof(array)      (sizeof(array)/sizeof(array[0]))

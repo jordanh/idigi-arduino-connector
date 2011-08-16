@@ -1,3 +1,5 @@
+#include "idigi_data.h"
+
 typedef struct {
 	uint32_t                target;
     uint32_t                version;

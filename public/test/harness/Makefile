@@ -1,5 +1,7 @@
 include $(IDIGI_RULES)
 
+CFLAGS += -std=c99 -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE
+
 ifeq ($(LITTLE_ENDIAN),true)
 CFLAGS += -D_LITTLE_ENDIAN
 endif
@@ -14,7 +16,7 @@ SRC=src/network.c src/data_service.c src/firmware.c src/main.c src/config.c src/
 OBJS=${SRC:.c=.o}
 EXEC=iik_test
 
-CFLAGS += -I../../include -I./include -L$(LIBDIR) -lidigi
+CFLAGS += -I../../include -I./include -L$(LIBDIR) -lc -lidigi
 
 all: $(EXEC)
 
