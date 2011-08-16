@@ -24,6 +24,7 @@
  */
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -31,6 +32,8 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <net/if.h>
+
 #include <sys/ioctl.h>
 
 #include <errno.h>
@@ -418,6 +421,66 @@ uint8_t network_select(idigi_network_handle_t fd, uint8_t select_set, unsigned w
     }
 done:
     return actual_set;
+}
+
+int get_device_address()
+{
+    struct in_addr  ip_addr = {0};
+    int             sock = -1;
+    char            * buf = malloc(128* sizeof(struct ifreq));
+    struct ifconf   conf;
+    unsigned int    entries = 0;
+    int             i;
+    int             rc = -1;
+
+    if (buf == NULL)
+    {
+        goto done;
+    }
+    conf.ifc_len = 128*sizeof(struct ifreq);
+    conf.ifc_buf = buf;
+
+    sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if(-1 == sock){
+        perror("socket");
+        goto done;
+    }
+
+    if( ioctl(sock,SIOCGIFCONF , &conf) == -1)
+    {
+        DEBUG_PRINTF("Error using ioctl SIOCGIFCONF.\n");
+        goto done;
+    }
+
+    entries = conf.ifc_len / sizeof(struct ifreq);
+
+    DEBUG_PRINTF("Looking current device IP address: found %d entries\n", entries);
+
+    for( i = 0; i<entries; i++)
+    {
+        struct ifreq * req = &conf.ifc_req[i];
+        struct sockaddr_in * sa = (struct sockaddr_in *) &req->ifr_addr;
+
+        DEBUG_PRINTF("%d: %s, IP: %s\n", i+1, req->ifr_name, inet_ntoa(sa->sin_addr));
+        if (sa->sin_addr.s_addr != htonl(INADDR_LOOPBACK))
+        {
+            ip_addr = sa->sin_addr;
+            break;
+        }
+    }
+
+    rc = (uint32_t)ip_addr.s_addr;
+
+done:
+    if (sock != -1)
+    {
+        close(sock);
+    }
+    if (buf != NULL)
+    {
+        free(buf);
+    }
+    return rc;
 }
 
 

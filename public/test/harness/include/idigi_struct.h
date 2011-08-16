@@ -25,7 +25,9 @@
 #ifndef APP_DEF_H_
 #define APP_DEF_H_
 
-#include <netinet/in.h>
+#ifndef _MSC_VER
+  #include <netinet/in.h>
+#endif
 #include <stdio.h>
 #include "idigi_api.h"
 #include "idigi_types.h"
@@ -35,7 +37,7 @@ extern "C"
 {
 #endif
 #define DEVICE_ID_LENGTH    16
-#define VENDOR_ID_LENGTH    4
+#define IDIGI_VENDOR_ID_LENGTH    4
 #define MAC_ADDR_LENGTH     6
 
 #define NETWORK_READ_SET      0x01 << 0
@@ -46,7 +48,7 @@ extern "C"
 
 typedef struct {
     time_t          start_system_up_time;
-    uint8_t         vendor_id[VENDOR_ID_LENGTH];
+    uint8_t         vendor_id[IDIGI_VENDOR_ID_LENGTH];
     uint16_t        tx_keepalive;
     uint16_t        rx_keepalive;
     uint8_t         wait_count;

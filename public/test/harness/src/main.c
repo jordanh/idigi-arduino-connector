@@ -77,7 +77,7 @@ idigi_callback_status_t idigi_callback(idigi_class_t class, idigi_request_t requ
     return status;
 }
 
-static int handle_config(void *user, const char* section, const char* name, const char* value){
+static void handle_config(void *user, const char* section, const char* name, const char* value){
 	idigi_data_t* config = (idigi_data_t*)user;
 
 	if(strcmp(section, "device") == 0){
@@ -142,6 +142,7 @@ static int handle_config(void *user, const char* section, const char* name, cons
                     temp_fw->data_service_request->path.size = strlen(default_path);
                     temp_fw->data_service_request->path.value = default_path;
                     temp_fw->code_size = (uint32_t)-1;
+					temp_fw->version = 0;
 				}
 				if(strcmp(name, "name_spec") == 0){
 					temp_fw->name_spec = strdup(value);
@@ -201,20 +202,22 @@ static int handle_config(void *user, const char* section, const char* name, cons
 
 int main (int argc, char* argv[])
 {
+    char* config_file;
+    idigi_status_t status;
+    
 	if(argc < 2){
 		perror("Usage: iik_test config_file\n");
-		exit(-1);
+		return -1;
 	}
-	char* config_file = argv[1];
-
-	if(ini_parse(config_file, handle_config, &iDigiSetting) < 0){
+    
+	config_file = argv[1];
+    status = idigi_success;
+	iDigiSetting.socket_fd = -1;
+    
+    if(ini_parse(config_file, handle_config, &iDigiSetting) < 0){
 		fprintf(stderr, "Can't load configuration from '%s'.\n", config_file);
 		exit(-2);
 	}
-
-	iDigiSetting.socket_fd = -1;
-
-    idigi_status_t status = idigi_success;
 
     time(&deviceSystemUpStartTime);
     time(&iDigiSetting.start_system_up_time);
@@ -238,5 +241,6 @@ int main (int argc, char* argv[])
         DEBUG_PRINTF("idigi status = %d\n", status);
    }
    DEBUG_PRINTF("iDigi stops running!\n");
+
    return 0;
 }

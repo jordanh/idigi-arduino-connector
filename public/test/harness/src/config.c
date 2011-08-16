@@ -22,11 +22,7 @@
  * =======================================================================
  *
  */
-#include <unistd.h>
 #include <malloc.h>
-#include <arpa/inet.h>
-#include <sys/ioctl.h>
-#include <net/if.h>
 
 #include "idigi_struct.h"
 #include "idigi_data.h"
@@ -113,64 +109,6 @@ idigi_callback_status_t idigi_error_status(idigi_error_status_t * error_data)
     }
 #endif
     return status;
-}
-static int get_device_address(struct in_addr * eth_addr)
-{
-    int             sock = -1;
-    char            * buf = malloc(128* sizeof(struct ifreq));
-    struct ifconf   conf;
-    unsigned int    entries = 0;
-    int             i;
-    int             rc = -1;
-
-    if (buf == NULL)
-    {
-        goto done;
-    }
-    conf.ifc_len = 128*sizeof(struct ifreq);
-    conf.ifc_buf = buf;
-
-    sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if(-1 == sock){
-        perror("socket");
-        goto done;
-    }
-
-    if( ioctl(sock,SIOCGIFCONF , &conf) == -1)
-    {
-        DEBUG_PRINTF("Error using ioctl SIOCGIFCONF.\n");
-        goto done;
-    }
-
-    entries = conf.ifc_len / sizeof(struct ifreq);
-
-    DEBUG_PRINTF("Looking current device IP address: found %d entries\n", entries);
-
-    for( i = 0; i<entries; i++)
-    {
-        struct ifreq * req = &conf.ifc_req[i];
-        struct sockaddr_in * sa = (struct sockaddr_in *) &req->ifr_addr;
-
-        DEBUG_PRINTF("%d: %s, IP: %s\n", i+1, req->ifr_name, inet_ntoa(sa->sin_addr));
-        if (sa->sin_addr.s_addr != htonl(INADDR_LOOPBACK))
-        {
-            *eth_addr = sa->sin_addr;
-            break;
-        }
-    }
-
-    rc = 0;
-
-done:
-    if (sock != -1)
-    {
-        close(sock);
-    }
-    if (buf != NULL)
-    {
-        free(buf);
-    }
-    return rc;
 }
 
 static void get_device_id(uint8_t ** id, size_t * size)
@@ -309,10 +247,9 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t request,
     {
         /* return pointer to device IP address */
         uint8_t ** data = (uint8_t **) response_data;
-        struct in_addr  ip_addr = {0};
-
-
-        if (get_device_address(&ip_addr) < 0)
+        
+        uint32_t ip_addr = get_device_address();
+        if (ip_addr < 0)
         {
              DEBUG_PRINTF("Error: unable to get device ip address\n");
              status = idigi_callback_abort;
@@ -320,7 +257,7 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t request,
         else
         {
             /* IPv4 address */
-            iDigiSetting.ip_addr = (uint32_t)ip_addr.s_addr;
+            iDigiSetting.ip_addr = ip_addr;
             *data = (uint8_t *)&iDigiSetting.ip_addr;
             *response_length = sizeof iDigiSetting.ip_addr;
         }

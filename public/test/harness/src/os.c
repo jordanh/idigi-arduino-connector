@@ -24,7 +24,7 @@
  */
 #include <malloc.h>
 #include <time.h>
-#include <unistd.h>
+
 #include "idigi_struct.h"
 #include "idigi_data.h"
 

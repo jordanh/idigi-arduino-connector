@@ -10,7 +10,7 @@ else
 CFLAGS += -DNDEBUG -O2
 endif
 
-SRC=src/config.c src/data_service.c src/firmware.c src/main.c src/network.c src/os.c src/rci.c src/inih/ini.c 
+SRC=src/network.c src/data_service.c src/firmware.c src/main.c src/config.c src/os.c src/rci.c src/inih/ini.c 
 OBJS=${SRC:.c=.o}
 EXEC=iik_test
 

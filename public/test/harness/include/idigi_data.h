@@ -25,10 +25,14 @@
 #ifndef APP_DEF_H_
 #define APP_DEF_H_
 
-#include <netinet/in.h>
 #include <stdio.h>
 #include "idigi_api.h"
 #include "idigi_types.h"
+
+#ifndef _MSC_VER
+  #include <netinet/in.h>
+#endif
+
 
 #ifdef __cplusplus
 extern "C"
@@ -67,6 +71,8 @@ idigi_callback_status_t idigi_network_callback(idigi_network_request_t request,
                                             void * const request_data, size_t request_length,
                                             void * response_data, size_t * response_length);
 uint8_t network_select(idigi_network_handle_t fd, uint8_t select_set, struct timeval *timeout);
+
+int get_device_address();
 
 idigi_callback_status_t idigi_os_callback(idigi_os_request_t request,
                                         void * const request_data, size_t request_length,

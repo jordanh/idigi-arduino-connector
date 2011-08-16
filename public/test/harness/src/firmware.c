@@ -25,9 +25,10 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <unistd.h>
+#ifdef _MSC_VER
+    #include <windows.h> // for Sleep
+#endif
 #include <errno.h>
-#include <stdbool.h>
 
 #include "idigi_struct.h"
 #include "idigi_data.h"
@@ -124,6 +125,7 @@ done:
 static idigi_callback_status_t firmware_image_data(idigi_fw_image_data_t * image_data, idigi_fw_status_t * data_status)
 {
     idigi_callback_status_t   status = idigi_callback_continue;
+    uint8_t * data_pointer; // used for advancing data_service_request payload.
 
     /* Server sends image data for firmware update */
     if (image_data == NULL)
@@ -141,7 +143,7 @@ static idigi_callback_status_t firmware_image_data(idigi_fw_image_data_t * image
     // Copy data into data service request payload at the correct offset.
     if(firmware_list[image_data->target].data_service_enabled == 1){
         data_service_request = firmware_list[image_data->target].data_service_request;
-        uint8_t * data_pointer = data_service_request->payload.data;
+        data_pointer = data_service_request->payload.data;
         data_pointer += image_data->offset;
         memcpy((void *)data_pointer, (void *)image_data->data, image_data->length);
         DEBUG_PRINTF("Appended %d bytes data at offset %d.\n", image_data->length, image_data->offset);
@@ -214,7 +216,11 @@ static idigi_callback_status_t firmware_download_complete(idigi_fw_download_comp
 
 done:
     // Insert arbitrary 5 second sleep to simulate processing of firmware.  This will likely be removed later.
+#ifdef _MSC_VER
+    Sleep(5000);
+#else
     sleep(5);
+#endif
     return status;
 }
 
