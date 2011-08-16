@@ -72,6 +72,7 @@
 #define asizeof(array)  (sizeof array/sizeof array[0])
 
 #define idigi_callback_no_response(callback, class_id, request_id, request_data, request_length) idigi_callback((callback), (class_id), (request_id), (request_data), (request_length), NULL, NULL)
+#define idigi_callback_no_request(callback, class_id, request_id, response_data, response_length) idigi_callback((callback), (class_id), (request_id), NULL, 0, (response_data), (response_length))
 
 
 
