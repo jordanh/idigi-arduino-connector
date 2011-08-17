@@ -133,9 +133,10 @@ class FirmwareTestCase(unittest.TestCase):
        
         # Determine if Firmware was submitted
         submitted = response.find("submitted")
-        self.assertNotEqual(-1, submitted, "Firmware was not submitted.")
-        
-        time.sleep(5)
+        self.assertNotEqual(-1, submitted, "Firmware was not submitted.")        
+
+        # Sleep an arbitrary period of time to ensure the device disconnects.
+        time.sleep(10)
         # Check if the device disconnects and reconnects
         determine_disconnect_reconnect(self, config, last_connected)
         
