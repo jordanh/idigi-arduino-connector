@@ -9,7 +9,7 @@
 
 include $(IDIGI_RULES)
 
-CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -I../../include
+CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -std=c99 -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I../../include
 
 OBJS = main.o firmware.o network.o os.o config.o data_service.o rci.o
 LIBS = -lidigi -lc
