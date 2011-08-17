@@ -214,7 +214,7 @@ static msg_session_t * msg_find_session(idigi_msg_data_t const * const msg_ptr, 
 static uint16_t msg_find_next_available_id(idigi_msg_data_t * const msg_ptr, msg_type_t const type)
 {
     uint16_t new_id = MSG_INVALID_SESSION_ID;
-    uint8_t const last_assigned_id = msg_ptr->cur_id;
+    uint16_t const last_assigned_id = msg_ptr->cur_id;
 
     do
     {
@@ -234,7 +234,7 @@ static uint16_t msg_find_next_available_id(idigi_msg_data_t * const msg_ptr, msg
     return new_id;
 }
 
-static msg_session_t * msg_create_session(idigi_data_t * idigi_ptr, uint16_t const service_id, msg_type_t const type)
+static msg_session_t * msg_create_session(idigi_data_t * const idigi_ptr, uint16_t const service_id, msg_type_t const type)
 {
     idigi_msg_data_t * const msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
     uint16_t session_id = MSG_INVALID_SESSION_ID;
@@ -278,7 +278,7 @@ error:
     return session;
 }
 
-static void msg_delete_session(idigi_data_t * idigi_ptr,  msg_session_t * const session, msg_type_t const type)
+static void msg_delete_session(idigi_data_t * const idigi_ptr,  msg_session_t * const session, msg_type_t const type)
 {
     idigi_msg_data_t * const msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
 
@@ -322,7 +322,7 @@ static uint16_t msg_get_service_count(idigi_msg_data_t const * const msg_ptr)
     return count;
 }
 
-static idigi_callback_status_t msg_send_capabilities(idigi_data_t * idigi_ptr, idigi_msg_data_t const * const msg_data, uint8_t const flag)
+static idigi_callback_status_t msg_send_capabilities(idigi_data_t * const idigi_ptr, idigi_msg_data_t const * const msg_data, uint8_t const flag)
 {
     idigi_callback_status_t status = idigi_callback_busy;
     uint8_t * capabilty_packet = NULL;
@@ -615,7 +615,7 @@ error:
     return status;
 }
 
-static idigi_callback_status_t msg_send_data(idigi_data_t * idigi_ptr, msg_session_t * const session, msg_data_info_t const * const info)
+static idigi_callback_status_t msg_send_data(idigi_data_t * const idigi_ptr, msg_session_t * const session, msg_data_info_t const * const info)
 {
     idigi_callback_status_t status = idigi_callback_busy;
     idigi_msg_data_t * const msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
@@ -663,7 +663,7 @@ error:
     return status;
 }
 
-static void * msg_send_start(idigi_data_t * idigi_ptr, uint16_t const service_id, msg_data_info_t const * const info)
+static void * msg_send_start(idigi_data_t * const idigi_ptr, uint16_t const service_id, msg_data_info_t const * const info)
 {
     msg_session_t * const session = msg_create_session(idigi_ptr, service_id, msg_type_tx);
 
@@ -712,7 +712,7 @@ done:
     return;
 }
 
-static idigi_callback_status_t msg_process_capabilities(idigi_data_t * idigi_ptr, idigi_msg_data_t * const msg_fac, uint8_t * ptr)
+static idigi_callback_status_t msg_process_capabilities(idigi_data_t * const idigi_ptr, idigi_msg_data_t * const msg_fac, uint8_t * ptr)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     uint8_t * capabilty_packet = ptr;
@@ -734,7 +734,10 @@ static idigi_callback_status_t msg_process_capabilities(idigi_data_t * idigi_ptr
             uint8_t const compression_id = *compression_list++;
 
             if (compression_id == MSG_COMPRESSION_LIBZ)
+            {
                 msg_fac->peer_compression = compression_id;
+                break;
+            }
         }
     }
 
@@ -749,7 +752,7 @@ error:
 
 
 #if (defined IDIGI_COMPRESSION_BUILTIN)
-static idigi_callback_status_t msg_recv_compressed(idigi_data_t * idigi_ptr, idigi_msg_data_t const * const msg_fac, msg_session_t * const session, uint8_t * ptr, uint16_t length)
+static idigi_callback_status_t msg_recv_compressed(idigi_data_t * const idigi_ptr, idigi_msg_data_t const * const msg_fac, msg_session_t * const session, uint8_t * ptr, uint16_t length)
 {
     idigi_callback_status_t status = idigi_callback_abort;
     z_streamp zlib_ptr = &session->zlib;
@@ -791,7 +794,7 @@ error:
 }
 #endif
 
-static idigi_callback_status_t msg_process_data(idigi_data_t * idigi_ptr, idigi_msg_data_t const * const msg_fac, uint8_t * ptr, uint16_t const length, bool const start)
+static idigi_callback_status_t msg_process_data(idigi_data_t * const idigi_ptr, idigi_msg_data_t const * const msg_fac, uint8_t * ptr, uint16_t const length, bool const start)
 {
     idigi_callback_status_t status = idigi_callback_abort;
     msg_session_t * session;
@@ -866,7 +869,7 @@ error:
     return status;
 }
 
-static idigi_callback_status_t msg_process_ack(idigi_data_t * idigi_ptr, idigi_msg_data_t const * const msg_fac, uint8_t const * ptr)
+static idigi_callback_status_t msg_process_ack(idigi_data_t * const idigi_ptr, idigi_msg_data_t const * const msg_fac, uint8_t const * ptr)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     msg_session_t * session;
@@ -907,7 +910,7 @@ error:
     return status;
 }
 
-static idigi_callback_status_t msg_process_error(idigi_data_t * idigi_ptr, idigi_msg_data_t const * const msg_fac, uint8_t * ptr)
+static idigi_callback_status_t msg_process_error(idigi_data_t * const idigi_ptr, idigi_msg_data_t const * const msg_fac, uint8_t * ptr)
 {
     idigi_callback_status_t status = idigi_callback_abort;
     uint8_t * error_packet = ptr;
@@ -937,14 +940,14 @@ error:
     return status;
 }
 
-static idigi_callback_status_t msg_discovery(idigi_data_t *idigi_ptr, void * facility_data, uint8_t * packet)
+static idigi_callback_status_t msg_discovery(idigi_data_t * const idigi_ptr, void * facility_data, uint8_t * packet)
 {
     UNUSED_PARAMETER(packet);
 
     return msg_send_capabilities(idigi_ptr, facility_data, MSG_FLAG_REQUEST);
 }
 
-static idigi_callback_status_t msg_process(idigi_data_t * idigi_ptr, void * facility_data, uint8_t * edp_header)
+static idigi_callback_status_t msg_process(idigi_data_t * const idigi_ptr, void * facility_data, uint8_t * edp_header)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_msg_data_t * const msg_ptr = facility_data;
@@ -985,7 +988,7 @@ error:
     return status;
 }
 
-static idigi_callback_status_t msg_process_pending(idigi_data_t * idigi_ptr)
+static idigi_callback_status_t msg_process_pending(idigi_data_t * const idigi_ptr)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_msg_data_t * const msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
@@ -1016,7 +1019,7 @@ static idigi_callback_status_t msg_process_pending(idigi_data_t * idigi_ptr)
     return status;
 }
 
-static void msg_delete_all_sessions(idigi_data_t * idigi_ptr,  idigi_msg_data_t * const msg_ptr, uint16_t const service_id)
+static void msg_delete_all_sessions(idigi_data_t * const idigi_ptr,  idigi_msg_data_t * const msg_ptr, uint16_t const service_id)
 {
     msg_type_t msg_type;
 
@@ -1035,7 +1038,7 @@ static void msg_delete_all_sessions(idigi_data_t * idigi_ptr,  idigi_msg_data_t 
     }
 }
 
-static idigi_callback_status_t msg_delete_facility(idigi_data_t * idigi_ptr, uint16_t const service_id)
+static idigi_callback_status_t msg_delete_facility(idigi_data_t * const idigi_ptr, uint16_t const service_id)
 {
     idigi_callback_status_t status = idigi_callback_abort;
     idigi_msg_data_t * const msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
@@ -1068,7 +1071,7 @@ error:
     return status;
 }
 
-static uint16_t msg_init_facility(idigi_data_t *idigi_ptr, uint16_t service_id, idigi_msg_callback_t callback)
+static uint16_t msg_init_facility(idigi_data_t * const idigi_ptr, uint16_t service_id, idigi_msg_callback_t callback)
 {
     idigi_callback_status_t status = idigi_callback_abort;
     void * fac_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);

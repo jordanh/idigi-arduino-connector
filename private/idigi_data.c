@@ -165,7 +165,7 @@ static idigi_callback_status_t data_service_init(idigi_data_t * const data_ptr)
     return msg_init_facility(data_ptr, msg_service_id_data, data_service_callback);
 }
 
-static idigi_status_t data_service_initiate(idigi_data_t * data_ptr,  void const * request, void  * response)
+static idigi_status_t data_service_initiate(idigi_data_t * const data_ptr,  void const * request, void  * response)
 {
     idigi_status_t status = idigi_invalid_data;
     idigi_data_request_t const * service = request;
