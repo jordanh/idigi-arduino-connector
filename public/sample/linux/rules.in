@@ -8,3 +8,4 @@ STRIP   = $(CROSS_COMPILE)strip
 AR      = $(CROSS_COMPILE)ar
 
 LDFLAGS = -Wl,-soname,$(LIBRARY) -shared
+ARFLAGS =r
