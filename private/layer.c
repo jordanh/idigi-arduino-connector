@@ -964,6 +964,41 @@ done:
     return status;
 }
 
+static idigi_callback_status_t send_rci_response(idigi_data_t * const idigi_ptr)
+{
+#define RCI_COMMAND_REPLY_START_OPCODE      0x04
+#define RCI_NO_COMPRESSION                 0x00
+
+    idigi_callback_status_t status;
+    uint8_t * packet;
+    uint8_t * ptr;
+    uint8_t * start_ptr;
+    static char const no_query_state_response[] = "<rci_replay version=\"1.1\"> <query_state/> </rci_reply>";
+    uint32_t size = sizeof no_query_state_response -1;
+
+    packet = get_packet_buffer(idigi_ptr, E_MSG_FAC_RCI_NUM, &ptr);
+    if (packet == NULL)
+    {
+        status = idigi_callback_busy;
+        goto done;
+    }
+    start_ptr = ptr;
+
+    *ptr++ = RCI_COMMAND_REPLY_START_OPCODE;
+    *ptr++ = RCI_NO_COMPRESSION;
+
+    StoreBE32(ptr, size);
+    ptr += sizeof size;
+
+    memcpy(ptr, no_query_state_response, size);
+    ptr += size;
+
+    status = initiate_send_facility_packet(idigi_ptr, packet, (uint16_t)(ptr - start_ptr), E_MSG_FAC_RCI_NUM, release_packet_buffer, NULL);
+
+done:
+    return status;
+}
+
 static idigi_callback_status_t facility_layer(idigi_data_t * idigi_ptr)
 {
     enum {
@@ -1051,6 +1086,16 @@ static idigi_callback_status_t facility_layer(idigi_data_t * idigi_ptr)
              */
             facility = message_load_be16(edp_protocol, facility);
             idigi_ptr->layer_state = facility_receive_message;
+            if (facility == E_MSG_FAC_RCI_NUM)
+            {
+                status = send_rci_response(idigi_ptr);
+                if (status == idigi_callback_busy)
+                {
+                    idigi_ptr->layer_state = facility_process_message;
+                    done_packet = false;
+                }
+
+            }
 
             for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
             {
