@@ -937,12 +937,9 @@ enum fw_target_list{
         unsigned timeout;
 
         status = get_fw_config(fw_ptr, idigi_firmware_target_count, &timeout, sizeof timeout, &fw_ptr->target_count, NULL, fw_equal);
-        if (status == idigi_callback_continue)
+        if (status == idigi_callback_continue && fw_ptr->target_count > 0)
         {
             uint16_t max_count;
-
-            ASSERT_GOTO(fw_ptr->target_count > 0, done);
-
             /* get max count of targets that fit into the response buffer */
             max_count = (sizeof idigi_ptr->send_packet.packet_buffer.buffer - PACKET_EDP_FACILITY_SIZE - FW_TARGET_LIST_HEADER_SIZE)/FW_TARGET_LIST_SIZE;
             if (fw_ptr->target_count > max_count)
