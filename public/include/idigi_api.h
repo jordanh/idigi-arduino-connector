@@ -25,15 +25,9 @@
 #ifndef _IDIGI_API_H
 #define _IDIGI_API_H
 
-
 #include "idigi_types.h"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-#define IDIGI_PORT          3197
+#define IDIGI_PORT       3197
 #define IDIGI_SSL_PORT   3199
 /* iDigi return status
  *
@@ -134,9 +128,7 @@ typedef enum {
    idigi_wan_connection_type
 } idigi_connection_type_t;
 
-/* Callback return status
- *
- */
+/* Callback return status */
 typedef enum  {
     /* successfully and continue */
     idigi_callback_continue,
@@ -146,7 +138,6 @@ typedef enum  {
     idigi_callback_abort,
     /* unrecognized or not implemented request */
     idigi_callback_unrecognized
-
 } idigi_callback_status_t;
 
 typedef enum {
@@ -186,22 +177,21 @@ typedef union {
 typedef struct  {
     idigi_class_t class_id;
     idigi_request_t request_id;
- 
     idigi_status_t status;
 } idigi_error_status_t;
 
 typedef struct  {
    idigi_network_handle_t *  network_handle;
-    uint8_t  const *  buffer;
-    size_t      length;
-    unsigned    timeout;
+    uint8_t const * buffer;
+    size_t length;
+    unsigned timeout;
 } idigi_write_request_t;
 
 typedef struct  {
    idigi_network_handle_t * network_handle;
-    uint8_t  * buffer;
-    size_t      length;
-    unsigned    timeout;
+    uint8_t * buffer;
+    size_t length;
+    unsigned timeout;
 } idigi_read_request_t;
 
 typedef struct {
@@ -212,11 +202,11 @@ typedef struct {
 typedef struct {
     unsigned timeout;
     uint8_t target;
-    uint32_t    version;
-    uint32_t    code_size;
-    char        * desc_string;
-    char        * file_name_spec;
-    char        * filename;
+    uint32_t version;
+    uint32_t code_size;
+    char * desc_string;
+    char * file_name_spec;
+    char * filename;
 } idigi_fw_download_request_t;
 
 typedef struct {
@@ -230,14 +220,14 @@ typedef struct {
 typedef struct {
     unsigned timeout;
     uint8_t target;
-    uint32_t    code_size;
-    uint32_t    checksum;
+    uint32_t code_size;
+    uint32_t checksum;
 } idigi_fw_download_complete_request_t;
 
 typedef struct {
-    uint32_t    version;
-    uint32_t    calculated_checksum;
-    idigi_fw_download_complete_status_t   status;
+    uint32_t version;
+    uint32_t calculated_checksum;
+    idigi_fw_download_complete_status_t status;
 } idigi_fw_download_complete_response_t;
 
 typedef struct {
@@ -311,9 +301,5 @@ idigi_status_t idigi_step(idigi_handle_t const handle);
 idigi_status_t idigi_run(idigi_handle_t const handle);
 
 idigi_status_t idigi_initiate_action(idigi_handle_t const handle, idigi_initiate_request_t const request, void const * const request_data, void * const response_data);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* _IDIGI_API_H */
