@@ -117,7 +117,7 @@ typedef struct msg_session_t
     struct msg_session_t * prev;
 } msg_session_t;
 
-typedef idigi_callback_status_t idigi_msg_callback_t(idigi_data_t * idigi_ptr, msg_status_t const msg_status, msg_session_t * const session, uint8_t const * buffer, size_t const length);
+typedef idigi_callback_status_t idigi_msg_callback_t(idigi_data_t * const idigi_ptr, msg_status_t const msg_status, msg_session_t * const session, uint8_t const * buffer, size_t const length);
 
 typedef struct 
 {
@@ -211,7 +211,7 @@ static msg_session_t * msg_find_session(idigi_msg_data_t const * const msg_ptr, 
     return session;
 }
 
-static uint16_t msg_find_next_available_id(idigi_msg_data_t * const msg_ptr, msg_type_t const type)
+static uint16_t msg_find_next_available_id(idigi_msg_data_t * const msg_ptr)
 {
     uint16_t new_id = MSG_INVALID_SESSION_ID;
     uint16_t const last_assigned_id = msg_ptr->cur_id;
@@ -223,12 +223,14 @@ static uint16_t msg_find_next_available_id(idigi_msg_data_t * const msg_ptr, msg
         if (msg_ptr->cur_id == MSG_INVALID_SESSION_ID)
             continue;
 
-        if (msg_find_session(msg_ptr, msg_ptr->cur_id, type) == NULL)
+        if (msg_find_session(msg_ptr, msg_ptr->cur_id, msg_type_tx) == NULL)
         {
-            new_id = msg_ptr->cur_id;
-            break;
+            if (msg_find_session(msg_ptr, msg_ptr->cur_id, msg_type_rx) == NULL)
+            {
+                new_id = msg_ptr->cur_id;
+                break;
+            }
         }
-
     } while (msg_ptr->cur_id != last_assigned_id);
 
     return new_id;
@@ -251,7 +253,7 @@ static msg_session_t * msg_create_session(idigi_data_t * const idigi_ptr, uint16
 
     if (type == msg_type_tx)
     {
-        session_id = msg_find_next_available_id(msg_ptr, type);
+        session_id = msg_find_next_available_id(msg_ptr);
         ASSERT_GOTO(session_id != MSG_INVALID_SESSION_ID, error);
     }
 
@@ -712,7 +714,7 @@ done:
     return;
 }
 
-static idigi_callback_status_t msg_process_capabilities(idigi_data_t * const idigi_ptr, idigi_msg_data_t * const msg_fac, uint8_t * ptr)
+static idigi_callback_status_t msg_process_capabilities(idigi_data_t * const idigi_ptr, idigi_msg_data_t * const msg_fac, uint8_t * const ptr)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     uint8_t * capabilty_packet = ptr;
@@ -910,7 +912,7 @@ error:
     return status;
 }
 
-static idigi_callback_status_t msg_process_error(idigi_data_t * const idigi_ptr, idigi_msg_data_t const * const msg_fac, uint8_t * ptr)
+static idigi_callback_status_t msg_process_error(idigi_data_t * const idigi_ptr, idigi_msg_data_t const * const msg_fac, uint8_t * const ptr)
 {
     idigi_callback_status_t status = idigi_callback_abort;
     uint8_t * error_packet = ptr;
@@ -947,7 +949,7 @@ static idigi_callback_status_t msg_discovery(idigi_data_t * const idigi_ptr, voi
     return msg_send_capabilities(idigi_ptr, facility_data, MSG_FLAG_REQUEST);
 }
 
-static idigi_callback_status_t msg_process(idigi_data_t * const idigi_ptr, void * facility_data, uint8_t * edp_header)
+static idigi_callback_status_t msg_process(idigi_data_t * const idigi_ptr, void * facility_data, uint8_t * const edp_header)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_msg_data_t * const msg_ptr = facility_data;
@@ -1074,11 +1076,12 @@ error:
 static uint16_t msg_init_facility(idigi_data_t * const idigi_ptr, uint16_t service_id, idigi_msg_callback_t callback)
 {
     idigi_callback_status_t status = idigi_callback_abort;
-    void * fac_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
-    idigi_msg_data_t * msg_ptr = fac_ptr;
+    idigi_msg_data_t * msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
 
     if (msg_ptr == NULL)
     {
+        void * fac_ptr = NULL;
+
         status = add_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM, &fac_ptr,
                                    sizeof *msg_ptr, msg_discovery, msg_process);
 
@@ -1086,11 +1089,7 @@ static uint16_t msg_init_facility(idigi_data_t * const idigi_ptr, uint16_t servi
         ASSERT_GOTO(fac_ptr != NULL, error);
 
         msg_ptr = fac_ptr;
-        msg_ptr->peer_window = 0;
-        msg_ptr->cur_id = MSG_INVALID_SESSION_ID;
-        msg_ptr->pending = NULL;
-
-        memset(msg_ptr->service_cb, 0, sizeof msg_ptr->service_cb);
+        memset(msg_ptr, 0, sizeof *msg_ptr);
     }
 
     msg_ptr->service_cb[service_id] = callback;

@@ -37,9 +37,6 @@
 #if defined(IDIGI_DATA_SERVICE)
 #include "idigi_data.c"
 #endif
-#if defined(_RCI_FACILITY)
-#include "idigi_rci.c"
-#endif
 #include "layer.c"
 
 idigi_handle_t idigi_init(idigi_callback_t const callback)
@@ -140,7 +137,6 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
                 case idigi_config_error_status:
                 case idigi_config_firmware_facility:
                 case idigi_config_data_service:
-                case idigi_config_rci_facility:
                     ASSERT(0);
                     /* Get these in different modules */
                     break;

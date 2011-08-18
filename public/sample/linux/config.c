@@ -271,10 +271,6 @@ static bool get_data_service_support(void)
 #endif
 }
 
-static bool get_rci_support(void)
-{
-    return true;
-}
 
 /* End of IIK configuration routines */
 
@@ -461,11 +457,6 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
 
     case idigi_config_data_service:
         *((bool *)response_data) = get_data_service_support();
-        ret = true;
-        break;
-
-    case idigi_config_rci_facility:
-        *((bool *)response_data) = get_rci_support();
         ret = true;
         break;
 
