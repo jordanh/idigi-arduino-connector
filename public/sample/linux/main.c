@@ -58,9 +58,6 @@ idigi_callback_status_t idigi_callback(idigi_class_t class_id, idigi_request_t r
     case idigi_class_data_service:
         status = idigi_data_service_callback(request_id.data_service_request, request_data, request_length, response_data, response_length);
         break;
-    case idigi_class_rci:
-        status = idigi_rci_callback(request_id.rci_request, request_data, request_length, response_data, response_length);
-        break;
     default:
         /* not supported */
         break;
