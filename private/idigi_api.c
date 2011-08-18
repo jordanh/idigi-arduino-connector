@@ -37,9 +37,6 @@
 #if defined(IDIGI_DATA_SERVICE)
 #include "idigi_data.c"
 #endif
-#if defined(_RCI_FACILITY)
-#include "idigi_rci.c"
-#endif
 #include "layer.c"
 
 idigi_handle_t idigi_init(idigi_callback_t const callback)
