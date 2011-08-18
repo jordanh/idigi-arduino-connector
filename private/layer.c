@@ -992,7 +992,7 @@ static idigi_callback_status_t send_rci_response(idigi_data_t * const idigi_ptr)
     memcpy(ptr, no_query_state_response, size);
     ptr += size;
 
-    status = initiate_send_facility_packet(idigi_ptr, packet, (uint16_t)(ptr - start_ptr), E_MSG_FAC_RCI_NUM, release_packet_buffer, NULL);
+    status = initiate_send_facility_packet(idigi_ptr, packet, ptr - start_ptr, E_MSG_FAC_RCI_NUM, release_packet_buffer, NULL);
 
 done:
     return status;
