@@ -942,14 +942,14 @@ error:
     return status;
 }
 
-static idigi_callback_status_t msg_discovery(idigi_data_t * const idigi_ptr, void * facility_data, uint8_t * packet)
+static idigi_callback_status_t msg_discovery(idigi_data_t * const idigi_ptr, void * const facility_data, uint8_t * const packet)
 {
     UNUSED_PARAMETER(packet);
 
     return msg_send_capabilities(idigi_ptr, facility_data, MSG_FLAG_REQUEST);
 }
 
-static idigi_callback_status_t msg_process(idigi_data_t * const idigi_ptr, void * facility_data, uint8_t * const edp_header)
+static idigi_callback_status_t msg_process(idigi_data_t * const idigi_ptr, void * const facility_data, uint8_t * const edp_header)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_msg_data_t * const msg_ptr = facility_data;
@@ -1082,8 +1082,7 @@ static uint16_t msg_init_facility(idigi_data_t * const idigi_ptr, uint16_t servi
     {
         void * fac_ptr = NULL;
 
-        status = add_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM, &fac_ptr,
-                                   sizeof *msg_ptr, msg_discovery, msg_process);
+        status = add_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM, &fac_ptr, sizeof *msg_ptr, msg_discovery, msg_process);
 
         ASSERT_GOTO(status == idigi_callback_continue, error);
         ASSERT_GOTO(fac_ptr != NULL, error);

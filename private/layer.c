@@ -25,8 +25,9 @@
 
 #define EDP_PROTOCOL_VERSION    0x120
 
-#define SERVER_OVERLOAD_RESPONSE    0x02
-#define NUMBER_BITS_PER_BYTE        8
+/* Identity verification form codes... */
+#define SECURITY_IDENT_FORM_SIMPLE   0x00 /* simple verification */
+#define SECURITY_IDENT_FORM_PASSWORD 0x02 /* simple+passwd */
 
 #define MANDATORY_FACILITY          -1
 
@@ -55,9 +56,6 @@ static idigi_facility_init_t idigi_supported_facility_table[] = {
         /* list of optional facilities */
 #if defined(_FIRMWARE_FACILITY)
         {idigi_config_firmware_facility, fw_init_facility, fw_delete_facility},
-#endif
-#if defined(_RCI_FACILITY)
-        {idigi_config_rci_facility, rci_init_facility, rci_delete_facility},
 #endif
 #if defined(IDIGI_DATA_SERVICE)
         {idigi_config_data_service, data_service_init, data_service_delete}
@@ -104,13 +102,6 @@ enum edp_keepalive{
 
 #define EDP_KEEPALIVE_SIZE  record_bytes(edp_keepalive)
 
-    /* packet format:
-    *  -----------------------
-    * |0 - 1 |  2 - 3 | 4 - 5 |
-    *  -----------------------
-    * |   EDP header  | value |
-    *  -----------------------
-    */
     uint8_t * edp_keepalive;
 
     edp_keepalive = GET_PACKET_DATA_POINTER(edp_header, PACKET_EDP_HEADER_SIZE);
@@ -269,6 +260,8 @@ done:
 }
 static idigi_callback_status_t get_supported_facilities(idigi_data_t * const idigi_ptr)
 {
+#define NUMBER_FACILITY_PER_BYTE        8
+
     idigi_callback_status_t status = idigi_callback_continue;
     size_t  i;
     idigi_request_t request_id;
@@ -277,7 +270,7 @@ static idigi_callback_status_t get_supported_facilities(idigi_data_t * const idi
 
     idigi_ptr->facilities = 0;
 
-    ASSERT(idigi_facility_count <= (sizeof idigi_ptr->facilities * NUMBER_BITS_PER_BYTE));
+    ASSERT(idigi_facility_count <= (sizeof idigi_ptr->facilities * NUMBER_FACILITY_PER_BYTE));
 
     /* idigi_supported_facility_table[] table includes a list of facilities that iDigi supports.
      * Call callback to see which facility is supported.
@@ -339,7 +332,7 @@ static idigi_callback_status_t initialize_facilities(idigi_data_t * const idigi_
         else
         {
             idigi_facility_t * fac_ptr;
-
+            /* initialize packet pointer for each facility */
             for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
             {
                 fac_ptr->packet = NULL;
@@ -358,7 +351,7 @@ static idigi_callback_status_t configuration_layer(idigi_data_t * const idigi_pt
 
     idigi_callback_status_t status = idigi_callback_continue;
 
-    /* This layer is called to get some of the EDP configuration and initialize facilities */
+    /* This layer is called to get some of the EDP configuration and initialize each facility */
     if (idigi_ptr->layer_state == configuration_get_configurations)
     {
         status = get_configurations(idigi_ptr);
@@ -368,6 +361,7 @@ static idigi_callback_status_t configuration_layer(idigi_data_t * const idigi_pt
             idigi_ptr->layer_state = configuration_init_facilities;
         }
     }
+
     if (idigi_ptr->layer_state == configuration_init_facilities)
     {
         status = initialize_facilities(idigi_ptr);
@@ -416,6 +410,8 @@ enum edp_version {
 }
 static idigi_callback_status_t communication_layer(idigi_data_t * const idigi_ptr)
 {
+#define SERVER_OVERLOAD_RESPONSE    0x02
+
     enum {
         communication_connect_server,
         communication_send_version,
@@ -657,19 +653,17 @@ done:
 
 static idigi_callback_status_t security_layer(idigi_data_t * const idigi_ptr)
 {
-enum {
-        security_send_identity_verification,
-        security_send_device_id,
-        security_send_server_url
-};
-
+    enum {
+            security_send_identity_verification,
+            security_send_device_id,
+            security_send_server_url
+    };
 
     idigi_callback_status_t status = idigi_callback_continue;
     uint8_t * edp_header;
-    uint16_t len, size;
+    uint16_t len;
+    uint16_t size;
     uint8_t * start_ptr;
-    char * url_prefix = URL_PREFIX;
-
 
     /* security layer:
      * 1. sends identity verification form
@@ -760,6 +754,8 @@ enum {
 
         char * server_url;
         uint8_t * edp_server_url = start_ptr;
+        char const * const url_prefix = URL_PREFIX;
+
         DEBUG_PRINTF("security layer: send server url\n");
         /*
          * packet format:
@@ -771,7 +767,7 @@ enum {
         */
         server_url = (char *)idigi_ptr->server_url;
 
-        len = strlen(server_url) + strlen(URL_PREFIX);
+        len = strlen(server_url) + sizeof url_prefix -1;
 
         message_store_u8(edp_server_url, opcode, SECURITY_OPER_URL);
         message_store_be16(edp_server_url, url_length, len);
@@ -992,7 +988,7 @@ static idigi_callback_status_t send_rci_response(idigi_data_t * const idigi_ptr)
     memcpy(ptr, no_query_state_response, size);
     ptr += size;
 
-    status = initiate_send_facility_packet(idigi_ptr, packet, (uint16_t)(ptr - start_ptr), E_MSG_FAC_RCI_NUM, release_packet_buffer, NULL);
+    status = initiate_send_facility_packet(idigi_ptr, packet, ptr - start_ptr, E_MSG_FAC_RCI_NUM, release_packet_buffer, NULL);
 
 done:
     return status;
@@ -1010,14 +1006,12 @@ static idigi_callback_status_t facility_layer(idigi_data_t * idigi_ptr)
     idigi_facility_t * fac_ptr;
 
 
-    /* Facility layer is the layer that iDigi has fully established
+    /* Facility layer is the layer that IIK has fully established
      * communication with server. It keeps waiting messages from server
      * and passes it to the appropriate facility:
      * 1. waits message from server
      * 2. parses message and passes it to the facility
-     * 2. invokes facility to process message.
-     *
-     * Once it gets a packet, it parses and passes it to the appropriate facility.
+     * 3. invokes facility to process message.
      */
     switch (idigi_ptr->layer_state)
     {
@@ -1058,7 +1052,7 @@ static idigi_callback_status_t facility_layer(idigi_data_t * idigi_ptr)
                 ASSERT_GOTO(length > PACKET_EDP_PROTOCOL_SIZE, error);
 
                 DEBUG_PRINTF("idigi_facility_layer: receive data facility = 0x%04x\n", facility);
-
+                /* adjust the length for facility process */
                 length -= PACKET_EDP_PROTOCOL_SIZE;
                 message_store_be16(edp_header, length, length);
 
@@ -1085,6 +1079,8 @@ static idigi_callback_status_t facility_layer(idigi_data_t * idigi_ptr)
              */
             facility = message_load_be16(edp_protocol, facility);
             idigi_ptr->layer_state = facility_receive_message;
+
+            /* TODO: Remove this RCI response */
             if (facility == E_MSG_FAC_RCI_NUM)
             {
                 status = send_rci_response(idigi_ptr);
@@ -1093,7 +1089,6 @@ static idigi_callback_status_t facility_layer(idigi_data_t * idigi_ptr)
                     idigi_ptr->layer_state = facility_process_message;
                     done_packet = false;
                 }
-
             }
 
             for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
@@ -1117,10 +1112,9 @@ static idigi_callback_status_t facility_layer(idigi_data_t * idigi_ptr)
             }
         }
     }
-
 error:
-    /* if we don't need the packet, release it for
-     * receive_packet use.
+    /* if we are done with packet, release it for another
+     * receive_packet .
      */
     if (done_packet && packet != NULL)
     {
@@ -1134,9 +1128,6 @@ error:
         {
             if (fac_ptr->packet != NULL)
             {
-                /* let's facility to process if not abort.
-                 * If abort, release the facility packet anyway.
-                 */
                 status = fac_ptr->process_cb(idigi_ptr, fac_ptr->facility_data, fac_ptr->packet);
                 if (status != idigi_callback_busy)
                 {   /* release the packet when it's done */

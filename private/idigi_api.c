@@ -83,7 +83,6 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
     idigi_handle->receive_packet.packet_buffer.next = NULL;
 
 
-
     /* get device id, vendor id, & device type */
     i = 0;
     while (i < INIT_REQUEST_ID_COUNT)
@@ -137,7 +136,7 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
                 case idigi_config_error_status:
                 case idigi_config_firmware_facility:
                 case idigi_config_data_service:
-                    ASSERT(0);
+                    ASSERT(false);
                     /* Get these in different modules */
                     break;
                 }
@@ -176,7 +175,7 @@ idigi_status_t idigi_step(idigi_handle_t const handle)
 {
     idigi_status_t rc = idigi_init_error;
     idigi_callback_status_t status = idigi_callback_continue;
-    idigi_data_t * idigi_handle = (idigi_data_t *)handle;
+    idigi_data_t * const idigi_handle = (idigi_data_t * const)handle;
 
     ASSERT_GOTO(handle != NULL, done);
 
@@ -276,7 +275,6 @@ done:
                 send_complete_callback(idigi_handle);
                 init_setting(idigi_handle);
 
-
             }
         }
         else
@@ -291,12 +289,11 @@ done:
 
 idigi_status_t idigi_run(idigi_handle_t const handle)
 {
-    idigi_status_t rc = idigi_success;
+    idigi_status_t rc;
 
-    while (rc == idigi_success)
-    {
+    do {
         rc = idigi_step(handle);
-    }
+    } while (rc == idigi_success);
 
     return rc;
 }
@@ -314,11 +311,11 @@ idigi_status_t idigi_initiate_action(idigi_handle_t const handle, idigi_initiate
     UNUSED_PARAMETER(request_data);
     UNUSED_PARAMETER(response_data);
 #endif
-    rc = idigi_success;
     switch (request)
     {
     case idigi_initiate_terminate:
         idigi_ptr->active_state = idigi_device_terminate;
+        rc = idigi_success;
         break;
 
 #if (defined IDIGI_DATA_SERVICE)
@@ -329,6 +326,8 @@ idigi_status_t idigi_initiate_action(idigi_handle_t const handle, idigi_initiate
 #endif
 
     default:
+        ASSERT(false);
+        rc = idigi_invalid_data;
         break;
     }
 
