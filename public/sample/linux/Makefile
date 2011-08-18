@@ -11,7 +11,7 @@ include $(IDIGI_RULES)
 
 CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -std=c99 -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I../../include
 
-OBJS = main.o firmware.o network.o os.o config.o data_service.o rci.o
+OBJS = main.o firmware.o network.o os.o config.o data_service.o
 LIBS = -lidigi -lc -lz
 
 # Name of executable to build
