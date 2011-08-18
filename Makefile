@@ -48,7 +48,12 @@ ifneq ($(COMPRESSION), false)
 PLIBS += -lz
 endif
 
+# By default build a static library
+ifneq ($(SHARED_LIBRARY), true)
+LIB =$(LIBDIR)/libidigi.a
+else
 LIB =$(LIBDIR)/libidigi.so
+endif
 
 all: $(LIB)
 
@@ -57,7 +62,11 @@ OBJS = $(OBJDIR)/idigi_api.o
 $(OBJS): $(LIB_SRC_DIR)/*.c $(LIB_SRC_DIR)/*.h $(PUBLIC_HDR_DIR)/*.h
 
 $(LIB): $(OBJS)
-	$(LD) $(LDFLAGS) $(PLIBS) $^ -o $@
+ifneq ($(SHARED_LIBRARY), false)
+	$(AR) $(ARFLAGS) $@ $^
+else
+	$(LD) $(LDFLAGS) $^ -o $@
+endif
 
 MAKE= make IDIGI_RULES="../../../$(IDIGI_RULES)" DEBUG="$(DEBUG)" DFLAGS="$(DFLAGS)" LIB="../../../$(LIBDIR)"
 
@@ -84,6 +93,7 @@ help:
 	@echo "    LITTLE_ENDIAN = true or false for little endian"
 	@echo "    FACILITY_FW   = true or false for firmware upgrade capability"
 	@echo "    DATA_SERVICE  = true or false for data service capability"
+	@echo "    SHARED_LIBRARY = true or false for building shared library"
 	@echo "Targets:"
 	@echo "    all           - Build idigi library"
 	@echo "    linux         - Build linux sample"
