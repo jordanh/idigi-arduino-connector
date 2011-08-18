@@ -134,7 +134,7 @@ done:
 }
 
 static idigi_callback_status_t initiate_send_facility_packet(idigi_data_t * const idigi_ptr, uint8_t * const edp_header,
-                                                             uint16_t const length, uint16_t const facility,
+                                                             size_t const length, uint16_t const facility,
                                                              send_complete_cb_t send_complete_cb, void * const user_data)
 {
     uint8_t * const edp_protocol = edp_header + PACKET_EDP_HEADER_SIZE;

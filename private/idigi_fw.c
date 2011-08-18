@@ -473,7 +473,7 @@ enum fw_info {
         fw_ptr->spec_length = 0;
         fw_ptr->request_id = idigi_firmware_target_count;
 
-        status = initiate_send_facility_packet(idigi_ptr, edp_header, (uint16_t)(fw_info-start_ptr), E_MSG_FAC_FW_NUM, release_packet_buffer, NULL);
+        status = initiate_send_facility_packet(idigi_ptr, edp_header, fw_info-start_ptr, E_MSG_FAC_FW_NUM, release_packet_buffer, NULL);
     }
 
 done:
