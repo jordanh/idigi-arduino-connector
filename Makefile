@@ -52,6 +52,11 @@ ifneq ($(COMPRESSION), false)
 PLIBS += -lz
 endif
 
+# Default LIBDIR is the currect directory
+ifeq ($(LIBDIR),)
+	LIBDIR = ./
+endif
+
 # By default build a static library
 ifneq ($(SHARED_LIBRARY), true)
 LIB =$(LIBDIR)/libidigi.a
@@ -67,6 +72,7 @@ $(OBJS): $(LIB_SRC_DIR)/*.c $(LIB_SRC_DIR)/*.h $(PUBLIC_HDR_DIR)/*.h
 
 $(LIB): $(OBJS)
 ifneq ($(SHARED_LIBRARY), false)
+	echo "libdir = " $(LIBDIR)
 	$(AR) $(ARFLAGS) $@ $^
 else
 	$(LD) $(LDFLAGS) $^ -o $@
