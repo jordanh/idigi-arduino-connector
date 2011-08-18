@@ -42,15 +42,13 @@ CFLAGS += $(DFLAGS) -I$(PUBLIC_HDR_DIR) -I./private -Wall -Werror -Wextra -Wpoin
 vpath $(LIB_SRC_DIR)/%.c
 vpath $(LIB_SRC_DIR)/%.h
 
-PLIBS =
-
-ifneq ($(COMPRESSION), false)
-PLIBS += -lz
-endif
-
 # Default LIBDIR is the currect directory
 ifeq ($(LIBDIR),)
 	LIBDIR = ./
+endif
+
+ifeq ($(LDFLAGS),)
+LDFLAGS = -shared
 endif
 
 # By default build a static library
@@ -67,14 +65,14 @@ OBJS = $(OBJDIR)/idigi_api.o
 $(OBJS): $(LIB_SRC_DIR)/*.c $(LIB_SRC_DIR)/*.h $(PUBLIC_HDR_DIR)/*.h
 
 $(LIB): $(OBJS)
-ifneq ($(SHARED_LIBRARY), false)
-	echo "libdir = " $(LIBDIR)
-	$(AR) $(ARFLAGS) $@ $^
-else
+
+ifeq ($(SHARED_LIBRARY), true)
 	$(LD) $(LDFLAGS) $^ -o $@
+else
+	$(AR) $(ARFLAGS) $@ $^
 endif
 
-MAKE= make IDIGI_RULES="../../../$(IDIGI_RULES)" DEBUG="$(DEBUG)" DFLAGS="$(DFLAGS)" LIB="../../../$(LIBDIR)"
+MAKE= make IDIGI_RULES="../../../$(IDIGI_RULES)" DEBUG="$(DEBUG)" DFLAGS="$(DFLAGS)" LIB="../../../$(LIBDIR)" COMPRESSION="$(COMPRESSION)"
 
 linux:
 	echo "building" $(SAMPLE_DIR)/linux;\
