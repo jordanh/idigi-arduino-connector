@@ -942,7 +942,7 @@ error:
     return status;
 }
 
-static idigi_callback_status_t msg_discovery(idigi_data_t * const idigi_ptr, void * const facility_data, uint8_t * packet)
+static idigi_callback_status_t msg_discovery(idigi_data_t * const idigi_ptr, void * const facility_data, uint8_t * const packet)
 {
     UNUSED_PARAMETER(packet);
 
