@@ -67,7 +67,6 @@ typedef enum {
     idigi_class_network,
     idigi_class_operating_system,
     idigi_class_firmware,
-    idigi_class_rci,
     idigi_class_data_service
 } idigi_class_t;
 
@@ -87,7 +86,6 @@ typedef enum {
     idigi_config_error_status,
     idigi_config_firmware_facility,
     idigi_config_data_service,
-    idigi_config_rci_facility
 
 } idigi_config_request_t;
 
@@ -175,29 +173,12 @@ typedef enum {
    idigi_fw_download_not_complete
 } idigi_fw_download_complete_status_t;
 
-typedef enum {
-    idigi_rci_zlib_compression,
-    idigi_rci_query_setting,
-    idigi_rci_query_state,
-    idigi_rci_set_setting,
-    idigi_rci_set_state,
-    idigi_rci_set_default,
-    idigi_rci_do_command,
-    idigi_rci_get_setting_descriptor,
-    idigi_rci_get_state_descriptor,
-    idigi_rci_compress_data,
-    idigi_rci_compress_data_done,
-    idigi_rci_decompress_data,
-    idigi_rci_decompress_data_done
-} idigi_rci_request_t;
-
 typedef union {
    idigi_config_request_t config_request;
    idigi_network_request_t network_request;
    idigi_os_request_t os_request;
    idigi_firmware_request_t firmware_request;
    idigi_data_service_request_t data_service_request;
-   idigi_rci_request_t rci_request;
 } idigi_request_t;
 
 #define idigi_handle_t void *
@@ -318,13 +299,6 @@ typedef struct
     uint16_t session_id;
     uint8_t error;
 } idigi_data_error_t;
-
-typedef struct {
-    unsigned timeout;
-    idigi_rci_request_t compression;
-    uint8_t * data;
-    uint32_t length;
-} idigi_rci_data_t;
 
 typedef idigi_callback_status_t (* idigi_callback_t) (idigi_class_t const class_id, idigi_request_t const request_id,
                                                   void const * const request_data, size_t const request_length,
