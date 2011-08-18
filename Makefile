@@ -31,17 +31,13 @@ ifneq ($(DATA_SERVICE), false)
 DFLAGS += -DIDIGI_DATA_SERVICE
 endif
 
-ifneq ($(FACILITY_RCI), false)
-DFLAGS += -D_RCI_FACILITY
-endif
-
 ifeq ($(DEBUG),true)
 DFLAGS += -DDEBUG -g
 else
 DFLAGS += -DNDEBUG -O2
 endif
 
-CFLAGS += $(DFLAGS) -I$(PUBLIC_HDR_DIR) -I./private -Wall -Werror -Wextra -std=c99
+CFLAGS += $(DFLAGS) -I$(PUBLIC_HDR_DIR) -I./private -Wall -Werror -Wextra -Wpointer-arith -std=c99
 
 vpath $(LIB_SRC_DIR)/%.c
 vpath $(LIB_SRC_DIR)/%.h
@@ -88,7 +84,6 @@ help:
 	@echo "    LITTLE_ENDIAN = true or false for little endian"
 	@echo "    FACILITY_FW   = true or false for firmware upgrade capability"
 	@echo "    DATA_SERVICE  = true or false for data service capability"
-	@echo "    FACILITY_RCI  = true or false for RCI capability"
 	@echo "Targets:"
 	@echo "    all           - Build idigi library"
 	@echo "    linux         - Build linux sample"
