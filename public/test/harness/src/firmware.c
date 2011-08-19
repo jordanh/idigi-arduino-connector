@@ -25,11 +25,6 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#ifdef _MSC_VER
-    #include <windows.h> // for Sleep
-#else
-    #include <unistd.h> // for Sleep
-#endif
 #include <errno.h>
 
 #include "idigi_struct.h"
@@ -216,12 +211,6 @@ static idigi_callback_status_t firmware_download_complete(idigi_fw_download_comp
     firmware_download_started = false;
 
 done:
-    // Insert arbitrary 5 second sleep to simulate processing of firmware.  This will likely be removed later.
-#ifdef _MSC_VER
-    Sleep(5000);
-#else
-    sleep(5);
-#endif
     return status;
 }
 
