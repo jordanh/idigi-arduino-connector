@@ -1,0 +1,4 @@
+LDFLAGS=-G -lc
+LITTLE_ENDIAN=true
+DEBUG=true
+SHARED_LIBRARY=true
