@@ -303,7 +303,7 @@ static void msg_delete_session(idigi_data_t * const idigi_ptr,  msg_session_t * 
 #endif
 
     free_data(idigi_ptr, session);
-    ASSERT_GOTO((msg_ptr->active_transactions > 0) || PeerSupportsUnlimitedTransactions(msg_ptr), error);
+    ASSERT_GOTO(msg_ptr->active_transactions > 0, error);
     msg_ptr->active_transactions--;
 
 error:
@@ -878,12 +878,6 @@ static idigi_callback_status_t msg_process_ack(idigi_data_t * const idigi_ptr, i
     uint8_t const * ack_packet = ptr;
 
     {
-        uint8_t const flag = message_load_u8(ack_packet, flags);
-
-        UNUSED_PARAMETER(flag);
-    }
-
-    {
         uint16_t const session_id = message_load_be16(ack_packet, transaction_id);
 
         session = msg_find_session(msg_fac, session_id, msg_type_tx);
@@ -891,13 +885,7 @@ static idigi_callback_status_t msg_process_ack(idigi_data_t * const idigi_ptr, i
             goto error; /* already done sending all data */    
     }
 
-    {
-        uint32_t const ack = message_load_be32(ack_packet, ack_count);
-
-        UNUSED_PARAMETER(ack);
-    }
-
-    session->available_window = message_load_be32(ack_packet, window_size); /* window size */
+    session->available_window = message_load_be32(ack_packet, window_size);
     if (session->available_window > 0)
     {
         if (session->flow_controlled) 
@@ -917,12 +905,6 @@ static idigi_callback_status_t msg_process_error(idigi_data_t * const idigi_ptr,
     idigi_callback_status_t status = idigi_callback_abort;
     uint8_t * error_packet = ptr;
    
-    {
-        uint8_t const flag =  message_load_u8(error_packet, flags);
-
-        UNUSED_PARAMETER(flag);
-    }
-
     {
         uint16_t const session_id = message_load_be16(error_packet, transaction_id);
 
