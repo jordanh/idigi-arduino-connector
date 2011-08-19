@@ -131,7 +131,7 @@ class RedirectTestCase(unittest.TestCase):
         log.info("response:\n%s" % response)
         
         # Determine if device disconnected and reconnected
-        determine_disconnect_reconnect(self, config, last_connected, 30)
+        determine_disconnect_reconnect(self, config, last_connected, 60)
     
     def test_redirect_zero_destinations(self):
     

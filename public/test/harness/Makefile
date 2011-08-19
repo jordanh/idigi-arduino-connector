@@ -12,18 +12,29 @@ else
 CFLAGS += -DNDEBUG -O2
 endif
 
-SRC=src/network.c src/data_service.c src/firmware.c src/main.c src/config.c src/os.c src/rci.c src/inih/ini.c 
+CFLAGS += -I../../include -I./include -lc
+
+ifneq ($(COMPRESSION), false)
+  CFLAGS += -lz
+endif
+
+
+ifeq ($(SHARED_LIBRARY), true)
+  CFLAGS += -L$(LIBDIR) -lidigi
+else
+  EFLAGS += $(LIBDIR)/libidigi.a
+endif
+
+SRC=src/network.c src/data_service.c src/firmware.c src/main.c src/config.c src/os.c src/inih/ini.c 
 OBJS=${SRC:.c=.o}
 EXEC=iik_test
-
-CFLAGS += -I../../include -I./include -L$(LIBDIR) -lc -lidigi
 
 all: $(EXEC)
 
 $(OBJS): $(SRC)
 
 $(EXEC): $(OBJS)
-	$(CC) $(CFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $^ $(EFLAGS) -o $@
 
 clean:
 	$(RM) $(OBJS) $(EXEC)

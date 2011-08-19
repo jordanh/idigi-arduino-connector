@@ -5,8 +5,9 @@ TARGET=${type}_${featureset}_${arch}
 
 make clean all IDIGI_RULES=./public/test/rules/${TARGET}.rules LIBDIR=${OUTPUT_DIR}
 
-if [ "$TARGET" == "release_full_x86" ]; then
-  echo "Executing Test Harness Against Release"
+# Run tests only if release on linux and featureset is full or sharedlib
+if [[ "${type}" == "release" && "${arch}" == "x86" && ("${featureset}" == "full" || "${featureset}" == "sharedlib") ]]; then
+  echo "Executing Test Harness against $TARGET"
   export LD_LIBRARY_PATH=${OUTPUT_DIR}
   cd public/test/harness
   make clean all IDIGI_RULES=../rules/${TARGET}.rules LIBDIR=${OUTPUT_DIR}

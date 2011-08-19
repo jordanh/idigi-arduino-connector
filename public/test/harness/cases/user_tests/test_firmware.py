@@ -133,13 +133,11 @@ class FirmwareTestCase(unittest.TestCase):
        
         # Determine if Firmware was submitted
         submitted = response.find("submitted")
-        self.assertNotEqual(-1, submitted, "Firmware was not submitted.")
-        
-        time.sleep(5)
+        self.assertNotEqual(-1, submitted, "Firmware was not submitted.")        
+
         # Check if the device disconnects and reconnects
         determine_disconnect_reconnect(self, config, last_connected)
         
-        #TODO: ADD TEST TO VERIFY FIRMWARE VERSION HAS UPDATED
     
     def test_update_firmware_nonexisting_target(self):
     
