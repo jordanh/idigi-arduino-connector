@@ -1,5 +1,6 @@
 #!/bin/bash
 rc=0
+rca=0
 BASE_DIR=$WORKSPACE/idigi
 OUTPUT_DIR=output
 PART_NUMBER=40003008
@@ -82,11 +83,11 @@ if [[ "${type}" == "release" && "${arch}" == "x86" && ("${featureset}" == "full"
   export PYTHONPATH=../
   cd cases/user_tests
   nosetests --with-xunit
-  rc = $?
+  rc=$?
   kill -9 $child_pid_user
   cd ../admin_tests
   nosetests --with-xunit
-  rca = $?
+  rca=$?
   kill -9 $child_pid_admin
   if [[ ${rc} != 0 ]]; then
       echo "++ User Tests failed, exiting."
