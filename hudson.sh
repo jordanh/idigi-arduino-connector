@@ -110,7 +110,7 @@ else
     </testsuite>" > ${WORKSPACE}/public/test/harness/cases/user_tests/nosetests.xml
 fi
 
-if [[ "${PENDING}" == "1" ]]; then
+if [[ "${PENDING}" == "true" ]]; then
     # If successfull push the tarball to pending, if PENDING environment variable is set to 1.
     echo ">> Copying the Tarball to Pending."
     cp -v ${OUTPUT_DIR}/${PKG_NAME}.tgz /eng/store/pending/
