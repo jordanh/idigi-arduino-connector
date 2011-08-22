@@ -102,11 +102,11 @@ else
   echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?> \
     <testsuite name=\"nosetests\" tests=\"0\" errors=\"0\" skip=\"0\"> \
         <testcase classname=\"empty_test.NoTestsExecuted\" name=\"notest\" time=\"0\"/> \
-    </testsuite>" > public/test/harness/cases/admin_tests/nosetests.xml
+    </testsuite>" > ${WORKSPACE}/public/test/harness/cases/admin_tests/nosetests.xml
   echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?> \
     <testsuite name=\"nosetests\" tests=\"0\" errors=\"0\" skip=\"0\"> \
         <testcase classname=\"empty_test.NoTestsExecuted\" name=\"notest\" time=\"0\"/> \
-    </testsuite>" > public/test/harness/cases/user_tests/nosetests.xml
+    </testsuite>" > ${WORKSPACE}/public/test/harness/cases/user_tests/nosetests.xml
 fi
 
 if [[ "${PENDING}" == "1" ]]; then
