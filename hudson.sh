@@ -36,16 +36,14 @@ cp -rf private ${BASE_DIR}
 cp -rf public ${BASE_DIR}
 
 # Grab the license
-echo ">> Pulling License from /eng/store/pending/90000000/${LICENSE}.zip and copying to ${BASE_DIR}."
+echo ">> Pulling License from /eng/store/pending/90000000/${LICENSE}.zip and copying to ${WORKSPACE}."
 cp /eng/store/pending/90000000/${LICENSE}.zip ${WORKSPACE}
-unzip -o ${BASE_DIR}/${LICENSE}.zip -d ${BASE_DIR}
+unzip -o ${WORKSPACE}/${LICENSE}.zip -d ${BASE_DIR}
 rm ${WORKSPACE}/${LICENSE}.zip
 
-cd ${BASE_DIR}
 # Create the tarball
 echo ">> Creating the release Tarball as ${OUTPUT_DIR}/${PKG_NAME}.tgz."
-tar -pczf ${WORKSPACE}/${OUTPUT_DIR}/${PKG_NAME}.tgz *
-cd ${WORKSPACE}
+tar --exclude=idigi/hudson.sh --exclude=idigi/public/test -czvf ${WORKSPACE}/${OUTPUT_DIR}/${PKG_NAME}.tgz idigi/
 
 # Delete the original idigi directory
 echo ">> Removing base dir ${BASE_DIR}."
