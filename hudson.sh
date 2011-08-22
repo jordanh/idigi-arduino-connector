@@ -1,5 +1,4 @@
 #!/bin/bash
-
 rc=0
 BASE_DIR=$WORKSPACE/idigi
 OUTPUT_DIR=output
@@ -38,7 +37,7 @@ cp -rf public ${BASE_DIR}
 # Grab the license
 echo ">> Pulling License from /eng/store/pending/90000000/${LICENSE}/zip and copying to ${BASE_DIR}."
 cp /eng/store/pending/90000000/${LICENSE}.zip ${WORKSPACE}
-unzip ${BASE_DIR}/${LICENSE}.zip -d ${BASE_DIR}
+unzip -o ${BASE_DIR}/${LICENSE}.zip -d ${BASE_DIR}
 rm ${WORKSPACE}/${LICENSE}.zip
 
 # Create the tarball
@@ -62,7 +61,7 @@ make clean all IDIGI_RULES=../public/test/rules/${TARGET}.rules LIBDIR=../${OUTP
 
 rc=$?
 
-if [[ ${rc} == 1 ]]; then
+if [[ ${rc} != 0 ]]; then
   echo "++ Failed to build Library, exiting."
   cleanup
   exit ${rc} 
@@ -83,12 +82,23 @@ if [[ "${type}" == "release" && "${arch}" == "x86" && ("${featureset}" == "full"
   export PYTHONPATH=../
   cd cases/user_tests
   nosetests --with-xunit
+  rc = $?
   kill -9 $child_pid_user
   cd ../admin_tests
   nosetests --with-xunit
+  rc2 = $?
   kill -9 $child_pid_admin
+  if [[ ${rc} != 0 ]]; then
+      echo "++ User Tests failed, exiting."
+      cleanup
+      exit ${rc}
+  fi
+  if [[ ${rc2} != 0 ]]; then
+      echo "++ Admin Tests failed, exiting."
+      cleanup
+      exit ${rc2}
+  fi
 else
-  echo ">> Not Executing Test Harness against $TARGET."
   echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?> \
     <testsuite name=\"nosetests\" tests=\"0\" errors=\"0\" skip=\"0\"> \
         <testcase classname=\"empty_test.NoTestsExecuted\" name=\"notest\" time=\"0\"/> \
