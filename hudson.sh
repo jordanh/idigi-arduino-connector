@@ -86,17 +86,17 @@ if [[ "${type}" == "release" && "${arch}" == "x86" && ("${featureset}" == "full"
   kill -9 $child_pid_user
   cd ../admin_tests
   nosetests --with-xunit
-  rc2 = $?
+  rca = $?
   kill -9 $child_pid_admin
   if [[ ${rc} != 0 ]]; then
       echo "++ User Tests failed, exiting."
       cleanup
       exit ${rc}
   fi
-  if [[ ${rc2} != 0 ]]; then
+  if [[ ${rca} != 0 ]]; then
       echo "++ Admin Tests failed, exiting."
       cleanup
-      exit ${rc2}
+      exit ${rca}
   fi
 else
   echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?> \
