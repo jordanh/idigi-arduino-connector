@@ -41,9 +41,11 @@ cp /eng/store/pending/90000000/${LICENSE}.zip ${WORKSPACE}
 unzip -o ${BASE_DIR}/${LICENSE}.zip -d ${BASE_DIR}
 rm ${WORKSPACE}/${LICENSE}.zip
 
+cd ${BASE_DIR}
 # Create the tarball
 echo ">> Creating the release Tarball as ${OUTPUT_DIR}/${PKG_NAME}.tgz."
-tar --exclude=./hudson.sh --exclude=./public/test -pczf ${OUTPUT_DIR}/${PKG_NAME}.tgz *
+tar -pczf ${WORKSPACE}/${OUTPUT_DIR}/${PKG_NAME}.tgz *
+cd ${WORKSPACE}
 
 # Delete the original idigi directory
 echo ">> Removing base dir ${BASE_DIR}."
