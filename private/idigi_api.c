@@ -72,7 +72,6 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
     idigi_handle = handle;
 
     init_setting(idigi_handle);
-    idigi_handle->active_state = idigi_device_started;
     idigi_handle->callback = callback;
     idigi_handle->facility_list = NULL;
     idigi_handle->network_handle = NULL;
@@ -164,11 +163,18 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
     if (idigi_handle != NULL)
     {
         status = get_supported_facilities(idigi_handle);
+        if (status != idigi_callback_continue)
+        {
+            status = remove_facility_layer(idigi_handle);
+            ASSERT(status != idigi_callback_continue);
+            free_data(idigi_handle, idigi_handle);
+            idigi_handle = NULL;
+        }
 
     }
 
 done:
-    return (idigi_handle_t) idigi_handle;
+    return idigi_handle;
 }
 
 idigi_status_t idigi_step(idigi_handle_t const handle)
@@ -184,6 +190,7 @@ idigi_status_t idigi_step(idigi_handle_t const handle)
         goto done;
     }
     rc = idigi_success;
+
 
     /* process edp layers.
      *

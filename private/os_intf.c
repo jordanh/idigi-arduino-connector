@@ -26,6 +26,7 @@
 
 static void init_setting(idigi_data_t * const idigi_ptr)
 {
+    idigi_ptr->active_state = idigi_device_started;
     idigi_ptr->edp_state = edp_init_layer;
     idigi_ptr->layer_state = 0;
     idigi_ptr->request_id = 0;
