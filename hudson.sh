@@ -35,7 +35,7 @@ cp -rf private ${BASE_DIR}
 cp -rf public ${BASE_DIR}
 
 # Grab the license
-echo ">> Pulling License from /eng/store/pending/90000000/${LICENSE}/zip and copying to ${BASE_DIR}."
+echo ">> Pulling License from /eng/store/pending/90000000/${LICENSE}.zip and copying to ${BASE_DIR}."
 cp /eng/store/pending/90000000/${LICENSE}.zip ${WORKSPACE}
 unzip -o ${BASE_DIR}/${LICENSE}.zip -d ${BASE_DIR}
 rm ${WORKSPACE}/${LICENSE}.zip
