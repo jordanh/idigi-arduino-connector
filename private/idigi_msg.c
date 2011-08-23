@@ -776,14 +776,14 @@ static idigi_callback_status_t msg_recv_compressed(idigi_data_t * const idigi_pt
             size_t uncompressed_length = sizeof session->frame - zlib_ptr->avail_out;
             idigi_msg_callback_t * cb_fn = msg_fac->service_cb[session->service_id];
 
-            if (session->last_chunk && (zlib_ptr->avail_out == 0))
+            if (session->last_chunk && (zlib_ptr->avail_out > 0))
                 state = msg_status_end;
             else
                 state = (zlib_ptr->total_in == length) ? msg_status_start : msg_status_data;
             
             status = cb_fn(idigi_ptr, state, session, session->frame, uncompressed_length);
 
-            if (session->last_chunk && (zlib_ptr->avail_out == 0))
+            if (state == msg_status_end)
                 msg_delete_session(idigi_ptr, session, msg_type_rx);
         }
 
