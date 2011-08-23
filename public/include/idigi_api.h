@@ -29,9 +29,7 @@
 
 #define IDIGI_PORT       3197
 #define IDIGI_SSL_PORT   3199
-/* iDigi return status
- *
- */
+
 typedef enum {
    idigi_success,
    idigi_init_error,
@@ -128,15 +126,10 @@ typedef enum {
    idigi_wan_connection_type
 } idigi_connection_type_t;
 
-/* Callback return status */
 typedef enum  {
-    /* successfully and continue */
     idigi_callback_continue,
-    /* busy and iDigi will call the callback again */
     idigi_callback_busy,
-    /* abort and exit iDigi */
     idigi_callback_abort,
-    /* unrecognized or not implemented request */
     idigi_callback_unrecognized
 } idigi_callback_status_t;
 
@@ -149,7 +142,6 @@ typedef enum {
    idigi_fw_download_not_allowed,
    idigi_fw_download_configured_to_reject,
    idigi_fw_encountered_error,
-   /* abort status */
    idigi_fw_user_abort,
    idigi_fw_device_error,
    idigi_fw_invalid_offset,
@@ -157,7 +149,6 @@ typedef enum {
    idigi_fw_hardware_error
 } idigi_fw_status_t;
 
-/* download complete status */
 typedef enum {
    idigi_fw_download_success,
    idigi_fw_download_checksum_mismatch,
@@ -300,6 +291,7 @@ idigi_status_t idigi_step(idigi_handle_t const handle);
 
 idigi_status_t idigi_run(idigi_handle_t const handle);
 
-idigi_status_t idigi_initiate_action(idigi_handle_t const handle, idigi_initiate_request_t const request, void const * const request_data, void * const response_data);
+idigi_status_t idigi_initiate_action(idigi_handle_t const handle, idigi_initiate_request_t const request,
+                                     void const * const request_data, void * const response_data);
 
 #endif /* _IDIGI_API_H */
