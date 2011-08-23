@@ -36,14 +36,12 @@ static void init_setting(idigi_data_t * const idigi_ptr)
     idigi_ptr->last_tx_keepalive_received_time = 0;
 
     idigi_ptr->send_packet.total_length = 0;
-    idigi_ptr->send_packet.length = 0;
+    idigi_ptr->send_packet.bytes_sent = 0;
     idigi_ptr->send_packet.ptr = NULL;
-    idigi_ptr->send_packet.packet_buffer.in_used = false;
 
     idigi_ptr->receive_packet.total_length = 0;
-    idigi_ptr->receive_packet.length = 0;
+    idigi_ptr->receive_packet.bytes_received = 0;
     idigi_ptr->receive_packet.index = 0;
-    idigi_ptr->receive_packet.packet_buffer.in_used = false;
 
     idigi_ptr->receive_packet.free_packet_buffer = &idigi_ptr->receive_packet.packet_buffer;
 
@@ -268,7 +266,6 @@ static idigi_callback_status_t add_facility_data(idigi_data_t * const idigi_ptr,
 
         /* set up an additional receive buffer to the idigi_data_t */
         buffer_ptr = (idigi_buffer_t *)((char *)facility->facility_data + size);
-        buffer_ptr->in_used = false;
 
         buffer_ptr->next = idigi_ptr->receive_packet.packet_buffer.next;
         idigi_ptr->receive_packet.packet_buffer.next = buffer_ptr;
@@ -288,7 +285,7 @@ static idigi_callback_status_t del_facility_data(idigi_data_t * const idigi_ptr,
         if (fac_ptr->facility_num == facility_num)
         {
 
-            del_node(&idigi_ptr->facility_list, fac_ptr);
+            remove_node(&idigi_ptr->facility_list, fac_ptr);
 
             free_data(idigi_ptr, fac_ptr);
             break;
