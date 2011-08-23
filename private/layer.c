@@ -23,7 +23,10 @@
  *
  */
 
-#define EDP_PROTOCOL_VERSION    0x120
+/* The security operations other than encryption... */
+#define SECURITY_OPER_IDENT_FORM     0x80
+#define SECURITY_OPER_DEVICE_ID      0x81
+#define SECURITY_OPER_URL            0x86
 
 /* Identity verification form codes... */
 #define SECURITY_IDENT_FORM_SIMPLE   0x00 /* simple verification */
@@ -68,7 +71,7 @@ static idigi_callback_status_t  remove_facility_layer(idigi_data_t * const idigi
 {
     idigi_callback_status_t rc = idigi_callback_continue;
 
-    /* remove all failities. delete_cb should not return busy.
+    /* remove all facilities. delete_cb should not return busy.
      * If it returns busy, just keep calling it.
      */
     while (idigi_ptr->request_id < (int)idigi_facility_count)
@@ -193,8 +196,8 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
                     idigi_ptr->server_url[length] = 0x0;
                     break;
                 case idigi_config_tx_keepalive:
-                    if ((*((uint16_t *)data) < MIN_TX_KEEPALIVE_INTERVAL_PER_SECOND) ||
-                        (*((uint16_t *)data) > MAX_TX_KEEPALIVE_INTERVAL_PER_SECOND) ||
+                    if ((*((uint16_t *)data) < MIN_TX_KEEPALIVE_INTERVAL_IN_SECONDS) ||
+                        (*((uint16_t *)data) > MAX_TX_KEEPALIVE_INTERVAL_IN_SECONDS) ||
                         (length != sizeof(uint16_t)))
                     {
                         idigi_ptr->error_code = idigi_invalid_data_range;
@@ -203,8 +206,8 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
                     idigi_ptr->tx_keepalive_interval = (uint16_t *)data;
                     break;
                 case idigi_config_rx_keepalive:
-                    if ((*((uint16_t *)data) < MIN_RX_KEEPALIVE_INTERVAL_PER_SECOND) ||
-                        (*((uint16_t *)data) > MAX_RX_KEEPALIVE_INTERVAL_PER_SECOND) ||
+                    if ((*((uint16_t *)data) < MIN_RX_KEEPALIVE_INTERVAL_IN_SECONDS) ||
+                        (*((uint16_t *)data) > MAX_RX_KEEPALIVE_INTERVAL_IN_SECONDS) ||
                         (length != sizeof(uint16_t)))
                     {
                         idigi_ptr->error_code = idigi_invalid_data_range;
@@ -559,7 +562,7 @@ enum {
         /* Setting the total_length will enable send_packet_process.
          * Clear length to 0 for actual length that has been sent.
          */
-        idigi_ptr->send_packet.length = 0;
+        idigi_ptr->send_packet.bytes_sent = 0;
         idigi_ptr->send_packet.ptr = packet;
         idigi_ptr->send_packet.complete_cb = release_packet_buffer;
 
@@ -574,6 +577,8 @@ enum {
 
 static idigi_callback_status_t initialization_layer(idigi_data_t * const idigi_ptr)
 {
+#define EDP_PROTOCOL_VERSION    0x120
+
 enum {
     initialization_send_protocol_version,
     initialization_receive_protocol_version
