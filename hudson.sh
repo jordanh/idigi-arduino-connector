@@ -7,6 +7,7 @@ PART_NUMBER=40003008
 PKG_NAME=${PART_NUMBER}_${REVISION}
 LICENSE=90002145_A
 USERS_GUIDE=90002146_A
+USERS_GUIDE_NAME=IntegrationKitUsersGuide.pdf
 
 function cleanup () 
 {
@@ -44,7 +45,7 @@ rm ${WORKSPACE}/${LICENSE}.zip
 
 # Grab the users guide
 echo ">> Pulling Users Guide from /eng/store/pending/90000000/${USERS_GUIDE}.pdf and copying to ${BASE_DIR}."
-cp /eng/store/pending/90000000/${USERS_GUIDE}.pdf ${BASE_DIR}
+cp /eng/store/pending/90000000/${USERS_GUIDE}.pdf ${BASE_DIR}/${USERS_GUIDE_NAME}
 
 # Create the tarball
 echo ">> Creating the release Tarball as ${OUTPUT_DIR}/${PKG_NAME}.tgz."
@@ -118,7 +119,7 @@ fi
 if [[ "${PENDING}" == "true" ]]; then
     # If successfull push the tarball to pending, if PENDING environment variable is set to 1.
     echo ">> Copying the Tarball to Pending."
-    cp -v ${WORKSPACE}/${OUTPUT_DIR}/${PKG_NAME}.tgz /eng/store/pending/
+    cp -v ${WORKSPACE}/${OUTPUT_DIR}/${PKG_NAME}.tgz /eng/store/pending/40000000
 fi
 
 cleanup
