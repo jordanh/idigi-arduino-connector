@@ -77,7 +77,7 @@ static void del_malloc_stats(void const * const ptr)
     {
         if (pMalloc->ptr == ptr)
         {
-            del_node(&malloc_list, pMalloc);
+            remove_node(&malloc_list, pMalloc);
 
             total_malloc_length -= pMalloc->length;
             free(pMalloc);
