@@ -290,7 +290,7 @@ static void msg_delete_session(idigi_data_t * const idigi_ptr,  msg_session_t * 
     if (msg_ptr->pending == session)
         msg_ptr->pending = session->prev;
 
-    del_node(&msg_ptr->session_head[type], session);
+    remove_node(&msg_ptr->session_head[type], session);
 
 #if (defined IDIGI_COMPRESSION_BUILTIN)
     if (session->compression == MSG_COMPRESSION_LIBZ) 
