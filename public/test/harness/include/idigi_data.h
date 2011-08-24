@@ -64,7 +64,7 @@ idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t request
                                               void * response_data, size_t * response_length);
 
 idigi_callback_status_t idigi_config_callback(idigi_config_request_t const request,
-                                            void * const request_data, size_t const request_length,
+                                            void * const request_data, size_t request_length,
                                             void * response_data, size_t * response_length);
 
 idigi_callback_status_t idigi_network_callback(idigi_network_request_t request,
