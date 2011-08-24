@@ -209,20 +209,27 @@ static int send_buffer(idigi_data_t * const idigi_ptr, uint8_t * const buffer, s
 
         size = sizeof length_written;
         status = idigi_callback(idigi_ptr->callback, idigi_class_network, request_id, &write_data, sizeof write_data, &length_written, &size);
-        if (status == idigi_callback_continue && length_written > 0)
+        switch (status)
         {
-            bytes_sent = length_written;
-
-            /* Retain the "last (RX) message send" time. */
-            status = get_system_time(idigi_ptr, &idigi_ptr->last_rx_keepalive_sent_time);
-            if (status == idigi_callback_abort)
+        case idigi_callback_continue:
+            if (length_written > 0)
             {
-                bytes_sent = -idigi_configuration_error;
+                bytes_sent = length_written;
+
+                /* Retain the "last (RX) message send" time. */
+                status = get_system_time(idigi_ptr, &idigi_ptr->last_rx_keepalive_sent_time);
+                if (status == idigi_callback_abort)
+                {
+                    bytes_sent = -idigi_configuration_error;
+                }
             }
-        }
-        else if (status == idigi_callback_abort)
-        {
+            break;
+        case idigi_callback_busy:
+            break;
+        case idigi_callback_abort:
+        case idigi_callback_unrecognized:
             bytes_sent = -idigi_send_error;
+            break;
         }
     }
 done:
@@ -245,6 +252,7 @@ static void release_packet_buffer(idigi_data_t * const idigi_ptr, uint8_t const 
 
 static uint8_t * get_packet_buffer(idigi_data_t * const idigi_ptr, uint16_t const facility, uint8_t ** data_ptr)
 {
+#define MIN_EDP_MESSAGE_SIZE    (PACKET_EDP_HEADER_SIZE +SERVER_URL_LENGTH)
     uint8_t * packet = NULL;
     uint8_t * ptr = NULL;
 
@@ -255,7 +263,7 @@ static uint8_t * get_packet_buffer(idigi_data_t * const idigi_ptr, uint16_t cons
      */
 
 
-    ASSERT(sizeof idigi_ptr->send_packet.packet_buffer.buffer > (PACKET_EDP_HEADER_SIZE +SERVER_URL_LENGTH));
+    ASSERT(sizeof idigi_ptr->send_packet.packet_buffer.buffer >= MIN_EDP_MESSAGE_SIZE);
 
      /* make sure no send is pending */
     if ((idigi_ptr->send_packet.total_length == 0) ||
@@ -263,14 +271,14 @@ static uint8_t * get_packet_buffer(idigi_data_t * const idigi_ptr, uint16_t cons
     {
         idigi_ptr->send_packet.packet_buffer.facility = facility;
 
-        packet = (uint8_t *)idigi_ptr->send_packet.packet_buffer.buffer;
+        packet = idigi_ptr->send_packet.packet_buffer.buffer;
 
         /* set ptr to the data portion */
         ptr = GET_PACKET_DATA_POINTER(packet, PACKET_EDP_HEADER_SIZE);
 
         if (facility != E_MSG_MT2_MSG_NUM)
         {
-            /* set ptr to the data protion of facility packet */
+            /* set ptr to the data portion of facility packet */
             ptr += PACKET_EDP_PROTOCOL_SIZE;
         }
     }
@@ -340,18 +348,17 @@ static idigi_callback_status_t send_packet_process(idigi_data_t * const idigi_pt
         int bytes_sent;
 
         bytes_sent = send_buffer(idigi_ptr, buf, length);
-        if (bytes_sent > 0)
-        {
-            idigi_ptr->send_packet.total_length -= bytes_sent;
-            idigi_ptr->send_packet.bytes_sent += bytes_sent;
-        }
-        else if (bytes_sent < 0)
+        if (bytes_sent < 0)
         {
             idigi_ptr->error_code = -bytes_sent;
             status = idigi_callback_abort;
+            goto done;
         }
 
-        if (idigi_ptr->send_packet.total_length == 0)
+        idigi_ptr->send_packet.total_length -= bytes_sent;
+        idigi_ptr->send_packet.bytes_sent += bytes_sent;
+
+        if (idigi_ptr->send_packet.total_length == 0 || bytes_sent < 0)
         {   /* sent completed so let's call the complete callback */
             send_complete_callback(idigi_ptr);
         }
@@ -361,6 +368,8 @@ static idigi_callback_status_t send_packet_process(idigi_data_t * const idigi_pt
     {
         status = idigi_callback_busy;
     }
+
+done:
     return status;
 
 }
@@ -475,7 +484,7 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
     /* check Tx keepalive timing */
     if (*idigi_ptr->tx_keepalive_interval > 0)
     {
-        uint8_t const wait_count = * idigi_ptr->wait_count;
+        uint16_t const wait_count = * idigi_ptr->wait_count;
         uint32_t const max_timeout = *idigi_ptr->tx_keepalive_interval * wait_count;
 
         if (!valid_timing_limit(idigi_ptr, idigi_ptr->last_tx_keepalive_received_time, max_timeout))
@@ -512,9 +521,8 @@ static idigi_callback_status_t receive_data_status(idigi_data_t * const idigi_pt
     {
         uint8_t * const buf = idigi_ptr->receive_packet.ptr + idigi_ptr->receive_packet.bytes_received;
         size_t const length = idigi_ptr->receive_packet.total_length - idigi_ptr->receive_packet.bytes_received;
-        int     read_length;
+        int const read_length = receive_buffer(idigi_ptr, buf, length);
 
-        read_length = receive_buffer(idigi_ptr, buf, length);
         if (read_length < 0)
         {
             idigi_ptr->error_code = -read_length;
@@ -766,14 +774,14 @@ done:
     return status;
 }
 
-static idigi_callback_status_t connect_server(idigi_data_t * const idigi_ptr, char const * server_url)
+static idigi_callback_status_t connect_server(idigi_data_t * const idigi_ptr, char const * server_url, size_t const server_url_length)
 {
     idigi_callback_status_t status;
     size_t length;
     idigi_request_t const request_id = {idigi_network_connect};
 
 
-    status = idigi_callback(idigi_ptr->callback, idigi_class_network, request_id, server_url, strlen(server_url), &idigi_ptr->network_handle, &length);
+    status = idigi_callback(idigi_ptr->callback, idigi_class_network, request_id, server_url, server_url_length, &idigi_ptr->network_handle, &length);
     switch (status)
     {
     case idigi_callback_continue:
@@ -810,18 +818,22 @@ static idigi_callback_status_t close_server(idigi_data_t * const idigi_ptr)
         idigi_request_t const request_id = {idigi_network_close};
 
         status = idigi_callback_no_response(idigi_ptr->callback, idigi_class_network, request_id, idigi_ptr->network_handle, sizeof *idigi_ptr->network_handle);
-        if (status == idigi_callback_continue || status == idigi_callback_abort)
+        if (status != idigi_callback_busy)
         {
             idigi_ptr->send_packet.total_length = 0;
             idigi_ptr->receive_packet.index = 0;
             idigi_ptr->network_handle = NULL;
-            if (status == idigi_callback_continue)
+            switch (status)
             {
+            case idigi_callback_continue:
                 idigi_ptr->edp_connected = false;
-            }
-            else if (status == idigi_callback_abort)
-            {
+                break;
+            case idigi_callback_abort:
+            case idigi_callback_unrecognized:
                 idigi_ptr->error_code = idigi_close_error;
+                break;
+            default:
+                break;
             }
         }
     }
