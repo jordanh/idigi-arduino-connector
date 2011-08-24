@@ -31,7 +31,7 @@
 #if defined(_FIRMWARE_FACILITY)
 #include "idigi_fw.c"
 #endif
-#if defined(IDIGI_DATA_SERVICE) || defined(_FILE_SERVICE)
+#if defined(IDIGI_DATA_SERVICE) || defined(IDIGI_FILE_SERVICE)
 #include "idigi_msg.c"
 #endif
 #if defined(IDIGI_DATA_SERVICE)
@@ -41,18 +41,17 @@
 
 idigi_handle_t idigi_init(idigi_callback_t const callback)
 {
-#define INIT_REQUEST_ID_COUNT   3
 
     idigi_data_t * idigi_handle = NULL;
     idigi_callback_status_t status = idigi_callback_abort;
-    void * handle;
+    idigi_status_t error_status = idigi_success;
     unsigned i;
 
 
-    struct {
+    static const struct {
         idigi_config_request_t request;
         size_t length;
-    } idigi_config_request_ids[INIT_REQUEST_ID_COUNT] = {
+    } idigi_config_request_ids[] = {
             {idigi_config_device_id, DEVICE_ID_LENGTH},
             {idigi_config_vendor_id, VENDOR_ID_LENGTH},
             {idigi_config_device_type, DEVICE_TYPE_LENGTH}
@@ -60,18 +59,21 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
 
     ASSERT_GOTO(callback != NULL, done);
 
-    /* allocate idk data */
-    status = malloc_cb(callback, sizeof(idigi_data_t), &handle);
-    if (status != idigi_callback_continue)
     {
-        goto done;
+        void * handle;
+
+        /* allocate idk data */
+        status = malloc_cb(callback, sizeof(idigi_data_t), &handle);
+        if (status != idigi_callback_continue)
+        {
+            goto done;
+        }
+
+        ASSERT_GOTO(handle != NULL, done);
+        idigi_handle = handle;
     }
 
-    ASSERT_GOTO(handle != NULL, done);
-
-    idigi_handle = handle;
-
-    init_setting(idigi_handle);
+    reset_initial_data(idigi_handle);
     idigi_handle->callback = callback;
     idigi_handle->facility_list = NULL;
     idigi_handle->network_handle = NULL;
@@ -83,80 +85,65 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
 
     /* get device id, vendor id, & device type */
     i = 0;
-    while (i < INIT_REQUEST_ID_COUNT)
+    while (i < asizeof(idigi_config_request_ids))
     {
         size_t length;
         void * data;
         idigi_request_t request_id;
-        idigi_status_t error_status = idigi_success;
 
         request_id.config_request = idigi_config_request_ids[i].request;
-        status = idigi_callback_no_request(idigi_handle->callback, idigi_class_config, request_id, &data, &length);
+        status = idigi_callback_no_request_data(idigi_handle->callback, idigi_class_config, request_id, &data, &length);
 
-        if (status == idigi_callback_continue)
+        switch (status)
         {
+        case idigi_callback_continue:
             if (data == NULL)
             {
                 error_status = idigi_invalid_data;
+                goto error;
             }
-            else if ((idigi_config_request_ids[i].request != idigi_config_device_type) &&
-                     (length != idigi_config_request_ids[i].length))
+
+            switch (idigi_config_request_ids[i].request)
             {
-                error_status = idigi_invalid_data_size;
-            }
-            else if ((idigi_config_request_ids[i].request == idigi_config_device_type) &&
-                    ((length == 0) || (length > idigi_config_request_ids[i].length)))
-            {
-                error_status = idigi_invalid_data_size;
-            }
-            else
-            {
-                switch (idigi_config_request_ids[i].request)
+            case idigi_config_device_id:
+            case idigi_config_vendor_id:
+                if (length != idigi_config_request_ids[i].length)
                 {
-                case idigi_config_device_id:
-                   idigi_handle->device_id = data;
-                    break;
-                case idigi_config_vendor_id:
-                   idigi_handle->vendor_id = data;
-                    break;
-                case idigi_config_device_type:
-                    idigi_handle->device_type = data;
-                    break;
-                case idigi_config_server_url:
-                case idigi_config_connection_type:
-                case idigi_config_mac_addr:
-                case idigi_config_link_speed:
-                case idigi_config_phone_number:
-                case idigi_config_tx_keepalive:
-                case idigi_config_rx_keepalive:
-                case idigi_config_wait_count:
-                case idigi_config_ip_addr:
-                case idigi_config_error_status:
-                case idigi_config_firmware_facility:
-                case idigi_config_data_service:
-                    ASSERT(false);
-                    /* Get these in different modules */
-                    break;
+                    error_status = idigi_invalid_data_size;
+                    goto error;
                 }
-                i++;
+                if (idigi_config_request_ids[i].request == idigi_config_device_id)
+                {
+                    idigi_handle->device_id = data;
+                }
+                else
+                {
+                    idigi_handle->vendor_id = data;
+                }
+                break;
+            case idigi_config_device_type:
+                if ((length == 0) || (length > idigi_config_request_ids[i].length))
+                {
+                    error_status = idigi_invalid_data_size;
+                    goto error;
+                }
+                idigi_handle->device_type = data;
+                idigi_handle->device_type_length = length;
+                break;
+            default:
+                ASSERT(false);
+                /* Get these in different modules */
+                break;
             }
-        }
-
-        if (error_status != idigi_success)
-        {
-            /* if error occurs, notify caller then exit the function.
-             */
-            notify_error_status(callback, idigi_class_config, request_id, error_status);
-            status = idigi_callback_abort;
-        }
-
-        if (status != idigi_callback_continue)
-        {
-            DEBUG_PRINTF("idigi_init: base class_id request id = %d callback aborts\n", idigi_config_request_ids[i].request);
-            free_data(idigi_handle, idigi_handle);
-            idigi_handle = NULL;
+            i++;
+            break;
+        case idigi_callback_abort:
+        case idigi_callback_unrecognized:
+            goto error;
+        case idigi_callback_busy:
             break;
         }
+
     }
 
     if (idigi_handle != NULL)
@@ -166,10 +153,30 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
         {
             status = remove_facility_layer(idigi_handle);
             ASSERT(status != idigi_callback_continue);
-            free_data(idigi_handle, idigi_handle);
-            idigi_handle = NULL;
+            goto error;
         }
+        else
+        {
+            goto done;
+        }
+    }
 
+error:
+    if (error_status != idigi_success)
+    {
+        idigi_request_t request_id;
+
+        request_id.config_request = idigi_config_request_ids[i].request;
+        /* if error occurs, notify caller then exit the function.
+         */
+        DEBUG_PRINTF("idigi_init: base class_id request id = %d callback aborts\n", idigi_config_request_ids[i].request);
+        notify_error_status(callback, idigi_class_config, request_id, error_status);
+    }
+
+    if (idigi_handle != NULL)
+    {
+        free_data(idigi_handle, idigi_handle);
+        idigi_handle = NULL;
     }
 
 done:
@@ -178,7 +185,7 @@ done:
 
 idigi_status_t idigi_step(idigi_handle_t const handle)
 {
-    idigi_status_t rc = idigi_init_error;
+    idigi_status_t result = idigi_init_error;
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_data_t * const idigi_handle = (idigi_data_t * const)handle;
 
@@ -186,9 +193,9 @@ idigi_status_t idigi_step(idigi_handle_t const handle)
 
     if (idigi_handle->active_state != idigi_device_started)
     {
-        goto done;
+        goto error;
     }
-    rc = idigi_success;
+    result = idigi_success;
 
 
     /* process edp layers.
@@ -245,13 +252,19 @@ idigi_status_t idigi_step(idigi_handle_t const handle)
 #endif
     }
 
-    if (status == idigi_callback_abort)
+    switch (status)
     {
-        rc = idigi_handle->error_code;
+    case idigi_callback_abort:
+    case idigi_callback_unrecognized:
+        result = idigi_handle->error_code;
+        goto error;
+    case idigi_callback_continue:
+    case idigi_callback_busy:
+        goto done;
     }
 
-done:
-    if (rc != idigi_success && idigi_handle != NULL)
+error:
+    if (idigi_handle != NULL)
     {  /* error */
         status = close_server(idigi_handle);
         if (status != idigi_callback_busy)
@@ -262,12 +275,12 @@ done:
                  * Terminated by idigi_dispatch call
                  * Free all memory.
                  */
-                rc = idigi_device_terminated;
+                result = idigi_device_terminated;
 
                 status = remove_facility_layer(idigi_handle);
                 if (status == idigi_callback_abort)
                 {
-                    rc = idigi_handle->error_code;
+                    result = idigi_handle->error_code;
                 }
 
                 free_data(idigi_handle, idigi_handle);
@@ -276,10 +289,10 @@ done:
             {
                 if (idigi_handle->error_code != idigi_success)
                 {
-                    rc = idigi_handle->error_code;
+                    result = idigi_handle->error_code;
                 }
                 send_complete_callback(idigi_handle);
-                init_setting(idigi_handle);
+                reset_initial_data(idigi_handle);
 
             }
         }
@@ -287,10 +300,12 @@ done:
         {
             /* wait for close_server */
             idigi_handle->active_state = idigi_device_stop;
-            rc = idigi_success;
+            result = idigi_success;
         }
     }
-    return rc;
+
+done:
+    return result;
 }
 
 idigi_status_t idigi_run(idigi_handle_t const handle)
@@ -313,13 +328,11 @@ idigi_status_t idigi_initiate_action(idigi_handle_t const handle, idigi_initiate
 
     ASSERT_GOTO(handle != NULL, error);
 
-#if (!defined IDIGI_DATA_SERVICE)
-    UNUSED_PARAMETER(request_data);
-    UNUSED_PARAMETER(response_data);
-#endif
     switch (request)
     {
     case idigi_initiate_terminate:
+        UNUSED_PARAMETER(request_data);
+        UNUSED_PARAMETER(response_data);
         idigi_ptr->active_state = idigi_device_terminate;
         rc = idigi_success;
         break;
