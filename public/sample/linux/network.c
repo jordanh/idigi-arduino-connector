@@ -407,9 +407,9 @@ done:
 /*
  *  Callback routine to handle all networking related calls.
  */
-idigi_callback_status_t idigi_network_callback(idigi_network_request_t request,
-                                            void * const request_data, size_t request_length,
-                                            void * response_data, size_t * response_length)
+idigi_callback_status_t idigi_network_callback(idigi_network_request_t const request,
+                                            void * const request_data, size_t const request_length,
+                                            void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     bool ret;

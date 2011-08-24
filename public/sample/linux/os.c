@@ -73,8 +73,8 @@ static bool os_get_system_time(uint32_t * const uptime)
 }
 
 idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
-                                        void * const request_data, size_t request_length,
-                                        void * response_data, size_t * response_length)
+                                        void * const request_data, size_t const request_length,
+                                        void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     bool ret=false;
