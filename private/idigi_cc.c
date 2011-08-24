@@ -53,6 +53,7 @@ enum {
 typedef struct {
     char    server_url[CC_REDIRECT_SERVER_COUNT][SERVER_URL_LENGTH];
     char    origin_url[SERVER_URL_LENGTH];
+    size_t  origin_url_length;
     int     state;
     unsigned item;
     uint16_t report_length;
@@ -78,8 +79,8 @@ enum cc_redirect_report {
 
     idigi_callback_status_t status = idigi_callback_abort;
     uint8_t * edp_header;
-    uint16_t url_length;
     uint8_t * redirect_report;
+    size_t url_length;
 
     DEBUG_PRINTF("Connection Control: send redirect_report\n");
 
@@ -103,14 +104,30 @@ enum cc_redirect_report {
     message_store_u8(redirect_report, code, cc_ptr->report_code);
     message_store_u8(redirect_report, message_length, REPORT_MESSAGE_LENGTH);
 
-    url_length = strlen(cc_ptr->origin_url);
-    message_store_be16(redirect_report, url_length, url_length);
-    redirect_report += REDIRECT_REPORT_HEADER_SIZE;
 
-    memcpy(redirect_report, cc_ptr->origin_url, url_length);
+    url_length = cc_ptr->origin_url_length;
+
+    if (url_length > 0)
+    {
+        char * const prefix_url = URL_PREFIX;
+        size_t const prefix_len = sizeof URL_PREFIX -1;
+
+        message_store_be16(redirect_report, url_length, url_length+prefix_len);
+        redirect_report += REDIRECT_REPORT_HEADER_SIZE;
+
+        memcpy(redirect_report, prefix_url, prefix_len);
+        memcpy((redirect_report + prefix_len), cc_ptr->origin_url, url_length);
+        url_length += prefix_len;
+    }
+    else
+    {
+        message_store_be16(redirect_report, url_length, url_length);
+    }
     cc_ptr->item = idigi_config_ip_addr;
 
-    status = initiate_send_facility_packet(idigi_ptr, edp_header, REDIRECT_REPORT_HEADER_SIZE + url_length, E_MSG_FAC_CC_NUM, release_packet_buffer, NULL);
+    status = initiate_send_facility_packet(idigi_ptr, edp_header,
+                                           REDIRECT_REPORT_HEADER_SIZE + url_length,
+                                           E_MSG_FAC_CC_NUM, release_packet_buffer, NULL);
 done:
     return status;
 }
@@ -127,7 +144,7 @@ static idigi_callback_status_t get_ip_addr(idigi_data_t * const idigi_ptr, uint8
     size_t length;
 
   /* Get IP address */
-    status = idigi_callback_no_request(idigi_ptr->callback, idigi_class_config, request_id, &ip_addr, &length);
+    status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &ip_addr, &length);
     if (status != idigi_callback_continue)
     {
         idigi_ptr->error_code = idigi_configuration_error;
@@ -197,7 +214,7 @@ static idigi_callback_status_t get_connection_type(idigi_data_t * const idigi_pt
     idigi_connection_type_t * type;
 
     /* callback for connection type */
-    status = idigi_callback_no_request(idigi_ptr->callback, idigi_class_config, request_id, &type, NULL);
+    status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &type, NULL);
     if (status == idigi_callback_continue)
     {
         if (type == NULL)
@@ -242,7 +259,7 @@ static idigi_callback_status_t get_mac_addr(idigi_data_t * const idigi_ptr, uint
     uint8_t * mac;
 
     /* callback for MAC addr for LAN connection type */
-    status = idigi_callback_no_request(idigi_ptr->callback, idigi_class_config, request_id, &mac, &length);
+    status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &mac, &length);
 
     if (status == idigi_callback_continue)
     {
@@ -369,7 +386,7 @@ enum cc_connection_info {
         uint32_t * speed = NULL;
         uint8_t * connection_info = connection_report + record_bytes(connection_report);
 
-        status = idigi_callback_no_request(idigi_ptr->callback, idigi_class_config, request_id, &speed, &length);
+        status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &speed, &length);
         if (status != idigi_callback_continue)
         {
             if (status == idigi_callback_abort)
@@ -399,7 +416,7 @@ enum cc_connection_info {
         size_t length = 0;
         uint8_t * phone = NULL;
 
-        status = idigi_callback_no_request(idigi_ptr->callback, idigi_class_config, request_id, &phone, &length);
+        status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &phone, &length);
 
         if (status != idigi_callback_continue)
         {
@@ -447,7 +464,7 @@ static idigi_callback_status_t process_connection_control(idigi_data_t * const i
         status = idigi_callback_no_response(idigi_ptr->callback, idigi_class_network, request_id, NULL, 0);
         if (status == idigi_callback_continue)
         {
-            init_setting(idigi_ptr);
+            reset_initial_data(idigi_ptr);
         }
         else if (status == idigi_callback_abort)
         {
@@ -523,8 +540,9 @@ enum cc_redirect_url {
         }
 
         /* save original server url that we connected before */
-        strcpy(cc_ptr->origin_url, URL_PREFIX);
-        strcpy((cc_ptr->origin_url + prefix_len), idigi_ptr->server_url);
+        memcpy(cc_ptr->origin_url, idigi_ptr->server_url, idigi_ptr->server_url_length);
+        cc_ptr->origin_url[idigi_ptr->server_url_length] = 0x0;
+        cc_ptr->origin_url_length = idigi_ptr->server_url_length;
 
         /* let parse url length and url string */
         for (i = 0; i < url_count; i++)
@@ -536,14 +554,49 @@ enum cc_redirect_url {
 
             ASSERT_GOTO(url_length < sizeof cc_ptr->server_url[i], done);
 
-            strncpy(cc_ptr->server_url[i],(const char *) redirect_url, url_length);
+            memcpy(cc_ptr->server_url[i], redirect_url, url_length);
             cc_ptr->server_url[i][url_length] = '\0';
             cc_ptr->state = cc_state_redirect_server;
             redirect_url += url_length;
+
+            {
+                char const * server_url = cc_ptr->server_url[i];
+
+                if (memcmp(server_url, URL_PREFIX, prefix_len) == 0)
+                {
+                    server_url += prefix_len;
+                    url_length -= prefix_len;
+                }
+
+                status = connect_server(idigi_ptr, server_url, url_length);
+                switch (status)
+                {
+                case idigi_callback_continue:
+                    cc_ptr->report_code = cc_redirect_success;
+                    /* now set the current server to this new redirect destination */
+                    memcpy(idigi_ptr->server_url, server_url, url_length);
+                    idigi_ptr->server_url[url_length] = 0x0;
+                    idigi_ptr->server_url_length = url_length;
+                    break;
+                case idigi_callback_busy:
+                    break;
+                case idigi_callback_abort:
+                case idigi_callback_unrecognized:
+                    /* this is not error and we're
+                     * going to connect to the origin server.
+                     */
+                    cc_ptr->report_code = cc_redirect_error;
+//                    strcpy(idigi_ptr->server_url, cc_ptr->origin_url, cc_ptr->origin_url_length);
+//                    idigi_ptr->server_url_length = cc_ptr->origin_url_length;
+                    break;
+                }
+            }
+
         }
-        cc_ptr->item = 0;
+//        cc_ptr->item = 0;
 
     }
+#if 0
     /* let's start redirecting to new server */
     if (cc_ptr->state == cc_state_redirect_server)
     {
@@ -579,6 +632,7 @@ enum cc_redirect_url {
             }
         } while (cc_ptr->item < url_count);
     }
+#endif
 
     if (status != idigi_callback_busy)
     {
@@ -587,7 +641,7 @@ enum cc_redirect_url {
          * Even if connect fails, we want to continue to
          * orginal server.
          */
-        init_setting(idigi_ptr);
+        reset_initial_data(idigi_ptr);
         cc_ptr->item = 0;
         cc_ptr->state = cc_state_redirect_report;
         set_idigi_state(idigi_ptr, edp_communication_layer);
