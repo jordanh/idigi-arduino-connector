@@ -977,7 +977,6 @@ enum {
             if (message_load_be16(edp_header, type) == E_MSG_MT2_TYPE_PAYLOAD)
             {
                 uint16_t length = message_load_be16(edp_header, length);
-//                uint16_t const facility = message_load_be16(edp_protocol, facility);
                 uint8_t const sec_code = message_load_u8(edp_protocol, sec_coding);
                 uint8_t const payload = message_load_u8(edp_protocol, payload);
 
