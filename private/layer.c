@@ -32,9 +32,9 @@
 #define SECURITY_IDENT_FORM_SIMPLE   0x00 /* simple verification */
 #define SECURITY_IDENT_FORM_PASSWORD 0x02 /* simple+passwd */
 
-#define MANDATORY_FACILITY          -1
+#define MANDATORY_FACILITY          (idigi_config_request_t)-1
 
-#define SET_FACILITY_SUPPORT(i) (0x01 << i)
+#define SET_FACILITY_SUPPORT(i) (0x01 << (i))
 #define IS_FACILITY_SUPPORTED(idigi_ptr, table_index)    (idigi_ptr->facilities & SET_FACILITY_SUPPORT(table_index))
 
 typedef idigi_callback_status_t (* idigi_facility_table_t)(struct idigi_data * const idigi_ptr);
@@ -52,9 +52,9 @@ typedef struct {
  * The init_cb must call add_facility_data() to add the facility into iDigi facility list.
  * The delete_cb is called to delete the facility from iDigi facility list when user terminates iDigi.
  */
-static idigi_facility_init_t idigi_supported_facility_table[] = {
+static idigi_facility_init_t const idigi_supported_facility_table[] = {
         /* mandatory facilities */
-        {(idigi_config_request_t)MANDATORY_FACILITY, cc_init_facility, cc_delete_facility},
+        {MANDATORY_FACILITY, cc_init_facility, cc_delete_facility},
 
         /* list of optional facilities */
 #if defined(_FIRMWARE_FACILITY)
@@ -65,38 +65,39 @@ static idigi_facility_init_t idigi_supported_facility_table[] = {
 #endif
 };
 
-static size_t idigi_facility_count = asizeof(idigi_supported_facility_table);
+static size_t const idigi_facility_count = asizeof(idigi_supported_facility_table);
 
 static idigi_callback_status_t  remove_facility_layer(idigi_data_t * const idigi_ptr)
 {
-    idigi_callback_status_t rc = idigi_callback_continue;
+    idigi_callback_status_t result = idigi_callback_continue;
+    size_t i = 0;
 
     /* remove all facilities. delete_cb should not return busy.
      * If it returns busy, just keep calling it.
      */
-    while (idigi_ptr->request_id < (int)idigi_facility_count)
+    while (i < idigi_facility_count)
     {
         idigi_callback_status_t status = idigi_callback_continue;
 
-        if (IS_FACILITY_SUPPORTED(idigi_ptr, idigi_ptr->request_id) &&
-            idigi_supported_facility_table[idigi_ptr->request_id].delete_cb != NULL)
+        if (IS_FACILITY_SUPPORTED(idigi_ptr, i) &&
+            idigi_supported_facility_table[i].delete_cb != NULL)
         {
-            status = idigi_supported_facility_table[idigi_ptr->request_id].delete_cb(idigi_ptr);
+            status = idigi_supported_facility_table[i].delete_cb(idigi_ptr);
             if (status != idigi_callback_continue)
             {
                 /* Abort by callback. Save the abort status and
                  * continue removing the rest of the facilities.
                  */
-                rc = idigi_callback_abort;
+                result = idigi_callback_abort;
             }
         }
         if (status != idigi_callback_busy)
         {
-            idigi_ptr->request_id++;
+            i++;
         }
     }
 
-    return rc;
+    return result;
 }
 
 static size_t msg_add_keepalive_param(uint8_t * const edp_header, uint16_t const type, uint16_t const value)
@@ -106,17 +107,16 @@ enum edp_keepalive{
     record_end(edp_keepalive)
 };
 
-#define EDP_KEEPALIVE_SIZE  record_bytes(edp_keepalive)
-
+    size_t const keepalive_size = record_bytes(edp_keepalive);
     uint8_t * edp_keepalive;
 
     edp_keepalive = GET_PACKET_DATA_POINTER(edp_header, PACKET_EDP_HEADER_SIZE);
     message_store_be16(edp_header, type, type);
-    message_store_be16(edp_header, length, EDP_KEEPALIVE_SIZE);
+    message_store_be16(edp_header, length, keepalive_size);
     message_store_be16(edp_keepalive, interval, value);
 
 
-    return (PACKET_EDP_HEADER_SIZE + EDP_KEEPALIVE_SIZE); /* return count of bytes added to buffer */
+    return (PACKET_EDP_HEADER_SIZE + keepalive_size); /* return count of bytes added to buffer */
 }
 
 static idigi_callback_status_t discovery_facility_layer(idigi_data_t * const idigi_ptr)
@@ -127,136 +127,123 @@ static idigi_callback_status_t discovery_facility_layer(idigi_data_t * const idi
     /* invoke any facility that needs to send any message to server
      * during initialization phase at discovery layer.
      */
-    fac_ptr = idigi_ptr->active_facility;
-    if (fac_ptr == NULL)
-    {
-        fac_ptr = idigi_ptr->facility_list;
-    }
+    fac_ptr = (idigi_ptr->active_facility == NULL)? idigi_ptr->facility_list: idigi_ptr->active_facility;
 
-    while (fac_ptr != NULL && status == idigi_callback_continue)
+    for (;fac_ptr != NULL && status == idigi_callback_continue; fac_ptr = fac_ptr->next)
     {
         DEBUG_PRINTF("Discovery Facility layer: 0x%x\n", fac_ptr->facility_num);
-        if (fac_ptr->discovery_cb == NULL)
-        {
-            status = idigi_callback_continue;
-        }
-        else
+        if (fac_ptr->discovery_cb != NULL)
         {   /* function to send facility discovery */
             status = fac_ptr->discovery_cb(idigi_ptr, fac_ptr->facility_data, NULL);
-        }
-
-        if (status == idigi_callback_continue)
-        {
-            idigi_ptr->active_facility = fac_ptr->next;
-            fac_ptr = fac_ptr->next;
+            if (status != idigi_callback_continue)
+            {
+                idigi_ptr->active_facility = fac_ptr;
+            }
         }
     }
+
     return status;
 }
 
 static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr)
 {
-#define INIT_CONFIG_ID_COUNT    4
     idigi_callback_status_t status = idigi_callback_continue;
-    idigi_request_t request_id = {idigi_config_server_url};
 
-    unsigned idigi_edp_init_config_ids[INIT_CONFIG_ID_COUNT] = {
+    static idigi_config_request_t const idigi_edp_init_config_ids[] = {
             idigi_config_server_url, idigi_config_rx_keepalive, idigi_config_tx_keepalive, idigi_config_wait_count
     };
+    unsigned i;
+
    /* Call callback to get server url, wait count, tx keepalive, rx keepalive, & password.
     * Call error status callback if error is encountered (NULL data, invalid range, invalid size).
     */
-    for ( ;idigi_ptr->request_id < INIT_CONFIG_ID_COUNT; idigi_ptr->request_id++)
+    for (i=0; i < asizeof(idigi_edp_init_config_ids); i++)
     {
         void * data = NULL;
         size_t length;
+        idigi_request_t request_id;
 
-        request_id.config_request = idigi_edp_init_config_ids[idigi_ptr->request_id];
+        request_id.config_request = idigi_edp_init_config_ids[i];
 
-        status = idigi_callback_no_request(idigi_ptr->callback, idigi_class_config, request_id, &data, &length);
-        if (status == idigi_callback_continue)
-        {
-            if (data == NULL)
-            {
-                /* callback cannot return */
-                idigi_ptr->error_code = idigi_invalid_data;
-                goto error;
-            }
-            else
-            {
-                switch(request_id.config_request)
-                {
-                case idigi_config_server_url:
-                    if ((length == 0) || (length > SERVER_URL_LENGTH))
-                    {
-                        idigi_ptr->error_code = idigi_invalid_data_range;
-                        goto error;
-                    }
-                    strcpy(idigi_ptr->server_url, (char *)data);
-                    idigi_ptr->server_url[length] = 0x0;
-                    break;
-                case idigi_config_tx_keepalive:
-                    if ((*((uint16_t *)data) < MIN_TX_KEEPALIVE_INTERVAL_IN_SECONDS) ||
-                        (*((uint16_t *)data) > MAX_TX_KEEPALIVE_INTERVAL_IN_SECONDS) ||
-                        (length != sizeof(uint16_t)))
-                    {
-                        idigi_ptr->error_code = idigi_invalid_data_range;
-                        goto error;
-                    }
-                    idigi_ptr->tx_keepalive_interval = (uint16_t *)data;
-                    break;
-                case idigi_config_rx_keepalive:
-                    if ((*((uint16_t *)data) < MIN_RX_KEEPALIVE_INTERVAL_IN_SECONDS) ||
-                        (*((uint16_t *)data) > MAX_RX_KEEPALIVE_INTERVAL_IN_SECONDS) ||
-                        (length != sizeof(uint16_t)))
-                    {
-                        idigi_ptr->error_code = idigi_invalid_data_range;
-                        goto error;
-                    }
-                    idigi_ptr->rx_keepalive_interval = (uint16_t *)data;
-                    break;
-                case idigi_config_wait_count:
-                    if ((*((uint8_t *)data) < WAIT_COUNT_MIN) ||
-                        (*((uint8_t *)data) > WAIT_COUNT_MAX)||
-                        (length != sizeof(uint8_t)))
-                    {
-                        idigi_ptr->error_code = idigi_invalid_data_range;
-                        goto error;
-                    }
-                    idigi_ptr->wait_count = (uint8_t *)data;
-                    break;
-                case idigi_config_device_id:
-                case idigi_config_vendor_id:
-                case idigi_config_device_type:
-                    /* got these configurations in init function */
-                case idigi_config_connection_type:
-                case idigi_config_mac_addr:
-                case idigi_config_link_speed:
-                case idigi_config_phone_number:
-                case idigi_config_ip_addr:
-                case idigi_config_error_status:
-                case idigi_config_firmware_facility:
-                case idigi_config_data_service:
-                    /* get these configurations from different modules */
-                    ASSERT(false);
-                    break;
-                }
-            }
-        }
-        else
+        status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &data, &length);
+        if (status != idigi_callback_continue)
         {
             /* set error code if it has not been set */
-            if (status == idigi_callback_abort && idigi_ptr->error_code == idigi_success)
+            if (idigi_ptr->error_code == idigi_success)
             {
                 idigi_ptr->error_code = idigi_configuration_error;
             }
             goto done;
         }
-    } /* for */
+
+        if (data == NULL)
+        {
+            /* callback cannot return */
+            idigi_ptr->error_code = idigi_invalid_data;
+            goto error;
+        }
+
+        switch(request_id.config_request)
+        {
+        case idigi_config_server_url:
+            if ((length == 0) || (length > SERVER_URL_LENGTH))
+            {
+                idigi_ptr->error_code = idigi_invalid_data_range;
+                goto error;
+            }
+            memcpy(idigi_ptr->server_url, data, length);
+            idigi_ptr->server_url[length] = 0x0;
+            idigi_ptr->server_url_length = length;
+            break;
+        case idigi_config_tx_keepalive:
+        case idigi_config_rx_keepalive:
+        {
+            uint16_t * value = data;
+
+            if ((*value < MIN_KEEPALIVE_INTERVAL_IN_SECONDS) ||
+                (*value > MAX_KEEPALIVE_INTERVAL_IN_SECONDS) ||
+                (length != sizeof *value))
+            {
+                idigi_ptr->error_code = idigi_invalid_data_range;
+                goto error;
+            }
+            if (request_id.config_request == idigi_config_tx_keepalive)
+            {
+                idigi_ptr->tx_keepalive_interval = (uint16_t *)data;
+            }
+            else
+            {
+                idigi_ptr->rx_keepalive_interval = (uint16_t *)data;
+            }
+            break;
+        }
+        case idigi_config_wait_count:
+        {
+            uint16_t * value = data;
+
+            if ((*value < WAIT_COUNT_MIN) ||
+                (*value > WAIT_COUNT_MAX)||
+                (length != sizeof *value))
+            {
+                idigi_ptr->error_code = idigi_invalid_data_range;
+                goto error;
+            }
+            idigi_ptr->wait_count = (uint16_t *)data;
+            break;
+        }
+        default:
+            /* get these configurations from different modules */
+            ASSERT(false);
+            break;
+        }
+    }
 
 error:
     if (idigi_ptr->error_code != idigi_success)
     {
+        idigi_request_t request_id;
+        ASSERT(i < asizeof(idigi_edp_init_config_ids));
+        request_id.config_request = idigi_edp_init_config_ids[i];
         notify_error_status(idigi_ptr->callback, idigi_class_config, request_id, idigi_ptr->error_code);
         status = idigi_callback_abort;
     }
@@ -264,15 +251,17 @@ error:
 done:
     return status;
 }
+
 static idigi_callback_status_t get_supported_facilities(idigi_data_t * const idigi_ptr)
 {
-#define NUMBER_FACILITY_PER_BYTE        8
+#define NUMBER_FACILITY_PER_BYTE CHAR_BIT
 
     idigi_callback_status_t status = idigi_callback_continue;
     size_t  i;
 
     idigi_ptr->facilities = 0;
 
+    ASSERT(CHAR_BIT == 8);
     ASSERT(idigi_facility_count <= (sizeof idigi_ptr->facilities * NUMBER_FACILITY_PER_BYTE));
 
     /* idigi_supported_facility_table[] table includes a list of facilities that iDigi supports.
@@ -288,7 +277,7 @@ static idigi_callback_status_t get_supported_facilities(idigi_data_t * const idi
         request_id.config_request = idigi_supported_facility_table[i].facility;
         if (request_id.config_request != (idigi_config_request_t)MANDATORY_FACILITY)
         {   /* this is optional facility so ask application whether it supports this facility */
-            status = idigi_callback_no_request(idigi_ptr->callback, idigi_class_config, request_id, &facility_enable, &length);
+            status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &facility_enable, &length);
             if (status != idigi_callback_continue)
             {
                 if (status == idigi_callback_abort)
@@ -308,6 +297,7 @@ static idigi_callback_status_t get_supported_facilities(idigi_data_t * const idi
     }
     return status;
 }
+
 static idigi_callback_status_t initialize_facilities(idigi_data_t * const idigi_ptr)
 {
     idigi_callback_status_t status = idigi_callback_continue;
@@ -318,7 +308,6 @@ static idigi_callback_status_t initialize_facilities(idigi_data_t * const idigi_
         if (IS_FACILITY_SUPPORTED(idigi_ptr,i) &&
            idigi_supported_facility_table[i].init_cb != NULL)
         {
-            /* let's call facility init_cb function */
             status = idigi_supported_facility_table[i].init_cb(idigi_ptr);
         }
     }
@@ -327,23 +316,17 @@ static idigi_callback_status_t initialize_facilities(idigi_data_t * const idigi_
 
     if (status == idigi_callback_continue)
     {
-        if (i < idigi_facility_count)
+        idigi_facility_t * fac_ptr;
+        /* initialize packet pointer for each facility */
+        for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
         {
-            status = idigi_callback_busy;
-        }
-        else
-        {
-            idigi_facility_t * fac_ptr;
-            /* initialize packet pointer for each facility */
-            for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
-            {
-                fac_ptr->packet = NULL;
-            }
+            fac_ptr->packet = NULL;
         }
     }
 
     return status;
 }
+
 static idigi_callback_status_t configuration_layer(idigi_data_t * const idigi_ptr)
 {
 enum {
@@ -354,28 +337,29 @@ enum {
     idigi_callback_status_t status = idigi_callback_continue;
 
     /* This layer is called to get some of the EDP configuration and initialize each facility */
-    if (idigi_ptr->layer_state == configuration_get_configurations)
+    switch (idigi_ptr->layer_state)
     {
+    case configuration_get_configurations:
         status = get_configurations(idigi_ptr);
         if (status == idigi_callback_continue)
         {
             idigi_ptr->request_id = 0;
             idigi_ptr->layer_state = configuration_init_facilities;
         }
-    }
-
-    if (idigi_ptr->layer_state == configuration_init_facilities)
-    {
+        /* fall through */
+    case configuration_init_facilities:
         status = initialize_facilities(idigi_ptr);
         if (status == idigi_callback_continue)
         {
             set_idigi_state(idigi_ptr, edp_communication_layer);
         }
+        break;
     }
 
     return status;
 
 }
+
 static idigi_callback_status_t send_version(idigi_data_t * idigi_ptr, uint16_t const type, uint32_t const version)
 {
 enum edp_version {
@@ -410,6 +394,7 @@ enum edp_version {
 
     return status;
 }
+
 static idigi_callback_status_t communication_layer(idigi_data_t * const idigi_ptr)
 {
 #define SERVER_OVERLOAD_RESPONSE    0x02
@@ -434,7 +419,7 @@ enum {
     case communication_connect_server:
         if (idigi_ptr->network_handle == NULL)
         {
-            status = connect_server(idigi_ptr, idigi_ptr->server_url);
+            status = connect_server(idigi_ptr, idigi_ptr->server_url, idigi_ptr->server_url_length);
         }
 
         if (status == idigi_callback_continue)
@@ -534,9 +519,9 @@ enum {
     {
         uint8_t * ptr;
         uint8_t * packet;
-        uint16_t  timeout;
-        uint8_t   wait_count;
-        uint8_t   * data_ptr;
+        uint16_t timeout;
+        uint16_t wait_count;
+        uint8_t * data_ptr;
         int len;
 
         DEBUG_PRINTF("communication layer: send keepalive params \n");
@@ -555,7 +540,7 @@ enum {
         idigi_ptr->send_packet.total_length += len;
 
         wait_count = *idigi_ptr->wait_count;
-        len = msg_add_keepalive_param(ptr, E_MSG_MT2_TYPE_KA_WAIT, (uint16_t)wait_count);
+        len = msg_add_keepalive_param(ptr, E_MSG_MT2_TYPE_KA_WAIT, wait_count);
         ptr += len;
         idigi_ptr->send_packet.total_length += len;
 
@@ -627,12 +612,11 @@ enum {
              */
             if (message_load_be16(edp_header, length) > 0)
             {
-                uint8_t * response_code;
+                uint8_t * const response_code = GET_PACKET_DATA_POINTER(edp_header, PACKET_EDP_HEADER_SIZE);
                 /* Parse the version response (0 = version response ok).
                  * If the protocol version number was not acceptable to the server,
                  * tell the application.
                  */
-                response_code = GET_PACKET_DATA_POINTER(edp_header, PACKET_EDP_HEADER_SIZE);
                 if (*response_code != initialization_version_response_acceptable)
                 {
                     idigi_request_t const request_id = {idigi_network_receive};
@@ -666,7 +650,6 @@ enum {
     idigi_callback_status_t status = idigi_callback_continue;
     uint8_t * edp_header;
     uint16_t len;
-    uint16_t size;
     uint8_t * start_ptr;
 
     /* security layer:
@@ -690,8 +673,7 @@ enum {
             field_define(edp_security, identity, uint8_t),
             record_end(edp_security)
         };
-        #define EDP_SECURITY_SIZE   record_bytes(edp_security)
-
+        size_t const edp_security_size = record_bytes(edp_security);
         uint8_t * edp_security = start_ptr;
 
         DEBUG_PRINTF("Security layer: send security form\n");
@@ -707,7 +689,7 @@ enum {
         message_store_u8(edp_security, opcode, SECURITY_OPER_IDENT_FORM);
         message_store_u8(edp_security, identity, SECURITY_IDENT_FORM_SIMPLE);
 
-        status = initiate_send_packet(idigi_ptr, edp_header, EDP_SECURITY_SIZE,
+        status = initiate_send_packet(idigi_ptr, edp_header, edp_security_size,
                                     E_MSG_MT2_TYPE_PAYLOAD,
                                     release_packet_buffer,
                                     NULL);
@@ -764,23 +746,22 @@ enum {
         };
         #define EDP_DEVICE_URL_HEADER_SIZE   record_bytes(edp_server_url)
 
-        char * server_url;
+        char * server_url = idigi_ptr->server_url;
         uint8_t * edp_server_url = start_ptr;
-        char const * const url_prefix = URL_PREFIX;
+        char const url_prefix[] = URL_PREFIX;
+        size_t const prefix_length = sizeof url_prefix -1;
 
         DEBUG_PRINTF("security layer: send server url\n");
-        server_url = (char *)idigi_ptr->server_url;
 
-        len = strlen(server_url) + sizeof url_prefix -1;
+        len = idigi_ptr->server_url_length + prefix_length;
 
         message_store_u8(edp_server_url, opcode, SECURITY_OPER_URL);
         message_store_be16(edp_server_url, url_length, len);
         edp_server_url += EDP_DEVICE_URL_HEADER_SIZE;
 
-        len =  strlen(server_url);
-        size = strlen(url_prefix);
-        memcpy(edp_server_url, url_prefix, size);
-        edp_server_url += size;
+        len =  idigi_ptr->server_url_length;
+        memcpy(edp_server_url, url_prefix, prefix_length);
+        edp_server_url += prefix_length;
         memcpy(edp_server_url, server_url, len);
         edp_server_url += len;
 
@@ -880,25 +861,21 @@ enum {
             field_define(edp_device_type, length, uint16_t),
             record_end(edp_device_type)
         };
-        #define EDP_DEVICE_TYPE_HEADER_SIZE   record_bytes(edp_device_type)
+        size_t const device_type_header_size = record_bytes(edp_device_type);
 
         uint8_t * edp_device_type = start_ptr;
-        uint16_t len;
 
         DEBUG_PRINTF("discovery layer: send device type\n");
         message_store_u8(edp_device_type, security_coding, SECURITY_PROTO_NONE);
         message_store_u8(edp_device_type, opcode, DISC_OP_DEVICETYPE);
 
-        len = strlen(idigi_ptr->device_type);
-        message_store_be16(edp_device_type, length, len);
+        message_store_be16(edp_device_type, length, idigi_ptr->device_type_length);
 
-        edp_device_type += EDP_DEVICE_TYPE_HEADER_SIZE;
-        memcpy(edp_device_type, idigi_ptr->device_type, len);
-
-        /* Send the message. */
+        edp_device_type += device_type_header_size;
+        memcpy(edp_device_type, idigi_ptr->device_type, idigi_ptr->device_type_length);
 
         status = initiate_send_packet(idigi_ptr, edp_header,
-                                    (uint16_t)(EDP_DEVICE_TYPE_HEADER_SIZE + len),
+                                    (uint16_t)(device_type_header_size + idigi_ptr->device_type_length),
                                     E_MSG_MT2_TYPE_PAYLOAD,
                                     release_packet_buffer,
                                     NULL);
@@ -980,7 +957,6 @@ enum {
     switch (idigi_ptr->layer_state)
     {
     case facility_receive_message:
-        /* wait for a packet */
         status = receive_packet(idigi_ptr, &packet);
         if (status == idigi_callback_continue && packet != NULL)
         {
@@ -1000,22 +976,17 @@ enum {
             */
             if (message_load_be16(edp_header, type) == E_MSG_MT2_TYPE_PAYLOAD)
             {
-                uint16_t length;
-                uint16_t facility;
-                uint8_t sec_code;
-                uint8_t payload;
-
-                length = message_load_be16(edp_header, length);
-                facility = message_load_be16(edp_protocol, facility);
-                sec_code = message_load_u8(edp_protocol, sec_coding);
-                payload = message_load_u8(edp_protocol, payload);
+                uint16_t length = message_load_be16(edp_header, length);
+//                uint16_t const facility = message_load_be16(edp_protocol, facility);
+                uint8_t const sec_code = message_load_u8(edp_protocol, sec_coding);
+                uint8_t const payload = message_load_u8(edp_protocol, payload);
 
                 /* currently we don't support any other security protocol */
                 ASSERT_GOTO(sec_code == SECURITY_PROTO_NONE, error);
                 ASSERT_GOTO(payload == DISC_OP_PAYLOAD, error);
                 ASSERT_GOTO(length > PACKET_EDP_PROTOCOL_SIZE, error);
 
-                DEBUG_PRINTF("idigi_facility_layer: receive data facility = 0x%04x\n", facility);
+                DEBUG_PRINTF("idigi_facility_layer: receive data facility = 0x%04x\n", message_load_be16(edp_protocol, facility));
                 /* adjust the length for facility process */
                 length -= PACKET_EDP_PROTOCOL_SIZE;
                 message_store_be16(edp_header, length, length);
@@ -1032,11 +1003,11 @@ enum {
     if ((status == idigi_callback_continue) && (packet != NULL) )
     {
         uint8_t * edp_header = packet;
-        uint8_t * edp_protocol = packet + PACKET_EDP_HEADER_SIZE;
 
         if (message_load_be16(edp_header, type) == E_MSG_MT2_TYPE_PAYLOAD)
         {
             uint16_t facility;
+            uint8_t * edp_protocol = packet + PACKET_EDP_HEADER_SIZE;
             /* search facility
              *
              * Make sure the facility is not processing previous packet.
