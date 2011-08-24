@@ -242,7 +242,7 @@ static bool get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
     return true;
 }
 
-static bool get_wait_count(uint8_t ** count, size_t * size)
+static bool get_wait_count(uint16_t ** count, size_t * size)
 {
 #error "Specify the number of times that not receiving keepalive messages from server is allowed"
 #define DEVICE_WAIT_COUNT     5
@@ -250,8 +250,8 @@ static bool get_wait_count(uint8_t ** count, size_t * size)
      * Return pointer to wait count (number of times not receiving Tx keepalive 
      * from server is allowed).
      */
-    static uint8_t device_wait_count = DEVICE_WAIT_COUNT;
-    *count = (uint8_t *)&device_wait_count;
+    static uint16_t device_wait_count = DEVICE_WAIT_COUNT;
+    *count = (uint16_t *)&device_wait_count;
     *size = sizeof device_wait_count;
 
     return true;
@@ -389,7 +389,7 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
                                               void * const request_data,
                                               size_t const request_length,
                                               void * response_data,
-                                              size_t * response_length)
+                                              size_t * const response_length)
 {
     idigi_callback_status_t status;
     bool ret = false;
@@ -439,7 +439,7 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
         break;
 
     case idigi_config_wait_count:
-        ret = get_wait_count((uint8_t **)response_data, response_length);
+        ret = get_wait_count((uint16_t **)response_data, response_length);
         break;
 
     case idigi_config_ip_addr:
