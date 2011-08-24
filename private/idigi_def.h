@@ -52,10 +52,8 @@
 /* these are limits for Tx and Rx keepalive
  * interval in seconds.
  */
-#define MIN_RX_KEEPALIVE_INTERVAL_IN_SECONDS     5
-#define MAX_RX_KEEPALIVE_INTERVAL_IN_SECONDS     7200
-#define MIN_TX_KEEPALIVE_INTERVAL_IN_SECONDS     5
-#define MAX_TX_KEEPALIVE_INTERVAL_IN_SECONDS     7200
+#define MIN_KEEPALIVE_INTERVAL_IN_SECONDS     5
+#define MAX_KEEPALIVE_INTERVAL_IN_SECONDS     7200
 /* Limits for wait count (number of
  * keepalive packets)
  */
@@ -72,7 +70,7 @@
 #define asizeof(array)  (sizeof array/sizeof array[0])
 
 #define idigi_callback_no_response(callback, class_id, request_id, request_data, request_length) idigi_callback((callback), (class_id), (request_id), (request_data), (request_length), NULL, NULL)
-#define idigi_callback_no_request(callback, class_id, request_id, response_data, response_length) idigi_callback((callback), (class_id), (request_id), NULL, 0, (response_data), (response_length))
+#define idigi_callback_no_request_data(callback, class_id, request_id, response_data, response_length) idigi_callback((callback), (class_id), (request_id), NULL, 0, (response_data), (response_length))
 
 
 
@@ -153,9 +151,10 @@ typedef struct idigi_data {
     uint8_t * device_id;
     uint8_t * vendor_id;
     char * device_type;
+    size_t device_type_length;
     uint16_t * tx_keepalive_interval;
     uint16_t * rx_keepalive_interval;
-    uint8_t  * wait_count;
+    uint16_t * wait_count;
     uint32_t last_rx_keepalive_sent_time;
     uint32_t last_tx_keepalive_received_time;
 
@@ -171,12 +170,13 @@ typedef struct idigi_data {
    idigi_status_t error_code;
 
    unsigned layer_state;
-   int  request_id;
+   unsigned request_id;
    uint16_t facilities;
    bool network_busy;
    bool edp_connected;
 
    char server_url[SERVER_URL_LENGTH];
+   size_t server_url_length;
    uint8_t rx_keepalive_packet[PACKET_EDP_HEADER_SIZE];
    struct {
         idigi_buffer_t packet_buffer;
