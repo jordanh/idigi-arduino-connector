@@ -52,8 +52,10 @@
 /* these are limits for Tx and Rx keepalive
  * interval in seconds.
  */
-#define MIN_KEEPALIVE_INTERVAL_IN_SECONDS     5
-#define MAX_KEEPALIVE_INTERVAL_IN_SECONDS     7200
+#define MIN_TX_KEEPALIVE_INTERVAL_IN_SECONDS     5
+#define MAX_TX_KEEPALIVE_INTERVAL_IN_SECONDS     7200
+#define MIN_RX_KEEPALIVE_INTERVAL_IN_SECONDS     5
+#define MAX_RX_KEEPALIVE_INTERVAL_IN_SECONDS     7200
 /* Limits for wait count (number of
  * keepalive packets)
  */
