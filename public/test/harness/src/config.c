@@ -237,9 +237,9 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t request,
         /* Return pointer to wait count (number of times
          * not receiving Tx keepalive from server.
          */
-        uint8_t ** data = (uint8_t **) response_data;
+        uint16_t ** data = (uint16_t **) response_data;
 
-        *data = (uint8_t *)&iDigiSetting.wait_count;
+        *data = (uint16_t *)&iDigiSetting.wait_count;
         *response_length = sizeof iDigiSetting.wait_count;
         break;
     }

@@ -48,7 +48,7 @@ typedef struct {
     uint8_t         vendor_id[IDIGI_VENDOR_ID_LENGTH];
     uint16_t        tx_keepalive;
     uint16_t        rx_keepalive;
-    uint8_t         wait_count;
+    uint16_t        wait_count;
     char            * device_type;
     char            * server_url;
     char            * password;
