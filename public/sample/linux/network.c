@@ -186,7 +186,7 @@ static idigi_callback_status_t network_connect(char const * const host_name, idi
     /* Did the select either time out or error out? */
     if ((actual_set == 0) || (actual_set & NETWORK_TIMEOUT_SET))
     {
-        if (ccode < 0 && errno != EINPROGRESS)
+        if (ccode < 0)
         {
             perror("network_connect: select error");
         }
