@@ -243,9 +243,10 @@ static void release_packet_buffer(idigi_data_t * const idigi_ptr, uint8_t const 
      *
      */
     UNUSED_PARAMETER(status);
-    ASSERT(idigi_ptr->send_packet.packet_buffer.buffer == packet);
     UNUSED_PARAMETER(packet);
     UNUSED_PARAMETER(user_data);
+
+    ASSERT(idigi_ptr->send_packet.packet_buffer.buffer == packet);
 
     idigi_ptr->send_packet.packet_buffer.facility = E_MSG_MT2_MSG_NUM;
 }
@@ -358,7 +359,7 @@ static idigi_callback_status_t send_packet_process(idigi_data_t * const idigi_pt
         idigi_ptr->send_packet.total_length -= bytes_sent;
         idigi_ptr->send_packet.bytes_sent += bytes_sent;
 
-        if (idigi_ptr->send_packet.total_length == 0 || bytes_sent < 0)
+        if (idigi_ptr->send_packet.total_length == 0)
         {   /* sent completed so let's call the complete callback */
             send_complete_callback(idigi_ptr);
         }
@@ -471,11 +472,14 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
 
         if (length_read > 0)
         {
-            bytes_received = (int)length_read;
             /* Retain the "last (tx keepalive) message send" time. */
             if (get_system_time(idigi_ptr, &idigi_ptr->last_tx_keepalive_received_time) != idigi_callback_continue)
             {
                 bytes_received = -idigi_configuration_error;
+            }
+            else
+            {
+                bytes_received = (int)length_read;
             }
             goto done;
         }
