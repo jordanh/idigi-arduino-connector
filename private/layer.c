@@ -70,7 +70,7 @@ static size_t const idigi_facility_count = asizeof(idigi_supported_facility_tabl
 static idigi_callback_status_t  remove_facility_layer(idigi_data_t * const idigi_ptr)
 {
     idigi_callback_status_t result = idigi_callback_continue;
-    size_t i = 0;
+    unsigned int i = 0;
 
     /* remove all facilities. delete_cb should not return busy.
      * If it returns busy, just keep calling it.
@@ -192,29 +192,36 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
                 goto error;
             }
             memcpy(idigi_ptr->server_url, data, length);
-            idigi_ptr->server_url[length] = 0x0;
             idigi_ptr->server_url_length = length;
             break;
         case idigi_config_tx_keepalive:
-        case idigi_config_rx_keepalive:
         {
             uint16_t * value = data;
 
-            if ((*value < MIN_KEEPALIVE_INTERVAL_IN_SECONDS) ||
-                (*value > MAX_KEEPALIVE_INTERVAL_IN_SECONDS) ||
+            if ((*value < MIN_TX_KEEPALIVE_INTERVAL_IN_SECONDS) ||
+                (*value > MAX_TX_KEEPALIVE_INTERVAL_IN_SECONDS) ||
                 (length != sizeof *value))
             {
                 idigi_ptr->error_code = idigi_invalid_data_range;
                 goto error;
             }
-            if (request_id.config_request == idigi_config_tx_keepalive)
+
+            idigi_ptr->tx_keepalive_interval = (uint16_t *)data;
+            break;
+        }
+        case idigi_config_rx_keepalive:
+        {
+            uint16_t * value = data;
+
+            if ((*value < MIN_RX_KEEPALIVE_INTERVAL_IN_SECONDS) ||
+                (*value > MAX_RX_KEEPALIVE_INTERVAL_IN_SECONDS) ||
+                (length != sizeof *value))
             {
-                idigi_ptr->tx_keepalive_interval = (uint16_t *)data;
+                idigi_ptr->error_code = idigi_invalid_data_range;
+                goto error;
             }
-            else
-            {
-                idigi_ptr->rx_keepalive_interval = (uint16_t *)data;
-            }
+
+            idigi_ptr->rx_keepalive_interval = (uint16_t *)data;
             break;
         }
         case idigi_config_wait_count:
@@ -256,7 +263,7 @@ static idigi_callback_status_t get_supported_facilities(idigi_data_t * const idi
 {
 #define NUMBER_FACILITY_PER_BYTE CHAR_BIT
     idigi_callback_status_t status = idigi_callback_continue;
-    size_t  i;
+    unsigned i;
 
     idigi_ptr->facilities = 0;
 
@@ -365,7 +372,7 @@ enum edp_version {
     field_define(edp_version, version, uint32_t),
     record_end(edp_version)
 };
-    size_t const vesion_message_size = record_bytes(edp_version);
+    size_t const version_message_size = record_bytes(edp_version);
 
     idigi_callback_status_t status = idigi_callback_busy;
     uint8_t * edp_version;
@@ -385,7 +392,7 @@ enum edp_version {
     {
         message_store_be32(edp_version, version, version);
 
-        status = initiate_send_packet(idigi_ptr, packet, vesion_message_size,
+        status = initiate_send_packet(idigi_ptr, packet, version_message_size,
                                     type,
                                     release_packet_buffer,
                                     NULL);
@@ -647,7 +654,6 @@ enum {
 
     idigi_callback_status_t status = idigi_callback_continue;
     uint8_t * edp_header;
-    uint16_t len;
     uint8_t * start_ptr;
 
     /* security layer:
@@ -750,17 +756,19 @@ enum {
 
         DEBUG_PRINTF("security layer: send server url\n");
 
-        len = idigi_ptr->server_url_length + prefix_length;
-
         message_store_u8(edp_server_url, opcode, SECURITY_OPER_URL);
-        message_store_be16(edp_server_url, url_length, len);
-        edp_server_url += device_url_header_size;
 
-        len =  idigi_ptr->server_url_length;
+        {
+            size_t const len = idigi_ptr->server_url_length + prefix_length;
+            message_store_be16(edp_server_url, url_length, len);
+        }
+
+        edp_server_url += device_url_header_size;
         memcpy(edp_server_url, url_prefix, prefix_length);
         edp_server_url += prefix_length;
-        memcpy(edp_server_url, server_url, len);
-        edp_server_url += len;
+
+        memcpy(edp_server_url, server_url, idigi_ptr->server_url_length);
+        edp_server_url += idigi_ptr->server_url_length;
 
         status = initiate_send_packet(idigi_ptr, edp_header, (uint16_t const)(edp_server_url-start_ptr),
                                     E_MSG_MT2_TYPE_PAYLOAD,
