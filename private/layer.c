@@ -54,14 +54,14 @@ typedef struct {
  */
 static idigi_facility_init_t const idigi_supported_facility_table[] = {
         /* mandatory facilities */
-        {MANDATORY_FACILITY, idigi_init_cc_facility, idigi_delete_cc_facility},
+        {MANDATORY_FACILITY, idigi_facility_cc_init, idigi_facility_cc_delete},
 
         /* list of optional facilities */
 #if defined(_FIRMWARE_FACILITY)
-        {idigi_config_firmware_facility, idigi_init_firmware_facility, idigi_delete_firmware_facility},
+        {idigi_config_firmware_facility, idigi_facility_firmware_init, idigi_facility_firmware_delete},
 #endif
 #if defined(IDIGI_DATA_SERVICE)
-        {idigi_config_data_service, idigi_init_data_service, idigi_delete_data_service}
+        {idigi_config_data_service, idigi_facility_data_service_init, idigi_facility_data_service_delete}
 #endif
 };
 
