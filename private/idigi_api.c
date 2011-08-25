@@ -48,11 +48,12 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
 
     static const struct {
         idigi_config_request_t request;
-        size_t length;
+        size_t min_length;
+        size_t max_length;
     } idigi_config_request_ids[] = {
-            {idigi_config_device_id, DEVICE_ID_LENGTH},
-            {idigi_config_vendor_id, VENDOR_ID_LENGTH},
-            {idigi_config_device_type, DEVICE_TYPE_LENGTH}
+            {idigi_config_device_id, DEVICE_ID_LENGTH, DEVICE_ID_LENGTH},
+            {idigi_config_vendor_id, VENDOR_ID_LENGTH, VENDOR_ID_LENGTH},
+            {idigi_config_device_type, 1, DEVICE_TYPE_LENGTH}
     };
 
     ASSERT_GOTO(callback != NULL, done);
@@ -82,15 +83,32 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
 
 
     /* get device id, vendor id, & device type */
-    i = 0;
-    while (i < asizeof(idigi_config_request_ids))
+    for (i=0; i < asizeof(idigi_config_request_ids); i++)
     {
         size_t length;
         void * data;
         idigi_request_t request_id;
+        void * * store_at = NULL;
 
+        switch (idigi_config_request_ids[i].request)
+        {
+        case idigi_config_device_id:
+            store_at = (void **)&idigi_handle->device_id;
+            break;
+        case idigi_config_vendor_id:
+            store_at = (void **)&idigi_handle->vendor_id;
+            break;
+        case idigi_config_device_type:
+            store_at = (void **)&idigi_handle->device_type;
+            break;
+        default:
+            ASSERT(false);
+            break;
+        }
         request_id.config_request = idigi_config_request_ids[i].request;
         status = idigi_callback_no_request_data(idigi_handle->callback, idigi_class_config, request_id, &data, &length);
+
+        *store_at = data;
 
         switch (status)
         {
@@ -100,48 +118,23 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
                 error_status = idigi_invalid_data;
                 goto error;
             }
-
-            switch (idigi_config_request_ids[i].request)
+            if ((length < idigi_config_request_ids[i].min_length )||
+                (length > idigi_config_request_ids[i].max_length))
             {
-            case idigi_config_device_id:
-            case idigi_config_vendor_id:
-                if (length != idigi_config_request_ids[i].length)
-                {
-                    error_status = idigi_invalid_data_size;
-                    goto error;
-                }
-                if (idigi_config_request_ids[i].request == idigi_config_device_id)
-                {
-                    idigi_handle->device_id = data;
-                }
-                else
-                {
-                    idigi_handle->vendor_id = data;
-                }
-                break;
-            case idigi_config_device_type:
-                if ((length == 0) || (length > idigi_config_request_ids[i].length))
-                {
-                    error_status = idigi_invalid_data_size;
-                    goto error;
-                }
-                idigi_handle->device_type = data;
-                idigi_handle->device_type_length = length;
-                break;
-            default:
-                ASSERT(false);
-                /* Get these in different modules */
-                break;
+                error_status = idigi_invalid_data_size;
+                goto error;
             }
-            i++;
+
+            if (idigi_config_request_ids[i].request == idigi_config_device_type)
+            {
+                idigi_handle->device_type_length = length;
+            }
             break;
         case idigi_callback_abort:
         case idigi_callback_unrecognized:
-            goto error;
         case idigi_callback_busy:
             break;
         }
-
     }
 
     if (idigi_handle != NULL)
