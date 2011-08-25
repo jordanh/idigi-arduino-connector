@@ -255,7 +255,6 @@ done:
 static idigi_callback_status_t get_supported_facilities(idigi_data_t * const idigi_ptr)
 {
 #define NUMBER_FACILITY_PER_BYTE CHAR_BIT
-
     idigi_callback_status_t status = idigi_callback_continue;
     size_t  i;
 
@@ -366,7 +365,7 @@ enum edp_version {
     field_define(edp_version, version, uint32_t),
     record_end(edp_version)
 };
-#define EDP_VERSION_SIZE   record_bytes(edp_version)
+    size_t const vesion_message_size = record_bytes(edp_version);
 
     idigi_callback_status_t status = idigi_callback_busy;
     uint8_t * edp_version;
@@ -386,7 +385,7 @@ enum edp_version {
     {
         message_store_be32(edp_version, version, version);
 
-        status = initiate_send_packet(idigi_ptr, packet, EDP_VERSION_SIZE,
+        status = initiate_send_packet(idigi_ptr, packet, vesion_message_size,
                                     type,
                                     release_packet_buffer,
                                     NULL);
@@ -519,34 +518,33 @@ enum {
     {
         uint8_t * ptr;
         uint8_t * packet;
-        uint16_t timeout;
-        uint16_t wait_count;
-        uint8_t * data_ptr;
+        uint8_t * start_ptr;
         int len;
+        size_t i;
 
+        const struct {
+            uint16_t type;
+            uint16_t * value;
+        } keepalive_parameters[] = {
+                {E_MSG_MT2_TYPE_KA_RX_INTERVAL, idigi_ptr->rx_keepalive_interval},
+                {E_MSG_MT2_TYPE_KA_TX_INTERVAL, idigi_ptr->tx_keepalive_interval},
+                {E_MSG_MT2_TYPE_KA_WAIT, idigi_ptr->wait_count}
+        };
         DEBUG_PRINTF("communication layer: send keepalive params \n");
 
-        packet = get_packet_buffer(idigi_ptr, E_MSG_MT2_MSG_NUM, &data_ptr);
+        packet = get_packet_buffer(idigi_ptr, E_MSG_MT2_MSG_NUM, &start_ptr);
         ptr = (uint8_t *)packet;
+        start_ptr = ptr;
 
-        timeout = *idigi_ptr->rx_keepalive_interval;
-        len = msg_add_keepalive_param(ptr, E_MSG_MT2_TYPE_KA_RX_INTERVAL, timeout);
-        ptr += len;
-        idigi_ptr->send_packet.total_length = len;
-
-        timeout = *idigi_ptr->tx_keepalive_interval;
-        len = msg_add_keepalive_param(ptr, E_MSG_MT2_TYPE_KA_TX_INTERVAL, timeout);
-        ptr += len;
-        idigi_ptr->send_packet.total_length += len;
-
-        wait_count = *idigi_ptr->wait_count;
-        len = msg_add_keepalive_param(ptr, E_MSG_MT2_TYPE_KA_WAIT, wait_count);
-        ptr += len;
-        idigi_ptr->send_packet.total_length += len;
-
+        for (i=0; i < asizeof(keepalive_parameters); i++)
+        {
+            len = msg_add_keepalive_param(ptr, keepalive_parameters[i].type, *keepalive_parameters[i].value);
+            ptr += len;
+        }
         /* Setting the total_length will enable send_packet_process.
          * Clear length to 0 for actual length that has been sent.
          */
+        idigi_ptr->send_packet.total_length = ptr - start_ptr;
         idigi_ptr->send_packet.bytes_sent = 0;
         idigi_ptr->send_packet.ptr = packet;
         idigi_ptr->send_packet.complete_cb = release_packet_buffer;
@@ -704,11 +702,10 @@ enum {
             field_define_array(edp_device_id, id, DEVICE_ID_LENGTH),
             record_end(edp_device_id)
         };
-        #define EDP_DEVICE_ID_SIZE   record_bytes(edp_device_id)
-
+        size_t const device_id_message_size = record_bytes(edp_device_id);
         uint8_t * edp_device_id = start_ptr;
 
-        DEBUG_PRINTF("security layer: send device ID length = %d\n", EDP_DEVICE_ID_SIZE);
+        DEBUG_PRINTF("security layer: send device ID\n");
         /*
          * packet format:
          *  ----------------------------------------------
@@ -720,7 +717,7 @@ enum {
         message_store_u8(edp_device_id, opcode, SECURITY_OPER_DEVICE_ID);
         message_store_array(edp_device_id, id, idigi_ptr->device_id, DEVICE_ID_LENGTH);
 
-        status = initiate_send_packet(idigi_ptr, edp_header, EDP_DEVICE_ID_SIZE,
+        status = initiate_send_packet(idigi_ptr, edp_header, device_id_message_size,
                                     E_MSG_MT2_TYPE_PAYLOAD, release_packet_buffer,
                                     NULL);
         if (status == idigi_callback_continue)
@@ -744,7 +741,7 @@ enum {
             field_define(edp_server_url, url_length, uint16_t),
             record_end(edp_server_url)
         };
-        #define EDP_DEVICE_URL_HEADER_SIZE   record_bytes(edp_server_url)
+        size_t const device_url_header_size = record_bytes(edp_server_url);
 
         char * server_url = idigi_ptr->server_url;
         uint8_t * edp_server_url = start_ptr;
@@ -757,7 +754,7 @@ enum {
 
         message_store_u8(edp_server_url, opcode, SECURITY_OPER_URL);
         message_store_be16(edp_server_url, url_length, len);
-        edp_server_url += EDP_DEVICE_URL_HEADER_SIZE;
+        edp_server_url += device_url_header_size;
 
         len =  idigi_ptr->server_url_length;
         memcpy(edp_server_url, url_prefix, prefix_length);
@@ -822,8 +819,7 @@ enum {
             field_define_array(edp_vendor_msg, vendor_id, VENDOR_ID_LENGTH),
             record_end(edp_vendor_msg)
         };
-        #define EDP_DISCOVERY_VENDOR_HEADER_SIZE   record_bytes(edp_vendor_msg)
-
+        size_t const discovery_vendor_header_size = record_bytes(edp_vendor_msg);
         uint8_t * edp_vendor_msg = start_ptr;
 
         DEBUG_PRINTF("discovery layer: send vendor id\n");
@@ -833,7 +829,7 @@ enum {
 
 
         status = initiate_send_packet(idigi_ptr, edp_header,
-                                    EDP_DISCOVERY_VENDOR_HEADER_SIZE,
+                                    discovery_vendor_header_size,
                                     E_MSG_MT2_TYPE_PAYLOAD,
                                     release_packet_buffer,
                                     NULL);
@@ -911,8 +907,7 @@ enum {
             field_define(edp_discovery_complete, opcode, uint8_t),
             record_end(edp_discovery_complete)
         };
-        #define EDP_DISCOVERY_COMPLETE_SIZE   record_bytes(edp_discovery_complete)
-
+        size_t const discovery_complete_message_size = record_bytes(edp_discovery_complete);
         uint8_t * edp_discovery_complete = start_ptr;
 
         DEBUG_PRINTF("discovery layer: send complete\n");
@@ -920,7 +915,7 @@ enum {
         message_store_u8(edp_discovery_complete, opcode, DISC_OP_INITCOMPLETE);
 
         status = initiate_send_packet(idigi_ptr, edp_header,
-                                    EDP_DISCOVERY_COMPLETE_SIZE,
+                                    discovery_complete_message_size,
                                     E_MSG_MT2_TYPE_PAYLOAD,
                                     release_packet_buffer,
                                     NULL);
