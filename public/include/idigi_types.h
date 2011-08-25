@@ -28,6 +28,8 @@
 
 #include <string.h>
 #include <limits.h>
+#include <assert.h>
+
 #if __STDC_VERSION__ >= 199901L
   #include <stdint.h>
   #include <stdbool.h>
@@ -42,18 +44,15 @@
 
 typedef int idigi_network_handle_t;
 
+#define ASSERT(cond)        assert(cond)
 
 #if defined(DEBUG)
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
-
 #define DEBUG_PRINTF(...)   printf(__VA_ARGS__)
-#define ASSERT(cond)        assert(cond)
 
 #else
 #define DEBUG_PRINTF(...)
-#define ASSERT(cond)
 #endif
 
 
