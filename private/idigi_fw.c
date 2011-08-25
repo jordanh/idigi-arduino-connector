@@ -336,14 +336,15 @@ enum fw_info {
     record_end(fw_info)
 };
 
-#define FW_INFO_REQUEST_ID_COUNT    4
 #define MAX_FW_INFO_REQUEST_LENGTH  2
 
     idigi_data_t * const idigi_ptr = fw_ptr->idigi_ptr;
     idigi_callback_status_t status = idigi_callback_abort;
-    idigi_firmware_request_t const request_list[FW_INFO_REQUEST_ID_COUNT] = {
+    idigi_firmware_request_t const request_list[] = {
                                 idigi_firmware_version, idigi_firmware_code_size,
                                 idigi_firmware_description, idigi_firmware_name_spec};
+    size_t const request_list_count = asizeof(request_list);
+
     uint8_t const target = message_load_u8(fw_message, target);
 
     DEBUG_PRINTF("Firmware Facility: process info request\n");
@@ -366,7 +367,7 @@ enum fw_info {
     }
 
     /* let's get and build target info response */
-    while (fw_ptr->request_id < FW_INFO_REQUEST_ID_COUNT)
+    while (fw_ptr->request_id < request_list_count)
     {
         idigi_fw_config_t request;
 
@@ -431,7 +432,7 @@ enum fw_info {
      * let's build a response.
      * build and send firmware info response
     */
-    if (fw_ptr->request_id == FW_INFO_REQUEST_ID_COUNT)
+    if (fw_ptr->request_id == request_list_count)
     {
         uint8_t * edp_header;
         uint8_t * fw_info;
@@ -518,7 +519,6 @@ enum fw_download_request {
     record_end(fw_download_request)
 };
 
-#define FW_DOWNLOAD_REQUEST_HEADER_SIZE record_bytes(fw_download_request)
 
 /* Firmware download response message format:
  *  ---------------------------------
@@ -535,8 +535,6 @@ enum fw_download_response {
     record_end(fw_download_response)
 };
 
-#define FW_DOWNLOAD_RESPONSE_SIZE record_bytes(fw_download_response)
-
     idigi_data_t * const idigi_ptr = fw_ptr->idigi_ptr;
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_fw_download_request_t request_data;
@@ -549,7 +547,7 @@ enum fw_download_response {
 
     request_data.target = message_load_u8(fw_download_request, target);
 
-    if (length < FW_DOWNLOAD_REQUEST_HEADER_SIZE)
+    if (length < record_bytes(fw_download_request))
     {
         DEBUG_PRINTF("process_fw_download_request: invalid message length\n");
         abort_opcode = fw_error_opcode;
@@ -568,11 +566,11 @@ enum fw_download_response {
     request_data.desc_string = NULL;
 
     {
-        uint16_t len = length - FW_DOWNLOAD_REQUEST_HEADER_SIZE;
+        uint16_t len = length - record_bytes(fw_download_request);
 
         string_id_length = len;
 
-        fw_download_request += FW_DOWNLOAD_REQUEST_HEADER_SIZE;
+        fw_download_request += record_bytes(fw_download_request);
         /* parse firmware ID String for label, filename spec and
          * file name separated by 0x0a.
          */
@@ -630,7 +628,7 @@ error:
         message_store_u8(fw_download_response, target, request_data.target);
         message_store_u8(fw_download_response, response_type, response_status);
 
-        status = initiate_send_facility_packet(idigi_ptr, edp_header, FW_DOWNLOAD_RESPONSE_SIZE, E_MSG_FAC_FW_NUM, release_packet_buffer, NULL);
+        status = initiate_send_facility_packet(idigi_ptr, edp_header, record_bytes(fw_download_response), E_MSG_FAC_FW_NUM, release_packet_buffer, NULL);
     }
 done:
     return status;
@@ -655,8 +653,6 @@ enum fw_binary_block {
     record_end(fw_binary_block)
 };
 
-#define FW_BINARY_BLOCK_HEADER_SIZE record_bytes(fw_binary_block)
-
 /* Firmware binary block acknowledge message format:
  *  -----------------------------------
  * |   0    |    1   | 2 - 5  |    6   |
@@ -673,8 +669,6 @@ enum fw_binary_ack {
     record_end(fw_binary_ack)
 };
 
-#define FW_BINARY_ACK_HEADER_SIZE record_bytes(fw_binary_ack)
-
     idigi_data_t * const idigi_ptr = fw_ptr->idigi_ptr;
     idigi_callback_status_t status = idigi_callback_abort;
     uint8_t ack_required;
@@ -685,7 +679,7 @@ enum fw_binary_ack {
     /* Parse firmware binary block */
     request_data.target = message_load_u8(fw_binary_block, target);
 
-    if (length < FW_BINARY_BLOCK_HEADER_SIZE)
+    if (length < record_bytes(fw_binary_block))
     {
         idigi_request_t const request_id = {idigi_firmware_download_request};
 
@@ -702,9 +696,9 @@ enum fw_binary_ack {
     /* Parse firmware binary block */
     ack_required = message_load_u8(fw_binary_block, ack_required);
     request_data.offset = message_load_be32(fw_binary_block, offset);
-    request_data.length = length - FW_BINARY_BLOCK_HEADER_SIZE;
+    request_data.length = length - record_bytes(fw_binary_block);
 
-    request_data.data = (fw_binary_block + FW_BINARY_BLOCK_HEADER_SIZE);
+    request_data.data = (fw_binary_block + record_bytes(fw_binary_block));
 
     status = get_fw_config(fw_ptr, idigi_firmware_binary_block, &request_data, sizeof request_data, &response_status, NULL, fw_equal);
     if (status == idigi_callback_continue && response_status == idigi_fw_success)
@@ -728,7 +722,7 @@ enum fw_binary_ack {
             message_store_be32(fw_binary_ack, offset, request_data.offset);
             message_store_u8(fw_binary_ack, status, idigi_fw_success);
 
-            status = initiate_send_facility_packet(idigi_ptr, edp_header, FW_BINARY_ACK_HEADER_SIZE, E_MSG_FAC_FW_NUM, release_packet_buffer, NULL);
+            status = initiate_send_facility_packet(idigi_ptr, edp_header, record_bytes(fw_binary_ack), E_MSG_FAC_FW_NUM, release_packet_buffer, NULL);
         }
     }
     else if (status != idigi_callback_busy)
@@ -783,8 +777,6 @@ enum fw_complete_request {
     record_end(fw_complete_request)
 };
 
-#define FW_COMPLETE_REQUEST_SIZE    record_bytes(fw_complete_request)
-
 /* Firmware download complete response message format:
  *  -------------------------------------------------
  * |   0    |   1    |  2 - 5  |  6 - 9     |  10    |
@@ -802,8 +794,6 @@ enum fw_complete_response {
     record_end(fw_complete_response)
 };
 
-#define FW_COMPLETE_RESPONSE_SIZE    record_bytes(fw_complete_response)
-
     idigi_data_t * const idigi_ptr = fw_ptr->idigi_ptr;
     idigi_callback_status_t status = idigi_callback_abort;
     idigi_fw_download_complete_request_t request_data;
@@ -812,7 +802,7 @@ enum fw_complete_response {
     DEBUG_PRINTF("Firmware Facility: process download complete\n");
     request_data.target = message_load_u8(fw_complete_request, target);
 
-    if (length != FW_COMPLETE_REQUEST_SIZE)
+    if (length != record_bytes(fw_complete_request))
     {
         idigi_request_t const request_id = {idigi_firmware_download_complete};
 
@@ -854,7 +844,7 @@ enum fw_complete_response {
         fw_ptr->last_fw_keepalive_sent_time = 0;
         fw_ptr->fw_keepalive_start = false;
 
-        status = initiate_send_facility_packet(idigi_ptr, edp_header, FW_COMPLETE_RESPONSE_SIZE, E_MSG_FAC_FW_NUM, release_packet_buffer, NULL);
+        status = initiate_send_facility_packet(idigi_ptr, edp_header, record_bytes(fw_complete_response), E_MSG_FAC_FW_NUM, release_packet_buffer, NULL);
     }
     else if (status == idigi_callback_abort)
     {
@@ -913,8 +903,8 @@ enum fw_target_list{
     record_end(fw_target_list)
 };
 
-#define FW_TARGET_LIST_HEADER_SIZE field_named_data(fw_target_list, opcode, size)
-#define FW_TARGET_LIST_SIZE record_bytes(fw_target_list)
+    size_t const target_list_header_size = field_named_data(fw_target_list, opcode, size);
+    size_t const target_list_size = record_bytes(fw_target_list);
 
     idigi_callback_status_t status = idigi_callback_continue;
     uint8_t * edp_header;
@@ -936,7 +926,7 @@ enum fw_target_list{
         {
             uint16_t max_count;
             /* get max count of targets that fit into the response buffer */
-            max_count = (sizeof idigi_ptr->send_packet.packet_buffer.buffer - PACKET_EDP_FACILITY_SIZE - FW_TARGET_LIST_HEADER_SIZE)/FW_TARGET_LIST_SIZE;
+            max_count = (sizeof idigi_ptr->send_packet.packet_buffer.buffer - PACKET_EDP_FACILITY_SIZE - target_list_header_size)/target_list_size;
             if (fw_ptr->target_count > max_count)
             {
                 idigi_request_t const request_id = {idigi_firmware_target_count};
@@ -966,7 +956,7 @@ enum fw_target_list{
     {
         message_store_u8(fw_target_list, opcode, fw_target_list_opcode);
 
-        fw_ptr->discovery_length= FW_TARGET_LIST_HEADER_SIZE;
+        fw_ptr->discovery_length= target_list_header_size;
         fw_ptr->target = 0;
         fw_ptr->request_id = idigi_firmware_version;
     }
@@ -991,10 +981,10 @@ enum fw_target_list{
                 message_store_be32(fw_target_list, version, version);
 
                 /* set up for next target pair info*/
-                fw_target_list += FW_TARGET_LIST_SIZE;
+                fw_target_list += target_list_size;
                 fw_ptr->target++;
 
-                fw_ptr->discovery_length += FW_TARGET_LIST_SIZE;
+                fw_ptr->discovery_length += target_list_size;
             }
             else
             {
