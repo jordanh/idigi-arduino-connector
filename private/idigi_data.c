@@ -155,12 +155,12 @@ static size_t fill_data_service_header(idigi_data_request_t const * const reques
     return (ptr - data);
 }
 
-static idigi_callback_status_t data_service_delete(idigi_data_t * const data_ptr)
+static idigi_callback_status_t idigi_delete_data_service(idigi_data_t * const data_ptr)
 {
     return msg_delete_facility(data_ptr, msg_service_id_data);
 }
 
-static idigi_callback_status_t data_service_init(idigi_data_t * const data_ptr)
+static idigi_callback_status_t idigi_init_data_service(idigi_data_t * const data_ptr)
 {
     return msg_init_facility(data_ptr, msg_service_id_data, data_service_callback);
 }

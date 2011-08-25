@@ -31,10 +31,8 @@
 #if defined(_FIRMWARE_FACILITY)
 #include "idigi_fw.c"
 #endif
-#if defined(IDIGI_DATA_SERVICE) || defined(IDIGI_FILE_SERVICE)
-#include "idigi_msg.c"
-#endif
 #if defined(IDIGI_DATA_SERVICE)
+#include "idigi_msg.c"
 #include "idigi_data.c"
 #endif
 #include "layer.c"
