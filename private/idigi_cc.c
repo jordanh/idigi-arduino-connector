@@ -186,7 +186,7 @@ static idigi_callback_status_t get_ip_addr(idigi_data_t * const idigi_ptr, uint8
              * then the ipv4 addr
              */
 
-            unsigned char const ipv6_padding_for_ipv4[] = {0,0,0,0,0,0,0,0,0,0,0xff,0xff};
+            static unsigned char const ipv6_padding_for_ipv4[] = {0,0,0,0,0,0,0,0,0,0,0xff,0xff};
             size_t const padding_length = sizeof ipv6_padding_for_ipv4/sizeof ipv6_padding_for_ipv4[0];
 
             ASSERT(padding_length == (CC_IPV6_ADDRESS_LENGTH - CC_IPV4_ADDRESS_LENGTH));
@@ -542,7 +542,6 @@ enum cc_redirect_url {
 
         /* save original server url that we connected before */
         memcpy(cc_ptr->origin_url, idigi_ptr->server_url, idigi_ptr->server_url_length);
-        cc_ptr->origin_url[idigi_ptr->server_url_length] = 0x0;
         cc_ptr->origin_url_length = idigi_ptr->server_url_length;
 
         /* let parse url length and url string */
@@ -576,7 +575,6 @@ enum cc_redirect_url {
                     cc_ptr->report_code = cc_redirect_success;
                     /* now set the current server to this new redirect destination */
                     memcpy(idigi_ptr->server_url, server_url, url_length);
-                    idigi_ptr->server_url[url_length] = 0x0;
                     idigi_ptr->server_url_length = url_length;
                     break;
                 case idigi_callback_busy:
@@ -594,43 +592,6 @@ enum cc_redirect_url {
         }
 
     }
-#if 0
-    /* let's start redirecting to new server */
-    if (cc_ptr->state == cc_state_redirect_server)
-    {
-        /* We got the new destination url and try connecting to it.
-         *
-         * We must first remove en:// prefix.
-         */
-        do {
-            char const * server_url = cc_ptr->server_url[cc_ptr->item];
-
-            if (memcmp(server_url, URL_PREFIX, prefix_len) == 0)
-            {
-                server_url += prefix_len;
-            }
-
-            status = connect_server(idigi_ptr, server_url);
-            if (status == idigi_callback_continue && idigi_ptr->network_handle != NULL)
-            {
-                cc_ptr->report_code = cc_redirect_success;
-                /* now set the current server to this new redirect destination */
-                strcpy(idigi_ptr->server_url, server_url);
-                break;
-            }
-            if (status != idigi_callback_busy)
-            {
-                /* this is not error and we're
-                 * going to connect to the origin server.
-                 */
-                cc_ptr->item++;
-                cc_ptr->report_code = cc_redirect_error;
-                strcpy(idigi_ptr->server_url, cc_ptr->origin_url + prefix_len);
-
-            }
-        } while (cc_ptr->item < url_count);
-    }
-#endif
 
     if (status != idigi_callback_busy)
     {
