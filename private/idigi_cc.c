@@ -73,14 +73,15 @@ enum cc_redirect_report {
     record_end(redirect_report)
 };
 
-#define REPORT_MESSAGE_LENGTH  0
-#define REDIRECT_REPORT_HEADER_SIZE record_bytes(redirect_report)
-
+    size_t const report_message_length = 0;
+    size_t const redirect_report_header_size = record_bytes(redirect_report);
 
     idigi_callback_status_t status = idigi_callback_abort;
     uint8_t * edp_header;
     uint8_t * redirect_report;
     size_t url_length;
+
+    ASSERT(report_message_length == 0);
 
     DEBUG_PRINTF("Connection Control: send redirect_report\n");
 
@@ -102,7 +103,7 @@ enum cc_redirect_report {
 
     message_store_u8(redirect_report, opcode, FAC_CC_REDIRECT_REPORT);
     message_store_u8(redirect_report, code, cc_ptr->report_code);
-    message_store_u8(redirect_report, message_length, REPORT_MESSAGE_LENGTH);
+    message_store_u8(redirect_report, message_length, report_message_length);
 
 
     url_length = cc_ptr->origin_url_length;
@@ -113,7 +114,7 @@ enum cc_redirect_report {
         size_t const prefix_len = sizeof URL_PREFIX -1;
 
         message_store_be16(redirect_report, url_length, url_length+prefix_len);
-        redirect_report += REDIRECT_REPORT_HEADER_SIZE;
+        redirect_report += redirect_report_header_size;
 
         memcpy(redirect_report, prefix_url, prefix_len);
         memcpy((redirect_report + prefix_len), cc_ptr->origin_url, url_length);
@@ -126,7 +127,7 @@ enum cc_redirect_report {
     cc_ptr->item = idigi_config_ip_addr;
 
     status = initiate_send_facility_packet(idigi_ptr, edp_header,
-                                           REDIRECT_REPORT_HEADER_SIZE + url_length,
+                                           redirect_report_header_size + url_length,
                                            E_MSG_FAC_CC_NUM, release_packet_buffer, NULL);
 done:
     return status;
@@ -747,7 +748,8 @@ static idigi_callback_status_t cc_init_facility(idigi_data_t * const idigi_ptr)
     }
     cc_ptr->report_code = cc_not_redirect;
 
-    cc_ptr->origin_url[0] = '\0';
+    cc_ptr->origin_url[0] = 0x0;
+    cc_ptr->origin_url_length = 0;
     cc_ptr->state = cc_state_redirect_report;
     cc_ptr->item = 0;
     for (i=0; i < CC_REDIRECT_SERVER_COUNT; i++)
