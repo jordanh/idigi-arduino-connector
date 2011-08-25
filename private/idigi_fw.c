@@ -1097,12 +1097,12 @@ done:
     return status;
 }
 
-static idigi_callback_status_t idigi_delete_firmware_facility(idigi_data_t * const idigi_ptr)
+static idigi_callback_status_t idigi_facility_firmware_delete(idigi_data_t * const idigi_ptr)
 {
     return del_facility_data(idigi_ptr, E_MSG_FAC_FW_NUM);
 }
 
-static idigi_callback_status_t idigi_init_firmware_facility(idigi_data_t * const idigi_ptr)
+static idigi_callback_status_t idigi_facility_firmware_init(idigi_data_t * const idigi_ptr)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_firmware_data_t * fw_ptr;

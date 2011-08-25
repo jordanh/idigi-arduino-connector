@@ -62,7 +62,7 @@ static bool os_get_system_time(uint32_t * const uptime)
     if (ret)
     {
         /* Up time in seconds */
-        *uptime = curtime - device_data.start_system_up_time;
+        *uptime = (uint32_t)(curtime - device_data.start_system_up_time);
     }
     else
     {

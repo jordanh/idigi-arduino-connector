@@ -672,12 +672,12 @@ static idigi_callback_status_t cc_discovery(idigi_data_t * const idigi_ptr, void
     return status;
 }
 
-static idigi_callback_status_t idigi_delete_cc_facility(idigi_data_t * const idigi_ptr)
+static idigi_callback_status_t idigi_facility_cc_delete(idigi_data_t * const idigi_ptr)
 {
     return del_facility_data(idigi_ptr, E_MSG_FAC_CC_NUM);
 }
 
-static idigi_callback_status_t idigi_init_cc_facility(idigi_data_t * const idigi_ptr)
+static idigi_callback_status_t idigi_facility_cc_init(idigi_data_t * const idigi_ptr)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_cc_data_t * cc_ptr;
