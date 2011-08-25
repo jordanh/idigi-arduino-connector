@@ -27,14 +27,13 @@
 #include <unistd.h>
 #include <errno.h>
 #include "time.h"
-
 #include "idigi_data.h"
 
 static void initialize_request(idigi_data_request_t * request)
 {
     static uint8_t test_data[] = "Welcome to iDigi Data Service sample test!";
-    static uint8_t path[] = "test/sample.txt";
-    static uint8_t type[] = "text/plain";
+    static uint8_t path[]      = "test/sample.txt";
+    static uint8_t type[]      = "text/plain";
 
     request->flag                   = IDIGI_DATA_REQUEST_START | IDIGI_DATA_REQUEST_LAST | IDIGI_DATA_REQUEST_COMPRESSED;
     request->path.size              = sizeof path - 1;

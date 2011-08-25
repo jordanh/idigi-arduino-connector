@@ -29,7 +29,7 @@
 
 #include "idigi_data.h"
 
-#define asizeof(array)      (sizeof(array)/sizeof(array[0]))
+#define asizeof(array) (sizeof(array)/sizeof(array[0]))
 
 typedef struct {
     uint32_t    version;
@@ -49,7 +49,7 @@ static uint16_t fimware_list_count = asizeof(fimware_list);
 static bool firmware_download_started = false;
 static size_t total_image_size = 0;
 
-static void firmware_download_request(idigi_fw_download_request_t * download_info, idigi_fw_status_t * download_status)
+static void firmware_download_request(idigi_fw_download_request_t const * const download_info, idigi_fw_status_t * download_status)
 {
 
     if ((download_info == NULL) || (download_status == NULL))
@@ -80,11 +80,11 @@ done:
     return;
 }
 
-static void firmware_image_data(idigi_fw_image_data_t * image_data, idigi_fw_status_t * data_status)
+static void firmware_image_data(idigi_fw_image_data_t const * const image_data, idigi_fw_status_t * data_status)
 {
     if (image_data == NULL)
     {
-        DEBUG_PRINTF("firmware_image_data ERROR: iDigi passes incorrect parameters\n");
+        DEBUG_PRINTF("firmware_image_data: invalid parameter\n");
         goto done;
     }
 
@@ -101,7 +101,7 @@ done:
 }
 
 
-static void firmware_download_complete(idigi_fw_download_complete_request_t * complete_request, idigi_fw_download_complete_response_t * complete_response)
+static void firmware_download_complete(idigi_fw_download_complete_request_t const * const complete_request, idigi_fw_download_complete_response_t * complete_response)
 {
 
     if ((complete_request == NULL) || (complete_response == NULL))
@@ -134,7 +134,7 @@ done:
     return;
 }
 
-static idigi_callback_status_t firmware_download_abort(idigi_fw_download_abort_t * abort_data)
+static idigi_callback_status_t firmware_download_abort(idigi_fw_download_abort_t const * const abort_data)
 {
     idigi_callback_status_t   status = idigi_callback_continue;
 
@@ -150,7 +150,7 @@ done:
     return status;
 }
 
-static idigi_callback_status_t firmware_reset(idigi_fw_config_t * reset_data)
+static idigi_callback_status_t firmware_reset(idigi_fw_config_t const * const reset_data)
 {
     idigi_callback_status_t   status = idigi_callback_continue;
 

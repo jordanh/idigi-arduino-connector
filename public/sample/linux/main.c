@@ -75,7 +75,7 @@ int main (void)
     device_data.select_data = 0;
     device_data.socket_fd = INADDR_NONE;
 
-    DEBUG_PRINTF("Start iDigi\n");
+    DEBUG_PRINTF("Starting iDigi\n");
     device_data.idigi_handle = idigi_init((idigi_callback_t) idigi_callback);
     if (device_data.idigi_handle != 0)
     {
@@ -102,7 +102,7 @@ int main (void)
         DEBUG_PRINTF("idigi status = %d\n", status);
     }
 
-    DEBUG_PRINTF("iDigi stops running!\n");
+    DEBUG_PRINTF("iDigi stopped running!\n");
     return 0;
 }
 
