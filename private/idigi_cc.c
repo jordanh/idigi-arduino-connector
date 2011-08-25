@@ -587,14 +587,11 @@ enum cc_redirect_url {
                      * going to connect to the origin server.
                      */
                     cc_ptr->report_code = cc_redirect_error;
-//                    strcpy(idigi_ptr->server_url, cc_ptr->origin_url, cc_ptr->origin_url_length);
-//                    idigi_ptr->server_url_length = cc_ptr->origin_url_length;
                     break;
                 }
             }
 
         }
-//        cc_ptr->item = 0;
 
     }
 #if 0
