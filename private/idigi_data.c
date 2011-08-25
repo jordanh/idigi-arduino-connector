@@ -152,7 +152,8 @@ static size_t fill_data_service_header(idigi_data_request_t const * const reques
             ptr = fill_parameter_request(parameter_id_append, ptr);
     }
 
-    return (ptr - data);
+    ASSERT(ptr > data);
+    return (size_t)(ptr - data);
 }
 
 static idigi_callback_status_t idigi_facility_data_service_delete(idigi_data_t * const data_ptr)
