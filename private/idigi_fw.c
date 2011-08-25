@@ -28,7 +28,7 @@
 /* time to send target list to keep download alive */
 #define FW_TARGET_LIST_MSG_INTERVAL_IN_SECONDS     30
 
-#define FW_NULL_ASCII       0x00
+#define FW_NUL_ASCII       0x00
 #define FW_NEW_LINE_ASCII   0x0A
 
 /**
@@ -106,7 +106,7 @@ typedef struct {
 
 
 static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_ptr, idigi_firmware_request_t const fw_request_id,
-                                           void const * const request, size_t const request_size,
+                                           void * const request, size_t const request_size,
                                            void * response, size_t * const response_size,
                                            fw_compare_type_t const compare_type)
 {
@@ -179,24 +179,31 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_pt
         goto done;
     }
 
-
-    if (status == idigi_callback_continue && response_size != NULL)
+    switch (status)
     {
-        if ((compare_type == fw_equal && length != *response_size) ||
-            (compare_type == fw_less_than && length > *response_size) ||
-            (compare_type == fw_greater_than && length < *response_size))
+    case idigi_callback_continue:
+        if (response_size != NULL)
         {
-            /* bad data so let abort */
-            DEBUG_PRINTF("get_fw_config: returned invalid size %lu (length %lu)\n", (unsigned long int)length, (unsigned long int)*response_size);
-            idigi_ptr->error_code = idigi_invalid_data_size;
-            notify_error_status(idigi_ptr->callback, idigi_class_firmware, request_id, idigi_invalid_data_size);
-            status = idigi_callback_abort;
-        }
-    }
+            if ((compare_type == fw_equal && length != *response_size) ||
+                (compare_type == fw_less_than && length > *response_size) ||
+                (compare_type == fw_greater_than && length < *response_size))
+            {
+                /* bad data so let abort */
+                DEBUG_PRINTF("get_fw_config: returned invalid size %lu (length %lu)\n", (unsigned long int)length, (unsigned long int)*response_size);
+                idigi_ptr->error_code = idigi_invalid_data_size;
+                notify_error_status(idigi_ptr->callback, idigi_class_firmware, request_id, idigi_invalid_data_size);
+                status = idigi_callback_abort;
+                goto done;
+            }
 
-    if (response_size != NULL)
-    {
-        *response_size = length;
+            *response_size = length;
+        }
+        break;
+    case idigi_callback_busy:
+        break;
+    case idigi_callback_abort:
+    case idigi_callback_unrecognized:
+        goto done;
     }
 
     if ((end_time_stamp- start_time_stamp) > timeout)
@@ -410,13 +417,7 @@ enum fw_info {
                 status = idigi_callback_abort;
             }
             break;
-        case idigi_firmware_target_count:
-        case idigi_firmware_download_request:
-        case idigi_firmware_binary_block:
-        case idigi_firmware_download_complete:
-        case idigi_firmware_download_abort:
-        case idigi_firmware_target_reset:
-            /* should handle in different functions */
+        default:
             ASSERT(false);
             break;
 
@@ -481,14 +482,15 @@ done:
 
 static uint8_t * get_newline_terminated_pointer(uint8_t * const ptr, uint16_t * const length)
 {
+
     uint16_t i;
 
     /* parse until 0x0a */
     for (i=0; i < *length; i++)
     {
-        if (ptr[i] == FW_NEW_LINE_ASCII || ptr[i] == FW_NULL_ASCII)
+        if (ptr[i] == FW_NEW_LINE_ASCII || ptr[i] == FW_NUL_ASCII)
         {
-            ptr[i] = FW_NULL_ASCII;
+            ptr[i] = FW_NUL_ASCII;
             *length = i+1;
             break;
         }
@@ -598,7 +600,7 @@ enum fw_download_response {
         string_id_length -= len;
 
         memcpy(fw_ptr->filename, temp_ptr, len);
-        fw_ptr->filename[len]= FW_NULL_ASCII;
+        fw_ptr->filename[len]= FW_NUL_ASCII;
         request_data.filename = fw_ptr->filename;
     }
 
@@ -924,10 +926,12 @@ enum fw_target_list{
         status = get_fw_config(fw_ptr, idigi_firmware_target_count, &timeout, sizeof timeout, &fw_ptr->target_count, NULL, fw_equal);
         if (status == idigi_callback_continue && fw_ptr->target_count > 0)
         {
-            uint16_t max_count;
+            uint16_t const buffer_size = sizeof idigi_ptr->send_packet.packet_buffer.buffer;
+            uint16_t const overhead = (PACKET_EDP_FACILITY_SIZE + target_list_header_size);
+            uint16_t const max_targets = (buffer_size - overhead) / target_list_size;
+
             /* get max count of targets that fit into the response buffer */
-            max_count = (sizeof idigi_ptr->send_packet.packet_buffer.buffer - PACKET_EDP_FACILITY_SIZE - target_list_header_size)/target_list_size;
-            if (fw_ptr->target_count > max_count)
+            if (fw_ptr->target_count > max_targets)
             {
                 idigi_request_t const request_id = {idigi_firmware_target_count};
 
