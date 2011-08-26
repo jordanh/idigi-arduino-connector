@@ -28,9 +28,6 @@
 /* time to send target list to keep download alive */
 #define FW_TARGET_LIST_MSG_INTERVAL_IN_SECONDS     30
 
-#define FW_NUL_ASCII       0x00
-#define FW_NEW_LINE_ASCII   0x0A
-
 /**
  * Firmware Upgrade Facility Opcodes
  * @doc These are the valid opcodes for the Firmware Upgrade Facility
@@ -95,7 +92,6 @@ typedef struct {
     char * name_spec;
     size_t desc_length;
     size_t spec_length;
-    char filename[FW_ID_STRING_LENGTH];
     uint16_t discovery_length;
     uint16_t target_count;
     idigi_firmware_request_t request_id;
@@ -458,7 +454,7 @@ enum fw_info {
             memcpy(fw_info, fw_ptr->description, fw_ptr->desc_length);
             fw_info += fw_ptr->desc_length;
         }
-        *fw_info++ = FW_NEW_LINE_ASCII;
+        *fw_info++ = '\n';
 
         if (fw_ptr->name_spec != NULL)
         {
@@ -478,25 +474,6 @@ enum fw_info {
 
 done:
     return status;
-}
-
-static uint8_t * get_newline_terminated_pointer(uint8_t * const ptr, uint16_t * const length)
-{
-
-    uint16_t i;
-
-    /* parse until 0x0a */
-    for (i=0; i < *length; i++)
-    {
-        if (ptr[i] == FW_NEW_LINE_ASCII || ptr[i] == FW_NUL_ASCII)
-        {
-            ptr[i] = FW_NUL_ASCII;
-            *length = i+1;
-            break;
-        }
-    }
-    /* return the end of the pointer */
-    return &ptr[*length];
 }
 
 static idigi_callback_status_t process_fw_download_request(idigi_firmware_data_t * const fw_ptr, uint8_t * fw_download_request, uint16_t const length)
@@ -567,42 +544,32 @@ enum fw_download_response {
     request_data.filename = NULL;
     request_data.desc_string = NULL;
 
-    {
-        uint16_t len = length - record_bytes(fw_download_request);
+    string_id_length = length - record_bytes(fw_download_request);
 
-        string_id_length = len;
+    {
+        char * string_id_ptr;
+        unsigned i;
+        char ** const string_id_items[] = {&request_data.desc_string, &request_data.file_name_spec};
 
         fw_download_request += record_bytes(fw_download_request);
-        /* parse firmware ID String for label, filename spec and
-         * file name separated by 0x0a.
+
+        /* parse firmware ID String for label and filename spec
+         * separated by 0x0a.
          */
-        request_data.desc_string = (char *)fw_download_request;
-        fw_download_request = get_newline_terminated_pointer(fw_download_request, &len);
-        string_id_length -= len;
-
-        /* get filename spec */
-        len = string_id_length;
-        request_data.file_name_spec = (char *)fw_download_request;
-        fw_download_request = get_newline_terminated_pointer(fw_download_request, &len);
-        string_id_length -= len;
-
+        for (i=0; i < asizeof(string_id_items); i++)
+        {
+            *string_id_items[i]= (char *)fw_download_request;
+            string_id_ptr = strchr((char *)fw_download_request, '\n');
+            ASSERT(string_id_ptr != NULL);
+            string_id_length -= (1 + ((uint8_t *)string_id_ptr - fw_download_request));
+            *string_id_ptr = '\0';
+            fw_download_request++;
+        }
     }
-
     /* get filename */
-    {
-        uint8_t * temp_ptr;
-        uint16_t len;
+    request_data.filename = (char *)fw_download_request;
+    *(request_data.filename + string_id_length) = '\0';
 
-        len = string_id_length;
-       temp_ptr = fw_download_request;
-        fw_download_request = get_newline_terminated_pointer(fw_download_request, &len);
-
-        string_id_length -= len;
-
-        memcpy(fw_ptr->filename, temp_ptr, len);
-        fw_ptr->filename[len]= FW_NUL_ASCII;
-        request_data.filename = fw_ptr->filename;
-    }
 
     /* call callback */
     status = get_fw_config(fw_ptr, idigi_firmware_download_request, &request_data, sizeof request_data, &response_status, NULL, fw_equal);
@@ -635,7 +602,6 @@ error:
 done:
     return status;
 }
-
 
 static idigi_callback_status_t process_fw_binary_block(idigi_firmware_data_t * const fw_ptr, uint8_t * const fw_binary_block, uint16_t const length)
 {
@@ -760,6 +726,7 @@ static idigi_callback_status_t process_fw_abort(idigi_firmware_data_t * const fw
     return status;
 
 }
+
 static idigi_callback_status_t process_fw_complete(idigi_firmware_data_t * const fw_ptr, uint8_t * const fw_complete_request, uint16_t const length)
 {
 
