@@ -194,36 +194,29 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
             memcpy(idigi_ptr->server_url, data, length);
             idigi_ptr->server_url_length = length;
             break;
+
         case idigi_config_tx_keepalive:
-        {
-            uint16_t * value = data;
-
-            if ((*value < MIN_TX_KEEPALIVE_INTERVAL_IN_SECONDS) ||
-                (*value > MAX_TX_KEEPALIVE_INTERVAL_IN_SECONDS) ||
-                (length != sizeof *value))
-            {
-                idigi_ptr->error_code = idigi_invalid_data_range;
-                goto error;
-            }
-
-            idigi_ptr->tx_keepalive_interval = (uint16_t *)data;
-            break;
-        }
         case idigi_config_rx_keepalive:
         {
-            uint16_t * value = data;
+            uint16_t const * const value = data;
+            bool const is_tx = (request_id.config_request == idigi_config_tx_keepalive);
+            uint16_t const min_interval = is_tx ? MIN_TX_KEEPALIVE_INTERVAL_IN_SECONDS : MIN_RX_KEEPALIVE_INTERVAL_IN_SECONDS;
+            uint16_t const max_interval = is_tx ? MAX_TX_KEEPALIVE_INTERVAL_IN_SECONDS : MAX_RX_KEEPALIVE_INTERVAL_IN_SECONDS;
 
-            if ((*value < MIN_RX_KEEPALIVE_INTERVAL_IN_SECONDS) ||
-                (*value > MAX_RX_KEEPALIVE_INTERVAL_IN_SECONDS) ||
-                (length != sizeof *value))
+            if ((length != sizeof *value) || (*value < min_interval) || (*value > max_interval))
             {
                 idigi_ptr->error_code = idigi_invalid_data_range;
                 goto error;
             }
 
-            idigi_ptr->rx_keepalive_interval = (uint16_t *)data;
+            {
+                uint16_t ** const store_at = is_tx ? &idigi_ptr->tx_keepalive_interval : &idigi_ptr->rx_keepalive_interval;
+
+                *store_at = (uint16_t * const)value;
+            }
             break;
         }
+
         case idigi_config_wait_count:
         {
             uint16_t * value = data;
