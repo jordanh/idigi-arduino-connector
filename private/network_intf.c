@@ -304,7 +304,7 @@ static idigi_callback_status_t rx_keepalive_process(idigi_data_t * const idigi_p
      *
      * last_rx_keeplive_time is last time we sent Rx keepalive.
      */
-    if (valid_timing_limit(idigi_ptr, idigi_ptr->last_rx_keepalive_sent_time, *idigi_ptr->rx_keepalive_interval))
+    if (valid_timing_limit(idigi_ptr, idigi_ptr->last_rx_keepalive_sent_time, idigi_ptr->rx_keepalive_interval))
     {
         /* not expired yet. no need to send rx keepalive */
         goto done;
@@ -486,10 +486,9 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
     }
 
     /* check Tx keepalive timing */
-    if (*idigi_ptr->tx_keepalive_interval > 0)
+    if (idigi_ptr->tx_keepalive_interval > 0)
     {
-        uint16_t const wait_count = * idigi_ptr->wait_count;
-        uint32_t const max_timeout = *idigi_ptr->tx_keepalive_interval * wait_count;
+        uint32_t const max_timeout = idigi_ptr->tx_keepalive_interval * idigi_ptr->wait_count;
 
         if (!valid_timing_limit(idigi_ptr, idigi_ptr->last_tx_keepalive_received_time, max_timeout))
         {
