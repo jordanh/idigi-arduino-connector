@@ -210,9 +210,9 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
             }
 
             {
-                uint16_t ** const store_at = is_tx ? &idigi_ptr->tx_keepalive_interval : &idigi_ptr->rx_keepalive_interval;
+                uint16_t * const store_at = is_tx ? &idigi_ptr->tx_keepalive_interval : &idigi_ptr->rx_keepalive_interval;
 
-                *store_at = (uint16_t * const)value;
+                *store_at = *value;
             }
             break;
         }
@@ -228,7 +228,7 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
                 idigi_ptr->error_code = idigi_invalid_data_range;
                 goto error;
             }
-            idigi_ptr->wait_count = (uint16_t *)data;
+            idigi_ptr->wait_count = *((uint16_t *)data);
             break;
         }
         default:
@@ -524,7 +524,7 @@ enum {
 
         const struct {
             uint16_t type;
-            uint16_t * value;
+            uint16_t value;
         } keepalive_parameters[] = {
                 {E_MSG_MT2_TYPE_KA_RX_INTERVAL, idigi_ptr->rx_keepalive_interval},
                 {E_MSG_MT2_TYPE_KA_TX_INTERVAL, idigi_ptr->tx_keepalive_interval},
@@ -538,7 +538,7 @@ enum {
 
         for (i=0; i < asizeof(keepalive_parameters); i++)
         {
-            len = msg_add_keepalive_param(ptr, keepalive_parameters[i].type, *keepalive_parameters[i].value);
+            len = msg_add_keepalive_param(ptr, keepalive_parameters[i].type, keepalive_parameters[i].value);
             ptr += len;
         }
         /* Setting the total_length will enable send_packet_process.
