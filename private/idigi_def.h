@@ -154,9 +154,9 @@ typedef struct idigi_data {
     uint8_t * vendor_id;
     char * device_type;
     size_t device_type_length;
-    uint16_t * tx_keepalive_interval;
-    uint16_t * rx_keepalive_interval;
-    uint16_t * wait_count;
+    uint16_t tx_keepalive_interval;
+    uint16_t rx_keepalive_interval;
+    uint16_t wait_count;
     uint32_t last_rx_keepalive_sent_time;
     uint32_t last_tx_keepalive_received_time;
 
