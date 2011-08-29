@@ -547,28 +547,33 @@ enum fw_download_response {
     string_id_length = length - record_bytes(fw_download_request);
 
     {
-        char * string_id_ptr;
+        char * string_id_ptr = (char *)fw_download_request;
         unsigned i;
         char ** const string_id_items[] = {&request_data.desc_string, &request_data.file_name_spec};
 
-        fw_download_request += record_bytes(fw_download_request);
+
+        string_id_ptr += record_bytes(fw_download_request);
 
         /* parse firmware ID String for label and filename spec
          * separated by 0x0a.
          */
         for (i=0; i < asizeof(string_id_items); i++)
         {
-            *string_id_items[i]= (char *)fw_download_request;
-            string_id_ptr = strchr((char *)fw_download_request, '\n');
-            ASSERT(string_id_ptr != NULL);
-            string_id_length -= (1 + ((uint8_t *)string_id_ptr - fw_download_request));
-            *string_id_ptr = '\0';
-            fw_download_request++;
+            char * end_ptr;
+
+            *string_id_items[i]= string_id_ptr;
+            end_ptr = strchr(string_id_ptr, '\n');
+
+            ASSERT(end_ptr != NULL);
+            string_id_length -= (1 + end_ptr - string_id_ptr);
+            *end_ptr = '\0';
+
+            string_id_ptr++;
         }
+        /* get filename */
+        request_data.filename = (char *)string_id_ptr;
+        *(request_data.filename + string_id_length) = '\0';
     }
-    /* get filename */
-    request_data.filename = (char *)fw_download_request;
-    *(request_data.filename + string_id_length) = '\0';
 
 
     /* call callback */
