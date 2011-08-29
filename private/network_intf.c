@@ -558,7 +558,7 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
         receive_packet_complete
     } receive_packet_index_t;
 
-    idigi_callback_status_t status = idigi_callback_continue;
+    idigi_callback_status_t status = idigi_callback_busy;
 
     *packet = NULL;
 
@@ -610,6 +610,7 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
                 goto done;
             }
         }
+        status = idigi_callback_busy;
 
         switch (idigi_ptr->receive_packet.index)
         {
@@ -768,6 +769,7 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
             message_store_be16(edp_header, length, idigi_ptr->receive_packet.packet_length);
             idigi_ptr->receive_packet.index = receive_packet_init;
             *packet = idigi_ptr->receive_packet.data_packet;
+            status = idigi_callback_continue;
             goto done;
         }
         } /* switch */
