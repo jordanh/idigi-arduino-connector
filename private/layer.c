@@ -593,9 +593,10 @@ enum {
         uint8_t * edp_header;
 
         status = receive_packet(idigi_ptr, &edp_header);
-        if (status == idigi_callback_continue && edp_header != NULL)
-        {
 
+        if (status == idigi_callback_continue)
+        {
+            ASSERT(edp_header != NULL);
             DEBUG_PRINTF("initialization layer: receive protocol version\n");
             /*
              *  version response packet format:
@@ -954,11 +955,11 @@ enum {
     {
     case facility_receive_message:
         status = receive_packet(idigi_ptr, &packet);
-        if (status == idigi_callback_continue && packet != NULL)
+        if (status == idigi_callback_continue)
         {
             uint8_t * edp_header = packet;
             uint8_t * edp_protocol = packet + PACKET_EDP_HEADER_SIZE;
-
+            ASSERT(packet != NULL);
             /*
              * received packet format:
              *  ----------------------------------------------------------
