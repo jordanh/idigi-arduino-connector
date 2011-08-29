@@ -44,7 +44,7 @@ unzip -o ${WORKSPACE}/${LICENSE}.zip -d ${BASE_DIR}
 rm ${WORKSPACE}/${LICENSE}.zip
 
 # Grab the users guide
-echo ">> Pulling Users Guide from /eng/released/pending/90000000/${USERS_GUIDE}.pdf and copying to ${BASE_DIR}."
+echo ">> Pulling Users Guide from /eng/store/released/90000000/${USERS_GUIDE}.pdf and copying to ${BASE_DIR}."
 cp /eng/store/released/90000000/${USERS_GUIDE}.pdf ${BASE_DIR}/${USERS_GUIDE_NAME}
 
 # Create the tarball
