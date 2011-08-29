@@ -219,7 +219,7 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
 
         case idigi_config_wait_count:
         {
-            uint16_t * value = data;
+            uint16_t const * const value = data;
 
             if ((*value < WAIT_COUNT_MIN) ||
                 (*value > WAIT_COUNT_MAX)||
@@ -228,7 +228,7 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
                 idigi_ptr->error_code = idigi_invalid_data_range;
                 goto error;
             }
-            idigi_ptr->wait_count = *((uint16_t *)data);
+            idigi_ptr->wait_count = *value;
             break;
         }
         default:
