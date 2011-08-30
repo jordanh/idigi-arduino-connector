@@ -571,7 +571,7 @@ enum fw_download_response {
             string_id_ptr++;
         }
         /* get filename */
-        request_data.filename = (char *)string_id_ptr;
+        request_data.filename = string_id_ptr;
         *(request_data.filename + string_id_length) = '\0';
     }
 
