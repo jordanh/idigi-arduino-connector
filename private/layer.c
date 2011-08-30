@@ -365,7 +365,7 @@ enum edp_version {
     field_define(edp_version, version, uint32_t),
     record_end(edp_version)
 };
-    size_t const version_message_size = record_bytes(edp_version);
+    uint16_t const version_message_size = record_bytes(edp_version);
 
     idigi_callback_status_t status = idigi_callback_busy;
     uint8_t * edp_version;
@@ -671,7 +671,7 @@ enum {
             field_define(edp_security, identity, uint8_t),
             record_end(edp_security)
         };
-        size_t const edp_security_size = record_bytes(edp_security);
+        uint16_t const edp_security_size = record_bytes(edp_security);
         uint8_t * edp_security = start_ptr;
 
         DEBUG_PRINTF("Security layer: send security form\n");
@@ -702,7 +702,7 @@ enum {
             field_define_array(edp_device_id, id, DEVICE_ID_LENGTH),
             record_end(edp_device_id)
         };
-        size_t const device_id_message_size = record_bytes(edp_device_id);
+        uint16_t const device_id_message_size = record_bytes(edp_device_id);
         uint8_t * edp_device_id = start_ptr;
 
         DEBUG_PRINTF("security layer: send device ID\n");
@@ -821,7 +821,7 @@ enum {
             field_define_array(edp_vendor_msg, vendor_id, VENDOR_ID_LENGTH),
             record_end(edp_vendor_msg)
         };
-        size_t const discovery_vendor_header_size = record_bytes(edp_vendor_msg);
+        uint16_t const discovery_vendor_header_size = record_bytes(edp_vendor_msg);
         uint8_t * edp_vendor_msg = start_ptr;
 
         DEBUG_PRINTF("discovery layer: send vendor id\n");
@@ -909,7 +909,7 @@ enum {
             field_define(edp_discovery_complete, opcode, uint8_t),
             record_end(edp_discovery_complete)
         };
-        size_t const discovery_complete_message_size = record_bytes(edp_discovery_complete);
+        uint16_t const discovery_complete_message_size = record_bytes(edp_discovery_complete);
         uint8_t * edp_discovery_complete = start_ptr;
 
         DEBUG_PRINTF("discovery layer: send complete\n");
