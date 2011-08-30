@@ -94,7 +94,7 @@ typedef struct {
     size_t spec_length;
     uint16_t discovery_length;
     uint16_t target_count;
-    idigi_firmware_request_t request_id;
+    unsigned request_id;
     bool fw_keepalive_start;
     uint8_t target;
 
@@ -346,7 +346,7 @@ enum fw_info {
     idigi_firmware_request_t const request_list[] = {
                                 idigi_firmware_version, idigi_firmware_code_size,
                                 idigi_firmware_description, idigi_firmware_name_spec};
-    size_t const request_list_count = asizeof(request_list);
+    unsigned const request_list_count = asizeof(request_list);
 
     uint8_t const target = message_load_u8(fw_message, target);
 
