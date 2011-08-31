@@ -340,11 +340,12 @@ enum {
     {
     case configuration_get_configurations:
         status = get_configurations(idigi_ptr);
-        if (status == idigi_callback_continue)
+        if (status != idigi_callback_continue)
         {
-            idigi_ptr->request_id = 0;
-            idigi_ptr->layer_state = configuration_init_facilities;
+            break;
         }
+        idigi_ptr->request_id = 0;
+        idigi_ptr->layer_state = configuration_init_facilities;
         /* fall through */
     case configuration_init_facilities:
         status = initialize_facilities(idigi_ptr);
