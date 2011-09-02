@@ -38,10 +38,13 @@ static void reset_initial_data(idigi_data_t * const idigi_ptr)
     idigi_ptr->send_packet.total_length = 0;
     idigi_ptr->send_packet.bytes_sent = 0;
     idigi_ptr->send_packet.ptr = NULL;
+    idigi_ptr->send_packet.complete_cb = NULL;
 
     idigi_ptr->receive_packet.total_length = 0;
     idigi_ptr->receive_packet.bytes_received = 0;
     idigi_ptr->receive_packet.index = 0;
+    idigi_ptr->receive_packet.ptr = NULL;
+    idigi_ptr->receive_packet.data_packet = NULL;
 
     idigi_ptr->receive_packet.free_packet_buffer = &idigi_ptr->receive_packet.packet_buffer;
 
