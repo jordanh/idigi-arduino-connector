@@ -122,7 +122,7 @@ static bool set_blocking_socket(unsigned const sockfd, bool const block)
 }
 
 
-static idigi_callback_status_t network_connect(char const * const host_name, idigi_network_handle_t ** network_handle)
+static idigi_callback_status_t network_connect(char const * const host_name, size_t const length, idigi_network_handle_t ** network_handle)
 {
     idigi_callback_status_t rc = idigi_callback_abort;
     in_addr_t ip_addr;
@@ -134,16 +134,20 @@ static idigi_callback_status_t network_connect(char const * const host_name, idi
 
     if (fd == -1)
     {
+        char server_name[length+1];
+
+        strncpy(server_name, host_name, length);
+        server_name[length+1] = '\0';
         /*
          * Check if it's a dotted-notation IP address, if it's a domain name, 
          * attempt to resolve it.
          */
-        ip_addr = inet_addr(host_name);
+        ip_addr = inet_addr(server_name);
         if (ip_addr == INADDR_NONE)
         {
-            if (!dns_resolve_name(host_name, &ip_addr))
+            if (!dns_resolve_name(server_name, &ip_addr))
             {
-                DEBUG_PRINTF("network_connect: Can't resolve DNS for %s\n", host_name);
+                DEBUG_PRINTF("network_connect: Can't resolve DNS for %s\n", server_name);
                 goto done;
             }
         }
@@ -211,7 +215,7 @@ static idigi_callback_status_t network_connect(char const * const host_name, idi
 
         *network_handle = &device_data.socket_fd;
         rc = idigi_callback_continue;
-        DEBUG_PRINTF("network_connect: connected to [%s] server\n", host_name);
+        DEBUG_PRINTF("network_connect: connected to [%.*s] server\n", length, host_name);
         device_data.connected = true;
     }
 
@@ -419,7 +423,7 @@ idigi_callback_status_t idigi_network_callback(idigi_network_request_t const req
     switch (request)
     {
     case idigi_network_connect:
-        status = network_connect((char *)request_data, (idigi_network_handle_t **)response_data);
+        status = network_connect((char *)request_data, request_length, (idigi_network_handle_t **)response_data);
         *response_length = sizeof(idigi_network_handle_t);
         break;
 
