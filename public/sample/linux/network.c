@@ -137,7 +137,8 @@ static idigi_callback_status_t network_connect(char const * const host_name, siz
         char server_name[length+1];
 
         strncpy(server_name, host_name, length);
-        server_name[length+1] = '\0';
+        server_name[length] = '\0';
+
         /*
          * Check if it's a dotted-notation IP address, if it's a domain name, 
          * attempt to resolve it.

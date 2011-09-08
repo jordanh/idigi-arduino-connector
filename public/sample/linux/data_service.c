@@ -35,6 +35,7 @@ static void initialize_request(idigi_data_request_t * request)
     static uint8_t path[]      = "test/sample.txt";
     static uint8_t type[]      = "text/plain";
 
+    request->session                = NULL;
     request->flag                   = IDIGI_DATA_REQUEST_START | IDIGI_DATA_REQUEST_LAST | IDIGI_DATA_REQUEST_COMPRESSED;
     request->path.size              = sizeof path - 1;
     request->path.value             = path;
@@ -58,6 +59,8 @@ idigi_status_t initiate_data_service(idigi_handle_t handle)
         last_time = current_time;
         goto done;
     }
+    else
+        request.session = NULL;
 
 #define DATA_LOG_INTERVAL_IN_SECONDS   300
     if ((current_time - last_time) >= DATA_LOG_INTERVAL_IN_SECONDS) 

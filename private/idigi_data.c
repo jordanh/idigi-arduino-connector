@@ -58,8 +58,7 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_
             break;
         }
 
-        case msg_status_start:
-        case msg_status_end:
+        case msg_status_start_and_last:
         {
             idigi_data_response_t response;
 
@@ -187,7 +186,8 @@ static idigi_status_t data_service_initiate(idigi_data_t * const data_ptr,  void
         {
             void ** const session_ptr = response;
 
-            *session_ptr = msg_send_start(data_ptr, msg_service_id_data, &info);
+            ASSERT_GOTO(service->session == NULL, error);
+            *session_ptr = msg_send_start(data_ptr, service->session, msg_service_id_data, &info);
             status = (*session_ptr != NULL) ? idigi_success : idigi_configuration_error;
         }
     }
