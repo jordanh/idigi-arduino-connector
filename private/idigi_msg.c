@@ -764,8 +764,13 @@ static void msg_send_complete(idigi_data_t * const idigi_ptr, uint8_t const * co
 
         ASSERT_GOTO(cb_fn != NULL, done);
         cb_fn(idigi_ptr, msg_status_send_complete, session, (data_block->user_data - bytes), bytes);
-        if ((status != idigi_success) || (!MsgIsMoreData(data_block) && MsgIsLastData(data_block) && !MsgIsRequest(data_block)))
-            msg_delete_session(idigi_ptr, session);
+        if ((status != idigi_success) || (!MsgIsMoreData(data_block) && MsgIsLastData(data_block)))
+        {
+            if (!MsgIsRequest(data_block))
+                msg_delete_session(idigi_ptr, session);
+            else if (msg_ptr->pending == session)
+                msg_ptr->pending = session->prev;
+        }
     }
 
 done:
@@ -837,13 +842,22 @@ static idigi_callback_status_t msg_recv_compressed(idigi_data_t * const idigi_pt
             msg_status_t state;
             size_t uncompressed_length = frame_size - zlib_ptr->avail_out;
             idigi_msg_callback_t * cb_fn = msg_fac->service_cb[session->service_id];
+            bool delete_session = false;
 
             if (MsgIsLastData(data_block) && (zlib_ptr->avail_out > 0))
+            {
                 state = (zlib_ptr->total_in == length) ? msg_status_start_and_last : msg_status_last;
+                delete_session = !MsgIsRequest(data_block);
+            }
             else
                 state = (zlib_ptr->total_in == length) ? msg_status_start : msg_status_data;
             
             status = cb_fn(idigi_ptr, state, session, data_block->frame, uncompressed_length);
+            if (delete_session)
+            {
+                msg_delete_session(idigi_ptr, session);
+                break;
+            }
         }
 
         zlib_ptr->next_out = data_block->frame;
@@ -1066,10 +1080,7 @@ static idigi_callback_status_t msg_process_pending(idigi_data_t * const idigi_pt
             }
         }
         else
-        {
-            if (MsgIsMoreData(data_block))
-                msg_send_complete(idigi_ptr, NULL, idigi_success, session);
-        }
+            msg_send_complete(idigi_ptr, NULL, idigi_success, session);
     }
 
     return status;

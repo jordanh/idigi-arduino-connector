@@ -125,16 +125,16 @@ static bool set_blocking_socket(unsigned const sockfd, bool const block)
 static idigi_callback_status_t network_connect(char const * const host_name, size_t const length, idigi_network_handle_t ** network_handle)
 {
     idigi_callback_status_t rc = idigi_callback_abort;
-    in_addr_t ip_addr;
-    struct sockaddr_in sin;
     int fd=device_data.socket_fd;
-    int ccode;
-    uint8_t actual_set = 0;
-    struct timeval timeout = { .tv_sec = 1, .tv_usec = 0 };
+    uint8_t actual_set;
+    struct timeval timeout = {1, 0};
 
     if (fd == -1)
     {
+        int ccode;
         char server_name[length+1];
+        in_addr_t ip_addr;
+        struct sockaddr_in sin;
 
         strncpy(server_name, host_name, length);
         server_name[length] = '\0';
@@ -180,8 +180,6 @@ static idigi_callback_status_t network_connect(char const * const host_name, siz
         }
     }
 
-    fd = device_data.socket_fd;
-
     /*
      * Wait for the connection initiated by the non-blocking connect()
      * to complete or time out.
@@ -189,18 +187,16 @@ static idigi_callback_status_t network_connect(char const * const host_name, siz
     actual_set = network_select(fd, NETWORK_TIMEOUT_SET | NETWORK_WRITE_SET | NETWORK_READ_SET, &timeout);
 
     /* Did the select either time out or error out? */
-    if ((actual_set == 0) || (actual_set & NETWORK_TIMEOUT_SET))
+    if (actual_set == 0)
     {
-        if (ccode < 0)
-        {
-            perror("network_connect: select error");
-        }
-        else
-        {
-            rc = idigi_callback_busy;
-            DEBUG_PRINTF("network_connect: select timeout\r\n");
-            perror("network_connect: select");
-        }
+        perror("network_connect: select error");
+        goto done;
+    }
+    else if (actual_set & NETWORK_TIMEOUT_SET)
+    {
+        rc = idigi_callback_busy;
+        DEBUG_PRINTF("network_connect: select timeout\r\n");
+        perror("network_connect: select");
         goto done;
     }
 
