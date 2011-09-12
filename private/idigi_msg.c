@@ -769,8 +769,8 @@ static void msg_send_complete(idigi_data_t * const idigi_ptr, uint8_t const * co
         size_t const bytes = data_block->total_bytes - data_block->bytes_remaining;
 
         ASSERT_GOTO(cb_fn != NULL, done);
-        cb_fn(idigi_ptr, msg_status_send_complete, session, (data_block->user_data - bytes), bytes);
         MsgClearCallback(data_block);
+        cb_fn(idigi_ptr, msg_status_send_complete, session, (data_block->user_data - bytes), bytes);
         if ((status != idigi_success) || (!MsgIsMoreData(data_block) && MsgIsLastData(data_block)))
         {
             if (!MsgIsRequest(data_block))
