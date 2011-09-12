@@ -87,6 +87,7 @@ typedef enum
 #define MSG_FLAG_MORE_DATA    0x10000
 #define MSG_FLAG_PAUSED       0x20000
 #define MSG_FLAG_COMPRESSED   0x40000
+#define MSG_FLAG_CALL_BACK    0x80000
 
 typedef struct msg_data_block_t
 {
@@ -108,16 +109,19 @@ typedef struct msg_data_block_t
 #define MsgIsMoreData(block)    (((block)->flags & MSG_FLAG_MORE_DATA) == MSG_FLAG_MORE_DATA)
 #define MsgIsPaused(block)      (((block)->flags & MSG_FLAG_PAUSED) == MSG_FLAG_PAUSED)
 #define MsgIsCompressed(block)  (((block)->flags & MSG_FLAG_COMPRESSED) == MSG_FLAG_COMPRESSED)
+#define MsgIsCallback(block)    (((block)->flags & MSG_FLAG_CALL_BACK) == MSG_FLAG_CALL_BACK)
 
 #define MsgSetRequest(block)     (block)->flags |= MSG_FLAG_REQUEST
 #define MsgSetLastData(block)    (block)->flags |= MSG_FLAG_LAST_DATA
 #define MsgSetMoreData(block)    (block)->flags |= MSG_FLAG_MORE_DATA
 #define MsgSetPaused(block)      (block)->flags |= MSG_FLAG_PAUSED
 #define MsgSetCompression(block) (block)->flags |= MSG_FLAG_COMPRESSED
+#define MsgSetCallback(block)    (block)->flags |= MSG_FLAG_CALL_BACK
 
 #define MsgClearMoreData(block)    (block)->flags &= ~MSG_FLAG_MORE_DATA
 #define MsgClearPaused(block)      (block)->flags &= ~MSG_FLAG_PAUSED
 #define MsgClearCompression(block) (block)->flags &= ~MSG_FLAG_COMPRESSED
+#define MsgClearCallback(block)    (block)->flags &= ~MSG_FLAG_CALL_BACK
 
 #define MSG_SESSION_SIGNATURE   0x494C5347
 
@@ -669,6 +673,7 @@ static idigi_callback_status_t msg_send_data(idigi_data_t * const idigi_ptr, msg
         data_block->user_data = info->payload;
         data_block->total_bytes = info->payload_length;
         data_block->bytes_in_frame = 0;
+        MsgSetCallback(data_block);
         if ((info->flag & IDIGI_DATA_REQUEST_LAST) == IDIGI_DATA_REQUEST_LAST)
             MsgSetLastData(data_block);
 
@@ -758,12 +763,14 @@ static void msg_send_complete(idigi_data_t * const idigi_ptr, uint8_t const * co
         }
     }
 
+    if (MsgIsCallback(data_block)) 
     {
         idigi_msg_callback_t * cb_fn = msg_ptr->service_cb[session->service_id];
         size_t const bytes = data_block->total_bytes - data_block->bytes_remaining;
 
         ASSERT_GOTO(cb_fn != NULL, done);
         cb_fn(idigi_ptr, msg_status_send_complete, session, (data_block->user_data - bytes), bytes);
+        MsgClearCallback(data_block);
         if ((status != idigi_success) || (!MsgIsMoreData(data_block) && MsgIsLastData(data_block)))
         {
             if (!MsgIsRequest(data_block))
@@ -846,11 +853,14 @@ static idigi_callback_status_t msg_recv_compressed(idigi_data_t * const idigi_pt
 
             if (MsgIsLastData(data_block) && (zlib_ptr->avail_out > 0))
             {
-                state = (zlib_ptr->total_in == length) ? msg_status_start_and_last : msg_status_last;
+                state = (data_block->state == msg_state_start) ? msg_status_start_and_last : msg_status_last;
                 delete_session = !MsgIsRequest(data_block);
             }
             else
-                state = (zlib_ptr->total_in == length) ? msg_status_start : msg_status_data;
+            {
+                state = (data_block->state == msg_state_start) ? msg_status_start : msg_status_data;
+                data_block->state = msg_state_data;
+            }
             
             status = cb_fn(idigi_ptr, state, session, data_block->frame, uncompressed_length);
             if (delete_session)
@@ -892,6 +902,7 @@ static idigi_callback_status_t msg_process_data(idigi_data_t * const idigi_ptr, 
         ASSERT_GOTO(session != NULL, error);
         session->session_id = session_id;
         data_block = &session->recv_block;
+        data_block->state = msg_state_start;
         if (request)
             MsgSetRequest(data_block);        
 
@@ -918,6 +929,7 @@ static idigi_callback_status_t msg_process_data(idigi_data_t * const idigi_ptr, 
         session = msg_find_session(msg_fac, session_id);
         ASSERT_GOTO(session != NULL, error);
         data_block = &session->recv_block;
+        data_block->state = msg_state_data;
     }
 
     if ((flag & MSG_FLAG_LAST_DATA) == MSG_FLAG_LAST_DATA)
