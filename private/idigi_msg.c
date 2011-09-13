@@ -149,6 +149,7 @@ typedef struct
     uint8_t active_transactions;
     bool compression_supported;
     msg_session_t * session_head;
+    msg_session_t * session_tail;
     msg_session_t * pending;
 } idigi_msg_data_t;
 
@@ -298,7 +299,9 @@ static msg_session_t * msg_create_session(idigi_data_t * const idigi_ptr, uint16
     msg_initialize_data_block(&session->send_block, msg_ptr->peer_window);
     msg_initialize_data_block(&session->recv_block, MSG_RECV_WINDOW_SIZE);
 
-    add_node(&msg_ptr->session_head, session);    
+    add_node(&msg_ptr->session_head, session);
+    if (msg_ptr->session_tail == NULL)
+        msg_ptr->session_tail = session;
     msg_ptr->active_transactions++;
 
 error:
@@ -312,9 +315,6 @@ static void msg_delete_session(idigi_data_t * const idigi_ptr,  msg_session_t * 
     ASSERT_GOTO(msg_ptr != NULL, error);
     ASSERT_GOTO(session != NULL, error);
 
-    if (msg_ptr->pending == session)
-        msg_ptr->pending = session->prev;
-
     remove_node(&msg_ptr->session_head, session);
 
 #if (defined IDIGI_COMPRESSION_BUILTIN)
@@ -323,6 +323,12 @@ static void msg_delete_session(idigi_data_t * const idigi_ptr,  msg_session_t * 
     if (MsgIsCompressed(&session->recv_block)) 
         inflateEnd(&session->recv_block.zlib);
 #endif
+
+    if (msg_ptr->session_tail == session)
+        msg_ptr->session_tail = session->prev;
+
+    if (msg_ptr->pending == session)
+        msg_ptr->pending = (session->prev != NULL) ? session->prev : msg_ptr->session_tail;
 
     free_data(idigi_ptr, session);
     ASSERT_GOTO(msg_ptr->active_transactions > 0, error);
@@ -776,7 +782,7 @@ static void msg_send_complete(idigi_data_t * const idigi_ptr, uint8_t const * co
             if (!MsgIsRequest(data_block))
                 msg_delete_session(idigi_ptr, session);
             else if (msg_ptr->pending == session)
-                msg_ptr->pending = session->prev;
+                msg_ptr->pending = (session->prev != NULL) ? session->prev : msg_ptr->session_tail;
         }
     }
 
@@ -1083,12 +1089,7 @@ static idigi_callback_status_t msg_process_pending(idigi_data_t * const idigi_pt
             {
                 data_block->bytes_in_frame = 0;
                 if (!MsgIsMoreData(data_block))
-                {
-                    session = session->prev;
-
-                    if ((session != NULL) && (session->send_block.bytes_in_frame > 0)) 
-                        msg_ptr->pending = session;
-                }
+                    msg_ptr->pending = (session->prev != NULL) ? session->prev : msg_ptr->session_tail;
             }
         }
         else
