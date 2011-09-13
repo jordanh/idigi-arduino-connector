@@ -275,10 +275,30 @@ typedef struct
 
 #define IDIGI_DATA_GET_SESSION_ID(session)    ((idigi_data_session_t *)session)->session_id
 
+typedef enum 
+{
+    idigi_msg_error_none,
+    idigi_msg_error_fatal,
+    idigi_msg_error_invalid_opcode,
+    idigi_msg_error_format,
+    idigi_msg_error_session_in_use,
+    idigi_msg_error_unknown_session,
+    idigi_msg_error_compression_failure,
+    idigi_msg_error_decompression_failure,
+    idigi_msg_error_memory,
+    idigi_msg_error_send,
+    idigi_msg_error_cancel,
+    idigi_msg_error_busy,
+    idigi_msg_error_ack,
+    idigi_msg_error_timeout,
+    idigi_msg_error_no_service,
+    idigi_msg_error_count
+} idigi_msg_error_t;
+
 typedef struct
 {
     uint16_t session_id;
-    uint8_t error;
+    idigi_msg_error_t error;
 } idigi_data_error_t;
 
 typedef idigi_callback_status_t (* idigi_callback_t) (idigi_class_t const class_id, idigi_request_t const request_id,
