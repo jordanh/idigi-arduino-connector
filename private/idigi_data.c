@@ -45,79 +45,6 @@ typedef struct {
     } service_data;
 } ds_service_data_t;
 
-static idigi_callback_status_t ds_config(idigi_data_t * const idigi_ptr, idigi_data_service_request_t const ds_request_id,
-                                           void * const request, size_t const request_size,
-                                           void * response, size_t * response_size)
-{
-    idigi_callback_status_t status;
-    unsigned timeout;
-    uint32_t start_time_stamp;
-    uint32_t end_time_stamp;
-    uint32_t time_to_send_rx_keepalive;
-    uint32_t time_to_receive_tx_keepalive;
-    idigi_request_t const request_id = {ds_request_id};
-
-    /* Calculate the timeout value (when to send rx keepalive or
-     * receive tx keepalive) from last rx keepalive or tx keepalive.
-     *
-     * If callback exceeds the timeout value, error status callback
-     * will be called.
-     */
-    status =  get_keepalive_timeout(idigi_ptr, &time_to_send_rx_keepalive, &time_to_receive_tx_keepalive, &start_time_stamp);
-    if (status != idigi_callback_continue)
-    {
-        if (time_to_send_rx_keepalive == 0)
-        {
-            /*  needs to return immediately for rx_keepalive. */
-            status = idigi_callback_busy;
-        }
-        goto done;
-    }
-
-    timeout = MIN_VALUE(time_to_send_rx_keepalive, time_to_receive_tx_keepalive);
-
-
-    /* put the timeout value in the request pointer
-     * (1st field is timeout field for all ds callback)
-     */
-    if (request != NULL)
-    {
-        unsigned * const req_timeout = (unsigned * const)request;
-
-        *req_timeout = timeout;
-    }
-
-    status = idigi_callback(idigi_ptr->callback, idigi_class_data_service, request_id, request, request_size, response, response_size);
-    if (status == idigi_callback_abort)
-    {
-        idigi_ptr->error_code = idigi_configuration_error;
-        goto done;
-    }
-
-    if (get_system_time(idigi_ptr, &end_time_stamp) != idigi_callback_continue)
-    {
-        idigi_ptr->error_code = idigi_configuration_error;
-        status = idigi_callback_abort;
-        goto done;
-    }
-
-    if ((end_time_stamp- start_time_stamp) > timeout)
-    {
-        /* callback exceeds timeout value.
-         * No need to abort just notify caller.
-         *
-         * Server will disconnect us if we miss sending
-         * Rx keepalive.
-         */
-        DEBUG_PRINTF("get_fw_config: callback exceeds timeout > %u seconds\n", timeout);
-        notify_error_status(idigi_ptr->callback, idigi_class_data_service, request_id, idigi_exceed_timeout);
-    }
-
-done:
-    return status;
-}
-
-
 static idigi_callback_status_t ds_process_device_request(idigi_data_t * const idigi_ptr,
                                                          msg_session_t * const session,
                                                          msg_status_t const msg_status,
@@ -200,6 +127,7 @@ enum {
     case msg_status_last:
     case msg_status_data:
     {
+        idigi_request_t request_id = {idigi_data_service_device_request};
         idigi_ds_device_request_t request_data;
         request_data.user_context = device_request->user_context;
         request_data.target = device_request->target_string;
@@ -207,7 +135,11 @@ enum {
         request_data.data_length = length - (ds_device_request - data);
         request_data.session_id = session->session_id;
         request_data.flag = ((msg_status == msg_status_start) || (msg_status == msg_status_data))? flag : (flag |IDIGI_DATA_REQUEST_LAST);
-        status = ds_config(idigi_ptr, idigi_data_service_device_request, &request_data, sizeof request_data, &device_request->user_context, NULL);
+        status = idigi_callback(idigi_ptr->callback, idigi_class_data_service, request_id, &request_data, sizeof request_data, &device_request->user_context, NULL);
+        if (status == idigi_callback_abort)
+        {
+            idigi_ptr->error_code = idigi_configuration_error;
+        }
         break;
     }
     default:
