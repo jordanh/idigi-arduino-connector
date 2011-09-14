@@ -74,10 +74,12 @@ idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
                                         void * response_data, size_t * const response_length);
 
 idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t const request,
-                                                  void const * request_data, size_t const request_length,
+                                                  void * const request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length);
 
 idigi_status_t initiate_data_service(idigi_handle_t handle);
+idigi_status_t process_device_response(idigi_data_service_request_t const request, void * const request_data);
+
 
 bool os_time(time_t *curtime);
 
