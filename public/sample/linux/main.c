@@ -92,6 +92,16 @@ int main (void)
                 network_select(device_data.socket_fd, device_data.select_data, &delay);
                 #if (defined IDIGI_DATA_SERVICE)
                 status = initiate_data_service(device_data.idigi_handle);
+                if (status == idigi_success)
+                {
+                    status = process_device_response(idigi_data_service_device_response, NULL);
+                    if (status != idigi_success)
+                        printf("process_device_response returns %d\n", status);
+                }
+                else
+                {
+                    printf("initiate_data_service returns %d\n", status);
+                }
                 #endif
             }
             else
