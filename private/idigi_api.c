@@ -238,7 +238,7 @@ idigi_status_t idigi_step(idigi_handle_t const handle)
     {
         status = send_packet_process(idigi_handle);
 #if (defined IDIGI_DATA_SERVICE)
-        if (status == idigi_callback_continue) 
+        if (status == idigi_callback_continue)
             status = msg_process_pending(idigi_handle);
 #endif
     }
@@ -314,7 +314,7 @@ idigi_status_t idigi_run(idigi_handle_t const handle)
 
 idigi_status_t idigi_initiate_action(idigi_handle_t const handle, idigi_initiate_request_t const request, void const * const request_data, void  * const response_data)
 {
-    idigi_status_t rc = idigi_init_error;
+    idigi_status_t result = idigi_init_error;
     idigi_data_t * idigi_ptr = (idigi_data_t *)handle;
 
     ASSERT_GOTO(handle != NULL, error);
@@ -325,23 +325,26 @@ idigi_status_t idigi_initiate_action(idigi_handle_t const handle, idigi_initiate
         UNUSED_PARAMETER(request_data);
         UNUSED_PARAMETER(response_data);
         idigi_ptr->active_state = idigi_device_terminate;
-        rc = idigi_success;
+        result = idigi_success;
         break;
 
 #if (defined IDIGI_DATA_SERVICE)
     case idigi_initiate_data_service:
         ASSERT_GOTO(request_data != NULL, error);
-        rc = data_service_initiate(idigi_ptr, request_data, response_data);
+        result = data_service_initiate(idigi_ptr, request_data, response_data);
+        break;
+    case idigi_data_service_device_response:
+        ASSERT_GOTO(request_data != NULL, error);
+        result = data_service_response_initiate(idigi_ptr, request_data);
         break;
 #endif
-
     default:
         ASSERT(false);
-        rc = idigi_invalid_data;
+        result = idigi_invalid_data;
         break;
     }
 
 error:
-    return rc;
+    return result;
 }
 
