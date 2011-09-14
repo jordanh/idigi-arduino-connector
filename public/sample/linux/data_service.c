@@ -76,13 +76,12 @@ done:
     return status;
 }
 
-static uint8_t device_response_data[] = "Data Service Device Response";
+static uint8_t device_response_data[] = "Data Service Device Response ";
 static size_t device_response_data_length = sizeof device_response_data -1;
-static size_t device_response_count = 2;
+static size_t device_response_count = 1;
 
 typedef struct device_request_handle {
     size_t total_length;
-    uint16_t session_id;
     idigi_ds_device_response_t response_info;
     size_t response_data_count;
     bool send_response;
@@ -154,7 +153,7 @@ idigi_status_t process_device_response(idigi_data_service_request_t const reques
         idigi_data_send_t const * send_info = request_data;
         for (request_handle = device_request_list; request_handle != NULL; request_handle = request_handle->next)
         {
-            if (request_handle->session_id == send_info->session_id)
+            if (request_handle->response_info.session_id == send_info->session_id)
             {
                 request_handle->response_info.data_length -= send_info->bytes_sent;
                 DEBUG_PRINTF("process_request_response: idigi_data_service_send_complete for session %d (remaining bytes = %lu bytes sent %lu)\n",
@@ -163,7 +162,8 @@ idigi_status_t process_device_response(idigi_data_service_request_t const reques
 
                 if (send_info->status != idigi_success)
                 {   /* something's wrong */
-                    DEBUG_PRINTF("process_request_response: idigi_data_service_send_complete for session %d fails %d\n", request_handle->session_id, send_info->status);
+                    DEBUG_PRINTF("process_request_response: idigi_data_service_send_complete for session %d fails %d\n",
+                                                            request_handle->response_info.session_id, send_info->status);
                     delete_session = true;
                 }
                 else if (request_handle->response_info.data_length > 0)
@@ -190,9 +190,10 @@ idigi_status_t process_device_response(idigi_data_service_request_t const reques
         idigi_data_error_t const * error_block = request_data;
         for (request_handle = device_request_list; request_handle != NULL; request_handle = request_handle->next)
         {
-            if (request_handle->session_id == error_block->session_id)
+            if (request_handle->response_info.session_id == error_block->session_id)
             {
-                DEBUG_PRINTF("process_request_response: Got idigi_data_service_error on session %d with error %d\n", request_handle->session_id, error_block->error);
+                DEBUG_PRINTF("process_request_response: Got idigi_data_service_error on session %d with error %d\n",
+                                                                    request_handle->response_info.session_id, error_block->error);
                 delete_session = true;
             }
         }
@@ -211,8 +212,6 @@ idigi_status_t process_device_response(idigi_data_service_request_t const reques
 
     return status;
 }
-
-int gWait = 0;
 
 static idigi_callback_status_t process_device_request(idigi_ds_device_request_t * const request_data, void ** response_data)
 {
@@ -258,20 +257,9 @@ static idigi_callback_status_t process_device_request(idigi_ds_device_request_t 
     {   /* No more data (last message) so let's setup to send a response.
          * Set here so process_request_response() will send response
          */
-        if (gWait < 3)
-        {
-            DEBUG_PRINTF("TIMEOUT = %d\n", request_data->timeout);
-            usleep(request_data->timeout * 1000 * 1000);
-            gWait++;
-            status = idigi_callback_busy;
-            goto done;
-        }
-        else
-        {
         ASSERT(device_response_count > 0);
         handle->response_data_count = (device_response_data_length) ? device_response_count : 1;
         handle->response_info.status = idigi_data_service_success;
-        }
     }
 
 done:
