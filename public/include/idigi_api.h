@@ -309,13 +309,12 @@ typedef enum {
 } idigi_ds_status_t;
 
 typedef struct {
-    unsigned timeout;
-    void * user_context;
     uint16_t session_id;
     char const * target;
     uint8_t const * data;
     size_t data_length;
     uint16_t flag;
+    void * user_context;
 } idigi_ds_device_request_t;
 
 typedef struct
