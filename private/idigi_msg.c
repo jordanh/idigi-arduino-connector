@@ -186,6 +186,7 @@ typedef struct msg_session_t
     uint8_t misc_packet[MSG_MISC_PKT_SIZE];
     struct msg_session_t * next;
     struct msg_session_t * prev;
+    void * service_data;
 } msg_session_t;
 
 #define MsgIsSessionValid(session)  (session->signature == MSG_SESSION_SIGNATURE)
@@ -299,6 +300,7 @@ static msg_session_t * msg_create_session(idigi_data_t * const idigi_ptr, uint16
 
     session->session_id = session_id;
     session->service_id = service_id;
+    session->service_data = NULL;
     session->signature = MSG_SESSION_SIGNATURE;
     msg_initialize_data_block(&session->send_block, msg_ptr->peer_window);
     msg_initialize_data_block(&session->recv_block, MSG_RECV_WINDOW_SIZE);
@@ -334,6 +336,10 @@ static void msg_delete_session(idigi_data_t * const idigi_ptr,  msg_session_t * 
     if (msg_ptr->pending == session)
         msg_ptr->pending = (session->prev != NULL) ? session->prev : msg_ptr->session_tail;
 
+    if (session->service_data != NULL)
+    {
+        free_data(idigi_ptr, session->service_data);
+    }
     free_data(idigi_ptr, session);
     ASSERT_GOTO(msg_ptr->active_transactions > 0, error);
     msg_ptr->active_transactions--;
@@ -958,9 +964,9 @@ static idigi_callback_status_t msg_recv_compressed(idigi_data_t * const idigi_pt
                 data_block->state = msg_state_data;
             }
             
-            msg_update_for_ack(idigi_ptr, session, uncompressed_length);            
+            msg_update_for_ack(idigi_ptr, session, uncompressed_length);
             status = cb_fn(idigi_ptr, state, session, data_block->frame, uncompressed_length);
-            if (delete_session)
+            if (delete_session || status == idigi_callback_abort)
             {
                 msg_delete_session(idigi_ptr, session);
                 break;
@@ -970,9 +976,8 @@ static idigi_callback_status_t msg_recv_compressed(idigi_data_t * const idigi_pt
             zlib_ptr->avail_out = frame_size;
         }
 
-    } while (zlib_ptr->avail_in > 0);
+    } while (zlib_ptr->avail_in > 0 && status == idigi_callback_continue);
 
-    status = idigi_callback_continue;
 
 error:
     return status;
