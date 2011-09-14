@@ -113,6 +113,8 @@ typedef enum {
 typedef enum {
     idigi_data_service_send_complete,
     idigi_data_service_response,
+    idigi_data_service_device_request,
+    idigi_data_service_device_response,
     idigi_data_service_error    
 } idigi_data_service_request_t;
 
@@ -300,6 +302,30 @@ typedef struct
     uint16_t session_id;
     idigi_msg_error_t error;
 } idigi_data_error_t;
+
+typedef enum {
+    idigi_data_service_success,
+    idigi_data_service_not_handled
+} idigi_ds_status_t;
+
+typedef struct {
+    unsigned timeout;
+    void * user_context;
+    uint16_t session_id;
+    char const * target;
+    uint8_t const * data;
+    size_t data_length;
+    uint16_t flag;
+} idigi_ds_device_request_t;
+
+typedef struct
+{
+    uint16_t session_id;
+    idigi_ds_status_t  status;
+    uint8_t * data;
+    size_t data_length;
+    uint16_t flag;
+} idigi_ds_device_response_t;
 
 typedef idigi_callback_status_t (* idigi_callback_t) (idigi_class_t const class_id, idigi_request_t const request_id,
                                                   void const * const request_data, size_t const request_length,
