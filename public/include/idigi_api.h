@@ -256,10 +256,18 @@ typedef struct
     idigi_data_payload_t payload;
 } idigi_data_request_t;
 
+typedef enum
+{
+    idigi_data_success,
+    idigi_data_bad_request,
+    idigi_data_service_unavailable,
+    idigi_data_server_error
+} idigi_data_status_t;
+
 typedef struct
 {
     void * session;
-    uint8_t  status;
+    idigi_data_status_t  status;
     idigi_data_block_t message;
 } idigi_data_response_t;
 
@@ -269,13 +277,6 @@ typedef struct
     idigi_status_t status;
     size_t bytes_sent;
 } idigi_data_send_t;
-
-typedef struct
-{
-    uint16_t session_id;
-} idigi_data_session_t;
-
-#define IDIGI_DATA_GET_SESSION_ID(session)    ((idigi_data_session_t *)session)->session_id
 
 typedef enum 
 {
