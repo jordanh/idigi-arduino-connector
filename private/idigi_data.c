@@ -47,7 +47,7 @@ typedef struct {
 
 static idigi_callback_status_t ds_process_device_request(idigi_data_t * const idigi_ptr,
                                                          msg_session_t * const session,
-                                                         msg_status_t const msg_status,
+                                                         msg_state_t const msg_state,
                                                          uint8_t const * data,
                                                          size_t const length)
 {
@@ -79,15 +79,13 @@ enum {
     idigi_callback_status_t status = idigi_callback_continue;
     ds_service_data_t * const service_data = session->service_data;
     ds_device_request_service_t * const device_request = &service_data->service_data.device_request;
+    uint8_t const * ds_device_request = data;
     uint16_t flag = 0;
 
-    uint8_t const * ds_device_request = data;
-
-
-    switch (msg_status)
+    switch (msg_state)
     {
-    case msg_status_start:
-    case msg_status_start_and_last:
+    case msg_state_start:
+    case msg_state_start_and_last:
     {
         /* This is the start message which contains Data Service Device Request header. */
 
@@ -124,8 +122,8 @@ enum {
         }
     }
     /* fall thru for calling the callback */
-    case msg_status_last:
-    case msg_status_data:
+    case msg_state_last:
+    case msg_state_data:
     {
         idigi_request_t request_id = {idigi_data_service_device_request};
         idigi_ds_device_request_t request_data;
@@ -134,7 +132,7 @@ enum {
         request_data.data = ds_device_request;
         request_data.data_length = length - (ds_device_request - data);
         request_data.session_id = session->session_id;
-        request_data.flag = ((msg_status == msg_status_start) || (msg_status == msg_status_data))? flag : (flag |IDIGI_DATA_REQUEST_LAST);
+        request_data.flag = ((msg_state == msg_state_start) || (msg_state == msg_state_data))? flag : (flag | IDIGI_DATA_REQUEST_LAST);
         status = idigi_callback(idigi_ptr->callback, idigi_class_data_service, request_id, &request_data, sizeof request_data, &device_request->user_context, NULL);
         if (status == idigi_callback_abort)
         {
@@ -150,20 +148,21 @@ enum {
     return status;
 }
 
-static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_ptr, msg_status_t const msg_status, msg_session_t * const session, uint8_t const * data, size_t const length)
+static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_ptr, msg_state_t const msg_state, msg_session_t * const session, uint8_t const * data, size_t const length)
 {
     idigi_callback_status_t status = idigi_callback_abort;
     idigi_request_t request;
 
 #if defined(DEBUG)
-    static char * msg_status_text[] =
+    static char * msg_state_text[] =
     {
-        "msg_status_send_complete",
-        "msg_status_error",
-        "msg_status_start",
-        "msg_status_start_and_last",
-        "msg_status_data",
-        "msg_status_last"
+        "msg_state_init",
+        "msg_state_start",
+        "msg_state_start_and_last",
+        "msg_state_data",
+        "msg_state_last",
+        "msg_state_send_complete",
+        "msg_state_error",
     };
 #endif
 
@@ -177,29 +176,29 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_
         ASSERT_GOTO(non_empty_data || empty_data, error);
     }
 
-    DEBUG_PRINTF("data_service_callback: msg_status = %s (%d)\n", msg_status_text[msg_status], msg_status);
-    switch (msg_status) 
+    DEBUG_PRINTF("data_service_callback: msg_state = %s (%d)\n", msg_state_text[msg_state], msg_state);
+    switch (msg_state) 
     {
-        case msg_status_error:
+        case msg_state_error:
         {
-            idigi_data_error_t const error_info = {session->session_id, *data};
+            idigi_data_error_t const error_info = {session, *data};
 
             request.data_service_request = idigi_data_service_error;
             status = idigi_callback_no_response(idigi_ptr->callback, idigi_class_data_service, request, &error_info, sizeof error_info);
             break;
         }
 
-        case msg_status_send_complete:
+        case msg_state_send_complete:
         {
-            idigi_data_send_t const send_info = {session->session_id, idigi_success, length};
+            idigi_data_send_t const send_info = {session, idigi_success, length};
 
             request.data_service_request = idigi_data_service_send_complete;
             status = idigi_callback_no_response(idigi_ptr->callback, idigi_class_data_service, request, &send_info, sizeof send_info);
             break;
         }
 
-        case msg_status_data:
-        case msg_status_last:
+        case msg_state_data:
+        case msg_state_last:
             /* currently, we only handle these msg_status_data & msg_status_end for
              * Data Service Device Request message
              */
@@ -208,11 +207,11 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_
                 ds_service_data_t * const ds_service = session->service_data;
                 ASSERT_GOTO(ds_service->service_opcode == data_service_device_request_opcode, error);
             }
-            status = ds_process_device_request(idigi_ptr,session, msg_status, data, length);
+            status = ds_process_device_request(idigi_ptr, session, msg_state, data, length);
             break;
 
-        case msg_status_start:
-        case msg_status_start_and_last:
+        case msg_state_start:
+        case msg_state_start_and_last:
         {
             uint8_t const opcode = *data;
             if (opcode == data_service_device_request_opcode)
@@ -228,7 +227,7 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_
                 ds_service->service_opcode = opcode;
 
                 session->service_data = ds_service;
-                status = ds_process_device_request(idigi_ptr,session, msg_status, data, length);
+                status = ds_process_device_request(idigi_ptr, session, msg_state, data, length);
             }
             else
             {
@@ -242,7 +241,7 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_
                 }
                 response.status = *data++;
 
-                response.session_id = session->session_id;
+                response.session = session;
                 response.message.size = length - 2; /* opcode(1 byte) + status(1 byte) */
                 response.message.value = data;
 
@@ -385,7 +384,7 @@ static idigi_status_t data_service_response_initiate(idigi_data_t * const idigi_
 
     ASSERT_GOTO(request != NULL, done);
 
-    session = msg_find_session(msg_ptr, request->session_id);
+    session = msg_find_session(msg_ptr, request->session_id, false);
     ASSERT_GOTO(session != NULL, done);
 
     service_data = session->service_data;

@@ -69,7 +69,7 @@ idigi_status_t initiate_data_service(idigi_handle_t handle)
         last_time = current_time;
         status = idigi_initiate_action(handle, idigi_initiate_data_service, &request, &request.session);
 
-        DEBUG_PRINTF("Status: %d, Session id: %d\n", status, IDIGI_DATA_GET_SESSION_ID(request.session));
+        DEBUG_PRINTF("Status: %d, Handle: %p\n", status, request.session);
     }
 
 done:
@@ -153,17 +153,17 @@ idigi_status_t process_device_response(idigi_data_service_request_t const reques
         idigi_data_send_t const * send_info = request_data;
         for (request_handle = device_request_list; request_handle != NULL; request_handle = request_handle->next)
         {
-            if (request_handle->response_info.session_id == send_info->session_id)
+            if (request_handle->response_info.session == send_info->session)
             {
                 request_handle->response_info.data_length -= send_info->bytes_sent;
-                DEBUG_PRINTF("process_request_response: idigi_data_service_send_complete for session %d (remaining bytes = %lu bytes sent %lu)\n",
-                        request_handle->response_info.session_id, (unsigned long int)request_handle->response_info.data_length,
+                DEBUG_PRINTF("process_request_response: idigi_data_service_send_complete for session %p (remaining bytes = %lu bytes sent %lu)\n",
+                        request_handle->response_info.session, (unsigned long int)request_handle->response_info.data_length,
                         (unsigned long int) send_info->bytes_sent);
 
                 if (send_info->status != idigi_success)
                 {   /* something's wrong */
-                    DEBUG_PRINTF("process_request_response: idigi_data_service_send_complete for session %d fails %d\n",
-                                                            request_handle->response_info.session_id, send_info->status);
+                    DEBUG_PRINTF("process_request_response: idigi_data_service_send_complete for session %p fails %d\n",
+                                                            request_handle->response_info.session, send_info->status);
                     delete_session = true;
                 }
                 else if (request_handle->response_info.data_length > 0)
@@ -190,10 +190,10 @@ idigi_status_t process_device_response(idigi_data_service_request_t const reques
         idigi_data_error_t const * error_block = request_data;
         for (request_handle = device_request_list; request_handle != NULL; request_handle = request_handle->next)
         {
-            if (request_handle->response_info.session_id == error_block->session_id)
+            if (request_handle->response_info.session == error_block->session)
             {
-                DEBUG_PRINTF("process_request_response: Got idigi_data_service_error on session %d with error %d\n",
-                                                                    request_handle->response_info.session_id, error_block->error);
+                DEBUG_PRINTF("process_request_response: Got idigi_data_service_error on session %p with error %d\n",
+                                                                    request_handle->response_info.session, error_block->error);
                 delete_session = true;
             }
         }
@@ -233,7 +233,7 @@ static idigi_callback_status_t process_device_request(idigi_ds_device_request_t 
 
         handle = ptr;
         handle->total_length = 0;
-        handle->response_info.session_id = request_data->session_id;
+        handle->response_info.session = request_data->session;
         handle->response_info.data_length = 0;
         /* set to 0 so process_request_response will not start sending response */
         handle->response_data_count = 0;
@@ -247,7 +247,7 @@ static idigi_callback_status_t process_device_request(idigi_ds_device_request_t 
     }
 
 
-    ASSERT(handle->response_info.session_id == request_data->session_id);
+    ASSERT(handle->response_info.session == request_data->session);
     handle->total_length += request_data->data_length;
 
     *response_data = handle;
@@ -283,7 +283,7 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
         idigi_data_send_t const * send_info = request_data;
 
         UNUSED_PARAMETER(send_info);
-        DEBUG_PRINTF("Handle: %d, status: %d, sent: %d bytes\n", send_info->session_id, send_info->status, send_info->bytes_sent);
+        DEBUG_PRINTF("Handle: %p, status: %d, sent: %d bytes\n", send_info->session, send_info->status, send_info->bytes_sent);
         status = (process_device_response(request, request_data) == idigi_success) ? idigi_callback_continue : idigi_callback_abort;
         break;
     }
@@ -293,7 +293,7 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
         idigi_data_error_t const * error_block = request_data;
 
         UNUSED_PARAMETER(error_block);
-        DEBUG_PRINTF("Handle: %d, error: %d\n", error_block->session_id, error_block->error);
+        DEBUG_PRINTF("Handle: %p, error: %d\n", error_block->session, error_block->error);
         status = (process_device_response(request, request_data) == idigi_success) ? idigi_callback_continue : idigi_callback_abort;
         break;
     }
@@ -305,7 +305,7 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
 
         UNUSED_PARAMETER(response);
         data[response->message.size] = '\0';
-        DEBUG_PRINTF("Handle: %d, status: %d, message: %s\n", response->session_id, response->status, data);
+        DEBUG_PRINTF("Handle: %p, status: %d, message: %s\n", response->session, response->status, data);
         break;
     }
     case idigi_data_service_device_request:

@@ -258,14 +258,14 @@ typedef struct
 
 typedef struct
 {
-    uint16_t session_id;
+    void * session;
     uint8_t  status;
     idigi_data_block_t message;
 } idigi_data_response_t;
 
 typedef struct
 {
-    uint16_t session_id;
+    void * session;
     idigi_status_t status;
     size_t bytes_sent;
 } idigi_data_send_t;
@@ -299,7 +299,7 @@ typedef enum
 
 typedef struct
 {
-    uint16_t session_id;
+    void * session;
     idigi_msg_error_t error;
 } idigi_data_error_t;
 
@@ -309,6 +309,7 @@ typedef enum {
 } idigi_ds_status_t;
 
 typedef struct {
+    void * session;
     uint16_t session_id;
     char const * target;
     uint8_t const * data;
@@ -319,6 +320,7 @@ typedef struct {
 
 typedef struct
 {
+    void * session;
     uint16_t session_id;
     idigi_ds_status_t  status;
     uint8_t * data;
