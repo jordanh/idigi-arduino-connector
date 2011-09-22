@@ -40,6 +40,7 @@ idigi_status_t initiate_data_service(idigi_handle_t handle)
         if(data_service_ready == true){
             status = idigi_initiate_action(handle, idigi_initiate_data_service, data_service_request, &data_service_request->session);
             DEBUG_PRINTF("Status: %d, Session: %p\n", status, data_service_request->session);
+
             data_service_request = NULL;   
             data_service_ready = false;
         }
@@ -66,7 +67,7 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
         idigi_data_send_t const * send_info = request_data;
 
         UNUSED_PARAMETER(send_info);
-        DEBUG_PRINTF("Handle: %d, status: %d, sent: %d bytes\n", send_info->session_id, send_info->status, send_info->bytes_sent);
+        DEBUG_PRINTF("Handle: %p, status: %d, sent: %d bytes\n", send_info->session, send_info->status, send_info->bytes_sent);
         break;
     }
 
@@ -75,7 +76,7 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
         idigi_data_error_t const * error_block = request_data;
 
         UNUSED_PARAMETER(error_block);
-        DEBUG_PRINTF("Handle: %d, error: %d\n", error_block->session_id, error_block->error);
+        DEBUG_PRINTF("Handle: %p, error: %d\n", error_block->session, error_block->error);
         break;
     }
 
@@ -87,7 +88,7 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
         UNUSED_PARAMETER(response);
         
         data[response->message.size] = '\0';
-        DEBUG_PRINTF("Handle: %d, status: %d, message: %s\n", response->session_id, response->status, data);
+        DEBUG_PRINTF("Handle: %p, status: %d, message: %s\n", response->session, response->status, data);
         break;
     }
 

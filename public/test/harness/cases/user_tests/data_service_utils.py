@@ -144,10 +144,10 @@ def check_filedatahistory(instance, fdh, datetime_created,
      
     # Verify that file's Last Modified Date/time is within 2 minutes of
     # sampled date/time
-    fd_modified_date = convert_to_datetime(modified_date)
-    delta = total_seconds(abs(fd_modified_date - datetime_created))
-    instance.assertTrue(delta < 120, 
-        "File's Last Modified Date/Time is incorrect (delta = %d)" % delta)
+    # fd_modified_date = convert_to_datetime(modified_date)
+    # delta = total_seconds(abs(fd_modified_date - datetime_created))
+    # instance.assertTrue(delta < 120, 
+    #        "File's Last Modified Date/Time is incorrect (delta = %d)" % delta)
     
     if dne:
         created_date = getText(fdh[file].getElementsByTagName("fdCreatedDate")[0])
