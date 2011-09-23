@@ -130,7 +130,7 @@ enum {
     case msg_state_data:
     {
         idigi_request_t request_id = {idigi_data_service_request};
-        idigi_ds_device_request_t request_data;
+        idigi_data_service_device_request_t request_data;
         ASSERT_GOTO(device_request != NULL, done);
 
         request_data.user_context = device_request->user_context;
@@ -368,7 +368,7 @@ error:
     return status;
 }
 
-static idigi_status_t data_service_response_initiate(idigi_data_t * const idigi_ptr,  idigi_ds_device_response_t const * const request)
+static idigi_status_t data_service_response_initiate(idigi_data_t * const idigi_ptr,  idigi_data_service_device_response_t const * const request)
 {
     idigi_status_t result = idigi_invalid_data;
     idigi_msg_data_t const * const msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
