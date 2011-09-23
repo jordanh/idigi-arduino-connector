@@ -167,12 +167,6 @@ static int send_buffer(idigi_data_t * const idigi_ptr, uint8_t * const buffer, s
     idigi_write_request_t write_data;
     idigi_request_t const request_id = {idigi_network_send};
 
-    if (idigi_ptr->network_busy || idigi_ptr->network_handle == NULL)
-    {
-        /* don't do any network activity */
-        goto done;
-    }
-
     {
         uint32_t current_system_time;
         uint32_t tx_keepalive_timeout;
@@ -332,6 +326,12 @@ static void send_complete_callback(idigi_data_t * const idigi_ptr)
 static idigi_callback_status_t send_packet_process(idigi_data_t * const idigi_ptr)
 {
     idigi_callback_status_t status = idigi_callback_continue;
+
+    if (idigi_ptr->network_busy || idigi_ptr->network_handle == NULL)
+    {
+        /* don't do any network activity */
+        goto done;
+    }
 
     /* if nothing needs to be sent, check whether we need to send rx keepalive */
     if (idigi_ptr->send_packet.total_length == 0 && idigi_ptr->edp_state >= edp_discovery_layer)
@@ -792,7 +792,6 @@ static idigi_callback_status_t connect_server(idigi_data_t * const idigi_ptr, ch
     case idigi_callback_continue:
         if (idigi_ptr->network_handle != NULL && length == sizeof *idigi_ptr->network_handle)
         {
-            idigi_ptr->edp_connected = true;
             idigi_ptr->network_busy = false;
         }
         else
@@ -823,23 +822,22 @@ static idigi_callback_status_t close_server(idigi_data_t * const idigi_ptr)
         idigi_request_t const request_id = {idigi_network_close};
 
         status = idigi_callback_no_response(idigi_ptr->callback, idigi_class_network, request_id, idigi_ptr->network_handle, sizeof *idigi_ptr->network_handle);
-        if (status != idigi_callback_busy)
+        switch (status)
         {
+        case idigi_callback_busy:
+            break;
+        case idigi_callback_abort:
+        case idigi_callback_unrecognized:
+            idigi_ptr->error_code = idigi_close_error;
+            /* fall thru */
+        case idigi_callback_continue:
             idigi_ptr->send_packet.total_length = 0;
             idigi_ptr->receive_packet.index = 0;
             idigi_ptr->network_handle = NULL;
-            switch (status)
-            {
-            case idigi_callback_continue:
-                idigi_ptr->edp_connected = false;
-                break;
-            case idigi_callback_abort:
-            case idigi_callback_unrecognized:
-                idigi_ptr->error_code = idigi_close_error;
-                break;
-            default:
-                break;
-            }
+            idigi_ptr->edp_connected = false;
+            break;
+        default:
+            break;
         }
     }
     return status;
