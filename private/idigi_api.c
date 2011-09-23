@@ -205,10 +205,11 @@ idigi_status_t idigi_step(idigi_handle_t const handle)
      * Each layer should not send data directly. Send process function is
      * called to send any data to server.
      *
-     * Make sure send is not pending before execute any layer functions.
-     *
+     * Make sure send is not pending before execute any layer functions
+     * except facility layer which processes each facility.
      */
-    if (!IS_SEND_PENDING(idigi_handle))
+    if ((!IS_SEND_PENDING(idigi_handle)) ||
+        (idigi_handle->edp_state == edp_facility_layer))
     {
         switch (idigi_handle->edp_state)
         {
@@ -234,11 +235,12 @@ idigi_status_t idigi_step(idigi_handle_t const handle)
     }
 
     /* process any send data */
-    if (status != idigi_callback_abort && idigi_handle->edp_connected)
+    if (status != idigi_callback_abort)
     {
         status = send_packet_process(idigi_handle);
+
 #if (defined IDIGI_DATA_SERVICE)
-        if (status == idigi_callback_continue)
+        if (status == idigi_callback_continue && idigi_handle->edp_connected)
             status = msg_process_pending(idigi_handle);
 #endif
     }
@@ -260,7 +262,10 @@ error:
         status = close_server(idigi_handle);
         if (status != idigi_callback_busy)
         {
-
+            send_complete_callback(idigi_handle);
+#if (defined IDIGI_DATA_SERVICE)
+            msg_process_clean_up(idigi_handle);
+#endif
             if (idigi_handle->active_state == idigi_device_terminate)
             {   /*
                  * Terminated by idigi_dispatch call
@@ -282,7 +287,6 @@ error:
                 {
                     result = idigi_handle->error_code;
                 }
-                send_complete_callback(idigi_handle);
                 reset_initial_data(idigi_handle);
 
             }
@@ -330,12 +334,16 @@ idigi_status_t idigi_initiate_action(idigi_handle_t const handle, idigi_initiate
 
 #if (defined IDIGI_DATA_SERVICE)
     case idigi_initiate_data_service:
-        ASSERT_GOTO(request_data != NULL, error);
-        result = data_service_initiate(idigi_ptr, request_data, response_data);
+        if (idigi_ptr->edp_connected)
+        {
+            result = data_service_initiate(idigi_ptr, request_data, response_data);
+        }
         break;
-    case idigi_data_service_device_response:
-        ASSERT_GOTO(request_data != NULL, error);
-        result = data_service_response_initiate(idigi_ptr, request_data);
+    case idigi_initiate_data_service_response:
+        if (idigi_ptr->edp_connected)
+        {
+            result = data_service_response_initiate(idigi_ptr, request_data);
+        }
         break;
 #endif
     default:
