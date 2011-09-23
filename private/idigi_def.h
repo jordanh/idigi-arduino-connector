@@ -67,7 +67,7 @@
 
 #define URL_PREFIX  "en://"
 #define GET_PACKET_DATA_POINTER(p, s)   (uint8_t *)(((uint8_t *)p) + (s))
-#define IS_SEND_PENDING(idigi_ptr)      (idigi_ptr->edp_connected && idigi_ptr->send_packet.total_length > 0)
+#define IS_SEND_PENDING(idigi_ptr)      (idigi_ptr->network_handle != NULL && idigi_ptr->send_packet.total_length > 0)
 
 #define asizeof(array)  (sizeof array/sizeof array[0])
 
