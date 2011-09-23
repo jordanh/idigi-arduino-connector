@@ -263,9 +263,7 @@ error:
         if (status != idigi_callback_busy)
         {
             send_complete_callback(idigi_handle);
-#if (defined IDIGI_DATA_SERVICE)
             layer_cleanup_facilities(idigi_handle);
-#endif
             if (idigi_handle->active_state == idigi_device_terminate)
             {   /*
                  * Terminated by idigi_dispatch call
