@@ -112,6 +112,7 @@ help:
 	@echo "    LITTLE_ENDIAN = true or false for little endian"
 	@echo "    FACILITY_FW   = true or false for firmware upgrade capability"
 	@echo "    DATA_SERVICE  = true or false for data service capability"
+	@echo "    COMPRESSION   = true or false for compression (zlib) on data service
 	@echo "    SHARED_LIBRARY = true or false for building shared library"
 	@echo "Targets:"
 	@echo "    all           - Build idigi library"
