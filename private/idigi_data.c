@@ -77,17 +77,18 @@ enum {
     {
     case msg_state_start:
     case msg_state_start_and_last:
+    {
         /* This is the start message which contains Data Service Device Request header.
          * Let's get and save target field.
          */
+        uint8_t const target_length =  message_load_u8(ds_device_request, target_length);
+        ds_device_request += record_bytes(ds_device_request_header);
 
         if (session->service_data == NULL)
         {
             /* 1st time here so let's allocate memory for handling device request message */
-            uint8_t const target_length =  message_load_u8(ds_device_request, target_length);
             void * ptr;
 
-            ds_device_request += record_bytes(ds_device_request_header);
             status = malloc_data(idigi_ptr, sizeof *device_request + target_length +1, &ptr);
             if (status != idigi_callback_continue)
             {
@@ -100,11 +101,13 @@ enum {
             memcpy(device_request->target_string, ds_device_request, target_length);
             device_request->target_string[target_length] = '\0';
             device_request->send_info.flag = 0;
-            device_request->response_started = false;
             device_request->user_context = NULL;
-            ds_device_request += target_length;
-            flag = IDIGI_DATA_REQUEST_START;
         }
+
+        device_request->response_started = false;
+        ds_device_request += target_length;
+        flag = IDIGI_DATA_REQUEST_START;
+    }
 
     {
         /* TODO: parse and process each parameter in the future.
@@ -318,6 +321,16 @@ static size_t fill_data_service_header(idigi_data_request_t const * const reques
 
     ASSERT(ptr > data);
     return (size_t)(ptr - data);
+}
+
+static idigi_callback_status_t idigi_facility_data_service_cleanup(idigi_data_t * const idigi_ptr)
+{
+    idigi_callback_status_t status = idigi_callback_continue;
+    idigi_msg_data_t * const msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
+
+    msg_cancel_all_sessions(idigi_ptr,  msg_ptr, msg_service_id_data);
+
+    return status;
 }
 
 static idigi_callback_status_t idigi_facility_data_service_delete(idigi_data_t * const data_ptr)
