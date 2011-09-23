@@ -78,6 +78,7 @@ static idigi_callback_status_t firmware_download_request(idigi_fw_download_reque
         if(data_service_request->payload.size == 0){
             data_service_ready = true;
             data_service_request->payload.data = NULL;
+            data_service_request->session = NULL;
             *download_status = idigi_fw_download_denied;
             goto done;
         }
