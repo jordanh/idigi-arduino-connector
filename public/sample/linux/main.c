@@ -86,27 +86,31 @@ int main (void)
             status = idigi_step(device_data.idigi_handle);
             device_data.select_data = 0;
 
-            if (device_data.connected && status == idigi_success)
+            if (status == idigi_success)
             {
-                device_data.select_data |= NETWORK_TIMEOUT_SET | NETWORK_READ_SET;
-                network_select(device_data.socket_fd, device_data.select_data, &delay);
-                #if (defined IDIGI_DATA_SERVICE)
-                status = initiate_data_service(device_data.idigi_handle);
-                if (status == idigi_success)
+                if (device_data.connected)
                 {
-                    status = process_device_response(idigi_data_service_device_response, NULL);
+                    device_data.select_data |= NETWORK_TIMEOUT_SET | NETWORK_READ_SET;
+                    network_select(device_data.socket_fd, device_data.select_data, &delay);
+                    #if (defined IDIGI_DATA_SERVICE)
+                    status = initiate_data_service(device_data.idigi_handle);
                     if (status != idigi_success)
-                        printf("process_device_response returns %d\n", status);
+                    {
+                        DEBUG_PRINTF("initiate_data_service fails %d\n", status);
+                        status = idigi_success; /* continue to run IIK */
+                    }
+                    #endif
                 }
                 else
                 {
-                    printf("initiate_data_service returns %d\n", status);
+                    sleep(1);
                 }
-                #endif
             }
-            else
+            else if (status != idigi_device_terminated)
             {
-                sleep(1);
+                /* let's terminate IIK. Must execute idigi_step to terminate itself. */
+                status = idigi_initiate_action(device_data.idigi_handle, idigi_initiate_terminate, NULL, NULL);
+
             }
         }
         DEBUG_PRINTF("idigi status = %d\n", status);
