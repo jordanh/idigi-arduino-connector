@@ -43,6 +43,7 @@ typedef struct {
     idigi_config_request_t facility;
     idigi_facility_table_t init_cb;
     idigi_facility_table_t delete_cb;
+    idigi_facility_table_t cleanup_cb;
 } idigi_facility_init_t;
 
 /* Table of all facilites that iDigi supports.
@@ -54,20 +55,20 @@ typedef struct {
  */
 static idigi_facility_init_t const idigi_supported_facility_table[] = {
         /* mandatory facilities */
-        {MANDATORY_FACILITY, idigi_facility_cc_init, idigi_facility_cc_delete},
+        {MANDATORY_FACILITY, idigi_facility_cc_init, idigi_facility_cc_delete, idigi_facility_cc_cleanup},
 
         /* list of optional facilities */
 #if defined(_FIRMWARE_FACILITY)
-        {idigi_config_firmware_facility, idigi_facility_firmware_init, idigi_facility_firmware_delete},
+        {idigi_config_firmware_facility, idigi_facility_firmware_init, idigi_facility_firmware_delete, NULL},
 #endif
 #if defined(IDIGI_DATA_SERVICE)
-        {idigi_config_data_service, idigi_facility_data_service_init, idigi_facility_data_service_delete}
+        {idigi_config_data_service, idigi_facility_data_service_init, idigi_facility_data_service_delete, idigi_facility_data_service_cleanup}
 #endif
 };
 
 static size_t const idigi_facility_count = asizeof(idigi_supported_facility_table);
 
-static idigi_callback_status_t  remove_facility_layer(idigi_data_t * const idigi_ptr)
+static idigi_callback_status_t layer_remove_facilities(idigi_data_t * const idigi_ptr)
 {
     idigi_callback_status_t result = idigi_callback_continue;
     unsigned int i = 0;
@@ -91,6 +92,40 @@ static idigi_callback_status_t  remove_facility_layer(idigi_data_t * const idigi
                 result = idigi_callback_abort;
             }
         }
+        if (status != idigi_callback_busy)
+        {
+            i++;
+        }
+    }
+
+    return result;
+}
+
+static idigi_callback_status_t layer_cleanup_facilities(idigi_data_t * const idigi_ptr)
+{
+    idigi_callback_status_t result = idigi_callback_continue;
+    unsigned int i = 0;
+
+    /* remove all facilities. delete_cb should not return busy.
+     * If it returns busy, just keep calling it.
+     */
+    while (i < idigi_facility_count)
+    {
+        idigi_callback_status_t status = idigi_callback_continue;
+
+        if (IS_FACILITY_SUPPORTED(idigi_ptr, i) &&
+            idigi_supported_facility_table[i].cleanup_cb != NULL)
+        {
+            status = idigi_supported_facility_table[i].cleanup_cb(idigi_ptr);
+            if (status != idigi_callback_continue)
+            {
+                /* Abort by callback. Save the abort status and
+                 * continue removing the rest of the facilities.
+                 */
+                result = idigi_callback_abort;
+            }
+        }
+        /* if busy, just keep calling the callback otherwise, goto next facility */
         if (status != idigi_callback_busy)
         {
             i++;
@@ -252,7 +287,7 @@ done:
     return status;
 }
 
-static idigi_callback_status_t get_supported_facilities(idigi_data_t * const idigi_ptr)
+static idigi_callback_status_t layer_get_supported_facilities(idigi_data_t * const idigi_ptr)
 {
 #define NUMBER_FACILITY_PER_BYTE CHAR_BIT
     idigi_callback_status_t status = idigi_callback_continue;
