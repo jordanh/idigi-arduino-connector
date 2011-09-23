@@ -646,14 +646,29 @@ static idigi_callback_status_t cc_discovery(idigi_data_t * const idigi_ptr, void
         if (status == idigi_callback_continue)
         {
             status = idigi_callback_busy;
+            cc_ptr->report_code = cc_not_redirect;
+            cc_ptr->origin_url_length = 0;
             cc_ptr->state = cc_state_connect_report;
         }
     }
     else if (cc_ptr->state == cc_state_connect_report)
     {
         status = send_connection_report(idigi_ptr, cc_ptr);
+
     }
 
+    return status;
+}
+
+static idigi_callback_status_t idigi_facility_cc_cleanup(idigi_data_t * const idigi_ptr)
+{
+    idigi_callback_status_t status = idigi_callback_continue;
+    idigi_cc_data_t * const cc_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_CC_NUM);
+    if (cc_ptr != NULL)
+    {
+        cc_ptr->report_code = cc_not_redirect;
+        cc_ptr->origin_url_length = 0;
+    }
     return status;
 }
 
@@ -687,10 +702,12 @@ static idigi_callback_status_t idigi_facility_cc_init(idigi_data_t * const idigi
         }
         cc_ptr = ptr;
 
-    }
-    cc_ptr->report_code = cc_not_redirect;
+        cc_ptr->report_code = cc_not_redirect;
+        cc_ptr->origin_url_length = 0;
 
-    cc_ptr->origin_url_length = 0;
+    }
+
+    /* restart for sending redirect report */
     cc_ptr->state = cc_state_redirect_report;
     cc_ptr->item = 0;
 
