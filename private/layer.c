@@ -328,32 +328,14 @@ static idigi_callback_status_t initialize_facilities(idigi_data_t * const idigi_
 
 static idigi_callback_status_t configuration_layer(idigi_data_t * const idigi_ptr)
 {
-enum {
-    configuration_get_configurations,
-    configuration_init_facilities,
-};
-
     idigi_callback_status_t status = idigi_callback_continue;
 
     /* This layer is called to get some of the EDP configuration and initialize each facility */
-    switch (idigi_ptr->layer_state)
+    status = get_configurations(idigi_ptr);
+    if (status == idigi_callback_continue)
     {
-    case configuration_get_configurations:
-        status = get_configurations(idigi_ptr);
-        if (status != idigi_callback_continue)
-        {
-            break;
-        }
         idigi_ptr->request_id = 0;
-        idigi_ptr->layer_state = configuration_init_facilities;
-        /* fall through */
-    case configuration_init_facilities:
-        status = initialize_facilities(idigi_ptr);
-        if (status == idigi_callback_continue)
-        {
-            set_idigi_state(idigi_ptr, edp_communication_layer);
-        }
-        break;
+        set_idigi_state(idigi_ptr, edp_communication_layer);
     }
 
     return status;
@@ -400,6 +382,7 @@ static idigi_callback_status_t communication_layer(idigi_data_t * const idigi_pt
 #define SERVER_OVERLOAD_RESPONSE    0x02
 
 enum {
+    communication_initialize_failities,
     communication_connect_server,
     communication_send_version,
     communication_receive_version_response,
@@ -416,6 +399,14 @@ enum {
      */
     switch (idigi_ptr->layer_state)
     {
+    case communication_initialize_failities:
+        status = initialize_facilities(idigi_ptr);
+        if (status == idigi_callback_continue)
+        {
+            idigi_ptr->layer_state = communication_connect_server;
+        }
+        break;
+
     case communication_connect_server:
         if (idigi_ptr->network_handle == NULL)
         {
@@ -924,7 +915,10 @@ enum {
                                     NULL);
         if (status == idigi_callback_continue)
         {
+            /* we are connected and EDP communication is fully established. */
             set_idigi_state(idigi_ptr, edp_facility_layer);
+            idigi_ptr->edp_connected = true;
+
         }
         break;
     }
