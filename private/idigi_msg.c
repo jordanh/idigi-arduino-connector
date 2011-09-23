@@ -1288,6 +1288,26 @@ static void msg_delete_all_sessions(idigi_data_t * const idigi_ptr,  idigi_msg_d
     }
 }
 
+static void msg_cancel_all_sessions(idigi_data_t * const idigi_ptr,  idigi_msg_data_t * const msg_ptr, uint16_t const service_id)
+{
+    msg_session_t * session = msg_ptr->session_head;
+
+    while(session != NULL)
+    {
+        msg_session_t * next_session = session->next;
+
+        if (session->service_id == service_id )
+        {
+            idigi_msg_callback_t * cb_fn = msg_ptr->service_cb[session->service_id];
+            uint8_t const error = idigi_msg_error_cancel;
+
+            cb_fn(idigi_ptr, msg_state_error, session, &error, sizeof error);
+            msg_delete_session(idigi_ptr, session);
+        }
+        session = next_session;
+    }
+}
+
 static idigi_callback_status_t msg_delete_facility(idigi_data_t * const idigi_ptr, uint16_t const service_id)
 {
     idigi_callback_status_t status = idigi_callback_abort;
@@ -1321,25 +1341,6 @@ error:
     return status;
 }
 
-static void msg_process_clean_up(idigi_data_t * const idigi_ptr)
-{
-    idigi_msg_data_t * const msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
-    msg_session_t * session = msg_ptr->session_head;
-
-    while(session != NULL)
-    {
-        idigi_msg_callback_t * cb_fn = msg_ptr->service_cb[session->service_id];
-        msg_session_t * next_session = session->next;
-        uint8_t const error = idigi_msg_error_cancel;
-
-        cb_fn(idigi_ptr, msg_state_error, session, &error, sizeof error);
-        msg_delete_session(idigi_ptr, session);
-        session = next_session;
-    }
-
-    return;
-}
-
 static uint16_t msg_init_facility(idigi_data_t * const idigi_ptr, uint16_t service_id, idigi_msg_callback_t callback)
 {
     idigi_callback_status_t status = idigi_callback_abort;
@@ -1360,7 +1361,6 @@ static uint16_t msg_init_facility(idigi_data_t * const idigi_ptr, uint16_t servi
     /* Cancel and clean up any previous sessions.
      * We may have been disconnected/reconnected or redirected
      */
-    msg_process_clean_up(idigi_ptr);
 
     msg_ptr->service_cb[service_id] = callback;
     status = idigi_callback_continue;
