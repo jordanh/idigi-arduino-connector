@@ -139,10 +139,10 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
 
     if (idigi_handle != NULL)
     {
-        status = get_supported_facilities(idigi_handle);
+        status = layer_get_supported_facilities(idigi_handle);
         if (status != idigi_callback_continue)
         {
-            status = remove_facility_layer(idigi_handle);
+            status = layer_remove_facilities(idigi_handle);
             ASSERT(status != idigi_callback_continue);
             goto error;
         }
@@ -264,7 +264,7 @@ error:
         {
             send_complete_callback(idigi_handle);
 #if (defined IDIGI_DATA_SERVICE)
-            msg_process_clean_up(idigi_handle);
+            layer_cleanup_facilities(idigi_handle);
 #endif
             if (idigi_handle->active_state == idigi_device_terminate)
             {   /*
@@ -273,7 +273,7 @@ error:
                  */
                 result = idigi_device_terminated;
 
-                status = remove_facility_layer(idigi_handle);
+                status = layer_remove_facilities(idigi_handle);
                 if (status == idigi_callback_abort)
                 {
                     result = idigi_handle->error_code;
