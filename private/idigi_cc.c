@@ -526,6 +526,8 @@ enum cc_redirect_url {
     /* let's start parsing url length and url string */
     redirect += record_bytes(redirect);
 
+    idigi_ptr->network_busy = true;
+
     /* Close the connection before parsing new destination url */
     status = close_server(idigi_ptr);
     if (status != idigi_callback_continue)
