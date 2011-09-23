@@ -30,9 +30,15 @@ CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -std=c99 -D_POSIX_C_SOURCE=200112L -D_
 OBJS = main.o firmware.o network.o os.o config.o data_service.o
 LIBS = -lidigi -lc
 
+ifneq ($(DATA_SERVICE), false)
+DFLAGS += -DIDIGI_DATA_SERVICE
+endif
+
 ifneq ($(COMPRESSION), false)
+CFLAGS += -DCOMPRESSION
 LIBS += -lz
 endif
+
 
 # Name of executable to build
 SAMPLE=linux_sample
@@ -56,6 +62,8 @@ help:
 	@echo "    DEBUG         = true or false for debugging"
 	@echo "    LIB           = path of idigi library"
 	@echo "    LITTLE_ENDIAN = true or false for little endian"
+	@echo "    DATA_SERVICE  = true or false for data service"
+	@echo "    COMPRESSION   = true or false for compression (zlib) on data service
 	@echo "NOTE:"
 	@echo "    The idigi library path must be added to the LD_LIBRARY_PATH"
 	@echo "    environmental variable when running the application"
