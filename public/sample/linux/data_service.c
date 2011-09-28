@@ -120,7 +120,8 @@ static char *device_response_data[] = {"<description>\nThe iDigi Integration kit
 "iDigi is based upon a cloud computing model that provides on-demand scalability "
 "so you can rest assured that when you need additional computing and storage iDigi will scale to meet "
 "your needs. The iDigi Device Cloud is designed using a high-availability architecture, with redundancy and failover "
-"characteristics in mind.\n"
+"characteristics in mind.\n",
+
 "Using iDigi, customers can now easily develop cloud connected devices and applications that quickly scale from dozens "
 "to hundreds, thousands or even millions of endpoints.\n</description>"
 
@@ -300,6 +301,17 @@ static idigi_callback_status_t process_data_service_error(idigi_data_error_t * c
 }
 
 
+static idigi_callback_status_t get_max_transactions(uint16_t * count)
+{
+#define IDIGI_DATA_SERVICE_MAX_TRANSACTION 1
+
+    idigi_callback_status_t status = idigi_callback_continue;
+
+    *count = IDIGI_DATA_SERVICE_MAX_TRANSACTION;
+
+    return status;
+}
+
 idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t const request,
                                                   void * const request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length)
@@ -307,7 +319,6 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
     idigi_callback_status_t status = idigi_callback_continue;
 
     UNUSED_PARAMETER(request_length);
-    UNUSED_PARAMETER(response_data);
     UNUSED_PARAMETER(response_length);
 
     switch (request)
@@ -337,13 +348,16 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
         idigi_data_response_t const * response = request_data;
         char * data = (char *)response->message.value;
 
-        UNUSED_PARAMETER(response);
         data[response->message.size] = '\0';
         DEBUG_PRINTF("Handle: %p, status: %d, message: %s\n", response->session, response->status, data);
         break;
     }
     case idigi_data_service_request:
         status = process_data_service_request(request_data, response_data);
+        break;
+
+    case idigi_data_service_max_transactions:
+        status = get_max_transactions(response_data);
         break;
 
     default:
