@@ -113,8 +113,9 @@ typedef enum {
 typedef enum {
     idigi_data_service_send_complete,
     idigi_data_service_response,
+    idigi_data_service_error,
     idigi_data_service_request,
-    idigi_data_service_error    
+    idigi_data_service_max_transactions
 } idigi_data_service_request_t;
 
 typedef enum {
