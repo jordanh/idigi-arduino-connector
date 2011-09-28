@@ -78,61 +78,79 @@ enum {
     case msg_state_start:
     case msg_state_start_and_last:
     {
-        /* This is the start message which contains Data Service Device Request header.
-         * Let's get and save target field.
-         */
-        uint8_t const target_length =  message_load_u8(ds_device_request, target_length);
-        ds_device_request += record_bytes(ds_device_request_header);
+        size_t min_data_length;
 
-        if (session->service_data == NULL)
         {
-            /* 1st time here so let's allocate memory for handling device request message */
-            void * ptr;
+            /* This is the start message which contains Data Service Device Request header.
+             * Let's get and save target field.
+             */
+            uint8_t const target_length =  message_load_u8(ds_device_request, target_length);
 
-            status = malloc_data(idigi_ptr, sizeof *device_request + target_length +1, &ptr);
-            if (status != idigi_callback_continue)
+            min_data_length = target_length +
+                              record_bytes(ds_device_request_header) +
+                              field_named_data(ds_device_request, parameter_count, size);
+            ds_device_request += record_bytes(ds_device_request_header);
+
+            if (length < min_data_length)
             {
-                goto done;
+                DEBUG_PRINTF("ds_process_device_request: parsed target and found invalid window size; at least size > %d\n", min_data_length);
+                goto error;
             }
-            device_request = ptr;
-            device_request->target_string = (char *)device_request + sizeof *device_request;
-            session->service_data = device_request;
 
-            memcpy(device_request->target_string, ds_device_request, target_length);
-            device_request->target_string[target_length] = '\0';
-            device_request->send_info.flag = 0;
-            device_request->user_context = NULL;
+            if (session->service_data == NULL)
+            {
+                /* 1st time here so let's allocate memory for handling device request message */
+                void * ptr;
+
+                status = malloc_data(idigi_ptr, sizeof *device_request + target_length +1, &ptr);
+                if (status != idigi_callback_continue)
+                {
+                    goto done;
+                }
+                device_request = ptr;
+                device_request->target_string = (char *)device_request + sizeof *device_request;
+                session->service_data = device_request;
+                memcpy(device_request->target_string, ds_device_request, target_length);
+                device_request->target_string[target_length] = '\0';
+                device_request->send_info.flag = 0;
+                device_request->user_context = NULL;
+            }
+
+            device_request->response_started = false;
+            ds_device_request += target_length;
+            flag = IDIGI_DATA_REQUEST_START;
         }
 
-        device_request->response_started = false;
-        ds_device_request += target_length;
-        flag = IDIGI_DATA_REQUEST_START;
-    }
-
-    {
-        /* TODO: parse and process each parameter in the future.
-         *      ignore all parameters now.
-         */
-
-        uint8_t const parameter_count = message_load_u8(ds_device_request, parameter_count);
-        uint8_t i;
-
-        ds_device_request += field_named_data(ds_device_request, parameter_count, size);
-
-        for (i=0; i < parameter_count; i++)
         {
-             uint8_t const parameter_length = message_load_u8(ds_device_request, parameter_length);
+            /* TODO: parse and process each parameter in the future.
+             *      ignore all parameters now.
+             */
 
-             ds_device_request += record_bytes(ds_device_request_parameter); /* skip id and length */
-             ds_device_request += parameter_length;
-             ASSERT(length >= (size_t)(ds_device_request - data));
+            uint8_t const parameter_count = message_load_u8(ds_device_request, parameter_count);
+            uint8_t i;
+
+            ds_device_request += field_named_data(ds_device_request, parameter_count, size);
+
+            for (i=0; i < parameter_count; i++)
+            {
+                 uint8_t const parameter_length = message_load_u8(ds_device_request, parameter_length);
+                 min_data_length += record_bytes(ds_device_request_parameter) + parameter_length;
+                 if (length < min_data_length)
+                 {
+                     DEBUG_PRINTF("ds_process_device_request: parsed parameter and found invalid window size; at least size > %d\n", min_data_length);
+                     goto error;
+                 }
+
+                 ds_device_request += record_bytes(ds_device_request_parameter); /* skip id and length */
+                 ds_device_request += parameter_length;
+            }
         }
     }
     /* fall thru for calling the callback */
     case msg_state_last:
     case msg_state_data:
     {
-        idigi_request_t request_id = {idigi_data_service_request};
+        idigi_request_t const request_id = {idigi_data_service_request};
         idigi_data_service_device_request_t request_data;
         ASSERT_GOTO(device_request != NULL, done);
 
@@ -152,6 +170,20 @@ enum {
     default:
         ASSERT(false);
         break;
+    }
+    goto done;
+
+error:
+    {
+        session->error = idigi_msg_error_cancel;
+#if 0
+        /* TODO: need to send error if window size is configurable */
+        /* return abort will cause messaging facility to send cancel error to server */
+        idigi_request_t const request_id = {idigi_data_service_window_size};
+        notify_error_status(idigi_ptr->callback, idigi_class_data_service, request_id, idigi_invalid_data_range);
+#else
+        ASSERT(false);
+#endif
     }
 done:
     return status;
@@ -347,8 +379,16 @@ static idigi_status_t data_service_initiate(idigi_data_t * const data_ptr,  void
 {
     idigi_status_t status = idigi_invalid_data;
     idigi_data_request_t const * service = request;
+    idigi_msg_data_t const * const msg_ptr = get_facility_data(data_ptr, E_MSG_FAC_MSG_NUM);
 
     ASSERT_GOTO(request != NULL, error);
+
+    if (msg_ptr->capabilities[msg_server_request_id].window_size == 0)
+    {
+        status = idigi_init_error;
+        DEBUG_PRINTF("data_service_initiate: Have not received server's capabilities\n");
+        goto error;
+    }
 
     if ((service->flag & IDIGI_DATA_REQUEST_START) != 0)
     {
