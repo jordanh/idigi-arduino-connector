@@ -137,6 +137,7 @@ static idigi_callback_status_t malloc_cb(idigi_callback_t const callback, size_t
     if (status == idigi_callback_continue)
     {
         add_malloc_stats(*ptr, size);
+        ASSERT(*ptr != NULL);
     }
     return status;
 
