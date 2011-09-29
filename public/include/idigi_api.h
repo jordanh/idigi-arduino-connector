@@ -22,6 +22,12 @@
  * =======================================================================
  *
  */
+ /**
+  * @file
+  *  @brief Functions and prototypes for iDigi Integration kit
+  *         public API
+  *
+  */
 #ifndef _IDIGI_API_H
 #define _IDIGI_API_H
 
@@ -30,29 +36,41 @@
 #define IDIGI_PORT       3197
 #define IDIGI_SSL_PORT   3199
 
+
+ /**
+ * @defgroup idigi_status_t idigi_status_t: Status returned by IIK API calls.
+ * @{ 
+ */
+ /** 
+ * idigi_status_t.
+ * Status returned by IIK API calls.
+ */
 typedef enum {
-   idigi_success,
-   idigi_init_error,
-   idigi_configuration_error,
-   idigi_invalid_data_size,
-   idigi_invalid_data_range,
-   idigi_invalid_payload_packet,
-   idigi_keepalive_error,
-   idigi_server_overload,
-   idigi_bad_version,
-   idigi_invalid_packet,
-   idigi_exceed_timeout,
-   idigi_unsupported_security,
-   idigi_invalid_data,
-   idigi_server_disconnected,
-   idigi_connect_error,
-   idigi_receive_error,
-   idigi_send_error,
-   idigi_close_error,
-   idigi_device_terminated,
-   idigi_service_busy,
-   idigi_invalid_response,
+   idigi_success,               /**< No error. */
+   idigi_init_error,            /**< IIK was not initialized. */
+   idigi_configuration_error,   /**< IIK was aborted by callback function. */
+   idigi_invalid_data_size,     /**< Callback returned configuration with invalid size. */
+   idigi_invalid_data_range,    /**< Callback returned configuration that is out of range. */
+   idigi_invalid_payload_packet, /**< IIK received invalid payload message. */
+   idigi_keepalive_error,       /**< IIK did not receive keepalive messages. Server may be offline. */
+   idigi_server_overload,       /**< Server overload. */
+   idigi_bad_version,           /**< Server rejected version number. */
+   idigi_invalid_packet,        /**< IIK received unrecognized or unexpected message. */
+   idigi_exceed_timeout,        /**< Callback exceeded timeout value before it returned. */
+   idigi_unsupported_security,  /**< IIK received a packet with unsupported security. */
+   idigi_invalid_data,          /**< Callback returned invalid data. Callback may return a NULL data.. */
+   idigi_server_disconnected,   /**< Server disconnected IIK. */
+   idigi_connect_error,         /**< IIK was unable to connect to the iDigi server. The callback for connect failed. */
+   idigi_receive_error,         /**< Unable to receive message from the iDigi server. The callback for receive failed. */
+   idigi_send_error,            /**< Unable to send message to the iDigi server. The callback for send failed. */
+   idigi_close_error,           /**< Unable to disconnect the connection. The callback for close failed. */
+   idigi_device_terminated,     /**< IIK was terminated by user via idigi_initiate_action call. */
+   idigi_service_busy,          /**< Someone else is using the same service or the device is busy. */
+   idigi_invalid_response,      /**< Received invalid response from the server. */
 } idigi_status_t;
+/**
+* @}
+*/
 
 typedef enum {
     idigi_class_config,
@@ -91,11 +109,89 @@ typedef enum {
 
 } idigi_network_request_t;
 
+
+ /**
+ * @defgroup idigi_os_request_t idigi_os_request_t: OS request ID's
+ * @{ 
+ */
+ /** 
+ * idigi_status_t.
+ * Status returned by IIK API calls.
+ */
 typedef enum {
-    idigi_os_malloc,
-    idigi_os_free,
-    idigi_os_system_up_time,
+    idigi_os_malloc, /**< Callback used to dynamically allocate memory.. */
+    idigi_os_free, /**< Callback is called to free previous allocated memory. */
+    idigi_os_system_up_time, /**< This callback is called to return system up time in seconds. It is the time that a device has been up and running. */
 } idigi_os_request_t;
+/**
+* @}
+*/
+
+ /**
+ * @defgroup idigi_os_malloc idigi_os_malloc: Dynamically allocate memory
+ *  @ref idigi_callback_t "Callback" used to dynamically allocate memory
+ *  @param class_id: idigi_class_operating_system class ID
+ *  @param request_id idigi_os_malloc request ID
+ *  @param request_data Pointer to number of bytes to be allocated
+ *  @param request_length Specifies the size of *request_data which is size of size_t.
+ *  @param response_data Callback returns a pointer to memory for allocated address
+ *  @param response_length ignore
+ *
+ * @return idigi_callback_continue Callback successfully allocated memory
+ * @return idigi_callback_abort Callback was unable to allocate memory and callback aborts IIK
+ * @return idigi_callback_busy Memory is not available at this time and needs to be called back again
+ * @see idigi_callback_t
+ * @{ 
+ */
+
+/**
+* @}
+*/
+
+ /**
+ * @defgroup idigi_os_system_up_time idigi_os_system_up_time: System up time
+ *  @ref idigi_callback_t "Callback" used to to return system up time in seconds. It is the time that a device has been up and running.
+ *  @param class_id: idigi_class_operating_system class ID
+ *  @param request_id idigi_os_system_up_time request ID
+ *  @param request_data NULL
+ *  @param request_length 0
+ *  @param response_data Pointer to uint32_t integer memory where callback writes the system up time to (in seconds)
+ *  @param response_length NULL Ignore
+ *
+ * @return idigi_callback_continue Callback returned system up time
+ * @return idigi_callback_abort Callback was unable to get system time
+ * @see idigi_callback_t
+ * @{ 
+ */
+
+/**
+* @}
+*/
+
+ /**
+ * @defgroup idigi_os_malloc idigi_os_malloc: Dynamically allocate memory
+ *  @ref idigi_callback_t "Callback" used to dynamically allocate memory
+ *  @param class_id: idigi_class_operating_system class ID
+ *  @param request_id idigi_os_malloc request ID
+ *  @param request_data Pointer to number of bytes to be allocated
+ *  @param request_length Specifies the size of *request_data which is size of size_t.
+ *  @param response_data Callback returns a pointer to memory for allocated address
+ *  @param response_length ignore
+ *
+ * @return idigi_callback_continue Callback successfully allocated memory
+ * @return idigi_callback_abort Callback was unable to allocate memory and callback aborts IIK
+ * @return idigi_callback_busy Memory is not available at this time and needs to be called back again
+ * @see idigi_callback_t
+ * @{ 
+ */
+
+/**
+* @}
+*/
+
+
+
+
 
 typedef enum {
     idigi_firmware_target_count,
@@ -329,17 +425,187 @@ typedef struct
     uint16_t flag;
 } idigi_data_service_device_response_t;
 
+ /**
+ * @defgroup idigi_callback_t idigi_callback_t: IIK application defined callback.
+ *@{ 
+ * idigi_callback_t: IIK application callback.
+ *
+ */
+ /** 
+ * idigi_callback_t.
+ *
+ * @param class_id class ID for this request
+ * @param request_id request ID
+ * @param request_data Data for this request
+ * @param request_length Number of bytes in the request
+ * @param response_data Pointer to returned response
+ * @param response_length Length of the response in bytes
+ * 
+ * 
+ * @retval idigi_callback_status_t  Callback status.
+ */
 typedef idigi_callback_status_t (* idigi_callback_t) (idigi_class_t const class_id, idigi_request_t const request_id,
                                                   void const * const request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length);
-
+/**
+* @}
+*/
+ /**
+ * @defgroup idigi_init idigi_init(): Initialize the IIK.
+ *@{ 
+ * @b Include: idigi_api.h
+ */
+/**
+ *
+ * This API is called once upon startup to allocate and 
+ * initialize the IIK. It takes the application-defined callback 
+ * function as an argument; this callback is used by the IIK to 
+ * communicate with the application. This function must be 
+ * called before all other IIK APIs. The idigi_callback_t is 
+ * defined below. 
+ *
+ * @param [in] callback  Callback function that is used to 
+ *        interface between the application and the IIK.
+ *
+ * @retval NULL   Error was found and the IIK is unable to 
+ *         initialize.
+ * @retval "Not NULL"  Handle used for subsequent IIK calls.
+ *
+ * Example Usage:
+ * @code
+ *    idigi_handle = idigi_init(application_callback);
+ * @endcode
+ *  
+ * @see idigi_callback_t 
+ */
 idigi_handle_t idigi_init(idigi_callback_t const callback);
+/**
+* @}
+*/
 
+ /**
+ * @defgroup idigi_step idigi_step(): Run a portion of the IIK
+ * @{ 
+ * @b Include: idigi_api.h
+ */
+
+/**
+ * @brief   Run a portion of the IIK.
+ *
+ * This function is called to start and run the IIK. This
+ *function performs a sequence of operations or events and 
+ * returns control back to the caller. This allows a caller to
+ * perform other tasks, especially in single-threaded system.
+ * A caller must call this API again to continue IIK operations.
+ * The connection is already terminated when idigi_step returns
+ * an error, idigi_step will try reconnecting to the iDigi
+ * Device Cloud if it's called again. The idigi_step performs
+ * the following operations:
+ * @li Establish a connection with the iDigi Device Cloud.
+ * 
+ * @li Wait for incoming messages from the iDigi Device Cloud.
+ * 
+ * @li Invoke and pass message to the appropriate process (such
+ * as firmware access facility).
+ *
+ * @param [in] handle  Handle returned from idigi_init
+ *
+ * @retval idigi_success  No error
+ * 
+ * @retval idigi_success  IIK was not initialized
+ *
+ * Example Usage:
+ * @code
+ *     status = idigi_step(idigi_handle);
+ * @endcode 
+ *  
+ * @see idigi_handle_t
+ * @see idigi_callback_t
+ */
 idigi_status_t idigi_step(idigi_handle_t const handle);
+/**
+* @}
+*/
 
+
+ /**
+ * @defgroup idigi_run idigi_run(): Run a portion of the IIK.
+ * @{ 
+ * @b Include: idigi_api.h
+ */
+/**
+ * @brief   Run a portion of the IIK.
+ *
+ * This function is similar to idigi_step except it doesn't 
+ * return control back to caller unless IIK encounters an error.
+ * This function should be executed as a separated thread. 
+ * 
+ * @param [in] handle  Handle returned from idigi_init
+ *
+ * @retval idigi_success  Status code
+ * 
+ *
+ * Example Usage:
+ * @code
+ *     status = idigi_run(idigi_handle);
+ * @endcode 
+ *  
+ * @see idigi_status_t
+ */
 idigi_status_t idigi_run(idigi_handle_t const handle);
+/**
+* @}
+*/
 
+
+ /**
+ * @defgroup idigi_initiate_action idigi_initiate_action(): Request IIK to perform an action.
+ * @{
+ * @b Include: idigi_api.h
+ */
+/** 
+ * @brief   Request IIK to perform an action.
+ *
+ * This function is called to request IIK to perform an action. 
+ * This is used to send data from the device to the iDigi Device 
+ * Cloud and to terminate the IIK library. 
+ *  
+ * @param [in] handle  Handle returned from idigi_init 
+ *  
+ * @param [in] request  Request action (one of the following):
+                        @li @b idigi_initiate_terminate:
+ *                          Terminates and stops IIK from running. It closes the connection to the
+ *                          iDigi server and frees all allocated
+ *                          memory. If the application is using
+ *                          idigi_step, the next call to
+ *                          idigi_step will terminate the IIK.
+ *                          If caller is using idigi_run,
+ *                          idigi_run will terminate and return.
+ *                           Once IIK is terminated, IIK cannot
+ *                           restart unless idigi_init is
+ *                           called  again.
+ * 
+ *                      @li @b idigi_initiate_data_service: 
+ *                           This is used to send data to the
+ *                           iDigi server, the data is stored in
+ *                           a file on * the server.
+ *
+ * 
+ * @retval idigi_success  No error
+ * 
+ * @retval idigi_success  IIK was not initialized
+ *
+ * Example Usage:
+ * @code
+ *     status = idigi_initiate_action(idigi_handle);
+ * @endcode 
+ *  
+ * @see idigi_handle_t
+ * @see idigi_callback_t
+ */
 idigi_status_t idigi_initiate_action(idigi_handle_t const handle, idigi_initiate_request_t const request,
                                      void const * const request_data, void * const response_data);
-
+/**
+* @}.
+*/
 #endif /* _IDIGI_API_H */
