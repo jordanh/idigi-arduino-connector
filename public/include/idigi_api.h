@@ -67,6 +67,7 @@ typedef enum {
    idigi_device_terminated,     /**< IIK was terminated by user via idigi_initiate_action call. */
    idigi_service_busy,          /**< Someone else is using the same service or the device is busy. */
    idigi_invalid_response,      /**< Received invalid response from the server. */
+   idigi_no_resource
 } idigi_status_t;
 /**
 * @}
@@ -95,8 +96,7 @@ typedef enum {
     idigi_config_ip_addr,
     idigi_config_error_status,
     idigi_config_firmware_facility,
-    idigi_config_data_service,
-
+    idigi_config_data_service
 } idigi_config_request_t;
 
 typedef enum {
@@ -105,7 +105,8 @@ typedef enum {
     idigi_network_receive,
     idigi_network_close,
     idigi_network_disconnected,
-    idigi_network_reboot
+    idigi_network_reboot,
+    idigi_network_initialization_done
 
 } idigi_network_request_t;
 
@@ -203,7 +204,7 @@ typedef enum {
     idigi_firmware_binary_block,
     idigi_firmware_download_complete,
     idigi_firmware_download_abort,
-    idigi_firmware_target_reset,
+    idigi_firmware_target_reset
 } idigi_firmware_request_t;
 
 typedef enum {
@@ -405,9 +406,9 @@ typedef struct
 typedef struct {
     void * session;
     char const * target;
-    uint8_t const * data;
+    void const * data;
     size_t data_length;
-    uint16_t flag;
+    unsigned int flag;
     void * user_context;
 } idigi_data_service_device_request_t;
 
@@ -420,9 +421,9 @@ typedef struct
 {
     void * session;
     idigi_data_service_device_response_status_t status;
-    uint8_t * data;
+    void const * data;
     size_t data_length;
-    uint16_t flag;
+    unsigned int flag;
 } idigi_data_service_device_response_t;
 
  /**
