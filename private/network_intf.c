@@ -322,9 +322,23 @@ static void send_complete_callback(idigi_data_t * const idigi_ptr)
         callback(idigi_ptr, idigi_ptr->send_packet.ptr, idigi_ptr->error_code, idigi_ptr->send_packet.user_data);
     }
 }
-static idigi_callback_status_t send_packet(idigi_data_t * const idigi_ptr)
+
+static idigi_callback_status_t send_packet_process(idigi_data_t * const idigi_ptr)
 {
     idigi_callback_status_t status = idigi_callback_continue;
+
+    if (idigi_ptr->network_busy || idigi_ptr->network_handle == NULL)
+    {
+        /* don't do any network activity */
+        goto done;
+    }
+
+    /* if nothing needs to be sent, check whether we need to send rx keepalive */
+    if (idigi_ptr->send_packet.total_length == 0 && idigi_ptr->edp_state >= edp_discovery_layer)
+    {
+
+        rx_keepalive_process(idigi_ptr);
+    }
 
     if (idigi_ptr->send_packet.total_length > 0)
     {
@@ -361,62 +375,6 @@ done:
 
 }
 
-#if (defined IDIGI_DATA_SERVICE)
-static idigi_callback_status_t msg_process_pending(idigi_data_t * const idigi_ptr);
-#endif
-
-static idigi_callback_status_t send_packet_process(idigi_data_t * const idigi_ptr)
-{
-    idigi_callback_status_t status = idigi_callback_continue;
-
-    if (idigi_ptr->network_busy || idigi_ptr->network_handle == NULL)
-    {
-        /* don't do any network activity */
-        goto done;
-    }
-
-    /* if nothing needs to be sent, check whether we need to send rx keepalive */
-    if (idigi_ptr->send_packet.total_length == 0 && idigi_ptr->edp_state >= edp_discovery_layer)
-    {
-
-        rx_keepalive_process(idigi_ptr);
-    }
-
-#if (defined IDIGI_DATA_SERVICE)
-    /* process any messagaing facility data */
-    if (idigi_ptr->edp_connected)
-    {
-        bool done_processing = false;
-        while (!done_processing)
-        {
-            status = msg_process_pending(idigi_ptr);
-            switch (status)
-            {
-            case idigi_callback_continue:
-                done_processing = true;
-                break;
-            case idigi_callback_busy:
-                break;
-            default:
-                goto done;
-
-            }
-            status = send_packet(idigi_ptr);
-            if (status != idigi_callback_continue)
-            {
-                goto done;
-            }
-        }
-
-    }
-#endif
-
-    status = send_packet(idigi_ptr);
-
-done:
-    return status;
-
-}
 
 static uint8_t * new_receive_packet(idigi_data_t * const idigi_ptr)
 {
