@@ -549,14 +549,17 @@ enum {
         int len;
         size_t i;
 
-        const struct {
+        struct {
             uint16_t type;
             uint16_t value;
-        } keepalive_parameters[] = {
-                {E_MSG_MT2_TYPE_KA_RX_INTERVAL, idigi_ptr->rx_keepalive_interval},
-                {E_MSG_MT2_TYPE_KA_TX_INTERVAL, idigi_ptr->tx_keepalive_interval},
-                {E_MSG_MT2_TYPE_KA_WAIT, idigi_ptr->wait_count}
-        };
+        } keepalive_parameters[3];
+
+#define init_param(i, t, v) keepalive_parameters[i].type = (t); keepalive_parameters[i].value = (v)
+        init_param(0, E_MSG_MT2_TYPE_KA_RX_INTERVAL, idigi_ptr->rx_keepalive_interval);
+        init_param(1, E_MSG_MT2_TYPE_KA_TX_INTERVAL, idigi_ptr->tx_keepalive_interval);
+        init_param(2, E_MSG_MT2_TYPE_KA_WAIT,        idigi_ptr->wait_count);
+#undef  init_param
+
         DEBUG_PRINTF("communication layer: send keepalive params \n");
 
         packet = get_packet_buffer(idigi_ptr, E_MSG_MT2_MSG_NUM, &start_ptr);
@@ -950,9 +953,13 @@ enum {
                                     NULL);
         if (status == idigi_callback_continue)
         {
+            idigi_request_t const request_id = {idigi_network_initialization_done};
+
             /* we are connected and EDP communication is fully established. */
             set_idigi_state(idigi_ptr, edp_facility_layer);
             idigi_ptr->edp_connected = true;
+
+            status = idigi_callback_no_response(idigi_ptr->callback, idigi_class_network, request_id, NULL, 0);
 
         }
         break;
