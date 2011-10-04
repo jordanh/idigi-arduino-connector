@@ -66,6 +66,8 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
 }
 
 
+idigi_status_t data_service_process_device_response(void);
+
 int main (void)
 {
     idigi_status_t status = idigi_success;
@@ -88,18 +90,21 @@ int main (void)
 
             if (status == idigi_success)
             {
-                if (device_data.connected)
+                if (device_data.socket_fd != (int)INADDR_NONE)
                 {
                     device_data.select_data |= NETWORK_TIMEOUT_SET | NETWORK_READ_SET;
                     network_select(device_data.socket_fd, device_data.select_data, &delay);
-                    #if (defined IDIGI_DATA_SERVICE)
-                    status = initiate_data_service(device_data.idigi_handle);
-                    if (status != idigi_success)
+#if (defined IDIGI_DATA_SERVICE)
+                    if (device_data.connected)
                     {
-                        DEBUG_PRINTF("initiate_data_service fails %d\n", status);
-                        status = idigi_success; /* continue to run IIK */
+                        status = initiate_data_service(device_data.idigi_handle);
+                        if (status != idigi_success)
+                        {
+                            DEBUG_PRINTF("initiate_data_service fails %d\n", status);
+                            status = idigi_success; /* continue to run IIK */
+                        }
                     }
-                    #endif
+#endif
                 }
                 else
                 {
@@ -119,4 +124,3 @@ int main (void)
     DEBUG_PRINTF("iDigi stopped running!\n");
     return 0;
 }
-
