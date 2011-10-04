@@ -70,6 +70,7 @@ enum {
     idigi_callback_status_t status = idigi_callback_continue;
     ds_device_request_service_t * device_request = session->service_data;
     uint8_t const * ds_device_request = data;
+    idigi_msg_error_t error_code = idigi_msg_error_cancel;
     uint16_t flag = 0;
 
     switch (msg_state)
@@ -100,7 +101,8 @@ enum {
                 status = malloc_data(idigi_ptr, sizeof *device_request + target_length +1, &ptr);
                 if (status != idigi_callback_continue)
                 {
-                    goto done;
+                    error_code = idigi_msg_error_memory;
+                    goto error;
                 }
                 device_request = ptr;
                 device_request->target_string = (char *)device_request + sizeof *device_request;
@@ -165,7 +167,7 @@ enum {
 
 error:
     /* send error to cancel server's request message */
-    status = msg_send_error(idigi_ptr, session, session->session_id, idigi_msg_error_cancel, MSG_FLAG_REQUEST);
+    status = msg_send_error(idigi_ptr, session, session->session_id, error_code , MSG_FLAG_REQUEST);
 
 done:
     return status;
@@ -422,17 +424,6 @@ static idigi_status_t data_service_initiate(idigi_data_t * const data_ptr,  void
             {
                 msg_delete_session(data_ptr, msg_ptr, session);
             }
-            else
-            {
-                /* send error-message to cancel the client's request message */
-                status = msg_send_error(data_ptr, session, session->session_id, idigi_msg_error_cancel, MSG_FLAG_REQUEST | MSG_FLAG_SENDER);
-                if (status == idigi_callback_busy)
-                {
-                    result = idigi_service_busy;
-                    goto error;
-                }
-            }
-
             result = idigi_invalid_data;
             break;
 
