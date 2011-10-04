@@ -213,7 +213,6 @@ static idigi_callback_status_t network_connect(char const * const host_name, siz
         *network_handle = &device_data.socket_fd;
         rc = idigi_callback_continue;
         DEBUG_PRINTF("network_connect: connected to [%.*s] server\n", length, host_name);
-        device_data.connected = true;
     }
 
 done:
@@ -341,6 +340,7 @@ static idigi_callback_status_t network_close(idigi_network_handle_t * const fd)
         perror("network_close: close() failed");
     }
     device_data.socket_fd = -1;
+    device_data.connected = false;
 
     return status;
 }
@@ -446,6 +446,9 @@ idigi_callback_status_t idigi_network_callback(idigi_network_request_t const req
         status = (ret == true) ? idigi_callback_continue : idigi_callback_abort;
         break;
 
+    case idigi_network_initialization_done:
+        device_data.connected = true;
+        break;
     default:
         DEBUG_PRINTF("idigi_network_callback: unrecognized callback request [%d]\n", request);
         break;
