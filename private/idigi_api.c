@@ -234,6 +234,14 @@ idigi_status_t idigi_step(idigi_handle_t const handle)
         };
     }
 
+#if (defined IDIGI_DATA_SERVICE)
+    /* process any messagaing facility data */
+    if (idigi_handle->edp_connected)
+    {
+        status = msg_process_pending(idigi_handle);
+    }
+#endif
+
     /* process any send data */
     if (status != idigi_callback_abort)
     {
