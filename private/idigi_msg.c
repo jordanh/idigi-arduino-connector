@@ -363,6 +363,11 @@ static void msg_delete_session(idigi_data_t * const idigi_ptr, idigi_msg_data_t 
         msg_ptr->pending = msg_ptr->session_tail;
     }
 
+    if (msg_ptr->pending == session)
+    {
+        msg_ptr->pending = (session->prev != NULL) ? session->prev : msg_ptr->session_tail;
+    }
+
     if (session->service_data != NULL)
     {
         free_data(idigi_ptr, session->service_data);
@@ -808,6 +813,10 @@ static idigi_callback_status_t msg_send_data(idigi_data_t * const idigi_ptr, idi
     }
 
     status = (data_block->bytes_in_frame > 0) ? msg_send_packet(session) : idigi_callback_continue;
+    if (msg_ptr->pending == NULL)
+    {
+        msg_ptr->pending = session;
+    }
 
 error:
     return status;
@@ -851,6 +860,10 @@ static void msg_send_complete(idigi_data_t * const idigi_ptr, uint8_t const * co
             if (!MsgIsRequest(data_block))
             {
                 msg_delete_session(idigi_ptr, msg_ptr, session);
+            }
+            else if (msg_ptr->pending == session)
+            {
+                msg_ptr->pending = (session->prev != NULL) ? session->prev : msg_ptr->session_tail;
             }
         }
     }
@@ -1275,16 +1288,13 @@ static idigi_callback_status_t msg_process_pending(idigi_data_t * const idigi_pt
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_msg_data_t * const msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
 
-    ASSERT(msg_ptr != NULL);
+    ASSERT_GOTO(msg_ptr != NULL, done);
 
     /* if pending session is NULL, set it to 1st session.
      * Loop this function until the end of the session list.
      * Return BUSY status to loop back this function.
      * Return CONTINUE, we are done with the session list.
      */
-    if (msg_ptr->pending == NULL)
-        msg_ptr->pending = msg_ptr->session_tail;
-
     if (msg_ptr->pending != NULL)
     {
         msg_session_t * session = msg_ptr->pending;
@@ -1293,16 +1303,14 @@ static idigi_callback_status_t msg_process_pending(idigi_data_t * const idigi_pt
         if (data_block->bytes_in_frame > 0) 
         {
             status = initiate_send_facility_packet(idigi_ptr, data_block->frame, data_block->bytes_in_frame, E_MSG_FAC_MSG_NUM, msg_send_complete, session);
-            switch (status)
+            if (status == idigi_callback_continue)
             {
-            case idigi_callback_continue:
                 data_block->bytes_in_frame = 0;
-                break;
-            case idigi_callback_busy:
-                status = idigi_callback_continue;
-                /* fall thru */
-            default:
-                goto done;
+                /* set pending to next session and return busy to continue sending next session */
+                if (!MsgIsMoreData(data_block))
+                {
+                    msg_ptr->pending = (session->prev != NULL) ? session->prev : msg_ptr->session_tail;
+                }
             }
         }
         else
@@ -1310,12 +1318,6 @@ static idigi_callback_status_t msg_process_pending(idigi_data_t * const idigi_pt
             msg_send_complete(idigi_ptr, NULL, idigi_success, session);
         }
 
-        /* set pending to next session and return busy to continue sending next session */
-        msg_ptr->pending = msg_ptr->pending->prev;
-        if (msg_ptr->pending != NULL)
-        {
-            status = idigi_callback_busy;
-        }
     }
 
 done:
