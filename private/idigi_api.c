@@ -132,6 +132,8 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
             break;
         case idigi_callback_abort:
         case idigi_callback_unrecognized:
+            goto error;
+
         case idigi_callback_busy:
             break;
         }
@@ -243,7 +245,7 @@ idigi_status_t idigi_step(idigi_handle_t const handle)
 #endif
 
     /* process any send data */
-    if (status != idigi_callback_abort)
+    if (status == idigi_callback_continue || status == idigi_callback_busy)
     {
         status = send_packet_process(idigi_handle);
     }
