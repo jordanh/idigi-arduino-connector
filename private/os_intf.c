@@ -65,13 +65,8 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
         break;
 
     case idigi_callback_unrecognized:
-        /* Application must support all requests in this iDigi release.
-         * If application returns unrecognized status, abort iDigi for now.
-         * TODO: future release.
-         */
-        DEBUG_PRINTF("ERROR: Application returns unrecognized request for request=%d class_id = %d which iDigi requires for this version\n",
+       DEBUG_PRINTF("idigi_callback : callback returns unrecognized request for request=%d class_id = %d which iDigi requires for this version\n",
                         request_id.config_request, class_id);
-        status = idigi_callback_abort;
         break;
     case idigi_callback_abort:
         DEBUG_PRINTF("idigi_callback: callback for class id = %d request id = %d returned abort\n", class_id, request_id.config_request);
@@ -118,9 +113,10 @@ static idigi_callback_status_t get_system_time(idigi_data_t * const idigi_ptr, u
 
     /* Call callback to get system up time in second */
     status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_operating_system, request_id, uptime, &length);
-    if (status == idigi_callback_abort)
+    if (status == idigi_callback_abort || status == idigi_callback_unrecognized)
     {
         idigi_ptr->error_code = idigi_configuration_error;
+        status = idigi_callback_abort;
     }
 
     return status;
@@ -149,8 +145,9 @@ static idigi_callback_status_t malloc_data(idigi_data_t * const idigi_ptr, size_
     idigi_callback_status_t status;
 
     status = malloc_cb(idigi_ptr->callback, length, ptr);
-    if (status == idigi_callback_abort)
+    if (status == idigi_callback_abort || status == idigi_callback_unrecognized)
     {
+        status = idigi_callback_abort;
         idigi_ptr->error_code = idigi_configuration_error;
     }
     return status;
