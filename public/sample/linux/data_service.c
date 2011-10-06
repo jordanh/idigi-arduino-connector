@@ -37,7 +37,11 @@ static void initialize_request(idigi_data_request_t * request)
     static uint8_t type[]      = "text/plain";
 
     request->session                = NULL;
+#if defined(COMPRESSION)
     request->flag                   = IDIGI_DATA_REQUEST_START | IDIGI_DATA_REQUEST_LAST | IDIGI_DATA_REQUEST_COMPRESSED;
+#else
+    request->flag                   = IDIGI_DATA_REQUEST_START | IDIGI_DATA_REQUEST_LAST;
+#endif
     request->path.size              = sizeof path - 1;
     request->path.value             = path;
     request->content_type.size      = sizeof type - 1;
@@ -110,6 +114,7 @@ done:
 
 #define DEVICE_REQUEST_TARGET "iik_target"
 
+/* separate into 3 chunks */
 static char *device_response_data[] = {"<description>\nThe iDigi Integration kit (IIK) is a software development package used "
 "to communicate and exchange information between a device and the iDigi Device Cloud. iDigi supports application to "
 "device data interaction (messaging), application and device data storage, and remote management of devices. Devices "
@@ -145,7 +150,7 @@ typedef struct device_request_handle {
  */
 device_request_handle_t * device_request_list = NULL;
 
-static void initiate_data_service_response(device_request_handle_t * const device_request, char * response_data, size_t response_length)
+static void send_data_service_response(device_request_handle_t * const device_request, char * response_data, size_t response_length)
 {
     idigi_status_t status;
 
@@ -171,6 +176,7 @@ static idigi_callback_status_t process_data_service_request(idigi_data_service_d
     idigi_callback_status_t status = idigi_callback_continue;
     device_request_handle_t * handle;
 
+    goto done;
     if ((request_data->flag & IDIGI_DATA_REQUEST_START) == IDIGI_DATA_REQUEST_START)
     {
         void * ptr;
@@ -233,7 +239,7 @@ static idigi_callback_status_t process_data_service_request(idigi_data_service_d
             length = strlen(device_response_error_data);
 
         }
-        initiate_data_service_response(handle, data, length);
+        send_data_service_response(handle, data, length);
     }
 
 done:
@@ -262,7 +268,7 @@ static idigi_callback_status_t process_data_service_complete(idigi_data_send_t *
                 if (request_handle->response_data_index < device_response_count)
                 {  /* send more chunk */
                     int const i = request_handle->response_data_index++;
-                    initiate_data_service_response(request_handle, device_response_data[i], strlen(device_response_data[i]));
+                    send_data_service_response(request_handle, device_response_data[i], strlen(device_response_data[i]));
                 }
                 else
                 {   /* done with the session */
