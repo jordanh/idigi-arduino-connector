@@ -162,11 +162,6 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_pt
     }
 
     status = idigi_callback(idigi_ptr->callback, idigi_class_firmware, request_id, request, request_size, response, &length);
-    if (status == idigi_callback_abort)
-    {
-        idigi_ptr->error_code = idigi_configuration_error;
-        goto done;
-    }
 
     if (get_system_time(idigi_ptr, &end_time_stamp) != idigi_callback_continue)
     {
@@ -199,6 +194,8 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_pt
         break;
     case idigi_callback_abort:
     case idigi_callback_unrecognized:
+        idigi_ptr->error_code = idigi_configuration_error;
+        status = idigi_callback_abort;
         goto done;
     }
 
