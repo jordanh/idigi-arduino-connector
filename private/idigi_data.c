@@ -157,6 +157,11 @@ enum {
         {
             idigi_ptr->error_code = idigi_configuration_error;
         }
+        else if (status == idigi_callback_unrecognized)
+        {
+            error_code = idigi_msg_error_no_service;
+            goto error;
+        }
         break;
     }
     default:
