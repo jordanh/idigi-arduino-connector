@@ -145,6 +145,7 @@ static idigi_callback_status_t get_ip_addr(idigi_data_t * const idigi_ptr, uint8
     if (status != idigi_callback_continue)
     {
         idigi_ptr->error_code = idigi_configuration_error;
+        status = idigi_callback_abort;
         goto done;
     }
     if (ip_addr == NULL)
@@ -212,8 +213,9 @@ static idigi_callback_status_t get_connection_type(idigi_data_t * const idigi_pt
 
     /* callback for connection type */
     status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &type, NULL);
-    if (status == idigi_callback_continue)
+    switch (status)
     {
+    case idigi_callback_continue:
         if (type == NULL)
         {
             error_code = idigi_invalid_data;
@@ -233,10 +235,14 @@ static idigi_callback_status_t get_connection_type(idigi_data_t * const idigi_pt
                 break;
             }
         }
-    }
-    else if (status == idigi_callback_abort)
-    {
+        break;
+    case idigi_callback_abort:
+    case idigi_callback_unrecognized:
         idigi_ptr->error_code = idigi_configuration_error;
+        status = idigi_callback_abort;
+        break;
+    case idigi_callback_busy:
+        break;
     }
 
     if (error_code != idigi_success)
@@ -258,8 +264,9 @@ static idigi_callback_status_t get_mac_addr(idigi_data_t * const idigi_ptr, uint
     /* callback for MAC addr for LAN connection type */
     status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &mac, &length);
 
-    if (status == idigi_callback_continue)
+    switch (status)
     {
+    case idigi_callback_continue:
         ASSERT(mac != NULL);
         if (length != MAC_ADDR_LENGTH)
         {
@@ -272,10 +279,14 @@ static idigi_callback_status_t get_mac_addr(idigi_data_t * const idigi_ptr, uint
         {
             memcpy(mac_addr, mac, MAC_ADDR_LENGTH);
         }
-    }
-    else if (status == idigi_callback_abort)
-    {
+        break;
+    case idigi_callback_abort:
+    case idigi_callback_unrecognized:
         idigi_ptr->error_code = idigi_configuration_error;
+        status = idigi_callback_abort;
+        break;
+    case idigi_callback_busy:
+        break;
     }
 
     return status;
@@ -384,13 +395,18 @@ enum cc_connection_info {
         uint8_t * connection_info = connection_report + record_bytes(connection_report);
 
         status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &speed, &length);
-        if (status != idigi_callback_continue)
+        switch (status)
         {
-            if (status == idigi_callback_abort)
-            {
-                idigi_ptr->error_code =  idigi_configuration_error;
-            }
+        case idigi_callback_continue:
+            break;
+        case idigi_callback_abort:
+        case idigi_callback_unrecognized:
+            idigi_ptr->error_code =  idigi_configuration_error;
+            status = idigi_callback_abort;
+            /* fall thru */
+        case idigi_callback_busy:
             goto done;
+
         }
 
         if (speed == NULL || length != sizeof *speed)
@@ -415,13 +431,18 @@ enum cc_connection_info {
 
         status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &phone, &length);
 
-        if (status != idigi_callback_continue)
+        switch (status)
         {
-            if (status == idigi_callback_abort)
-            {
-                idigi_ptr->error_code = idigi_configuration_error;
-            }
+        case idigi_callback_continue:
+            break;
+        case idigi_callback_abort:
+        case idigi_callback_unrecognized:
+            idigi_ptr->error_code =  idigi_configuration_error;
+            status = idigi_callback_abort;
+            /* fall thru */
+        case idigi_callback_busy:
             goto done;
+
         }
 
         if (phone == NULL || length == 0)
@@ -459,13 +480,18 @@ static idigi_callback_status_t process_connection_control(idigi_data_t * const i
         idigi_request_t request_id;
         request_id.network_request = request;
         status = idigi_callback_no_response(idigi_ptr->callback, idigi_class_network, request_id, NULL, 0);
-        if (status == idigi_callback_continue)
+        switch (status)
         {
+        case idigi_callback_continue:
             reset_initial_data(idigi_ptr);
-        }
-        else if (status == idigi_callback_abort)
-        {
-            idigi_ptr->error_code = idigi_server_disconnected;
+            break;
+        case idigi_callback_abort:
+        case idigi_callback_unrecognized:
+            idigi_ptr->error_code =  idigi_configuration_error;
+            status = idigi_callback_abort;
+            break;
+        case idigi_callback_busy:
+            break;
         }
     }
 
