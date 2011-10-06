@@ -183,7 +183,7 @@ static int send_buffer(idigi_data_t * const idigi_ptr, uint8_t * const buffer, s
         if (status != idigi_callback_continue)
         {
             /*  needs to return immediately for rx_keepalive. */
-            if (status == idigi_callback_abort)
+            if (status != idigi_callback_busy)
             {
                 bytes_sent = -idigi_ptr->error_code;
             }
@@ -460,15 +460,17 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
         size = sizeof length_read;
 
         status = idigi_callback(idigi_ptr->callback, idigi_class_network, request_id, &read_data, sizeof read_data, &length_read, &size);
-        if (status == idigi_callback_abort)
+        switch (status)
         {
+        case idigi_callback_abort:
+        case idigi_callback_unrecognized:
             DEBUG_PRINTF("receive_buffer: callback returns abort\n");
             bytes_received = -idigi_receive_error;
+            /* fall thru */
+        case idigi_callback_busy:
             goto done;
-        }
-        else if (status == idigi_callback_busy)
-        {
-            goto done;
+        case idigi_callback_continue:
+            break;
         }
 
         if (length_read > 0)
@@ -805,6 +807,7 @@ static idigi_callback_status_t connect_server(idigi_data_t * const idigi_ptr, ch
     case  idigi_callback_abort:
     case idigi_callback_unrecognized:
         idigi_ptr->error_code = idigi_connect_error;
+        status = idigi_callback_abort;
         break;
 
     case idigi_callback_busy:
@@ -830,6 +833,7 @@ static idigi_callback_status_t close_server(idigi_data_t * const idigi_ptr)
         case idigi_callback_abort:
         case idigi_callback_unrecognized:
             idigi_ptr->error_code = idigi_close_error;
+            status = idigi_callback_abort;
             /* fall thru */
         case idigi_callback_continue:
             idigi_ptr->send_packet.total_length = 0;
