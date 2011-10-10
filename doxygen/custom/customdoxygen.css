@@ -1,8 +1,14 @@
 /* The standard CSS for doxygen */
 
-body, table, div, p, dl {
+body, table, div,  dl {
 	font-family: Lucida Grande, Verdana, Geneva, Arial, sans-serif;
 	font-size: 12px;
+}
+
+p {
+	font-family: Lucida Grande, Verdana, Geneva, Arial, sans-serif;
+	font-size: 12px;
+    width: 60em;
 }
 
 /* @group Heading Levels */
@@ -19,10 +25,12 @@ h1 {
 
 h2 {
 	font-size: 120%;
+    border-bottom: 1px dotted #666666;
 }
 
 h3 {
 	font-size: 100%;
+    border-bottom: 1px dotted #666666;
 }
 
 dt {
@@ -875,7 +883,7 @@ dl.bug
 
 .image
 {
-        text-align: center;
+        text-align: left;
 }
 
 .dotgraph
@@ -943,4 +951,13 @@ dl.citelist dd {
     word-wrap: break-word; /* IE 5.5+ */
   }
 }
+#navtable {
+    padding-top: 3px;
+    padding-left: 3px;
+    background: url('navbkg.png');
+    background-repeat: no-repeat;
+    background-color: white;
+    width: 150px;
+}
+
 
