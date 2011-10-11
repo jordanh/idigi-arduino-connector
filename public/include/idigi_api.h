@@ -123,6 +123,10 @@ typedef enum {
     idigi_os_malloc, /**< Callback used to dynamically allocate memory.. */
     idigi_os_free, /**< Callback is called to free previous allocated memory. */
     idigi_os_system_up_time, /**< This callback is called to return system up time in seconds. It is the time that a device has been up and running. */
+    idigi_os_lock_init,
+    idigi_os_lock,
+    idigi_os_unlock,
+    idigi_os_lock_delete
 } idigi_os_request_t;
 /**
 * @}
@@ -374,6 +378,7 @@ typedef struct
     void * session;
     idigi_status_t status;
     size_t bytes_sent;
+    void const * payload;
 } idigi_data_send_t;
 
 typedef enum 
