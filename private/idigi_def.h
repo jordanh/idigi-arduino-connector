@@ -74,6 +74,9 @@
 #define idigi_callback_no_response(callback, class_id, request_id, request_data, request_length) idigi_callback((callback), (class_id), (request_id), (request_data), (request_length), NULL, NULL)
 #define idigi_callback_no_request_data(callback, class_id, request_id, response_data, response_length) idigi_callback((callback), (class_id), (request_id), NULL, 0, (response_data), (response_length))
 
+#define MutexLock(idigi_ptr, lock_handle) mutex_data(idigi_ptr, lock_handle, idigi_os_lock)
+#define MutexUnlock(idigi_ptr, lock_handle) mutex_data(idigi_ptr, lock_handle, idigi_os_unlock)
+#define MutexLockDelete(idigi_ptr, lock_handle) mutex_data(idigi_ptr, lock_handle, idigi_os_lock_delete)
 
 
 /* IRL EDP States */
