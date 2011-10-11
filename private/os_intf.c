@@ -294,3 +294,14 @@ static idigi_callback_status_t del_facility_data(idigi_data_t * const idigi_ptr,
     }
     return status;
 }
+
+#if defined(IDIGI_DATA_SERVICE)
+static idigi_callback_status_t mutex_data(idigi_data_t * const idigi_ptr, idigi_handle_t const lock_handle, idigi_os_request_t const os_request_id)
+{
+    idigi_request_t const request_id = {os_request_id};
+
+    ASSERT(os_request_id == idigi_os_lock || os_request_id == idigi_os_unlock || os_request_id == idigi_os_lock_delete);
+    return idigi_callback_no_response(idigi_ptr->callback, idigi_class_operating_system, request_id, lock_handle, sizeof lock_handle);
+}
+#endif
+
