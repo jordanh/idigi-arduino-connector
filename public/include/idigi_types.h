@@ -81,6 +81,7 @@
  */
 typedef int idigi_network_handle_t;
 
+typedef void * idigi_lock_handle_t;
 /*!
  *  Verify that the condition is true, otherwise halt the program
  */
