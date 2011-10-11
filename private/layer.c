@@ -318,7 +318,11 @@ static idigi_callback_status_t layer_get_supported_facilities(idigi_data_t * con
             status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &facility_enable, &length);
             if (status != idigi_callback_continue)
             {
-                if (status != idigi_callback_busy)
+                if (status == idigi_callback_unrecognized)
+                {
+                    facility_enable = false;
+                }
+                else if (status != idigi_callback_busy)
                 {
                     DEBUG_PRINTF("initialize_facilities: callback returns %d on facility= %d\n", status, request_id.config_request);
                     idigi_ptr->error_code = idigi_configuration_error;
