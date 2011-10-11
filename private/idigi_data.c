@@ -220,7 +220,7 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_
 
         case msg_state_send_complete:
         {
-            idigi_data_send_t const send_info = {session, idigi_success, length};
+            idigi_data_send_t const send_info = {session, idigi_success, length, data};
 
             request.data_service_request = idigi_data_service_send_complete;
             status = idigi_callback_no_response(idigi_ptr->callback, idigi_class_data_service, request, &send_info, sizeof send_info);
@@ -357,6 +357,57 @@ static idigi_callback_status_t idigi_facility_data_service_init(idigi_data_t * c
     return msg_init_facility(data_ptr, msg_service_id_data, data_service_callback);
 }
 
+#if 1
+static idigi_status_t data_service_initiate(idigi_data_t * const data_ptr,  void const * request, void  * response)
+{
+#define SERVICE_PATH_MAX_LENGTH    256
+#define SERVICE_PARAM_MAX_LENGTH   32
+#define SERVICE_HEADER_MAX_LENGTH  (SERVICE_PATH_MAX_LENGTH + SERVICE_PARAM_MAX_LENGTH)
+
+    idigi_status_t status = idigi_invalid_data;
+    idigi_data_request_t const * service = request;
+    idigi_msg_data_t * const msg_ptr = get_facility_data(data_ptr, E_MSG_FAC_MSG_NUM);
+
+    ASSERT_GOTO(request != NULL, error);
+
+    if (msg_ptr->capabilities[msg_server_request_id].window_size == 0)
+    {
+        status = idigi_init_error;
+        goto error;
+    }
+
+    if ((service->flag & IDIGI_DATA_REQUEST_START) != 0)
+    {
+        msg_data_info_t info;
+        uint8_t header_buffer[SERVICE_HEADER_MAX_LENGTH];
+
+        ASSERT_GOTO(response != NULL, error);
+
+        info.header = header_buffer;
+        info.header_length = fill_data_service_header(service, info.header);
+        info.payload = service->payload.data;
+        info.payload_length = service->payload.size;
+        info.flag = service->flag;
+
+        {
+            void ** const session_ptr = response;
+
+            ASSERT_GOTO(service->session == NULL, error);
+            *session_ptr = msg_send_start(data_ptr, msg_ptr, service->session, msg_service_id_data, &info);
+            status = (*session_ptr != NULL) ? idigi_success : idigi_no_resource;
+        }
+    }
+    else
+    {
+        msg_data_info_t const info = {0, NULL, service->payload.size, service->payload.data, service->flag};
+        idigi_callback_status_t const ret_status = msg_send_data(data_ptr, msg_ptr, service->session, &info);
+        status = (ret_status == idigi_callback_continue) ? idigi_success : idigi_configuration_error;
+    }
+
+error:
+    return status;
+}
+#else
 static idigi_status_t data_service_initiate(idigi_data_t * const data_ptr,  void const * request, void  * response)
 {
 #define SERVICE_PATH_MAX_LENGTH    256
@@ -370,12 +421,12 @@ static idigi_status_t data_service_initiate(idigi_data_t * const data_ptr,  void
     idigi_msg_data_t * const msg_ptr = get_facility_data(data_ptr, E_MSG_FAC_MSG_NUM);
     msg_session_t * session = service->session;
 
-    ASSERT_GOTO(request != NULL, error);
+    ASSERT_GOTO(request != NULL, done);
 
     if (msg_ptr->capabilities[msg_server_request_id].window_size == 0)
     {
         result = idigi_init_error;
-        goto error;
+        goto done;
     }
 
     if ((service->flag & IDIGI_DATA_REQUEST_START) == IDIGI_DATA_REQUEST_START)
@@ -384,15 +435,15 @@ static idigi_status_t data_service_initiate(idigi_data_t * const data_ptr,  void
         uint8_t header_buffer[SERVICE_HEADER_MAX_LENGTH];
         msg_data_info_t info;
 
-        ASSERT_GOTO(response != NULL, error);
-        ASSERT_GOTO(service->session == NULL, error);
+        ASSERT_GOTO(response != NULL, done);
+        ASSERT_GOTO(service->session == NULL, done);
 
-        session = msg_create_session(data_ptr, msg_ptr, msg_service_id_data, true);
-        if (session == NULL)
+
+        result = msg_create_session(data_ptr, msg_ptr, msg_service_id_data, true, &session);
+
+        if (result != idigi_success)
         {
-            /* either it reaches max transaction, or it doesn't have enough memory (malloc failed).*/
-            status = idigi_no_resource;
-            goto error;
+            goto done;
         }
         MsgSetRequest(&session->send_block);
         *session_ptr = session;
@@ -410,40 +461,45 @@ static idigi_status_t data_service_initiate(idigi_data_t * const data_ptr,  void
     {
         msg_data_info_t const info = {0, NULL, service->payload.size, service->payload.data, service->flag};
 
-        ASSERT_GOTO(service->session != NULL, error);
-        ASSERT_GOTO(service->session == msg_find_session(msg_ptr, session->session_id, true), error);
+        ASSERT_GOTO(service->session != NULL, done);
+        ASSERT_GOTO(service->session == msg_find_session(msg_ptr, session->session_id, true), done);
         status = msg_send_data(data_ptr, msg_ptr, session, &info);
     }
 
+    switch (status)
     {
+    case idigi_callback_busy:
+        result = idigi_service_busy;
+        break;
 
-        switch (status)
+    case idigi_callback_abort:
+    case idigi_callback_unrecognized:
+        if ((service->flag & IDIGI_DATA_REQUEST_START) == IDIGI_DATA_REQUEST_START)
         {
-        case idigi_callback_busy:
-            result = idigi_service_busy;
-            break;
-
-        case idigi_callback_abort:
-        case idigi_callback_unrecognized:
-            if ((service->flag & IDIGI_DATA_REQUEST_START) == IDIGI_DATA_REQUEST_START)
-            {
-                msg_delete_session(data_ptr, msg_ptr, session);
-            }
-            result = idigi_invalid_data;
-            break;
-
-        case idigi_callback_continue:
-            result = idigi_success;
-            break;
+            msg_delete_session(data_ptr, msg_ptr, session);
         }
+        result = idigi_invalid_data;
+        break;
+
+    case idigi_callback_continue:
+        result = idigi_success;
+        break;
     }
 
-error:
+done:
     return result;
 }
+#endif
 
 static idigi_status_t data_service_response_initiate(idigi_data_t * const idigi_ptr,  idigi_data_service_device_response_t const * const request)
 {
+    /* Data Service Device response format:
+     *  ---------------------------------
+     * |   0    |   1    |     2...      |
+     *  ---------------------------------
+     * | Opcode | status | Response Data |
+     *  ---------------------------------
+     */
 enum {
     field_define(ds_device_response, opcode, uint8_t),
     field_define(ds_device_response, status, uint8_t),
@@ -452,7 +508,7 @@ enum {
 
     idigi_status_t result = idigi_invalid_data;
     idigi_msg_data_t * const msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
-    msg_session_t * session = request->session;
+    msg_session_t * session;
     msg_data_info_t info;
 
     uint8_t ds_device_response[record_bytes(ds_device_response_header)];
@@ -460,14 +516,14 @@ enum {
     ASSERT_GOTO(request != NULL, done);
     session = request->session;
 
-    ASSERT_GOTO(msg_find_session(msg_ptr, session->session_id, false) == session, done);
+    ASSERT_GOTO(msg_find_session(msg_ptr, session->session_id, msg_server_request_id) == session, done);
     ASSERT_GOTO(session->service_data != NULL, done);
 
     {
         ds_device_request_service_t * const device_request = session->service_data;
 
         if (!device_request->response_started)
-        { /* initiate send */
+        { /* let's construct the response */
             message_store_u8(ds_device_response, opcode, data_service_device_response_opcode);
             message_store_u8(ds_device_response, status, request->status);
             info.header = ds_device_response;
@@ -500,6 +556,9 @@ enum {
 
         case idigi_callback_abort:
         case idigi_callback_unrecognized:
+            /* set error here to cancel client's request message.
+             * msg_process_pending() will actually send the error-message.
+             */
             result = idigi_invalid_data;
             break;
 
