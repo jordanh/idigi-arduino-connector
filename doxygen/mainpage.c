@@ -1,21 +1,26 @@
- /*! @mainpage IDigi Integration Kit Users Guide
+ /*! @mainpage iDigi Intergration Kit
  *
- * 
- * @section contents Contents
+ * @htmlinclude nav.html
  *
- * @ref intro_sec
+ * @section table_of_contents Overview
  *
- * @ref architecture_sec
+ *          -# @ref intro
+ *              -# @ref features
+ *          -# @ref requirements
+ *          -# @ref language
+ *          -# @ref code_organization
+ *              -# @ref private
+ *              -# @ref public
+ *              -# @ref samples
+ *          -# @ref architecture
+ *          -# @ref zlib
+ *          -# @ref idigi
+ *              -# @ref idigi_account
+ *              -# @ref idigi_login
+ *              -# @ref idigi_vendor_id
+ *              -# @ref idigi_device_id
  *
- * @ref porting_steps
- *
- * @ref api_details
- *
- * @ref troubleshooting
- *
- * @ref sample_code
- *
- * @section intro_sec Introduction
+ * @section intro Introduction
  *
  * The iDigi Integration Kit (IIK) is a software development package used to
  * communicate and exchange information between a device and the iDigi Device
@@ -33,15 +38,167 @@
  * applications that quickly scale from dozens to hundreds, thousands or even
  * millions of endpoints.
  *
+ * @image html cloud.jpg 
+ *
+ * @section language Language Support
+ *
+ * The software provided is C99 and ANSI compliant. The sample provided uses standard C 
+ * calls which are available in most operating systems; the networking portion of the 
+ * sample uses Berkley sockets calls.  If you are running on a Linux i486 based platform 
+ * and using the GNU toolchain the linux sample can be run without any modifications.
  * 
+ * @section requirements Platform Requirements
+ *
+ * @htmlonly
+ * <table border="8">
+ * <tr>
+ * <th>Description</td>
+ * <th>Typical Size</td>
+ * <th>Notes</td>
+ * </tr>
+ * <tr>
+ * <td>Heap Space: IIK Base</td>
+ * <td>5516 bytes</td>
+ * <td>IIK base usage</td>
+ * </tr>
+ * <tr>
+ * <td>Heap Space: With firmware facility</td>
+ * <td>+1684 bytes</td>
+ * <td>With firmware facility included</td>
+ * <tr>
+ * <td>Heap Space: With data service</td>
+ * <td>+1676 + 2 * n * 1696 bytes</td>
+ * <td>With data service included and n simultaneous data service sessions</td>
+ * </tr>
+ * <tr>
+ * <td>Code Space</td>
+ * <td>17393 bytes</td>
+ * <td>On a 64-bit i686 Linux machine, using GCC v4.4.4, optimized for size (-Os)</td>
+ * </tr>
+ * <td>Disk Space</td>
+ * <td>2.1 Mb</td>
+ * <td>Tarball plus unzipped tree size</td>
+ * </tr>
+ * </table>
+ * @endhtmlonly
  *  
- * IIK Features
- *     @li Send data from devices to the iDigi Device Cloud: \url http://www.idigi.com
+ * @subsection features IIK Features
+ *     @li Send data from devices to the iDigi Device Cloud
  *     @li Update firmware in the devices
  *     @li View and change the configuration settings of a device
  *     @li Reboot a device
  *
- * @section architecture_sec Architecture 
+ * @section code_organization Source Code Organization
+ * The IIK source code ships in a compressed image with the format idigi_iik_x.x.xx.tar.gz. 
+ * To unzip the file use the following commands: tar -xvzf idigi_iik_x.x.xx.tar.gz
+ * When uncompressed the directory structure below will be created in the idigi subdirectory. 
+ * The source code for the IIK is organized into several top-level directories described below.
+ * @note The code in the private directory should never be modified.
+ *
+ * @htmlonly
+ * <table border="8">
+ * <tr>
+ * <th>Directory</td>
+ * <th>Description</td>
+ * </tr>
+ * <tr>
+ * <td>private</td>
+ * <td>IIK Library Code</td>
+ * </tr>
+ * <tr>
+ * <td>public/include</td>
+ * <td>Public API</td>
+ * </tr>
+ * <tr>
+ * <td>public/samples</td>
+ * <td>Examples of using the IIK</td>
+ * </tr>
+ * </table>
+ * @endhtmlonly
+ *
+ * @subsection private private Directory
+ * The private directory contains all the files which are used to build the IIK library. 
+ * The user doesn't need to modify any files in this directory. These files are only provided 
+ * so the library can be built using the tool chain for your platform.
+ *
+ * @subsection public include Directory
+ * The public/include directory contains header files used globally by the IIK. 
+ * When porting to a new platform the user may need to modify the file idigi_types.h. 
+ * The file idigi_api.h in this directory is the IIK public API.
+ *
+ * @subsection samples samples Directory
+ * For each supported platform there is a subdirectory along with a sample, for Linux 
+ * based platforms there is sample/linux. When porting to a new platform you will copy 
+ * and modify an existing sample.
+ *
+ * @section zlib zlib Support
+ * The zlib software library is used for data compression by the IIK, the zlib library 
+ * is required if compression is to be supported by your device. Data compression is 
+ * used to reduce the network traffic load. If your application does not require compression, 
+ * skip this section. The zlib source code is not under the GNU license, the license is described in zlib.h.
+ * The zlib home page is located at: http://zlib.net/. If your platform does not already have the zlib library 
+ * you will need to download and build the zlib library. The header file zlib.h is included by the IIK and 
+ * must be in the include path (described in the @ref building section) for the IIK library. 
+ *
+ * @section idigi iDigi
+ * The iDigi Device Cloud provides secure application messaging, data storage and device management 
+ * for networks comprised of wired, cellular and satellite-connected devices.
+ *
+ * @subsection idigi_account Create an iDigi Account
+ * Before getting started you will need to create a new iDigi account, to create an account navigate to
+ * https://developer.idigi.com/user_registration.do and fill out the iDigi registration form. 
+ * If you are a current iDigi developer account user, login with your existing user name and password and proceed to:
+ *
+ * @image html idigi1.jpg 
+ *
+ * @subsection idigi_login Login to the iDigi Server
+ * 1. Navigate to http://www.idigi.com.
+ *
+ * 2. Click the iDigi Login button in the upper right corner of the page.
+ *
+ * @image html idigi2.jpg 
+ *
+ * 3. Click the iDigi Developer Cloud Login button.
+ *
+ * @image html idigi3.jpg
+ * 
+ * You will be redirected to the iDigi Developer Cloud login page.
+ *
+ * 4. Login with the user credentials you created in section @ref idigi_account
+ * 
+ * @image html idigi4.jpg
+ *
+ * @subsection idigi_vendor_id Obtain an iDigi Vendor ID
+ *
+ * @note You will need to contact Digi to request a vendor ID. You will need the vendor ID 
+ * before your device can connect to iDigi.
+ *
+ * To request a vendor ID within iDigi:
+ *
+ * 1. Click on My Account within the left navigation panel.
+ *
+ * 2. Click the Register for new vendor id button.
+ *
+ * @image html idigi5.jpg
+ *
+ * The page will refresh and your unique vendor ID number will be displayed in place of the
+ * Register for new vendor id button.
+ *
+ * @image html idigi6.jpg
+ *
+ * @note When you are ready to deploy in production, contact Digi customer support in order to move your 
+ * vendor ID to my.idigi.com
+ *
+ * @subsection idigi_device_id Obtain an iDigi Device ID
+ *
+ * The customer is responsible for creating their own unique device ID. Device IDs are used 
+ * to identify devices in iDigi. A device ID is a 16-octet number that is unique to the device 
+ * and does not change over its lifetime. A device ID is derived from globally unique values 
+ * already assigned to a device (such as a MAC address, IMEI, etc).
+ * The canonical method for writing device IDs is as four groups of eight hexadecimal digits 
+ * separated by a dash. An example device ID is: @b 01234567-89ABCDEF-01234567-89ABCDEF
+ *
+ * @section architecture Architecture 
  *  
  * The iDigi platform is an on-demand hosted service platform with no infrastructure 
  * requirements for the user. iDigi provides device management, real-time device messaging, 
@@ -50,169 +207,51 @@
  * The IIK consists of the IIK library and sample user applications. The IIK library provides  
  * all the functionality required to communicate with the iDigi Device Cloud. The user sample 
  * applications provide easy to use and understand demonstration use cases for configuration, 
- * OS interfaces and communication with the IIK library. 
+ * OS interfaces and communication with the IIK library.
+ *
  *   
  * The IIK API includes two major software interfaces:
  *      @li IIK function calls
  *      @li IIK application-defined callback
  * 
  *  The functions available in the IIK are listed below:
- *      @li @ref idigi_init()
- *      @li @ref idigi_step()
- *      @li @ref idigi_run()
- *      @li @ref idigi_initiate_action()
- * 
- * @section porting_steps Porting Steps 
- *  
- * In this chapter we illustrate how to port the IIK to your platform. For a detailed explanation 
- * of the IIK public API see the section @ref api_details.
+  * @htmlonly
+ * <table border="8">
+ * <tr>
+ * <th>Routine</td>
+ * <th>Description</td>
+ * </tr>
+ * <tr>
+ * <td>idigi_init</td>
+ * <td>Start the IIK</td>
+ * </tr>
+ * <tr>
+ * <td>idigi_step</td>
+ * <td>Execute the IIK and return</td>
+ * </tr>
+ * <tr>
+ * <td>idigi_run</td>
+ * <td>Start the IIK and do not return</td>
+ * </tr>
+ * <tr>
+ * <td>idigi_initiate_action</td>
+ * <td>Tell the IIK to perform some action</td>
+ * </tr>
+ * </table>
+ * @endhtmlonly
  *
- * The diagram below is a simplified flowchart of the porting process. 
- * 
- * @image html Drawing1.jpg 
- *  
- * @subsection step1 Step 1: Choose a Sample
- * 
- * The first step in porting is choosing which sample you are going to modify, in this guide we choose Linux as an example. 
- * The porting procedure is similar for all platforms, so choose a sample that is closest to your platform. 
- *  
- * @subsection step2 Step 2: Add Required Types and Macros
- * Open the file public/include/idigi_types.h in a text editor and verify that the 
- * required data types are supported by your platform. This file checks the __STD_VERSION__ macro's compliance to ISO/IEC 9899:1999. 
- * If C99 compliant, then standard C99 header files stdint.h and stdbool.h are included. 
- * Otherwise, if not C99 compliant, the folling data types are defined:
- *  @li @ref uint8_t
- *  @li @ref uint16_t
- *  @li @ref uint32_t
- *  @li @ref bool which is @ref true or @ref false
- * 
- * These defines assume at least a 32-bit machine. If your platform is not at 
- * least a 32-bit machine, these definitions should be reviewed.
+ * @image html arch1.jpg
  *
- * The IIK uses two debug macros; these are listed in the table below:
- * 
- *  @li @ref DEBUG_PRINTF
- *  @li @ref ASSERT 
- * 
- * If you don't have printf or assert available you can redefine them to call corresponding 
- * routines in your platform. 
+ * The block diagram above shows the software API components. The application 
+ * defined callback is a generic mechanism to execute methods inside the users' application.
+ * The details of the API and callback method are described in detail in the @ref api section.
+ * The user links there application to the IIK library and then uses the API
+ * to communicate with the iDigi server.  The user can then login to the iDigi
+ * server and communicate with their device.
  *
- * These are only used during debug and are turned off if the 
- * debug flag is not specified when building the IIK.  The DEBUG_PRINTF is used throughout the 
- * IIK and samples to display useful debug output.
- * 
- * @subsection step3 Step 3: Implement the Required OS routines
- * Open the file public/sample/linux/os.c and go through the routines listed below, 
- * and modify them for your platform.
- * 
- * The following is a list of the required OS routines:
- *  @li @ref os_malloc Dynamically allocate memory
- *  @li @ref os_free Free dynamically allocate memory
- *  @li @ref os_get_system_time Get the current time
- *
- *
- * @section api_details IIK Programming Interface
- * @subsection overview Overview
- * The IIK uses a single application-defined @ref idigi_callback_t "callback" function to process socket events, 
- * handle operating system (OS) calls, return device configuration data, and process firmware updates. 
- * The callback is also used to report error status and event notification. The samples provided 
- * within the IIK show examples of how to use the API.  The file public/include/idigi_api.h contains the 
- * API defined in this chapter.
- *
- *The IIK will invoke the application defined callback in used to perform the following actions:
- *   @li Obtain configuration information
- *   @li Notify the application of critical events and status
- *   @li Firmware download
- *   @li Network calls
- *
- * 
- * @subsection firmware_access Firmware Access Facility
- *
- * The firmware access facility is an optional facility for applications to update their firmware. 
- * The IIK invokes the application defined callback to query whether this firmware access facility is supported or not.
- * The firmware access facility uses a target number to distinguish application dependant firmware images. 
- * For example, if a standalone bootloader is separate from an application image, or a default file system image.
- * Applications define an image to each target except target 0 (target 0 must be the firmware image that is running the IIK). 
- * Only one firmware upgrade can be in progress at any given time. The IIK will send a firmware target list to the iDigi 
- * Device Cloud to identify the number of target applications and the version number of each target.
- *
- * The firmware portion of the application defined callback is used for the following:
- *      @li To obtain the number of firmware downloadable images.
- *      @li To obtain firmware image information and descriptions.
- *      @li To process firmware image upgrades.
- *      @li To reset firmware images.
- *
- * A typical application defined callback sequence for downloading a firmware image would include:
- *      -# IIK calls application defined callback to return firmware information which includes the firmware version number, maximum size of an image, firmware description, and file name spec.
- *      -# IIK calls application defined callback to initiate firmware download.
- *      -# IIK calls application defined callback to receive firmware binary data blocks.
- *      -# Repeat step 3 until the entire firmware image data is completed.
- *      -# IIK calls application defined callback to complete firmware download.
- *      -# IIK calls application defined callback to reset and reboot the target to begin executing the new firmware.
- *      -# IIK calls application defined callback to disconnect the current connection.
- *
- * Applications may choose to begin writing their downloaded image to Flash either 
- * during the Firmware Binary or Firmware Download Complete message. This is an application level 
- * decision with clear tradeoffs (memory needs versus power loss protection). If you write during 
- * the Firmware Binary data, you might lose communication or power at some point during the data transfer. 
- * If protection is built in (i.e., back up images) this would not be problem. If protections are not built in, 
- * applications might choose to place the entire image contents into RAM before writing to Flash. 
- * Back up image protection would still protect against power loss after your write occurred, but the communication 
- * loss or corruption could be avoided by having a making a checksum test before starting your Flash write.
- * Lastly, no application defined callback can block IIK execution. This application layer design requirement 
- * is most sensitive when considering writing firmware.
- *
- *
- * @subsection IIK API Details
- * 
- * This section describes the functions and prototypes used in the IIK API, these are defined in idigi_api.h.  Click on 
- * the function name for details.
- * 
- * @b Initialization
- * 
- * The API idigi_init() is called once upon startup to allocate and initialize the IIK. 
- * It takes the application defined callback function as an argument; this @ref idigi_callback_t "callback" is used by the IIK to communicate with the application. 
- * This function must be called before all other IIK APIs.
- *
- * @b Running @b the @b IIK @b in @b a @b single-threaded @b model
- * 
- * The function idigi_step() is called to start and run the IIK. This function performs a sequence of operations or events and returns control back to the caller. 
- * This allows a caller to perform other tasks, especially in single-threaded system. A caller must call this API again to continue IIK operations. 
- * The connection is already terminated when idigi_step returns an error, idigi_step will try reconnecting to the iDigi Device Cloud if it's called again.
- * The idigi_step() performs the following operations:
- *  -# Establish a connection with the iDigi Device Cloud.
- *  -# Wait for incoming messages from the iDigi Device Cloud.
- *  -# Invoke and pass message to the appropriate process (such as firmware access facility).
- *
- * 
- * @b Running @b the @b IIK @b in @b a @b multi-threaded @b model
- *
- * The function idigi_run() is similar to idigi_step() except it doesn't return control back to 
- * caller unless IIK encounters an error. This function should be executed as a separated thread.
- *
- * 
- * @b Sending @b data @b to @b the @b idigi @b Device @b Cloud
- * 
- * The function idigi_initiate_action() is used to request IIK to perform an action. 
- * This is used to send data from the device to the iDigi Device Cloud and to 
- * terminate the IIK library.
- *
- * 
- * @b IIK @b Callback
- * 
- * A single callback @ref idigi_callback_t "idigi_callback_t" is used to interface between an application and the IIK. Class and request 
- * enumeration values are used to identify the callback action. The application must perform 
- * the appropriate action and return the corresponding data according to the class and request 
- * enumeration values. The callback actions are listed below:
- *
- *  @li @ref idigi_os_malloc "malloc"
- *  @li @ref idigi_os_free "free"
- *  @li @ref idigi_os_system_up_time "System Uptime"
- *  @li Firmware Access Support
- *  @li Data Service Support
- *  @li Connect
- *  @li Send
- *
+ * </td></tr>
+ * </table>
+ * @endhtmlonly
  */
 
 /*! @page troubleshooting Troubleshooting
@@ -236,3 +275,5 @@
   @subsection subsection2 The second subsection
   More text.
 */
+
+
