@@ -302,22 +302,6 @@ static idigi_status_t msg_create_session(idigi_data_t * const idigi_ptr, idigi_m
     ASSERT_GOTO(new_session != NULL, done);
 
     {
-        idigi_callback_status_t const status = MutexLock(idigi_ptr, msg_ptr->lock_handle);
-        switch (status)
-        {
-        case idigi_callback_busy:
-            result = idigi_service_busy;
-            goto done;
-        case idigi_callback_continue:
-            break;
-        case idigi_callback_unrecognized:
-        case idigi_callback_abort:
-            result = idigi_configuration_error;
-            goto done;
-        }
-    }
-
-    {
         uint16_t const max_transactions = msg_ptr->capabilities[msg_request_id].max_transactions;
         uint16_t const active_transactions = msg_ptr->capabilities[msg_request_id].active_transactions;
 
@@ -328,7 +312,7 @@ static idigi_status_t msg_create_session(idigi_data_t * const idigi_ptr, idigi_m
             /* server should not send more than client's max transactions */
             ASSERT(msg_request_id != msg_client_request_id);
             result = idigi_no_resource;
-            goto error;
+            goto done;
         }
     }
 
@@ -342,7 +326,7 @@ static idigi_status_t msg_create_session(idigi_data_t * const idigi_ptr, idigi_m
         if (session_id == MSG_INVALID_SESSION_ID)
         {
             result = idigi_no_resource;
-            goto error;
+            goto done;
         }
     }
 
@@ -353,7 +337,7 @@ static idigi_status_t msg_create_session(idigi_data_t * const idigi_ptr, idigi_m
         {
             result = (status == idigi_callback_busy) ? idigi_service_busy : idigi_configuration_error;
 
-            goto error;
+            goto done;
         }
         session = ptr;
     }
@@ -374,9 +358,6 @@ static idigi_status_t msg_create_session(idigi_data_t * const idigi_ptr, idigi_m
     *new_session = session;
     result = idigi_success;
 
-error:
-    MutexUnlock(idigi_ptr, msg_ptr->lock_handle);
-
 done:
     return result;
 }
@@ -384,8 +365,6 @@ done:
 static void msg_delete_session(idigi_data_t * const idigi_ptr, idigi_msg_data_t * const msg_ptr,
                                msg_session_t * const session)
 {
-    MutexLock(idigi_ptr, msg_ptr->lock_handle);
-
     ASSERT_GOTO(msg_ptr != NULL, error);
     ASSERT_GOTO(session != NULL, error);
 
@@ -429,7 +408,6 @@ static void msg_delete_session(idigi_data_t * const idigi_ptr, idigi_msg_data_t 
     free_data(idigi_ptr, session);
 
 error:
-    MutexUnlock(idigi_ptr, msg_ptr->lock_handle);
     return;
 }
 
@@ -1590,7 +1568,6 @@ static idigi_callback_status_t msg_delete_facility(idigi_data_t * const idigi_pt
         msg_delete_all_sessions(idigi_ptr, msg_ptr, service_id);
         if (is_empty)
         {
-            MutexLockDelete(idigi_ptr, msg_ptr->lock_handle);
             status = del_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
         }
         else
