@@ -35,6 +35,8 @@ extern "C"
 {
 #endif
 
+#define DEBUG_PRINTF    printf
+
 #define UNUSED_PARAMETER(x)     ((void)x)
 
 #define DEVICE_ID_LENGTH    16
