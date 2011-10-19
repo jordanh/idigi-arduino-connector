@@ -90,15 +90,8 @@ typedef void * idigi_lock_handle_t;
 #if defined(DEBUG)
 #include <stdio.h>
 #include <stdlib.h>
-
-#define DEBUG_PRINTF(...)   printf(__VA_ARGS__)
-
-#else
-
-/*!
- * Used to display debug messages from the IIK
- */
-#define DEBUG_PRINTF(...)
+#include <stdarg.h>
+#define USER_DEBUG_VPRINTF  printf
 #endif
 
 #endif /* IDIGI_TYPES_H_ */
