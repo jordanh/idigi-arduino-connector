@@ -390,7 +390,7 @@ static idigi_status_t data_service_initiate(idigi_data_t * const data_ptr,  void
     }
     else
     {
-        msg_data_info_t info = {0, NULL, service->payload.size, service->payload.data, service->flag};
+        msg_data_info_t info;
         idigi_callback_status_t ret_status;
 
         info.header_length = 0;
