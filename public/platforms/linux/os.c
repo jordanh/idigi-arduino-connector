@@ -32,6 +32,7 @@
 #include <time.h>
 #include <unistd.h>
 #include "idigi_api.h"
+#include "platform.h"
 
 /**
  * @brief   Dynamically allocate memory
@@ -153,7 +154,7 @@ idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
         status = (ret == true) ? idigi_callback_continue : idigi_callback_abort;
         break;
     default:
-        DEBUG_PRINTF("idigi_os_callback: unrecognized request [%d]\n", request);
+        APP_DEBUG("idigi_os_callback: unrecognized request [%d]\n", request);
         break;
     }
 

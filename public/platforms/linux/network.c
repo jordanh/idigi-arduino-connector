@@ -34,6 +34,7 @@
 #include <errno.h>
 
 #include "idigi_api.h"
+#include "platform.h"
 
 
 static bool dns_resolve_name(char const * const domain_name, in_addr_t * ip_addr)
@@ -53,7 +54,7 @@ static bool dns_resolve_name(char const * const domain_name, in_addr_t * ip_addr
     error = getaddrinfo(domain_name, NULL, &hint, &res0);
     if (error != 0)
     {
-        DEBUG_PRINTF("dns_resolve_name: DNS resolution failed for [%s]\n", domain_name);
+        APP_DEBUG("dns_resolve_name: DNS resolution failed for [%s]\n", domain_name);
         goto done;
     }
 
@@ -63,7 +64,7 @@ static bool dns_resolve_name(char const * const domain_name, in_addr_t * ip_addr
         if (res->ai_family == PF_INET)
         {
             *ip_addr = ((struct sockaddr_in*)res->ai_addr)->sin_addr.s_addr;
-            DEBUG_PRINTF("dns_resolve_name: ip address = [%s]\n", inet_ntoa(((struct sockaddr_in*)res->ai_addr)->sin_addr));
+            APP_DEBUG("dns_resolve_name: ip address = [%s]\n", inet_ntoa(((struct sockaddr_in*)res->ai_addr)->sin_addr));
             rc = true;
             break;
         }
@@ -100,7 +101,7 @@ static idigi_callback_status_t network_connect(char const * const host_name, siz
     {
         if (!dns_resolve_name(server_name, &ip_addr))
         {
-            DEBUG_PRINTF("network_connect: Can't resolve DNS for %s\n", server_name);
+            APP_DEBUG("network_connect: Can't resolve DNS for %s\n", server_name);
             goto done;
         }
     }
@@ -160,7 +161,7 @@ static idigi_callback_status_t network_connect(char const * const host_name, siz
     if (result == 0)
     {
         rc = idigi_callback_busy;
-        DEBUG_PRINTF("network_connect: select timeout\r\n");
+        APP_DEBUG("network_connect: select timeout\r\n");
         perror("network_connect: select");
         goto done;
     }
@@ -177,7 +178,7 @@ static idigi_callback_status_t network_connect(char const * const host_name, siz
 
         *network_handle = &fd;
         rc = idigi_callback_continue;
-        DEBUG_PRINTF("network_connect: connected to [%.*s] server\n", length, host_name);
+        APP_DEBUG("network_connect: connected to [%.*s] server\n", length, host_name);
     }
 
 done:
@@ -247,7 +248,7 @@ static idigi_callback_status_t network_receive(idigi_read_request_t * read_data,
     if (!FD_ISSET(*read_data->network_handle, &read_set))
     {
         rc = idigi_callback_busy;
-        DEBUG_PRINTF("network_connect: select timeout\r\n");
+        APP_DEBUG("network_connect: select timeout\r\n");
         perror("network_connect: select");
         goto done;
     }
@@ -256,7 +257,7 @@ static idigi_callback_status_t network_receive(idigi_read_request_t * read_data,
     if (ccode == 0)
     {
         /* EOF on input: the connection was closed. */
-        DEBUG_PRINTF("network_receive: EOF on socket\r\n");
+        APP_DEBUG("network_receive: EOF on socket\r\n");
         rc = idigi_callback_abort;
     }
     else if (ccode < 0)
@@ -308,14 +309,14 @@ static idigi_callback_status_t network_close(idigi_network_handle_t * const fd)
 static bool server_disconnected(void)
 {
 
-    DEBUG_PRINTF("Disconnected from server\n");
+    APP_DEBUG("Disconnected from server\n");
     return true;
 }
 
 static bool server_reboot(void)
 {
 
-    DEBUG_PRINTF("Reboot from server\n");
+    APP_DEBUG("Reboot from server\n");
     /* should not return from rebooting the system */
     return true;
 }
@@ -364,7 +365,7 @@ idigi_callback_status_t idigi_network_callback(idigi_network_request_t const req
     case idigi_network_initialization_done:
         break;
     default:
-        DEBUG_PRINTF("idigi_network_callback: unrecognized callback request [%d]\n", request);
+        APP_DEBUG("idigi_network_callback: unrecognized callback request [%d]\n", request);
         break;
 
     }
