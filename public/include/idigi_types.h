@@ -101,4 +101,6 @@ typedef void * idigi_lock_handle_t;
 #define DEBUG_PRINTF(...)
 #endif
 
+#define UNUSED_PARAMETER(x)     ((void)x)
+
 #endif /* IDIGI_TYPES_H_ */
