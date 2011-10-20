@@ -23,7 +23,8 @@
  *
  */
 
-#if defined(DEBUG)
+//#if defined(DEBUG)
+#if DEBUG
 #include "idigi_def.h"
 
 typedef struct malloc_stats{
