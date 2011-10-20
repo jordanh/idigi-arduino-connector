@@ -52,7 +52,7 @@ else
 DFLAGS += -DNDEBUG -O2
 endif
 
-CFLAGS += $(DFLAGS) -I$(PUBLIC_HDR_DIR) -I./private -Wall -Werror -Wextra -Wpointer-arith -std=c99
+CFLAGS += $(DFLAGS) -I$(PUBLIC_HDR_DIR) -I./private -Wall -Werror -Wextra -Wpointer-arith -pedantic -std=c99
 
 vpath $(LIB_SRC_DIR)/%.c
 vpath $(LIB_SRC_DIR)/%.h

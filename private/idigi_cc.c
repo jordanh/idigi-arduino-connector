@@ -47,7 +47,7 @@ typedef enum {
 enum {
     cc_state_redirect_report,
     cc_state_connect_report,
-    cc_state_redirect_server,
+    cc_state_redirect_server
 };
 
 typedef struct {

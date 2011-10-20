@@ -65,7 +65,6 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
     return status;
 }
 
-
 idigi_status_t data_service_process_device_response(void);
 
 int main (void)
@@ -114,12 +113,12 @@ int main (void)
             }
             else if (status != idigi_device_terminated)
             {
+                DEBUG_PRINTF("idigi status = %d\n", status);
                 /* let's terminate IIK. Must execute idigi_step to terminate itself. */
                 status = idigi_initiate_action(device_data.idigi_handle, idigi_initiate_terminate, NULL, NULL);
 
             }
         }
-        DEBUG_PRINTF("idigi status = %d\n", status);
     }
 
     DEBUG_PRINTF("iDigi stopped running!\n");
