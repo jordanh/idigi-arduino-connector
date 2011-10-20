@@ -31,6 +31,7 @@
 #include "idigi_api.h"
 #include "platform.h"
 
+
 idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
                                     void * const request_data, size_t const request_length,
                                     void * response_data, size_t * const response_length)
@@ -60,7 +61,7 @@ int main (void)
     idigi_status_t status;
     idigi_handle_t handle;
 
-    DEBUG_PRINTF("Starting iDigi\n");
+    APP_DEBUG("Starting iDigi\n");
     handle = idigi_init((idigi_callback_t)idigi_callback);
 
     if (handle != NULL)
@@ -68,6 +69,6 @@ int main (void)
         status = idigi_run(handle);
     }
 
-    DEBUG_PRINTF("iDigi stopped running status = [%d]\n", status);
+    APP_DEBUG("iDigi stopped running status = [%d]\n", status);
     return 0;
 }
