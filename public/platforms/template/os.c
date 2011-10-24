@@ -58,16 +58,9 @@
  */
 bool os_malloc(size_t const size, void ** ptr)
 {
-    bool status=true;
-
-    *ptr = malloc(size);
-    ASSERT(*ptr != NULL);
-    if (*ptr != NULL)
-    {
-        status = true;
-    }
-
-    return status;
+    UNUSED_PARAMETER(size);
+    UNUSED_PARAMETER(ptr);
+    return false;
 }
 
 /**
@@ -90,12 +83,7 @@ bool os_malloc(size_t const size, void ** ptr)
  */
 void os_free(void * const ptr)
 {
-    ASSERT(ptr != NULL);
-
-    if (ptr != NULL)
-    {
-        free(ptr);
-    }
+    UNUSED_PARAMETER(ptr);
     return;
 }
 
@@ -119,20 +107,9 @@ void os_free(void * const ptr)
  */
 bool os_get_system_time(uint32_t * const uptime)
 {
-    time_t curtime;
-    bool ret = time(&curtime);
+    UNUSED_PARAMETER(uptime);
 
-    if (ret)
-    {
-        /* Up time in seconds */
-        *uptime = (uint32_t)(curtime - device_data.start_system_up_time);
-    }
-    else
-    {
-        *uptime = 0; /* Time is not available */
-    }
-
-    return ret;
+    return false;
 }
 
 idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,

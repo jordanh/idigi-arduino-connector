@@ -114,7 +114,7 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_pt
     uint32_t time_to_send_rx_keepalive;
     uint32_t time_to_receive_tx_keepalive;
     size_t  length;
-    idigi_request_t request_id = {fw_request_id};
+    idigi_request_t request_id;
 
     /* Calculate the timeout value (when to send rx keepalive or
      * receive tx keepalive) from last rx keepalive or tx keepalive.
@@ -161,6 +161,7 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_pt
         *req_timeout = timeout;
     }
 
+    request_id.firmware_request = fw_request_id;
     status = idigi_callback(idigi_ptr->callback, idigi_class_firmware, request_id, request, request_size, response, &length);
 
     if (get_system_time(idigi_ptr, &end_time_stamp) != idigi_callback_continue)
@@ -546,8 +547,9 @@ enum fw_download_response {
     {
         char * string_id_ptr = (char *)fw_download_request;
         unsigned i;
-        char ** const string_id_items[] = {&request_data.desc_string, &request_data.file_name_spec};
-
+        char ** string_id_items[2];
+        string_id_items[0] = &request_data.desc_string;
+        string_id_items[1] = &request_data.file_name_spec;
 
         string_id_ptr += record_bytes(fw_download_request);
 
@@ -864,7 +866,7 @@ static idigi_callback_status_t fw_discovery(idigi_data_t * const idigi_ptr, void
  *
  */
 enum fw_target_list_hdr {
-    field_define(fw_target_list, opcode, uint8_t),
+    field_define(fw_target_list, opcode, uint8_t)
 };
 
 /* target + version pairs format: */

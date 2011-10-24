@@ -89,7 +89,7 @@
 enum edp_header {
     field_define(edp_header, type, uint16_t),
     field_define(edp_header, length, uint16_t),
-    record_end(edp_header),
+    record_end(edp_header)
 };
 
 enum edp_protocol {

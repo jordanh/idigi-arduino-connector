@@ -22,6 +22,7 @@
  * =======================================================================
  *
  */
+#include "config.h"
 #include "idigi_api.h"
 #include "idigi_def.h"
 #include "bele.h"
