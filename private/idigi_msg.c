@@ -114,8 +114,8 @@ typedef enum
 
 typedef enum
 {
-    msg_service_type_request,
-    msg_service_type_response,
+    msg_service_type_send_data,
+    msg_service_type_receive_data,
     msg_service_type_error
 } msg_service_type_t;
 
@@ -364,9 +364,6 @@ static void msg_delete_session(idigi_data_t * const idigi_ptr, idigi_msg_data_t 
     else
         deflateEnd(&session->data_block.zlib);
     #endif
-
-    if (session->service_context != NULL)
-        free_data(idigi_ptr, session->service_context);
 
     {
         msg_capability_type_t const capability_id = MsgIsClientOwned(session->status_flag) ? msg_capability_server : msg_capability_client;
@@ -759,7 +756,7 @@ static idigi_callback_status_t msg_get_service_data(idigi_data_t * const idigi_p
     {
         msg_service_request_t service_data;
 
-        MSG_FILL_SERVICE(service_data, session, msg_service_type_request, dblock->buffer_in, sizeof dblock->buffer_in, 0);
+        MSG_FILL_SERVICE(service_data, session, msg_service_type_send_data, dblock->buffer_in, sizeof dblock->buffer_in, 0);
         status = msg_call_service_layer(idigi_ptr, session->service_id, &service_data);
         if (status != idigi_callback_continue)
             goto done;
@@ -807,7 +804,7 @@ static idigi_callback_status_t msg_get_service_data(idigi_data_t * const idigi_p
     }
 
     ASSERT_GOTO(!MsgIsLastData(session->status_flag), error);
-    MSG_FILL_SERVICE(service_data, session, msg_service_type_request, (msg_buffer + header_bytes), available_bytes, 0);
+    MSG_FILL_SERVICE(service_data, session, msg_service_type_send_data, (msg_buffer + header_bytes), available_bytes, 0);
     status = msg_call_service_layer(idigi_ptr, session->service_id, &service_data);
     if (status != idigi_callback_continue)
         goto error;
@@ -957,7 +954,7 @@ static idigi_callback_status_t msg_pass_service_data(idigi_data_t * const idigi_
     if (MsgIsLastData(session->status_flag))
         MsgSetLastData(flag);
 
-    MSG_FILL_SERVICE(service_data, session, msg_service_type_response, data, bytes, flag);
+    MSG_FILL_SERVICE(service_data, session, msg_service_type_receive_data, data, bytes, flag);
     status = msg_call_service_layer(idigi_ptr, session->service_id, &service_data);
     if (status == idigi_callback_continue)
     {
@@ -1133,6 +1130,15 @@ static idigi_callback_status_t msg_process_service_data(idigi_data_t * const idi
     uint8_t * buffer = msg_data + header_bytes;
     size_t const bytes = frame_bytes - header_bytes;
 
+    if (session->state != msg_state_receive)
+    {
+        bool const isError = session->state == msg_state_send_error;
+        bool const isDeleted = session->state == msg_state_delete;
+
+        status = (isError || isDeleted) ? idigi_callback_continue : idigi_callback_busy;
+        goto done;
+    }
+
     #if (defined IDIGI_COMPRESSION)
     if (MsgIsCompressed(session->status_flag))
     {
@@ -1147,6 +1153,7 @@ static idigi_callback_status_t msg_process_service_data(idigi_data_t * const idi
         status = msg_process_raw_data(idigi_ptr, session, buffer, bytes);
     }
 
+done:
     return status;
 }
 
