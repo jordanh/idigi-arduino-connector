@@ -67,48 +67,84 @@ typedef enum {
    idigi_device_terminated,     /**< IIK was terminated by user via idigi_initiate_action call. */
    idigi_service_busy,          /**< Someone else is using the same service or the device is busy. */
    idigi_invalid_response,      /**< Received invalid response from the server. */
-   idigi_no_resource
+   idigi_no_resource            /**< Lack of resource */
 } idigi_status_t;
 /**
 * @}
 */
 
+/**
+* @defgroup.
+* @{
+*/
+/**
+* idigi_class_t.
+* Class Id for which class is used in the application's callback.
+* It tells class id for the request id passed to the application's callback.
+*/
 typedef enum {
-    idigi_class_config,
-    idigi_class_network,
-    idigi_class_operating_system,
-    idigi_class_firmware,
-    idigi_class_data_service
+    idigi_class_config,             /**< Configuration Class Id */
+    idigi_class_network,            /**< Network Class Id */
+    idigi_class_operating_system,   /**< Operating System Class Id */
+    idigi_class_firmware,           /**< Firmware Facility Class Id */
+    idigi_class_data_service        /**< Data Service Class Id */
 } idigi_class_t;
+/**
+* @}
+*/
 
+/**
+* @defgroup.
+* @{
+*/
+/**
+* idigi_config_request_t.
+* Configuration Request Id passed to the application's callback for requesting configuration data.
+* The class id for this idigi_config_request_t is idigi_class_config.
+*/
 typedef enum {
-    idigi_config_device_id,
-    idigi_config_vendor_id,
-    idigi_config_device_type,
-    idigi_config_server_url,
-    idigi_config_connection_type,
-    idigi_config_mac_addr,
-    idigi_config_link_speed,
-    idigi_config_phone_number,
-    idigi_config_tx_keepalive,
-    idigi_config_rx_keepalive,
-    idigi_config_wait_count,
-    idigi_config_ip_addr,
-    idigi_config_error_status,
-    idigi_config_firmware_facility,
-    idigi_config_data_service
+    idigi_config_device_id,         /**< Requesting callback to return a unique device id which is used to identify the device.*/
+    idigi_config_vendor_id,         /**< Requesting callback to return a unique vendor id identifying the manufacturer of a device. */
+    idigi_config_device_type,       /**< Requesting callback to return device type that identifies the type of the device  */
+    idigi_config_server_url,        /**< Requesting callback to return iDigi server FQDN which will be connected to */
+    idigi_config_connection_type,   /**< Requesting callback to return LAN or WAN connection type */
+    idigi_config_mac_addr,          /**< Requesting callback to return device's MAC addresss */
+    idigi_config_link_speed,        /**< Requesting callback to return link speed for WAN connection type */
+    idigi_config_phone_number,      /**< Requesting callback to return phone number dialed for WAN connection type */
+    idigi_config_tx_keepalive,      /**< Requesting callback to return server's Tx keepAlive interval in seconds */
+    idigi_config_rx_keepalive,      /**< Requesting callback to return server's Rx keepAlive interval in seconds */
+    idigi_config_wait_count,        /**< Requesting callback to return the number of intervals of not receiving a keepAlive message after which a connection should be considered lost. */
+    idigi_config_ip_addr,           /**< Requesting callback to return device's IP address */
+    idigi_config_error_status,      /**< Error status notification which tells callback that error is encountered. */
+    idigi_config_firmware_facility, /**< Requesting callback to return whether firmware facility is supported or not. */
+    idigi_config_data_service       /**< Requesting callback to return whether data service is supported or not. */
 } idigi_config_request_t;
+/**
+* @}
+*/
 
+
+/**
+* @defgroup.
+* @{
+*/
+/**
+* idigi_network_request_t.
+* Network Request Id passed to the application's callback for network interface.
+* The class id for this idigi_network_request_t is idigi_class_network.
+*/
 typedef enum {
-    idigi_network_connect,
-    idigi_network_send,
-    idigi_network_receive,
-    idigi_network_close,
-    idigi_network_disconnected,
-    idigi_network_reboot,
-    idigi_network_initialization_done
-
+    idigi_network_connect,                  /**< Requesting callback to setup and make connection to iDigi server */
+    idigi_network_send,                     /**< Requesting callback to send data to iDigi server */
+    idigi_network_receive,                  /**< Requesting callback to receive data from iDigi server */
+    idigi_network_close,                    /**< Requesting callback to close iDigi server connection */
+    idigi_network_disconnected,             /**< iDigi server disconnected notification. iDigi server requests to disconnect the connection */
+    idigi_network_reboot,                   /**< Requesting callback to reboot the system */
+    idigi_network_initialization_done       /**< Notifying callback that connection and initialization are fully established. */
 } idigi_network_request_t;
+/**
+* @}
+*/
 
 
  /**
@@ -116,17 +152,14 @@ typedef enum {
  * @{ 
  */
  /** 
- * idigi_status_t.
- * Status returned by IIK API calls.
+ * idigi_os_request_t.
+ * Operating System Request ID passed to the application's callback for operating system interface.
+ * The class id for this idigi_os_request_t is idigi_class_operating_system.
  */
 typedef enum {
-    idigi_os_malloc, /**< Callback used to dynamically allocate memory.. */
-    idigi_os_free, /**< Callback is called to free previous allocated memory. */
-    idigi_os_system_up_time, /**< This callback is called to return system up time in seconds. It is the time that a device has been up and running. */
-    idigi_os_lock_init,
-    idigi_os_lock,
-    idigi_os_unlock,
-    idigi_os_lock_delete
+    idigi_os_malloc,            /**< Callback used to dynamically allocate memory.. */
+    idigi_os_free,              /**< Callback is called to free previous allocated memory. */
+    idigi_os_system_up_time    /**< This callback is called to return system up time in seconds. It is the time that a device has been up and running. */
 } idigi_os_request_t;
 /**
 * @}
@@ -194,22 +227,30 @@ typedef enum {
 * @}
 */
 
-
-
-
-
+/**
+* @defgroup.
+* @{
+*/
+/**
+* idigi_firmware_request_t.
+* Firmware Facility Request ID passed to the application's callback for firmware update interface.
+* The class id for this idigi_firmware_request_t is idigi_class_firmware.
+*/
 typedef enum {
-    idigi_firmware_target_count,
-    idigi_firmware_version,
-    idigi_firmware_code_size,
-    idigi_firmware_description,
-    idigi_firmware_name_spec,
-    idigi_firmware_download_request,
-    idigi_firmware_binary_block,
-    idigi_firmware_download_complete,
-    idigi_firmware_download_abort,
-    idigi_firmware_target_reset
+    idigi_firmware_target_count,            /**< Requesting callback to return number of supported target for firmware update */
+    idigi_firmware_version,                 /**< Requesting callback to return the version number for specific target */
+    idigi_firmware_code_size,               /**< Requesting callback to return max code size of specific target */
+    idigi_firmware_description,             /**< Requesting callback to return description of specific target */
+    idigi_firmware_name_spec,               /**< Requesting callback to return the regular expression for firmware update image name of specific target. */
+    idigi_firmware_download_request,        /**< Requesting callback to start firmware update of specific target */
+    idigi_firmware_binary_block,            /**< Callback is passed with image data for firmware update. This is called for each chunk of image data */
+    idigi_firmware_download_complete,       /**< Callback is called to complete firmware update. */
+    idigi_firmware_download_abort,          /**< Requesting callback to abort firmware update */
+    idigi_firmware_target_reset             /**< Requesting callback to reset the target */
 } idigi_firmware_request_t;
+/**
+* @}
+*/
 
 typedef enum {
     idigi_data_service_send_complete,
@@ -219,117 +260,316 @@ typedef enum {
     idigi_data_service_max_transactions
 } idigi_data_service_request_t;
 
+/**
+* @defgroup.
+* @{
+*/
+/**
+* idigi_initiate_request_t.
+* Request ID used in idigi_initiate_action.
+*/
 typedef enum {
-    idigi_initiate_terminate,
-    idigi_initiate_data_service,
+    idigi_initiate_terminate,               /**< Terminates and stops IIK from running. */
+    idigi_initiate_data_service,            /**< Sends data to iDigi Server, the data is stored in a file on the server. */
     idigi_initiate_data_service_response
 } idigi_initiate_request_t;
 
-typedef enum {
-   idigi_lan_connection_type,
-   idigi_wan_connection_type
-} idigi_connection_type_t;
+/**
+* @}
+*/
 
+/**
+* @defgroup.
+* @{
+*/
+/**
+* idigi_connection_type_t.
+* Connection type for @see idigi_config_connection_type callback
+*/
+typedef enum {
+   idigi_lan_connection_type,   /**< LAN connection type for Ethernet or WiFi */
+   idigi_wan_connection_type    /**< WAN connection type for PPP over Modem */
+} idigi_connection_type_t;
+/**
+* @}
+*/
+
+/**
+* @defgroup.
+* @{
+*/
+/**
+* idigi_callback_status_t.
+* Return status from callback function.
+*/
 typedef enum  {
-    idigi_callback_continue,
-    idigi_callback_busy,
-    idigi_callback_abort,
-    idigi_callback_unrecognized
+    idigi_callback_continue,        /**< Continues with no error */
+    idigi_callback_busy,            /**< Callback is busy */
+    idigi_callback_abort,           /**< Aborts IIK */
+    idigi_callback_unrecognized     /**< Unsupported callback request */
 } idigi_callback_status_t;
 
+/**
+* @}
+*/
+
+/**
+* @defgroup.
+* @{
+*/
+/**
+* idigi_fw_status_t.
+* Return status code for firmware update. These status codes are used for @see idigi_firmware_download_request,
+* @see idigi_firmware_binary_block and @see idigi_firmware_abort callbacks.
+*/
 typedef enum {
-   idigi_fw_success,
-   idigi_fw_download_denied,
-   idigi_fw_download_invalid_size,
-   idigi_fw_download_invalid_version,
-   idigi_fw_download_unauthenticated,
-   idigi_fw_download_not_allowed,
-   idigi_fw_download_configured_to_reject,
-   idigi_fw_encountered_error,
-   idigi_fw_user_abort,
-   idigi_fw_device_error,
-   idigi_fw_invalid_offset,
-   idigi_fw_invalid_data,
-   idigi_fw_hardware_error
+   idigi_fw_success,                        /**< No error */
+   idigi_fw_download_denied,                /**< Callback denied firmware update */
+   idigi_fw_download_invalid_size,          /**< Callback returns invalid size */
+   idigi_fw_download_invalid_version,       /**< Callback returns invalid version */
+   idigi_fw_download_unauthenticated,       /**< The server has not been authenticated */
+   idigi_fw_download_not_allowed,           /**< The server is not allowed to provided updates */
+   idigi_fw_download_configured_to_reject,  /**< Callback rejects firmware update */
+   idigi_fw_encountered_error,              /**< Callback encountered an error that precludes the firmware update */
+   idigi_fw_user_abort,                     /**< User aborted firmware update */
+   idigi_fw_device_error,                   /**< Device or server encountered an error in the download data */
+   idigi_fw_invalid_offset,                 /**< idigi_firmware_binary_block callback found invalid offset. */
+   idigi_fw_invalid_data,                   /**< idigi_firmware_binary_block callback found invalid data block.*/
+   idigi_fw_hardware_error                  /**< Callback found permanent hardware error */
 } idigi_fw_status_t;
 
+/**
+* @}
+*/
+
+/**
+* @defgroup.
+* @{
+*/
+/**
+* idigi_fw_download_complete_status_t.
+* Firmware Update Complete status. These status codes are used in @see idigi_firmware_download_complete callback.
+*/
 typedef enum {
-   idigi_fw_download_success,
-   idigi_fw_download_checksum_mismatch,
-   idigi_fw_download_not_complete
+   idigi_fw_download_success,               /**< Callback returns this for firmware download finished successfully and calculated checksum matched the checksum sent in the callback */
+   idigi_fw_download_checksum_mismatch,     /**< Callback returns this for download completed successfully, but the calculated checksum did not match the checksum sent in the callback */
+   idigi_fw_download_not_complete           /**< Callback did not complete download successfully */
 } idigi_fw_download_complete_status_t;
+/**
+* @}
+*/
 
+/**
+* @defgroup.
+* @{
+*/
+/**
+* idigi_request_t.
+* Request ID structure passed to callback identifying the request id of specific class @see idigi_class_t
+*/
 typedef union {
-   idigi_config_request_t config_request;
-   idigi_network_request_t network_request;
-   idigi_os_request_t os_request;
-   idigi_firmware_request_t firmware_request;
-   idigi_data_service_request_t data_service_request;
+   idigi_config_request_t config_request;               /**< Configuration request ID for configuration class */
+   idigi_network_request_t network_request;             /**< Network request ID for network class */
+   idigi_os_request_t os_request;                       /**< Operating system request ID for operating system class */
+   idigi_firmware_request_t firmware_request;           /**< Firmware request ID for firmware facility class */
+   idigi_data_service_request_t data_service_request;   /**< Data service request ID for data service class */
 } idigi_request_t;
+/**
+* @}
+*/
 
+/**
+* @defgroup.
+* @{
+*/
+/**
+* idigi_handle_t.
+* IIK Handle type that is used throughout IIK APIs.
+*/
 #define idigi_handle_t void *
 
+
+/**
+* @}
+*/
+
+/**
+* @defgroup.
+* @{
+*/
+/**
+* idigi_error_status_t.
+* Error status structure for idigi_config_error_status callback (@see idigi_config_request_t) which
+* is called when IIK encounters an error.
+*/
 typedef struct  {
-    idigi_class_t class_id;
-    idigi_request_t request_id;
-    idigi_status_t status;
+    idigi_class_t class_id;         /**< Class ID which IIK encounters error with */
+    idigi_request_t request_id;     /**< Request ID which IIK encounters error with */
+    idigi_status_t status;          /**< Error status */
 } idigi_error_status_t;
 
+/**
+* @}
+*/
+
+/**
+* @defgroup.
+* @{
+*/
+/**
+* idigi_write_request_t.
+* Write request structure for idigi_network_send callback which is called to send data to iDigi server.
+*/
 typedef struct  {
-   idigi_network_handle_t *  network_handle;
-    uint8_t const * buffer;
-    size_t length;
-    unsigned timeout;
+    idigi_network_handle_t network_handle;    /**< Pointer to network handle associated with a connection through the idigi_network_connect callback */
+    uint8_t const * buffer;                     /**< Pointer to data to be sent */
+    size_t length;                              /**< Number of bytes of data to be sent */
+    unsigned timeout;                           /**< Timeout value in seconds which callback must return. This allows IIK to maintenance keepalive process and send process. */
 } idigi_write_request_t;
 
+/**
+* @}
+*/
+
+/**
+* @defgroup.
+* @{
+*/
+/**
+* idigi_read_request_t.
+* Read request structure for idigi_network_receive callback which is called to receive
+* a specified number of bytes data from the iDigi server.
+*/
 typedef struct  {
-   idigi_network_handle_t * network_handle;
-    uint8_t * buffer;
-    size_t length;
-    unsigned timeout;
+    idigi_network_handle_t network_handle;    /**< Pointer to network handle associated with a connection through the idigi_network_connect callback */
+    uint8_t * buffer;                           /**< Pointer to memory where callback writes recieved data to */
+    size_t length;                              /**< Number of bytes to be received */
+    unsigned timeout;                           /**< Timeout value in seconds which callback must return. This allows IIK to maintenance keepalive process and send process. */
 } idigi_read_request_t;
 
+/**
+* @}
+*/
+
+/**
+* @defgroup.
+* @{
+*/
+/**
+* idigi_fw_config_t.
+* Firmware configuration structure for idigi_firmware_version,  idigi_firmware_code_size,
+* idigi_firmware_description, idigi_firmware_name_spec, and idigi_firmware_target_reset callbacks
+*/
 typedef struct {
-   unsigned timeout;
-   uint8_t target;
+   unsigned timeout;    /**< Timeout value which callback must return control back to IIK in seconds */
+   uint8_t target;      /**< Target number */
 } idigi_fw_config_t;
 
+/**
+* @}
+*/
+
+/**
+* @defgroup.
+* @{
+*/
+/**
+* idigi_fw_download_request_t.
+* Firmware download request structure for idigi_firmware_download_request callback which
+* is called when server requests firmware download.
+*/
 typedef struct {
-    unsigned timeout;
-    uint8_t target;
-    uint32_t version;
-    uint32_t code_size;
-    char * desc_string;
-    char * file_name_spec;
-    char * filename;
+    unsigned timeout;           /**< Timeout value which callback must return control back to IIK in seconds */
+    uint8_t target;             /**< Target number of whcih firmware download request for */
+    uint32_t version;           /**< Version number of the download target. It's set to 0xFFFFFFFF for unknown version number */
+    uint32_t code_size;         /**< size of the code that is ready to be sent to the target */
+    char * desc_string;         /**< Pointer to target description */
+    char * file_name_spec;      /**< Pointer to file name in regular expression */
+    char * filename;            /**< Pointer to filename of the image to be downloaded */
 } idigi_fw_download_request_t;
 
+/**
+* @}
+*/
+
+/**
+* @defgroup.
+* @{
+*/
+/**
+* idigi_fw_image_data_t.
+* Firmware download image data structure for idigi_firmware_binary_block callback which
+* is called when IIK receives a block of image data for firmware download.
+*/
 typedef struct {
-    unsigned timeout;
-    uint8_t target;
-    uint32_t offset;
-    uint8_t * data;
-    size_t length;
+    unsigned timeout;       /**< Timeout value which callback must return control back to IIK in seconds */
+    uint8_t target;         /**< Target number of which image data for */
+    uint32_t offset;        /**< Offset value where this particular block of image data fits into the download */
+    uint8_t * data;         /**< Pointer binary image data */
+    size_t length;          /**< Length of binary image data in bytes */
 } idigi_fw_image_data_t;
 
+/**
+* @}
+*/
+
+/**
+* @defgroup.
+* @{
+*/
+/**
+* idigi_fw_download_complete_request_t.
+* Firmware download complete request structure containing information about firmware image data
+* for idigi_firmware_download_complete callback which is called when iDigi server is done
+* sending all image data.
+*/
 typedef struct {
-    unsigned timeout;
-    uint8_t target;
-    uint32_t code_size;
-    uint32_t checksum;
+    unsigned timeout;       /**< Timeout value which callback must return control back to IIK in seconds */
+    uint8_t target;         /**< Target number of which firmware download complete for */
+    uint32_t code_size;     /**< Code size of the entire image data sent */
+    uint32_t checksum;      /**< CRC-32 value computed from offset 0 to code size. If it's 0, no checksum is required */
 } idigi_fw_download_complete_request_t;
 
+/**
+* @}
+*/
+
+/**
+* @defgroup.
+* @{
+*/
+/**
+* idigi_fw_download_complete_response_t.
+* Firmware download complete response structure for idigi_firmware_download_complete callback which
+* writes information and status of the download completion when iDigi server is done sending all image data.
+*/
 typedef struct {
-    uint32_t version;
-    uint32_t calculated_checksum;
-    idigi_fw_download_complete_status_t status;
+    uint32_t version;                               /**< Version number of the downloaded image */
+    uint32_t calculated_checksum;                   /**< It's currently used for error code that is used by server. Set 0 for no error. */
+    idigi_fw_download_complete_status_t status;     /**< Status code regarding the download completion */
 } idigi_fw_download_complete_response_t;
 
+/**
+* @}
+*/
+
+/**
+* @defgroup.
+* @{
+*/
+/**
+* idigi_fw_download_abort_t.
+* Firmware download abort structure for idigi_firmware_abort callback which
+* is called when server aborts firmware download process.
+*/
 typedef struct {
-    unsigned timeout;
-    uint8_t target;
-    idigi_fw_status_t status;
+    unsigned timeout;           /**< Timeout value which callback must return control back to IIK in seconds */
+    uint8_t target;             /**< Target number of which firmware download abort for */
+    idigi_fw_status_t status;   /**< Abort reason or status */
 } idigi_fw_download_abort_t;
+/**
+* @}
+*/
 
 #define IDIGI_DATA_REQUEST_START        0x0001
 #define IDIGI_DATA_REQUEST_LAST         0x0002
