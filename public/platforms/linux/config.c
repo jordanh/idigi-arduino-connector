@@ -31,6 +31,7 @@
 #include "idigi_api.h"
 #include "platform.h"
 
+
 /* IIK Configuration routines */
 
 #define MAX_INTERFACES 128
@@ -184,19 +185,19 @@ static bool get_server_url(char ** url, size_t * size)
     return true;
 }
 
-static bool get_connection_type(idigi_connection_type_t ** type)
+static bool get_connection_type(idigi_connection_type_t * type)
 {
 #error "Specify LAN or WAN connection type"
 
     /* Return pointer to connection type */
     static idigi_connection_type_t  device_connection_type = idigi_lan_connection_type;
 
-    *type = &device_connection_type;
+    *type = device_connection_type;
 
     return true;
 }
 
-static bool get_link_speed(uint32_t ** speed, size_t * size)
+static bool get_link_speed(uint32_t *speed, size_t * size)
 {
 #error "Specify link speed for WAN connection type"
     UNUSED_PARAMETER(speed);
@@ -219,14 +220,14 @@ static bool get_phone_number(uint8_t ** number, size_t * size)
 
 /* Keep alives are from the prospective of the server */
 /* This keep alive is sent from the server to the device */
-static bool get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
+static bool get_tx_keepalive_interval(uint16_t *interval, size_t * size)
 {
 #error "Specify server to device TX keepalive interval in seconds"
 
 #define DEVICE_TX_KEEPALIVE_INTERVAL_IN_SECONDS     90
     /* Return pointer to Tx keepalive interval in seconds */
     static uint16_t device_tx_keepalive_interval = DEVICE_TX_KEEPALIVE_INTERVAL_IN_SECONDS;
-    *interval = (uint16_t *)&device_tx_keepalive_interval;
+    *interval = device_tx_keepalive_interval;
     *size = sizeof device_tx_keepalive_interval;
 
     return true;
@@ -234,19 +235,19 @@ static bool get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
 
 
 /* This keep alive is sent from the device to the server  */
-static bool get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
+static bool get_rx_keepalive_interval(uint16_t *interval, size_t * size)
 {
 #error "Specify server to device RX keepalive interval in seconds"
 #define DEVICE_RX_KEEPALIVE_INTERVAL_IN_SECONDS     60
     /* Return pointer to Rx keepalive interval in seconds */
     static uint16_t device_rx_keepalive_interval = DEVICE_RX_KEEPALIVE_INTERVAL_IN_SECONDS;
-    *interval = (uint16_t *)&device_rx_keepalive_interval;
+    *interval = device_rx_keepalive_interval;
     *size = sizeof device_rx_keepalive_interval;
 
     return true;
 }
 
-static bool get_wait_count(uint16_t ** count, size_t * size)
+static bool get_wait_count(uint16_t *count, size_t * size)
 {
 #error "Specify the number of times that not receiving keepalive messages from server is allowed"
 #define DEVICE_WAIT_COUNT     5
@@ -255,7 +256,7 @@ static bool get_wait_count(uint16_t ** count, size_t * size)
      * from server is allowed).
      */
     static uint16_t device_wait_count = DEVICE_WAIT_COUNT;
-    *count = (uint16_t *)&device_wait_count;
+    *count = device_wait_count;
     *size = sizeof device_wait_count;
 
     return true;
@@ -268,13 +269,8 @@ static bool get_firmware_support(void)
 
 static bool get_data_service_support(void)
 {
-#if (defined IDIGI_DATA_SERVICE)
     return true;
-#else
-    return false;
-#endif
 }
-
 
 /* End of IIK configuration routines */
 
@@ -287,7 +283,6 @@ static bool idigi_config_error(idigi_error_status_t * const error_data)
 
     bool status = true;
 
-#if defined(DEBUG)
     char const * error_status_string[] = {"idigi_success", "idigi_init_error",
                                           "idigi_configuration_error",
                                           "idigi_invalid_data_size",
@@ -379,10 +374,6 @@ static bool idigi_config_error(idigi_error_status_t * const error_data)
         APP_DEBUG("idigi_error_status: unsupport class_id = %d status = %d\n", error_data->class_id, error_data->status);
         break;
     }
-#else
-    UNUSED_PARAMETER(error_data);
-#endif
-
     return status;
 }
 
@@ -419,7 +410,7 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
         break;
 
     case idigi_config_connection_type:
-        ret = get_connection_type((idigi_connection_type_t **)response_data);
+        ret = get_connection_type((idigi_connection_type_t *)response_data);
         break;
 
     case idigi_config_mac_addr:
@@ -427,7 +418,7 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
         break;
 
     case idigi_config_link_speed:
-        ret = get_link_speed((uint32_t **)response_data, response_length);
+        ret = get_link_speed((uint32_t *)response_data, response_length);
         break;
 
     case idigi_config_phone_number:
@@ -435,15 +426,15 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
        break;
 
     case idigi_config_tx_keepalive:
-        ret = get_tx_keepalive_interval((uint16_t **)response_data, response_length);
+        ret = get_tx_keepalive_interval((uint16_t *)response_data, response_length);
         break;
 
     case idigi_config_rx_keepalive:
-        ret = get_rx_keepalive_interval((uint16_t **)response_data, response_length);
+        ret = get_rx_keepalive_interval((uint16_t *)response_data, response_length);
         break;
 
     case idigi_config_wait_count:
-        ret = get_wait_count((uint16_t **)response_data, response_length);
+        ret = get_wait_count((uint16_t *)response_data, response_length);
         break;
 
     case idigi_config_ip_addr:
