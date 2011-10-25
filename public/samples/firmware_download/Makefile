@@ -20,52 +20,38 @@
 #  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
 #
 # =======================================================================
-#
-#  Type 'make help' for more information.
-#
-include $(IDIGI_RULES)
+CC      = $(CROSS_COMPILE)gcc
+LD      = $(CROSS_COMPILE)gcc
+CXX     = $(CROSS_COMPILE)g++
+STRIP   = $(CROSS_COMPILE)strip
+AR      = $(CROSS_COMPILE)ar
 
-CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -std=c99 -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I../../include
+IDIGI_DIR=../../../private
+PUBLIC_HEADER_DIR=../../include
+PLATFORM_DIR=../../platforms/linux
 
-OBJS = main.o firmware.o network.o os.o config.o data_service.o
-LIBS = -lidigi -lc
+vpath $(IDIGI_DIR)/%.c
+vpath $(PLATFORM_DIR)/%.c
 
-ifneq ($(DATA_SERVICE), false)
-DFLAGS += -DIDIGI_DATA_SERVICE
-endif
+CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -pedantic -std=c99 -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR)  -g
 
-ifneq ($(COMPRESSION), false)
-CFLAGS += -DCOMPRESSION
-LIBS += -lz
-endif
+OBJS = main.o firmware.o $(IDIGI_DIR)/idigi_api.o $(PLATFORM_DIR)/os.o $(PLATFORM_DIR)/network.o  $(PLATFORM_DIR)/config.o
+LIBS = -lc -lz
 
-
-# Name of executable to build
-SAMPLE=linux_sample
-
+SAMPLE = idigi
 all: $(SAMPLE)
 
-$(OBJS): *.c *.h
+main.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h
+firmware.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h
+$(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PUBLIC_HEADER_DIR)/config.h $(IDIGI_DIR)/idigi_def.h $(IDIGI_DIR)/bele.h
+
+$(OBJS): *.c $(IDIGI_DIR)/*.c $(PLATFORM_DIR)/*.c
 
 $(SAMPLE): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -L$(LIB) $(LIBS) -o $(SAMPLE)
+	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(SAMPLE) 
 
 .PHONY: clean
 clean:
 	-rm -f $(OBJS)
 
-.PHONY: help
-help:
-	@echo "Makefile used to build the linux sample"
-	@echo "Options:"
-	@echo "    IDIGI_RULES     = Location and  name for toolset"
-	@echo "    DEBUG         = true or false for debugging"
-	@echo "    LIB           = path of idigi library"
-	@echo "    LITTLE_ENDIAN = true or false for little endian"
-	@echo "    DATA_SERVICE  = true or false for data service"
-	@echo "    COMPRESSION   = true or false for compression (zlib) on data service
-	@echo "NOTE:"
-	@echo "    The idigi library path must be added to the LD_LIBRARY_PATH"
-	@echo "    environmental variable when running the application"
-	@echo "    if the idigi library was built as a shared library"
 
