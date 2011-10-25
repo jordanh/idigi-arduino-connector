@@ -82,16 +82,19 @@
 typedef int idigi_network_handle_t;
 
 typedef void * idigi_lock_handle_t;
+
+#if defined(IDIGI_DEBUG)
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#define USER_DEBUG_VPRINTF  vprintf
+
 /*!
  *  Verify that the condition is true, otherwise halt the program
  */
 #define ASSERT(cond)        assert(cond)
-
-#if defined(DEBUG)
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#define USER_DEBUG_VPRINTF  printf
+#else
+#define ASSERT(cond)
 #endif
 
 #define UNUSED_PARAMETER(x)     ((void)x)
