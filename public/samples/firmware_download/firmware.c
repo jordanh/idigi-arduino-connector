@@ -27,7 +27,8 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "idigi_data.h"
+#include "idigi_api.h"
+#include "platform.h"
 
 #define asizeof(array) (sizeof(array)/sizeof(array[0]))
 
@@ -54,7 +55,7 @@ static void firmware_download_request(idigi_fw_download_request_t const * const 
 
     if ((download_info == NULL) || (download_status == NULL))
     {
-        DEBUG_PRINTF("firmware_download_request ERROR: iDigi passes incorrect parameters\n");
+        APP_DEBUG("firmware_download_request ERROR: iDigi passes incorrect parameters\n");
         *download_status = idigi_fw_download_denied;
         goto done;
     }
@@ -64,12 +65,12 @@ static void firmware_download_request(idigi_fw_download_request_t const * const 
         goto done;
     }
 
-    DEBUG_PRINTF("target = %d\n",         download_info->target);
-    DEBUG_PRINTF("version = 0x%04X\n",    download_info->version);
-    DEBUG_PRINTF("code size = %d\n",      download_info->code_size);
-    DEBUG_PRINTF("desc_string = %s\n",    download_info->desc_string);
-    DEBUG_PRINTF("file name spec = %s\n", download_info->file_name_spec);
-    DEBUG_PRINTF("filename = %s\n",       download_info->filename);
+    APP_DEBUG("target = %d\n",         download_info->target);
+    APP_DEBUG("version = 0x%04X\n",    download_info->version);
+    APP_DEBUG("code size = %d\n",      download_info->code_size);
+    APP_DEBUG("desc_string = %s\n",    download_info->desc_string);
+    APP_DEBUG("file name spec = %s\n", download_info->file_name_spec);
+    APP_DEBUG("filename = %s\n",       download_info->filename);
 
     total_image_size = 0;
     firmware_download_started = true;
@@ -84,15 +85,15 @@ static void firmware_image_data(idigi_fw_image_data_t const * const image_data, 
 {
     if (image_data == NULL)
     {
-        DEBUG_PRINTF("firmware_image_data: invalid parameter\n");
+        APP_DEBUG("firmware_image_data: invalid parameter\n");
         goto done;
     }
 
-    DEBUG_PRINTF("target = %d\n", image_data->target);
-    DEBUG_PRINTF("offset = 0x%04X\n", image_data->offset);
-    DEBUG_PRINTF("data = %p\n", image_data->data);
+    APP_DEBUG("target = %d\n", image_data->target);
+    APP_DEBUG("offset = 0x%04X\n", image_data->offset);
+    APP_DEBUG("data = %p\n", image_data->data);
     total_image_size += image_data->length;
-    DEBUG_PRINTF("length = %zu (total = %zu)\n", image_data->length, total_image_size);
+    APP_DEBUG("length = %zu (total = %zu)\n", image_data->length, total_image_size);
 
 
     *data_status = idigi_fw_success;
@@ -100,19 +101,18 @@ done:
     return;
 }
 
-
 static void firmware_download_complete(idigi_fw_download_complete_request_t const * const complete_request, idigi_fw_download_complete_response_t * complete_response)
 {
 
     if ((complete_request == NULL) || (complete_response == NULL))
     {
-        DEBUG_PRINTF("firmware_download_complete Error: iDigi passes incorrect parameters\n");
+        APP_DEBUG("firmware_download_complete Error: iDigi passes incorrect parameters\n");
         goto done;
     }
 
-    DEBUG_PRINTF("target    = %d\n",    complete_request->target);
-    DEBUG_PRINTF("code size = %u\n",    complete_request->code_size);
-    DEBUG_PRINTF("checksum  = 0x%x\n", (unsigned)complete_request->checksum);
+    APP_DEBUG("target    = %d\n",    complete_request->target);
+    APP_DEBUG("code size = %u\n",    complete_request->code_size);
+    APP_DEBUG("checksum  = 0x%x\n", (unsigned)complete_request->checksum);
 
     complete_response->status = idigi_fw_download_success;
 
@@ -124,7 +124,7 @@ static void firmware_download_complete(idigi_fw_download_complete_request_t cons
 
     if (complete_request->code_size != total_image_size)
     {
-        DEBUG_PRINTF("firmware_download_complete: actual image size (%u) != the code size received (%zu)\n",
+        APP_DEBUG("firmware_download_complete: actual image size (%u) != the code size received (%zu)\n",
                       complete_request->code_size, total_image_size);
     }
 
@@ -139,10 +139,10 @@ static idigi_callback_status_t firmware_download_abort(idigi_fw_download_abort_t
     idigi_callback_status_t   status = idigi_callback_continue;
 
     /* Server is aborting firmware update */
-    DEBUG_PRINTF("firmware_download_abort\n");
+    APP_DEBUG("firmware_download_abort\n");
     if (abort_data == NULL)
     {
-        DEBUG_PRINTF("firmware_download_abort Error: iDigi passes incorrect parameters\n");
+        APP_DEBUG("firmware_download_abort Error: iDigi passes incorrect parameters\n");
         goto done;
     }
 
@@ -156,7 +156,7 @@ static idigi_callback_status_t firmware_reset(idigi_fw_config_t const * const re
 
     UNUSED_PARAMETER(reset_data);
     /* Server requests firmware reboot */
-    DEBUG_PRINTF("firmware_reset\n");
+    APP_DEBUG("firmware_reset\n");
 
     return status;
 }
@@ -229,6 +229,7 @@ idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t const r
     case idigi_firmware_target_reset:
         status =  firmware_reset((idigi_fw_config_t *) request_data);
         break;
+
     }
 
     return status;
