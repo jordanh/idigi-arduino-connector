@@ -27,6 +27,8 @@
 #ifndef _PLATFORM_H
 #define _PLATFORM_H
 
+#include <stdio.h>
+
 #define APP_DEBUG  printf
 
 /* Callbacks for this platform */
