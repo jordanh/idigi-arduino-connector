@@ -53,10 +53,9 @@
      */
 
 
-#ifdef _LITTLE_ENDIAN
+#if defined(IDIGI_LITTLE_ENDIAN)
 
 /* These are the definitions for LITTLE_ENDIAN */
-
 #define TO_LE32(x)	(x)
 #define TO_LE16(x)  	(x)
 #define FROM_LE32(x)	(x)
@@ -85,8 +84,7 @@
 
 #define WE16cpy(dst, src, n)    (memcpy((dst), (src), (n)))
 
-#else /* !_LITTLE_ENDIAN */
-
+#else /* !IDIGI_LITTLE_ENDIAN */
 /* These are the definitions for BIG_ENDIAN */
 
 #define TO_LE32(x)	(swap32(x))
@@ -119,7 +117,7 @@
 /* NOTE: If n is odd, this will write one byte past the end! */
 extern void WE16cpy(void *dst, void *src, int n);
 
-#endif /* _LITTLE_ENDIAN */
+#endif /* IDIGI_LITTLE_ENDIAN */
 
 /* NOTE: the do{}while constructs in the macros below are a nice way to combine
    multiple C statements into a single statement.  This allows these macros to
