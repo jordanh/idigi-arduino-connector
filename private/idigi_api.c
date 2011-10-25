@@ -29,7 +29,7 @@
 #include "os_intf.c"
 #include "network_intf.c"
 #include "idigi_cc.c"
-#if defined(_FIRMWARE_FACILITY)
+#if defined(IDIGI_FIRMWARE_SERVICE)
 #include "idigi_fw.c"
 #endif
 #if defined(IDIGI_DATA_SERVICE)
@@ -63,7 +63,7 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
         void * handle;
 
         /* allocate idk data */
-        status = malloc_cb(callback, sizeof(idigi_data_t), &handle);
+        status = malloc_cb(callback, sizeof *idigi_handle, &handle);
         if (status != idigi_callback_continue)
         {
             goto done;
@@ -76,10 +76,13 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
     reset_initial_data(idigi_handle);
     idigi_handle->callback = callback;
     idigi_handle->facility_list = NULL;
-    idigi_handle->network_handle = NULL;
     idigi_handle->facilities = 0;
     idigi_handle->network_busy = false;
     idigi_handle->edp_connected = false;
+    idigi_handle->network_connected = false;
+
+    idigi_handle->send_packet.packet_buffer.in_use = false;
+    idigi_handle->receive_packet.packet_buffer.in_use = false;
     idigi_handle->receive_packet.packet_buffer.next = NULL;
 
 
@@ -237,7 +240,7 @@ idigi_status_t idigi_step(idigi_handle_t const handle)
         };
     }
 
-#if (defined IDIGI_DATA_SERVICE)
+#if defined(IDIGI_DATA_SERVICE)
     /* process any messagaing facility data */
     if (idigi_handle->edp_connected)
     {
@@ -336,7 +339,7 @@ idigi_status_t idigi_initiate_action(idigi_handle_t const handle, idigi_initiate
         result = idigi_success;
         break;
 
-#if (defined IDIGI_DATA_SERVICE)
+#if defined(IDIGI_DATA_SERVICE)
     case idigi_initiate_data_service:
         if (idigi_ptr->edp_connected)
         {
