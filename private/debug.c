@@ -22,10 +22,7 @@
  * =======================================================================
  *
  */
-
-//#if defined(DEBUG)
-#if DEBUG
-#include "idigi_def.h"
+#if defined(IDIGI_DEBUG)
 
 typedef struct malloc_stats{
     void const * ptr;
@@ -95,7 +92,7 @@ static void del_malloc_stats(void const * const ptr)
 
 static void DEBUG_PRINTF(char const * const format, ...)
 {
-#if defined(DEBUG)
+#if defined(IDIGI_DEBUG)
     va_list args;
 
     va_start(args, format);
