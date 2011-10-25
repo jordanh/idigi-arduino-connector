@@ -28,9 +28,12 @@
 
 #include "ei_packet.h"
 
+#define MSG_MAX_RECV_PACKET_SIZE 1600
+#define MSG_MAX_SEND_PACKET_SIZE 512
+
 #define ON_FALSE_DO_(cond, code)        do { if (!(cond)) {code;} } while (0)
 
-#if defined(DEBUG)
+#if defined(IDIGI_DEBUG)
 #define ON_ASSERT_DO_(cond, code, output)   ON_FALSE_DO_((cond), {ASSERT(cond); code;})
 #else
 #define ON_ASSERT_DO_(cond, code, output)   ON_FALSE_DO_((cond), {code})
@@ -41,12 +44,11 @@
 #define UNUSED_PARAMETER(x)     ((void)x)
 
 #define EDP_MT_VERSION      2
-#define MSG_MAX_PACKET_SIZE 1600
 
 #define DEVICE_TYPE_LENGTH  32
 #define DEVICE_ID_LENGTH    16
 #define VENDOR_ID_LENGTH    4
-#define SERVER_URL_LENGTH   255
+#define SERVER_URL_LENGTH   64
 #define MAC_ADDR_LENGTH     6
 
 /* these are limits for Tx and Rx keepalive
@@ -67,7 +69,7 @@
 
 #define URL_PREFIX  "en://"
 #define GET_PACKET_DATA_POINTER(p, s)   (uint8_t *)(((uint8_t *)p) + (s))
-#define IS_SEND_PENDING(idigi_ptr)      (idigi_ptr->network_handle != NULL && idigi_ptr->send_packet.total_length > 0)
+#define IS_SEND_PENDING(idigi_ptr)      (idigi_ptr->network_connected && idigi_ptr->send_packet.total_length > 0)
 
 #define asizeof(array)  (sizeof array/sizeof array[0])
 
@@ -146,9 +148,9 @@ typedef struct idigi_facility {
 } idigi_facility_t;
 
 typedef struct idigi_buffer {
-    uint8_t buffer[MSG_MAX_PACKET_SIZE];
-    uint16_t facility;
+    uint8_t buffer[MSG_MAX_RECV_PACKET_SIZE];
     struct idigi_buffer * next;
+    bool    in_use;
 } idigi_buffer_t;
 
 typedef struct idigi_data {
@@ -166,25 +168,29 @@ typedef struct idigi_data {
     idigi_facility_t * active_facility;
     idigi_facility_t * facility_list;
 
-    idigi_network_handle_t * network_handle;
+    idigi_network_handle_t network_handle;
 
     idigi_callback_t callback;
 
     idigi_active_state_t active_state;
-   idigi_edp_state_t edp_state;
-   idigi_status_t error_code;
+    idigi_edp_state_t edp_state;
+    idigi_status_t error_code;
 
-   unsigned layer_state;
-   unsigned request_id;
-   uint16_t facilities;
-   bool network_busy;
-   bool edp_connected;
+    unsigned layer_state;
+    unsigned request_id;
+    uint16_t facilities;
+    bool network_connected;
+    bool network_busy;
+    bool edp_connected;
 
-   char server_url[SERVER_URL_LENGTH];
-   size_t server_url_length;
-   uint8_t rx_keepalive_packet[PACKET_EDP_HEADER_SIZE];
-   struct {
-        idigi_buffer_t packet_buffer;
+    char server_url[SERVER_URL_LENGTH];
+    size_t server_url_length;
+    uint8_t rx_keepalive_packet[PACKET_EDP_HEADER_SIZE];
+    struct {
+        struct {
+            uint8_t buffer[MSG_MAX_SEND_PACKET_SIZE];
+            bool in_use;
+        } packet_buffer;
         uint8_t * ptr;
         size_t bytes_sent;
         size_t total_length;
