@@ -40,7 +40,7 @@
 typedef idigi_callback_status_t (* idigi_facility_table_t)(struct idigi_data * const idigi_ptr);
 
 typedef struct {
-    idigi_config_request_t facility;
+    idigi_request_t request_id;
     idigi_facility_table_t init_cb;
     idigi_facility_table_t delete_cb;
     idigi_facility_table_t cleanup_cb;
@@ -55,14 +55,14 @@ typedef struct {
  */
 static idigi_facility_init_t const idigi_supported_facility_table[] = {
         /* mandatory facilities */
-        {MANDATORY_FACILITY, idigi_facility_cc_init, idigi_facility_cc_delete, idigi_facility_cc_cleanup},
+        {{MANDATORY_FACILITY}, idigi_facility_cc_init, idigi_facility_cc_delete, idigi_facility_cc_cleanup},
 
         /* list of optional facilities */
-#if defined(_FIRMWARE_FACILITY)
-        {idigi_config_firmware_facility, idigi_facility_firmware_init, idigi_facility_firmware_delete, NULL},
+#if defined(IDIGI_FIRMWARE_SERVICE)
+        {{idigi_config_firmware_facility}, idigi_facility_firmware_init, idigi_facility_firmware_delete, NULL},
 #endif
 #if defined(IDIGI_DATA_SERVICE)
-        {idigi_config_data_service, idigi_facility_data_service_init, idigi_facility_data_service_delete, idigi_facility_data_service_cleanup}
+        {{idigi_config_data_service}, idigi_facility_data_service_init, idigi_facility_data_service_delete, idigi_facility_data_service_cleanup}
 #endif
 };
 
@@ -166,7 +166,6 @@ static idigi_callback_status_t discovery_facility_layer(idigi_data_t * const idi
 
     for (;fac_ptr != NULL && status == idigi_callback_continue; fac_ptr = fac_ptr->next)
     {
-        DEBUG_PRINTF("Discovery Facility layer: 0x%x\n", fac_ptr->facility_num);
         if (fac_ptr->discovery_cb != NULL)
         {   /* function to send facility discovery */
             status = fac_ptr->discovery_cb(idigi_ptr, fac_ptr->facility_data, NULL);
@@ -194,13 +193,33 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
     */
     for (i=0; i < asizeof(idigi_edp_init_config_ids); i++)
     {
-        void * data = NULL;
+        void * data;
+        void * server_url = NULL;
         size_t length;
         idigi_request_t request_id;
 
         request_id.config_request = idigi_edp_init_config_ids[i];
+        switch (request_id.config_request)
+        {
+        case idigi_config_server_url:
+            data = &server_url;
+            break;
+        case idigi_config_tx_keepalive:
+            data = &idigi_ptr->tx_keepalive_interval;
+            break;
+        case idigi_config_rx_keepalive:
+            data = &idigi_ptr->rx_keepalive_interval;
+            break;
+        case idigi_config_wait_count:
+            data = &idigi_ptr->wait_count;
+            break;
+        default:
+            assert(false);
+            break;
+        }
 
-        status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &data, &length);
+
+        status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, data, &length);
         if (status != idigi_callback_continue)
         {
             /* set error code if it has not been set */
@@ -215,22 +234,21 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
             goto done;
         }
 
-        if (data == NULL)
-        {
-            /* callback cannot return */
-            idigi_ptr->error_code = idigi_invalid_data;
-            goto error;
-        }
-
         switch(request_id.config_request)
         {
         case idigi_config_server_url:
+            if (server_url == NULL)
+            {
+                /* callback cannot return */
+                idigi_ptr->error_code = idigi_invalid_data;
+                goto error;
+            }
             if ((length == 0) || (length > SERVER_URL_LENGTH))
             {
                 idigi_ptr->error_code = idigi_invalid_data_range;
                 goto error;
             }
-            memcpy(idigi_ptr->server_url, data, length);
+            memcpy(idigi_ptr->server_url, server_url, length);
             idigi_ptr->server_url_length = length;
             break;
 
@@ -247,12 +265,6 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
                 idigi_ptr->error_code = idigi_invalid_data_range;
                 goto error;
             }
-
-            {
-                uint16_t * const store_at = is_tx ? &idigi_ptr->tx_keepalive_interval : &idigi_ptr->rx_keepalive_interval;
-
-                *store_at = *value;
-            }
             break;
         }
 
@@ -267,7 +279,6 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
                 idigi_ptr->error_code = idigi_invalid_data_range;
                 goto error;
             }
-            idigi_ptr->wait_count = *value;
             break;
         }
         default:
@@ -308,29 +319,24 @@ static idigi_callback_status_t layer_get_supported_facilities(idigi_data_t * con
 
     for (i=0; i < idigi_facility_count; i++)
     {
-        idigi_request_t request_id;
+        idigi_request_t const request_id = idigi_supported_facility_table[i].request_id;
         size_t length;
-        bool facility_enable = true;
+        bool facility_enable = (request_id.config_request == (idigi_config_request_t)MANDATORY_FACILITY) ? true : false;
 
-        request_id.config_request = idigi_supported_facility_table[i].facility;
         if (request_id.config_request != (idigi_config_request_t)MANDATORY_FACILITY)
         {   /* this is optional facility so ask application whether it supports this facility */
             status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &facility_enable, &length);
-            if (status != idigi_callback_continue)
+            if (status == idigi_callback_abort)
             {
-                if (status == idigi_callback_unrecognized)
-                {
-                    facility_enable = false;
-                }
-                else if (status != idigi_callback_busy)
-                {
-                    DEBUG_PRINTF("initialize_facilities: callback returns %d on facility= %d\n", status, request_id.config_request);
-                    idigi_ptr->error_code = idigi_configuration_error;
-                    status = idigi_callback_abort;
-                }
+                DEBUG_PRINTF("initialize_facilities: callback returns %d on facility= %d\n", status, request_id.config_request);
+                idigi_ptr->error_code = idigi_configuration_error;
+                status = idigi_callback_abort;
                 break;
             }
-
+            else if (status == idigi_callback_busy)
+            {
+                break;
+            }
         }
 
         if (facility_enable)
@@ -407,7 +413,7 @@ enum edp_version {
      *  -------------------------
     */
 
-    packet = get_packet_buffer(idigi_ptr, E_MSG_MT2_MSG_NUM, &edp_version);
+    packet = get_packet_buffer(idigi_ptr, E_MSG_MT2_MSG_NUM, &edp_version, NULL);
     if (packet != NULL)
     {
         message_store_be32(edp_version, version, version);
@@ -452,7 +458,7 @@ enum {
         break;
 
     case communication_connect_server:
-        if (idigi_ptr->network_handle == NULL)
+        if (!idigi_ptr->network_connected)
         {
             status = connect_server(idigi_ptr, idigi_ptr->server_url, idigi_ptr->server_url_length);
         }
@@ -571,7 +577,7 @@ enum {
 
         DEBUG_PRINTF("communication layer: send keepalive params \n");
 
-        packet = get_packet_buffer(idigi_ptr, E_MSG_MT2_MSG_NUM, &start_ptr);
+        packet = get_packet_buffer(idigi_ptr, E_MSG_MT2_MSG_NUM, &ptr, NULL);
         ptr = (uint8_t *)packet;
         start_ptr = ptr;
 
@@ -695,7 +701,7 @@ enum {
      * 3. sends server URL
      * 4. sends password if identity verification form is PASSWORD identity
      */
-    edp_header = get_packet_buffer(idigi_ptr, E_MSG_MT2_MSG_NUM, &start_ptr);
+    edp_header = get_packet_buffer(idigi_ptr, E_MSG_MT2_MSG_NUM, &start_ptr, NULL);
     if (edp_header == NULL)
     {
         goto done;
@@ -836,7 +842,7 @@ enum {
     */
     if (idigi_ptr->layer_state != discovery_facility)
     {
-        edp_header = get_packet_buffer(idigi_ptr, E_MSG_MT2_MSG_NUM, &start_ptr);
+        edp_header = get_packet_buffer(idigi_ptr, E_MSG_MT2_MSG_NUM, &start_ptr, NULL);
         if (edp_header == NULL)
         {
             goto done;
