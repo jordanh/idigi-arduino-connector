@@ -243,12 +243,11 @@ static idigi_callback_status_t add_facility_data(idigi_data_t * const idigi_ptr,
     idigi_facility_t * facility;
     void * ptr;
     size_t const facility_size = sizeof *facility;
-    idigi_buffer_t * buffer_ptr;
 
     /* allocate facility data and buffer*/
 
     *fac_ptr = NULL;
-    status = malloc_data(idigi_ptr, size + facility_size + sizeof *buffer_ptr, &ptr);
+    status = malloc_data(idigi_ptr, size + facility_size, &ptr);
     if (status == idigi_callback_continue)
     {
 
@@ -265,12 +264,6 @@ static idigi_callback_status_t add_facility_data(idigi_data_t * const idigi_ptr,
         /* setup facility data which is at the end of idigi_facility_t */
         facility->facility_data = facility + 1;
          *fac_ptr = facility->facility_data;
-
-        /* set up an additional receive buffer to the idigi_data_t */
-        buffer_ptr = (idigi_buffer_t *)((char *)facility->facility_data + size);
-
-        buffer_ptr->next = idigi_ptr->receive_packet.packet_buffer.next;
-        idigi_ptr->receive_packet.packet_buffer.next = buffer_ptr;
     }
 
     return status;
