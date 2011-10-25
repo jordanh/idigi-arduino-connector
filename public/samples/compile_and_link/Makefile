@@ -31,17 +31,17 @@ PUBLIC_HEADER_DIR=../../include
 
 vpath $(IDIGI_DIR)/%.c
 
-CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -std=c99 -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR)
+CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -pedantic -std=c99 -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR)
 CFLAGS += -D_LITTLE_ENDIAN
 
 OBJS = main.o $(IDIGI_DIR)/idigi_api.o
-LIBS = -lc
+LIBS = -lc -lz
 
 SAMPLE = idigi
 all: $(SAMPLE)
 
 main.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h
-$(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(IDIGI_DIR)/idigi_def.h
+$(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PUBLIC_HEADER_DIR)/config.h $(IDIGI_DIR)/idigi_def.h $(IDIGI_DIR)/bele.h
 
 $(OBJS): *.c $(IDIGI_DIR)/*.c
 
