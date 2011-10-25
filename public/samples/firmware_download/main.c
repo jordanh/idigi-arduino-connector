@@ -28,12 +28,12 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "idigi_data.h"
+#include "idigi_api.h"
+#include "platform.h"
 
-#define STEP_DELAY_IN_MS  100
-
-device_data_t device_data;
-
+extern idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t const request,
+                                                  void * const request_data, size_t const request_length,
+                                                  void * response_data, size_t * const response_length);
 
 idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
                                     void * const request_data, size_t const request_length,
@@ -55,9 +55,6 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
     case idigi_class_firmware:
         status = idigi_firmware_callback(request_id.firmware_request, request_data, request_length, response_data, response_length);
         break;
-    case idigi_class_data_service:
-        status = idigi_data_service_callback(request_id.data_service_request, request_data, request_length, response_data, response_length);
-        break;
     default:
         /* not supported */
         break;
@@ -66,62 +63,20 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
 }
 
 
-idigi_status_t data_service_process_device_response(void);
 
 int main (void)
 {
-    idigi_status_t status = idigi_success;
+    idigi_status_t status;
+    idigi_handle_t handle;
 
-    time(&device_data.start_system_up_time);
-    device_data.idigi_handle = NULL;
-    device_data.select_data = 0;
-    device_data.connected = false;
-    device_data.socket_fd = INADDR_NONE;
+    APP_DEBUG("Starting iDigi\n");
+    handle = idigi_init((idigi_callback_t)idigi_callback);
 
-    DEBUG_PRINTF("Starting iDigi\n");
-    device_data.idigi_handle = idigi_init((idigi_callback_t) idigi_callback);
-    if (device_data.idigi_handle != 0)
+    if (handle != NULL)
     {
-
-        while (status == idigi_success)
-        {
-            struct timeval delay = { .tv_sec = 0, .tv_usec = STEP_DELAY_IN_MS };
-            status = idigi_step(device_data.idigi_handle);
-            device_data.select_data = 0;
-
-            if (status == idigi_success)
-            {
-                if (device_data.socket_fd != (int)INADDR_NONE)
-                {
-                    device_data.select_data |= NETWORK_TIMEOUT_SET | NETWORK_READ_SET;
-                    network_select(device_data.socket_fd, device_data.select_data, &delay);
-#if (defined IDIGI_DATA_SERVICE)
-                    if (device_data.connected)
-                    {
-                        status = initiate_data_service(device_data.idigi_handle);
-                        if (status != idigi_success)
-                        {
-                            DEBUG_PRINTF("initiate_data_service fails %d\n", status);
-                            status = idigi_success; /* continue to run IIK */
-                        }
-                    }
-#endif
-                }
-                else
-                {
-                    sleep(1);
-                }
-            }
-            else if (status != idigi_device_terminated)
-            {
-                /* let's terminate IIK. Must execute idigi_step to terminate itself. */
-                status = idigi_initiate_action(device_data.idigi_handle, idigi_initiate_terminate, NULL, NULL);
-
-            }
-        }
-        DEBUG_PRINTF("idigi status = %d\n", status);
+        status = idigi_run(handle);
     }
 
-    DEBUG_PRINTF("iDigi stopped running!\n");
+    APP_DEBUG("iDigi stopped running status = [%d]\n", status);
     return 0;
 }
