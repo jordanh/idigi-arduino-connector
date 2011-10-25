@@ -26,14 +26,14 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
-#define LITTLE_ENDIAN 1
+#define IDIGI_LITTLE_ENDIAN
 
-#define DEBUG 1
+#define IDIGI_DEBUG
 
-#define FACILITY_FW 1
+#define IDIGI_FIRMWARE_SERVICE
 
-#define COMPRESSION 1
+#define IDIGI_COMPRESSION
 
-#define DATA_SERVICE 1
+#define IDIGI_DATA_SERVICE
 
 #endif
