@@ -31,6 +31,8 @@
 #define MSG_MAX_RECV_PACKET_SIZE 1600
 #define MSG_MAX_SEND_PACKET_SIZE 512
 
+#define UNUSED_PARAMETER(x)     ((void)x)
+
 #define ON_FALSE_DO_(cond, code)        do { if (!(cond)) {code;} } while (0)
 
 #if defined(IDIGI_DEBUG)
@@ -168,7 +170,7 @@ typedef struct idigi_data {
     idigi_facility_t * active_facility;
     idigi_facility_t * facility_list;
 
-    idigi_network_handle_t network_handle;
+    idigi_network_handle_t * network_handle;
 
     idigi_callback_t callback;
 
