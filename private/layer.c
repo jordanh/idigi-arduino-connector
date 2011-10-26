@@ -1140,7 +1140,11 @@ error:
                     {
                         break;
                     }
-               }
+                }
+                else if (status == idigi_callback_unrecognized)
+                {
+                    status = idigi_callback_continue;
+                }
 
             }
         }/* for */
