@@ -421,7 +421,7 @@ typedef struct  {
 * Write request structure for idigi_network_send callback which is called to send data to iDigi server.
 */
 typedef struct  {
-    idigi_network_handle_t network_handle;    /**< Pointer to network handle associated with a connection through the idigi_network_connect callback */
+    idigi_network_handle_t * network_handle;    /**< Pointer to network handle associated with a connection through the idigi_network_connect callback */
     uint8_t const * buffer;                     /**< Pointer to data to be sent */
     size_t length;                              /**< Number of bytes of data to be sent */
     unsigned timeout;                           /**< Timeout value in seconds which callback must return. This allows IIK to maintenance keepalive process and send process. */
@@ -441,7 +441,7 @@ typedef struct  {
 * a specified number of bytes data from the iDigi server.
 */
 typedef struct  {
-    idigi_network_handle_t network_handle;    /**< Pointer to network handle associated with a connection through the idigi_network_connect callback */
+    idigi_network_handle_t * network_handle;    /**< Pointer to network handle associated with a connection through the idigi_network_connect callback */
     uint8_t * buffer;                           /**< Pointer to memory where callback writes recieved data to */
     size_t length;                              /**< Number of bytes to be received */
     unsigned timeout;                           /**< Timeout value in seconds which callback must return. This allows IIK to maintenance keepalive process and send process. */
