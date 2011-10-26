@@ -65,11 +65,11 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
         break;
 
     case idigi_callback_unrecognized:
-       DEBUG_PRINTF("idigi_callback : callback returns unrecognized request for request=%d class_id = %d which iDigi requires for this version\n",
+       idigi_debug("idigi_callback : callback returns unrecognized request for request=%d class_id = %d which iDigi requires for this version\n",
                         request_id.config_request, class_id);
         break;
     case idigi_callback_abort:
-        DEBUG_PRINTF("idigi_callback: callback for class id = %d request id = %d returned abort\n", class_id, request_id.config_request);
+        idigi_debug("idigi_callback: callback for class id = %d request id = %d returned abort\n", class_id, request_id.config_request);
         break;
     default:
     {
@@ -81,7 +81,7 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
         err_status.request_id = request_id;
         err_status.status = idigi_invalid_response;
 
-        DEBUG_PRINTF("idigi_callback: callback for class id = %d request id = %d returned invalid return code %d\n", class_id, request_id.config_request, status);
+        idigi_debug("idigi_callback: callback for class id = %d request id = %d returned invalid return code %d\n", class_id, request_id.config_request, status);
         callback(idigi_class_config, err_id, &err_status, sizeof err_status, NULL, NULL);
         status = idigi_callback_abort;
         break;
