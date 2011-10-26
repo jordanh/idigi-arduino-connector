@@ -36,8 +36,6 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-static bool idigi_connected = false;
-
 static bool dns_resolve_name(char const * const domain_name, in_addr_t * ip_addr)
 {
     bool rc=false;
@@ -76,16 +74,16 @@ done:
     return rc;
 }
 
-static idigi_callback_status_t network_connect(char const * const host_name, size_t const length, idigi_network_handle_t * network_handle)
+static idigi_callback_status_t network_connect(char const * const host_name, size_t const length, idigi_network_handle_t ** network_handle)
 {
     idigi_callback_status_t rc = idigi_callback_abort;
     struct timeval timeout = {1, 0};
     int opt=1, result;
     fd_set read_set;
     fd_set write_set;
-    int fd = *network_handle;
+    static int fd = -1;
 
-    if (!idigi_connected)
+    if (fd == -1)
     {
         int ccode;
         char server_name[64];
@@ -160,7 +158,6 @@ static idigi_callback_status_t network_connect(char const * const host_name, siz
     {
         goto done;
     }
-    idigi_connected = true;
 
     if (result == 0)
     {
@@ -180,7 +177,7 @@ static idigi_callback_status_t network_connect(char const * const host_name, siz
             APP_DEBUG("network_connect: error to connect to %.*s server\n", length, host_name);
             goto done;
         }
-        *network_handle = fd;
+        *network_handle = &fd;
         rc = idigi_callback_continue;
         APP_DEBUG("network_connect: connected to [%.*s] server\n", length, host_name);
     }
@@ -188,7 +185,6 @@ static idigi_callback_status_t network_connect(char const * const host_name, siz
 done:
     if ((rc == idigi_callback_abort) && (fd >= 0))
     {
-        idigi_connected = false;
         close(fd);
         fd = -1;
     }
@@ -207,7 +203,7 @@ static idigi_callback_status_t network_send(idigi_write_request_t const * const 
     idigi_callback_status_t rc = idigi_callback_continue;
     int ccode;
 
-    ccode = send(write_data->network_handle, (char *)write_data->buffer,
+    ccode = send(*write_data->network_handle, (char *)write_data->buffer,
                  write_data->length, 0);
     if (ccode < 0) 
     {
@@ -244,23 +240,23 @@ static idigi_callback_status_t network_receive(idigi_read_request_t * read_data,
     *read_length = 0;
 
     FD_ZERO(&read_set);
-    FD_SET(read_data->network_handle, &read_set);
+    FD_SET(*read_data->network_handle, &read_set);
 
     /* Blocking point for IIK */
-    ccode = select(read_data->network_handle+1, &read_set, NULL, NULL, &timeout);
+    ccode = select(*read_data->network_handle+1, &read_set, NULL, NULL, &timeout);
     if (ccode < 0)
     {
         goto done;
     }
 
-    if (!FD_ISSET(read_data->network_handle, &read_set))
+    if (!FD_ISSET(*read_data->network_handle, &read_set))
     {
         rc = idigi_callback_busy;
         APP_DEBUG("network_connect: select timeout\r\n");
         perror("network_connect: select");
         goto done;
     }
-    ccode = recv(read_data->network_handle, (char *)read_data->buffer, (int)read_data->length, 0);
+    ccode = recv(*read_data->network_handle, (char *)read_data->buffer, (int)read_data->length, 0);
 
     if (ccode == 0)
     {
@@ -311,7 +307,7 @@ static idigi_callback_status_t network_close(idigi_network_handle_t * const fd)
         perror("network_close: close() failed");
     }
 
-    idigi_connected = false;
+    *fd = -1;
 
     return status;
 }
@@ -346,7 +342,7 @@ idigi_callback_status_t idigi_network_callback(idigi_network_request_t const req
     switch (request)
     {
     case idigi_network_connect:
-        status = network_connect((char *)request_data, request_length, (idigi_network_handle_t *)response_data);
+        status = network_connect((char *)request_data, request_length, (idigi_network_handle_t **)response_data);
         *response_length = sizeof(idigi_network_handle_t);
         break;
 
