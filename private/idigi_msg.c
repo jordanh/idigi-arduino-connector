@@ -180,8 +180,8 @@ typedef struct msg_data_block_t
     size_t available_window;
     size_t ack_count;
 #if (defined IDIGI_COMPRESSION)
-    uint8_t  buffer_in[MSG_MAX_PACKET_SIZE];
-    uint8_t  buffer_out[MSG_MAX_PACKET_SIZE];
+    uint8_t  buffer_in[MSG_MAX_RECV_PACKET_SIZE];
+    uint8_t  buffer_out[MSG_MAX_RECV_PACKET_SIZE];
     size_t   bytes_out;
     int      z_flag;
     z_stream zlib;
@@ -211,7 +211,7 @@ typedef struct
     unsigned int flag;
 } msg_service_request_t;
 
-typedef idigi_callback_status_t idigi_msg_callback_t(idigi_data_t * const idigi_ptr, msg_service_request_t * const request);
+typedef idigi_callback_status_t idigi_msg_callback_t(idigi_data_t * const idigi_ptr, msg_service_request_t * const service_data);
 
 typedef struct 
 {
@@ -462,7 +462,7 @@ static idigi_callback_status_t msg_send_error(idigi_data_t * const idigi_ptr, id
     uint8_t * error_packet;
     uint8_t * edp_header;
 
-    edp_header = get_packet_buffer(idigi_ptr, E_MSG_FAC_FW_NUM, &error_packet);
+    edp_header = get_packet_buffer(idigi_ptr, E_MSG_FAC_MSG_NUM, &error_packet, NULL);
     if (edp_header == NULL)
     {
         status = idigi_callback_busy;
@@ -472,13 +472,7 @@ static idigi_callback_status_t msg_send_error(idigi_data_t * const idigi_ptr, id
     message_store_u8(error_packet, opcode, msg_opcode_error);
     message_store_u8(error_packet, flags, flag);
     message_store_be16(error_packet, transaction_id, session_id);
-
-    {
-        uint8_t const error = error_value;
-
-        ASSERT_GOTO(error_value < idigi_msg_error_count, done);
-        message_store_u8(error_packet, error_code, error);
-    }
+    message_store_u8(error_packet, error_code, error_value);
 
     status = initiate_send_facility_packet(idigi_ptr, edp_header, record_end(error_packet), E_MSG_FAC_MSG_NUM, release_packet_buffer, NULL);
     if ((status != idigi_callback_busy) && (session != NULL))
@@ -492,11 +486,11 @@ static idigi_callback_status_t msg_send_capabilities(idigi_data_t * const idigi_
 {
     idigi_callback_status_t status = idigi_callback_busy;
     uint8_t * capabilty_packet = NULL;
-    uint8_t * packet = get_packet_buffer(idigi_ptr, E_MSG_FAC_MSG_NUM, &capabilty_packet);
+    uint8_t * edp_header = get_packet_buffer(idigi_ptr, E_MSG_FAC_MSG_NUM, &capabilty_packet, NULL);
     size_t packet_len = record_bytes(capabilty_packet);
     uint8_t * variable_data_ptr = capabilty_packet + packet_len;
 
-    if ((packet == NULL) || (capabilty_packet == NULL))
+    if ((edp_header == NULL) || (capabilty_packet == NULL))
         goto error;
 
     /*
@@ -544,7 +538,7 @@ static idigi_callback_status_t msg_send_capabilities(idigi_data_t * const idigi_
     }
 
     packet_len = variable_data_ptr - capabilty_packet;
-    status = initiate_send_facility_packet(idigi_ptr, packet, packet_len, E_MSG_FAC_MSG_NUM, release_packet_buffer, NULL);
+    status = initiate_send_facility_packet(idigi_ptr, edp_header, packet_len, E_MSG_FAC_MSG_NUM, release_packet_buffer, NULL);
 
 error:
     return status;
@@ -792,9 +786,10 @@ static idigi_callback_status_t msg_get_service_data(idigi_data_t * const idigi_p
 {
     uint8_t * msg_buffer;
     idigi_callback_status_t status = idigi_callback_abort;
-    uint8_t * const edp_packet = get_packet_buffer(idigi_ptr, E_MSG_FAC_FW_NUM, &msg_buffer);
+    size_t bytes_in_buffer;
+    uint8_t * const edp_packet = get_packet_buffer(idigi_ptr, E_MSG_FAC_MSG_NUM, &msg_buffer, &bytes_in_buffer);
     size_t const header_bytes = MsgIsStart(session->status_flag) ? record_end(start_packet) : record_end(data_packet);
-    size_t const available_bytes = MSG_MAX_PACKET_SIZE - (PACKET_EDP_FACILITY_SIZE + header_bytes);
+    size_t const available_bytes = bytes_in_buffer - header_bytes;
     msg_service_request_t service_data;
 
     if (edp_packet == NULL)
@@ -872,7 +867,7 @@ static idigi_callback_status_t msg_send_ack(idigi_data_t * const idigi_ptr, idig
 {
     idigi_callback_status_t status = idigi_callback_busy;
     uint8_t * ack_packet;
-    uint8_t * const edp_packet = get_packet_buffer(idigi_ptr, E_MSG_FAC_FW_NUM, &ack_packet);
+    uint8_t * const edp_packet = get_packet_buffer(idigi_ptr, E_MSG_FAC_MSG_NUM, &ack_packet, NULL);
 
     if (edp_packet == NULL)
         goto done;
