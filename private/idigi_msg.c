@@ -292,7 +292,7 @@ static msg_session_t * msg_create_session(idigi_data_t * const idigi_ptr, idigi_
         #define MSG_UNLIMITED_TRANSACTIONS  0
         if ((max_transactions != MSG_UNLIMITED_TRANSACTIONS) && (active_transactions >= max_transactions))
         {
-            DEBUG_PRINTF("msg_create_session: active transactions %d > max transactions %d\n", active_transactions, max_transactions);            
+            idigi_debug("msg_create_session: active transactions %d > max transactions %d\n", active_transactions, max_transactions);
             ASSERT(client_owned); /* server should not send more than client's max transactions */
             goto done;
         }
@@ -1315,7 +1315,7 @@ static idigi_callback_status_t msg_process_error(idigi_data_t * const idigi_ptr,
     }
     else
     {
-        DEBUG_PRINTF("msg_process_error: unable to find session id = %d\n", session_id);
+        idigi_debug("msg_process_error: unable to find session id = %d\n", session_id);
     }
     
     return status;
@@ -1431,7 +1431,7 @@ static idigi_callback_status_t msg_process(idigi_data_t * const idigi_ptr, void 
                 break;
     
             default:            
-                DEBUG_PRINTF("msg_process: Invalid opcode\n");
+                idigi_debug("msg_process: Invalid opcode\n");
                 break;
         }
     }
