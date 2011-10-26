@@ -207,6 +207,22 @@ done:
 }
 static idigi_callback_status_t get_connection_type(idigi_data_t * const idigi_ptr, uint8_t * const connection_type)
 {
+#if defined(IDIGI_CONNECTION_TYPE)
+
+    UNUSED_PARAMETER(idigi_ptr);
+
+    switch (IDIGI_CONNECTION_TYPE)
+    {
+    case idigi_lan_connection_type:
+        *connection_type = ethernet_type;
+        break;
+    case idigi_wan_connection_type:
+        *connection_type = ppp_over_modem_type;
+        break;
+    }
+    return idigi_callback_continue;
+
+#else
     idigi_callback_status_t status;
     idigi_request_t const request_id = {idigi_config_connection_type};
     idigi_status_t error_code = idigi_success;
@@ -251,6 +267,7 @@ static idigi_callback_status_t get_connection_type(idigi_data_t * const idigi_pt
         status = idigi_callback_abort;
     }
     return status;
+#endif
 }
 
 static idigi_callback_status_t get_mac_addr(idigi_data_t * const idigi_ptr, uint8_t * const mac_addr)
@@ -377,12 +394,16 @@ enum cc_connection_info {
         }
         else
         {
+            uint8_t * connection_info = connection_report + record_bytes(connection_report);
+
+#if defined(IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECONDS)
+            message_store_be32(connection_info, link_speed, IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECONDS);
+#else
             /* callback for Link speed for WAN connection type */
             idigi_request_t const request_id = {idigi_config_link_speed};
             /* set for invalid size to cause an error if callback doesn't set it */
             size_t length = sizeof(uint16_t);
             uint32_t * speed = NULL;
-            uint8_t * connection_info = connection_report + record_bytes(connection_report);
 
             status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &speed, &length);
             if (status != idigi_callback_continue)
@@ -400,9 +421,11 @@ enum cc_connection_info {
                 goto error;
             }
             message_store_be32(connection_info, link_speed, *speed);
+#endif
             cc_ptr->report_length += field_named_data(connection_info, link_speed, size);
 
             {
+#if !defined(IDIGI_WAN_PHONE_NUMBER_DIALED)
                 /* callback for phone number for WAN connection type */
                 idigi_request_t const request_id = {idigi_config_phone_number};
                 size_t length = 0;
@@ -423,6 +446,10 @@ enum cc_connection_info {
                     status = idigi_callback_abort;
                     goto error;
                 }
+#else
+                uint8_t const phone[] = {IDIGI_WAN_PHONE_NUMBER_DIALED};
+                size_t const length = sizeof phone;
+#endif
                 memcpy(connection_report+cc_ptr->report_length, phone, length);
                 cc_ptr->report_length += length;
             }
