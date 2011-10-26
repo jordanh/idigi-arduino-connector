@@ -184,7 +184,16 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
     idigi_callback_status_t status = idigi_callback_continue;
 
     static idigi_config_request_t const idigi_edp_init_config_ids[] = {
-            idigi_config_server_url, idigi_config_rx_keepalive, idigi_config_tx_keepalive, idigi_config_wait_count
+            idigi_config_server_url,
+#if !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS)
+            idigi_config_rx_keepalive,
+#endif
+#if !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
+            idigi_config_tx_keepalive,
+#endif
+#if !defined(IDIGI_WAIT_COUNT)
+            idigi_config_wait_count
+#endif
     };
     unsigned i;
 
@@ -231,27 +240,44 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
             idigi_ptr->server_url_length = length;
             break;
 
+#if !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS) || !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
         case idigi_config_tx_keepalive:
         case idigi_config_rx_keepalive:
         {
             uint16_t const * const value = data;
+#if !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS) && !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
             bool const is_tx = (request_id.config_request == idigi_config_tx_keepalive);
             uint16_t const min_interval = is_tx ? MIN_TX_KEEPALIVE_INTERVAL_IN_SECONDS : MIN_RX_KEEPALIVE_INTERVAL_IN_SECONDS;
             uint16_t const max_interval = is_tx ? MAX_TX_KEEPALIVE_INTERVAL_IN_SECONDS : MAX_RX_KEEPALIVE_INTERVAL_IN_SECONDS;
 
+#elif !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS)
+            uint16_t const min_interval = MIN_TX_KEEPALIVE_INTERVAL_IN_SECONDS;
+            uint16_t const max_interval = MAX_TX_KEEPALIVE_INTERVAL_IN_SECONDS;
+
+#elif !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
+            uint16_t const min_interval = MIN_RX_KEEPALIVE_INTERVAL_IN_SECONDS;
+            uint16_t const max_interval = MAX_RX_KEEPALIVE_INTERVAL_IN_SECONDS;
+#endif
             if ((length != sizeof *value) || (*value < min_interval) || (*value > max_interval))
             {
                 idigi_ptr->error_code = idigi_invalid_data_range;
                 goto error;
             }
             {
+#if !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS) && !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
                 uint16_t * const store_at = is_tx ? &idigi_ptr->tx_keepalive_interval : &idigi_ptr->rx_keepalive_interval;
-
+#elif !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS)
+                uint16_t * const store_at = &idigi_ptr->tx_keepalive_interval;
+#elif !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
+                uint16_t * const store_at = &idigi_ptr->rx_keepalive_interval;
+#endif
                 *store_at = *value;
             }
             break;
         }
+#endif
 
+#if !defined(IDIGI_WAIT_COUNT)
         case idigi_config_wait_count:
         {
             uint16_t const * const value = data;
@@ -266,6 +292,7 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
             idigi_ptr->wait_count = *value;
             break;
         }
+#endif
         default:
             /* get these configurations from different modules */
             ASSERT(false);
@@ -555,9 +582,9 @@ enum {
         } keepalive_parameters[3];
 
 #define init_param(i, t, v) keepalive_parameters[i].type = (t); keepalive_parameters[i].value = (v)
-        init_param(0, E_MSG_MT2_TYPE_KA_RX_INTERVAL, idigi_ptr->rx_keepalive_interval);
-        init_param(1, E_MSG_MT2_TYPE_KA_TX_INTERVAL, idigi_ptr->tx_keepalive_interval);
-        init_param(2, E_MSG_MT2_TYPE_KA_WAIT,        idigi_ptr->wait_count);
+        init_param(0, E_MSG_MT2_TYPE_KA_RX_INTERVAL, GET_RX_KEEPALIVE_INTERVAL(idigi_ptr));
+        init_param(1, E_MSG_MT2_TYPE_KA_TX_INTERVAL, GET_TX_KEEPALIVE_INTERVAL(idigi_ptr));
+        init_param(2, E_MSG_MT2_TYPE_KA_WAIT,        GET_WAIT_COUNT(idigi_ptr));
 #undef  init_param
 
         idigi_debug("communication layer: send keepalive params \n");
@@ -857,7 +884,14 @@ enum {
         idigi_debug("discovery layer: send vendor id\n");
         message_store_u8(edp_vendor_msg, security_coding, SECURITY_PROTO_NONE);
         message_store_u8(edp_vendor_msg, opcode, DISC_OP_VENDOR_ID);
+#if !defined(IDIGI_VENDOR_ID)
         message_store_array(edp_vendor_msg, vendor_id, idigi_ptr->vendor_id, VENDOR_ID_LENGTH);
+#else
+        {
+            uint32_t const vendor_id = TO_BE32(IDIGI_VENDOR_ID);
+            message_store_array(edp_vendor_msg, vendor_id, &vendor_id, VENDOR_ID_LENGTH);
+        }
+#endif
 
 
         status = initiate_send_packet(idigi_ptr, edp_header,
