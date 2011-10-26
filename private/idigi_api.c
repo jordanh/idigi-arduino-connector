@@ -22,7 +22,12 @@
  * =======================================================================
  *
  */
-#include "config.h"
+#if IDIGI_VERSION >= 1100L
+  #include "config.h"
+#else
+  #include "options.h"
+#endif
+
 #include "idigi_api.h"
 #include "idigi_def.h"
 #include "bele.h"
@@ -166,7 +171,7 @@ error:
         request_id.config_request = idigi_config_request_ids[i].request;
         /* if error occurs, notify caller then exit the function.
          */
-        DEBUG_PRINTF("idigi_init: base class_id request id = %d callback aborts\n", idigi_config_request_ids[i].request);
+        idigi_debug("idigi_init: base class_id request id = %d callback aborts\n", idigi_config_request_ids[i].request);
         notify_error_status(callback, idigi_class_config, request_id, error_status);
     }
 
