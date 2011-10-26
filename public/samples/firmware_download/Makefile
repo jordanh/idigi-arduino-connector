@@ -33,7 +33,7 @@ PLATFORM_DIR=../../platforms/linux
 vpath $(IDIGI_DIR)/%.c
 vpath $(PLATFORM_DIR)/%.c
 
-CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -pedantic -std=c99 -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR)  -g
+CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=1100L -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR)  -g
 
 OBJS = main.o firmware.o $(IDIGI_DIR)/idigi_api.o $(PLATFORM_DIR)/os.o $(PLATFORM_DIR)/network.o  $(PLATFORM_DIR)/config.o
 LIBS = -lc -lz
