@@ -207,12 +207,12 @@ static idigi_callback_status_t get_keepalive_timeout(idigi_data_t * const idigi_
     if (rx_timeout != NULL)
     {
        /* Get the elapsed time between the configured rx keepalive interval and the last time we sent rx keepalive (last_rx_keepalive_sent_time) */
-        *rx_timeout =  get_elapsed_value(idigi_ptr->rx_keepalive_interval, idigi_ptr->last_rx_keepalive_sent_time, *cur_system_time);
+        *rx_timeout =  get_elapsed_value(GET_RX_KEEPALIVE_INTERVAL(idigi_ptr), idigi_ptr->last_rx_keepalive_sent_time, *cur_system_time);
     }
     if (tx_timeout != NULL)
     {
         /* Get the elapsed time between the configured tx keepalive interval and the last time we received tx keepalive (last_tx_keepalive_received_time) */
-        *tx_timeout =  get_elapsed_value(idigi_ptr->tx_keepalive_interval, idigi_ptr->last_tx_keepalive_received_time, *cur_system_time);
+        *tx_timeout =  get_elapsed_value(GET_TX_KEEPALIVE_INTERVAL(idigi_ptr), idigi_ptr->last_tx_keepalive_received_time, *cur_system_time);
     }
 done:
     return status;
