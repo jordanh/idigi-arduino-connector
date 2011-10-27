@@ -240,14 +240,6 @@ idigi_status_t idigi_step(idigi_handle_t const handle)
         };
     }
 
-#if defined(IDIGI_DATA_SERVICE)
-    /* process any messagaing facility data */
-    if (idigi_handle->edp_connected)
-    {
-        status = msg_process_pending(idigi_handle);
-    }
-#endif
-
     /* process any send data */
     if (status == idigi_callback_continue || status == idigi_callback_busy)
     {
@@ -321,8 +313,6 @@ idigi_status_t idigi_run(idigi_handle_t const handle)
     return rc;
 }
 
-
-
 idigi_status_t idigi_initiate_action(idigi_handle_t const handle, idigi_initiate_request_t const request, void const * const request_data, void  * const response_data)
 {
     idigi_status_t result = idigi_init_error;
@@ -346,13 +336,8 @@ idigi_status_t idigi_initiate_action(idigi_handle_t const handle, idigi_initiate
             result = data_service_initiate(idigi_ptr, request_data, response_data);
         }
         break;
-    case idigi_initiate_data_service_response:
-        if (idigi_ptr->edp_connected)
-        {
-            result = data_service_response_initiate(idigi_ptr, request_data);
-        }
-        break;
 #endif
+
     default:
         ASSERT(false);
         result = idigi_invalid_data;

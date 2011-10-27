@@ -36,6 +36,7 @@
 #define IDIGI_PORT       3197
 #define IDIGI_SSL_PORT   3199
 
+#define IDIGI_VERSION_1100   0x01010000UL
 
  /**
  * @defgroup idigi_status_t idigi_status_t: Status returned by IIK API calls.
@@ -117,7 +118,8 @@ typedef enum {
     idigi_config_ip_addr,           /**< Requesting callback to return device's IP address */
     idigi_config_error_status,      /**< Error status notification which tells callback that error is encountered. */
     idigi_config_firmware_facility, /**< Requesting callback to return whether firmware facility is supported or not. */
-    idigi_config_data_service       /**< Requesting callback to return whether data service is supported or not. */
+    idigi_config_data_service,      /**< Requesting callback to return whether data service is supported or not. */
+    idigi_config_max_transaction    /**< Requesting callback to return whether data service is supported or not. */
 } idigi_config_request_t;
 /**
 * @}
@@ -252,13 +254,19 @@ typedef enum {
 * @}
 */
 
+#if (IDIGI_VERSION < IDIGI_VERSION_1100)
 typedef enum {
     idigi_data_service_send_complete,
     idigi_data_service_response,
-    idigi_data_service_error,
-    idigi_data_service_request,
-    idigi_data_service_max_transactions
+    idigi_data_service_error
 } idigi_data_service_request_t;
+#else
+typedef enum 
+{
+    idigi_data_service_put_request,
+    idigi_data_service_device_request
+} idigi_data_service_request_t;
+#endif
 
 /**
 * @defgroup.
@@ -270,8 +278,7 @@ typedef enum {
 */
 typedef enum {
     idigi_initiate_terminate,               /**< Terminates and stops IIK from running. */
-    idigi_initiate_data_service,            /**< Sends data to iDigi Server, the data is stored in a file on the server. */
-    idigi_initiate_data_service_response
+    idigi_initiate_data_service            /**< Sends data to iDigi Server, the data is stored in a file on the server. */
 } idigi_initiate_request_t;
 
 /**
@@ -571,6 +578,35 @@ typedef struct {
 * @}
 */
 
+typedef enum 
+{
+    idigi_msg_error_none,
+    idigi_msg_error_fatal,
+    idigi_msg_error_invalid_opcode,
+    idigi_msg_error_format,
+    idigi_msg_error_session_in_use,
+    idigi_msg_error_unknown_session,
+    idigi_msg_error_compression_failure,
+    idigi_msg_error_decompression_failure,
+    idigi_msg_error_memory,
+    idigi_msg_error_send,
+    idigi_msg_error_cancel,
+    idigi_msg_error_busy,
+    idigi_msg_error_ack,
+    idigi_msg_error_timeout,
+    idigi_msg_error_no_service,
+    idigi_msg_error_count
+} idigi_msg_error_t;
+
+typedef enum
+{
+    idigi_data_success,
+    idigi_data_bad_request,
+    idigi_data_service_unavailable,
+    idigi_data_server_error
+} idigi_data_status_t;
+
+#if (IDIGI_VERSION < IDIGI_VERSION_1100)
 #define IDIGI_DATA_REQUEST_START        0x0001
 #define IDIGI_DATA_REQUEST_LAST         0x0002
 #define IDIGI_DATA_REQUEST_ARCHIVE      0x0004
@@ -598,14 +634,6 @@ typedef struct
     idigi_data_payload_t payload;
 } idigi_data_request_t;
 
-typedef enum
-{
-    idigi_data_success,
-    idigi_data_bad_request,
-    idigi_data_service_unavailable,
-    idigi_data_server_error
-} idigi_data_status_t;
-
 typedef struct
 {
     void * session;
@@ -621,55 +649,51 @@ typedef struct
     void const * payload;
 } idigi_data_send_t;
 
-typedef enum 
-{
-    idigi_msg_error_none,
-    idigi_msg_error_fatal,
-    idigi_msg_error_invalid_opcode,
-    idigi_msg_error_format,
-    idigi_msg_error_session_in_use,
-    idigi_msg_error_unknown_session,
-    idigi_msg_error_compression_failure,
-    idigi_msg_error_decompression_failure,
-    idigi_msg_error_memory,
-    idigi_msg_error_send,
-    idigi_msg_error_cancel,
-    idigi_msg_error_busy,
-    idigi_msg_error_ack,
-    idigi_msg_error_timeout,
-    idigi_msg_error_no_service,
-    idigi_msg_error_count
-} idigi_msg_error_t;
-
 typedef struct
 {
     void * session;
     idigi_msg_error_t error;
 } idigi_data_error_t;
 
+#else
 
-typedef struct {
-    void * session;
-    char const * target;
-    void const * data;
-    size_t data_length;
-    unsigned int flag;
-    void * user_context;
-} idigi_data_service_device_request_t;
-
-typedef enum {
-    idigi_data_service_success,
-    idigi_data_service_not_handled
-} idigi_data_service_device_response_status_t;
+#define IDIGI_DATA_PUT_ARCHIVE   0x0001
+#define IDIGI_DATA_PUT_APPEND    0x0002
 
 typedef struct
 {
-    void * session;
-    idigi_data_service_device_response_status_t status;
+    char const * path;  /* NUL terminated */
+    char const * content_type;  /* NUL terminated */
+    unsigned int flags; /* archive and/or append */
+    void const * context;
+} idigi_data_put_header_t;
+
+#define IDIGI_MSG_FIRST_DATA     0x0001
+#define IDIGI_MSG_LAST_DATA      0x0002
+
+typedef enum 
+{
+    idigi_data_put_need_data,
+    idigi_data_put_have_data,
+    idigi_data_put_error
+} idigi_data_put_type_t;
+
+typedef struct idigi_data_put_response_t
+{
+    idigi_data_put_type_t response_type;
+    size_t length_in_bytes;
     void const * data;
-    size_t data_length;
-    unsigned int flag;
-} idigi_data_service_device_response_t;
+    unsigned int flags; /* first and/or last data */
+} idigi_data_put_response_t;
+
+typedef struct idigi_data_put_request_t
+{
+    void const * session_handle;
+    idigi_data_put_type_t request_type;
+    void const * header_context;  /* holds idigi_data_put_header_t * provided in initiate_action() */
+} idigi_data_put_request_t;
+
+#endif
 
  /**
  * @defgroup idigi_callback_t idigi_callback_t: IIK application defined callback.

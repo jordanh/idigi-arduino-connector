@@ -1097,30 +1097,26 @@ error:
         /* invoke facility process */
         for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
         {
-            if (fac_ptr->packet != NULL)
-            {
-                status = fac_ptr->process_cb(idigi_ptr, fac_ptr->facility_data, fac_ptr->packet);
-                if (status != idigi_callback_busy)
-                {   /* release the packet when it's done */
-                    release_receive_packet(idigi_ptr, fac_ptr->packet);
-                    fac_ptr->packet = NULL;
-                }
-
-                if (status != idigi_callback_abort)
-                {
-                    uint32_t rx_keepalive;
-                    uint32_t tx_keepalive;
-                    uint32_t current_system_time;
-                    /* check rx_keepalive and tx_keepalive timing */
-                    status =  get_keepalive_timeout(idigi_ptr, &rx_keepalive, &tx_keepalive, &current_system_time);
-                    if (rx_keepalive == 0 || tx_keepalive == 0 || status != idigi_callback_continue)
-                    {
-                        break;
-                    }
-               }
-
+            status = fac_ptr->process_cb(idigi_ptr, fac_ptr->facility_data, fac_ptr->packet);
+            if (status != idigi_callback_busy)
+            {   /* release the packet when it's done */
+                release_receive_packet(idigi_ptr, fac_ptr->packet);
+                fac_ptr->packet = NULL;
             }
-        }/* for */
+
+            if (status != idigi_callback_abort)
+            {
+                uint32_t rx_keepalive;
+                uint32_t tx_keepalive;
+                uint32_t current_system_time;
+                /* check rx_keepalive and tx_keepalive timing */
+                status =  get_keepalive_timeout(idigi_ptr, &rx_keepalive, &tx_keepalive, &current_system_time);
+                if (rx_keepalive == 0 || tx_keepalive == 0 || status != idigi_callback_continue)
+                {
+                    break;
+                }
+           }
+        }
     }
 
     return status;
