@@ -41,7 +41,7 @@ SAMPLE = idigi
 all: $(SAMPLE)
 
 main.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h
-$(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PUBLIC_HEADER_DIR)/config.h $(IDIGI_DIR)/idigi_def.h $(IDIGI_DIR)/bele.h
+$(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PUBLIC_HEADER_DIR)/idigi_config.h $(IDIGI_DIR)/idigi_def.h $(IDIGI_DIR)/bele.h
 
 $(OBJS): *.c $(IDIGI_DIR)/*.c
 
