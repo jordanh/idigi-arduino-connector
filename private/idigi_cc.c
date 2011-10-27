@@ -447,8 +447,8 @@ enum cc_connection_info {
                     goto error;
                 }
 #else
-                uint8_t const phone[] = {IDIGI_WAN_PHONE_NUMBER_DIALED};
-                size_t const length = sizeof phone;
+                uint8_t const phone[] = IDIGI_WAN_PHONE_NUMBER_DIALED;
+                size_t const length = sizeof phone -1;
 #endif
                 memcpy(connection_report+cc_ptr->report_length, phone, length);
                 cc_ptr->report_length += length;
