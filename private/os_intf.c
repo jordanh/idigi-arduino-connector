@@ -65,11 +65,11 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
         break;
 
     case idigi_callback_unrecognized:
-       DEBUG_PRINTF("idigi_callback : callback returns unrecognized request for request=%d class_id = %d which iDigi requires for this version\n",
+       idigi_debug("idigi_callback : callback returns unrecognized request for request=%d class_id = %d which iDigi requires for this version\n",
                         request_id.config_request, class_id);
         break;
     case idigi_callback_abort:
-        DEBUG_PRINTF("idigi_callback: callback for class id = %d request id = %d returned abort\n", class_id, request_id.config_request);
+        idigi_debug("idigi_callback: callback for class id = %d request id = %d returned abort\n", class_id, request_id.config_request);
         break;
     default:
     {
@@ -81,7 +81,7 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
         err_status.request_id = request_id;
         err_status.status = idigi_invalid_response;
 
-        DEBUG_PRINTF("idigi_callback: callback for class id = %d request id = %d returned invalid return code %d\n", class_id, request_id.config_request, status);
+        idigi_debug("idigi_callback: callback for class id = %d request id = %d returned invalid return code %d\n", class_id, request_id.config_request, status);
         callback(idigi_class_config, err_id, &err_status, sizeof err_status, NULL, NULL);
         status = idigi_callback_abort;
         break;
@@ -207,12 +207,12 @@ static idigi_callback_status_t get_keepalive_timeout(idigi_data_t * const idigi_
     if (rx_timeout != NULL)
     {
        /* Get the elapsed time between the configured rx keepalive interval and the last time we sent rx keepalive (last_rx_keepalive_sent_time) */
-        *rx_timeout =  get_elapsed_value(idigi_ptr->rx_keepalive_interval, idigi_ptr->last_rx_keepalive_sent_time, *cur_system_time);
+        *rx_timeout =  get_elapsed_value(GET_RX_KEEPALIVE_INTERVAL(idigi_ptr), idigi_ptr->last_rx_keepalive_sent_time, *cur_system_time);
     }
     if (tx_timeout != NULL)
     {
         /* Get the elapsed time between the configured tx keepalive interval and the last time we received tx keepalive (last_tx_keepalive_received_time) */
-        *tx_timeout =  get_elapsed_value(idigi_ptr->tx_keepalive_interval, idigi_ptr->last_tx_keepalive_received_time, *cur_system_time);
+        *tx_timeout =  get_elapsed_value(GET_TX_KEEPALIVE_INTERVAL(idigi_ptr), idigi_ptr->last_tx_keepalive_received_time, *cur_system_time);
     }
 done:
     return status;

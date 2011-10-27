@@ -22,9 +22,15 @@
  * =======================================================================
  *
  */
-#include "config.h"
+#if (IDIGI_VERSION >= 0x1010000UL)
+  #include "idigi_config.h"
+#else
+  #include "options.h"
+#endif
+
 #include "idigi_api.h"
 #include "idigi_def.h"
+#include "chk_config.h"
 #include "bele.h"
 #include "os_intf.c"
 #include "network_intf.c"
@@ -53,7 +59,9 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
         size_t max_length;
     } idigi_config_request_ids[] = {
             {idigi_config_device_id, DEVICE_ID_LENGTH, DEVICE_ID_LENGTH},
+#if !defined(IDIGI_VENDOR_ID)
             {idigi_config_vendor_id, VENDOR_ID_LENGTH, VENDOR_ID_LENGTH},
+#endif
             {idigi_config_device_type, 1, DEVICE_TYPE_LENGTH}
     };
 
@@ -99,9 +107,11 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
         case idigi_config_device_id:
             store_at = (void **)&idigi_handle->device_id;
             break;
+#if !defined(IDIGI_VENDOR_ID)
         case idigi_config_vendor_id:
             store_at = (void **)&idigi_handle->vendor_id;
             break;
+#endif
         case idigi_config_device_type:
             store_at = (void **)&idigi_handle->device_type;
             break;
@@ -166,7 +176,7 @@ error:
         request_id.config_request = idigi_config_request_ids[i].request;
         /* if error occurs, notify caller then exit the function.
          */
-        DEBUG_PRINTF("idigi_init: base class_id request id = %d callback aborts\n", idigi_config_request_ids[i].request);
+        idigi_debug("idigi_init: base class_id request id = %d callback aborts\n", idigi_config_request_ids[i].request);
         notify_error_status(callback, idigi_class_config, request_id, error_status);
     }
 

@@ -23,8 +23,8 @@
  * =======================================================================
  *
  */
-#ifndef CONFIG_H_
-#define CONFIG_H_
+#ifndef IDIGI_CONFIG_H_
+#define IDIGI_CONFIG_H_
 
 #define IDIGI_LITTLE_ENDIAN
 
@@ -35,5 +35,14 @@
 #define IDIGI_COMPRESSION
 
 #define IDIGI_DATA_SERVICE
+
+#define IDIGI_TX_KEEPALIVE_IN_SECONDS   75
+#define IDIGI_RX_KEEPALIVE_IN_SECONDS   75
+#define IDIGI_WAIT_COUNT                5
+#define IDIGI_VENDOR_ID                 0x00000000
+
+#define IDIGI_CONNECTION_TYPE                       idigi_lan_connection_type
+/* #define IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECONDS    0 */
+/* #define IDIGI_WAN_PHONE_NUMBER_DIALED               0, 1, 2, 3, 4, 5, 6, 7 */
 
 #endif

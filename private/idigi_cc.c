@@ -82,7 +82,7 @@ enum cc_redirect_report {
 
     ASSERT(report_message_length == 0);
 
-    DEBUG_PRINTF("Connection Control: send redirect_report\n");
+    idigi_debug("Connection Control: send redirect_report\n");
 
     /* build and send redirect report
      *  ----------------------------------------------------
@@ -207,17 +207,38 @@ done:
 }
 static idigi_callback_status_t get_connection_type(idigi_data_t * const idigi_ptr, uint8_t * const connection_type)
 {
+#if defined(IDIGI_CONNECTION_TYPE)
+
+    UNUSED_PARAMETER(idigi_ptr);
+
+    switch (IDIGI_CONNECTION_TYPE)
+    {
+    case idigi_lan_connection_type:
+        *connection_type = ethernet_type;
+        break;
+    case idigi_wan_connection_type:
+        *connection_type = ppp_over_modem_type;
+        break;
+    }
+    return idigi_callback_continue;
+
+#else
     idigi_callback_status_t status;
     idigi_request_t const request_id = {idigi_config_connection_type};
     idigi_status_t error_code = idigi_success;
-    idigi_connection_type_t type;
+    idigi_connection_type_t * type = NULL;
 
     /* callback for connection type */
     status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &type, NULL);
     switch (status)
     {
     case idigi_callback_continue:
-        switch (type)
+        if (type == NULL)
+        {
+            error_code = idigi_invalid_data;
+            break;
+        }
+        switch (*type)
         {
         case idigi_lan_connection_type:
             *connection_type = ethernet_type;
@@ -246,6 +267,7 @@ static idigi_callback_status_t get_connection_type(idigi_data_t * const idigi_pt
         status = idigi_callback_abort;
     }
     return status;
+#endif
 }
 
 static idigi_callback_status_t get_mac_addr(idigi_data_t * const idigi_ptr, uint8_t * const mac_addr)
@@ -310,7 +332,7 @@ enum cc_connection_info {
     uint8_t * connection_report;
     size_t avail_length;
 
-    DEBUG_PRINTF("Connection Control: send connection report\n");
+    idigi_debug("Connection Control: send connection report\n");
 
     /* Build Connection report
      *  -------------------------------------------------------
@@ -372,12 +394,16 @@ enum cc_connection_info {
         }
         else
         {
+            uint8_t * connection_info = connection_report + record_bytes(connection_report);
+
+#if defined(IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND)
+            message_store_be32(connection_info, link_speed, IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND);
+#else
             /* callback for Link speed for WAN connection type */
             idigi_request_t const request_id = {idigi_config_link_speed};
             /* set for invalid size to cause an error if callback doesn't set it */
             size_t length = sizeof(uint16_t);
-            uint32_t speed;
-            uint8_t * connection_info = connection_report + record_bytes(connection_report);
+            uint32_t * speed = NULL;
 
             status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &speed, &length);
             if (status != idigi_callback_continue)
@@ -386,7 +412,7 @@ enum cc_connection_info {
                 goto error;
             }
 
-            if (length != sizeof speed)
+            if (speed == NULL || length != sizeof *speed)
             {
                 /* bad connection type */
                 idigi_ptr->error_code = idigi_invalid_data_size;
@@ -394,10 +420,12 @@ enum cc_connection_info {
                 status = idigi_callback_abort;
                 goto error;
             }
-            message_store_be32(connection_info, link_speed, speed);
+            message_store_be32(connection_info, link_speed, *speed);
+#endif
             cc_ptr->report_length += field_named_data(connection_info, link_speed, size);
 
             {
+#if !defined(IDIGI_WAN_PHONE_NUMBER_DIALED)
                 /* callback for phone number for WAN connection type */
                 idigi_request_t const request_id = {idigi_config_phone_number};
                 size_t length = 0;
@@ -418,6 +446,10 @@ enum cc_connection_info {
                     status = idigi_callback_abort;
                     goto error;
                 }
+#else
+                uint8_t const phone[] = {IDIGI_WAN_PHONE_NUMBER_DIALED};
+                size_t const length = sizeof phone;
+#endif
                 memcpy(connection_report+cc_ptr->report_length, phone, length);
                 cc_ptr->report_length += length;
             }
@@ -448,7 +480,7 @@ static idigi_callback_status_t process_connection_control(idigi_data_t * const i
     UNUSED_PARAMETER(cc_ptr);
 
     /* server either disconnects or reboots us */
-    DEBUG_PRINTF("process_connection_control: Connection request %d\n", request);
+    idigi_debug("process_connection_control: Connection request %d\n", request);
     idigi_ptr->network_busy = true;
 
     status = close_server(idigi_ptr);
@@ -497,7 +529,7 @@ enum cc_redirect_url {
     size_t const prefix_len = sizeof URL_PREFIX -1;
     uint8_t i;
 
-    DEBUG_PRINTF("process_redirect:  redirect to new destination\n");
+    idigi_debug("process_redirect:  redirect to new destination\n");
     /* Redirect to new destination:
      * iDigi will close connection and connect to new destination. If connect
      * to new destination fails, this function will returns SUCCESS to try
@@ -518,7 +550,7 @@ enum cc_redirect_url {
 
     if (url_count == 0)
     {   /* nothing to redirect */
-        DEBUG_PRINTF("cc_process_redirect: redirect with no url specified\n");
+        idigi_debug("cc_process_redirect: redirect with no url specified\n");
         goto done;
     }
     ASSERT(url_count <= CC_REDIRECT_SERVER_COUNT);
@@ -631,7 +663,7 @@ static idigi_callback_status_t cc_process(idigi_data_t * const idigi_ptr, void *
             status = process_connection_control(idigi_ptr, cc_ptr, idigi_network_reboot);
             break;
         default:
-            DEBUG_PRINTF("idigi_cc_process: unsupported opcode %u\n", opcode);
+            idigi_debug("idigi_cc_process: unsupported opcode %u\n", opcode);
             break;
         }
     }

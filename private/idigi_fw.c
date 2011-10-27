@@ -179,7 +179,7 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_pt
                 (compare_type == fw_greater_than && length < *response_size))
             {
                 /* bad data so let abort */
-                DEBUG_PRINTF("get_fw_config: returned invalid size %lu (length %lu)\n", (unsigned long int)length, (unsigned long int)*response_size);
+                idigi_debug("get_fw_config: returned invalid size %lu (length %lu)\n", (unsigned long int)length, (unsigned long int)*response_size);
                 idigi_ptr->error_code = idigi_invalid_data_size;
                 notify_error_status(idigi_ptr->callback, idigi_class_firmware, request_id, idigi_invalid_data_size);
                 status = idigi_callback_abort;
@@ -206,7 +206,7 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_pt
          * Server will disconnect us if we miss sending
          * Rx keepalive.
          */
-        DEBUG_PRINTF("get_fw_config: callback exceeds timeout > %u seconds\n", timeout);
+        idigi_debug("get_fw_config: callback exceeds timeout > %u seconds\n", timeout);
         notify_error_status(idigi_ptr->callback, idigi_class_firmware, request_id, idigi_exceed_timeout);
     }
 
@@ -353,7 +353,7 @@ enum fw_info {
     uint8_t const target = message_load_u8(fw_message, target);
     unsigned i;
 
-    DEBUG_PRINTF("Firmware Facility: process info request\n");
+    idigi_debug("Firmware Facility: process info request\n");
     /* parse firmware info request
      *  -----------------
      * |   0    |    1   |
@@ -366,7 +366,7 @@ enum fw_info {
 
     if (length != MAX_FW_INFO_REQUEST_LENGTH)
     {
-        DEBUG_PRINTF("process_fw_info_request: invalid message length\n");
+        idigi_debug("process_fw_info_request: invalid message length\n");
         status = send_fw_abort(idigi_ptr, target, fw_error_opcode, (idigi_fw_status_t const)fw_invalid_msg);
         goto done;
 
@@ -408,7 +408,7 @@ enum fw_info {
                 idigi_request_t const request_id = {idigi_firmware_description};
 
                 idigi_ptr->error_code = idigi_invalid_data_size;
-                DEBUG_PRINTF("process_fw_info_request: description length = %lu + name spec length = %lu\n",
+                idigi_debug("process_fw_info_request: description length = %lu + name spec length = %lu\n",
                                         (unsigned long int)fw_ptr->desc_length, (unsigned long int)fw_ptr->spec_length);
                 notify_error_status(idigi_ptr->callback, idigi_class_firmware, request_id, idigi_ptr->error_code);
                 fw_ptr->desc_length = 0;
@@ -533,13 +533,13 @@ enum fw_download_response {
 
     uint8_t abort_opcode = fw_download_abort_opcode;
 
-    DEBUG_PRINTF("Firmware Facility: process download request\n");
+    idigi_debug("Firmware Facility: process download request\n");
 
     request_data.target = message_load_u8(fw_download_request, target);
 
     if (length < record_bytes(fw_download_request))
     {
-        DEBUG_PRINTF("process_fw_download_request: invalid message length\n");
+        idigi_debug("process_fw_download_request: invalid message length\n");
         abort_opcode = fw_error_opcode;
         response_status = (idigi_fw_status_t)fw_invalid_msg;
         goto error;
@@ -673,7 +673,7 @@ enum fw_binary_ack {
     {
         idigi_request_t const request_id = {idigi_firmware_download_request};
 
-        DEBUG_PRINTF("process_fw_binary_block: invalid message length\n");
+        idigi_debug("process_fw_binary_block: invalid message length\n");
         status = send_fw_abort(idigi_ptr, request_data.target, fw_error_opcode, (idigi_fw_status_t const)fw_invalid_msg);
         if (status == idigi_callback_continue)
         {
@@ -733,12 +733,12 @@ static idigi_callback_status_t process_fw_abort(idigi_firmware_data_t * const fw
 
     idigi_callback_status_t status = idigi_callback_abort;
 
-    DEBUG_PRINTF("Firmware Facility: process server abort\n");
+    idigi_debug("Firmware Facility: process server abort\n");
 
     /* parse firmware download abort */
     if (length != FW_ABORT_HEADER_SIZE)
     {
-        DEBUG_PRINTF("process_fw_abort: invalid message length\n");
+        idigi_debug("process_fw_abort: invalid message length\n");
     }
     else
     {
@@ -795,14 +795,14 @@ enum fw_complete_response {
     idigi_fw_download_complete_request_t request_data;
     idigi_fw_download_complete_response_t response_data;
 
-    DEBUG_PRINTF("Firmware Facility: process download complete\n");
+    idigi_debug("Firmware Facility: process download complete\n");
     request_data.target = message_load_u8(fw_complete_request, target);
 
     if (length != record_bytes(fw_complete_request))
     {
         idigi_request_t const request_id = {idigi_firmware_download_complete};
 
-        DEBUG_PRINTF("process_fw_complete: invalid message length\n");
+        idigi_debug("process_fw_complete: invalid message length\n");
         status = send_fw_abort(idigi_ptr, request_data.target, fw_error_opcode, (idigi_fw_status_t const)fw_invalid_msg);
         if (status == idigi_callback_continue)
         {
@@ -863,7 +863,7 @@ static idigi_callback_status_t process_target_reset(idigi_firmware_data_t * cons
     idigi_fw_config_t request;
 
     UNUSED_PARAMETER(length);
-    DEBUG_PRINTF("Firmware Facility: process target reset\n");
+    idigi_debug("Firmware Facility: process target reset\n");
 
     request.target = message_load_u8(fw_message, target);
 
@@ -940,7 +940,7 @@ enum fw_target_list{
             }
             else
             {
-                DEBUG_PRINTF("fw_discovery: No target supported\n");
+                idigi_debug("fw_discovery: No target supported\n");
                 goto done;
             }
         }
@@ -1040,7 +1040,7 @@ static idigi_callback_status_t fw_process(idigi_data_t * const idigi_ptr, void *
     length = message_load_be16(edp_header, length);
     if (length < FW_MESSAGE_HEADER_SIZE)
     {
-        DEBUG_PRINTF("fw_process: invalid packet size %d\n", length);
+        idigi_debug("fw_process: invalid packet size %d\n", length);
         goto done;
     }
 
@@ -1050,7 +1050,7 @@ static idigi_callback_status_t fw_process(idigi_data_t * const idigi_ptr, void *
 
     if (target >= fw_ptr->target_count)
     {
-        DEBUG_PRINTF("fw_process: invalid target\n");
+        idigi_debug("fw_process: invalid target\n");
         status = send_fw_abort(idigi_ptr, target, fw_error_opcode, (idigi_fw_status_t const)fw_invalid_target);
         goto done;
     }

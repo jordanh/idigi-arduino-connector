@@ -94,7 +94,7 @@ static idigi_callback_status_t initiate_send_packet(idigi_data_t * const idigi_p
 
     if (idigi_ptr->send_packet.total_length > 0)
     {
-        DEBUG_PRINTF("initiate_send_packet: unable to trigger another send since previous data is still pending\n");
+        idigi_debug("initiate_send_packet: unable to trigger another send since previous data is still pending\n");
         status = idigi_callback_busy;
         goto done;
     }
@@ -282,7 +282,7 @@ static uint8_t * get_packet_buffer(idigi_data_t * const idigi_ptr, uint16_t cons
     }
     else
     {
-        DEBUG_PRINTF("get packet buffer: send pending\n");
+        idigi_debug("get packet buffer: send pending\n");
     }
     if (data_ptr != NULL)
     {
@@ -310,13 +310,13 @@ static idigi_callback_status_t rx_keepalive_process(idigi_data_t * const idigi_p
      *
      * last_rx_keeplive_time is last time we sent Rx keepalive.
      */
-    if (valid_timing_limit(idigi_ptr, idigi_ptr->last_rx_keepalive_sent_time, idigi_ptr->rx_keepalive_interval))
+    if (valid_timing_limit(idigi_ptr, idigi_ptr->last_rx_keepalive_sent_time, GET_RX_KEEPALIVE_INTERVAL(idigi_ptr)))
     {
         /* not expired yet. no need to send rx keepalive */
         goto done;
     }
 
-    DEBUG_PRINTF("rx_keepalive_process: time to send Rx keepalive\n");
+    idigi_debug("rx_keepalive_process: time to send Rx keepalive\n");
 
     status = initiate_send_packet(idigi_ptr, (uint8_t * const)&idigi_ptr->rx_keepalive_packet, 0, E_MSG_MT2_TYPE_KA_KEEPALIVE, NULL, NULL);
 
@@ -402,7 +402,7 @@ static uint8_t * new_receive_packet(idigi_data_t * const idigi_ptr)
     }
     else
     {
-        DEBUG_PRINTF("new_receive_packet: no buffer available for receiving message from server\n");
+        idigi_debug("new_receive_packet: no buffer available for receiving message from server\n");
     }
 
     return packet;
@@ -476,7 +476,7 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
         {
         case idigi_callback_abort:
         case idigi_callback_unrecognized:
-            DEBUG_PRINTF("receive_buffer: callback returns abort\n");
+            idigi_debug("receive_buffer: callback returns abort\n");
             bytes_received = -idigi_receive_error;
             /* fall thru */
         case idigi_callback_busy:
@@ -501,9 +501,9 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
     }
 
     /* check Tx keepalive timing */
-    if (idigi_ptr->tx_keepalive_interval > 0)
+    if (GET_TX_KEEPALIVE_INTERVAL(idigi_ptr) > 0)
     {
-        uint32_t const max_timeout = idigi_ptr->tx_keepalive_interval * idigi_ptr->wait_count;
+        uint32_t const max_timeout = GET_TX_KEEPALIVE_INTERVAL(idigi_ptr) * GET_WAIT_COUNT(idigi_ptr);
 
         if (!valid_timing_limit(idigi_ptr, idigi_ptr->last_tx_keepalive_received_time, max_timeout))
         {
@@ -521,7 +521,7 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
              */
             bytes_received = -idigi_keepalive_error;
             notify_error_status(idigi_ptr->callback, idigi_class_config, request_id, idigi_keepalive_error);
-            DEBUG_PRINTF("idigi_receive: keepalive fails\n");
+            idigi_debug("idigi_receive: keepalive fails\n");
         }
     }
 
@@ -670,7 +670,7 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
                 {
                     uint8_t * edp_header = idigi_ptr->receive_packet.data_packet;
 
-                    DEBUG_PRINTF("receive_packet: E_MSG_MT2_TYPE_LEGACY_EDP_VER_RESP 0x%x\n", (unsigned) type_val);
+                    idigi_debug("receive_packet: E_MSG_MT2_TYPE_LEGACY_EDP_VER_RESP 0x%x\n", (unsigned) type_val);
                     /*
                      * Obtain the MT message length (2 bytes).
                      * Note that legacy EDP version response messages do not have a length
@@ -698,10 +698,10 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
                 case E_MSG_MT2_TYPE_VERSION_OK:
                     break;
                 case E_MSG_MT2_TYPE_VERSION_BAD:
-                    DEBUG_PRINTF("receive_packet: E_MSG_MT2_TYPE_VERSION_BAD 0x%x\n", (unsigned) type_val);
+                    idigi_debug("receive_packet: E_MSG_MT2_TYPE_VERSION_BAD 0x%x\n", (unsigned) type_val);
                     break;
                 case E_MSG_MT2_TYPE_SERVER_OVERLOAD:
-                    DEBUG_PRINTF("receive_packet: E_MSG_MT2_TYPE_SERVER_OVERLOAD 0x%x\n", (unsigned) type_val);
+                    idigi_debug("receive_packet: E_MSG_MT2_TYPE_SERVER_OVERLOAD 0x%x\n", (unsigned) type_val);
                     break;
                 case E_MSG_MT2_TYPE_KA_KEEPALIVE:
                     break;
@@ -718,7 +718,7 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
                      * If callback tells us to continue, we continue reading packet data.
                      */
                     idigi_request_t const request_id = {idigi_network_receive};
-                    DEBUG_PRINTF("receive_packet: error type 0x%x\n", (unsigned) type_val);
+                    idigi_debug("receive_packet: error type 0x%x\n", (unsigned) type_val);
                     idigi_ptr->error_code = idigi_invalid_packet;
                     notify_error_status(idigi_ptr->callback, idigi_class_network, request_id, idigi_invalid_packet);
                 }
@@ -751,7 +751,7 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
                 if (idigi_ptr->receive_packet.packet_length != 0)
                 {
                     idigi_request_t const request_id = {idigi_network_receive};
-                    DEBUG_PRINTF("idigi_get_receive_packet: Invalid payload\n");
+                    idigi_debug("idigi_get_receive_packet: Invalid payload\n");
                     idigi_ptr->error_code = idigi_invalid_payload_packet;
                     notify_error_status(idigi_ptr->callback, idigi_class_config, request_id, idigi_invalid_payload_packet);
                 }
@@ -805,7 +805,7 @@ static idigi_callback_status_t connect_server(idigi_data_t * const idigi_ptr, ch
     switch (status)
     {
     case idigi_callback_continue:
-        if (length == sizeof idigi_ptr->network_handle)
+        if (length == sizeof *idigi_ptr->network_handle)
         {
             idigi_ptr->network_busy = false;
             idigi_ptr->network_connected = true;
@@ -838,7 +838,7 @@ static idigi_callback_status_t close_server(idigi_data_t * const idigi_ptr)
     {
         idigi_request_t const request_id = {idigi_network_close};
 
-        status = idigi_callback_no_response(idigi_ptr->callback, idigi_class_network, request_id, &idigi_ptr->network_handle, sizeof idigi_ptr->network_handle);
+        status = idigi_callback_no_response(idigi_ptr->callback, idigi_class_network, request_id, idigi_ptr->network_handle, sizeof *idigi_ptr->network_handle);
         switch (status)
         {
         case idigi_callback_busy:

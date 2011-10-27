@@ -20,37 +20,44 @@
 #  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
 #
 # =======================================================================
-CC      = $(CROSS_COMPILE)gcc
-LD      = $(CROSS_COMPILE)gcc
-CXX     = $(CROSS_COMPILE)g++
-STRIP   = $(CROSS_COMPILE)strip
-AR      = $(CROSS_COMPILE)ar
+#
+#  Type 'make help' for more information.
+#
+include $(IDIGI_RULES)
 
-IDIGI_DIR=../../../private
-PUBLIC_HEADER_DIR=../../include
-PLATFORM_DIR=../../platforms/linux
+CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -std=c99 -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I../../include
 
-vpath $(IDIGI_DIR)/%.c
-vpath $(PLATFORM_DIR)/%.c
+OBJS = main.o firmware.o network.o os.o config.o data_service.o
+LIBS = -lidigi -lc
 
-CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR) -g
+ifneq ($(COMPRESSION), false)
+LIBS += -lz
+endif
 
-OBJS = main.o $(IDIGI_DIR)/idigi_api.o $(PLATFORM_DIR)/os.o $(PLATFORM_DIR)/network.o  $(PLATFORM_DIR)/config.o
-LIBS = -lc -lz
+# Name of executable to build
+SAMPLE=linux_sample
 
-SAMPLE = idigi
 all: $(SAMPLE)
 
-main.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PLATFORM_DIR)/platform.h
-$(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PUBLIC_HEADER_DIR)/idigi_config.h $(IDIGI_DIR)/idigi_def.h $(IDIGI_DIR)/bele.h
-
-$(OBJS): *.c $(IDIGI_DIR)/*.c $(PLATFORM_DIR)/*.c
+$(OBJS): *.c *.h
 
 $(SAMPLE): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(SAMPLE) 
+	$(CC) $(CFLAGS) $(OBJS) -L$(LIB) $(LIBS) -o $(SAMPLE)
 
 .PHONY: clean
 clean:
 	-rm -f $(OBJS)
 
+.PHONY: help
+help:
+	@echo "Makefile used to build the linux sample"
+	@echo "Options:"
+	@echo "    IDIGI_RULES     = Location and  name for toolset"
+	@echo "    DEBUG         = true or false for debugging"
+	@echo "    LIB           = path of idigi library"
+	@echo "    LITTLE_ENDIAN = true or false for little endian"
+	@echo "NOTE:"
+	@echo "    The idigi library path must be added to the LD_LIBRARY_PATH"
+	@echo "    environmental variable when running the application"
+	@echo "    if the idigi library was built as a shared library"
 

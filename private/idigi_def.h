@@ -31,6 +31,8 @@
 #define MSG_MAX_RECV_PACKET_SIZE 1600
 #define MSG_MAX_SEND_PACKET_SIZE 512
 
+#define UNUSED_PARAMETER(x)     ((void)x)
+
 #define ON_FALSE_DO_(cond, code)        do { if (!(cond)) {code;} } while (0)
 
 #if defined(IDIGI_DEBUG)
@@ -58,6 +60,7 @@
 #define MAX_TX_KEEPALIVE_INTERVAL_IN_SECONDS     7200
 #define MIN_RX_KEEPALIVE_INTERVAL_IN_SECONDS     5
 #define MAX_RX_KEEPALIVE_INTERVAL_IN_SECONDS     7200
+
 /* Limits for wait count (number of
  * keepalive packets)
  */
@@ -76,10 +79,23 @@
 #define idigi_callback_no_response(callback, class_id, request_id, request_data, request_length) idigi_callback((callback), (class_id), (request_id), (request_data), (request_length), NULL, NULL)
 #define idigi_callback_no_request_data(callback, class_id, request_id, response_data, response_length) idigi_callback((callback), (class_id), (request_id), NULL, 0, (response_data), (response_length))
 
-#define MutexLock(idigi_ptr, lock_handle) mutex_data(idigi_ptr, lock_handle, idigi_os_lock)
-#define MutexUnlock(idigi_ptr, lock_handle) mutex_data(idigi_ptr, lock_handle, idigi_os_unlock)
-#define MutexLockDelete(idigi_ptr, lock_handle) mutex_data(idigi_ptr, lock_handle, idigi_os_lock_delete)
+#if defined(IDIGI_TX_KEEPALIVE_IN_SECONDS)
+#define GET_TX_KEEPALIVE_INTERVAL(idigi_ptr)    IDIGI_TX_KEEPALIVE_IN_SECONDS
+#else
+#define GET_TX_KEEPALIVE_INTERVAL(idigi_ptr)    idigi_ptr->tx_keepalive_interval
+#endif
 
+#if defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
+#define GET_RX_KEEPALIVE_INTERVAL(idigi_ptr)    IDIGI_RX_KEEPALIVE_IN_SECONDS
+#else
+#define GET_RX_KEEPALIVE_INTERVAL(idigi_ptr)    idigi_ptr->rx_keepalive_interval
+#endif
+
+#if defined(IDIGI_WAIT_COUNT)
+#define GET_WAIT_COUNT(idigi_ptr)    IDIGI_WAIT_COUNT
+#else
+#define GET_WAIT_COUNT(idigi_ptr)    idigi_ptr->wait_count
+#endif
 
 /* IRL EDP States */
 typedef enum {
@@ -156,19 +172,27 @@ typedef struct idigi_buffer {
 typedef struct idigi_data {
 
     uint8_t * device_id;
+#if !defined(IDIGI_VENDOR_ID)
     uint8_t * vendor_id;
+#endif
     char * device_type;
     size_t device_type_length;
+#if !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS)
     uint16_t tx_keepalive_interval;
+#endif
+#if !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
     uint16_t rx_keepalive_interval;
+#endif
+#if !defined(IDIGI_WAIT_COUNT)
     uint16_t wait_count;
+#endif
     uint32_t last_rx_keepalive_sent_time;
     uint32_t last_tx_keepalive_received_time;
 
     idigi_facility_t * active_facility;
     idigi_facility_t * facility_list;
 
-    idigi_network_handle_t network_handle;
+    idigi_network_handle_t * network_handle;
 
     idigi_callback_t callback;
 

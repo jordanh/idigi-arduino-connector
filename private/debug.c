@@ -90,7 +90,7 @@ static void del_malloc_stats(void const * const ptr)
 #define del_malloc_stats(ptr)
 #endif
 
-static void DEBUG_PRINTF(char const * const format, ...)
+static void idigi_debug(char const * const format, ...)
 {
 #if defined(IDIGI_DEBUG)
     va_list args;
