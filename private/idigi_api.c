@@ -22,7 +22,7 @@
  * =======================================================================
  *
  */
-#if IDIGI_VERSION >= 1100L
+#if (IDIGI_VERSION >= 0x1010000UL)
   #include "idigi_config.h"
 #else
   #include "options.h"
