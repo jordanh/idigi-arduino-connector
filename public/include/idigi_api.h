@@ -119,7 +119,9 @@ typedef enum {
     idigi_config_error_status,      /**< Error status notification which tells callback that error is encountered. */
     idigi_config_firmware_facility, /**< Requesting callback to return whether firmware facility is supported or not. */
     idigi_config_data_service,      /**< Requesting callback to return whether data service is supported or not. */
+#if (IDIGI_VERSION >= IDIGI_VERSION_1100)
     idigi_config_max_transaction    /**< Requesting callback to return whether data service is supported or not. */
+#endif
 } idigi_config_request_t;
 /**
 * @}
@@ -254,19 +256,15 @@ typedef enum {
 * @}
 */
 
-#if (IDIGI_VERSION < IDIGI_VERSION_1100)
 typedef enum {
+#if (IDIGI_VERSION < IDIGI_VERSION_1100)
     idigi_data_service_send_complete,
     idigi_data_service_response,
-    idigi_data_service_error
-} idigi_data_service_request_t;
-#else
-typedef enum 
-{
+    idigi_data_service_error,
+#endif
     idigi_data_service_put_request,
     idigi_data_service_device_request
 } idigi_data_service_request_t;
-#endif
 
 /**
 * @defgroup.
@@ -607,6 +605,7 @@ typedef enum
 } idigi_data_status_t;
 
 #if (IDIGI_VERSION < IDIGI_VERSION_1100)
+
 #define IDIGI_DATA_REQUEST_START        0x0001
 #define IDIGI_DATA_REQUEST_LAST         0x0002
 #define IDIGI_DATA_REQUEST_ARCHIVE      0x0004
@@ -655,7 +654,7 @@ typedef struct
     idigi_msg_error_t error;
 } idigi_data_error_t;
 
-#else
+#endif
 
 #define IDIGI_DATA_PUT_ARCHIVE   0x0001
 #define IDIGI_DATA_PUT_APPEND    0x0002
@@ -692,8 +691,6 @@ typedef struct idigi_data_put_request_t
     idigi_data_put_type_t request_type;
     void const * header_context;  /* holds idigi_data_put_header_t * provided in initiate_action() */
 } idigi_data_put_request_t;
-
-#endif
 
  /**
  * @defgroup idigi_callback_t idigi_callback_t: IIK application defined callback.

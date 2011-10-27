@@ -1524,6 +1524,7 @@ static idigi_callback_status_t msg_init_facility(idigi_data_t * const idigi_ptr,
         msg_ptr->capabilities[msg_capability_client].compression_supported = true;
         #endif
 
+        #if (IDIGI_VERSION >= IDIGI_VERSION_1100)
         {
             idigi_request_t const request_id = {idigi_config_max_transaction};
 
@@ -1537,6 +1538,10 @@ static idigi_callback_status_t msg_init_facility(idigi_data_t * const idigi_ptr,
                 goto done;
             }
         }
+        #else
+        #define MSG_CLIENT_MAX_TRANSACTION  1
+        msg_ptr->capabilities[msg_capability_client].max_transactions = MSG_CLIENT_MAX_TRANSACTION;
+        #endif
 
         #define MSG_RECV_WINDOW_SIZE 16384
         msg_ptr->capabilities[msg_capability_client].window_size = MSG_RECV_WINDOW_SIZE;
