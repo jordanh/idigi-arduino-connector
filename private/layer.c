@@ -1129,23 +1129,21 @@ error:
 
             if (status != idigi_callback_abort)
             {
-                    uint32_t rx_keepalive;
-                    uint32_t tx_keepalive;
-                    uint32_t current_system_time;
-                    /* check rx_keepalive and tx_keepalive timing */
-                    status =  get_keepalive_timeout(idigi_ptr, &rx_keepalive, &tx_keepalive, &current_system_time);
-                    if (rx_keepalive == 0 || tx_keepalive == 0 || status != idigi_callback_continue)
-                    {
-                        break;
-                    }
-                }
-                else if (status == idigi_callback_unrecognized)
+                uint32_t rx_keepalive;
+                uint32_t tx_keepalive;
+                uint32_t current_system_time;
+                /* check rx_keepalive and tx_keepalive timing */
+                status =  get_keepalive_timeout(idigi_ptr, &rx_keepalive, &tx_keepalive, &current_system_time);
+                if (rx_keepalive == 0 || tx_keepalive == 0 || status != idigi_callback_continue)
                 {
-                    status = idigi_callback_continue;
+                    break;
                 }
-
             }
-        }/* for */
+            else if (status == idigi_callback_unrecognized)
+            {
+                status = idigi_callback_continue;
+            }
+        }
     }
 
     return status;
