@@ -396,8 +396,8 @@ enum cc_connection_info {
         {
             uint8_t * connection_info = connection_report + record_bytes(connection_report);
 
-#if defined(IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECONDS)
-            message_store_be32(connection_info, link_speed, IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECONDS);
+#if defined(IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND)
+            message_store_be32(connection_info, link_speed, IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND);
 #else
             /* callback for Link speed for WAN connection type */
             idigi_request_t const request_id = {idigi_config_link_speed};
