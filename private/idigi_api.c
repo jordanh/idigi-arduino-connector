@@ -40,7 +40,7 @@
 #endif
 #if defined(IDIGI_DATA_SERVICE)
 #include "idigi_msg.h"
-#include "idigi_data.h"
+#include "idigi_ds.h"
 #endif
 #include "layer.h"
 
