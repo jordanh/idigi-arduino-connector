@@ -1021,6 +1021,10 @@ static idigi_callback_status_t fw_process(idigi_data_t * const idigi_ptr, void *
     uint8_t * fw_message;
     uint16_t length;
 
+    if (edp_header == NULL)
+    {
+        goto done;
+    }
 
     if (fw_ptr->fw_keepalive_start)
     {
@@ -1034,8 +1038,6 @@ static idigi_callback_status_t fw_process(idigi_data_t * const idigi_ptr, void *
             goto done;
         }
     }
-
-    ASSERT_GOTO(edp_header, done);
 
     length = message_load_be16(edp_header, length);
     if (length < FW_MESSAGE_HEADER_SIZE)
