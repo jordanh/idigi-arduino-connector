@@ -681,7 +681,7 @@ typedef struct idigi_data_put_response_t
 {
     idigi_data_put_type_t response_type;
     size_t length_in_bytes;
-    void const * data;
+    void * data;
     unsigned int flags; /* first and/or last data */
 } idigi_data_put_response_t;
 

@@ -299,6 +299,8 @@ error:
         service.flags = status_flag; \
     }
 
+#define MSG_FILL_SERVICE_NO_DATA(service, session, type)  MSG_FILL_SERVICE(service, session, type, NULL, 0, 0)
+
 static msg_session_t * msg_create_session(idigi_data_t * const idigi_ptr, idigi_msg_data_t * const msg_ptr, uint16_t const service_id, 
                                           bool const client_owned, idigi_msg_error_t * const result)
 {
@@ -400,7 +402,7 @@ static void msg_delete_session(idigi_data_t * const idigi_ptr, idigi_msg_data_t 
     {
         msg_service_request_t service_data;
 
-        MSG_FILL_SERVICE(service_data, session, msg_service_type_free, session->service_context, sizeof session->service_context, 0);
+        MSG_FILL_SERVICE_NO_DATA(service_data, session, msg_service_type_free);
         msg_call_service_layer(idigi_ptr, session->service_id, &service_data);
     }
 
@@ -757,8 +759,9 @@ static idigi_callback_status_t msg_get_service_data(idigi_data_t * const idigi_p
     if (zlib_ptr->avail_in == 0)
     {
         msg_service_request_t service_data;
+        unsigned int const flag = MsgIsStart(session->status_flag) ? MSG_FLAG_START : 0;
 
-        MSG_FILL_SERVICE(service_data, session, msg_service_type_need_data, dblock->buffer_in, sizeof dblock->buffer_in, 0);
+        MSG_FILL_SERVICE(service_data, session, msg_service_type_need_data, dblock->buffer_in, sizeof dblock->buffer_in, flag);
         status = msg_call_service_layer(idigi_ptr, session->service_id, &service_data);
         if (status != idigi_callback_continue)
             goto done;
@@ -808,7 +811,11 @@ static idigi_callback_status_t msg_get_service_data(idigi_data_t * const idigi_p
     }
 
     ASSERT_GOTO(!MsgIsLastData(session->status_flag), error);
-    MSG_FILL_SERVICE(service_data, session, msg_service_type_need_data, (msg_buffer + header_bytes), available_bytes, 0);
+    {
+        unsigned int const flag = MsgIsStart(session->status_flag) ? MSG_FLAG_START : 0;
+
+        MSG_FILL_SERVICE(service_data, session, msg_service_type_need_data, (msg_buffer + header_bytes), available_bytes, flag);
+    }
     status = msg_call_service_layer(idigi_ptr, session->service_id, &service_data);
     if (status != idigi_callback_continue)
         goto error;
