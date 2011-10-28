@@ -333,7 +333,7 @@ static msg_session_t * msg_create_session(idigi_data_t * const idigi_ptr, idigi_
 
     {
         void * ptr;
-        idigi_callback_status_t const status = malloc_data(idigi_ptr, sizeof(msg_session_t), &ptr);
+        idigi_callback_status_t const status = malloc_data(idigi_ptr, sizeof *session, &ptr);
 
         if (status != idigi_callback_continue) goto done;
         session = ptr;
@@ -759,7 +759,7 @@ static idigi_callback_status_t msg_get_service_data(idigi_data_t * const idigi_p
     if (zlib_ptr->avail_in == 0)
     {
         msg_service_request_t service_data;
-        unsigned int const flag = MsgIsStart(session->status_flag) ? MSG_FLAG_START : 0;
+        unsigned int const flag = (dblock->total_bytes == 0) ? MSG_FLAG_START : 0;
 
         MSG_FILL_SERVICE(service_data, session, msg_service_type_need_data, dblock->buffer_in, sizeof dblock->buffer_in, flag);
         status = msg_call_service_layer(idigi_ptr, session->service_id, &service_data);
@@ -812,7 +812,7 @@ static idigi_callback_status_t msg_get_service_data(idigi_data_t * const idigi_p
 
     ASSERT_GOTO(!MsgIsLastData(session->status_flag), error);
     {
-        unsigned int const flag = MsgIsStart(session->status_flag) ? MSG_FLAG_START : 0;
+        unsigned int const flag = (dblock->total_bytes == 0) ? MSG_FLAG_START : 0;
 
         MSG_FILL_SERVICE(service_data, session, msg_service_type_need_data, (msg_buffer + header_bytes), available_bytes, flag);
     }

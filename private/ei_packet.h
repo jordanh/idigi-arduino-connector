@@ -83,7 +83,7 @@
 
 #define PACKET_EDP_PROTOCOL_SIZE        record_bytes(edp_protocol)
 #define PACKET_EDP_HEADER_SIZE          record_bytes(edp_header)
-#define PACKET_EDP_FACILITY_SIZE        PACKET_EDP_PROTOCOL_SIZE + PACKET_EDP_HEADER_SIZE
+#define PACKET_EDP_FACILITY_SIZE        (PACKET_EDP_PROTOCOL_SIZE + PACKET_EDP_HEADER_SIZE)
 
 /* private definitions */
 enum edp_header {

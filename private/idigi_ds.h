@@ -142,7 +142,7 @@ static idigi_callback_status_t data_service_put_request_callback(idigi_data_t * 
         {
             response_data.data = service_data->data_ptr;
             response_data.length_in_bytes = service_data->length_in_bytes;
-            response_data.length_in_bytes = 0;
+            service_data->length_in_bytes = 0;
         }
         break;
 
