@@ -40,6 +40,7 @@
 #define IDIGI_RX_KEEPALIVE_IN_SECONDS   75
 #define IDIGI_WAIT_COUNT                5
 #define IDIGI_VENDOR_ID                 0x00000000
+#define IDIGI_MSG_MAX_TRANSACTION       1
 
 #define IDIGI_CONNECTION_TYPE                      idigi_lan_connection_type
 /* #define IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND    0 */

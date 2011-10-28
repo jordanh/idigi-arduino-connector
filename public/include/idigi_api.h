@@ -31,12 +31,12 @@
 #ifndef _IDIGI_API_H
 #define _IDIGI_API_H
 
+#define IDIGI_VERSION_1100   0x01010000UL
+
 #include "idigi_types.h"
 
 #define IDIGI_PORT       3197
 #define IDIGI_SSL_PORT   3199
-
-#define IDIGI_VERSION_1100   0x01010000UL
 
  /**
  * @defgroup idigi_status_t idigi_status_t: Status returned by IIK API calls.

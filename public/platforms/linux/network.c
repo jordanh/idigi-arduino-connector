@@ -36,6 +36,8 @@
 #include "idigi_api.h"
 #include "platform.h"
 
+static bool netowrk_initialization_complete = false;
+
 static bool dns_resolve_name(char const * const domain_name, in_addr_t * ip_addr)
 {
     bool rc=false;
@@ -369,7 +371,9 @@ idigi_callback_status_t idigi_network_callback(idigi_network_request_t const req
         break;
 
     case idigi_network_initialization_done:
+        netowrk_initialization_complete = true;
         break;
+
     default:
         APP_DEBUG("idigi_network_callback: unrecognized callback request [%d]\n", request);
         break;
@@ -379,4 +383,7 @@ idigi_callback_status_t idigi_network_callback(idigi_network_request_t const req
     return status;
 }
 
-
+bool is_initialization_complete(void)
+{
+    return netowrk_initialization_complete;
+}
