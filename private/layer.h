@@ -1121,7 +1121,7 @@ error:
         for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
         {
             status = fac_ptr->process_cb(idigi_ptr, fac_ptr->facility_data, fac_ptr->packet);
-            if (status != idigi_callback_busy)
+            if (status != idigi_callback_busy && fac_ptr->packet != NULL)
             {   /* release the packet when it's done */
                 release_receive_packet(idigi_ptr, fac_ptr->packet);
                 fac_ptr->packet = NULL;
