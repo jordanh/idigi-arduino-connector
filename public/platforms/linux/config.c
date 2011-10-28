@@ -455,6 +455,11 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
         ret = true;
         break;
 
+    case idigi_config_max_transaction:
+        #define IDIGI_MAX_MSG_TRANSACTIONS   1
+        *((uint8_t *)response_data) = IDIGI_MAX_MSG_TRANSACTIONS;
+        ret = true;
+        break;
     }
 
     status = (ret == true) ? idigi_callback_continue : idigi_callback_abort;

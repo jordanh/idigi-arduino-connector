@@ -862,7 +862,7 @@ static msg_session_t * msg_start_session(idigi_data_t * const idigi_ptr, uint16_
     if (session != NULL) 
     {
         *result = msg_initialize_data_block(session, msg_ptr->capabilities[msg_capability_server].window_size, msg_block_state_send_request);
-        if (result != idigi_msg_error_none)
+        if (*result != idigi_msg_error_none)
         {
             msg_delete_session(idigi_ptr, msg_ptr, session);
             session = NULL;
