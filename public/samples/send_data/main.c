@@ -69,7 +69,7 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
 
 int main (void)
 {
-    idigi_status_t status;
+    idigi_status_t status = idigi_success;
     idigi_handle_t handle;
 
     APP_DEBUG("Starting iDigi\n");
@@ -79,7 +79,7 @@ int main (void)
     {
         static bool first_time = true;
 
-        while (status != idigi_success) 
+        while (status == idigi_success) 
         {
             status = idigi_step(handle);
             if (first_time) 

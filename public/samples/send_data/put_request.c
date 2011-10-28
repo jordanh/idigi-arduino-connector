@@ -70,10 +70,12 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
         {
         case idigi_data_put_need_data:
             {
+                char * dptr = put_response->data;
                 static char payload[] = "Welcome to iDigi Data Service sample test!\n";
+                size_t const bytes = sizeof payload; 
 
-                put_response->data = payload;
-                put_response->length_in_bytes = sizeof payload;
+                memcpy(dptr, payload, bytes);
+                put_response->length_in_bytes = bytes;
                 put_response->flags = IDIGI_MSG_FIRST_DATA | IDIGI_MSG_LAST_DATA;
             }
             break;

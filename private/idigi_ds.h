@@ -119,6 +119,7 @@ static idigi_callback_status_t data_service_put_request_callback(idigi_data_t * 
     idigi_data_put_request_t request_data;
     idigi_data_put_response_t response_data;
 
+    ASSERT_GOTO(context != NULL, error);
     request_data.session_handle = service_data->session;
     request_data.header_context = context->user_context;
     response_data.flags = 0;
@@ -167,8 +168,7 @@ static idigi_callback_status_t data_service_put_request_callback(idigi_data_t * 
         break;
             
     case msg_service_type_free:
-        ASSERT_GOTO(service_data->data_ptr != NULL, error);
-        free_data(idigi_ptr, service_data->data_ptr);
+        free_data(idigi_ptr, context);
         status = idigi_callback_continue;
         break;
 
