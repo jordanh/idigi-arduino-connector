@@ -32,17 +32,17 @@
 #include "idigi_def.h"
 #include "chk_config.h"
 #include "bele.h"
-#include "os_intf.c"
-#include "network_intf.c"
-#include "idigi_cc.c"
+#include "os_intf.h"
+#include "network_intf.h"
+#include "idigi_cc.h"
 #if defined(IDIGI_FIRMWARE_SERVICE)
-#include "idigi_fw.c"
+#include "idigi_fw.h"
 #endif
 #if defined(IDIGI_DATA_SERVICE)
-#include "idigi_msg.c"
-#include "idigi_data.c"
+#include "idigi_msg.h"
+#include "idigi_data.h"
 #endif
-#include "layer.c"
+#include "layer.h"
 
 idigi_handle_t idigi_init(idigi_callback_t const callback)
 {
