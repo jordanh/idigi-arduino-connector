@@ -790,7 +790,7 @@ done:
 
 #else
 
-static idigi_callback_status_t msg_get_service_data(idigi_data_t * const idigi_ptr, idigi_msg_data_t * const msg_ptr, msg_session_t * const session)
+static idigi_callback_status_t msg_get_service_data(idigi_data_t * const idigi_ptr, msg_session_t * const session)
 {
     uint8_t * msg_buffer;
     idigi_callback_status_t status = idigi_callback_abort;
@@ -798,6 +798,7 @@ static idigi_callback_status_t msg_get_service_data(idigi_data_t * const idigi_p
     uint8_t * const edp_packet = get_packet_buffer(idigi_ptr, E_MSG_FAC_MSG_NUM, &msg_buffer, &bytes_in_buffer);
     size_t const header_bytes = MsgIsStart(session->status_flag) ? record_end(start_packet) : record_end(data_packet);
     size_t const available_bytes = bytes_in_buffer - header_bytes;
+    msg_data_block_t * const dblock = &session->data_block;
     msg_service_request_t service_data;
 
     if (edp_packet == NULL)
@@ -812,7 +813,7 @@ static idigi_callback_status_t msg_get_service_data(idigi_data_t * const idigi_p
     if (status != idigi_callback_continue)
         goto error;
 
-    if (MsgIsLastData(service_data.flag)) MsgSetLastData(session->status_flag);
+    if (MsgIsLastData(service_data.flags)) MsgSetLastData(session->status_flag);
 
     {
         size_t const packet_size = service_data.length_in_bytes + header_bytes;
@@ -1524,7 +1525,13 @@ static idigi_callback_status_t msg_init_facility(idigi_data_t * const idigi_ptr,
         msg_ptr->capabilities[msg_capability_client].compression_supported = true;
         #endif
 
-        #if (IDIGI_VERSION >= IDIGI_VERSION_1100)
+        #if (IDIGI_VERSION < IDIGI_VERSION_1100)
+        #define IDIGI_MSG_MAX_TRANSACTION   1
+        #endif
+
+        #if (defined IDIGI_MSG_MAX_TRANSACTION)
+        msg_ptr->capabilities[msg_capability_client].max_transactions = IDIGI_MSG_MAX_TRANSACTION;
+        #else
         {
             idigi_request_t const request_id = {idigi_config_max_transaction};
 
@@ -1538,9 +1545,6 @@ static idigi_callback_status_t msg_init_facility(idigi_data_t * const idigi_ptr,
                 goto done;
             }
         }
-        #else
-        #define MSG_CLIENT_MAX_TRANSACTION  1
-        msg_ptr->capabilities[msg_capability_client].max_transactions = MSG_CLIENT_MAX_TRANSACTION;
         #endif
 
         #define MSG_RECV_WINDOW_SIZE 16384
