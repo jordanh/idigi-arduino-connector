@@ -49,15 +49,19 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
     case idigi_class_config:
         status = idigi_config_callback(request_id.config_request, request_data, request_length, response_data, response_length);
         break;
+
     case idigi_class_operating_system:
         status = idigi_os_callback(request_id.os_request, request_data, request_length, response_data, response_length);
         break;
+
     case idigi_class_network:
         status = idigi_network_callback(request_id.network_request, request_data, request_length, response_data, response_length);
         break;
+
     case idigi_class_data_service:
         status = idigi_data_service_callback(request_id.firmware_request, request_data, request_length, response_data, response_length);
         break;
+
     default:
         /* not supported */
         break;
@@ -65,37 +69,19 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
     return status;
 }
 
-
-
-int main (void)
+int application_call(idigi_handle_t handle)
 {
-    idigi_status_t status = idigi_success;
-    idigi_handle_t handle;
+    int stop_calling = 1;
+    idigi_status_t const status = send_put_request(handle);
 
-    APP_DEBUG("Starting iDigi\n");
-    handle = idigi_init((idigi_callback_t)idigi_callback);
-
-    if (handle != NULL)
+    if (status == idigi_init_error)
     {
-        static bool first_time = true;
+        #define SLEEP_ONE_SECOND  1
 
-        while (status == idigi_success) 
-        {
-            status = idigi_step(handle);
-            if (first_time) 
-            {
-                if (is_initialization_complete()) 
-                {
-                    status = send_put_request(handle);
-                    if (status != idigi_service_busy) 
-                        first_time = false;
-                    else
-                        status = idigi_success;
-                }
-            }
-        }
+        os_sleep(SLEEP_ONE_SECOND);
+        stop_calling = 0;
     }
 
-    APP_DEBUG("iDigi stopped running status = [%d]\n", status);
-    return 0;
+    return stop_calling;
 }
+
