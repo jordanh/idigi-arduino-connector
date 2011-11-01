@@ -49,6 +49,6 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
                                               void * response_data,
                                               size_t * const response_length);
 
-bool is_initialization_complete(void);
+int application_call(idigi_handle_t handle);
 
 #endif /* _PLATFORM_H */
