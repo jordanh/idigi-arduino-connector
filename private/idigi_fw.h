@@ -155,8 +155,8 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_pt
     if (request != NULL)
     {
         unsigned * const req_timeout = (unsigned * const)request;
-
-        *req_timeout = timeout;
+        /* we want callback to return immediately */
+        *req_timeout = 0;
     }
 
     request_id.firmware_request = fw_request_id;
@@ -200,7 +200,7 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_pt
 
     if ((end_time_stamp- start_time_stamp) > timeout)
     {
-        /* callback exceeds timeout value.
+        /* Just notify callback that we exceed keepalive timeout.
          * No need to abort just notify caller.
          *
          * Server will disconnect us if we miss sending
@@ -872,7 +872,8 @@ static idigi_callback_status_t process_target_reset(idigi_firmware_data_t * cons
     return status;
 }
 
-static void send_discovery_packet_callback(idigi_data_t * const idigi_ptr, uint8_t const * const packet, idigi_status_t const status, void * const user_data)
+static void send_discovery_packet_callback(idigi_data_t * const idigi_ptr, uint8_t const * const packet,
+                                           idigi_status_t const status, void * const user_data)
 {
     idigi_firmware_data_t * const fw_ptr = user_data;
     /* update fw download keepalive timing */
@@ -881,7 +882,8 @@ static void send_discovery_packet_callback(idigi_data_t * const idigi_ptr, uint8
 
 }
 
-static idigi_callback_status_t fw_discovery(idigi_data_t * const idigi_ptr, void * const facility_data, uint8_t * const packet)
+static idigi_callback_status_t fw_discovery(idigi_data_t * const idigi_ptr, void * const facility_data,
+                                            uint8_t * const packet, unsigned int * receive_timeout)
 {
 /* Firmware target list message format:
  *
@@ -911,6 +913,7 @@ enum fw_target_list{
     idigi_firmware_data_t * const fw_ptr = facility_data;
 
     UNUSED_PARAMETER(packet);
+    UNUSED_PARAMETER(receive_timeout);
 
     /* Construct a target list message.
      * Get target count and then get version for each target to build target list message
@@ -1012,7 +1015,8 @@ done:
     return status;
 }
 
-static idigi_callback_status_t fw_process(idigi_data_t * const idigi_ptr, void * const facility_data, uint8_t * const edp_header)
+static idigi_callback_status_t fw_process(idigi_data_t * const idigi_ptr, void * const facility_data,
+                                          uint8_t * const edp_header, unsigned int * const receive_timeout)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_firmware_data_t * const fw_ptr = facility_data;
@@ -1028,7 +1032,7 @@ static idigi_callback_status_t fw_process(idigi_data_t * const idigi_ptr, void *
 
     if (fw_ptr->fw_keepalive_start)
     {
-        status = fw_discovery(idigi_ptr, facility_data, edp_header);
+        status = fw_discovery(idigi_ptr, facility_data, edp_header, receive_timeout);
         if (status != idigi_callback_abort)
         {
            fw_ptr->fw_keepalive_start = false;
@@ -1104,7 +1108,7 @@ static idigi_callback_status_t idigi_facility_firmware_delete(idigi_data_t * con
     return del_facility_data(idigi_ptr, E_MSG_FAC_FW_NUM);
 }
 
-static idigi_callback_status_t idigi_facility_firmware_init(idigi_data_t * const idigi_ptr)
+static idigi_callback_status_t idigi_facility_firmware_init(idigi_data_t * const idigi_ptr, unsigned int const facility_index)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_firmware_data_t * fw_ptr;
@@ -1120,8 +1124,7 @@ static idigi_callback_status_t idigi_facility_firmware_init(idigi_data_t * const
     if (fw_ptr == NULL)
     {
         void * ptr;
-        status = add_facility_data(idigi_ptr, E_MSG_FAC_FW_NUM, &ptr,
-                                   sizeof *fw_ptr, fw_discovery, fw_process);
+        status = add_facility_data(idigi_ptr, facility_index, E_MSG_FAC_FW_NUM, &ptr, sizeof *fw_ptr);
 
         if (status != idigi_callback_continue || ptr == NULL)
         {
