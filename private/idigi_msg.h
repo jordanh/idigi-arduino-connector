@@ -676,6 +676,7 @@ static void msg_send_complete(idigi_data_t * const idigi_ptr, uint8_t const * co
         {
             dblock->z_flag = Z_NO_FLUSH;
             session->state = MsgIsAckPending(session->status_flag) ? msg_state_wait_ack : msg_state_get_data;
+            zlib_ptr->avail_out = 0;
         }
         else
             session->state = msg_state_compress;
@@ -995,7 +996,12 @@ static idigi_callback_status_t msg_pass_service_data(idigi_data_t * const idigi_
             dblock->total_bytes += bytes;
 
             if ((dblock->total_bytes - dblock->ack_count) > (dblock->available_window/2))
+            {
                 MsgSetAckPending(session->status_flag);
+                session->state = msg_state_send_ack;
+            }
+            else
+                session->state = msg_state_receive;
         }
     }
 
@@ -1010,10 +1016,6 @@ static idigi_callback_status_t msg_process_raw_data(idigi_data_t * const idigi_p
     switch (status) 
     {
     case idigi_callback_continue:
-        if (!MsgIsLastData(session->status_flag))
-        {
-            session->state = MsgIsAckPending(session->status_flag) ? msg_state_send_ack : msg_state_receive;
-        }
         break;
 
     case idigi_callback_busy:
@@ -1042,13 +1044,8 @@ static idigi_callback_status_t msg_process_decompressed_data(idigi_data_t * cons
     {
     case idigi_callback_continue:
         dblock->bytes_out = 0;
-        if (!MsgIsLastData(session->status_flag))
-        {
-            if (zlib_ptr->avail_out == 0)
-                session->state = msg_state_decompress;
-            else
-                session->state =  MsgIsAckPending(session->status_flag) ? msg_state_send_ack : msg_state_receive;
-        }
+        if ((zlib_ptr->avail_out == 0) && (dblock->z_flag != Z_FINISH))
+            session->state = msg_state_decompress;
         break;
 
     case idigi_callback_busy:
@@ -1098,7 +1095,10 @@ static idigi_callback_status_t msg_decompress_data(idigi_data_t * const idigi_pt
         if ((zlib_ptr->avail_out == 0) || (zret == Z_STREAM_END))
         {
             if (zret == Z_STREAM_END)
+            {
                 MsgSetLastData(session->status_flag);
+                dblock->z_flag = Z_FINISH;
+            }
 
             dblock->bytes_out = sizeof dblock->buffer_out - zlib_ptr->avail_out;
             status = msg_process_decompressed_data(idigi_ptr, session);
