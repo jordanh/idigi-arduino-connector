@@ -37,13 +37,20 @@
 #define SET_FACILITY_SUPPORT(i) (0x01 << (i))
 #define IS_FACILITY_SUPPORTED(idigi_ptr, table_index)    (idigi_ptr->facilities & SET_FACILITY_SUPPORT(table_index))
 
-typedef idigi_callback_status_t (* idigi_facility_table_t)(struct idigi_data * const idigi_ptr);
+typedef idigi_callback_status_t (* idigi_facility_init_cb_t)(struct idigi_data * const idigi_ptr, unsigned int const facility_index);
+typedef idigi_callback_status_t (* idigi_facility_delete_cb_t)(struct idigi_data * const idigi_ptr);
+typedef idigi_callback_status_t (* idigi_facility_process_cb_t )(struct idigi_data * const idigi_ptr,
+                                                                 void * const facility_data,
+                                                                 uint8_t * const packet,
+                                                                 unsigned int * const receive_timeout);
 
 typedef struct {
     idigi_request_t request_id;
-    idigi_facility_table_t init_cb;
-    idigi_facility_table_t delete_cb;
-    idigi_facility_table_t cleanup_cb;
+    idigi_facility_init_cb_t init_cb;
+    idigi_facility_delete_cb_t delete_cb;
+    idigi_facility_delete_cb_t cleanup_cb;
+    idigi_facility_process_cb_t discovery_cb;
+    idigi_facility_process_cb_t process_cb;
 } idigi_facility_init_t;
 
 /* Table of all facilites that iDigi supports.
@@ -55,14 +62,14 @@ typedef struct {
  */
 static idigi_facility_init_t const idigi_supported_facility_table[] = {
         /* mandatory facilities */
-        {{MANDATORY_FACILITY}, idigi_facility_cc_init, idigi_facility_cc_delete, idigi_facility_cc_cleanup},
+        {{MANDATORY_FACILITY}, idigi_facility_cc_init, idigi_facility_cc_delete, idigi_facility_cc_cleanup, cc_discovery, cc_process},
 
         /* list of optional facilities */
 #if defined(IDIGI_FIRMWARE_SERVICE)
-        {{idigi_config_firmware_facility}, idigi_facility_firmware_init, idigi_facility_firmware_delete, NULL},
+        {{idigi_config_firmware_facility}, idigi_facility_firmware_init, idigi_facility_firmware_delete, NULL, fw_discovery, fw_process},
 #endif
 #if defined(IDIGI_DATA_SERVICE)
-        {{idigi_config_data_service}, idigi_facility_data_service_init, idigi_facility_data_service_delete, idigi_facility_data_service_cleanup}
+        {{idigi_config_data_service}, idigi_facility_data_service_init, idigi_facility_data_service_delete, idigi_facility_data_service_cleanup, msg_discovery, msg_process}
 #endif
 };
 
@@ -71,31 +78,18 @@ static size_t const idigi_facility_count = asizeof(idigi_supported_facility_tabl
 static idigi_callback_status_t layer_remove_facilities(idigi_data_t * const idigi_ptr)
 {
     idigi_callback_status_t result = idigi_callback_continue;
-    unsigned int i = 0;
+    idigi_facility_t * fac_ptr;
 
-    /* remove all facilities. delete_cb should not return busy.
-     * If it returns busy, just keep calling it.
-     */
-    while (i < idigi_facility_count)
+    /* remove all facilities. delete_cb should not return busy. */
+    for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL && result == idigi_callback_continue; fac_ptr = fac_ptr->next)
     {
-        idigi_callback_status_t status = idigi_callback_continue;
+        unsigned int const i = fac_ptr->facility_index;
 
-        if (IS_FACILITY_SUPPORTED(idigi_ptr, i) &&
-            idigi_supported_facility_table[i].delete_cb != NULL)
+        if (idigi_supported_facility_table[i].delete_cb != NULL)
         {
-            status = idigi_supported_facility_table[i].delete_cb(idigi_ptr);
-            if (status != idigi_callback_continue)
-            {
-                /* Abort by callback. Save the abort status and
-                 * continue removing the rest of the facilities.
-                 */
-                result = idigi_callback_abort;
-            }
+            result = idigi_supported_facility_table[i].delete_cb(idigi_ptr);
         }
-        if (status != idigi_callback_busy)
-        {
-            i++;
-        }
+        ASSERT(result != idigi_callback_busy);
     }
 
     return result;
@@ -104,32 +98,18 @@ static idigi_callback_status_t layer_remove_facilities(idigi_data_t * const idig
 static idigi_callback_status_t layer_cleanup_facilities(idigi_data_t * const idigi_ptr)
 {
     idigi_callback_status_t result = idigi_callback_continue;
-    unsigned int i = 0;
+    idigi_facility_t * fac_ptr;
 
-    /* remove all facilities. delete_cb should not return busy.
-     * If it returns busy, just keep calling it.
-     */
-    while (i < idigi_facility_count)
+    /* cleanup all facilities. cleanup_cb should not return busy. */
+    for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL && result == idigi_callback_continue; fac_ptr = fac_ptr->next)
     {
-        idigi_callback_status_t status = idigi_callback_continue;
+        unsigned int const i = fac_ptr->facility_index;
 
-        if (IS_FACILITY_SUPPORTED(idigi_ptr, i) &&
-            idigi_supported_facility_table[i].cleanup_cb != NULL)
+        if (idigi_supported_facility_table[i].cleanup_cb != NULL)
         {
-            status = idigi_supported_facility_table[i].cleanup_cb(idigi_ptr);
-            if (status != idigi_callback_continue)
-            {
-                /* Abort by callback. Save the abort status and
-                 * continue removing the rest of the facilities.
-                 */
-                result = idigi_callback_abort;
-            }
+            result = idigi_supported_facility_table[i].cleanup_cb(idigi_ptr);
         }
-        /* if busy, just keep calling the callback otherwise, goto next facility */
-        if (status != idigi_callback_busy)
-        {
-            i++;
-        }
+        ASSERT(result != idigi_callback_busy);
     }
 
     return result;
@@ -166,9 +146,12 @@ static idigi_callback_status_t discovery_facility_layer(idigi_data_t * const idi
 
     for (;fac_ptr != NULL && status == idigi_callback_continue; fac_ptr = fac_ptr->next)
     {
-        if (fac_ptr->discovery_cb != NULL)
+        unsigned int const i = fac_ptr->facility_index;
+
+        if (idigi_supported_facility_table[i].discovery_cb != NULL)
         {   /* function to send facility discovery */
-            status = fac_ptr->discovery_cb(idigi_ptr, fac_ptr->facility_data, NULL);
+            status = idigi_supported_facility_table[i].discovery_cb(idigi_ptr, fac_ptr->facility_data,
+                                                                    NULL, &idigi_ptr->receive_packet.timeout);
             if (status != idigi_callback_continue)
             {
                 idigi_ptr->active_facility = fac_ptr;
@@ -369,7 +352,7 @@ static idigi_callback_status_t initialize_facilities(idigi_data_t * const idigi_
         if (IS_FACILITY_SUPPORTED(idigi_ptr,i) &&
            idigi_supported_facility_table[i].init_cb != NULL)
         {
-            status = idigi_supported_facility_table[i].init_cb(idigi_ptr);
+            status = idigi_supported_facility_table[i].init_cb(idigi_ptr, i);
         }
     }
 
@@ -987,20 +970,10 @@ enum {
                                     NULL);
         if (status == idigi_callback_continue)
         {
-            idigi_request_t const request_id = {idigi_network_initialization_done};
-
             /* we are connected and EDP communication is fully established. */
             set_idigi_state(idigi_ptr, edp_facility_layer);
-            idigi_ptr->edp_connected = true;
-
-            status = idigi_callback_no_response(idigi_ptr->callback, idigi_class_network, request_id, NULL, 0);
-            if (status == idigi_callback_unrecognized)
-            {
-                status = idigi_callback_continue;
-            }
-
         }
-        break;
+         break;
     }
     }
 done:
@@ -1120,28 +1093,34 @@ error:
         /* invoke facility process */
         for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
         {
-            status = fac_ptr->process_cb(idigi_ptr, fac_ptr->facility_data, fac_ptr->packet);
-            if (status != idigi_callback_busy && fac_ptr->packet != NULL)
-            {   /* release the packet when it's done */
-                release_receive_packet(idigi_ptr, fac_ptr->packet);
-                fac_ptr->packet = NULL;
-            }
+            unsigned int const i = fac_ptr->facility_index;
 
-            if (status != idigi_callback_abort)
+            if (idigi_supported_facility_table[i].process_cb)
             {
-                uint32_t rx_keepalive;
-                uint32_t tx_keepalive;
-                uint32_t current_system_time;
-                /* check rx_keepalive and tx_keepalive timing */
-                status =  get_keepalive_timeout(idigi_ptr, &rx_keepalive, &tx_keepalive, &current_system_time);
-                if (rx_keepalive == 0 || tx_keepalive == 0 || status != idigi_callback_continue)
-                {
-                    break;
+                status = idigi_supported_facility_table[i].process_cb(idigi_ptr, fac_ptr->facility_data,
+                                                                      fac_ptr->packet, &idigi_ptr->receive_packet.timeout);
+                if (status != idigi_callback_busy && fac_ptr->packet != NULL)
+                {   /* release the packet when it's done */
+                    release_receive_packet(idigi_ptr, fac_ptr->packet);
+                    fac_ptr->packet = NULL;
                 }
-            }
-            else if (status == idigi_callback_unrecognized)
-            {
-                status = idigi_callback_continue;
+
+                if (status != idigi_callback_abort)
+                {
+                    uint32_t rx_keepalive;
+                    uint32_t tx_keepalive;
+                    uint32_t current_system_time;
+                    /* check rx_keepalive and tx_keepalive timing */
+                    status =  get_keepalive_timeout(idigi_ptr, &rx_keepalive, &tx_keepalive, &current_system_time);
+                    if (rx_keepalive == 0 || tx_keepalive == 0 || status != idigi_callback_continue)
+                    {
+                        break;
+                    }
+                }
+                else if (status == idigi_callback_unrecognized)
+                {
+                    status = idigi_callback_continue;
+                }
             }
         }
     }
