@@ -149,7 +149,6 @@ static idigi_callback_status_t process_device_request(idigi_data_t * const idigi
          */
         size_t min_data_length;
         uint8_t const target_length =  message_load_u8(ds_device_request, target_length);
-        size_t length = (sizeof *context + sizeof *device_request + target_length +1);
 
         ASSERT_GOTO(message_load_u8(ds_device_request, opcode) == data_service_opcode_device_request, done);
 
@@ -182,11 +181,6 @@ static idigi_callback_status_t process_device_request(idigi_data_t * const idigi
         context->request_type = idigi_data_service_device_request;
         context->user_context = device_request;
         service_data->session->service_context = context;
-
-        printf("device_request: context 0x%x size %u 0x%x\n", (unsigned)context, length, (unsigned)((uint8_t *)context + length));
-        printf("device_request: context->user_context %p %u\n", context->user_context, sizeof *device_request);
-        printf("device_request: target_string %p size %u\n", device_request->target_string, target_length);
-        printf("device_request: 0x%x\n",(unsigned)(device_request->target_string + target_length));
 
         ds_device_request += target_length;
 
@@ -241,7 +235,6 @@ static idigi_callback_status_t process_device_request(idigi_data_t * const idigi
             status = idigi_callback_unrecognized;
         }
         device_request->user_context = response_data.user_context;
-        printf("device_request: user context %p\n", device_request->user_context);
     }
 done:
     return status;
@@ -302,7 +295,6 @@ enum {
         }
         service_data->length_in_bytes = response_data.message_data->data_length + header_length;
         device_request->user_context = response_data.user_context;
-        printf("device_response: user_context %p\n", device_request->user_context);
     }
     return status;
 }
