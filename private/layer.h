@@ -214,12 +214,13 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
         switch(request_id.config_request)
         {
         case idigi_config_server_url:
-            if ((length == 0) || (length > SERVER_URL_LENGTH))
+            if ((length == 0) || (length > SERVER_URL_LENGTH-1))
             {
                 idigi_ptr->error_code = idigi_invalid_data_range;
                 goto error;
             }
             memcpy(idigi_ptr->server_url, data, length);
+            idigi_ptr->server_url[length] = 0x0;
             idigi_ptr->server_url_length = length;
             break;
 
