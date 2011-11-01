@@ -45,6 +45,7 @@ static void reset_initial_data(idigi_data_t * const idigi_ptr)
     idigi_ptr->receive_packet.index = 0;
     idigi_ptr->receive_packet.ptr = NULL;
     idigi_ptr->receive_packet.data_packet = NULL;
+    idigi_ptr->receive_packet.timeout = MAX_RECIVE_TIMEOUT_IN_SECONDS;
 
     idigi_ptr->receive_packet.free_packet_buffer = &idigi_ptr->receive_packet.packet_buffer;
 
@@ -164,6 +165,19 @@ static void free_data(idigi_data_t * const idigi_ptr, void * const ptr)
     return;
 }
 
+static void sleep_timeout(idigi_data_t * const idigi_ptr)
+{
+    if (idigi_ptr->receive_packet.free_packet_buffer == NULL)
+    {
+        idigi_request_t const request_id = {idigi_os_sleep};
+        unsigned int const timeout = MAX_RECIVE_TIMEOUT_IN_SECONDS;
+
+        idigi_callback_no_response(idigi_ptr->callback, idigi_class_operating_system, request_id, &timeout, sizeof timeout);
+    }
+
+    return;
+}
+
 static uint32_t get_elapsed_value(uint32_t const max_value, uint32_t const last_value, uint32_t const current_value)
 {
     uint32_t elapsed_value;
@@ -176,11 +190,11 @@ static uint32_t get_elapsed_value(uint32_t const max_value, uint32_t const last_
     {
         if (elapsed_value > max_value)
         {
-            /* already over the value so return 0 */
+            /* already over the value so return max_value */
             elapsed_value = max_value;
         }
 
-        the_value -= elapsed_value;
+        the_value -= elapsed_value; /* remaining value */
     }
     return the_value;
 }
@@ -236,8 +250,8 @@ static void * get_facility_data(idigi_data_t * const idigi_ptr, uint16_t const f
     return ptr;
 }
 
-static idigi_callback_status_t add_facility_data(idigi_data_t * const idigi_ptr, uint16_t const facility_num, void ** fac_ptr, size_t const size,
-                                               idigi_facility_process_cb_t discovery_cb, idigi_facility_process_cb_t process_cb)
+static idigi_callback_status_t add_facility_data(idigi_data_t * const idigi_ptr, unsigned int const facility_index,
+                                                 uint16_t const facility_num, void ** fac_ptr, size_t const size)
 {
     idigi_callback_status_t status;
     idigi_facility_t * facility;
@@ -256,8 +270,7 @@ static idigi_callback_status_t add_facility_data(idigi_data_t * const idigi_ptr,
         facility = ptr;
         facility->facility_num = facility_num;
         facility->size = size;
-        facility->discovery_cb = discovery_cb;
-        facility->process_cb = process_cb;
+        facility->facility_index = facility_index;
 
         add_node(&idigi_ptr->facility_list, facility);
 
