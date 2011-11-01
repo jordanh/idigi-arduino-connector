@@ -97,6 +97,8 @@
 #define GET_WAIT_COUNT(idigi_ptr)    idigi_ptr->wait_count
 #endif
 
+#define MAX_RECIVE_TIMEOUT_IN_SECONDS  1
+
 /* IRL EDP States */
 typedef enum {
     edp_init_layer,
@@ -149,14 +151,12 @@ typedef enum {
 struct idigi_data;
 struct idigi_facility;
 
-typedef idigi_callback_status_t (* idigi_facility_process_cb_t )(struct idigi_data * const idigi_ptr, void * const facility_data, uint8_t * const packet);
 typedef void (* send_complete_cb_t)(struct idigi_data * const idigi_ptr, uint8_t const * const packet, idigi_status_t const status, void * const user_data);
 
 typedef struct idigi_facility {
+    unsigned int facility_index;
     uint16_t facility_num;
     size_t size;
-    idigi_facility_process_cb_t discovery_cb;
-    idigi_facility_process_cb_t process_cb;
     uint8_t * packet;
     void * facility_data;
     struct idigi_facility * next;
@@ -228,10 +228,12 @@ typedef struct idigi_data {
         uint8_t * data_packet;
         uint8_t * ptr;
         int index;
+        unsigned int timeout;
         uint16_t  packet_type;
         uint16_t  packet_length;
         size_t bytes_received;
         size_t total_length;
+
     } receive_packet;
 
 } idigi_data_t;
