@@ -957,26 +957,30 @@ error:
 static idigi_callback_status_t msg_pass_service_data(idigi_data_t * const idigi_ptr, msg_session_t * const session, void * data, size_t const bytes)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    msg_service_request_t service_data;
-    unsigned int flag = 0;
 
     ASSERT_GOTO(session != NULL, error);
 
-    if (MsgIsStart(session->status_flag))
-        MsgSetStart(flag);
+    {
+        unsigned int service_flag = 0;
+        msg_service_request_t service_data;
 
-    if (MsgIsLastData(session->status_flag))
-        MsgSetLastData(flag);
+        if (MsgIsStart(session->status_flag))
+            MsgSetStart(service_flag);
+    
+        if (MsgIsLastData(session->status_flag))
+            MsgSetLastData(service_flag);
+    
+        MSG_FILL_SERVICE(service_data, session, msg_service_type_have_data, data, bytes, service_flag);
+        status = msg_call_service_layer(idigi_ptr, session->service_id, &service_data);
+    }
 
-    MSG_FILL_SERVICE(service_data, session, msg_service_type_have_data, data, bytes, flag);
-    status = msg_call_service_layer(idigi_ptr, session->service_id, &service_data);
     if (status == idigi_callback_continue)
     {
         msg_data_block_t * const dblock = &session->data_block;
 
-        MsgClearStart(flag);
+        MsgClearStart(session->status_flag);
 
-        if (MsgIsLastData(flag))
+        if (MsgIsLastData(session->status_flag))
         {
             if (MsgIsRequest(session->status_flag))
             {
