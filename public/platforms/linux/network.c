@@ -254,8 +254,6 @@ static idigi_callback_status_t network_receive(idigi_read_request_t * read_data,
     if (!FD_ISSET(*read_data->network_handle, &read_set))
     {
         rc = idigi_callback_busy;
-        APP_DEBUG("network_connect: select timeout\r\n");
-        perror("network_connect: select");
         goto done;
     }
     ccode = recv(*read_data->network_handle, (char *)read_data->buffer, (int)read_data->length, 0);
@@ -368,10 +366,6 @@ idigi_callback_status_t idigi_network_callback(idigi_network_request_t const req
     case idigi_network_reboot:
         ret = server_reboot();
         status = (ret == true) ? idigi_callback_continue : idigi_callback_abort;
-        break;
-
-    case idigi_network_initialization_done:
-        netowrk_initialization_complete = true;
         break;
 
     default:
