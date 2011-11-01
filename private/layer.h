@@ -972,6 +972,7 @@ enum {
         {
             /* we are connected and EDP communication is fully established. */
             set_idigi_state(idigi_ptr, edp_facility_layer);
+            idigi_ptr->edp_connected = true;
         }
          break;
     }
