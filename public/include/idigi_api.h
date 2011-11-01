@@ -143,8 +143,7 @@ typedef enum {
     idigi_network_receive,                  /**< Requesting callback to receive data from iDigi server */
     idigi_network_close,                    /**< Requesting callback to close iDigi server connection */
     idigi_network_disconnected,             /**< iDigi server disconnected notification. iDigi server requests to disconnect the connection */
-    idigi_network_reboot,                   /**< Requesting callback to reboot the system */
-    idigi_network_initialization_done       /**< Notifying callback that connection and initialization are fully established. */
+    idigi_network_reboot                   /**< Requesting callback to reboot the system */
 } idigi_network_request_t;
 /**
 * @}
@@ -163,7 +162,8 @@ typedef enum {
 typedef enum {
     idigi_os_malloc,            /**< Callback used to dynamically allocate memory.. */
     idigi_os_free,              /**< Callback is called to free previous allocated memory. */
-    idigi_os_system_up_time    /**< This callback is called to return system up time in seconds. It is the time that a device has been up and running. */
+    idigi_os_system_up_time,    /**< Callback is called to return system up time in seconds. It is the time that a device has been up and running. */
+    idigi_os_sleep              /**< Callback is called to sleep or relinquish so that other tasks can be executed when @see idigi_run is used. */
 } idigi_os_request_t;
 /**
 * @}
@@ -691,6 +691,39 @@ typedef struct idigi_data_put_request_t
     idigi_data_put_type_t request_type;
     void const * header_context;  /* holds idigi_data_put_header_t * provided in initiate_action() */
 } idigi_data_put_request_t;
+
+typedef enum {
+    idigi_data_service_device_message_request,
+    idigi_data_service_device_message_response,
+    idigi_data_service_device_message_error
+} idigi_data_service_device_message_type_t;
+
+typedef enum {
+    idigi_data_service_device_success,
+    idigi_data_service_device_not_handled
+} idigi_data_service_device_response_status_t;
+
+typedef struct {
+    void * data;
+    size_t data_length;
+    unsigned int flag;
+} idigi_data_service_device_data_t;
+
+typedef struct {
+    void * user_context;
+    void * session;
+    char const * target;
+    idigi_data_service_device_message_type_t message_type;
+    idigi_data_service_device_data_t         * message_data;
+} idigi_data_service_device_request_t;
+
+typedef struct
+{
+    void * user_context;
+    void * session;
+    idigi_data_service_device_response_status_t status;
+    idigi_data_service_device_data_t            * message_data;
+} idigi_data_service_device_response_t;
 
  /**
  * @defgroup idigi_callback_t idigi_callback_t: IIK application defined callback.
