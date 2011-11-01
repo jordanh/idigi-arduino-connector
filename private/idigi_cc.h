@@ -591,28 +591,35 @@ enum cc_redirect_url {
                 server_url += prefix_len;
                 server_url_length -= prefix_len;
             }
+            ASSERT(server_url_length < sizeof idigi_ptr->server_url);
+            memcpy(idigi_ptr->server_url, server_url, server_url_length);
+            idigi_ptr->server_url[server_url_length] = 0x0;
+            idigi_ptr->server_url_length = server_url_length;
 
-            status = connect_server(idigi_ptr, server_url, server_url_length);
-            switch (status)
+            status = connect_server(idigi_ptr, idigi_ptr->server_url, server_url_length);
+            if (status == idigi_callback_continue)
             {
-            case idigi_callback_continue:
                 cc_ptr->report_code = cc_redirect_success;
-                /* now set the current server to this new redirect destination */
-                memcpy(idigi_ptr->server_url, server_url, server_url_length);
-                idigi_ptr->server_url_length = server_url_length;
                 redirect_done = true;
-                break;
-            case idigi_callback_busy:
-                redirect_done = true;
-                break;
-            case idigi_callback_abort:
-            case idigi_callback_unrecognized:
-                /* this is not error and we're
-                 * going to connect to the origin server.
-                 */
-                cc_ptr->report_code = cc_redirect_error;
-                status = idigi_callback_continue;
-                break;
+            }
+            else
+            {
+                /* restore origin server url */
+                memcpy(idigi_ptr->server_url, cc_ptr->origin_url, cc_ptr->origin_url_length);
+                idigi_ptr->server_url[cc_ptr->origin_url_length] = 0x0;
+                idigi_ptr->server_url_length = cc_ptr->origin_url_length;
+                if (status == idigi_callback_busy)
+                {
+                    redirect_done = true;
+                }
+                else
+                {
+                    /* this is not error and we're
+                     * going to connect to the origin server.
+                     */
+                    cc_ptr->report_code = cc_redirect_error;
+                    status = idigi_callback_continue;
+                }
             }
         }
         redirect += url_length;
