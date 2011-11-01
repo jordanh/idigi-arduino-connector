@@ -1033,14 +1033,13 @@ static idigi_callback_status_t fw_process(idigi_data_t * const idigi_ptr, void *
     if (fw_ptr->fw_keepalive_start)
     {
         status = fw_discovery(idigi_ptr, facility_data, edp_header, receive_timeout);
-        if (status != idigi_callback_abort)
+        if (status == idigi_callback_continue)
         {
-           fw_ptr->fw_keepalive_start = false;
+            get_system_time(idigi_ptr, &fw_ptr->last_fw_keepalive_sent_time);
+            fw_ptr->fw_keepalive_start = false;
+            status = idigi_callback_busy;
         }
-        else
-        {
-            goto done;
-        }
+        goto done;
     }
 
     length = message_load_be16(edp_header, length);
@@ -1061,15 +1060,6 @@ static idigi_callback_status_t fw_process(idigi_data_t * const idigi_ptr, void *
         goto done;
     }
 
-    if (opcode == fw_download_complete_opcode && fw_ptr->last_fw_keepalive_sent_time == 0)
-    {
-        /* start firmware keepalive which allow firmware download complete
-         * callback to start flash (which requires device to
-         * send target list message).
-         */
-        fw_ptr->last_fw_keepalive_sent_time = idigi_ptr->last_tx_keepalive_received_time;
-    }
-
     switch(opcode)
     {
     case fw_info_request_opcode:
@@ -1087,6 +1077,17 @@ static idigi_callback_status_t fw_process(idigi_data_t * const idigi_ptr, void *
         fw_ptr->fw_keepalive_start = false;
         break;
     case fw_download_complete_opcode:
+        if (fw_ptr->last_fw_keepalive_sent_time == 0)
+        {
+            /* start firmware keepalive which allow firmware download complete
+             * callback to start flash (which requires device to
+             * send target list message).
+             *
+             * Note. We only start firmware keepalive when we receive this complete
+             * code. Can we start when we receive block opcode?
+             */
+            fw_ptr->last_fw_keepalive_sent_time = idigi_ptr->last_tx_keepalive_received_time;
+        }
         status = process_fw_complete(fw_ptr, fw_message, length);
         break;
     case fw_target_reset_opcode:
