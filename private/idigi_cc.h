@@ -634,13 +634,14 @@ done:
     return status;
 }
 
-static idigi_callback_status_t cc_process(idigi_data_t * const idigi_ptr, void * const facility_data, uint8_t * const packet)
+static idigi_callback_status_t cc_process(idigi_data_t * const idigi_ptr, void * const facility_data,
+                                          uint8_t * const packet, unsigned int * const receive_timeout)
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
+    UNUSED_PARAMETER(receive_timeout);
 
     /* process incoming message from server for Connection Control facility */
-
     if (packet != NULL)
     {
         uint8_t opcode;
@@ -670,11 +671,13 @@ static idigi_callback_status_t cc_process(idigi_data_t * const idigi_ptr, void *
 
     return status;
 }
-static idigi_callback_status_t cc_discovery(idigi_data_t * const idigi_ptr, void * const facility_data, uint8_t * const packet)
+static idigi_callback_status_t cc_discovery(idigi_data_t * const idigi_ptr, void * const facility_data,
+                                            uint8_t * const packet, unsigned int * receive_timeout)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_cc_data_t * cc_ptr = facility_data;
 
+    UNUSED_PARAMETER(receive_timeout);
     UNUSED_PARAMETER(packet);
     /* Connection control facility needs to send redirect and
      * connection reports on discovery layer.
@@ -716,7 +719,7 @@ static idigi_callback_status_t idigi_facility_cc_delete(idigi_data_t * const idi
     return del_facility_data(idigi_ptr, E_MSG_FAC_CC_NUM);
 }
 
-static idigi_callback_status_t idigi_facility_cc_init(idigi_data_t * const idigi_ptr)
+static idigi_callback_status_t idigi_facility_cc_init(idigi_data_t * const idigi_ptr, unsigned int const facility_index)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_cc_data_t * cc_ptr;
@@ -733,7 +736,7 @@ static idigi_callback_status_t idigi_facility_cc_init(idigi_data_t * const idigi
     {
         void * ptr;
 
-        status = add_facility_data(idigi_ptr, E_MSG_FAC_CC_NUM, &ptr, sizeof *cc_ptr, cc_discovery, cc_process);
+        status = add_facility_data(idigi_ptr, facility_index, E_MSG_FAC_CC_NUM, &ptr, sizeof *cc_ptr);
 
         if (status == idigi_callback_abort || ptr == NULL)
         {
