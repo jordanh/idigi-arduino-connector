@@ -45,7 +45,7 @@ static void reset_initial_data(idigi_data_t * const idigi_ptr)
     idigi_ptr->receive_packet.index = 0;
     idigi_ptr->receive_packet.ptr = NULL;
     idigi_ptr->receive_packet.data_packet = NULL;
-    idigi_ptr->receive_packet.timeout = MAX_RECIVE_TIMEOUT_IN_SECONDS;
+    idigi_ptr->receive_packet.timeout = MAX_RECEIVE_TIMEOUT_IN_SECONDS;
 
     idigi_ptr->receive_packet.free_packet_buffer = &idigi_ptr->receive_packet.packet_buffer;
 
@@ -170,7 +170,7 @@ static void sleep_timeout(idigi_data_t * const idigi_ptr)
     if (idigi_ptr->receive_packet.free_packet_buffer == NULL)
     {
         idigi_request_t const request_id = {idigi_os_sleep};
-        unsigned int const timeout = MAX_RECIVE_TIMEOUT_IN_SECONDS;
+        unsigned int const timeout = idigi_ptr->receive_packet.timeout;
 
         idigi_callback_no_response(idigi_ptr->callback, idigi_class_operating_system, request_id, &timeout, sizeof timeout);
     }

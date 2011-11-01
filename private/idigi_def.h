@@ -97,7 +97,8 @@
 #define GET_WAIT_COUNT(idigi_ptr)    idigi_ptr->wait_count
 #endif
 
-#define MAX_RECIVE_TIMEOUT_IN_SECONDS  1
+#define MAX_RECEIVE_TIMEOUT_IN_SECONDS  1
+#define MIN_RECEIVE_TIMEOUT_IN_SECONDS  0
 
 /* IRL EDP States */
 typedef enum {

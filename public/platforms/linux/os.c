@@ -146,9 +146,11 @@ bool os_get_system_time(uint32_t * const uptime)
  *
  * @see os_free
  */
-void os_sleep(unsigned int const timeout)
+void os_sleep(unsigned int const timeout_in_seconds)
 {
-    usleep(timeout * 1000 * 1000);
+    unsigned int const timeout_in_microseconds = timeout_in_seconds * 1000000;
+
+    usleep(timeout_in_microseconds);
     return;
 }
 

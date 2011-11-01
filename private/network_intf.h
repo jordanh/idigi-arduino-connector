@@ -472,7 +472,7 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
     }
 
 done:
-    idigi_ptr->receive_packet.timeout = MAX_RECIVE_TIMEOUT_IN_SECONDS;
+    idigi_ptr->receive_packet.timeout = MAX_RECEIVE_TIMEOUT_IN_SECONDS;
     return bytes_received;
 }
 

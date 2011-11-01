@@ -1349,7 +1349,7 @@ static idigi_callback_status_t msg_discovery(idigi_data_t * const idigi_ptr, voi
     return msg_send_capabilities(idigi_ptr, facility_data, MSG_CAPABILITIES_REQUEST);
 }
 
-static idigi_callback_status_t msg_process_pending(idigi_data_t * const idigi_ptr, idigi_msg_data_t * const msg_ptr)
+static idigi_callback_status_t msg_process_pending(idigi_data_t * const idigi_ptr, idigi_msg_data_t * const msg_ptr, unsigned int * const receive_timeout)
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
@@ -1360,6 +1360,7 @@ static idigi_callback_status_t msg_process_pending(idigi_data_t * const idigi_pt
     {
         msg_session_t * const session = msg_ptr->session_current;
 
+        *receive_timeout = MIN_RECEIVE_TIMEOUT_IN_SECONDS;
         switch (session->state) 
         {
         case msg_state_init:
@@ -1367,6 +1368,7 @@ static idigi_callback_status_t msg_process_pending(idigi_data_t * const idigi_pt
         case msg_state_receive:
         case msg_state_wait_send_complete:
             msg_ptr->session_current = (session->prev != NULL) ? session->prev : msg_ptr->session_tail;
+            *receive_timeout = MAX_RECEIVE_TIMEOUT_IN_SECONDS;
             break;
 
         case msg_state_get_data:
@@ -1414,15 +1416,13 @@ done:
     return status;
 }
 
-static idigi_callback_status_t msg_process(idigi_data_t * const idigi_ptr, void * const facility_data, uint8_t * const edp_header, unsigned int * receive_timeout)
+static idigi_callback_status_t msg_process(idigi_data_t * const idigi_ptr, void * const facility_data, uint8_t * const edp_header, unsigned int * const receive_timeout)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_msg_data_t * const msg_ptr = facility_data;
 
     ASSERT_GOTO(idigi_ptr != NULL, error);
     ASSERT_GOTO(msg_ptr != NULL, error);
-
-    UNUSED_PARAMETER(receive_timeout); /* TODO: NEED TO UPDATE receive_timeout */
 
     if (edp_header != NULL)
     {
@@ -1458,7 +1458,7 @@ static idigi_callback_status_t msg_process(idigi_data_t * const idigi_ptr, void 
         }
     }
 
-    if (msg_process_pending(idigi_ptr, msg_ptr) == idigi_callback_abort) 
+    if (msg_process_pending(idigi_ptr, msg_ptr, receive_timeout) == idigi_callback_abort) 
         status = idigi_callback_abort;
 
 error:
