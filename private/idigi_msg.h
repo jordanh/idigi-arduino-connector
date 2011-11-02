@@ -725,7 +725,7 @@ static idigi_callback_status_t msg_compress_data(idigi_data_t * const idigi_ptr,
 
     if (zlib_ptr->avail_out == 0)
     {
-        size_t const header_length = (MsgIsStart(session->status_flag) ? record_end(start_packet) : record_end(data_packet));
+        size_t const header_length = MsgIsStart(session->status_flag) ? record_end(start_packet) : record_end(data_packet);
 
         zlib_ptr->next_out = msg_buffer + header_length;
         zlib_ptr->avail_out = frame_bytes - header_length;
