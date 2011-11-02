@@ -628,9 +628,9 @@ static void msg_fill_msg_header(msg_session_t * const session, void * ptr)
 
 static void msg_set_error(idigi_data_t * const idigi_ptr, msg_session_t * const session, idigi_msg_error_t error_code)
 {
-    bool const client_request_error = MsgIsClientOwned(session->status_flag) || !MsgIsReceiving(session->status_flag);
-    bool const client_response_error = !MsgIsClientOwned(session->status_flag) || MsgIsReceiving(session->status_flag);
-    bool const server_request_error = !MsgIsClientOwned(session->status_flag) || !MsgIsReceiving(session->status_flag);
+    bool const client_request_error = MsgIsClientOwned(session->status_flag) && !MsgIsReceiving(session->status_flag);
+    bool const client_response_error = !MsgIsClientOwned(session->status_flag) && !MsgIsReceiving(session->status_flag);
+    bool const server_request_error = !MsgIsClientOwned(session->status_flag) && MsgIsReceiving(session->status_flag);
 
     session->error = error_code;
     session->state = msg_state_send_error;
