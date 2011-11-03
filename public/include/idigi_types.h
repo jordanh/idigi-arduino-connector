@@ -57,21 +57,6 @@
  */
   typedef unsigned long uint32_t;
 
-
-/*! \fn typedef bool
- *  Boolean value which is either true or false. 
- */
-  typedef int bool;
-
-/*! \fn typedef true
- *  Expand to 1 for true
- */
-  #define true    1
-
-/*! \fn typedef false
- *  Expand to 0 for false. 
- */
-  #define false   0
 #endif
 
 
