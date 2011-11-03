@@ -1048,7 +1048,7 @@ static idigi_callback_status_t msg_process_decompressed_data(idigi_data_t * cons
     {
     case idigi_callback_continue:
         dblock->bytes_out = 0;
-        if ((zlib_ptr->avail_out == 0) && (dblock->z_flag != Z_FINISH))
+        if ((zlib_ptr->avail_out == 0) && (session->state != msg_state_get_data))
             session->state = msg_state_decompress;
         break;
 
@@ -1099,10 +1099,7 @@ static idigi_callback_status_t msg_decompress_data(idigi_data_t * const idigi_pt
         if ((zlib_ptr->avail_out == 0) || (zret == Z_STREAM_END))
         {
             if (zret == Z_STREAM_END)
-            {
                 MsgSetLastData(session->status_flag);
-                dblock->z_flag = Z_FINISH;
-            }
 
             dblock->bytes_out = sizeof dblock->buffer_out - zlib_ptr->avail_out;
             status = msg_process_decompressed_data(idigi_ptr, session);
