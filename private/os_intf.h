@@ -167,7 +167,9 @@ static void free_data(idigi_data_t * const idigi_ptr, void * const ptr)
 
 static void sleep_timeout(idigi_data_t * const idigi_ptr)
 {
-    if (idigi_ptr->receive_packet.free_packet_buffer == NULL)
+    /* no receive buffer and nothing to be read */
+    if (idigi_ptr->receive_packet.free_packet_buffer == NULL &&
+        idigi_ptr->receive_packet.total_length == 0)
     {
         idigi_request_t const request_id = {idigi_os_sleep};
         unsigned int const timeout = idigi_ptr->receive_packet.timeout;
