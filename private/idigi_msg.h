@@ -1112,6 +1112,13 @@ static idigi_callback_status_t msg_decompress_data(idigi_data_t * const idigi_pt
             dblock->bytes_out = sizeof dblock->buffer_out - zlib_ptr->avail_out;
             status = msg_process_decompressed_data(idigi_ptr, session);
         }
+        else
+        {
+            if (MsgIsAckPending(session->status_flag))
+            {
+                session->state = msg_state_send_ack;
+            }
+        }
     }
 
 done:
@@ -1574,6 +1581,7 @@ static idigi_callback_status_t msg_init_facility(idigi_data_t * const idigi_ptr,
         }
         #endif
 
+        /* note: window size must be > the size of receive buffer which is MSG_MAX_RECV_PACKET_SIZE */
         #define MSG_RECV_WINDOW_SIZE 16384
         msg_ptr->capabilities[msg_capability_client].window_size = MSG_RECV_WINDOW_SIZE;
     }
