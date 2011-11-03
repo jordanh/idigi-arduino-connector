@@ -1048,8 +1048,16 @@ static idigi_callback_status_t msg_process_decompressed_data(idigi_data_t * cons
     {
     case idigi_callback_continue:
         dblock->bytes_out = 0;
-        if ((zlib_ptr->avail_out == 0) && (session->state != msg_state_get_data))
-            session->state = msg_state_decompress;
+        if (session->state != msg_state_get_data)
+        {
+            if (zlib_ptr->avail_out == 0)
+                session->state = msg_state_decompress;
+            else
+            {
+                if (MsgIsAckPending(session->status_flag))
+                    session->state = msg_state_send_ack;
+            }
+        }
         break;
 
     case idigi_callback_busy:
