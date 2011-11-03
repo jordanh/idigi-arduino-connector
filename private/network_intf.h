@@ -58,10 +58,10 @@
 #define E_MSG_FAC_CC_NUM           0xffff
 
 
-static bool valid_timing_limit(idigi_data_t * const idigi_ptr, uint32_t const start, uint32_t const limit)
+static idigi_bool_t valid_timing_limit(idigi_data_t * const idigi_ptr, uint32_t const start, uint32_t const limit)
 {
     uint32_t elapsed;
-    bool rc = false;
+    idigi_bool_t rc = idigi_false;
 
     if (get_system_time(idigi_ptr, &elapsed) == idigi_callback_continue)
     {
@@ -214,7 +214,7 @@ static void release_packet_buffer(idigi_data_t * const idigi_ptr, uint8_t const 
 
     ASSERT(idigi_ptr->send_packet.packet_buffer.buffer == packet);
 
-    idigi_ptr->send_packet.packet_buffer.in_use = false;
+    idigi_ptr->send_packet.packet_buffer.in_use = idigi_false;
 }
 
 static uint8_t * get_packet_buffer(idigi_data_t * const idigi_ptr, uint16_t const facility, uint8_t ** data_ptr, size_t * data_length)
@@ -237,7 +237,7 @@ static uint8_t * get_packet_buffer(idigi_data_t * const idigi_ptr, uint16_t cons
     if ((idigi_ptr->send_packet.total_length == 0) &&
         (!idigi_ptr->send_packet.packet_buffer.in_use))
     {
-        idigi_ptr->send_packet.packet_buffer.in_use = true;
+        idigi_ptr->send_packet.packet_buffer.in_use = idigi_true;
 
         packet = idigi_ptr->send_packet.packet_buffer.buffer;
 
@@ -750,8 +750,8 @@ static idigi_callback_status_t connect_server(idigi_data_t * const idigi_ptr, ch
     case idigi_callback_continue:
         if (length == sizeof *idigi_ptr->network_handle)
         {
-            idigi_ptr->network_busy = false;
-            idigi_ptr->network_connected = true;
+            idigi_ptr->network_busy = idigi_false;
+            idigi_ptr->network_connected = idigi_true;
         }
         else
         {
@@ -794,8 +794,8 @@ static idigi_callback_status_t close_server(idigi_data_t * const idigi_ptr)
         case idigi_callback_continue:
             idigi_ptr->send_packet.total_length = 0;
             idigi_ptr->receive_packet.index = 0;
-            idigi_ptr->edp_connected = false;
-            idigi_ptr->network_connected = false;
+            idigi_ptr->edp_connected = idigi_false;
+            idigi_ptr->network_connected = idigi_false;
             break;
         default:
             break;

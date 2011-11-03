@@ -481,7 +481,7 @@ static idigi_callback_status_t process_connection_control(idigi_data_t * const i
 
     /* server either disconnects or reboots us */
     idigi_debug("process_connection_control: Connection request %d\n", request);
-    idigi_ptr->network_busy = true;
+    idigi_ptr->network_busy = idigi_true;
 
     status = close_server(idigi_ptr);
 
@@ -525,7 +525,7 @@ enum cc_redirect_url {
     idigi_callback_status_t status = idigi_callback_continue;
     uint8_t url_count;
     uint8_t * redirect;
-    bool redirect_done = false;
+    idigi_bool_t redirect_done = idigi_false;
     size_t const prefix_len = sizeof URL_PREFIX -1;
     uint8_t i;
 
@@ -563,7 +563,7 @@ enum cc_redirect_url {
     /* let's start parsing url length and url string */
     redirect += record_bytes(redirect);
 
-    idigi_ptr->network_busy = true;
+    idigi_ptr->network_busy = idigi_true;
 
     /* Close the connection before parsing new destination url */
     status = close_server(idigi_ptr);
@@ -600,7 +600,7 @@ enum cc_redirect_url {
             if (status == idigi_callback_continue)
             {
                 cc_ptr->report_code = cc_redirect_success;
-                redirect_done = true;
+                redirect_done = idigi_true;
             }
             else
             {
@@ -610,7 +610,7 @@ enum cc_redirect_url {
                 idigi_ptr->server_url_length = cc_ptr->origin_url_length;
                 if (status == idigi_callback_busy)
                 {
-                    redirect_done = true;
+                    redirect_done = idigi_true;
                 }
                 else
                 {

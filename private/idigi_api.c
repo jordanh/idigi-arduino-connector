@@ -89,12 +89,12 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
     idigi_handle->callback = callback;
     idigi_handle->facility_list = NULL;
     idigi_handle->facilities = 0;
-    idigi_handle->network_busy = false;
-    idigi_handle->edp_connected = false;
-    idigi_handle->network_connected = false;
+    idigi_handle->network_busy = idigi_false;
+    idigi_handle->edp_connected = idigi_false;
+    idigi_handle->network_connected = idigi_false;
 
-    idigi_handle->send_packet.packet_buffer.in_use = false;
-    idigi_handle->receive_packet.packet_buffer.in_use = false;
+    idigi_handle->send_packet.packet_buffer.in_use = idigi_false;
+    idigi_handle->receive_packet.packet_buffer.in_use = idigi_false;
     idigi_handle->receive_packet.packet_buffer.next = NULL;
 
 
@@ -120,7 +120,7 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
             store_at = (void **)&idigi_handle->device_type;
             break;
         default:
-            ASSERT(false);
+            ASSERT(idigi_false);
             break;
         }
         request_id.config_request = idigi_config_request_ids[i].request;
@@ -357,7 +357,7 @@ idigi_status_t idigi_initiate_action(idigi_handle_t const handle, idigi_initiate
 #endif
 
     default:
-        ASSERT(false);
+        ASSERT(idigi_false);
         result = idigi_invalid_data;
         break;
     }
