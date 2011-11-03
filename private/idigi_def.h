@@ -117,6 +117,11 @@ typedef enum {
     idigi_device_terminate
 } idigi_active_state_t;
 
+typedef enum {
+    idigi_false,
+    idigi_true,
+    idigi_bool_integer_width = INT_MAX
+} idigi_bool_t;
 
 #define add_node(head, node) \
     do { \
@@ -167,7 +172,7 @@ typedef struct idigi_facility {
 typedef struct idigi_buffer {
     uint8_t buffer[MSG_MAX_RECV_PACKET_SIZE];
     struct idigi_buffer * next;
-    bool    in_use;
+    idigi_bool_t    in_use;
 } idigi_buffer_t;
 
 typedef struct idigi_data {
@@ -204,9 +209,9 @@ typedef struct idigi_data {
     unsigned layer_state;
     unsigned request_id;
     uint16_t facilities;
-    bool network_connected;
-    bool network_busy;
-    bool edp_connected;
+    idigi_bool_t network_connected;
+    idigi_bool_t network_busy;
+    idigi_bool_t edp_connected;
 
     char server_url[SERVER_URL_LENGTH];
     size_t server_url_length;
@@ -214,7 +219,7 @@ typedef struct idigi_data {
     struct {
         struct {
             uint8_t buffer[MSG_MAX_SEND_PACKET_SIZE];
-            bool in_use;
+            idigi_bool_t in_use;
         } packet_buffer;
         uint8_t * ptr;
         size_t bytes_sent;

@@ -220,7 +220,7 @@ typedef struct
     uint32_t window_size;
     unsigned int active_transactions;
     uint8_t max_transactions;
-    bool compression_supported;
+    idigi_bool_t compression_supported;
 } msg_capabilities_t;
 
 typedef struct
@@ -231,10 +231,10 @@ typedef struct
     msg_session_t * session_tail;
     msg_session_t * session_current;
     uint16_t last_assigned_id;
-    bool session_locked;
+    idigi_bool_t session_locked;
 } idigi_msg_data_t;
 
-static msg_session_t * msg_find_session(idigi_msg_data_t const * const msg_ptr, uint16_t const id, bool const client_owned)
+static msg_session_t * msg_find_session(idigi_msg_data_t const * const msg_ptr, uint16_t const id, idigi_bool_t const client_owned)
 {
     msg_session_t * session = msg_ptr->session_head;
 
@@ -259,7 +259,7 @@ static uint16_t msg_find_next_available_id(idigi_msg_data_t * const msg_ptr)
 
     do
     {
-        static bool const client_owned = true;
+        static idigi_bool_t const client_owned = idigi_true;
 
         msg_ptr->last_assigned_id++; /* wraps around at 64k to search entire range */
         if (msg_ptr->last_assigned_id == MSG_INVALID_CLIENT_SESSION)
@@ -303,7 +303,7 @@ error:
 #define MSG_FILL_SERVICE_NO_DATA(service, session, type)  MSG_FILL_SERVICE(service, session, type, NULL, 0, 0)
 
 static msg_session_t * msg_create_session(idigi_data_t * const idigi_ptr, idigi_msg_data_t * const msg_ptr, uint16_t const service_id, 
-                                          bool const client_owned, idigi_msg_error_t * const result)
+                                          idigi_bool_t const client_owned, idigi_msg_error_t * const result)
 {
     uint16_t session_id = MSG_INVALID_CLIENT_SESSION;
     msg_capability_type_t const capability_id = client_owned ? msg_capability_server : msg_capability_client;
@@ -352,11 +352,11 @@ static msg_session_t * msg_create_session(idigi_data_t * const idigi_ptr, idigi_
     if (client_owned) MsgSetClientOwned(session->status_flag);
 
     if (msg_ptr->session_locked) goto error;
-    msg_ptr->session_locked = true;
+    msg_ptr->session_locked = idigi_true;
     add_node(&msg_ptr->session_head, session);
     if (msg_ptr->session_tail == NULL)
         msg_ptr->session_tail = session;
-    msg_ptr->session_locked = false;
+    msg_ptr->session_locked = idigi_false;
 
     msg_ptr->capabilities[capability_id].active_transactions++;
     *result = idigi_msg_error_none;
@@ -377,14 +377,14 @@ static void msg_delete_session(idigi_data_t * const idigi_ptr, idigi_msg_data_t 
     ASSERT_GOTO(session != NULL, error);
     
     if (msg_ptr->session_locked) goto error;
-    msg_ptr->session_locked = true;
+    msg_ptr->session_locked = idigi_true;
     remove_node(&msg_ptr->session_head, session);
     if (msg_ptr->session_tail == session)
         msg_ptr->session_tail = session->prev;
 
     if (msg_ptr->session_current == session)
         msg_ptr->session_current = (session->prev != NULL) ? session->prev : msg_ptr->session_tail;
-    msg_ptr->session_locked = false;
+    msg_ptr->session_locked = idigi_false;
 
     #if (defined IDIGI_COMPRESSION)
     if (MsgIsReceiving(session->status_flag))
@@ -440,7 +440,7 @@ static idigi_msg_error_t msg_initialize_zlib(z_streamp zlib_ptr, msg_block_state
         break;
 
     default:
-        ASSERT(false);
+        ASSERT(idigi_false);
         break;
     }
 
@@ -476,7 +476,7 @@ static idigi_msg_error_t msg_initialize_data_block(msg_session_t * const session
         break;
 
     default:
-        ASSERT_GOTO(false, error);
+        ASSERT_GOTO(idigi_false, error);
         break;
     }
 
@@ -628,9 +628,9 @@ static void msg_fill_msg_header(msg_session_t * const session, void * ptr)
 
 static void msg_set_error(idigi_data_t * const idigi_ptr, msg_session_t * const session, idigi_msg_error_t error_code)
 {
-    bool const client_request_error = MsgIsClientOwned(session->status_flag) && !MsgIsReceiving(session->status_flag);
-    bool const client_response_error = !MsgIsClientOwned(session->status_flag) && !MsgIsReceiving(session->status_flag);
-    bool const server_request_error = !MsgIsClientOwned(session->status_flag) && MsgIsReceiving(session->status_flag);
+    idigi_bool_t const client_request_error = MsgIsClientOwned(session->status_flag) && !MsgIsReceiving(session->status_flag);
+    idigi_bool_t const client_response_error = !MsgIsClientOwned(session->status_flag) && !MsgIsReceiving(session->status_flag);
+    idigi_bool_t const server_request_error = !MsgIsClientOwned(session->status_flag) && MsgIsReceiving(session->status_flag);
 
     session->error = error_code;
     session->state = msg_state_send_error;
@@ -865,7 +865,7 @@ done:
 
 static msg_session_t * msg_start_session(idigi_data_t * const idigi_ptr, uint16_t const service_id, idigi_msg_error_t * const result)
 {
-    static bool const client_owned = true;
+    static idigi_bool_t const client_owned = idigi_true;
     idigi_msg_data_t * const msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
     msg_session_t * session = msg_create_session(idigi_ptr, msg_ptr, service_id, client_owned, result);
 
@@ -918,7 +918,7 @@ static idigi_callback_status_t msg_process_capabilities(idigi_data_t * const idi
 {
     idigi_callback_status_t status = idigi_callback_continue;
     uint8_t * capabilty_packet = ptr;
-    bool const request_capabilities = (message_load_u8(capabilty_packet, flags) & MSG_FLAG_REQUEST) == MSG_FLAG_REQUEST;
+    idigi_bool_t const request_capabilities = (message_load_u8(capabilty_packet, flags) & MSG_FLAG_REQUEST) == MSG_FLAG_REQUEST;
     uint8_t const version = message_load_u8(capabilty_packet, version);
 
     ASSERT_GOTO(version == MSG_FACILITY_VERSION, error);
@@ -930,14 +930,14 @@ static idigi_callback_status_t msg_process_capabilities(idigi_data_t * const idi
         uint8_t const * compression_list = capabilty_packet + record_bytes(capabilty_packet);
         int i;
 
-        msg_fac->capabilities[msg_capability_server].compression_supported = false;
+        msg_fac->capabilities[msg_capability_server].compression_supported = idigi_false;
         for (i = 0; i < comp_count; i++) 
         {
             uint8_t const compression_id = *compression_list++;
 
             if (compression_id == MSG_COMPRESSION_LIBZ)
             {
-                msg_fac->capabilities[msg_capability_server].compression_supported = true;
+                msg_fac->capabilities[msg_capability_server].compression_supported = idigi_true;
                 break;
             }
         }
@@ -1157,8 +1157,8 @@ static idigi_callback_status_t msg_process_service_data(idigi_data_t * const idi
 
     if (session->state != msg_state_receive)
     {
-        bool const isError = session->state == msg_state_send_error;
-        bool const isDeleted = session->state == msg_state_delete;
+        idigi_bool_t const isError = session->state == msg_state_send_error;
+        idigi_bool_t const isDeleted = session->state == msg_state_delete;
 
         status = (isError || isDeleted) ? idigi_callback_continue : idigi_callback_busy;
         goto done;
@@ -1190,8 +1190,8 @@ static idigi_callback_status_t msg_process_start(idigi_data_t * const idigi_ptr,
     uint8_t * start_packet = ptr;
     uint8_t flag = message_load_u8(start_packet, flags);
     uint16_t const session_id = message_load_be16(start_packet, transaction_id);
-    bool const request = MsgIsRequest(flag);
-    bool const client_owned = !request;
+    idigi_bool_t const request = MsgIsRequest(flag);
+    idigi_bool_t const client_owned = !request;
 
     session = msg_find_session(msg_ptr, session_id, client_owned);
     if (session == NULL)
@@ -1273,7 +1273,7 @@ static idigi_callback_status_t msg_process_data(idigi_data_t * const idigi_ptr, 
     uint8_t * data_packet = ptr;
     uint8_t const flag = message_load_u8(data_packet, flags);
     uint16_t const session_id = message_load_be16(data_packet, transaction_id);
-    bool const client_owned = !MsgIsRequest(flag);
+    idigi_bool_t const client_owned = !MsgIsRequest(flag);
 
     session = msg_find_session(msg_ptr, session_id, client_owned);
     if (session == NULL)
@@ -1296,7 +1296,7 @@ static idigi_callback_status_t msg_process_ack(idigi_msg_data_t * const msg_fac,
     {
         uint16_t const session_id = message_load_be16(ack_packet, transaction_id);
         uint8_t const flag = message_load_u8(ack_packet, flags);
-        bool const client_owned = MsgIsRequest(flag);
+        idigi_bool_t const client_owned = MsgIsRequest(flag);
 
         session = msg_find_session(msg_fac, session_id, client_owned);
         if (session == NULL)
@@ -1326,9 +1326,9 @@ static idigi_callback_status_t msg_process_error(idigi_data_t * const idigi_ptr,
     idigi_callback_status_t status = idigi_callback_continue;
     uint8_t * error_packet = ptr;
     uint8_t const flag = message_load_u8(error_packet, flags);
-    bool const client_request_error = MsgIsRequest(flag) && !MsgIsSender(flag);
-    bool const server_response_error = !MsgIsRequest(flag) && MsgIsSender(flag);
-    bool const client_owned = client_request_error || server_response_error;
+    idigi_bool_t const client_request_error = MsgIsRequest(flag) && !MsgIsSender(flag);
+    idigi_bool_t const server_response_error = !MsgIsRequest(flag) && MsgIsSender(flag);
+    idigi_bool_t const client_owned = client_request_error || server_response_error;
     uint16_t const session_id = message_load_be16(error_packet, transaction_id);
     msg_session_t * const session = msg_find_session(msg_fac, session_id, client_owned);
 
@@ -1416,7 +1416,7 @@ static idigi_callback_status_t msg_process_pending(idigi_data_t * const idigi_pt
 
         default:
             status = idigi_callback_abort;
-            ASSERT_GOTO(false, done);
+            ASSERT_GOTO(idigi_false, done);
             break;
         }
     }
@@ -1513,14 +1513,14 @@ static idigi_callback_status_t msg_delete_facility(idigi_data_t * const idigi_pt
 
     /* is list empty? */
     {
-        bool is_empty = true;
+        idigi_bool_t is_empty = idigi_true;
         int i;
 
         for(i = 0; i < msg_service_id_count; i++) 
         {
             if (msg_ptr->service_cb[i] != NULL)
             {
-                is_empty = false;
+                is_empty = idigi_false;
                 break;
             }
         }
@@ -1549,7 +1549,7 @@ static idigi_callback_status_t msg_init_facility(idigi_data_t * const idigi_ptr,
         memset(msg_ptr, 0, sizeof *msg_ptr);
 
         #if (defined IDIGI_COMPRESSION)
-        msg_ptr->capabilities[msg_capability_client].compression_supported = true;
+        msg_ptr->capabilities[msg_capability_client].compression_supported = idigi_true;
         #endif
 
         #if (IDIGI_VERSION < IDIGI_VERSION_1100)

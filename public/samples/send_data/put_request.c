@@ -76,7 +76,7 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
     {
         switch (put_request->request_type)
         {
-        case idigi_data_put_need_data:
+        case idigi_data_service_type_need_data:
             {
                 char * dptr = put_response->data;
                 size_t const bytes_available = put_response->length_in_bytes;
@@ -96,7 +96,7 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
             }
             break;
 
-        case idigi_data_put_have_data:
+        case idigi_data_service_type_have_data:
             {
                 uint8_t const * data = put_response->data;
                 uint8_t status = *data;
@@ -109,7 +109,7 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
             }
             break;
 
-        case idigi_data_put_error:
+        case idigi_data_service_type_error:
             {
                 idigi_msg_error_t const * const error_value = put_response->data;
 

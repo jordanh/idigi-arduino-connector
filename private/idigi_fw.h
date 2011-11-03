@@ -93,7 +93,7 @@ typedef struct {
     size_t desc_length;
     size_t spec_length;
     uint16_t target_count;
-    bool fw_keepalive_start;
+    idigi_bool_t fw_keepalive_start;
     uint8_t target;
 
 } idigi_firmware_data_t;
@@ -220,7 +220,7 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_pt
     }
     else
     {
-        fw_ptr->fw_keepalive_start = false;
+        fw_ptr->fw_keepalive_start = idigi_false;
     }
 
 done:
@@ -258,7 +258,7 @@ static fw_abort_status_t get_abort_status_code(idigi_fw_status_t const status)
         code = fw_device_error;
         break;
     case idigi_fw_success:
-        ASSERT(false);
+        ASSERT(idigi_false);
         break;
 
     }
@@ -362,7 +362,7 @@ enum fw_info {
      *  -----------------
      */
     fw_ptr->last_fw_keepalive_sent_time = 0;
-    fw_ptr->fw_keepalive_start = false;
+    fw_ptr->fw_keepalive_start = idigi_false;
 
     if (length != MAX_FW_INFO_REQUEST_LENGTH)
     {
@@ -417,7 +417,7 @@ enum fw_info {
             }
             break;
         default:
-            ASSERT(false);
+            ASSERT(idigi_false);
             break;
 
         }
@@ -839,7 +839,7 @@ enum fw_complete_response {
         message_store_u8(fw_complete_response, status, response_data.status);
 
         fw_ptr->last_fw_keepalive_sent_time = 0;
-        fw_ptr->fw_keepalive_start = false;
+        fw_ptr->fw_keepalive_start = idigi_false;
 
         status = initiate_send_facility_packet(idigi_ptr, edp_header, record_bytes(fw_complete_response), E_MSG_FAC_FW_NUM, release_packet_buffer, NULL);
         if (status != idigi_callback_continue)
@@ -1036,7 +1036,7 @@ static idigi_callback_status_t fw_process(idigi_data_t * const idigi_ptr, void *
         if (status == idigi_callback_continue)
         {
             get_system_time(idigi_ptr, &fw_ptr->last_fw_keepalive_sent_time);
-            fw_ptr->fw_keepalive_start = false;
+            fw_ptr->fw_keepalive_start = idigi_false;
             status = idigi_callback_busy;
         }
         goto done;
@@ -1074,7 +1074,7 @@ static idigi_callback_status_t fw_process(idigi_data_t * const idigi_ptr, void *
     case fw_download_abort_opcode:
         status = process_fw_abort(fw_ptr, fw_message, length);
         fw_ptr->last_fw_keepalive_sent_time = 0;
-        fw_ptr->fw_keepalive_start = false;
+        fw_ptr->fw_keepalive_start = idigi_false;
         break;
     case fw_download_complete_opcode:
         if (fw_ptr->last_fw_keepalive_sent_time == 0)
@@ -1093,7 +1093,7 @@ static idigi_callback_status_t fw_process(idigi_data_t * const idigi_ptr, void *
     case fw_target_reset_opcode:
         status = process_target_reset(fw_ptr, fw_message, length);
         fw_ptr->last_fw_keepalive_sent_time = 0;
-        fw_ptr->fw_keepalive_start = false;
+        fw_ptr->fw_keepalive_start = idigi_false;
         break;
     default:
         status = send_fw_abort(idigi_ptr, target, fw_error_opcode, fw_invalid_opcode);
@@ -1138,7 +1138,7 @@ static idigi_callback_status_t idigi_facility_firmware_init(idigi_data_t * const
     fw_ptr->desc_length = 0;
     fw_ptr->spec_length = 0;
     fw_ptr->last_fw_keepalive_sent_time = 0;
-    fw_ptr->fw_keepalive_start = false;
+    fw_ptr->fw_keepalive_start = idigi_false;
     fw_ptr->idigi_ptr = idigi_ptr;
 
 done:

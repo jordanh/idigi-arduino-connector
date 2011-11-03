@@ -1,3 +1,4 @@
+
 /*
  *  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
  *
@@ -671,14 +672,14 @@ typedef struct
 
 typedef enum 
 {
-    idigi_data_put_need_data,
-    idigi_data_put_have_data,
-    idigi_data_put_error
-} idigi_data_put_type_t;
+    idigi_data_service_type_need_data,
+    idigi_data_service_type_have_data,
+    idigi_data_service_type_error
+} idigi_data_service_type_t;
 
 typedef struct idigi_data_put_response_t
 {
-    idigi_data_put_type_t response_type;
+    idigi_data_service_type_t response_type;
     size_t length_in_bytes;
     void * data;
     unsigned int flags; /* first and/or last data */
@@ -687,15 +688,9 @@ typedef struct idigi_data_put_response_t
 typedef struct idigi_data_put_request_t
 {
     void const * session_handle;
-    idigi_data_put_type_t request_type;
+    idigi_data_service_type_t request_type;
     void const * header_context;  /* holds idigi_data_put_header_t * provided in initiate_action() */
 } idigi_data_put_request_t;
-
-typedef enum {
-    idigi_data_service_device_message_request,
-    idigi_data_service_device_message_response,
-    idigi_data_service_device_message_error
-} idigi_data_service_device_message_type_t;
 
 typedef enum {
     idigi_data_service_device_success,
@@ -704,7 +699,7 @@ typedef enum {
 
 typedef struct {
     void * data;
-    size_t data_length;
+    size_t length_in_bytes;
     unsigned int flag;
 } idigi_data_service_device_data_t;
 
@@ -712,7 +707,7 @@ typedef struct {
     void * user_context;
     void * session;
     char const * target;
-    idigi_data_service_device_message_type_t message_type;
+    idigi_data_service_type_t message_type;
     union {
         idigi_data_service_device_data_t         * request_data;
         idigi_msg_error_t                        error_code;

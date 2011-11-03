@@ -230,7 +230,7 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
         {
             uint16_t const * const value = data;
 #if !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS) && !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
-            bool const is_tx = (request_id.config_request == idigi_config_tx_keepalive);
+            idigi_bool_t const is_tx = (request_id.config_request == idigi_config_tx_keepalive);
             uint16_t const min_interval = is_tx ? MIN_TX_KEEPALIVE_INTERVAL_IN_SECONDS : MIN_RX_KEEPALIVE_INTERVAL_IN_SECONDS;
             uint16_t const max_interval = is_tx ? MAX_TX_KEEPALIVE_INTERVAL_IN_SECONDS : MAX_RX_KEEPALIVE_INTERVAL_IN_SECONDS;
 
@@ -279,7 +279,7 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
 #endif
         default:
             /* get these configurations from different modules */
-            ASSERT(false);
+            ASSERT(idigi_false);
             break;
         }
     }
@@ -317,7 +317,7 @@ static idigi_callback_status_t layer_get_supported_facilities(idigi_data_t * con
     {
         idigi_request_t const request_id = idigi_supported_facility_table[i].request_id;
         size_t length;
-        bool facility_enable = (request_id.config_request == (idigi_config_request_t)MANDATORY_FACILITY) ? true : false;
+        idigi_bool_t facility_enable = (request_id.config_request == (idigi_config_request_t)MANDATORY_FACILITY) ? idigi_true : idigi_false;
 
         if (request_id.config_request != (idigi_config_request_t)MANDATORY_FACILITY)
         {   /* this is optional facility so ask application whether it supports this facility */
@@ -973,7 +973,7 @@ enum {
         {
             /* we are connected and EDP communication is fully established. */
             set_idigi_state(idigi_ptr, edp_facility_layer);
-            idigi_ptr->edp_connected = true;
+            idigi_ptr->edp_connected = idigi_true;
         }
          break;
     }
@@ -990,7 +990,7 @@ enum {
 };
     idigi_callback_status_t status = idigi_callback_continue;
     uint8_t * packet = NULL;
-    bool done_packet = true;
+    idigi_bool_t done_packet = idigi_true;
     idigi_facility_t * fac_ptr;
 
 
@@ -1068,13 +1068,13 @@ enum {
                     {
                         fac_ptr->packet = packet;
                         idigi_ptr->active_facility = fac_ptr;
-                        done_packet = false;
+                        done_packet = idigi_false;
 
                     }
                     else
                     { /* Facility is busy so hold on the packet and stop receiving data */
                         idigi_ptr->layer_state = facility_process_message;
-                        done_packet = false;
+                        done_packet = idigi_false;
                     }
                     break;
                 }

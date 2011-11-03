@@ -33,7 +33,7 @@ typedef struct data_service_context_t
 {
     idigi_data_request_t const * user_request;
     size_t bytes_sent;
-    bool have_data;
+    idigi_bool_t have_data;
 } data_service_context_t;
 
 static idigi_callback_status_t data_service_call_user(idigi_data_t * const idigi_ptr, idigi_data_service_request_t const request_id, msg_session_t * const session, void * data, size_t const bytes)
@@ -90,7 +90,7 @@ static idigi_callback_status_t data_service_call_user(idigi_data_t * const idigi
         }
 
         default:
-            ASSERT_GOTO(false, done);
+            ASSERT_GOTO(idigi_false, done);
             break;
     }
 
@@ -135,9 +135,9 @@ static size_t fill_data_service_header(idigi_data_request_t const * const reques
     ptr = fill_data_block(&request->path, ptr);
 
     {
-        bool const type = (request->content_type.size == 0);
-        bool const archive = (request->flag & IDIGI_DATA_REQUEST_ARCHIVE) == IDIGI_DATA_REQUEST_ARCHIVE;
-        bool const append = (request->flag & IDIGI_DATA_REQUEST_APPEND) == IDIGI_DATA_REQUEST_APPEND;
+        idigi_bool_t const type = (request->content_type.size == 0);
+        idigi_bool_t const archive = (request->flag & IDIGI_DATA_REQUEST_ARCHIVE) == IDIGI_DATA_REQUEST_ARCHIVE;
+        idigi_bool_t const append = (request->flag & IDIGI_DATA_REQUEST_APPEND) == IDIGI_DATA_REQUEST_APPEND;
         uint8_t params = 0;
 
         enum
@@ -196,7 +196,7 @@ static idigi_callback_status_t data_service_get_data(idigi_data_t * const idigi_
         idigi_data_payload_t const * const pblock = &request->payload;
         size_t const available_bytes = service_data->length_in_bytes - data_bytes;
         size_t const bytes_to_send = pblock->size - context->bytes_sent;
-        bool const data_complete = bytes_to_send <= available_bytes;
+        idigi_bool_t const data_complete = bytes_to_send <= available_bytes;
         size_t const bytes_to_copy =  data_complete ? bytes_to_send : available_bytes;
 
         memcpy(dptr, &pblock->data[context->bytes_sent], bytes_to_copy);
@@ -205,9 +205,9 @@ static idigi_callback_status_t data_service_get_data(idigi_data_t * const idigi_
 
         if (data_complete) 
         {
-            bool const last_chunk = (request->flag & IDIGI_DATA_REQUEST_LAST) == IDIGI_DATA_REQUEST_LAST;
+            idigi_bool_t const last_chunk = (request->flag & IDIGI_DATA_REQUEST_LAST) == IDIGI_DATA_REQUEST_LAST;
 
-            context->have_data = false;
+            context->have_data = idigi_false;
             if (last_chunk)
                 MsgSetLastData(service_data->flags);
             status = data_service_call_user(idigi_ptr, idigi_data_service_send_complete, service_data->session, pblock->data, context->bytes_sent);
@@ -247,7 +247,7 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_
         break;
 
     default:
-        ASSERT_GOTO(false, error);
+        ASSERT_GOTO(idigi_false, error);
         break;
     }
 
@@ -300,7 +300,7 @@ static idigi_status_t data_service_initiate(idigi_data_t * const idigi_ptr,  voi
         }
 
         context = ptr;
-        context->have_data = false;
+        context->have_data = idigi_false;
     }
 
     {
@@ -323,7 +323,7 @@ static idigi_status_t data_service_initiate(idigi_data_t * const idigi_ptr,  voi
 
 done:
     context->user_request = service;
-    context->have_data = true;
+    context->have_data = idigi_true;
     context->bytes_sent = 0;
     status = idigi_success;
 
