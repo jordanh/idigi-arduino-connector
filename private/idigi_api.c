@@ -40,7 +40,11 @@
 #endif
 #if defined(IDIGI_DATA_SERVICE)
 #include "idigi_msg.h"
+#if (IDIGI_VERSION < IDIGI_VERSION_1100)
+#include "idigi_ds_legacy.h"
+#else
 #include "idigi_ds.h"
+#endif
 #endif
 #include "layer.h"
 

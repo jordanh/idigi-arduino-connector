@@ -29,15 +29,22 @@
 #include "idigi_api.h"
 #include "platform.h"
 
+#define MSG_DATA_SIZE  (1024 * 16)
+static char ds_buffer[MSG_DATA_SIZE];
+
 idigi_status_t send_put_request(idigi_handle_t handle) 
 {
     idigi_status_t status = idigi_success;
     static idigi_data_put_header_t header;
-    static char file_path[] = "test/sample.txt";
+    static char file_path[] = "test/test.txt";
     static char file_type[] = "text/plain";
     void const * session_handle = NULL;
+    int i;
 
-    header.flags = IDIGI_DATA_PUT_APPEND;
+    for (i = 0; i < MSG_DATA_SIZE; i++) 
+        ds_buffer[i] = 0x20 + (i % 0x60);
+
+    header.flags = 0; // IDIGI_DATA_PUT_APPEND;
     header.path  = file_path;
     header.content_type = file_type;
 
@@ -54,6 +61,7 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_data_put_request_t const * const put_request = request_data;
     idigi_data_put_response_t * const put_response = response_data;
+    static size_t bytes_sent = 0;
 
     UNUSED_PARAMETER(request_length);
     UNUSED_PARAMETER(response_length);
@@ -71,12 +79,20 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
         case idigi_data_put_need_data:
             {
                 char * dptr = put_response->data;
-                static char payload[] = "Welcome to iDigi Data Service sample test!\n";
-                size_t const bytes = sizeof payload; 
+                size_t const bytes_available = put_response->length_in_bytes;
+                size_t const bytes_to_send = MSG_DATA_SIZE - bytes_sent;
+                size_t bytes_copy = (bytes_to_send > bytes_available) ? bytes_available : bytes_to_send;
 
-                memcpy(dptr, payload, bytes);
-                put_response->length_in_bytes = bytes;
-                put_response->flags = IDIGI_MSG_FIRST_DATA | IDIGI_MSG_LAST_DATA;
+                memcpy(dptr, &ds_buffer[bytes_sent], bytes_copy);
+                printf("Copying %d bytes\n", bytes_copy);
+                put_response->length_in_bytes = bytes_copy;
+                put_response->flags = 0;
+                if (bytes_sent == 0)
+                    put_response->flags |= IDIGI_MSG_FIRST_DATA;
+
+                bytes_sent += bytes_copy;
+                if (bytes_sent == MSG_DATA_SIZE)
+                    put_response->flags |= IDIGI_MSG_LAST_DATA;
             }
             break;
 

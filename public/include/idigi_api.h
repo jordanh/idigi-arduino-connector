@@ -645,7 +645,6 @@ typedef struct
     void * session;
     idigi_status_t status;
     size_t bytes_sent;
-    void const * payload;
 } idigi_data_send_t;
 
 typedef struct
