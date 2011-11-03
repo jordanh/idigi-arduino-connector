@@ -372,10 +372,6 @@ static uint8_t * new_receive_packet(idigi_data_t * const idigi_ptr)
         packet = buffer_ptr->buffer;
         idigi_ptr->receive_packet.free_packet_buffer = buffer_ptr->next;
     }
-    else
-    {
-        idigi_debug("new_receive_packet: no buffer available for receiving message from server\n");
-    }
 
     return packet;
 }
