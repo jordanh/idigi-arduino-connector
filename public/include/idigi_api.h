@@ -714,15 +714,17 @@ typedef struct {
     void * session;
     char const * target;
     idigi_data_service_device_message_type_t message_type;
-    idigi_data_service_device_data_t         * message_data;
+    union {
+        idigi_data_service_device_data_t         * request_data;
+        idigi_msg_error_t                        error_code;
+    } message_data;
 } idigi_data_service_device_request_t;
 
 typedef struct
 {
     void * user_context;
-    void * session;
     idigi_data_service_device_response_status_t status;
-    idigi_data_service_device_data_t            * message_data;
+    idigi_data_service_device_data_t            * response_data;
 } idigi_data_service_device_response_t;
 
  /**
