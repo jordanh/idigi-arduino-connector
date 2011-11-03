@@ -27,139 +27,55 @@
 #include <unistd.h>
 #include <errno.h>
 #include "time.h"
-#include <stdlib.h>
-
 #include "idigi_data.h"
 
-#define DATA_LOG_INTERVAL   30
-#define DATA_BLOCK_SIZE     4563
-#define MAX_USER            4
-#define MAX_BLOCKS          8
-
-typedef struct
+static void initialize_request(idigi_data_request_t * request)
 {
-    uint8_t cur_block;
-    idigi_data_request_t user_data;
-    char path[16];
-} data_service_user_t;
+    static uint8_t test_data[] = "Welcome to iDigi Data Service sample test!";
+    static uint8_t path[]      = "test/sample.txt";
+    static uint8_t type[]      = "text/plain";
 
-typedef struct
-{
-    data_service_user_t user[MAX_USER];
-    uint8_t data[DATA_BLOCK_SIZE];
-    bool in_process;
-} data_service_test_t;
-
-static data_service_test_t data_service; 
-
-/* TODO: Findout how we can extract the handle in callback function? */
-static idigi_handle_t local_handle = NULL;
-
-static idigi_status_t send_first_request(idigi_handle_t handle)
-{
-    idigi_status_t status = idigi_success;
-    int i;
-
-    for (i = 0; i < DATA_BLOCK_SIZE; i++) 
-        data_service.data[i] = (rand()%0x5B)+0x20;        
-
-    for (i = 0; i < MAX_USER; i++) 
-    {
-        data_service_user_t * user =  &data_service.user[i];
-        idigi_data_request_t * request = &user->user_data;
-        static char type[] = "text/plain";
-
-        user->cur_block = 1;
-
-        {
-            sprintf(user->path, "test/data%d.txt", i);
-
-            {
-                request->session = NULL;
-                request->flag = IDIGI_DATA_REQUEST_START | IDIGI_DATA_REQUEST_COMPRESSED;
-                request->path.size = strlen(user->path);
-                request->path.value = (uint8_t *)user->path;
-                request->content_type.size = strlen(type);
-                request->content_type.value = (uint8_t *)type;
-                request->payload.size = DATA_BLOCK_SIZE;
-                request->payload.data = data_service.data;
-            }
-        }
-
-        status = idigi_initiate_action(handle, idigi_initiate_data_service, request, &request->session);
-    }
-
-    return status;
+    request->flag                   = IDIGI_DATA_REQUEST_START | IDIGI_DATA_REQUEST_LAST | IDIGI_DATA_REQUEST_COMPRESSED;
+    request->path.size              = sizeof path - 1;
+    request->path.value             = path;
+    request->content_type.size      = sizeof type - 1;
+    request->content_type.value     = type;
+    request->payload.size           = sizeof test_data - 1;
+    request->payload.data           = test_data;
 }
 
-static idigi_status_t send_next_request(idigi_handle_t handle, void * session)
-{
-    int i;
-    idigi_status_t status = idigi_success;
-
-    for (i = 0; i < MAX_USER; i++) 
-    {
-        data_service_user_t * const user =  &data_service.user[i];
-        idigi_data_request_t * request = &user->user_data;
-
-        if (request->session == session) 
-        {
-            user->cur_block++;
-
-            if (user->cur_block > MAX_BLOCKS)
-                break;
-
-            request->flag = IDIGI_DATA_REQUEST_COMPRESSED;
-            if (user->cur_block == MAX_BLOCKS)
-            {
-                request->flag |= IDIGI_DATA_REQUEST_LAST;
-                data_service.in_process = false;
-            }
-
-            status = idigi_initiate_action(handle, idigi_initiate_data_service, request, &request->session);
-            break;
-        }
-    }
-
-    return status;
-}
-
-idigi_status_t initiate_data_service(idigi_handle_t handle)
+idigi_status_t initiate_data_service(idigi_handle_t handle) 
 {
     idigi_status_t status = idigi_success;
     static time_t last_time = 0;
     time_t current_time;
+    static idigi_data_request_t request;
     
     time(&current_time);
     if (last_time == 0) 
     {
-        local_handle = handle;
+        initialize_request(&request);
         last_time = current_time;
-        data_service.in_process = false;
         goto done;
     }
 
-    if ((current_time - last_time) >= DATA_LOG_INTERVAL) 
+#define DATA_LOG_INTERVAL_IN_SECONDS   300
+    if ((current_time - last_time) >= DATA_LOG_INTERVAL_IN_SECONDS) 
     {
         last_time = current_time;
-        if (data_service.in_process) 
-        {
-            DEBUG_PRINTF("Last data service request is not complete yet!!\n");
-            goto done;
-        }
+        request.session = NULL;
+        status = idigi_initiate_action(handle, idigi_initiate_data_service, &request, &request.session);
 
-        data_service.in_process = true;
-        status = send_first_request(handle);
+        DEBUG_PRINTF("Status: %d, Session: %p\n", status, request.session);
     }
 
 done:
     return status;
 }
 
-
-idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t request,
-                                                  void const * request_data, size_t request_length,
-                                                  void * response_data, size_t * response_length)
+idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t const request,
+                                                  void const * request_data, size_t const request_length,
+                                                  void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
@@ -173,14 +89,8 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
     {
         idigi_data_send_t const * send_info = request_data;
 
+        UNUSED_PARAMETER(send_info);
         DEBUG_PRINTF("Handle: %p, status: %d, sent: %d bytes\n", send_info->session, send_info->status, send_info->bytes_sent);
-        {
-            idigi_status_t send_status = send_next_request(local_handle, send_info->session);
-
-            if (send_status != idigi_success) 
-                status = idigi_callback_abort;
-        }
-
         break;
     }
 
@@ -211,4 +121,3 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
 
     return status;
 }
-
