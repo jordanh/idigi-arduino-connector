@@ -317,7 +317,7 @@ static idigi_callback_status_t layer_get_supported_facilities(idigi_data_t * con
     {
         idigi_request_t const request_id = idigi_supported_facility_table[i].request_id;
         size_t length;
-        idigi_bool_t facility_enable = (request_id.config_request == (idigi_config_request_t)MANDATORY_FACILITY) ? idigi_true : idigi_false;
+        idigi_service_supported_status_t facility_enable = (request_id.config_request == (idigi_config_request_t)MANDATORY_FACILITY) ? idigi_service_supported : idigi_service_unsupported;
 
         if (request_id.config_request != (idigi_config_request_t)MANDATORY_FACILITY)
         {   /* this is optional facility so ask application whether it supports this facility */
@@ -335,7 +335,7 @@ static idigi_callback_status_t layer_get_supported_facilities(idigi_data_t * con
             }
         }
 
-        if (facility_enable)
+        if (facility_enable == idigi_service_supported)
         {
             idigi_ptr->facilities |= SET_FACILITY_SUPPORT(i);
         }
