@@ -95,6 +95,11 @@ typedef enum {
 * @}
 */
 
+typedef enum {
+    idigi_service_unsupported,
+    idigi_service_supported
+} idigi_service_supported_status_t;
+
 /**
 * @defgroup.
 * @{
