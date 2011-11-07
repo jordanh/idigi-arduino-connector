@@ -57,7 +57,6 @@ typedef struct device_request_handle {
 
 static unsigned int device_request_count = 0;
 
-
 static idigi_callback_status_t process_device_request(idigi_data_service_device_request_t const * const service_request,
                                                       idigi_data_service_device_response_t * const service_response)
 {
@@ -113,6 +112,22 @@ static idigi_callback_status_t process_device_request(idigi_data_service_device_
 
     device_request->length_in_bytes += request_data->length_in_bytes;
 
+    if ((request_data->flag & IDIGI_MSG_FIRST_DATA) == IDIGI_MSG_FIRST_DATA)
+    {
+        APP_DEBUG("process_device_request: session %p target = \"%s\" data length = %lu total length = %lu\n",
+                                 service_request->session,
+                                 service_request->target,
+                                 (unsigned long int)request_data->length_in_bytes,
+                                 (unsigned long int)device_request->length_in_bytes);
+    }
+    else
+    {
+        APP_DEBUG("process_device_request: session %p data length = %lu total length = %lu\n",
+                                 service_request->session,
+                                 (unsigned long int)request_data->length_in_bytes,
+                                 (unsigned long int)device_request->length_in_bytes);
+    }
+
     if ((request_data->flag & IDIGI_MSG_LAST_DATA) == IDIGI_MSG_LAST_DATA)
     {   /* No more chunk. let's setup response data */
         if (device_request->status == idigi_data_service_device_success)
@@ -128,11 +143,6 @@ static idigi_callback_status_t process_device_request(idigi_data_service_device_
 
     service_response->status = idigi_data_service_device_success;
 
-    APP_DEBUG("process_device_request: session %p target = \"%s\" data length = %lu total length = %lu\n",
-                                 service_request->session,
-                                 service_request->target,
-                                 (unsigned long int)request_data->length_in_bytes,
-                                 (unsigned long int)device_request->length_in_bytes);
 
 done:
     return status;
