@@ -1062,6 +1062,7 @@ static idigi_callback_status_t msg_process_decompressed_data(idigi_data_t * cons
 
     case idigi_callback_busy:
         session->state = msg_state_process_decompressed;
+        status = idigi_callback_continue;
         break;
 
     default:
@@ -1114,10 +1115,7 @@ static idigi_callback_status_t msg_decompress_data(idigi_data_t * const idigi_pt
         }
         else
         {
-            if (MsgIsAckPending(session->status_flag))
-            {
-                session->state = msg_state_send_ack;
-            }
+            session->state = MsgIsAckPending(session->status_flag) ? msg_state_send_ack : msg_state_receive;
         }
     }
 
