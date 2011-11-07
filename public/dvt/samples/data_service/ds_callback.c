@@ -23,6 +23,7 @@
  *
  */
 #include <sys/stat.h>
+#include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
@@ -65,7 +66,7 @@ idigi_status_t send_put_request(idigi_handle_t handle, int index)
         int i;
     
         for (i = 0; i < DS_DATA_SIZE; i++) 
-            ds_buffer[i] = 0x20 + (i % 0x60);
+            ds_buffer[i] = 0x30 + (rand() % 0x55);
         first_time = false;
     }
 
