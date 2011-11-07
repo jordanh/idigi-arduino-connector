@@ -26,8 +26,8 @@ CXX     = $(CROSS_COMPILE)g++
 STRIP   = $(CROSS_COMPILE)strip
 AR      = $(CROSS_COMPILE)ar
 
-IDIGI_DIR=../../../private
-PUBLIC_HEADER_DIR=../../include
+IDIGI_DIR=../../../../private
+PUBLIC_HEADER_DIR=../../../include
 PLATFORM_DIR=../../platforms/linux
 
 vpath $(IDIGI_DIR)/%.c
