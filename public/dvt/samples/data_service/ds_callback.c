@@ -29,28 +29,58 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-#define MSG_DATA_SIZE  (1024 * 16)
-static char ds_buffer[MSG_DATA_SIZE];
+#define DS_MAX_USER   8
+#define DS_FILE_NAME_LEN  20
+#define DS_DATA_SIZE  (1024 * 16)
 
-idigi_status_t send_put_request(idigi_handle_t handle) 
+static char ds_buffer[DS_DATA_SIZE];
+
+typedef struct
+{
+    idigi_data_put_header_t header;
+    void const * handle;
+    char file_path[DS_FILE_NAME_LEN];
+    size_t bytes_sent;
+} ds_record_t;
+
+static ds_record_t ds_user_data[DS_MAX_USER];
+
+idigi_status_t send_put_request(idigi_handle_t handle, int index) 
 {
     idigi_status_t status = idigi_success;
-    static idigi_data_put_header_t header;
-    static char file_path[] = "test/test.txt";
     static char file_type[] = "text/plain";
+    static bool first_time = true;
+    ds_record_t * user = &ds_user_data[index];
+    idigi_data_put_header_t * const header = &user->header;
     void const * session_handle = NULL;
-    int i;
 
-    for (i = 0; i < MSG_DATA_SIZE; i++) 
-        ds_buffer[i] = 0x20 + (i % 0x60);
+    if (index >= DS_MAX_USER) 
+    {
+        status = idigi_invalid_data_range;
+        goto done;
+    }
 
-    header.flags = 0; // IDIGI_DATA_PUT_APPEND;
-    header.path  = file_path;
-    header.content_type = file_type;
+    if (first_time)
+    {
+        int i;
+    
+        for (i = 0; i < DS_DATA_SIZE; i++) 
+            ds_buffer[i] = 0x20 + (i % 0x60);
+        first_time = false;
+    }
 
-    status = idigi_initiate_action(handle, idigi_initiate_data_service, &header, &session_handle);
+    sprintf(user->file_path, "test/dvt%d.txt", index);
+    header->flags = 0;
+    header->path  = user->file_path;
+    header->content_type = file_type;
+    header->context = user;
+    user->bytes_sent = 0;
+
+    status = idigi_initiate_action(handle, idigi_initiate_data_service, header, &session_handle);
     APP_DEBUG("Status: %d, Session: %p\n", status, session_handle);
+    user->handle = session_handle;
 
+done:
     return status;
 }
 
@@ -61,7 +91,6 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_data_put_request_t const * const put_request = request_data;
     idigi_data_put_response_t * const put_response = response_data;
-    static size_t bytes_sent = 0;
 
     UNUSED_PARAMETER(request_length);
     UNUSED_PARAMETER(response_length);
@@ -74,24 +103,27 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
 
     if (request == idigi_data_service_put_request)
     {
+        idigi_data_put_header_t const * const header = put_request->header_context;
+        ds_record_t * const user = (ds_record_t * const)header->context;
+
         switch (put_request->request_type)
         {
         case idigi_data_service_type_need_data:
             {
                 char * dptr = put_response->data;
                 size_t const bytes_available = put_response->length_in_bytes;
-                size_t const bytes_to_send = MSG_DATA_SIZE - bytes_sent;
+                size_t const bytes_to_send = DS_DATA_SIZE - user->bytes_sent;
                 size_t bytes_copy = (bytes_to_send > bytes_available) ? bytes_available : bytes_to_send;
 
-                memcpy(dptr, &ds_buffer[bytes_sent], bytes_copy);
+                memcpy(dptr, &ds_buffer[user->bytes_sent], bytes_copy);
                 printf("Copying %d bytes\n", bytes_copy);
                 put_response->length_in_bytes = bytes_copy;
                 put_response->flags = 0;
-                if (bytes_sent == 0)
+                if (user->bytes_sent == 0)
                     put_response->flags |= IDIGI_MSG_FIRST_DATA;
 
-                bytes_sent += bytes_copy;
-                if (bytes_sent == MSG_DATA_SIZE)
+                user->bytes_sent += bytes_copy;
+                if (user->bytes_sent == DS_DATA_SIZE)
                     put_response->flags |= IDIGI_MSG_LAST_DATA;
             }
             break;
@@ -101,7 +133,7 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
                 uint8_t const * data = put_response->data;
                 uint8_t status = *data;
 
-                APP_DEBUG("Received %s response from server\n", (status == 0) ? "success" : "error");
+                APP_DEBUG("Received %s response for %p\n", (status == 0) ? "success" : "error", put_request->session_handle);
                 if (put_response->length_in_bytes > 1) 
                 {
                     APP_DEBUG("Server response %s\n", (char *)&data[1]);
@@ -113,7 +145,7 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
             {
                 idigi_msg_error_t const * const error_value = put_response->data;
 
-                APP_DEBUG("Data service error: %d\n", *error_value);
+                APP_DEBUG("Data service error for %p: %d\n", put_request->session_handle, *error_value);
             }
             break;
 

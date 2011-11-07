@@ -35,7 +35,7 @@ extern idigi_callback_status_t idigi_data_service_callback(idigi_data_service_re
                                                   void const * request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length);
 
-extern idigi_status_t send_put_request(idigi_handle_t handle);
+extern idigi_status_t send_put_request(idigi_handle_t handle, int index);
 
 
 idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
@@ -71,15 +71,32 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
 
 int application_call(idigi_handle_t handle)
 {
-    int stop_calling = 1;
-    idigi_status_t const status = send_put_request(handle);
+    static int index = 0;
+    int stop_calling = 0;
+    idigi_status_t const status = send_put_request(handle, index);
 
-    if (status == idigi_init_error)
+    switch (status)
     {
+    case idigi_init_error:
         #define SLEEP_ONE_SECOND  1
-
+    
         os_sleep(SLEEP_ONE_SECOND);
+        break;
+
+    case idigi_success:
+        index++;
+        break;
+
+    case idigi_invalid_data_range:
+        index = 0;
+
+        #define SLEEP_BETWEEN_TESTS   30
+        os_sleep(SLEEP_BETWEEN_TESTS);
+        break;
+
+    default:
         stop_calling = 0;
+        break;
     }
 
     return stop_calling;
