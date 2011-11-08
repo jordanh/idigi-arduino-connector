@@ -140,7 +140,7 @@ typedef enum {
     idigi_config_firmware_facility, /**< Requesting callback to return whether firmware facility is supported or not. */
     idigi_config_data_service,      /**< Requesting callback to return whether data service is supported or not. */
 #if (IDIGI_VERSION >= IDIGI_VERSION_1100)
-    idigi_config_max_transaction    /**< Requesting callback to return whether data service is supported or not. */
+    idigi_config_max_transaction    /**< Requesting callback to obtain maximum messaging sessions supported by client. */
 #endif
 } idigi_config_request_t;
 /**
@@ -276,14 +276,20 @@ typedef enum {
 * @}
 */
 
+
+/**
+ * Data service request ID, passed to the application callback 
+ * to request the data, to pass the response, and to pass the 
+ * error.
+ */
 typedef enum {
 #if (IDIGI_VERSION < IDIGI_VERSION_1100)
-    idigi_data_service_send_complete,
-    idigi_data_service_response,
-    idigi_data_service_error,
+    idigi_data_service_send_complete, /**< Deprecated. Used to indicate the completion of earlier initiate_action() call to send data to the cloud */
+    idigi_data_service_response,  /**< Deprecated. Used to indicate the device cloud response for the current operation */
+    idigi_data_service_error, /**< Deprecated. Used to indicate the error either from the device cloud or from the IIK while processing the message */
 #endif
-    idigi_data_service_put_request,
-    idigi_data_service_device_request
+    idigi_data_service_put_request, /**< Indicates data service request related to send data to the device cloud */
+    idigi_data_service_device_request /**< Indicates data service request related to receive data from device cloud */
 } idigi_data_service_request_t;
 
 /**
@@ -296,7 +302,7 @@ typedef enum {
 */
 typedef enum {
     idigi_initiate_terminate,               /**< Terminates and stops IIK from running. */
-    idigi_initiate_data_service            /**< Sends data to iDigi Server, the data is stored in a file on the server. */
+    idigi_initiate_data_service            /**< Initiates the action to send data to device cloud, the data will be stored in a file on the cloud. */
 } idigi_initiate_request_t;
 
 /**
@@ -596,32 +602,42 @@ typedef struct {
 * @}
 */
 
+/**
+ * Error values returned either from the remote device cloud or 
+ * from the local iDigi client. These are errors originated from
+ * messaging layer, where compression/decompression, resource
+ * allocation and state handling take place. 
+ */
 typedef enum 
 {
-    idigi_msg_error_none,
-    idigi_msg_error_fatal,
-    idigi_msg_error_invalid_opcode,
-    idigi_msg_error_format,
-    idigi_msg_error_session_in_use,
-    idigi_msg_error_unknown_session,
-    idigi_msg_error_compression_failure,
-    idigi_msg_error_decompression_failure,
-    idigi_msg_error_memory,
-    idigi_msg_error_send,
-    idigi_msg_error_cancel,
-    idigi_msg_error_busy,
-    idigi_msg_error_ack,
-    idigi_msg_error_timeout,
-    idigi_msg_error_no_service,
-    idigi_msg_error_count
+    idigi_msg_error_none, /**< Success */
+    idigi_msg_error_fatal, /**< Generally represents internal, unexpected error */
+    idigi_msg_error_invalid_opcode, /**< Opcode used in the message is invalid/unsupported */
+    idigi_msg_error_format, /**< Packet is framed incorrectly */
+    idigi_msg_error_session_in_use, /**< Session with same ID is already in use */
+    idigi_msg_error_unknown_session, /**< Session is not opened or already closed */
+    idigi_msg_error_compression_failure, /**< Failed during compression of the data to send */
+    idigi_msg_error_decompression_failure, /**< Failed during decompression of the received data */
+    idigi_msg_error_memory, /**< Malloc failed, try to restrict the number of active sessions */
+    idigi_msg_error_send, /**< Send socket error */
+    idigi_msg_error_cancel, /**< Used to force termination of a session */
+    idigi_msg_error_busy, /**< Either device cloud or iDigi client is busy processing */
+    idigi_msg_error_ack, /**< Invalid ack count */
+    idigi_msg_error_timeout, /**< Session timed out */
+    idigi_msg_error_no_service, /**< Requested service is not supported */
+    idigi_msg_error_count  /**< Maximum error count value, new value goes before this element */
 } idigi_msg_error_t;
 
+/**
+ * Possible response status returned from device cloud for the 
+ * data send request (put request). 
+ */
 typedef enum
 {
-    idigi_data_success,
-    idigi_data_bad_request,
-    idigi_data_service_unavailable,
-    idigi_data_server_error
+    idigi_data_success, /**< Data transferred successfully */
+    idigi_data_bad_request, /**< Either path or content type is invalid */
+    idigi_data_service_unavailable, /**< The requested service is not supported */
+    idigi_data_server_error /**< Device cloud error */
 } idigi_data_status_t;
 
 #if (IDIGI_VERSION < IDIGI_VERSION_1100)
@@ -678,20 +694,23 @@ typedef struct
 #define IDIGI_DATA_PUT_ARCHIVE   0x0001
 #define IDIGI_DATA_PUT_APPEND    0x0002
 
+/**
+ * Put request header information. Used as initiate_action() 
+ * request parameter to initiate the send operation. Subsequent 
+ * handling is done via callback functions. This header 
+ * information is returned as user_context in each callback 
+ * request. 
+ */
 typedef struct
 {
-    char const * path;  /* NUL terminated */
-    char const * content_type;  /* NUL terminated */
-    unsigned int flags; /* archive and/or append */
-    void const * context;
+    char const * path;  /**< NUL terminated file path where user wants to store the data on device cloud */
+    char const * content_type;  /**< NUL terminated content type (text/plain, text/xml, application/json, etc. */
+    unsigned int flags; /**< Indicates whether server should archive and/or append */
+    void const * context; /**< To hold the user context */
 } idigi_data_put_header_t;
 
 #define IDIGI_MSG_FIRST_DATA     0x0001
 #define IDIGI_MSG_LAST_DATA      0x0002
-
-/**
-* @}
-*/
 
 /**
 * @defgroup.
@@ -708,19 +727,30 @@ typedef enum
     idigi_data_service_type_error           /**< Indicating error is encountered. Needs to terminate */
 } idigi_data_service_type_t;
 
+/**
+ * Data service put request application callback updates this 
+ * response based on the request type. If the request is for 
+ * need data then user has to fill the data and if the request 
+ * is for have data then user has to copy the data to their 
+ * space. 
+ */
 typedef struct idigi_data_put_response_t
 {
-    idigi_data_service_type_t response_type;
-    size_t length_in_bytes;
-    void * data;
-    unsigned int flags; /* first and/or last data */
+    idigi_data_service_type_t response_type; /**< Determines the what data field contains */
+    size_t length_in_bytes; /**< Number of bytes in data */
+    void * data; /**< Content of this field is decided on response_type */
+    unsigned int flags; /**< Determines whether it is first and/or last data */
 } idigi_data_put_response_t;
 
+/**
+ * Data service put request application callback receives this 
+ * as a request. User can use header_context to determine which
+ * session is sending this request. 
+ */
 typedef struct idigi_data_put_request_t
 {
-    void const * session_handle;
-    idigi_data_service_type_t request_type;
-    void const * header_context;  /* holds idigi_data_put_header_t * provided in initiate_action() */
+    idigi_data_service_type_t request_type; /**< Decides whether the request is for need data, have data, or error */
+    void const * header_context;  /**< Holds idigi_data_put_header_t * provided in idigi_initiate_action() */
 } idigi_data_put_request_t;
 
 /**
@@ -940,8 +970,8 @@ idigi_status_t idigi_run(idigi_handle_t const handle);
  * @brief   Request IIK to perform an action.
  *
  * This function is called to request IIK to perform an action. 
- * This is used to send data from the device to the iDigi Device 
- * Cloud and to terminate the IIK library. 
+ * This is used to initiate the send data from the device to the
+ * iDigi Device Cloud and to terminate the IIK library. 
  *  
  * @param [in] handle  Handle returned from idigi_init 
  *  
@@ -959,14 +989,18 @@ idigi_status_t idigi_run(idigi_handle_t const handle);
  *                           called  again.
  * 
  *                      @li @b idigi_initiate_data_service: 
- *                           This is used to send data to the
- *                           iDigi server, the data is stored in
- *                           a file on * the server.
+ *                           This is used to trigger the send
+ *                           data to the iDigi server. Only the
+ *                           header information is passed by
+ *                           this method. The actual data is
+ *                           transferred through callbacks. The
+ *                           data is stored in a specified file
+ *                           on the server.
  *
  * 
  * @retval idigi_success  No error
  * 
- * @retval idigi_success  IIK was not initialized
+ * @retval idigi_configuration_error  IIK was not initialized
  *
  * Example Usage:
  * @code

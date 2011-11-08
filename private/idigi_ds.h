@@ -389,7 +389,6 @@ static idigi_callback_status_t data_service_put_request_callback(idigi_data_t * 
     idigi_data_put_response_t response_data;
 
     ASSERT_GOTO(context != NULL, error);
-    request_data.session_handle = service_data->session;
     request_data.header_context = context->user_context;
     response_data.flags = 0;
 
@@ -546,6 +545,7 @@ static idigi_status_t data_service_initiate(idigi_data_t * const idigi_ptr,  voi
     data_service_context_t * context;
     idigi_msg_error_t result;
 
+    UNUSED_PARAMETER(response);
     ASSERT_GOTO(request != NULL, done);
 
     context = data_service_create_context(idigi_ptr, idigi_data_service_put_request);
@@ -566,12 +566,6 @@ static idigi_status_t data_service_initiate(idigi_data_t * const idigi_ptr,  voi
     
         context->user_context = (void *)request;
         session->service_context = context;
-
-        {
-            msg_session_t ** const session_handle = response;
-
-            *session_handle = session;
-        }
     }
 
     status = idigi_success;

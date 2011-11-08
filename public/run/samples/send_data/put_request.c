@@ -38,7 +38,6 @@ idigi_status_t send_put_request(idigi_handle_t handle)
     static idigi_data_put_header_t header;
     static char file_path[] = "test/test.txt";
     static char file_type[] = "text/plain";
-    void const * session_handle = NULL;
     int i;
 
     for (i = 0; i < MSG_DATA_SIZE; i++) 
@@ -48,8 +47,8 @@ idigi_status_t send_put_request(idigi_handle_t handle)
     header.path  = file_path;
     header.content_type = file_type;
 
-    status = idigi_initiate_action(handle, idigi_initiate_data_service, &header, &session_handle);
-    APP_DEBUG("Status: %d, Session: %p\n", status, session_handle);
+    status = idigi_initiate_action(handle, idigi_initiate_data_service, &header, NULL);
+    APP_DEBUG("Status: %d, file: %s\n", status, file_path);
 
     return status;
 }
