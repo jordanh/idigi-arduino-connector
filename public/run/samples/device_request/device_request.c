@@ -29,7 +29,7 @@
 extern bool os_malloc(size_t const size, void ** ptr);
 extern void os_free(void * const ptr);
 
-
+/* supported targets */
 #define DEVICE_REQUEST_TARGET "iik_target"
 #define DEVICE_REQUEST_NOT_HANDLE_TARGET "iik_not_handle_target"
 
@@ -55,7 +55,7 @@ typedef struct device_request_handle {
     idigi_data_service_device_response_status_t status;
 } device_request_handle_t;
 
-static unsigned int device_request_count = 0;
+static unsigned int device_request_active_count = 0;
 
 static idigi_callback_status_t process_device_request(idigi_data_service_device_request_t const * const service_request,
                                                       idigi_data_service_device_response_t * const service_response)
@@ -69,12 +69,13 @@ static idigi_callback_status_t process_device_request(idigi_data_service_device_
 
     if ((request_data->flag & IDIGI_MSG_FIRST_DATA) == IDIGI_MSG_FIRST_DATA)
     {
+        /* 1st chunk of device request so let's allocate memory for it */
         void * ptr;
 
         bool const is_ok = os_malloc(sizeof *device_request, &ptr);
         if (!is_ok || ptr == NULL)
         {
-            /* no memeory stop IIK */
+            /* no memeory so cancel this request */
             APP_DEBUG("process_device_request: malloc fails for device request on session %p\n", service_request->session);
             service_response->status = idigi_data_service_device_not_handled;
             goto done;
@@ -84,8 +85,8 @@ static idigi_callback_status_t process_device_request(idigi_data_service_device_
         device_request->length_in_bytes = 0;
         device_request->response_data = NULL;
         device_request->session = service_request->session;
-        device_request_count++;
-        service_response->user_context = device_request;
+        device_request_active_count++;
+        service_response->user_context = device_request;  /* setup the user_context */
 
         ASSERT(service_request->target != NULL);
         if (strcmp(service_request->target, DEVICE_REQUEST_TARGET) == 0)
@@ -106,6 +107,7 @@ static idigi_callback_status_t process_device_request(idigi_data_service_device_
     }
     else
     {
+        /* device request should be our user_context */
         ASSERT(device_request != NULL);
     }
 
@@ -157,6 +159,7 @@ static idigi_callback_status_t process_device_response(idigi_data_service_device
     ASSERT(device_response != NULL);
     ASSERT(service_response != NULL);
     ASSERT(service_response->response_data != NULL);
+
     {
         idigi_data_service_device_data_t * const response_data = service_response->response_data;
         size_t const bytes = (device_request->length_in_bytes < response_data->length_in_bytes) ? device_request->length_in_bytes : response_data->length_in_bytes;
@@ -179,7 +182,7 @@ static idigi_callback_status_t process_device_response(idigi_data_service_device
 
     if (device_request->length_in_bytes == 0)
     {   /* done */
-        device_request_count--;
+        device_request_active_count--;
         os_free(device_request);
     }
     return status;
@@ -195,7 +198,7 @@ static idigi_callback_status_t process_device_error(idigi_data_service_device_re
     APP_DEBUG("process_device_error: session %p error %d from server\n",
                 service_request->session, error_code);
 
-    device_request_count--;
+    device_request_active_count--;
     os_free(device_request);
 
     return status;
