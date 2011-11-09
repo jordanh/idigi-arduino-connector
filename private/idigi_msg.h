@@ -1491,11 +1491,14 @@ static idigi_callback_status_t msg_cleanup_all_sessions(idigi_data_t * const idi
 
         if (session->service_id == service_id)
         {
-            idigi_msg_error_t error_code = idigi_msg_error_cancel;
-            msg_service_request_t service_data;
+            if (session->state != msg_state_delete && session->state != msg_state_send_error)
+            {
+                idigi_msg_error_t error_code = idigi_msg_error_cancel;
+                msg_service_request_t service_data;
 
-            MSG_FILL_SERVICE(service_data, session, msg_service_type_error, &error_code, sizeof error_code, 0);
-            msg_call_service_layer(idigi_ptr, session->service_id, &service_data);
+                MSG_FILL_SERVICE(service_data, session, msg_service_type_error, &error_code, sizeof error_code, 0);
+                msg_call_service_layer(idigi_ptr, session->service_id, &service_data);
+            }
             msg_delete_session(idigi_ptr, msg_ptr, session);
         }
 
