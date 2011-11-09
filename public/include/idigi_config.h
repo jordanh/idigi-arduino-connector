@@ -23,17 +23,41 @@
  * =======================================================================
  *
  */
+
+/**
+ * @file
+ *  @brief IIK configuration options.
+ *
+ */
 #ifndef IDIGI_CONFIG_H_
 #define IDIGI_CONFIG_H_
 
+/** 
+ *  If defined the system is little endian, comment out for big endian
+ */
 #define IDIGI_LITTLE_ENDIAN
 
+/** 
+ *  If defined the debugging is enabled in the IIK.
+ * @see USER_DEBUG_VPRINTF
+ * @see ASSERT
+ */
 #define IDIGI_DEBUG
 
+/** 
+ * If defined the firmware service is enabled.
+ */
 #define IDIGI_FIRMWARE_SERVICE
 
+
+/** 
+ * If defined zlib compression is enabled.
+ */
 #define IDIGI_COMPRESSION
 
+/** 
+ * If defined the data service is enabled.
+ */
 #define IDIGI_DATA_SERVICE
 
 /* #define IDIGI_TX_KEEPALIVE_IN_SECONDS   75 */

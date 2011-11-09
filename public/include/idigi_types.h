@@ -23,12 +23,11 @@
  *
  */
 
- /**
-  * @file
-  *  @brief Types required by the IIK
-  *
-  */
-
+/**
+ * @file
+ *  @brief Types required by the IIK
+ *
+ */
 
 #ifndef IDIGI_TYPES_H_
 #define IDIGI_TYPES_H_
@@ -42,17 +41,17 @@
   #include <stdbool.h>
 #else
 
-/*! \fn typedef uint8_t
+/** 
  *  Unsigned 8 bit value. 
  */
   typedef unsigned char uint8_t;
 
-/*! \fn typedef uint16_t
+/**
  *  Unsigned 16 bit value. 
  */
   typedef unsigned short uint16_t;
 
-/*! \fn typedef uint32_t
+/**
  *  Unsigned 32 bit value. 
  */
   typedef unsigned long uint32_t;
@@ -60,7 +59,7 @@
 #endif
 
 
-/*! \fn typedef idigi_network_handle_t
+/**
  * Used to reference a network session and is passed into IIK API calls. This 
  * type is defined as an int and is used by the application to keep track of and identify sessions.
  */
@@ -71,9 +70,14 @@ typedef int idigi_network_handle_t;
 #include <stdlib.h>
 #include <stdarg.h>
 
+/**
+ * Debug output from the IIK, outputs a formatted string, operates as printf
+ * but accepts an array of arguments, this routine is part of the standard
+ * C library.
+ */
 #define USER_DEBUG_VPRINTF  vprintf
 
-/*!
+/**
  *  Verify that the condition is true, otherwise halt the program
  */
 #define ASSERT(cond)        assert(cond)

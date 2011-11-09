@@ -8,6 +8,57 @@
  * The callback is also used to report error status and event notification. The samples provided 
  * within the IIK show examples of how to use the API.  The file public/include/idigi_api.h contains the 
  * API defined in this chapter.
+
+ * @section architecture Architecture 
+ *  
+ * The iDigi platform is an on-demand hosted service platform with no infrastructure 
+ * requirements for the user. iDigi provides device management, real-time device messaging, 
+ * and data storage services for a network comprised of both wired and wireless devices. 
+ * iDigi provides easy integration with M2M and mesh networking devices.
+ * The IIK consists of the IIK library and sample user applications. The IIK library provides  
+ * all the functionality required to communicate with the iDigi Device Cloud. The user sample 
+ * applications provide easy to use and understand demonstration use cases for configuration, 
+ * OS interfaces and communication with the IIK library.
+ *
+ *   
+ * The IIK API includes two major software interfaces:
+ *      @li IIK function calls
+ *      @li IIK application-defined callback
+ * 
+ *  The functions available in the IIK are listed below:
+  * @htmlonly
+ * <table border="8">
+ * <tr>
+ * <th>Routine</td>
+ * <th>Description</td>
+ * </tr>
+ * <tr>
+ * <td>idigi_init</td>
+ * <td>Start the IIK</td>
+ * </tr>
+ * <tr>
+ * <td>idigi_step</td>
+ * <td>Execute the IIK and return</td>
+ * </tr>
+ * <tr>
+ * <td>idigi_run</td>
+ * <td>Start the IIK and do not return</td>
+ * </tr>
+ * <tr>
+ * <td>idigi_initiate_action</td>
+ * <td>Tell the IIK to perform some action</td>
+ * </tr>
+ * </table>
+ * @endhtmlonly
+ *
+ * @image html arch1.jpg
+ *
+ * The block diagram above shows the software API components. The application 
+ * defined callback is a generic mechanism to execute methods inside the users' application.
+ * The details of the API and callback method are described in detail in the @ref api section.
+ * The user links there application to the IIK library and then uses the API
+ * to communicate with the iDigi server.  The user can then login to the iDigi
+ * server and communicate with their device.
  *
  *The IIK will invoke the application defined callback in used to perform the following actions:
  *   @li Obtain configuration information

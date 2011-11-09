@@ -22,6 +22,12 @@
  * =======================================================================
  *
  */
+
+ /**
+  * @file
+  *  @brief Configuration routines for the IIK.
+  *
+  */
 #include <unistd.h>
 #include <malloc.h>
 #include <arpa/inet.h>
@@ -30,100 +36,68 @@
 #include "idigi_data.h"
 #include "idigi_types.h"
 
-/* IIK Configuration routines */
-
-#define MAX_INTERFACES 128
-
-/*
- * Routine to get the IP address, you will need to modify this routine for your 
- * platform.
+/**
+ * @brief   Get the IP address of the device
+ *
+ * This routine assigns a pointer to the IP address of the device in *ip_address 
+ * along with the size of the IP address which must be either a 4-octet value for 
+ * IPv4 or a 6-octet value for IPv6. This routine returns fail if an error occurred, 
+ * otherwise true.
+ *
+ * @param [out] ip_address  Pointer to memory containing IP address
+ * @param [out] size Size of the IP address in bytes
+ *  
+ * @retval true  IP address was returned OK
+ * @retval false  Could not get IP address
+ *
+ *  
  */
-static bool get_ip_address(uint8_t ** ip_address, size_t *size)
+static int get_ip_address(uint8_t ** ip_address, size_t *size)
 {
-    int             fd = -1;
-    bool            status=false;
-    char            *buf = malloc(MAX_INTERFACES*sizeof(struct ifreq));
-    struct ifconf   conf;
-    unsigned int    entries = 0;
-    unsigned int    i;
-    static struct in_addr  ip_addr; /* Used to store the IP address */
-
-/* Remove this #error statement once you modify this routine to return the correct IP address */
-#error "Specify device IP address. Set size to 4 (bytes) for IPv4 or 16 (bytes) for IPv6"
-
-    if (buf == NULL)
-    {
-        DEBUG_PRINTF("get_ip_address malloc failed\n");
-        goto error;
-    }
-    conf.ifc_len = MAX_INTERFACES*sizeof(struct ifreq);
-    conf.ifc_buf = buf;
-
-    fd = socket(AF_INET, SOCK_DGRAM, 0);
-    if(fd == -1)
-    {
-        perror("socket");
-        goto error;
-    }
-
-    if( ioctl(fd, SIOCGIFCONF , &conf) == -1)
-    {
-        DEBUG_PRINTF("get_ip_address: Error using ioctl SIOCGIFCONF.\n");
-        goto error;
-    }
-
-    entries = conf.ifc_len / sizeof(struct ifreq);
-
-    DEBUG_PRINTF("get_ip_address: Looking for current device IP address: found [%d] entries\n", entries);
-
-    if (entries == 0)
-    {
-        goto error;
-    }
-    for( i = 0; i < entries; i++)
-    {
-        struct ifreq * req = &conf.ifc_req[i];
-        struct sockaddr_in * sa = (struct sockaddr_in *) &req->ifr_addr;
-
-        DEBUG_PRINTF("get_ip_address: %d: Interface name [%s]\tIP Address [%s]\n", i+1, req->ifr_name, inet_ntoa(sa->sin_addr));
-        if (sa->sin_addr.s_addr != htonl(INADDR_LOOPBACK))
-        {
-            ip_addr = sa->sin_addr;
-            break;
-        }
-    }
-
-    /* Fill in the size and IP address */
-    *size       = sizeof ip_addr.s_addr;
-    *ip_address = (uint8_t *)&ip_addr.s_addr;
-    status = true;
-
-error:
-    if (fd != -1)
-    {
-        close(fd);
-    }
-    if (buf != NULL)
-    {
-        free(buf);
-    }
-    return status;
+    return 0;
 }
 
-/* MAC address used in this sample */
-static uint8_t device_mac_addr[MAC_ADDR_LENGTH] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
-static bool get_mac_addr(uint8_t ** addr, size_t * size)
+/**
+ * @brief   Get the MAC address of the device
+ *
+ * This routine assigns a pointer to the MAC address of the device in *mac_address along 
+ * with the size. This routine returns fail if an error occurred, otherwise true.
+ *
+ * @param [out] mac_address  Pointer to memory containing IP address
+ * @param [out] size Size of the MAC address in bytes
+ *  
+ * @retval 0  MAC address was returned OK
+ * @retval -1  Could not get the MAC address
+ * 
+ */
+static int get_mac_addr(uint8_t ** addr, size_t * size)
 {
+    /* MAC address used in this sample */
+    static uint8_t device_mac_addr[MAC_ADDR_LENGTH] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
 #error "Specify device MAC address for LAN connection"
 
     *addr = device_mac_addr;
     *size = sizeof device_mac_addr;
 
-    return true;
+    return 0;
 }
 
-static bool get_device_id(uint8_t ** id, size_t * size)
+/**
+ * @brief   Get the iDigi device ID
+ *
+ * This routine is called to get a unique device ID which is used to identify the device. 
+ * The pointer ID is filled in with the address of the memory location which contains the 
+ * device ID, size is filled in with the size of the device ID.
+. *
+ * @param [out] id  Pointer to memory containing the device ID
+ * @param [out] size Size of the device ID in bytes
+ *  
+ * @retval 0  Device ID was returned OK
+ * @retval -1  Could not get the device ID
+ * 
+ */
+static int get_device_id(uint8_t ** id, size_t * size)
 {
     static uint8_t device_id[DEVICE_ID_LENGTH] = {0};
 
@@ -142,10 +116,24 @@ static bool get_device_id(uint8_t ** id, size_t * size)
     *id   = device_id;
     *size = sizeof device_id;
 
-    return true;
+    return 0;
 }
 
-static bool get_vendor_id(uint8_t ** id, size_t * size)
+/**
+ * @brief   Get the iDigi vendor ID
+ *
+ * This routine assigns a pointer to the vendor ID which is a unique code identifying 
+ * the manufacturer of a device. Vendor IDs are assigned to manufacturers by iDigi. 
+ * This routine returns fail if an error occurred, otherwise true.
+ *
+ * @param [out] id  Pointer to memory containing the device ID
+ * @param [out] size Size of the device ID in bytes
+ *  
+ * @retval 0  Device ID was returned OK
+ * @retval -1  Could not get the device ID
+ * 
+ */
+static int get_vendor_id(uint8_t ** id, size_t * size)
 {
 #error  "Specify vendor id"
     static const uint8_t device_vendor_id[VENDOR_ID_LENGTH] = {0x00, 0x00, 0x00, 0x00};
@@ -153,10 +141,26 @@ static bool get_vendor_id(uint8_t ** id, size_t * size)
     *id   = (uint8_t *)device_vendor_id;
     *size = sizeof device_vendor_id;
 
-    return true;
+    return 0;
 }
 
-static bool get_device_type(char ** type, size_t * size)
+/**
+ * @brief   Get the device type
+ *
+ * This routine assigns a pointer to the device type which is an iso-8859-1 encoded string 
+ * that identifies the type of the device in *device_type along with the size in bytes. 
+ * The device type is a string representing a particular kind of device. Devices with the same 
+ * device type should share a reasonably similar set of features. A device’s type 
+ * cannot be an empty string, nor contain only whitespace. 
+ *
+ * @param [out] type  Pointer to memory containing the device type
+ * @param [out] size Size of the MAC address in bytes
+ *  
+ * @retval 0  Device type was returned OK
+ * @retval -1  Could not get the device type
+ * 
+ */
+static int get_device_type(char ** type, size_t * size)
 {
 #error "Specify device type"
     static const char const *device_type = "Linux Application";
@@ -165,10 +169,23 @@ static bool get_device_type(char ** type, size_t * size)
     *type = (char *)device_type;
     *size = strlen(device_type);
 
-    return true;
+    return 0;
 }
 
-static bool get_server_url(char ** url, size_t * size)
+/**
+ * @brief   Get the iDigi server URL
+ *
+ * This routine assigns a pointer to the ASCII null-terminated string of the iDigi 
+ * Developer Cloud FQDN, this is typically developer.idig.com. 
+ *
+ * @param [out] url  Pointer to memory containing the URL
+ * @param [out] size Size of the MAC address in bytes
+ *  
+ * @retval 0  The URL type was returned OK
+ * @retval -1  Could not get the URL
+ * 
+ */
+static int get_server_url(char ** url, size_t * size)
 {
 #error "Specify iDigi Server URL"
     static const char const *idigi_server_url = "developer.idigi.com";
@@ -177,10 +194,23 @@ static bool get_server_url(char ** url, size_t * size)
     *url = (char *)idigi_server_url;
     *size = strlen(idigi_server_url);
 
-    return true;
+    return 0;
 }
 
-static bool get_connection_type(idigi_connection_type_t ** type)
+/**
+ * @brief   Get the connection type
+ *
+ * This routine specifies the connection type as idigi_lan_connection_type or 
+ * idigi_wan_connection_type. Fill in the type parameter with the address of the 
+ * idigi_connection_type_t. 
+ *
+ * @param [out] type  Pointer to memory containing the idigi_connection_type_t
+ *  
+ * @retval 0  The URL type was returned OK
+ * @retval -1  Could not get the URL
+ * 
+ */
+static int get_connection_type(idigi_connection_type_t ** type)
 {
 #error "Specify LAN or WAN connection type"
 
@@ -189,19 +219,45 @@ static bool get_connection_type(idigi_connection_type_t ** type)
 
     *type = &device_connection_type;
 
-    return true;
+    return 0;
 }
 
-static bool get_link_speed(uint32_t ** speed, size_t * size)
+/**
+ * @brief   Get the link speed
+ *
+ * This routine assigns the link speed for WAN connection type. If connection type is LAN, 
+ * IIK will not request link speed configuration.
+ *
+ * @param [out] url  Pointer to memory containing the link speed
+ * @param [out] size Size of the link speed in bytes
+ *  
+ * @retval 0  The link speed was returned OK
+ * @retval -1  Could not get the link speed
+ * 
+ */
+static int get_link_speed(uint32_t ** speed, size_t * size)
 {
 #error "Specify link speed for WAN connection type"
     UNUSED_PARAMETER(speed);
     UNUSED_PARAMETER(size);
 
-    return true;
+    return 0;
 }
 
-static bool get_phone_number(uint8_t ** number, size_t * size)
+/**
+ * @brief   Get the WAN phone number
+ *
+ * This routine assigns the phone number dialed for WAN connection type. 
+ * If connection type is LAN, IIK will not request phone number.
+ *
+ * @param [out] number  Pointer to memory containing the phone number
+ * @param [out] size Size of the phone number in bytes
+ *  
+ * @retval 0  The link speed was returned OK
+ * @retval -1  Could not get the link speed
+ * 
+ */
+static int get_phone_number(uint8_t ** number, size_t * size)
 {
 #error "Specify phone number dialed for WAN connection type"
     /* 
@@ -210,12 +266,25 @@ static bool get_phone_number(uint8_t ** number, size_t * size)
     UNUSED_PARAMETER(number);
     UNUSED_PARAMETER(size);
 
-    return true;
+    return 0;
 }
 
-/* Keep alives are from the prospective of the server */
-/* This keep alive is sent from the server to the device */
-static bool get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
+/**
+ * @brief   Get the TX keepalive interval
+ *
+ * This routine assigns the TX keepalive interval in seconds. This indicates how 
+ * often the iDigi Device Cloud sends a keepalive message to the device to verify the 
+ * device is still operational. Keepalive messages are from the prospective of the cloud, 
+ * this keepalive is sent from the cloud to the device. The value must be between 5 and 7200 seconds.
+ *
+ * @param [out] interval  Pointer to memory containing the keep alive interval
+ * @param [out] size Size of the keep alive interval in bytes
+ *  
+ * @retval 0  The keep alive interval was returned OK
+ * @retval -1  Could not get the keep alive interval
+ * 
+ */
+static int get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
 {
 #error "Specify server to device TX keepalive interval in seconds"
 
@@ -225,12 +294,25 @@ static bool get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
     *interval = (uint16_t *)&device_tx_keepalive_interval;
     *size = sizeof device_tx_keepalive_interval;
 
-    return true;
+    return 0;
 }
 
-
-/* This keep alive is sent from the device to the server  */
-static bool get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
+/**
+ * @brief   Get the RX keepalive interval
+ *
+ * This routine assigns the RX keepalive interval in seconds. This indicates how 
+ * often the IIK device sends keepalive messages to the iDigi Device Cloud. Keepalive 
+ * messages are from the prospective of the cloud, this keepalive is sent from the 
+ * device to the cloud. The value must be between 5 and 7200 seconds.
+ *
+ * @param [out] interval  Pointer to memory containing the keep alive interval
+ * @param [out] size Size of the keep alive interval in bytes
+ *  
+ * @retval 0  The keep alive interval was returned OK
+ * @retval -1  Could not get the keep alive interval
+ * 
+ */
+static int get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
 {
 #error "Specify server to device RX keepalive interval in seconds"
 #define DEVICE_RX_KEEPALIVE_INTERVAL_IN_SECONDS     60
@@ -239,10 +321,24 @@ static bool get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
     *interval = (uint16_t *)&device_rx_keepalive_interval;
     *size = sizeof device_rx_keepalive_interval;
 
-    return true;
+    return 0;
 }
 
-static bool get_wait_count(uint16_t ** count, size_t * size)
+/**
+ * @brief   Get the wait count
+ *
+ * This routine assigns the number of times that not receiving a keepalive message 
+ * from the iDigi Device Cloud will indicate that the connection is considered lost. 
+ * This must be a 2-octet integer value between 2 to 64 counts.
+ *
+ * @param [out] count  Pointer to memory containing the wait count
+ * @param [out] size Size of the wait count in bytes
+ *  
+ * @retval 0  The wait count was returned OK
+ * @retval -1  Could not get the wait count
+ * 
+ */
+static int get_wait_count(uint16_t ** count, size_t * size)
 {
 #error "Specify the number of times that not receiving keepalive messages from server is allowed"
 #define DEVICE_WAIT_COUNT     5
@@ -254,34 +350,51 @@ static bool get_wait_count(uint16_t ** count, size_t * size)
     *count = (uint16_t *)&device_wait_count;
     *size = sizeof device_wait_count;
 
-    return true;
+    return 0;
 }
 
-static bool get_firmware_support(void)
+/**
+ * @brief   Return true if firmware download is supported
+ *
+ * This routine tells IIK whether firmware access facility is supported or not. 
+ * If firmware access facility is not supported, callback for idigi_class_firmware 
+ * class will not be executed.
+ *
+ * @retval 0  Firmware download is supported
+ * @retval -1  Firmware download is not supported
+ * 
+ */
+static int get_firmware_support(void)
 {
-    return true;
+    return 0;
 }
 
-static bool get_data_service_support(void)
+/**
+ * @brief   Return true if the data service is supported
+ *
+ * This routine tells IIK whether the data service facility is supported or not. 
+ * If you plan on sending data to/from the iDigi server set this to true
+ *
+ * @retval 0  Firmware download is supported
+ * @retval -1  Firmware download is not supported
+ * 
+ */
+static int get_data_service_support(void)
 {
 #if (defined IDIGI_DATA_SERVICE)
     return true;
 #else
-    return false;
+    return 0;
 #endif
 }
-
-
-/* End of IIK configuration routines */
 
 /*
  * This routine is called when a configuration error is encountered by the IIK.
  * This is currently used as a debug tool for finding configuration errors.
  */
-static bool idigi_config_error(idigi_error_status_t * const error_data)
+static int idigi_config_error(idigi_error_status_t * const error_data)
 {
-
-    bool status = true;
+    int status = 0;
 
 #if defined(DEBUG)
     char const * error_status_string[] = {"idigi_success", "idigi_init_error",
@@ -382,6 +495,10 @@ static bool idigi_config_error(idigi_error_status_t * const error_data)
     return status;
 }
 
+
+/**
+ * @cond DEV
+ */
 /*
  * Configuration callback routine.
  */
@@ -392,7 +509,7 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
                                               size_t * const response_length)
 {
     idigi_callback_status_t status;
-    bool ret = false;
+    int ret = -1;
 
     UNUSED_PARAMETER(request_length);
 
@@ -451,18 +568,20 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
         break;
 
     case idigi_config_firmware_facility:
-        *((bool *)response_data) = get_firmware_support();
+        *((int *)response_data) = get_firmware_support();
         ret = true;
         break;
 
     case idigi_config_data_service:
-        *((bool *)response_data) = get_data_service_support();
+        *((int *)response_data) = get_data_service_support();
         ret = true;
         break;
 
     }
 
-    status = (ret == true) ? idigi_callback_continue : idigi_callback_abort;
+    status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
     return status;
 }
-
+/**
+ * @endcond
+ */
