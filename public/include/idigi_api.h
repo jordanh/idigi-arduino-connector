@@ -726,8 +726,8 @@ typedef struct
 * idigi_data_service_put_request callbacks indicating the type of message. */
 typedef enum 
 {
-    idigi_data_service_type_need_data,      /**< Indicating a message contains data from server that needs callback to process it. */
-    idigi_data_service_type_have_data,      /**< Indicating callback needs to write data onto specified buffer which will be sent to server */
+    idigi_data_service_type_need_data,      /**< Indicating callback needs to write data onto specified buffer which will be sent to server */
+    idigi_data_service_type_have_data,      /**< Indicating a message contains data from server that needs callback to process it. */
     idigi_data_service_type_error           /**< Indicating error is encountered. Needs to terminate */
 } idigi_data_service_type_t;
 

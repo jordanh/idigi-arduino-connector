@@ -56,10 +56,9 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
     return status;
 }
 
-int application_call(idigi_handle_t handle)
+int application_start(idigi_handle_t handle)
 {
     UNUSED_PARAMETER(handle);
 
-    APP_DEBUG("application_call: no application call\n");
-    return 1;
+    return 0;
 }

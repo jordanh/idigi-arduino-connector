@@ -69,18 +69,25 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
     return status;
 }
 
-int application_call(idigi_handle_t handle)
+int application_start(idigi_handle_t handle)
 {
-    int stop_calling = 1;
-    idigi_status_t const status = send_put_request(handle);
+    int stop_calling = 0;
 
-    if (status == idigi_init_error)
+    while (stop_calling == 0)
     {
-        #define SLEEP_ONE_SECOND  1
+        idigi_status_t const status = send_put_request(handle);
 
-        os_sleep(SLEEP_ONE_SECOND);
-        stop_calling = 0;
-    }
+        if (status == idigi_init_error)
+        {
+            #define SLEEP_ONE_SECOND  1
+
+            os_sleep(SLEEP_ONE_SECOND);
+        }
+        else
+        {
+            stop_calling = 1;
+        }
+    };
 
     return stop_calling;
 }
