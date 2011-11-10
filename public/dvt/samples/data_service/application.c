@@ -23,11 +23,6 @@
  *
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <time.h>
-#include <unistd.h>
-
 #include "idigi_api.h"
 #include "platform.h"
 
@@ -69,36 +64,38 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
     return status;
 }
 
-int application_call(idigi_handle_t handle)
+int application_start(idigi_handle_t handle)
 {
-    static int index = 0;
+    int index = 0;
     int stop_calling = 0;
-    idigi_status_t const status = send_put_request(handle, index);
 
-    switch (status)
+    while (!stop_calling)
     {
-    case idigi_init_error:
-        #define SLEEP_ONE_SECOND  1
+        idigi_status_t const status = send_put_request(handle, index);
+
+        switch (status)
+        {
+        case idigi_init_error:
+            #define SLEEP_ONE_SECOND  1
+            os_sleep(SLEEP_ONE_SECOND);
+            break;
+
+        case idigi_success:
+            index++;
+            break;
+
+        case idigi_invalid_data_range:
+            index = 0;
+
+            #define SLEEP_BETWEEN_TESTS   10
+            os_sleep(SLEEP_BETWEEN_TESTS);
+            break;
     
-        os_sleep(SLEEP_ONE_SECOND);
-        break;
-
-    case idigi_success:
-        index++;
-        break;
-
-    case idigi_invalid_data_range:
-        index = 0;
-
-        #define SLEEP_BETWEEN_TESTS   30
-        os_sleep(SLEEP_BETWEEN_TESTS);
-        break;
-
-    default:
-        stop_calling = 0;
-        break;
+        default:
+            stop_calling = 1;
+            break;
+        }
     }
-
-    return stop_calling;
+    return 0;
 }
 

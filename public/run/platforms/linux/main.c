@@ -44,9 +44,24 @@ static void * idigi_run_thread(void * arg)
     pthread_exit(arg);
 }
 
+static void * application_start_thread(void * arg)
+{
+    int status;
+
+    APP_DEBUG("idigi_run thread starts\n");
+
+    status = application_start((idigi_handle_t)arg);
+
+    APP_DEBUG("application_start thread exits %d\n", status);
+
+    pthread_exit(arg);
+}
+
 int main (void)
 {
     pthread_t idigi_thread;
+    pthread_t application_thread;
+
     idigi_handle_t idigi_handle;
 
     APP_DEBUG("Start iDigi\n");
@@ -60,18 +75,21 @@ int main (void)
             APP_DEBUG("thread_create() error on idigi_process_thread %d\n", ccode);
             goto done;
         }
-        while (ccode == 0)
+
+        ccode = pthread_create(&application_thread, NULL, application_start_thread, idigi_handle);
+        if (ccode != 0)
         {
-            ccode = application_call(idigi_handle);
+            APP_DEBUG("thread_create() error on idigi_process_thread %d\n", ccode);
+            goto done;
         }
-        APP_DEBUG("application_call returns %d\n", ccode);
+
         pthread_join(idigi_thread, NULL);
+        pthread_join(application_thread, NULL);
     }
     else
     {
         printf("unable to initialize iDigi\n");
     }
 done:
-    APP_DEBUG("iDigi stops running!\n");
     return 0;
 }

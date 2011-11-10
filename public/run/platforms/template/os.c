@@ -56,7 +56,7 @@
  *  
  * @see os_free
  */
-bool os_malloc(size_t const size, void ** ptr)
+int os_malloc(size_t const size, void ** ptr)
 {
     UNUSED_PARAMETER(size);
     UNUSED_PARAMETER(ptr);
@@ -105,13 +105,40 @@ void os_free(void * const ptr)
  * @endcode 
  *  
  */
-bool os_get_system_time(uint32_t * const uptime)
+int os_get_system_time(uint32_t * const uptime)
 {
     UNUSED_PARAMETER(uptime);
-
     return false;
 }
 
+/**
+ * @brief   Sleep or relinquish for other task execution.
+ *
+ * Sleep or relinquish to run other task. This is called
+ * to let other task to be executed when iik_run is called.
+ * IIK calls this callback if IIK is busy and is not calling
+ * receive callback
+ *
+ * @param [in] timeout  Maximum number in seconds to sleep
+ *
+ * @retval void
+ *
+ * Example Usage:
+ * @code
+ *     os_wait(1);
+ * @endcode
+ *
+ * @see os_free
+ */
+void os_sleep(unsigned int const timeout_in_seconds)
+{
+    UNUSED_PARAMETER(timeout_in_seconds);
+    return;
+}
+
+/**
+ * @cond DEV
+ */
 idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
                                         void * const request_data, size_t const request_length,
                                         void * response_data, size_t * const response_length)
@@ -126,7 +153,7 @@ idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
     {
     case idigi_os_malloc:
         ret    = os_malloc(*((size_t *)request_data), (void **)response_data);
-        status = (ret == true) ? idigi_callback_continue : idigi_callback_busy;
+        status = (ret == 0) ? idigi_callback_continue : idigi_callback_busy;
         break;
 
     case idigi_os_free:
@@ -136,8 +163,14 @@ idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
 
     case idigi_os_system_up_time:
         ret    = os_get_system_time((uint32_t *)response_data);
-        status = (ret == true) ? idigi_callback_continue : idigi_callback_abort;
+        status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
         break;
+
+    case idigi_os_sleep:
+        os_sleep(*((unsigned int *)request_data));
+        status = idigi_callback_continue;
+        break;
+
     default:
         DEBUG_PRINTF("idigi_os_callback: unrecognized request [%d]\n", request);
         break;
@@ -145,5 +178,8 @@ idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
 
     return status;
 }
+/**
+ * @endcond
+ */
 
 

@@ -75,10 +75,10 @@ typedef enum {
 * @}
 */
 
-/**
-* @defgroup.
-* @{
-*/
+ /**
+ * @defgroup idigi_class_t idigi_class_t
+ * @{
+ */
 /**
 * idigi_class_t.
 * Class Id for which class is used in the application's callback.
@@ -96,7 +96,7 @@ typedef enum {
 */
 
 /**
-* @defgroup.
+* @defgroup idigi_service_supported_status_t idigi_service_supported_status_t.
 * @{
 */
 /**
@@ -691,7 +691,11 @@ typedef struct
 
 #endif
 
+/**
+ * We need to figure this out.
+ */
 #define IDIGI_DATA_PUT_ARCHIVE   0x0001
+
 #define IDIGI_DATA_PUT_APPEND    0x0002
 
 /**
@@ -705,7 +709,7 @@ typedef struct
 {
     char const * path;  /**< NUL terminated file path where user wants to store the data on device cloud */
     char const * content_type;  /**< NUL terminated content type (text/plain, text/xml, application/json, etc. */
-    unsigned int flags; /**< Indicates whether server should archive and/or append */
+    unsigned int flags; /**< Indicates whether server should archive and/or append, one of the following @ref IDIGI_DATA_PUT_ARCHIVE */
     void const * context; /**< To hold the user context */
 } idigi_data_put_header_t;
 
@@ -722,8 +726,8 @@ typedef struct
 * idigi_data_service_put_request callbacks indicating the type of message. */
 typedef enum 
 {
-    idigi_data_service_type_need_data,      /**< Indicating a message contains data from server that needs callback to process it. */
-    idigi_data_service_type_have_data,      /**< Indicating callback needs to write data onto specified buffer which will be sent to server */
+    idigi_data_service_type_need_data,      /**< Indicating callback needs to write data onto specified buffer which will be sent to server */
+    idigi_data_service_type_have_data,      /**< Indicating a message contains data from server that needs callback to process it. */
     idigi_data_service_type_error           /**< Indicating error is encountered. Needs to terminate */
 } idigi_data_service_type_t;
 
