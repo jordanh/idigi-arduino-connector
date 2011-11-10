@@ -810,7 +810,7 @@ static idigi_callback_status_t msg_get_service_data(idigi_data_t * const idigi_p
 {
     uint8_t * msg_buffer;
     size_t bytes_in_buffer;
-    uint8_t const * const edp_packet = get_packet_buffer(idigi_ptr, E_MSG_FAC_MSG_NUM, &msg_buffer, &bytes_in_buffer);
+    uint8_t * const edp_packet = get_packet_buffer(idigi_ptr, E_MSG_FAC_MSG_NUM, &msg_buffer, &bytes_in_buffer);
     size_t const header_bytes = MsgIsStart(session->status_flag) ? record_end(start_packet) : record_end(data_packet);
     size_t const available_bytes = bytes_in_buffer - header_bytes;
     idigi_callback_status_t status = idigi_callback_abort;
