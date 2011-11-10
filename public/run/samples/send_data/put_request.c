@@ -32,7 +32,7 @@
 idigi_status_t send_put_request(idigi_handle_t handle) 
 {
     idigi_status_t status = idigi_success;
-    static idigi_data_put_header_t header;
+    static idigi_data_service_put_request_t header;
     static char file_path[] = "test/test.txt";
     static char file_type[] = "text/plain";
 
@@ -51,8 +51,8 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
                                                   void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    idigi_data_put_request_t const * const put_request = request_data;
-    idigi_data_put_response_t * const put_response = response_data;
+    idigi_data_service_msg_request_t const * const put_request = request_data;
+    idigi_data_service_msg_response_t * const put_response = response_data;
 
     UNUSED_PARAMETER(request_length);
     UNUSED_PARAMETER(response_length);
@@ -65,36 +65,39 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
 
     if (request == idigi_data_service_put_request)
     {
-        switch (put_request->request_type)
+        switch (put_request->message_type)
         {
         case idigi_data_service_type_need_data:
             {
-                char * dptr = put_response->data;
+                idigi_data_service_block_t * message = put_response->client_data;
+                char * dptr = message->data;
                 char const * const buffer = "Welcome to iDigi data service sample!\n";
                 size_t const bytes = strlen(buffer);
 
                 memcpy(dptr, buffer, bytes);
-                put_response->length_in_bytes = bytes;
-                put_response->flags = IDIGI_MSG_LAST_DATA | IDIGI_MSG_FIRST_DATA;
+                message->length_in_bytes = bytes;
+                message->flags = IDIGI_MSG_LAST_DATA | IDIGI_MSG_FIRST_DATA;
+                put_response->message_status = idigi_msg_error_none;
             }
             break;
 
         case idigi_data_service_type_have_data:
             {
-                uint8_t const * data = put_response->data;
-                uint8_t status = *data;
+                idigi_data_service_block_t * message = put_request->server_data;
+                uint8_t const * data = message->data;
 
-                APP_DEBUG("Received %s response from server\n", (status == 0) ? "success" : "error");
-                if (put_response->length_in_bytes > 1) 
+                APP_DEBUG("Received %s response from server\n", ((message->flags & IDIGI_MSG_RESP_SUCCESS) != 0) ? "success" : "error");
+                if (message->length_in_bytes > 0) 
                 {
-                    APP_DEBUG("Server response %s\n", (char *)&data[1]);
+                    APP_DEBUG("Server response %s\n", (char *)data);
                 }
             }
             break;
 
         case idigi_data_service_type_error:
             {
-                idigi_msg_error_t const * const error_value = put_response->data;
+                idigi_data_service_block_t * message = put_request->server_data;
+                idigi_msg_error_t const * const error_value = message->data;
 
                 APP_DEBUG("Data service error: %d\n", *error_value);
             }

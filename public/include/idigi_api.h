@@ -711,10 +711,7 @@ typedef struct
     char const * content_type;  /**< NUL terminated content type (text/plain, text/xml, application/json, etc. */
     unsigned int flags; /**< Indicates whether server should archive and/or append, one of the following @ref IDIGI_DATA_PUT_ARCHIVE */
     void const * context; /**< To hold the user context */
-} idigi_data_put_header_t;
-
-#define IDIGI_MSG_FIRST_DATA     0x0001
-#define IDIGI_MSG_LAST_DATA      0x0002
+} idigi_data_service_put_request_t;
 
 /**
 * @defgroup.
@@ -731,31 +728,37 @@ typedef enum
     idigi_data_service_type_error           /**< Indicating error is encountered. Needs to terminate */
 } idigi_data_service_type_t;
 
-/**
- * Data service put request application callback updates this 
- * response based on the request type. If the request is for 
- * need data then user has to fill the data and if the request 
- * is for have data then user has to copy the data to their 
- * space. 
- */
-typedef struct idigi_data_put_response_t
-{
-    idigi_data_service_type_t response_type; /**< Determines the what data field contains */
-    size_t length_in_bytes; /**< Number of bytes in data */
-    void * data; /**< Content of this field is decided on response_type */
-    unsigned int flags; /**< Determines whether it is first and/or last data */
-} idigi_data_put_response_t;
+#define IDIGI_MSG_FIRST_DATA    0x0001
+#define IDIGI_MSG_LAST_DATA     0x0002
 
-/**
- * Data service put request application callback receives this 
- * as a request. User can use header_context to determine which
- * session is sending this request. 
- */
-typedef struct idigi_data_put_request_t
+#define IDIGI_MSG_DATA_NOT_PROCESSED  0x0010
+
+#define IDIGI_MSG_RESP_SUCCESS  0x0100
+#define IDIGI_MSG_BAD_REQUEST   0x0200
+#define IDIGI_MSG_UNAVAILABLE   0x0400
+#define IDIGI_MSG_SERVER_ERROR  0x0800
+
+typedef struct
 {
-    idigi_data_service_type_t request_type; /**< Decides whether the request is for need data, have data, or error */
-    void const * header_context;  /**< Holds idigi_data_put_header_t * provided in idigi_initiate_action() */
-} idigi_data_put_request_t;
+    void * data;
+    size_t length_in_bytes;
+    unsigned int flags;
+} idigi_data_service_block_t;
+
+typedef struct
+{
+    void * service_context;
+    idigi_data_service_type_t message_type;
+    idigi_data_service_block_t * server_data;
+} idigi_data_service_msg_request_t;
+
+typedef struct
+{
+    void * user_context;
+    idigi_msg_error_t message_status;
+    idigi_data_service_block_t * client_data;
+} idigi_data_service_msg_response_t;
+
 
 /**
 * @defgroup.
