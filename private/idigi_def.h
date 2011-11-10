@@ -123,7 +123,7 @@ typedef enum {
     idigi_bool_integer_width = INT_MAX
 } idigi_bool_t;
 
-#define add_node(head, node) \
+#define add_list_node(head, tail, node) \
     do { \
         ASSERT(node != NULL); \
         ASSERT(head != NULL); \
@@ -134,9 +134,13 @@ typedef enum {
         node->next = *head;\
         node->prev = NULL;\
         *head = node;\
+        if ((tail != NULL) && (*tail == NULL)) \
+        { \
+            *tail = node; \
+        } \
    } while (0)
 
-#define remove_node(head, node) \
+#define remove_list_node(head, tail, node) \
     do { \
         ASSERT(node != NULL); \
         ASSERT(head != NULL); \
@@ -152,7 +156,14 @@ typedef enum {
         {\
             *head = node->next;\
         }\
+        if ((tail != NULL) && (node == *tail))\
+        {\
+            *tail = node->prev;\
+        }\
     } while (0)
+
+#define add_node(head, node)   add_list_node(head, (void **)NULL, node)
+#define remove_node(head, node)   remove_list_node(head, (void **)NULL, node) 
 
 struct idigi_data;
 struct idigi_facility;
