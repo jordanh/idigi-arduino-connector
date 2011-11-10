@@ -70,7 +70,8 @@
  * @subsection initialization Initialization
  * 
  * The API idigi_init() is called once upon startup to allocate and initialize the IIK. 
- * It takes the application defined callback function as an argument; this @ref idigi_callback_t "callback" is used by the IIK to communicate with the application. 
+ * It takes the application defined callback function as an argument; this @ref idigi_callback_t 
+ * "callback" is used by the IIK to communicate with the application. 
  * This function must be called before all other IIK APIs.
  *
  * @subsection single_threaded Single-threaded model
