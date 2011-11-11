@@ -36,8 +36,27 @@
 
 #include "idigi_types.h"
 
-#define IDIGI_PORT       3197
-#define IDIGI_SSL_PORT   3199
+/**
+ * iDigi server connect port number
+ *
+ * This port number is for idigi_network_connect callback to make
+ * a connection to iDigi server.
+ *
+ * @see IDIGI_SSL_PORT
+ * @see idigi_network_connect
+ */
+#define IDIGI_PORT       3197   /**< Port number used to connect to iDigi server. */
+
+/**
+ * iDigi server secured connect port number
+ *
+ * This port number is for idigi_network_connect callback to make
+ * a secured connection to iDigi server.
+ *
+ * @see IDIGI_PORT
+ * @see idigi_network_connect
+ */
+#define IDIGI_SSL_PORT   3199   /**< Secured port number used to connect to iDigi server. */
 
  /**
  * @defgroup idigi_status_t idigi_status_t: Status returned by IIK API calls.
@@ -630,11 +649,28 @@ typedef struct
 #endif
 
 /**
- * We need to figure this out.
+ * Message archive bit flag
+ *
+ * This flag is used in idigi_data_service_put_request_t indicating
+ * server needs to archive the message file.
+ *
+ * @see idigi_data_service_put_request_t
+ * @see idigi_data_service_put_request callback
  */
-#define IDIGI_DATA_PUT_ARCHIVE   0x0001
+#define IDIGI_DATA_PUT_ARCHIVE   0x0001 /**< This flag is used in idigi_data_service_put_request callback
+                                           telling server should archive the message file. */
 
-#define IDIGI_DATA_PUT_APPEND    0x0002
+/**
+ * Message append bit flag
+ *
+ * This flag is used in idigi_data_service_put_request_t indicating
+ * server need to append to existing data if applicable.
+ *
+ * @see idigi_data_service_put_request_t
+ * @see idigi_data_service_put_request callback
+ */
+#define IDIGI_DATA_PUT_APPEND    0x0002 /**< This flag is used in idigi_data_service_put_request callback
+                                            telling server should append to existing data if applicable. */
 
 /**
  * Put request header information. Used as initiate_action() 
@@ -671,29 +707,72 @@ typedef enum
 
 
 /**
- * Bit mask flags
- * These flags are used in idigi_data_service_block_t.
+ * Messagefirst chunk data bit flag
+ * This flag is used in idigi_data_service_block_t indicating
+ * first chunk of data.
  *
  * @see idigi_data_service_put_request callback
  * @see idigi_data_service_device_request callback
  */
-
 #define IDIGI_MSG_FIRST_DATA            0x0001  /**< First chunk of data */
+
+/**
+ * Message last chunk data bit flag
+ * This flag is used in idigi_data_service_block_t indicating
+ * last chunk of data.
+ *
+ * @see idigi_data_service_put_request callback
+ * @see idigi_data_service_device_request callback
+ */
 #define IDIGI_MSG_LAST_DATA             0x0002  /**< Last chunk of data */
+
+/**
+ * Message not processed bit flag
+ * This flag is used in idigi_data_service_block_t indicating
+ * message was not processed.
+ *
+ * @see idigi_data_service_device_request callback
+ */
 #define IDIGI_MSG_DATA_NOT_PROCESSED    0x0010  /**< This flag is used in idigi_data_service_device_request callback
                                                      telling server that callback did not process the message */
+/**
+ * Message success bit flag
+ * This flag is used in idigi_data_service_block_t indicating
+ * message successfully handled.
+ *
+ * @see idigi_data_service_put_request callback
+ */
 #define IDIGI_MSG_RESP_SUCCESS          0x0100  /**< This flag is used in idigi_data_service_put_request callback
                                                      telling the callback that server successfully received the message. */
+/**
+ * Message invalid bit flag
+ * This flag is used in idigi_data_service_block_t indicating
+ * message was invalid.
+ *
+ * @see idigi_data_service_put_request callback
+ */
 #define IDIGI_MSG_BAD_REQUEST           0x0200  /**< This flag is used in idigi_data_service_put_request callback
                                                      from server telling the callback that some portion of the data was invalid. */
+/**
+ * Message unavailable bit flag
+ * This flag is used in idigi_data_service_block_t indicating
+ * service is unavailable to process the message.
+ *
+ *
+ * @see idigi_data_service_put_request callback
+ */
 #define IDIGI_MSG_UNAVAILABLE           0x0400  /**< This flag is used in idigi_data_service_put_request callback
                                                      from server telling the callback that service is unavailable due to overload
                                                      or other issues. Callback may try to resend the message later. */
+/**
+ * Message error bit mask flag
+ * This flag is used in idigi_data_service_block_t indicating
+ * server encountered an error handling the message.
+ *
+ * @see idigi_data_service_put_request callback
+ */
 #define IDIGI_MSG_SERVER_ERROR          0x0800  /**< This flag is used in idigi_data_service_put_request callback
                                                      from server telling the callback that server encountered an error handling the message. */
-/**
-* @}
-*/
 
 
 /**
