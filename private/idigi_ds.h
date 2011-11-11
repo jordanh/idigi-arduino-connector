@@ -374,7 +374,16 @@ static idigi_callback_status_t data_service_device_request_callback(idigi_data_t
     return status;
 }
 
-static size_t fill_data_service_header(idigi_data_service_put_request_t const * const request, uint8_t * const data)
+static void process_put_request_error(msg_service_request_t * const service_data, idigi_msg_error_t const error_code)
+{
+    idigi_msg_error_t * error = service_data->data_ptr;
+
+    *error = error_code;
+    service_data->length_in_bytes = sizeof error_code;
+    service_data->service_type = msg_service_type_error;
+}
+
+static size_t fill_put_request_header(idigi_data_service_put_request_t const * const request, uint8_t * const data)
 {
     uint8_t * ptr = data;
 
@@ -439,6 +448,144 @@ static size_t fill_data_service_header(idigi_data_service_put_request_t const * 
     return (size_t)(ptr - data);
 }
 
+static idigi_callback_status_t call_put_request_user(idigi_data_t * const idigi_ptr, msg_service_request_t * const service_data, idigi_data_service_msg_request_t * const request, idigi_data_service_msg_response_t * const response)
+{
+    idigi_callback_status_t status = idigi_callback_continue;
+
+    {
+        idigi_request_t request_id;
+        size_t response_bytes = sizeof *response;
+
+        request_id.data_service_request = idigi_data_service_put_request;
+        status = idigi_callback(idigi_ptr->callback, idigi_class_data_service, request_id, request, sizeof *request, response, &response_bytes);
+    }
+
+    if (status == idigi_callback_continue)
+    {
+        if (response->message_status != idigi_msg_error_none)
+        {
+            process_put_request_error(service_data, response->message_status);
+            goto error;
+        }
+
+        if (service_data->service_type == msg_service_type_need_data)
+        {
+            idigi_data_service_block_t * user_data = response->client_data;
+
+            service_data->flags = 0;
+            service_data->length_in_bytes += user_data->length_in_bytes;
+            if ((user_data->flags & IDIGI_MSG_LAST_DATA) == IDIGI_MSG_LAST_DATA)
+                MsgSetLastData(service_data->flags);
+        }
+    }
+
+error:
+    return status;
+}
+
+static idigi_callback_status_t process_put_request(idigi_data_t * const idigi_ptr, msg_service_request_t * const service_data, idigi_data_service_msg_request_t * const request, idigi_data_service_msg_response_t * const response)
+{
+    idigi_callback_status_t status = idigi_callback_continue;    
+    idigi_data_service_block_t * user_data = response->client_data;
+
+    if (MsgIsStart(service_data->flags))
+    {
+        uint8_t * dptr = service_data->data_ptr;
+        size_t const bytes = fill_put_request_header(request->service_context, dptr);
+
+        ASSERT_GOTO(bytes < service_data->length_in_bytes, error);
+        user_data->length_in_bytes = service_data->length_in_bytes - bytes;
+        user_data->data = dptr + bytes;
+        service_data->length_in_bytes = bytes;
+    }
+    else
+    {
+        user_data->data = service_data->data_ptr;
+        user_data->length_in_bytes = service_data->length_in_bytes;
+        service_data->length_in_bytes = 0;
+    }
+
+    status = call_put_request_user(idigi_ptr, service_data, request, response);
+    goto done;
+
+error:
+    process_put_request_error(service_data, idigi_msg_error_format);
+
+done:
+    return status;
+}
+
+static idigi_callback_status_t process_put_response(idigi_data_t * const idigi_ptr, msg_service_request_t * const service_data, idigi_data_service_msg_request_t * request, idigi_data_service_msg_response_t * response)
+{
+    idigi_callback_status_t status = idigi_callback_continue;
+    idigi_data_service_block_t * user_data = request->server_data;
+
+    /* Data Service put response format:
+     *  ---------------------------------
+     * |   0    |   1    |     2...      |
+     *  ---------------------------------
+     * | Opcode | status | Response Data |
+     *  ---------------------------------
+     */
+    enum 
+    {
+        field_define(put_response, opcode, uint8_t),
+        field_define(put_response, status, uint8_t),
+        record_end(put_response)
+    };
+
+    enum
+    {
+        ds_data_success,
+        ds_data_bad_request,
+        ds_data_service_unavailable,
+        ds_data_server_error
+    };
+
+    uint8_t * const put_response = service_data->data_ptr;
+    uint8_t const opcode = message_load_u8(put_response, opcode);
+    uint8_t const result = message_load_u8(put_response, status);
+    
+    ASSERT_GOTO(MsgIsStart(service_data->flags), error);
+    ASSERT_GOTO(opcode == data_service_opcode_put_response, error);
+    
+    user_data->flags = IDIGI_MSG_FIRST_DATA | IDIGI_MSG_LAST_DATA;
+    user_data->length_in_bytes = service_data->length_in_bytes - record_end(put_response);
+    user_data->data = put_response + record_end(put_response);
+
+    switch (result) 
+    {
+    case ds_data_success:
+        user_data->flags |= IDIGI_MSG_RESP_SUCCESS;
+        break;
+
+    case ds_data_bad_request:
+        user_data->flags |= IDIGI_MSG_BAD_REQUEST;
+        break;
+
+    case ds_data_service_unavailable:
+        user_data->flags |= IDIGI_MSG_UNAVAILABLE;
+        break;
+
+    case ds_data_server_error:
+        user_data->flags |= IDIGI_MSG_SERVER_ERROR;
+        break;
+
+    default:
+        ASSERT(idigi_false);
+        break;
+    }
+
+    status = call_put_request_user(idigi_ptr, service_data, request, response);
+    goto done;
+
+error:
+    process_put_request_error(service_data, idigi_msg_error_format);
+
+done:
+    return status;
+}
+
 static idigi_callback_status_t data_service_put_request_callback(idigi_data_t * const idigi_ptr, msg_service_request_t * const service_data)
 {
     idigi_callback_status_t status = idigi_callback_abort;
@@ -448,143 +595,40 @@ static idigi_callback_status_t data_service_put_request_callback(idigi_data_t * 
     idigi_data_service_block_t user_data;
 
     ASSERT_GOTO(context != NULL, error);
+    request_data.server_data = (service_data->service_type == msg_service_type_need_data) ? NULL : &user_data;
+    response_data.client_data = (service_data->service_type == msg_service_type_need_data) ? &user_data : NULL;
     request_data.service_context = context->user_context;
+    response_data.message_status = idigi_msg_error_none;
     user_data.flags = 0;
 
     switch (service_data->service_type)
     {
     case msg_service_type_need_data:
-        {
-            request_data.message_type = idigi_data_service_type_need_data;
-            request_data.server_data = NULL;
-            response_data.client_data = &user_data;
-
-            if (MsgIsStart(service_data->flags))
-            {
-                uint8_t * dptr = service_data->data_ptr;
-                size_t const bytes = fill_data_service_header(context->user_context, dptr);
-    
-                ASSERT_GOTO(bytes < service_data->length_in_bytes, error);
-                user_data.length_in_bytes = service_data->length_in_bytes - bytes;
-                user_data.data = dptr + bytes;
-                service_data->length_in_bytes = bytes;
-            }
-            else
-            {
-                user_data.data = service_data->data_ptr;
-                user_data.length_in_bytes = service_data->length_in_bytes;
-                service_data->length_in_bytes = 0;
-            }
-        }
+        request_data.message_type = idigi_data_service_type_need_data;
+        status = process_put_request(idigi_ptr, service_data, &request_data, &response_data);
         break;
 
     case msg_service_type_have_data:
-        {
-
-            /* Data Service put response format:
-             *  ---------------------------------
-             * |   0    |   1    |     2...      |
-             *  ---------------------------------
-             * | Opcode | status | Response Data |
-             *  ---------------------------------
-             */
-             enum 
-             {
-                 field_define(put_response, opcode, uint8_t),
-                 field_define(put_response, status, uint8_t),
-                 record_end(put_response)
-             };
-
-             enum
-             {
-                 ds_data_success,
-                 ds_data_bad_request,
-                 ds_data_service_unavailable,
-                 ds_data_server_error
-             };
-
-            uint8_t * const put_response = service_data->data_ptr;
-            uint8_t const opcode = message_load_u8(put_response, opcode);
-            uint8_t const result = message_load_u8(put_response, status);
-
-            ASSERT_GOTO(MsgIsStart(service_data->flags), error);
-            ASSERT_GOTO(opcode == data_service_opcode_put_response, error);
-
-            request_data.server_data = &user_data;
-            response_data.client_data = NULL;
-            request_data.message_type = idigi_data_service_type_have_data;
-            user_data.flags = IDIGI_MSG_FIRST_DATA | IDIGI_MSG_LAST_DATA;
-            user_data.length_in_bytes = service_data->length_in_bytes - record_end(put_response);
-            user_data.data = put_response + record_end(put_response);
-
-            switch (result) 
-            {
-            case ds_data_success:
-                user_data.flags |= IDIGI_MSG_RESP_SUCCESS;
-                break;
-
-            case ds_data_bad_request:
-                user_data.flags |= IDIGI_MSG_BAD_REQUEST;
-                break;
-
-            case ds_data_service_unavailable:
-                user_data.flags |= IDIGI_MSG_UNAVAILABLE;
-                break;
-
-            case ds_data_server_error:
-                user_data.flags |= IDIGI_MSG_SERVER_ERROR;
-                break;
-
-            default:
-                ASSERT(idigi_false);
-                break;
-            }
-        }
+        request_data.message_type = idigi_data_service_type_have_data;
+        status = process_put_response(idigi_ptr, service_data, &request_data, &response_data);
         break;
 
     case msg_service_type_error:
-        request_data.server_data = &user_data;
-        request_data.message_type = idigi_data_service_type_error;
-        user_data.length_in_bytes = service_data->length_in_bytes;
         user_data.data = service_data->data_ptr;
+        user_data.length_in_bytes = service_data->length_in_bytes;
+        request_data.message_type = idigi_data_service_type_error;
+        status = call_put_request_user(idigi_ptr, service_data, &request_data, &response_data);
         break;
-            
+
     case msg_service_type_free:
         free_data(idigi_ptr, context);
         status = idigi_callback_continue;
         goto done;
 
     default:
+        status = idigi_callback_unrecognized;
         ASSERT_GOTO(idigi_false, error);
         break;
-    }
-
-    {
-        idigi_request_t request;
-        size_t response_bytes = sizeof response_data;
-
-        request.data_service_request = idigi_data_service_put_request;
-        response_data.message_status = idigi_msg_error_none;
-        status = idigi_callback(idigi_ptr->callback, idigi_class_data_service, request, &request_data, sizeof request_data, &response_data, &response_bytes);
-    }
-
-    if (status == idigi_callback_continue)
-    {
-        if (response_data.message_status != idigi_msg_error_none)
-        {
-            service_data->service_type = msg_service_type_error;
-            service_data->length_in_bytes = user_data.length_in_bytes;
-            goto error;
-        }
-
-        if (service_data->service_type == msg_service_type_need_data)
-        {
-            service_data->length_in_bytes += user_data.length_in_bytes;
-    
-            service_data->flags = 0;
-            if ((user_data.flags & IDIGI_MSG_LAST_DATA) == IDIGI_MSG_LAST_DATA)
-                MsgSetLastData(service_data->flags);
-        }
     }
 
 error:

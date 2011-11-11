@@ -658,12 +658,12 @@ static void msg_send_complete(idigi_data_t * const idigi_ptr, uint8_t const * co
     msg_session_t * const session = user_data;
 
     UNUSED_PARAMETER(packet);
-    ASSERT_GOTO(session != NULL, done);
+    ASSERT_GOTO(session != NULL, error);
 
     if (status != idigi_success)
     {
         msg_inform_error(idigi_ptr, session, idigi_send_error);
-        goto done;
+        goto error;
     }
 
     /* update session state */
@@ -688,6 +688,7 @@ static void msg_send_complete(idigi_data_t * const idigi_ptr, uint8_t const * co
         zlib_ptr->avail_out = 0;
     }
 
+error:
 done:
     return;
 }
