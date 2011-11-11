@@ -318,7 +318,14 @@ static idigi_callback_status_t msg_call_service_layer(idigi_data_t * const idigi
     {
         idigi_msg_error_t const * const error_ptr = service_ptr->data_ptr;
 
-        msg_set_error(session, *error_ptr);
+        if (MsgIsStart(session->status_flag) && MsgIsClientOwned(session->status_flag))
+        {
+            session->state = msg_state_delete;
+        }
+        else
+        {
+            msg_set_error(session, *error_ptr);
+        }
         status = idigi_callback_unrecognized;
     }
 
