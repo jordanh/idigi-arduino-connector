@@ -115,7 +115,7 @@ typedef enum {
 */
 
 /**
-* @defgroup.
+* @defgroup idigi_config_request_t idigi_config_request_t
 * @{
 */
 /**
@@ -149,7 +149,7 @@ typedef enum {
 
 
 /**
-* @defgroup.
+* @defgroup idigi_network_request_t idigi_network_request_t
 * @{
 */
 /**
@@ -189,70 +189,8 @@ typedef enum {
 * @}
 */
 
- /**
- * @defgroup idigi_os_malloc idigi_os_malloc: Dynamically allocate memory
- *  @ref idigi_callback_t "Callback" used to dynamically allocate memory
- *  @param class_id: idigi_class_operating_system class ID
- *  @param request_id idigi_os_malloc request ID
- *  @param request_data Pointer to number of bytes to be allocated
- *  @param request_length Specifies the size of *request_data which is size of size_t.
- *  @param response_data Callback returns a pointer to memory for allocated address
- *  @param response_length ignore
- *
- * @return idigi_callback_continue Callback successfully allocated memory
- * @return idigi_callback_abort Callback was unable to allocate memory and callback aborts IIK
- * @return idigi_callback_busy Memory is not available at this time and needs to be called back again
- * @see idigi_callback_t
- * @{ 
- */
-
 /**
-* @}
-*/
-
- /**
- * @defgroup idigi_os_system_up_time idigi_os_system_up_time: System up time
- *  @ref idigi_callback_t "Callback" used to to return system up time in seconds. It is the time that a device has been up and running.
- *  @param class_id: idigi_class_operating_system class ID
- *  @param request_id idigi_os_system_up_time request ID
- *  @param request_data NULL
- *  @param request_length 0
- *  @param response_data Pointer to uint32_t integer memory where callback writes the system up time to (in seconds)
- *  @param response_length NULL Ignore
- *
- * @return idigi_callback_continue Callback returned system up time
- * @return idigi_callback_abort Callback was unable to get system time
- * @see idigi_callback_t
- * @{ 
- */
-
-/**
-* @}
-*/
-
- /**
- * @defgroup idigi_os_malloc idigi_os_malloc: Dynamically allocate memory
- *  @ref idigi_callback_t "Callback" used to dynamically allocate memory
- *  @param class_id: idigi_class_operating_system class ID
- *  @param request_id idigi_os_malloc request ID
- *  @param request_data Pointer to number of bytes to be allocated
- *  @param request_length Specifies the size of *request_data which is size of size_t.
- *  @param response_data Callback returns a pointer to memory for allocated address
- *  @param response_length ignore
- *
- * @return idigi_callback_continue Callback successfully allocated memory
- * @return idigi_callback_abort Callback was unable to allocate memory and callback aborts IIK
- * @return idigi_callback_busy Memory is not available at this time and needs to be called back again
- * @see idigi_callback_t
- * @{ 
- */
-
-/**
-* @}
-*/
-
-/**
-* @defgroup.
+* @defgroup idigi_firmware_request_t idigi_firmware_request_t
 * @{
 */
 /**
@@ -293,7 +231,7 @@ typedef enum {
 } idigi_data_service_request_t;
 
 /**
-* @defgroup.
+* @defgroup idigi_initiate_request_t idigi_initiate_request_t
 * @{
 */
 /**
@@ -310,7 +248,7 @@ typedef enum {
 */
 
 /**
-* @defgroup.
+* @defgroup idigi_connection_type_t idigi_connection_type_t
 * @{
 */
 /**
@@ -326,7 +264,7 @@ typedef enum {
 */
 
 /**
-* @defgroup.
+* @defgroup.idigi_callback_status_t idigi_callback_status_t
 * @{
 */
 /**
@@ -727,37 +665,56 @@ typedef enum
     idigi_data_service_type_have_data,      /**< Indicating a message contains data from server that needs callback to process it. */
     idigi_data_service_type_error           /**< Indicating error is encountered. Needs to terminate */
 } idigi_data_service_type_t;
+/**
+* @}
+*/
 
-#define IDIGI_MSG_FIRST_DATA    0x0001
-#define IDIGI_MSG_LAST_DATA     0x0002
 
-#define IDIGI_MSG_DATA_NOT_PROCESSED  0x0010
+/**
+ * Bit mask flags
+ * These flags are used in idigi_data_service_block_t.
+ *
+ * @see idigi_data_service_put_request callback
+ * @see idigi_data_service_device_request callback
+ */
 
-#define IDIGI_MSG_RESP_SUCCESS  0x0100
-#define IDIGI_MSG_BAD_REQUEST   0x0200
-#define IDIGI_MSG_UNAVAILABLE   0x0400
-#define IDIGI_MSG_SERVER_ERROR  0x0800
+#define IDIGI_MSG_FIRST_DATA            0x0001  /**< First chunk of data */
+#define IDIGI_MSG_LAST_DATA             0x0002  /**< Last chunk of data */
+#define IDIGI_MSG_DATA_NOT_PROCESSED    0x0010  /**< This flag is used in idigi_data_service_device_request callback
+                                                     telling server that callback did not process the message */
+#define IDIGI_MSG_RESP_SUCCESS          0x0100  /**< This flag is used in idigi_data_service_put_request callback
+                                                     telling the callback that server successfully received the message. */
+#define IDIGI_MSG_BAD_REQUEST           0x0200  /**< This flag is used in idigi_data_service_put_request callback
+                                                     from server telling the callback that some portion of the data was invalid. */
+#define IDIGI_MSG_UNAVAILABLE           0x0400  /**< This flag is used in idigi_data_service_put_request callback
+                                                     from server telling the callback that service is unavailable due to overload
+                                                     or other issues. Callback may try to resend the message later. */
+#define IDIGI_MSG_SERVER_ERROR          0x0800  /**< This flag is used in idigi_data_service_put_request callback
+                                                     from server telling the callback that server encountered an error handling the message. */
+/**
+* @}
+*/
 
+
+/**
+* @defgroup.
+* @{
+*/
+/**
+* idigi_data_service_block_t.
+* Data service block structure is used to send data between iDigi server and client.
+* This structure is used in idigi_data_service_put_request and idigi_data_service_device_request callbacks
+* (@see idigi_data_service_request_t).
+*/
 typedef struct
 {
-    void * data;
-    size_t length_in_bytes;
-    unsigned int flags;
+    void * data;                /**< Pointer to data */
+    size_t length_in_bytes;     /**< Number of bytes in data */
+    unsigned int flags;         /**< Bit mask flags. See each callback for specified bit mask flags */
 } idigi_data_service_block_t;
-
-typedef struct
-{
-    void * service_context;
-    idigi_data_service_type_t message_type;
-    idigi_data_service_block_t * server_data;
-} idigi_data_service_msg_request_t;
-
-typedef struct
-{
-    void * user_context;
-    idigi_msg_error_t message_status;
-    idigi_data_service_block_t * client_data;
-} idigi_data_service_msg_response_t;
+/**
+* @}
+*/
 
 
 /**
@@ -765,37 +722,54 @@ typedef struct
 * @{
 */
 /**
-* idigi_data_service_device_response_status_t.
-* Data service device response status. These status codes are used in
-* @see idigi_data_service_device_request callback.
+* idigi_data_service_msg_request_t.
+* Data service message request structure is used to tell the callback to process data from
+* iDigi server, to obtain data to be sent to iDigi server, or to cancel an active message.
 *
+* This structure is used in idigi_data_service_put_request and idigi_data_service_device_request callbacks
+* (@see idigi_data_service_request_t).
 */
-typedef enum {
-    idigi_data_service_device_success,          /**< Callback has no error and successfully processed the device request data */
-    idigi_data_service_device_not_handled       /**< Callback didn't not processed the device request data */
-} idigi_data_service_device_response_status_t;
-
+typedef struct
+{
+    void * service_context;                     /**< Service context pointer for idigi_data_service_put_request or idigi_data_service_device_request callback.
+                                                   It's pointer to idigi_data_service_put_request_t for idigi_data_service_put_request callback.
+                                                   @see idigi_initiate_action function with idigi_initiate_data_service.
+                                                   It's pointer to idigi_data_service_device_request_t for idigi_data_service_device_request callback. */
+    idigi_data_service_type_t message_type;     /**< Contains idigi_data_service_type_need_data to request callback for data to be sent to server,
+                                                   idigi_data_service_type_have_data to tell callback to process data from server, or
+                                                   idigi_data_service_type_error to tell callback to cancel the message since error is encountered. */
+    idigi_data_service_block_t * server_data;   /**< Pointer to data from server to be processed for idigi_data_service_type_have_data message type or
+                                                     pointer to error status for idigi_data_service_type_error message type. */
+} idigi_data_service_msg_request_t;
 /**
 * @}
 */
+
 
 /**
 * @defgroup.
 * @{
 */
 /**
-* idigi_data_service_device_data_t.
-* Data service device data structure which is used for device request and response data for
-* idigi_data_service_device_request callback */
-typedef struct {
-    void * data;                    /**< Buffer which device request or response data  */
-    size_t length_in_bytes;         /**< Number of bytes in data */
-    unsigned int flag;              /**< Bit field indicating first or last chunk of data */
-} idigi_data_service_device_data_t;
-
+* idigi_data_service_msg_response_t.
+* Data service message response structure is used in the callback to return data to be sent to
+* iDigi server, or to cancel the message.
+*
+* This structure is used in idigi_data_service_put_request and idigi_data_service_device_request callbacks
+* (@see idigi_data_service_request_t).
+*/
+typedef struct
+{
+    void * user_context;                        /**< idigi_data_service_device_request callback's context which will
+                                                    be returned on subsequent callbacks for its reference.
+                                                    For idigi_data_service_put_request callback, it's not used. */
+    idigi_msg_error_t message_status;           /**< Message error status that callback encounters */
+    idigi_data_service_block_t * client_data;   /**< Pointer to memory where callback writes data to. */
+} idigi_data_service_msg_response_t;
 /**
 * @}
 */
+
 
 /**
 * @defgroup.
@@ -803,37 +777,21 @@ typedef struct {
 */
 /**
 * idigi_data_service_device_request_t.
-* Data service device request structure which is passed to @see idigi_data_service_device_request
-* callback to process device request */
-typedef struct {
-    void * user_context;                                    /**< User context from previous idigi_data_service_device_request callback  */
-    void * session;                                         /**< session handle for current device request */
-    char const * target;                                    /**< Nul terminated target name */
-    idigi_data_service_type_t message_type;                 /**< Meesage type of message data @see idigi_data_service_type_t */
-    union {
-        idigi_data_service_device_data_t * request_data;    /**< Pointer to device request which contains request data for idigi_data_service_type_have_data message type */
-        idigi_msg_error_t                error_code;        /**< Error code which IIK encounters for idigi_data_service_type_error message type */
-    } message_data;
+* Data service device request structure is used in @see idigi_data_service_device_request
+* callback to process device request. idigi_data_service_device_request callback is passed with
+* @see idigi_sevice_msg_request_t where service_context is pointing to this idigi_data_service_device_request_t.
+*/
+typedef struct
+{
+    void * device_handle;       /**< Device handle for current device request */
+    char const * target;        /**< Contains nul terminated target name. The target name is only provided on
+                                    the first chunk of data (IDIGI_MSG_FIRST_DATA bit is set on flags. See the callback).
+                                    Otherwise, it’s null. */
 } idigi_data_service_device_request_t;
-
 /**
 * @}
 */
 
-/**
-* @defgroup.
-* @{
-*/
-/**
-* idigi_data_service_device_response_t.
-* Data service device response structure which is passed to @see idigi_data_service_device_request
-* callback to return device response */
-typedef struct
-{
-    void * user_context;                                            /**< User context which will be passed to @see idigi_data_service_device_request_t on next idigi_data_service_device_request callback */
-    idigi_data_service_device_response_status_t status;             /**< Status of device request */
-    idigi_data_service_device_data_t            * response_data;    /**< Pointer to memory where callback writes device response data */
-} idigi_data_service_device_response_t;
 
  /**
  * @defgroup idigi_callback_t idigi_callback_t: IIK application defined callback.
@@ -939,12 +897,13 @@ idigi_status_t idigi_step(idigi_handle_t const handle);
 
 
  /**
- * @defgroup idigi_run idigi_run(): Run a portion of the IIK.
+ * @defgroup idigi_run idigi_run(): Run a the IIK.
  * @{ 
  * @b Include: idigi_api.h
  */
 /**
- * @brief   Run a portion of the IIK.
+ * @brief   Run the IIK, this function does not return and is used in a 
+ * multithreaded environment.
  *
  * This function is similar to idigi_step except it doesn't 
  * return control back to caller unless IIK encounters an error.

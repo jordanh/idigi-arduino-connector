@@ -28,9 +28,10 @@
  *          -# @ref step8
  *              -# @ref add_your_device_to_the_cloud
  *              -# @ref view_result_on_cloud
+ *          -# @ref step9
  * 
  * This getting started guide will walk you through the stpes necessary to
- * get an application running with the IIK, this application will connect to the
+ * get an application running with the IIK, this application will connect your device to the
  * iDigi server and the configuration will be displayed in ConnectWare Manager.
  *
  * @section step1 Step 1: Determine if your compiler is C89 or C99 compliant
@@ -71,7 +72,7 @@
  * You need to add the source files and include paths to your build system described
  * below.
  *
- * @subsection idigi_initialization iDigi Initialization
+ * @subsection idigi_initialization IIK Initialization
  *
  * The routine idigi_init() is called to initialize the IIK, currently this is
  * called from the routine main() in main.c, you will need to call idigi_init()
@@ -235,7 +236,7 @@
  *
  * @section step6 Step 6: Setup your build enviroment
  *
- * @subsection add_c_files Add C files
+ * @subsection add_c_files Add the source files to your build system
  *
  * To build the connect_to_idigi sample you will need to add the following
  * files to your build envirment note that in this procedure we are
@@ -361,6 +362,13 @@
  * application.
  *
  *  @image html results1.png
+ *
+ * @section step9 Step 9: Next Steps
+ *
+ * Now that you have a basic sample up and running with the iDigi server, you
+ * can port in more functionality to your application.  We first suggest 
+ * reading the @ref api1_overview "API" section of the documentation and then look at the documentation
+ * for one of the samples.
  *
  * </td></tr>
  * </table>

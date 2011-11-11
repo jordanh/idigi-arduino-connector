@@ -89,7 +89,7 @@
  * single threaded system a step routine is provided which runs a portion of the
  * IIK and must be called periodically.
  *
- * @note You must decide befor proceeding if you want to run as a single threaded
+ * @note You must decide before proceeding if you want to run as a single threaded
  * model (step) or run the IIK as a separate thread (run).
  * 
  *

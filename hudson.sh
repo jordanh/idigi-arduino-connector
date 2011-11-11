@@ -30,6 +30,11 @@ function cleanup ()
 # Create the output directory.
 mkdir -p ${OUTPUT_DIR}
 
+# Create the doxygen documentation
+cd doxygen
+doxygen
+cd ..
+
 # Create an idigi subdirectory which will be the root of the tarball.
 echo ">> Creating ${BASE_DIR} and copying public and private directories to it."
 mkdir -p ${BASE_DIR}

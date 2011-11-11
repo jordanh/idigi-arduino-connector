@@ -640,6 +640,11 @@ WARN_LOGFILE           =
 
 INPUT                  = ./mainpage.c \
                          ./porting.c \
+                         ./os_callbacks.c \
+                         ./config_callbacks.c \
+                         ./firmware_download.c \
+                         ./network_callbacks.c \
+                         ./config_callbacks.c \
                          ./data_service.c \
                          ./api_overview.c \
                          ./idigi_index.c \
