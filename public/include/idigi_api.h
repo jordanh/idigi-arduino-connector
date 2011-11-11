@@ -115,7 +115,7 @@ typedef enum {
 */
 
 /**
-* @defgroup.
+* @defgroup idigi_config_request_t idigi_config_request_t
 * @{
 */
 /**
@@ -149,7 +149,7 @@ typedef enum {
 
 
 /**
-* @defgroup.
+* @defgroup idigi_network_request_t idigi_network_request_t
 * @{
 */
 /**
@@ -189,70 +189,8 @@ typedef enum {
 * @}
 */
 
- /**
- * @defgroup idigi_os_malloc idigi_os_malloc: Dynamically allocate memory
- *  @ref idigi_callback_t "Callback" used to dynamically allocate memory
- *  @param class_id: idigi_class_operating_system class ID
- *  @param request_id idigi_os_malloc request ID
- *  @param request_data Pointer to number of bytes to be allocated
- *  @param request_length Specifies the size of *request_data which is size of size_t.
- *  @param response_data Callback returns a pointer to memory for allocated address
- *  @param response_length ignore
- *
- * @return idigi_callback_continue Callback successfully allocated memory
- * @return idigi_callback_abort Callback was unable to allocate memory and callback aborts IIK
- * @return idigi_callback_busy Memory is not available at this time and needs to be called back again
- * @see idigi_callback_t
- * @{ 
- */
-
 /**
-* @}
-*/
-
- /**
- * @defgroup idigi_os_system_up_time idigi_os_system_up_time: System up time
- *  @ref idigi_callback_t "Callback" used to to return system up time in seconds. It is the time that a device has been up and running.
- *  @param class_id: idigi_class_operating_system class ID
- *  @param request_id idigi_os_system_up_time request ID
- *  @param request_data NULL
- *  @param request_length 0
- *  @param response_data Pointer to uint32_t integer memory where callback writes the system up time to (in seconds)
- *  @param response_length NULL Ignore
- *
- * @return idigi_callback_continue Callback returned system up time
- * @return idigi_callback_abort Callback was unable to get system time
- * @see idigi_callback_t
- * @{ 
- */
-
-/**
-* @}
-*/
-
- /**
- * @defgroup idigi_os_malloc idigi_os_malloc: Dynamically allocate memory
- *  @ref idigi_callback_t "Callback" used to dynamically allocate memory
- *  @param class_id: idigi_class_operating_system class ID
- *  @param request_id idigi_os_malloc request ID
- *  @param request_data Pointer to number of bytes to be allocated
- *  @param request_length Specifies the size of *request_data which is size of size_t.
- *  @param response_data Callback returns a pointer to memory for allocated address
- *  @param response_length ignore
- *
- * @return idigi_callback_continue Callback successfully allocated memory
- * @return idigi_callback_abort Callback was unable to allocate memory and callback aborts IIK
- * @return idigi_callback_busy Memory is not available at this time and needs to be called back again
- * @see idigi_callback_t
- * @{ 
- */
-
-/**
-* @}
-*/
-
-/**
-* @defgroup.
+* @defgroup idigi_firmware_request_t idigi_firmware_request_t
 * @{
 */
 /**
@@ -293,7 +231,7 @@ typedef enum {
 } idigi_data_service_request_t;
 
 /**
-* @defgroup.
+* @defgroup idigi_initiate_request_t idigi_initiate_request_t
 * @{
 */
 /**
@@ -310,7 +248,7 @@ typedef enum {
 */
 
 /**
-* @defgroup.
+* @defgroup idigi_connection_type_t idigi_connection_type_t
 * @{
 */
 /**
@@ -326,7 +264,7 @@ typedef enum {
 */
 
 /**
-* @defgroup.
+* @defgroup.idigi_callback_status_t idigi_callback_status_t
 * @{
 */
 /**
@@ -936,12 +874,13 @@ idigi_status_t idigi_step(idigi_handle_t const handle);
 
 
  /**
- * @defgroup idigi_run idigi_run(): Run a portion of the IIK.
+ * @defgroup idigi_run idigi_run(): Run a the IIK.
  * @{ 
  * @b Include: idigi_api.h
  */
 /**
- * @brief   Run a portion of the IIK.
+ * @brief   Run the IIK, this function does not return and is used in a 
+ * multithreaded environment.
  *
  * This function is similar to idigi_step except it doesn't 
  * return control back to caller unless IIK encounters an error.
