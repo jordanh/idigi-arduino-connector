@@ -642,6 +642,7 @@ INPUT                  = ./mainpage.c \
                          ./porting.c \
                          ./os_callbacks.c \
                          ./config_callbacks.c \
+                         ./firmware_download.c \
                          ./network_callbacks.c \
                          ./config_callbacks.c \
                          ./data_service.c \
