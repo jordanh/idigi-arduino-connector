@@ -374,7 +374,7 @@ static idigi_callback_status_t data_service_device_request_callback(idigi_data_t
     return status;
 }
 
-static void put_request_error(msg_service_request_t * const service_data, idigi_msg_error_t const error_code)
+static void process_put_request_error(msg_service_request_t * const service_data, idigi_msg_error_t const error_code)
 {
     idigi_msg_error_t * error = service_data->data_ptr;
 
@@ -383,7 +383,7 @@ static void put_request_error(msg_service_request_t * const service_data, idigi_
     service_data->service_type = msg_service_type_error;
 }
 
-static size_t fill_data_service_header(idigi_data_service_put_request_t const * const request, uint8_t * const data)
+static size_t fill_put_request_header(idigi_data_service_put_request_t const * const request, uint8_t * const data)
 {
     uint8_t * ptr = data;
 
@@ -448,7 +448,7 @@ static size_t fill_data_service_header(idigi_data_service_put_request_t const * 
     return (size_t)(ptr - data);
 }
 
-static idigi_callback_status_t put_request_call_user(idigi_data_t * const idigi_ptr, msg_service_request_t * const service_data, idigi_data_service_msg_request_t * const request, idigi_data_service_msg_response_t * const response)
+static idigi_callback_status_t call_put_request_user(idigi_data_t * const idigi_ptr, msg_service_request_t * const service_data, idigi_data_service_msg_request_t * const request, idigi_data_service_msg_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
@@ -464,7 +464,7 @@ static idigi_callback_status_t put_request_call_user(idigi_data_t * const idigi_
     {
         if (response->message_status != idigi_msg_error_none)
         {
-            put_request_error(service_data, response->message_status);
+            process_put_request_error(service_data, response->message_status);
             goto error;
         }
 
@@ -483,7 +483,7 @@ error:
     return status;
 }
 
-static idigi_callback_status_t frame_put_request(idigi_data_t * const idigi_ptr, msg_service_request_t * const service_data, idigi_data_service_msg_request_t * const request, idigi_data_service_msg_response_t * const response)
+static idigi_callback_status_t process_put_request(idigi_data_t * const idigi_ptr, msg_service_request_t * const service_data, idigi_data_service_msg_request_t * const request, idigi_data_service_msg_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;    
     idigi_data_service_block_t * user_data = response->client_data;
@@ -491,7 +491,7 @@ static idigi_callback_status_t frame_put_request(idigi_data_t * const idigi_ptr,
     if (MsgIsStart(service_data->flags))
     {
         uint8_t * dptr = service_data->data_ptr;
-        size_t const bytes = fill_data_service_header(request->service_context, dptr);
+        size_t const bytes = fill_put_request_header(request->service_context, dptr);
 
         ASSERT_GOTO(bytes < service_data->length_in_bytes, error);
         user_data->length_in_bytes = service_data->length_in_bytes - bytes;
@@ -505,17 +505,17 @@ static idigi_callback_status_t frame_put_request(idigi_data_t * const idigi_ptr,
         service_data->length_in_bytes = 0;
     }
 
-    status = put_request_call_user(idigi_ptr, service_data, request, response);
+    status = call_put_request_user(idigi_ptr, service_data, request, response);
     goto done;
 
 error:
-    put_request_error(service_data, idigi_msg_error_format);
+    process_put_request_error(service_data, idigi_msg_error_format);
 
 done:
     return status;
 }
 
-static idigi_callback_status_t frame_put_response(idigi_data_t * const idigi_ptr, msg_service_request_t * const service_data, idigi_data_service_msg_request_t * request, idigi_data_service_msg_response_t * response)
+static idigi_callback_status_t process_put_response(idigi_data_t * const idigi_ptr, msg_service_request_t * const service_data, idigi_data_service_msg_request_t * request, idigi_data_service_msg_response_t * response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_data_service_block_t * user_data = request->server_data;
@@ -576,11 +576,11 @@ static idigi_callback_status_t frame_put_response(idigi_data_t * const idigi_ptr
         break;
     }
 
-    status = put_request_call_user(idigi_ptr, service_data, request, response);
+    status = call_put_request_user(idigi_ptr, service_data, request, response);
     goto done;
 
 error:
-    put_request_error(service_data, idigi_msg_error_format);
+    process_put_request_error(service_data, idigi_msg_error_format);
 
 done:
     return status;
@@ -605,19 +605,19 @@ static idigi_callback_status_t data_service_put_request_callback(idigi_data_t * 
     {
     case msg_service_type_need_data:
         request_data.message_type = idigi_data_service_type_need_data;
-        status = frame_put_request(idigi_ptr, service_data, &request_data, &response_data);
+        status = process_put_request(idigi_ptr, service_data, &request_data, &response_data);
         break;
 
     case msg_service_type_have_data:
         request_data.message_type = idigi_data_service_type_have_data;
-        status = frame_put_response(idigi_ptr, service_data, &request_data, &response_data);
+        status = process_put_response(idigi_ptr, service_data, &request_data, &response_data);
         break;
 
     case msg_service_type_error:
         user_data.data = service_data->data_ptr;
         user_data.length_in_bytes = service_data->length_in_bytes;
         request_data.message_type = idigi_data_service_type_error;
-        status = put_request_call_user(idigi_ptr, service_data, &request_data, &response_data);
+        status = call_put_request_user(idigi_ptr, service_data, &request_data, &response_data);
         break;
 
     case msg_service_type_free:
