@@ -32,6 +32,10 @@
 #ifndef IDIGI_CONFIG_H_
 #define IDIGI_CONFIG_H_
 
+/**
+* @defgroup idigi_config_options iDigi Configuration Options
+* @{
+*/
 /** 
  *  If defined the system is little endian, comment out for big endian
  */
@@ -59,6 +63,10 @@
  * If defined the data service is enabled.
  */
 #define IDIGI_DATA_SERVICE
+/**
+* @}
+*/
+
 
 /* #define IDIGI_TX_KEEPALIVE_IN_SECONDS   75 */
 /* #define IDIGI_RX_KEEPALIVE_IN_SECONDS   75 */

@@ -40,7 +40,10 @@
   #include <stdint.h>
   #include <stdbool.h>
 #else
-
+/**
+* @defgroup user_types User Defined C types
+* @{
+*/
 /** 
  *  Unsigned 8 bit value. 
  */
@@ -55,21 +58,36 @@
  *  Unsigned 32 bit value. 
  */
   typedef unsigned long uint32_t;
+/**
+* @}
+*/
 
 #endif
 
 
 /**
+* @defgroup idigi_network_handle_t Network Handle
+* @{
+*/
+/**
  * Used to reference a network session and is passed into IIK API calls. This 
  * type is defined as an int and is used by the application to keep track of and identify sessions.
  */
 typedef int idigi_network_handle_t;
+/**
+* @}
+*/
 
 #if defined(IDIGI_DEBUG)
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 
+
+/**
+* @defgroup DEBUG_MACROS User Defined Debug Macros
+* @{
+*/
 /**
  * Debug output from the IIK, outputs a formatted string, operates as printf
  * but accepts an array of arguments, this routine is part of the standard
@@ -84,5 +102,8 @@ typedef int idigi_network_handle_t;
 #else
 #define ASSERT(cond)
 #endif
+/**
+* @}
+*/
 
 #endif /* IDIGI_TYPES_H_ */
