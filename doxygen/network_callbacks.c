@@ -35,7 +35,7 @@
  * </tr>
  * <tr>
  * <td>request_data</td>
- * <td>Pointer to server URL that callback will make connection to on @ref IDIGI_PORT for non-secure port number or @ref IDIGI_SSL_PORT for secure port number </td>
+ * <td>Pointer to server URL that callback will make connection to on @endhtmlonly @ref IDIGI_PORT @htmlonly for non-secure port number or @endhtmlonly @ref IDIGI_SSL_PORT @htmlonly for secure port number </td>
  * </tr>
  * <tr>
  * <td>request_length</td>
@@ -43,7 +43,7 @@
  * </tr>
  * <tr>
  * <td>response_data</td>
- * <td> Callback returns the pointer to idigi_network_handle_t which is used throughout network socket callback calls. </td>
+ * <td> Callback returns the pointer to  @endhtmlonly @ref idigi_network_handle_t @htmlonly which is used throughout network socket callback calls. </td>
  * </tr>
  * <tr>
  * <td>response_length</td>
@@ -280,11 +280,11 @@
  * </tr>
  * <tr>
  * <td>request_data</td>
- * <td>Pointer to @endhtmlonly N/A @htmlonly</td>
+ * <td>N/A</td>
  * </tr>
  * <tr>
  * <td>request_length</td>
- * <td> N/A. @htmlonly</td>
+ * <td> N/A</td>
  * </tr>
  * <tr>
  * <td>response_data</td>

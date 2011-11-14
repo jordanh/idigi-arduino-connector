@@ -32,10 +32,19 @@
 #ifndef _IDIGI_API_H
 #define _IDIGI_API_H
 
+
+/**
+ * IIK version number
+ */
 #define IDIGI_VERSION_1100   0x01010000UL
 
 #include "idigi_types.h"
 
+
+ /**
+ * @defgroup idigi_port_numbers iDigi Port Numbers
+ * @{ 
+ */
 /**
  * iDigi server connect port number
  *
@@ -57,13 +66,15 @@
  * @see idigi_network_connect
  */
 #define IDIGI_SSL_PORT   3199   /**< Secured port number used to connect to iDigi server. */
+/**
+* @}
+*/
 
  /**
- * @defgroup idigi_status_t idigi_status_t: Status returned by IIK API calls.
+ * @defgroup idigi_status_t idigi Status values
  * @{ 
  */
  /** 
- * idigi_status_t.
  * Status returned by IIK API calls.
  */
 typedef enum {
@@ -95,14 +106,13 @@ typedef enum {
 */
 
  /**
- * @defgroup idigi_class_t idigi_class_t
+ * @defgroup idigi_class_t Class ID's
  * @{
  */
 /**
-* idigi_class_t.
-* Class Id for which class is used in the application's callback.
-* It tells class id for the request id passed to the application's callback.
-*/
+ * Class Id for which class is used in the application's callback.
+ * It tells class id for the request id passed to the application's callback.
+ */
 typedef enum {
     idigi_class_config,             /**< Configuration Class Id */
     idigi_class_network,            /**< Network Class Id */
@@ -115,11 +125,10 @@ typedef enum {
 */
 
 /**
-* @defgroup idigi_service_supported_status_t idigi_service_supported_status_t.
+* @defgroup idigi_service_supported_status_t Service Support
 * @{
 */
 /**
-* idigi_service_supported_status_t.
 * Service supported status which is used in the application's callback
 * telling IIK whether application supports a service or not.
 * @See idigi_config_firmware_facility
@@ -134,11 +143,10 @@ typedef enum {
 */
 
 /**
-* @defgroup idigi_config_request_t idigi_config_request_t
+* @defgroup idigi_config_request_t Configuration Requests
 * @{
 */
 /**
-* idigi_config_request_t.
 * Configuration Request Id passed to the application's callback for requesting configuration data.
 * The class id for this idigi_config_request_t is idigi_class_config.
 */
@@ -168,11 +176,10 @@ typedef enum {
 
 
 /**
-* @defgroup idigi_network_request_t idigi_network_request_t
+* @defgroup idigi_network_request_t Network Requests
 * @{
 */
 /**
-* idigi_network_request_t.
 * Network Request Id passed to the application's callback for network interface.
 * The class id for this idigi_network_request_t is idigi_class_network.
 */
@@ -188,13 +195,11 @@ typedef enum {
 * @}
 */
 
-
  /**
- * @defgroup idigi_os_request_t idigi_os_request_t: OS request ID's
+ * @defgroup idigi_os_request_t OS request ID's
  * @{ 
  */
  /** 
- * idigi_os_request_t.
  * Operating System Request ID passed to the application's callback for operating system interface.
  * The class id for this idigi_os_request_t is idigi_class_operating_system.
  */
@@ -209,11 +214,10 @@ typedef enum {
 */
 
 /**
-* @defgroup idigi_firmware_request_t idigi_firmware_request_t
+* @defgroup idigi_firmware_request_t Firmware Requests
 * @{
 */
 /**
-* idigi_firmware_request_t.
 * Firmware Facility Request ID passed to the application's callback for firmware update interface.
 * The class id for this idigi_firmware_request_t is idigi_class_firmware.
 */
@@ -233,7 +237,10 @@ typedef enum {
 * @}
 */
 
-
+/**
+* @defgroup idigi_data_service_request_t Data service requests
+* @{
+*/
 /**
  * Data service request ID, passed to the application callback 
  * to request the data, to pass the response, and to pass the 
@@ -248,30 +255,30 @@ typedef enum {
     idigi_data_service_put_request, /**< Indicates data service request related to send data to the device cloud */
     idigi_data_service_device_request /**< Indicates data service request related to receive data from device cloud */
 } idigi_data_service_request_t;
-
-/**
-* @defgroup idigi_initiate_request_t idigi_initiate_request_t
-* @{
-*/
-/**
-* idigi_initiate_request_t.
-* Request ID used in idigi_initiate_action.
-*/
-typedef enum {
-    idigi_initiate_terminate,               /**< Terminates and stops IIK from running. */
-    idigi_initiate_data_service            /**< Initiates the action to send data to device cloud, the data will be stored in a file on the cloud. */
-} idigi_initiate_request_t;
-
 /**
 * @}
 */
 
 /**
-* @defgroup idigi_connection_type_t idigi_connection_type_t
+* @defgroup idigi_initiate_request_t Initiate action enumeration
 * @{
 */
 /**
-* idigi_connection_type_t.
+* Request ID's used in idigi_initiate_action()
+*/
+typedef enum {
+    idigi_initiate_terminate,               /**< Terminates and stops IIK from running. */
+    idigi_initiate_data_service            /**< Initiates the action to send data to device cloud, the data will be stored in a file on the cloud. */
+} idigi_initiate_request_t;
+/**
+* @}
+*/
+
+/**
+* @defgroup idigi_connection_type_t iDigi connection types
+* @{
+*/
+/**
 * Connection type for @see idigi_config_connection_type callback
 */
 typedef enum {
@@ -283,12 +290,11 @@ typedef enum {
 */
 
 /**
-* @defgroup.idigi_callback_status_t idigi_callback_status_t
+* @defgroup.idigi_callback_status_t Callback return status
 * @{
 */
 /**
-* idigi_callback_status_t.
-* Return status from callback function.
+* Return status from IIK callback
 */
 typedef enum  {
     idigi_callback_continue,        /**< Continues with no error */
@@ -296,18 +302,16 @@ typedef enum  {
     idigi_callback_abort,           /**< Aborts IIK */
     idigi_callback_unrecognized     /**< Unsupported callback request */
 } idigi_callback_status_t;
-
 /**
 * @}
 */
 
 /**
-* @defgroup.
+* @defgroup idigi_fw_status_t Firmware download return status
 * @{
 */
 /**
-* idigi_fw_status_t.
-* Return status code for firmware update. These status codes are used for @see idigi_firmware_download_request,
+* Return status code for firmware update. These status codes are used for @ref idigi_firmware_download_request,
 * @see idigi_firmware_binary_block and @see idigi_firmware_abort callbacks.
 */
 typedef enum {
@@ -325,17 +329,15 @@ typedef enum {
    idigi_fw_invalid_data,                   /**< idigi_firmware_binary_block callback found invalid data block.*/
    idigi_fw_hardware_error                  /**< Callback found permanent hardware error */
 } idigi_fw_status_t;
-
 /**
 * @}
 */
 
 /**
-* @defgroup.
+* @defgroup idigi_fw_download_complete_status_t Firmware complete status codes
 * @{
 */
 /**
-* idigi_fw_download_complete_status_t.
 * Firmware Update Complete status. These status codes are used in @see idigi_firmware_download_complete callback.
 */
 typedef enum {
@@ -348,12 +350,12 @@ typedef enum {
 */
 
 /**
-* @defgroup.
+* @defgroup idigi_request_t Request ID's
 * @{
 */
 /**
-* idigi_request_t.
-* Request ID structure passed to callback identifying the request id of specific class @see idigi_class_t
+* Request ID's passed to callback identifying the type of request 
+* @see idigi_class_t
 */
 typedef union {
    idigi_config_request_t config_request;               /**< Configuration request ID for configuration class */
@@ -367,46 +369,44 @@ typedef union {
 */
 
 /**
-* @defgroup.
+* @defgroup idigi_handle_t iDigi Handle
 * @{
 */
 /**
-* idigi_handle_t.
-* IIK Handle type that is used throughout IIK APIs.
+*
+* IIK Handle type that is used throughout IIK APIs, this is used by the application
+* to store context information about a connections, for example this could
+* be used to store a file descriptor or a pointer to a structure.
 */
 #define idigi_handle_t void *
-
-
 /**
 * @}
 */
 
 /**
-* @defgroup.
+* @defgroup idigi_error_status_t Error Status
 * @{
 */
 /**
-* idigi_error_status_t.
-* Error status structure for idigi_config_error_status callback (@see idigi_config_request_t) which
+* Error status structure for @ref idigi_config_error_status callback which
 * is called when IIK encounters an error.
+* @see idigi_config_request_t
 */
 typedef struct  {
     idigi_class_t class_id;         /**< Class ID which IIK encounters error with */
     idigi_request_t request_id;     /**< Request ID which IIK encounters error with */
     idigi_status_t status;          /**< Error status */
 } idigi_error_status_t;
-
 /**
 * @}
 */
 
 /**
-* @defgroup.
+* @defgroup idigi_write_request_t Write Request
 * @{
 */
 /**
-* idigi_write_request_t.
-* Write request structure for idigi_network_send callback which is called to send data to iDigi server.
+* Write request structure for @ref idigi_network_send callback which is called to send data to iDigi server.
 */
 typedef struct  {
     idigi_network_handle_t * network_handle;    /**< Pointer to network handle associated with a connection through the idigi_network_connect callback */
@@ -414,17 +414,15 @@ typedef struct  {
     size_t length;                              /**< Number of bytes of data to be sent */
     unsigned timeout;                           /**< Timeout value in seconds which callback must return. This allows IIK to maintenance keepalive process and send process. */
 } idigi_write_request_t;
-
 /**
 * @}
 */
 
 /**
-* @defgroup.
+* @defgroup idigi_read_request_t Read Request
 * @{
 */
 /**
-* idigi_read_request_t.
 * Read request structure for idigi_network_receive callback which is called to receive
 * a specified number of bytes data from the iDigi server.
 */
@@ -434,36 +432,32 @@ typedef struct  {
     size_t length;                              /**< Number of bytes to be received */
     unsigned timeout;                           /**< Timeout value in seconds which callback must return. This allows IIK to maintenance keepalive process and send process. */
 } idigi_read_request_t;
-
 /**
 * @}
 */
 
 /**
-* @defgroup.
+* @defgroup idigi_fw_config_t Firmware configuration
 * @{
 */
 /**
-* idigi_fw_config_t.
-* Firmware configuration structure for idigi_firmware_version,  idigi_firmware_code_size,
-* idigi_firmware_description, idigi_firmware_name_spec, and idigi_firmware_target_reset callbacks
+* Firmware configuration structure for @ref idigi_firmware_version, @ref idigi_firmware_code_size,
+* @ref idigi_firmware_description, @ref idigi_firmware_name_spec, and @ref idigi_firmware_target_reset callbacks.
 */
 typedef struct {
    unsigned timeout;    /**< Timeout value which callback must return control back to IIK in seconds */
    uint8_t target;      /**< Target number */
 } idigi_fw_config_t;
-
 /**
 * @}
 */
 
 /**
-* @defgroup.
+* @defgroup idigi_fw_download_request_t Download Request
 * @{
 */
 /**
-* idigi_fw_download_request_t.
-* Firmware download request structure for idigi_firmware_download_request callback which
+* Firmware download request structure for @ref idigi_firmware_download_request callback which
 * is called when server requests firmware download.
 */
 typedef struct {
@@ -475,17 +469,15 @@ typedef struct {
     char * file_name_spec;      /**< Pointer to file name in regular expression */
     char * filename;            /**< Pointer to filename of the image to be downloaded */
 } idigi_fw_download_request_t;
-
 /**
 * @}
 */
 
 /**
-* @defgroup.
+* @defgroup idigi_fw_image_data_t Image Data
 * @{
 */
 /**
-* idigi_fw_image_data_t.
 * Firmware download image data structure for idigi_firmware_binary_block callback which
 * is called when IIK receives a block of image data for firmware download.
 */
@@ -496,17 +488,15 @@ typedef struct {
     uint8_t * data;         /**< Pointer binary image data */
     size_t length;          /**< Length of binary image data in bytes */
 } idigi_fw_image_data_t;
-
 /**
 * @}
 */
 
 /**
-* @defgroup.
+* @defgroup idigi_fw_download_complete_request_t Download complete
 * @{
 */
 /**
-* idigi_fw_download_complete_request_t.
 * Firmware download complete request structure containing information about firmware image data
 * for idigi_firmware_download_complete callback which is called when iDigi server is done
 * sending all image data.
@@ -517,17 +507,15 @@ typedef struct {
     uint32_t code_size;     /**< Code size of the entire image data sent */
     uint32_t checksum;      /**< CRC-32 value computed from offset 0 to code size. If it's 0, no checksum is required */
 } idigi_fw_download_complete_request_t;
-
 /**
 * @}
 */
 
 /**
-* @defgroup.
+* @defgroup idigi_fw_download_complete_response_t Download complete response
 * @{
 */
 /**
-* idigi_fw_download_complete_response_t.
 * Firmware download complete response structure for idigi_firmware_download_complete callback which
 * writes information and status of the download completion when iDigi server is done sending all image data.
 */
@@ -536,17 +524,15 @@ typedef struct {
     uint32_t calculated_checksum;                   /**< It's currently used for error code that is used by server. Set 0 for no error. */
     idigi_fw_download_complete_status_t status;     /**< Status code regarding the download completion */
 } idigi_fw_download_complete_response_t;
-
 /**
 * @}
 */
 
 /**
-* @defgroup.
+* @defgroup idigi_fw_download_abort_t Download Abort
 * @{
 */
 /**
-* idigi_fw_download_abort_t.
 * Firmware download abort structure for idigi_firmware_abort callback which
 * is called when server aborts firmware download process.
 */
@@ -559,6 +545,11 @@ typedef struct {
 * @}
 */
 
+
+/**
+* @defgroup idigi_msg_error_t iDigi Error Codes
+* @{
+*/
 /**
  * Error values returned either from the remote device cloud or 
  * from the local iDigi client. These are errors originated from
@@ -584,7 +575,14 @@ typedef enum
     idigi_msg_error_no_service, /**< Requested service is not supported */
     idigi_msg_error_count  /**< Maximum error count value, new value goes before this element */
 } idigi_msg_error_t;
+/**
+* @}
+*/
 
+/**
+* @defgroup idigi_data_status_t Data Status
+* @{
+*/
 /**
  * Possible response status returned from device cloud for the 
  * data send request (put request). 
@@ -596,9 +594,13 @@ typedef enum
     idigi_data_service_unavailable, /**< The requested service is not supported */
     idigi_data_server_error /**< Device cloud error */
 } idigi_data_status_t;
+/**
+* @}
+*/
 
 #if (IDIGI_VERSION < IDIGI_VERSION_1100)
 
+/* Depricated data service API */
 #define IDIGI_DATA_REQUEST_START        0x0001
 #define IDIGI_DATA_REQUEST_LAST         0x0002
 #define IDIGI_DATA_REQUEST_ARCHIVE      0x0004
@@ -648,6 +650,11 @@ typedef struct
 
 #endif
 
+
+/**
+* @defgroup put_flags Data service put flags
+* @{
+*/
 /**
  * Message archive bit flag
  *
@@ -660,6 +667,7 @@ typedef struct
 #define IDIGI_DATA_PUT_ARCHIVE   0x0001 /**< This flag is used in idigi_data_service_put_request callback
                                            telling server should archive the message file. */
 
+
 /**
  * Message append bit flag
  *
@@ -671,7 +679,14 @@ typedef struct
  */
 #define IDIGI_DATA_PUT_APPEND    0x0002 /**< This flag is used in idigi_data_service_put_request callback
                                             telling server should append to existing data if applicable. */
+/**
+* @}
+*/
 
+/**
+* @defgroup idigi_data_service_put_request_t idigi_data_service_put_request_t
+* @{
+*/
 /**
  * Put request header information. Used as initiate_action() 
  * request parameter to initiate the send operation. Subsequent 
@@ -683,18 +698,21 @@ typedef struct
 {
     char const * path;  /**< NUL terminated file path where user wants to store the data on device cloud */
     char const * content_type;  /**< NUL terminated content type (text/plain, text/xml, application/json, etc. */
-    unsigned int flags; /**< Indicates whether server should archive and/or append, one of the following @ref IDIGI_DATA_PUT_ARCHIVE */
+    unsigned int flags; /**< Indicates whether server should archive and/or append, one of the following @ref put_flags */
     void const * context; /**< To hold the user context */
 } idigi_data_service_put_request_t;
+/**
+* @}
+*/
 
 /**
-* @defgroup.
+* @defgroup idigi_data_service_type_t Data service types
 * @{
 */
 /**
-* idigi_data_service_type_t.
 * Data service types which is used in idigi_data_service_device_request and
-* idigi_data_service_put_request callbacks indicating the type of message. */
+* idigi_data_service_put_request callbacks indicating the type of message. 
+*/
 typedef enum 
 {
     idigi_data_service_type_need_data,      /**< Indicating callback needs to write data onto specified buffer which will be sent to server */
@@ -707,9 +725,12 @@ typedef enum
 
 
 /**
- * Messagefirst chunk data bit flag
- * This flag is used in idigi_data_service_block_t indicating
- * first chunk of data.
+* @defgroup data_service_flags Data Service Flags
+* @{
+*/
+/**
+ * This flag is used in to indicate that this is the first message for this
+ * data transfer.
  *
  * @see idigi_data_service_put_request callback
  * @see idigi_data_service_device_request callback
@@ -717,9 +738,7 @@ typedef enum
 #define IDIGI_MSG_FIRST_DATA            0x0001  /**< First chunk of data */
 
 /**
- * Message last chunk data bit flag
- * This flag is used in idigi_data_service_block_t indicating
- * last chunk of data.
+ * This flag is to indicate that this is the last message for this transfer.
  *
  * @see idigi_data_service_put_request callback
  * @see idigi_data_service_device_request callback
@@ -727,9 +746,7 @@ typedef enum
 #define IDIGI_MSG_LAST_DATA             0x0002  /**< Last chunk of data */
 
 /**
- * Message not processed bit flag
- * This flag is used in idigi_data_service_block_t indicating
- * message was not processed.
+ * This flag is used to indicate tha the message was not processed.
  *
  * @see idigi_data_service_device_request callback
  */
@@ -745,19 +762,14 @@ typedef enum
 #define IDIGI_MSG_RESP_SUCCESS          0x0100  /**< This flag is used in idigi_data_service_put_request callback
                                                      telling the callback that server successfully received the message. */
 /**
- * Message invalid bit flag
- * This flag is used in idigi_data_service_block_t indicating
- * message was invalid.
+ * This flag is used to indicate that the message was invalid.
  *
  * @see idigi_data_service_put_request callback
  */
 #define IDIGI_MSG_BAD_REQUEST           0x0200  /**< This flag is used in idigi_data_service_put_request callback
                                                      from server telling the callback that some portion of the data was invalid. */
 /**
- * Message unavailable bit flag
- * This flag is used in idigi_data_service_block_t indicating
- * service is unavailable to process the message.
- *
+ * This flag is used to indicate that the service is unavailable to process the message.
  *
  * @see idigi_data_service_put_request callback
  */
@@ -765,39 +777,38 @@ typedef enum
                                                      from server telling the callback that service is unavailable due to overload
                                                      or other issues. Callback may try to resend the message later. */
 /**
- * Message error bit mask flag
- * This flag is used in idigi_data_service_block_t indicating
- * server encountered an error handling the message.
+ * This flag is used to indicate that the server encountered an error handling the message.
  *
  * @see idigi_data_service_put_request callback
  */
 #define IDIGI_MSG_SERVER_ERROR          0x0800  /**< This flag is used in idigi_data_service_put_request callback
                                                      from server telling the callback that server encountered an error handling the message. */
-
+/**
+* @}
+*/
 
 /**
-* @defgroup.
+* @defgroup.idigi_data_service_block_t Data Service Block
 * @{
 */
 /**
 * idigi_data_service_block_t.
 * Data service block structure is used to send data between iDigi server and client.
 * This structure is used in idigi_data_service_put_request and idigi_data_service_device_request callbacks
-* (@see idigi_data_service_request_t).
+* @see idigi_data_service_request_t
 */
 typedef struct
 {
     void * data;                /**< Pointer to data */
     size_t length_in_bytes;     /**< Number of bytes in data */
-    unsigned int flags;         /**< Bit mask flags. See each callback for specified bit mask flags */
+    unsigned int flags;         /**< Bit mask flags. See each callback for specified bit mask flags, defined in @ref data_service_flags*/
 } idigi_data_service_block_t;
 /**
 * @}
 */
 
-
 /**
-* @defgroup.
+* @defgroup idigi_data_service_msg_request_t Data Service Message Request
 * @{
 */
 /**
@@ -824,18 +835,17 @@ typedef struct
 * @}
 */
 
-
 /**
-* @defgroup.
+* @defgroup idigi_data_service_msg_response_t Data service response message
 * @{
 */
 /**
-* idigi_data_service_msg_response_t.
 * Data service message response structure is used in the callback to return data to be sent to
 * iDigi server, or to cancel the message.
 *
 * This structure is used in idigi_data_service_put_request and idigi_data_service_device_request callbacks
-* (@see idigi_data_service_request_t).
+*
+* @see idigi_data_service_request_t
 */
 typedef struct
 {
@@ -851,11 +861,10 @@ typedef struct
 
 
 /**
-* @defgroup.
+* @defgroup idigi_data_service_device_request_t Data service device request
 * @{
 */
 /**
-* idigi_data_service_device_request_t.
 * Data service device request structure is used in @see idigi_data_service_device_request
 * callback to process device request. idigi_data_service_device_request callback is passed with
 * @see idigi_sevice_msg_request_t where service_context is pointing to this idigi_data_service_device_request_t.
@@ -871,11 +880,11 @@ typedef struct
 * @}
 */
 
-
  /**
- * @defgroup idigi_callback_t idigi_callback_t: IIK application defined callback.
+ * @defgroup idigi_callback_t Application defined callback
  *@{ 
- * idigi_callback_t: IIK application callback.
+ * idigi_callback_t: IIK application defined callback, this is the general purpose
+ * callback used throughout the IIK.
  *
  */
  /** 
@@ -898,7 +907,7 @@ typedef idigi_callback_status_t (* idigi_callback_t) (idigi_class_t const class_
 * @}
 */
  /**
- * @defgroup idigi_init idigi_init(): Initialize the IIK.
+ * @defgroup idigi_init Initialize the IIK.
  *@{ 
  * @b Include: idigi_api.h
  */
@@ -931,16 +940,15 @@ idigi_handle_t idigi_init(idigi_callback_t const callback);
 */
 
  /**
- * @defgroup idigi_step idigi_step(): Run a portion of the IIK
+ * @defgroup idigi_step Step Routine
  * @{ 
  * @b Include: idigi_api.h
  */
-
 /**
  * @brief   Run a portion of the IIK.
  *
  * This function is called to start and run the IIK. This
- *function performs a sequence of operations or events and 
+ * function performs a sequence of operations or events and 
  * returns control back to the caller. This allows a caller to
  * perform other tasks, especially in single-threaded system.
  * A caller must call this API again to continue IIK operations.
@@ -976,7 +984,7 @@ idigi_status_t idigi_step(idigi_handle_t const handle);
 
 
  /**
- * @defgroup idigi_run idigi_run(): Run a the IIK.
+ * @defgroup idigi_run Run routine
  * @{ 
  * @b Include: idigi_api.h
  */
@@ -1007,7 +1015,7 @@ idigi_status_t idigi_run(idigi_handle_t const handle);
 
 
  /**
- * @defgroup idigi_initiate_action idigi_initiate_action(): Request IIK to perform an action.
+ * @defgroup idigi_initiate_action Initiate Action
  * @{
  * @b Include: idigi_api.h
  */
