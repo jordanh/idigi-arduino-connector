@@ -87,7 +87,7 @@ int application_start(idigi_handle_t handle)
         case idigi_invalid_data_range:
             index = 0;
 
-            #define SLEEP_BETWEEN_TESTS   10
+            #define SLEEP_BETWEEN_TESTS   20
             os_sleep(SLEEP_BETWEEN_TESTS);
             break;
     
