@@ -120,7 +120,7 @@
  * @image html idigi1.jpg 
  *
  * @subsection idigi_login Login to the iDigi Server
- * 1. Navigate to http://www.idigi.com.
+ * 1. Navigate to http://www.idigi.com
  *
  * 2. Click the iDigi Login button in the upper right corner of the page.
  *

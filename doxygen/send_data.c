@@ -1,0 +1,117 @@
+/*! @page send_data Send Data Sample
+ *
+ * @htmlinclude nav.html
+ *
+ * @section send_data_overview Overview
+ *
+ * This sample demonstrates how to send data from a device to the iDigi Server.
+ * Using the @ref data_service_overview "data service api" this application writes data to a file on the
+ * idigi server.
+ *
+ * @section connect_description Code Flow
+ *
+ * The routine main() in the platform directory initializes the IIK and
+ * registers the application callback.  In the file application.c is the
+ * application defined callback idigi_callback(), this routine calls idigi_data_service_callback()
+ * when a data service request is received.
+ *
+ * The routine application_start() which is called after initialization calls the routine
+ * send_put_request() to initiate the data transfer to the iDigi Cloud.  This routine
+ * initiates the data transfer by calling idigi_initiate_action(); once the server is 
+ * ready to receive data the idigi_data_service_callback() routine is called, the callback then returns
+ * the string "Welcome to iDigi data service sample!\n" back to the iDigi Cloud.  This data is @b copied
+ * @b into @b the @b callbacks @b buffer, the flags @ref IDIGI_MSG_LAST_DATA and @ref IDIGI_MSG_FIRST_DATA
+ * indicate this is the only message in this data transfer, by modifying these flags
+ * you could modify this sample to send large amounts of data back to the server.
+ *
+ * If idigi_data_service_callback() is called with @ref idigi_data_service_type_have_data then this
+ * indicates a response from the server, @ref idigi_data_service_type_error would indicate
+ * an error is sent back from the server.  In this example send_put_request() is called
+ * once a second from application_start().
+ *
+ * @section connect_build Building
+ *
+ * To build this example for a linux based platform you can go into the directory
+ * public/run/samples/send_data and type make.  If you are not running Linux you
+ * will need to setup your build system with the information described below.
+ *
+ * @subsection Source Files
+ *
+ * The following is a list of source files required to build this sample.
+ *
+ * @htmlonly
+ * <table border="8">
+ * <tr>
+ * <th>Name</td>
+ * <th>Description</td>
+ * <th>Location</td>
+ * </tr>
+ * <tr>
+ * <td>application.c</td>
+ * <td>Contains applicat_start() and the application callback</td>
+ * <td>samples/send_data</td>
+ * </tr>
+ * <tr>
+ * <td>put_request.c</td>
+ * <td>data service callback and send_put_request() which starts the data transfer</td>
+ * <td>samples/send_data</td>
+ * </tr>
+ * <tr>
+ * <td>idigi_api.c</td>
+ * <td>Code for the IIK </td>
+ * <td>private</td>
+ * </tr>
+ * <tr>
+ * <td>os.c</td>
+ * <td>Operating system calls</td>
+ * <td>platforms/<i>my_platform</i></td>
+ * </tr>
+ * <tr>
+ * <td>network.c</td>
+ * <td> Network interface </td>
+ * <td>platforms/<i>my_platform</i></td>
+ * </tr>
+ * <tr>
+ * <td>config.c</td>
+ * <td>Configuration routines</td>
+ * <td>platforms/<i>my_platform</i></td>
+ * </tr>
+ * <tr>
+ * <td>main.o</td>
+ * <td>Starting point of program, dependent on build environment</td>
+ * <td>platforms/<i>my_platform</i></td>
+ * </tr>
+ * </table>
+ * @endhtmlonly
+ *
+ * @subsection Include Paths
+ *
+ * The following include paths are required:
+ *
+ * @li public/include
+ * @li run/platforms/linux (substitute with your platform)
+ *
+ * @subsection Defines
+ *
+ * The following defines are used in this sample:
+ *
+ * @li -DIDIGI_VERSION=0x1010000UL (indicates version 1.1 of the IIK)
+ *
+ * @section Results
+ *
+ * To view the results for this sample login to the iDigi Device Cloud as described
+ * in the @ref add_your_device_to_the_cloud "Getting Started" section. 
+ *
+ * Once logged in click on storage from within the left navigation panel as shown
+ * below.
+ *
+ * @image html sample1.png
+ *
+ * The devices folders and files are then listed as shown (below). You can click on a 
+ * file to view its contents.
+ *
+ * @image html sample2.png
+ *
+ *
+ *
+ */

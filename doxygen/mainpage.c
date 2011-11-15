@@ -6,6 +6,7 @@
  *
  *          -# @ref intro
  *              -# @ref features
+ *              -# @ref communicating
  *          -# @ref requirements
  *          -# @ref language
  *          -# @ref features
@@ -81,6 +82,18 @@
  *     @li Update firmware in the device
  *     @li View and change the configuration settings of a device
  *     @li Reboot a device
+ *
+ * @subsection communicating Communicating with your device
+ *
+ * To manage your device you can use the iDigi Device Cloud Portal, this contains
+ * the graphical user interface to the iDigi Device Cloud, using this tool is described
+ * in the Getting Started Guide.
+ *
+ * To communicate with your device remotely without using the graphical interface
+ * to the iDigi device cloud you will use @b iDigi @b Web @b Services.  This allows
+ * for machine to machine communication.  Requests are sent from an application
+ * to the iDigi Clould which then communicates with the device, this is described
+ * in the Web Services documentation.
  *
  * @section threading Threading Model
  *

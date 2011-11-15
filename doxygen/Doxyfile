@@ -639,15 +639,16 @@ WARN_LOGFILE           =
 # with spaces.
 
 INPUT                  = ./mainpage.c \
-                         ./porting.c \
+                         ./getting_started.c \
+                         ./send_data.c \
                          ./os_callbacks.c \
                          ./config_callbacks.c \
                          ./firmware_download.c \
                          ./network_callbacks.c \
                          ./config_callbacks.c \
+                         ./web_services.c \
                          ./data_service.c \
                          ./api_overview.c \
-                         ./idigi_index.c \
                          ../public/run/platforms/template \
                          ../public/include
 
