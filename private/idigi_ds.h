@@ -99,6 +99,7 @@ static idigi_callback_status_t process_device_request(idigi_data_t * const idigi
 
         ASSERT_GOTO(service_data->length_in_bytes >= min_data_length, done);
 
+        if (service_context == NULL)
         {
             /* 1st time here so let's allocate service context memory for device request */
             void * ptr;
@@ -111,11 +112,11 @@ static idigi_callback_status_t process_device_request(idigi_data_t * const idigi
 
             service_context = ptr;
             service_data->session->service_context = service_context;
+            service_context->user_context = NULL;
         }
 
         target_string = (char *)ds_device_request;
         service_context->request_type = idigi_data_service_device_request;
-        service_context->user_context = NULL;
 
         flag = IDIGI_MSG_FIRST_DATA;
         ds_device_request += target_length;
