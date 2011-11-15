@@ -288,14 +288,31 @@ static void msg_set_error(msg_session_t * const session, idigi_msg_error_t const
     idigi_bool_t const client_response_error = !MsgIsClientOwned(session->status_flag) && !MsgIsReceiving(session->status_flag);
     idigi_bool_t const server_request_error = !MsgIsClientOwned(session->status_flag) && MsgIsReceiving(session->status_flag);
 
+    if (client_request_error && MsgIsStart(session->status_flag))
+    {
+        /* no need to send an error. just delete since nothing has been sent to server */
+        session->state = msg_state_delete;
+        goto done;
+    }
+
     session->error = error_code;
     session->state = msg_state_send_error;
+
+    if (client_response_error && MsgIsStart(session->status_flag))
+    {
+        /* canceling server request since no response data has been sent yet */
+        MsgSetRequest(session->error_flag);
+        goto done;
+    }
 
     if (client_request_error || server_request_error)
         MsgSetRequest(session->error_flag);
 
     if (client_request_error || client_response_error)
         MsgSetSender(session->error_flag);
+
+done:
+    return;
 }
 
 static idigi_callback_status_t msg_call_service_layer(idigi_data_t * const idigi_ptr, msg_service_request_t * const service_ptr, msg_session_t * const session, msg_service_type_t const type, void * const data, size_t const bytes, unsigned int status_flag)
@@ -1218,14 +1235,20 @@ static idigi_callback_status_t msg_process_start(idigi_data_t * const idigi_ptr,
     }
     else
     {
+#if 0
+        /* No error if callback returns busy from previous call and session is already created.
+         * Is it possible for server to send multiple requests on same session id? If possible,
+         * how do we send/catch the error?
+         */
         if (request)
         {
             result = idigi_msg_error_session_in_use;
             session = NULL;
             goto error;
         }
-
-        MsgClearRequest(session->status_flag);
+#endif
+        if (!request)
+            MsgClearRequest(session->status_flag);
     }
 
     result = msg_initialize_data_block(session, msg_ptr->capabilities[msg_capability_client].window_size, request ? msg_block_state_recv_request : msg_block_state_recv_response);
