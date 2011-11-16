@@ -52,8 +52,8 @@
  * <table border="8">
  * <tr>
  * <th>Description</td>
- * <th>Size Compression On</td>
- * <th>Size Compression Off</td>
+ * <th>Size With Compression On</td>
+ * <th>Size With Compression Off</td>
  * <th>Notes</td>
  * </tr>
  * <tr>

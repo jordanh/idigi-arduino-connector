@@ -65,6 +65,12 @@ echo ">> Uncompressing ${OUTPUT_DIR}/${PKG_NAME}.tgz."
 tar -xf ${OUTPUT_DIR}/${PKG_NAME}.tgz
 cd ${BASE_DIR}
 
+# Move the HTML files into the docs directory
+mkdir -p docs/html
+cp -rf doxygen/html/* docs/html
+cp doxygen/user_guide.html docs/
+rm -rf doxygen
+
 
 TARGET=${type}_${featureset}_${arch}
 
