@@ -649,6 +649,7 @@ INPUT                  = ./mainpage.c \
                          ./web_services.c \
                          ./data_service.c \
                          ./api_overview.c \
+                         ./fw_download_sample.c \
                          ../public/run/platforms/template \
                          ../public/include
 

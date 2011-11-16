@@ -42,7 +42,7 @@
  * @htmlonly <a href="http://developer.idigi.com/edocs/downloads/90002008_C.pdf">iDigi Web Services Programming Guide</a><br>@endhtmlonly
  *
  *
- * @note To acccess this document you will have to login
+ * @note To acccess this document you will have to login to iDigi
  *
  *
  */

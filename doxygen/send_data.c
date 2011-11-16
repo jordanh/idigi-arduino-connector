@@ -33,11 +33,12 @@
  *
  * To build this example for a linux based platform you can go into the directory
  * public/run/samples/send_data and type make.  If you are not running Linux you
- * will need to setup your build system with the information described below.
+ * will need to setup your build system with the information described below
+ * and then build the image for your platform.
  *
  * @subsection Source Files
  *
- * The following is a list of source files required to build this sample.
+ * The following is a list of source files required to build this sample:
  *
  * @htmlonly
  * <table border="8">
@@ -108,7 +109,8 @@
  * @image html sample1.png
  *
  * The devices folders and files are then listed as shown (below). You can click on a 
- * file to view its contents.
+ * file to view its contents, you will see the file test.txt in the test directory
+ * after you run this sample.
  *
  * @image html sample2.png
  *
