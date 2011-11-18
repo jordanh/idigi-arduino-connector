@@ -17,25 +17,25 @@
  * 
  *  The functions available in the IIK are listed below:
   * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Routine</td>
- * <th>Description</td>
+ * <th class="title">Routine</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
- * <td>@endhtmlonly idigi_init() @htmlonly</td>
+ * <th>@endhtmlonly idigi_init() @htmlonly</th>
  * <td>Start the IIK</td>
  * </tr>
  * <tr>
- * <td>@endhtmlonly idigi_step() @htmlonly</td>
+ * <th>@endhtmlonly idigi_step() @htmlonly</th>
  * <td>Execute the IIK and return</td>
  * </tr>
  * <tr>
- * <td>@endhtmlonly idigi_run() @htmlonly</td>
+ * <th>@endhtmlonly idigi_run() @htmlonly</th>
  * <td>Start the IIK and do not return</td>
  * </tr>
  * <tr>
- * <td>@endhtmlonly idigi_initiate_action() @htmlonly</td>
+ * <th>@endhtmlonly idigi_initiate_action() @htmlonly</th>
  * <td>Tell the IIK to perform some action such as start a data transfer</td>
  * </tr>
  * </table>

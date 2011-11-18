@@ -41,44 +41,44 @@
  * The following is a list of source files required to build this sample:
  *
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Name</td>
- * <th>Description</td>
- * <th>Location</td>
+ * <th class="title">Name</td>
+ * <th class="title">Description</td>
+ * <th class="title">Location</td>
  * </tr>
  * <tr>
- * <td>application.c</td>
+ * <th>application.c</th>
  * <td>Contains applicat_start() and the application callback</td>
  * <td>samples/send_data</td>
  * </tr>
  * <tr>
- * <td>put_request.c</td>
+ * <th>put_request.c</th>
  * <td>data service callback and send_put_request() which starts the data transfer</td>
  * <td>samples/send_data</td>
  * </tr>
  * <tr>
- * <td>idigi_api.c</td>
+ * <th>idigi_api.c</th>
  * <td>Code for the IIK </td>
  * <td>private</td>
  * </tr>
  * <tr>
- * <td>os.c</td>
+ * <th>os.c</th>
  * <td>Operating system calls</td>
  * <td>platforms/<i>my_platform</i></td>
  * </tr>
  * <tr>
- * <td>network.c</td>
+ * <th>network.c</th>
  * <td> Network interface </td>
  * <td>platforms/<i>my_platform</i></td>
  * </tr>
  * <tr>
- * <td>config.c</td>
+ * <th>config.c</th>
  * <td>Configuration routines</td>
  * <td>platforms/<i>my_platform</i></td>
  * </tr>
  * <tr>
- * <td>main.o</td>
+ * <th>main.o</th>
  * <td>Starting point of program, dependent on build environment</td>
  * <td>platforms/<i>my_platform</i></td>
  * </tr>

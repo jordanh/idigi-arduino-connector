@@ -20,33 +20,33 @@
  * Callback is responsible to setup any socket options.
  *
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Name</td>
- * <th>Description</td>
+ * <th class="title">Name</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
- * <td>class_id</td>
+ * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_network @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_id</td>
+ * <th>request_id</th>
  * <td>@endhtmlonly @ref idigi_network_connect @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_data</td>
+ * <th>request_data</th>
  * <td>Pointer to server URL that callback will make connection to on @endhtmlonly @ref IDIGI_PORT @htmlonly for non-secure port number or @endhtmlonly @ref IDIGI_SSL_PORT @htmlonly for secure port number </td>
  * </tr>
  * <tr>
- * <td>request_length</td>
+ * <th>request_length</th>
  * <td> Length of the server URL.</td>
  * </tr>
  * <tr>
- * <td>response_data</td>
+ * <th>response_data</th>
  * <td> Callback returns the pointer to  @endhtmlonly @ref idigi_network_handle_t @htmlonly which is used throughout network socket callback calls. </td>
  * </tr>
  * <tr>
- * <td>response_length</td>
+ * <th>response_length</th>
  * <td>Pointer to memory where callback writes the size of idigi_network_handle_t</td>
  * </tr>
  * </table>
@@ -54,10 +54,10 @@
  *
  * Return Values:
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Value</td>
- * <th>Description</td>
+ * <th class="title">Value</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
@@ -82,33 +82,33 @@
  * and IIK will continue calling this function. 
  *
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Name</td>
- * <th>Description</td>
+ * <th class="title">Name</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
- * <td>class_id</td>
+ * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_network @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_id</td>
+ * <th>request_id</th>
  * <td>@endhtmlonly @ref idigi_network_send @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_data</td>
+ * <th>request_data</th>
  * <td>Pointer to @endhtmlonly idigi_write_request_t @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_length</td>
+ * <th>request_length</th>
  * <td> Size of @endhtmlonly idigi_write_request_t. @htmlonly</td>
  * </tr>
  * <tr>
- * <td>response_data</td>
+ * <th>response_data</th>
  * <td> Pointer to size_t type memory where callback writes number of bytes sent to the iDigi server. </td>
  * </tr>
  * <tr>
- * <td>response_length</td>
+ * <th>response_length</th>
  * <td>N/A</td>
  * </tr>
  * </table>
@@ -116,10 +116,10 @@
  *
  * Return Values:
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Value</td>
- * <th>Description</td>
+ * <th class="title">Value</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
@@ -147,33 +147,33 @@
  * will relinquish control of the CPU.
  *
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Name</td>
- * <th>Description</td>
+ * <th class="title">Name</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
- * <td>class_id</td>
+ * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_network @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_id</td>
+ * <th>request_id</th>
  * <td>@endhtmlonly @ref idigi_network_receive @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_data</td>
+ * <th>request_data</th>
  * <td>Pointer to @endhtmlonly idigi_read_request_t @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_length</td>
+ * <th>request_length</th>
  * <td> Size of @endhtmlonly idigi_read_request_t. @htmlonly</td>
  * </tr>
  * <tr>
- * <td>response_data</td>
+ * <th>response_data</th>
  * <td> Pointer to size_t type memory where callback writes number of bytes received from the iDigi server. </td>
  * </tr>
  * <tr>
- * <td>response_length</td>
+ * <th>response_length</th>
  * <td>N/A</td>
  * </tr>
  * </table>
@@ -181,10 +181,10 @@
  *
  * Return Values:
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Value</td>
- * <th>Description</td>
+ * <th class="title">Value</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
@@ -207,33 +207,33 @@
  * Callback is called to close a connection between a device and the iDigi Device server
  *
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Name</td>
- * <th>Description</td>
+ * <th class="title">Name</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
- * <td>class_id</td>
+ * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_network @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_id</td>
+ * <th>request_id</th>
  * <td>@endhtmlonly @ref idigi_network_close @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_data</td>
+ * <th>request_data</th>
  * <td>Pointer to @endhtmlonly idigi_network_handle_t @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_length</td>
+ * <th>request_length</th>
  * <td> Size of @endhtmlonly idigi_network_handle_t. @htmlonly</td>
  * </tr>
  * <tr>
- * <td>response_data</td>
+ * <th>response_data</th>
  * <td> N/A </td>
  * </tr>
  * <tr>
- * <td>response_length</td>
+ * <th>response_length</th>
  * <td>N/A</td>
  * </tr>
  * </table>
@@ -241,10 +241,10 @@
  *
  * Return Values:
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Value</td>
- * <th>Description</td>
+ * <th class="title">Value</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
@@ -265,33 +265,33 @@
  * the connection. 
  *
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Name</td>
- * <th>Description</td>
+ * <th class="title">Name</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
- * <td>class_id</td>
+ * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_network @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_id</td>
+ * <th>request_id</th>
  * <td>@endhtmlonly @ref idigi_network_disconnected @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_data</td>
+ * <th>request_data</th>
  * <td>N/A</td>
  * </tr>
  * <tr>
- * <td>request_length</td>
+ * <th>request_length</th>
  * <td> N/A</td>
  * </tr>
  * <tr>
- * <td>response_data</td>
+ * <th>response_data</th>
  * <td> N/A </td>
  * </tr>
  * <tr>
- * <td>response_length</td>
+ * <th>response_length</th>
  * <td>N/A</td>
  * </tr>
  * </table>
@@ -299,10 +299,10 @@
  *
  * Return Values:
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Value</td>
- * <th>Description</td>
+ * <th class="title">Value</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
@@ -322,33 +322,33 @@
  * The device should reboot and this callback should not return. 
  *
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Name</td>
- * <th>Description</td>
+ * <th class="title">Name</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
- * <td>class_id</td>
+ * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_network @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_id</td>
+ * <th>request_id</th>
  * <td>@endhtmlonly @ref idigi_network_reboot @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_data</td>
+ * <th>request_data</th>
  * <td> N/A </td>
  * </tr>
  * <tr>
- * <td>request_length</td>
+ * <th>request_length</th>
  * <td> N/A.</td>
  * </tr>
  * <tr>
- * <td>response_data</td>
+ * <th>response_data</th>
  * <td> N/A </td>
  * </tr>
  * <tr>
- * <td>response_length</td>
+ * <th>response_length</th>
  * <td>N/A</td>
  * </tr>
  * </table>
@@ -356,10 +356,10 @@
  *
  * Return Values:
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Value</td>
- * <th>Description</td>
+ * <th class="title">Value</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
  * <td>No return</td>

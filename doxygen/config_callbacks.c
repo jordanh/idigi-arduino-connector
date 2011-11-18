@@ -25,33 +25,33 @@
  * See the section: @ref step4
  *
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Name</td>
- * <th>Description</td>
+ * <th class="title">Name</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
- * <td>class_id</td>
+ * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_config @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_id</td>
+ * <th>request_id</th>
  * <td>@endhtmlonly @ref idigi_config_device_id @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_data</td>
+ * <th>request_data</th>
  * <td>N/A </td>
  * </tr>
  * <tr>
- * <td>request_length</td>
+ * <th>request_length</th>
  * <td> N/A.</td>
  * </tr>
  * <tr>
- * <td>response_data</td>
+ * <th>response_data</th>
  * <td> Callback returns pointer to 16-byte device ID. </td>
  * </tr>
  * <tr>
- * <td>response_length</td>
+ * <th>response_length</th>
  * <td>Pointer to memory where callback writes the size of the device ID</td>
  * </tr>
  * </table>
@@ -59,10 +59,10 @@
  *
  * Return Values:
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Value</td>
- * <th>Description</td>
+ * <th class="title">Value</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
@@ -83,33 +83,33 @@
  * See the section: @ref step4
  *
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Name</td>
- * <th>Description</td>
+ * <th class="title">Name</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
- * <td>class_id</td>
+ * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_config @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_id</td>
+ * <th>request_id</th>
  * <td>@endhtmlonly @ref idigi_config_vendor_id @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_data</td>
+ * <th>request_data</th>
  * <td>N/A </td>
  * </tr>
  * <tr>
- * <td>request_length</td>
+ * <th>request_length</th>
  * <td> N/A.</td>
  * </tr>
  * <tr>
- * <td>response_data</td>
+ * <th>response_data</th>
  * <td> Callback returns pointer to 4-byte vendor ID. </td>
  * </tr>
  * <tr>
- * <td>response_length</td>
+ * <th>response_length</th>
  * <td>Pointer to memory where callback writes the size of the vendor ID</td>
  * </tr>
  * </table>
@@ -117,10 +117,10 @@
  *
  * Return Values:
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Value</td>
- * <th>Description</td>
+ * <th class="title">Value</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
@@ -140,33 +140,33 @@
  * that identifies the type of the device. 
  *
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Name</td>
- * <th>Description</td>
+ * <th class="title">Name</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
- * <td>class_id</td>
+ * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_config @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_id</td>
+ * <th>request_id</th>
  * <td>@endhtmlonly @ref idigi_config_device_type @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_data</td>
+ * <th>request_data</th>
  * <td>N/A </td>
  * </tr>
  * <tr>
- * <td>request_length</td>
+ * <th>request_length</th>
  * <td> N/A.</td>
  * </tr>
  * <tr>
- * <td>response_data</td>
+ * <th>response_data</th>
  * <td> Callback returns pointer to an ASCII device type string. </td>
  * </tr>
  * <tr>
- * <td>response_length</td>
+ * <th>response_length</th>
  * <td>Pointer to memory where callback writes the length to the device type. Maximum is 32 bytes.</td>
  * </tr>
  * </table>
@@ -174,10 +174,10 @@
  *
  * Return Values:
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Value</td>
- * <th>Description</td>
+ * <th class="title">Value</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
@@ -196,33 +196,33 @@
  * Return the iDigi Device Cloud FQDN.
  *
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Name</td>
- * <th>Description</td>
+ * <th class="title">Name</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
- * <td>class_id</td>
+ * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_config @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_id</td>
+ * <th>request_id</th>
  * <td>@endhtmlonly @ref idigi_config_server_url @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_data</td>
+ * <th>request_data</th>
  * <td>N/A </td>
  * </tr>
  * <tr>
- * <td>request_length</td>
+ * <th>request_length</th>
  * <td> N/A.</td>
  * </tr>
  * <tr>
- * <td>response_data</td>
+ * <th>response_data</th>
  * <td> Callback returns pointer to FQDN of iDigi server to be connected. </td>
  * </tr>
  * <tr>
- * <td>response_length</td>
+ * <th>response_length</th>
  * <td>Pointer to memory where callback writes the length of the server URL. Maximum is 255 bytes..</td>
  * </tr>
  * </table>
@@ -230,10 +230,10 @@
  *
  * Return Values:
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Value</td>
- * <th>Description</td>
+ * <th class="title">Value</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
@@ -252,33 +252,33 @@
  * Return LAN or WAN connection type. 
  *
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Name</td>
- * <th>Description</td>
+ * <th class="title">Name</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
- * <td>class_id</td>
+ * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_config @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_id</td>
+ * <th>request_id</th>
  * <td>@endhtmlonly @ref idigi_config_connection_type @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_data</td>
+ * <th>request_data</th>
  * <td>N/A </td>
  * </tr>
  * <tr>
- * <td>request_length</td>
+ * <th>request_length</th>
  * <td> N/A.</td>
  * </tr>
  * <tr>
- * <td>response_data</td>
+ * <th>response_data</th>
  * <td> Return a pointer to @endhtmlonly @ref idigi_lan_connection_type @htmlonly for LAN connection type or @endhtmlonly @ref idigi_wan_connection_type @htmlonly for WAN connection type. </td>
  * </tr>
  * <tr>
- * <td>response_length</td>
+ * <th>response_length</th>
  * <td>N/A</td>
  * </tr>
  * </table>
@@ -286,10 +286,10 @@
  *
  * Return Values:
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Value</td>
- * <th>Description</td>
+ * <th class="title">Value</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
@@ -306,10 +306,10 @@
  *
  * Return Values:
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Value</td>
- * <th>Description</td>
+ * <th class="title">Value</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
@@ -329,33 +329,33 @@
  * type is LAN, IIK will not request link speed configuration.. 
  *
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Name</td>
- * <th>Description</td>
+ * <th class="title">Name</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
- * <td>class_id</td>
+ * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_config @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_id</td>
+ * <th>request_id</th>
  * <td>@endhtmlonly @ref idigi_config_link_speed @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_data</td>
+ * <th>request_data</th>
  * <td>N/A</td>
  * </tr>
  * <tr>
- * <td>request_length</td>
+ * <th>request_length</th>
  * <td> N/A.</td>
  * </tr>
  * <tr>
- * <td>response_data</td>
+ * <th>response_data</th>
  * <td> Callback returns pointer to 4-byte integer link speed. </td>
  * </tr>
  * <tr>
- * <td>response_length</td>
+ * <th>response_length</th>
  * <td>Pointer to memory where callback writes the size of link speed. It must be 4 bytes</td>
  * </tr>
  * </table>
@@ -363,10 +363,10 @@
  *
  * Return Values:
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Value</td>
- * <th>Description</td>
+ * <th class="title">Value</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
@@ -386,33 +386,33 @@
  * If connection type is LAN, IIK will not request phone number 
  *
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Name</td>
- * <th>Description</td>
+ * <th class="title">Name</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
- * <td>class_id</td>
+ * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_config @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_id</td>
+ * <th>request_id</th>
  * <td>@endhtmlonly @ref idigi_config_phone_number @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_data</td>
+ * <th>request_data</th>
  * <td>N/A</td>
  * </tr>
  * <tr>
- * <td>request_length</td>
+ * <th>request_length</th>
  * <td> N/A.</td>
  * </tr>
  * <tr>
- * <td>response_data</td>
+ * <th>response_data</th>
  * <td> Callback returns pointer to memory which contains the phone number dialed and any dialing prefixes </td>
  * </tr>
  * <tr>
- * <td>response_length</td>
+ * <th>response_length</th>
  * <td>Pointer to memory where callback writes the size of the phone number in bytes</td>
  * </tr>
  * </table>
@@ -420,10 +420,10 @@
  *
  * Return Values:
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Value</td>
- * <th>Description</td>
+ * <th class="title">Value</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
@@ -442,33 +442,33 @@
  * often the iDigi Device Cloud sends keepalive messages to the device. 
  *
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Name</td>
- * <th>Description</td>
+ * <th class="title">Name</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
- * <td>class_id</td>
+ * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_config @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_id</td>
+ * <th>request_id</th>
  * <td>@endhtmlonly @ref idigi_config_tx_keepalive @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_data</td>
+ * <th>request_data</th>
  * <td>N/A</td>
  * </tr>
  * <tr>
- * <td>request_length</td>
+ * <th>request_length</th>
  * <td> N/A.</td>
  * </tr>
  * <tr>
- * <td>response_data</td>
+ * <th>response_data</th>
  * <td> Callback returns pointer to TX keepalive interval in seconds. It must be between 5 and 7200 seconds. </td>
  * </tr>
  * <tr>
- * <td>response_length</td>
+ * <th>response_length</th>
  * <td>Pointer to memory where callback writes the size of TX keepalive. It must be 2 bytes.</td>
  * </tr>
  * </table>
@@ -476,10 +476,10 @@
  *
  * Return Values:
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Value</td>
- * <th>Description</td>
+ * <th class="title">Value</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
@@ -498,33 +498,33 @@
  * often the IIK sends keepalive messages to the iDigi Device Cloud (device to the iDigi Device Cloud). 
  *
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Name</td>
- * <th>Description</td>
+ * <th class="title">Name</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
- * <td>class_id</td>
+ * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_config @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_id</td>
+ * <th>request_id</th>
  * <td>@endhtmlonly @ref idigi_config_rx_keepalive @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_data</td>
+ * <th>request_data</th>
  * <td>N/A</td>
  * </tr>
  * <tr>
- * <td>request_length</td>
+ * <th>request_length</th>
  * <td> N/A.</td>
  * </tr>
  * <tr>
- * <td>response_data</td>
+ * <th>response_data</th>
  * <td> Return pointer to RX keepalive interval in seconds. It must be between 5 and 7200 seconds. </td>
  * </tr>
  * <tr>
- * <td>response_length</td>
+ * <th>response_length</th>
  * <td>Pointer to memory where callback writes the size of RX keepalive. It must be 2 bytes.</td>
  * </tr>
  * </table>
@@ -532,10 +532,10 @@
  *
  * Return Values:
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Value</td>
- * <th>Description</td>
+ * <th class="title">Value</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
@@ -554,33 +554,33 @@
  * should be considered lost. 
  *
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Name</td>
- * <th>Description</td>
+ * <th class="title">Name</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
- * <td>class_id</td>
+ * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_config @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_id</td>
+ * <th>request_id</th>
  * <td>@endhtmlonly @ref idigi_config_wait_count @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_data</td>
+ * <th>request_data</th>
  * <td>N/A</td>
  * </tr>
  * <tr>
- * <td>request_length</td>
+ * <th>request_length</th>
  * <td> N/A.</td>
  * </tr>
  * <tr>
- * <td>response_data</td>
+ * <th>response_data</th>
  * <td> Return a pointer to wait count. It must be between 2 and 63 bytes. </td>
  * </tr>
  * <tr>
- * <td>response_length</td>
+ * <th>response_length</th>
  * <td>Pointer to memory where callback writes the size of wait count. It must be 2 bytes.</td>
  * </tr>
  * </table>
@@ -588,10 +588,10 @@
  *
  * Return Values:
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Value</td>
- * <th>Description</td>
+ * <th class="title">Value</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
@@ -610,33 +610,33 @@
  * address must be either 4-octet for an IPv4 or 16-octet for an IPv6 address. 
  *
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Name</td>
- * <th>Description</td>
+ * <th class="title">Name</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
- * <td>class_id</td>
+ * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_config @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_id</td>
+ * <th>request_id</th>
  * <td>@endhtmlonly @ref idigi_config_ip_addr @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_data</td>
+ * <th>request_data</th>
  * <td>N/A</td>
  * </tr>
  * <tr>
- * <td>request_length</td>
+ * <th>request_length</th>
  * <td> N/A.</td>
  * </tr>
  * <tr>
- * <td>response_data</td>
+ * <th>response_data</th>
  * <td> Callback returns pointer to IP address. </td>
  * </tr>
  * <tr>
- * <td>response_length</td>
+ * <th>response_length</th>
  * <td>Pointer to memory where callback writes the size of IP address. It returns 16 bytes for an IPv6 address or 4 bytes for an IPv4 address.</td>
  * </tr>
  * </table>
@@ -644,10 +644,10 @@
  *
  * Return Values:
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Value</td>
- * <th>Description</td>
+ * <th class="title">Value</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
@@ -665,33 +665,33 @@
  * Return the device's MAC address. 
  *
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Name</td>
- * <th>Description</td>
+ * <th class="title">Name</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
- * <td>class_id</td>
+ * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_config @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_id</td>
+ * <th>request_id</th>
  * <td>@endhtmlonly @ref idigi_config_mac_addr @htmlonly</td>
  * </tr>
  * <tr>
- * <td>request_data</td>
+ * <th>request_data</th>
  * <td>Pointer to 6-byte MAC address</td>
  * </tr>
  * <tr>
- * <td>request_length</td>
+ * <th>request_length</th>
  * <td> N/A.</td>
  * </tr>
  * <tr>
- * <td>response_data</td>
+ * <th>response_data</th>
  * <td> Pointer to memory where callback writes the size of MAC address. It must be 6 bytes. </td>
  * </tr>
  * <tr>
- * <td>response_length</td>
+ * <th>response_length</th>
  * <td>N/A</td>
  * </tr>
  * </table>
