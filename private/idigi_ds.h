@@ -337,7 +337,7 @@ static idigi_callback_status_t process_device_error(idigi_data_t * const idigi_p
     /* get error code from the data pointer */
     server_data.data = service_data->data_ptr;
     server_data.length_in_bytes = service_data->length_in_bytes;
-    server_data.flags = 0;
+    server_data.flags = IDIGI_MSG_FIRST_DATA | IDIGI_MSG_LAST_DATA;
 
     response_data.user_context = service_context->user_context;
     response_data.message_status = idigi_msg_error_none;
