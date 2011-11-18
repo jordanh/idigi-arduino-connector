@@ -37,7 +37,7 @@
 * @{
 */
 /** 
- *  If defined the system is little endian, comment out for big endian
+ *  If defined the system is little endian, comment out for big endian.
  */
 #define IDIGI_LITTLE_ENDIAN
 

@@ -36,11 +36,9 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-static bool netowrk_initialization_complete = false;
-
-static bool dns_resolve_name(char const * const domain_name, in_addr_t * ip_addr)
+static int dns_resolve_name(char const * const domain_name, in_addr_t * ip_addr)
 {
-    bool rc=false;
+    int rc=-1;
     struct addrinfo *res0, *res, hint;
     int error;
 
@@ -66,7 +64,7 @@ static bool dns_resolve_name(char const * const domain_name, in_addr_t * ip_addr
         {
             *ip_addr = ((struct sockaddr_in*)res->ai_addr)->sin_addr.s_addr;
             APP_DEBUG("dns_resolve_name: ip address = [%s]\n", inet_ntoa(((struct sockaddr_in*)res->ai_addr)->sin_addr));
-            rc = true;
+            rc = 0;
             break;
         }
     }
@@ -102,7 +100,7 @@ static idigi_callback_status_t network_connect(char const * const host_name, siz
         ip_addr = inet_addr(server_name);
         if (ip_addr == INADDR_NONE)
         {
-            if (!dns_resolve_name(server_name, &ip_addr))
+            if (dns_resolve_name(server_name, &ip_addr) != 0)
             {
                 APP_DEBUG("network_connect: Can't resolve DNS for %s\n", server_name);
                 goto done;
@@ -312,19 +310,19 @@ static idigi_callback_status_t network_close(idigi_network_handle_t * const fd)
     return status;
 }
 
-static bool server_disconnected(void)
+static int server_disconnected(void)
 {
 
     APP_DEBUG("Disconnected from server\n");
-    return true;
+    return 0;
 }
 
-static bool server_reboot(void)
+static int server_reboot(void)
 {
 
     APP_DEBUG("Reboot from server\n");
     /* should not return from rebooting the system */
-    return true;
+    return 0;
 }
 
 /*
@@ -335,7 +333,7 @@ idigi_callback_status_t idigi_network_callback(idigi_network_request_t const req
                                             void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    bool ret;
+    int ret;
 
     UNUSED_PARAMETER(request_length);
 
@@ -360,12 +358,12 @@ idigi_callback_status_t idigi_network_callback(idigi_network_request_t const req
 
     case idigi_network_disconnected:
        ret = server_disconnected();
-       status = (ret == true) ? idigi_callback_continue : idigi_callback_abort;
+       status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
        break;
 
     case idigi_network_reboot:
         ret = server_reboot();
-        status = (ret == true) ? idigi_callback_continue : idigi_callback_abort;
+        status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
         break;
 
     default:
@@ -377,7 +375,3 @@ idigi_callback_status_t idigi_network_callback(idigi_network_request_t const req
     return status;
 }
 
-bool is_initialization_complete(void)
-{
-    return netowrk_initialization_complete;
-}

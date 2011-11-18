@@ -38,7 +38,8 @@
  * @section step1 Step 1: Determine if your compiler is C89 or C99 compliant
  *
  * If your compiler is C89 or C99 compliant and you are on a 32-bit processor
- * you can skip to the next step. If your compilier is not C89 or C99 compliant you 
+ * you can skip to the next step.  A C89/C99 compliant compilier will have stdint.h
+ * which contains the types used by the IIK.  If your compilier is not C89 or C99 compliant you 
  * will have to edit public/include/idigi_types.h and review the data types @ref uint8_t, 
  * @ref uint16_t, @ref uint32_t. Note that these are defined for a 32-bit machine. 
  *
@@ -120,6 +121,13 @@
  *
  * @li public/include
  *
+ * @subsection add_define Add the defines
+ *
+ * The following define is required, this is used to indicate the version of
+ * the IIK is 1.1
+ *
+ * @li IDIGI_VERSION=0x1010000UL
+ *
  * @subsection build_sample Build the sample
  *
  * Now that you have the build environment setup, verify that you can compile and
@@ -172,7 +180,8 @@
  * @image html idigi5.jpg
  *
  * The page will refresh and your unique vendor ID number will be displayed in place of the
- * Register for new vendor id button.
+ * Register for new vendor id button.  Record the Vendor ID you will need it later.
+ *
  *
  * @image html idigi6.jpg
  *
@@ -191,7 +200,9 @@
  * network interface MAC is used for the basis of the Device ID. If the MAC is read 
  * directly from the network interface to generate the client's Device ID, care must be 
  * taken to always use the same network interface's MAC since there is a unique mapping 
- * between a device and a Device ID.
+ * between a device and a Device ID. 
+ *  Use the above mapping with your MAC address to create the Device ID and record
+ * it for later.
  *
  *
  * @section step5 Step 5: Setup your platform
@@ -215,8 +226,9 @@
  *
  * @subsection network_routines Network Routines
  * Open the file network.c and implement the network interface routines. 
- * The network interface routines in the sample provided are implemented using the standard 
- * Linux BSD socket calls. You may have to modify the routines in this file based on your 
+ * The network interface routines provided in the Linux platform are implemented using standard 
+ * Berkeley socket calls and can be used as a reference for your platform. 
+ * You may have to modify the routines in this file based on your 
  * platforms network implementation.
  *
  * The following is a list of network interface routines which must be implemented:
@@ -374,9 +386,13 @@
  *
  * Start iDigi
  *
- * dns_resolve_name: ip address = [50.56.41.153]
+ * idigi_run thread starts
  *
- * network_connect: connected to [developer.idigi.com] server
+ * application_start thread exits 0
+ *
+ * idigi_run thread starts
+ *
+ * network_connect: connected to [10.52.18.77] server
  *
  * communication layer: Send MT Version
  *
@@ -398,46 +414,26 @@
  *
  * discovery layer: send device type
  *
- * Discovery Facility layer: 0xc0
- *
- * Discovery Facility layer: 0x70
- *
- * get packet buffer: send pending
- *
- * Discovery Facility layer: 0x70
- *
- * Discovery Facility layer: 0xffff
- *
  * Connection Control: send redirect_report
- *
- * get packet buffer: send pending
- *
- * Discovery Facility layer: 0xffff
- *
- * Connection Control: send redirect_report
- *
- * Discovery Facility layer: 0xffff
  *
  * Connection Control: send connection report
  *
  * get_ip_address: Looking for current device IP address: found [2] entries
  *
- * get_ip_address: 1: Interface name [lo] IP Address [127.0.0.1]
+ * get_ip_address: 1: Interface name [lo]  IP Address [127.0.0.1]
  *
- * get_ip_address: 2: Interface name [eth1] IP Address [10.52.18.74]
+ * get_ip_address: 2: Interface name [eth3]        IP Address [10.52.18.77]
  *
  * discovery layer: send complete
- *
- * idigi_facility_layer: receive data facility = 0x00c0
  *
  * @subsection add_your_device_to_the_cloud Add your Device to the iDigi Developer Cloud
  * 
  * The next several sections walk through the steps required to add your device to 
  * the iDigi Developer Cloud. 
  *
- *  -# Navigate to http://www.idigi.com and login using your iDigi developer user account credentials
+ *  -# Navigate to http://www.idigi.com and login to the iDigi Developer Cloud
  *  -# Click on Devices from within the left navigation panel.
- *  -# Click the Add Devices button to bring up the Add Devices dialog.
+ *  -# Click the Add Devices button (the + button under Devices) to bring up the Add Devices dialog.
  *
  * @image html add1.png
  *
@@ -460,9 +456,14 @@
  * @subsection view_result_on_cloud Viewing Results on the iDigi Developer Cloud
  *
  * Click the Refresh button. The device will reconnect to the iDigi Developer Cloud.
- * You can now communicate with your device over the iDigi cloud, the next step 
+ * If successful your device Status will show connected.  You can now communicate 
+ * with your device over the iDigi cloud, the next step 
  * is to integrate in one of the samples to add in more functionality to your
  * application.
+ *
+ * @note If you cannot connect to the iDigi Device cloud, the most likely problem
+ * is in the iDigi Configuration, review the configuration routines in config.c;
+ * The device ID and vendor ID must be valid to connect.
  *
  *  @image html results1.png
  *
@@ -471,8 +472,7 @@
  * Now that you have a basic sample up and running with the iDigi Device Cloud, you
  * can port in more functionality to your application.  We first suggest 
  * reading the @ref api1_overview "API" section of the documentation and then 
- * select a sample which has the functionality you need and port in the
- * funcionality to this application.
+ * select a sample which has the functionality you need.
  *
  * </td></tr>
  * </table>

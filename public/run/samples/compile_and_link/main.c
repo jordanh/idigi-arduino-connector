@@ -26,6 +26,10 @@
 
 int main (void)
 {
+    /*
+     * Call idigi_init() with a NULL callback, we are only verifying that we 
+     * can compile and link the IIK.
+     */
     (void)idigi_init((idigi_callback_t)0);
     return 0;
 }
