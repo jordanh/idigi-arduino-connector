@@ -262,6 +262,7 @@ enum {
     /* setup response data so that callback updates it */
     response_data.client_data = &client_data;
     response_data.user_context = service_context->user_context;
+    response_data.message_status = idigi_msg_error_none;
 
     client_data.data = data_ptr + header_length;
     client_data.length_in_bytes = service_data->length_in_bytes - header_length;
