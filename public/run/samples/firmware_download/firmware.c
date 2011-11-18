@@ -47,7 +47,7 @@ static firmware_list_t fimware_list[] = {
 };
 static uint16_t fimware_list_count = asizeof(fimware_list);
 
-static bool firmware_download_started = false;
+static int firmware_download_started = 0;
 static size_t total_image_size = 0;
 
 static void firmware_download_request(idigi_fw_download_request_t const * const download_info, idigi_fw_status_t * download_status)
@@ -73,7 +73,7 @@ static void firmware_download_request(idigi_fw_download_request_t const * const 
     APP_DEBUG("filename = %s\n",       download_info->filename);
 
     total_image_size = 0;
-    firmware_download_started = true;
+    firmware_download_started = 1;
 
     *download_status = idigi_fw_success;
 
@@ -128,7 +128,7 @@ static void firmware_download_complete(idigi_fw_download_complete_request_t cons
                       complete_request->code_size, total_image_size);
     }
 
-    firmware_download_started = false;
+    firmware_download_started = 0;
 
 done:
     return;

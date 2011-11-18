@@ -360,13 +360,13 @@ static int get_wait_count(uint16_t ** count, size_t * size)
  * If firmware access facility is not supported, callback for idigi_class_firmware 
  * class will not be executed.
  *
- * @retval 0  Firmware download is supported
- * @retval -1  Firmware download is not supported
+ * @retval 1  Firmware download is supported
+ * @retval 0  Firmware download is not supported
  * 
  */
 static int get_firmware_support(void)
 {
-    return 0;
+    return 1;
 }
 
 /**
@@ -375,14 +375,14 @@ static int get_firmware_support(void)
  * This routine tells IIK whether the data service facility is supported or not. 
  * If you plan on sending data to/from the iDigi server set this to true
  *
- * @retval 0  Firmware download is supported
- * @retval -1  Firmware download is not supported
+ * @retval 1  Firmware download is supported
+ * @retval 0  Firmware download is not supported
  * 
  */
 static int get_data_service_support(void)
 {
 #if (defined IDIGI_DATA_SERVICE)
-    return true;
+    return 1;
 #else
     return 0;
 #endif

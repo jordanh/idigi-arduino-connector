@@ -264,12 +264,12 @@ static int get_wait_count(uint16_t **count, size_t * size)
 
 static int get_firmware_support(void)
 {
-    return 0;
+    return 1;
 }
 
 static int get_data_service_support(void)
 {
-    return 0;
+    return 1;
 }
 
 /* End of IIK configuration routines */
