@@ -8,10 +8,10 @@
  * server.  The data service has two mechanisms one for device intiaited transfers and the
  * second for server initiated transfers.
  * 
- *  @li @b Put @b requests: Transfers which are initiated by the device and is used to
+ * @li @b Put @b requests: Transfers which are initiated by the device and is used to
  * write files to the iDigi server, the server may send a status response back
- * indicating the transfer was successfull.
- *  @li @b Device @b requests: Transfers which are initiated by the server to the device,
+ * indicating the transfer was successfull. 
+ * @li @b Device @b requests: Transfers which are initiated by the server to the device,
  * this is used to send data to the device and the device may send a response back.
  *
  * @section send_data Put Requests
@@ -52,7 +52,7 @@
  * The put request callback is called with the following information:
  *
  * @htmlonly
- * <table class="apitable" >
+ * <table class="apitable">
  * <tr>
  * <th class="title">Name</th>
  * <th class="title">Description</th>
@@ -68,28 +68,11 @@
  * <tr>
  * <th>request_data</th>
  * <td> [IN] pointer to @endhtmlonly idigi_data_service_msg_request_t @htmlonly
- *   <p>The <b><i>idigi_data_service_msg_request_t</i></b> contains a response from the server or an error.</p>
- *
- *   <dl><dd>The <b>"service_context"</b> is pointer to @endhtmlonly idigi_data_service_put_request_t @htmlonly which 
- *   is given in @endhtmlonly idigi_initiate_action @htmlonly call.</dd>
- *
- *   <dd>The <b>"message_type"</b> indicates what type of message is: 
- *   <ul><li> @endhtmlonly @ref idigi_data_service_type_error @htmlonly - Error is encounted and the 
- *   <b>"server_data"</b> will contain the error value @endhtmlonly @ref idigi_msg_error_t @htmlonly in the data field.</li>
- *   <li> @endhtmlonly @ref idigi_data_service_type_have_data @htmlonly - The <b>"server_data"</b> will contain
- *   the response data from server in the data field.</li>
- *   <li> @endhtmlonly @ref idigi_data_service_type_need_data @htmlonly - Request the callback to return data 
- *   to be sent to the server. Data is returned in <b>"response_data"</b>.</li></ul></dd>
- *
- *   <dd>The <b>"server_data"</b> is pointer to @endhtmlonly idigi_data_service_block_t @htmlonly which contains
- *   response data from server when <b>"message_type"</b> is @endhtmlonly @ref idigi_data_service_type_have_data @htmlonly,
- *   @endhtmlonly @ref idigi_msg_error_t @htmlonly from server when <b>"message_type"</b> is
- *   @endhtmlonly @ref idigi_data_service_type_error @htmlonly, or null when 
- *   <b>"message_type"</b> is @endhtmlonly @ref idigi_data_service_type_need_data @htmlonly.
- *   <ul><li><b>"data"</b> contains response data or @endhtmlonly @ref idigi_msg_error_t @htmlonly.</li>
- *   <li><b>"length_in_bytes"</b> contains number of bytes of response data</li>
- *   <li><b>"flags"</b> contains @endhtmlonly @ref IDIGI_MSG_FIRST_DATA @htmlonly bit flag for initial response
- *   data and @endhtmlonly @ref IDIGI_MSG_LAST_DATA @htmlonly bit flag for last chunk of response data.</li></ul></dd></dl>
+ *   <p>The @endhtmlonly idigi_data_service_msg_request_t @htmlonly contains a response from the server or an error.</p>
+ *   <p>The <b><i>"message_type"</i></b> indicates what type of message is received from
+ *   the server, in case of an error the @endhtmlonly idigi_data_service_block_t @htmlonly will contain the 
+ *   @endhtmlonly @ref idigi_msg_error_t in @htmlonly the data field.</p>
+ *   <p>The <b><i>"service_context"</i></b> is pointer to  @endhtmlonly idigi_data_service_put_request_t @htmlonly.
  * </td></tr>
  * <tr>
  * <th>request_length</th>
@@ -98,34 +81,20 @@
  * <tr>
  * <th>response_data</th>
  * <td>[OUT] pointer to @endhtmlonly idigi_data_service_msg_response_t @htmlonly
- *   <p>The <b><i>idigi_data_service_msg_response_t</i></b> field contains status and the data to 
- *   to be sent to the server.</p>
- * 
- *   <dl><dd>The <b>"user_context"</b> is not used.</dd>
- *   <dd> The <b>"message_status"</b> is where callback writes @endhtmlonly @ref idigi_msg_error_t @htmlonly 
- *   when an error is encountered while processing the data. This will cancel and delete the message.</dd>
- *   <dd> The <b>"client_data"</b> is pointer to @endhtmlonly idigi_data_service_block_t @htmlonly when 
- *   <b>"message_type"</b> in <i>request_data</i> is <b>idigi_data_service_type_need_data</b>.
- *   The callback must copy data to the data pointer up to the length specified,
- *	 if the data is less than the length specified the callback must update the length filed. 
- *   <ul><li><b>"data"</b> contains request data, or @endhtmlonly @ref idigi_msg_error_t @htmlonly.
- *   </li>
- *   <li><b>"length_in_bytes"</b> contains number of bytes of data</li>
- *   <li><b>"flags"</b> contains @endhtmlonly @ref IDIGI_MSG_FIRST_DATA @htmlonly bit flag for initial request
- *   data and @endhtmlonly @ref IDIGI_MSG_LAST_DATA @htmlonly bit flag for last chunk of request data.
- *   The callback is continually called to process data from server until IDIGI_MSG_LAST_DATA bit flag is set.
- *   The callback is called with @endhtmlonly @ref idigi_data_service_type_need_data @htmlonly <b>"message_type"</b>
- *    after the callback is called to process the last chunk of data for 
- *    @endhtmlonly @ref idigi_data_service_type_have_data @htmlonly <b>"message_type"</b>.
- * </li></ul></dd></dl>
- * </td></tr>
+ *   <p>The @endhtmlonly idigi_data_service_msg_response_t @htmlonly field contains status and the data to 
+ *   to be sent to the server, the user must copy to the data pointer in idigi_data_service_msg_response_t 
+ *   up to the length specified, if the data is less than the length specified the user must update the
+ *   length field.</p>
+ *   <p>If an error is encountered while processing the callback the application
+ *   can send an error back to the server by setting the error in the <b><i>"message_status"</i></b>
+ *   of @endhtmlonly idigi_data_service_msg_response_t @htmlonly.</p>
+  * </td></tr>
  * <tr>
  * <th>response_length</th>
  * <td>[OUT] Size of @endhtmlonly idigi_data_service_msg_response_t @htmlonly</td>
  * </tr>
  * </table>
  * @endhtmlonly
- *
  *
  * An example of an application callback for a put request is show below:
  *
@@ -171,7 +140,8 @@
  *                idigi_data_service_block_t * message = put_request->server_data;
  *                uint8_t const * data = message->data;
  *
- *                APP_DEBUG("Received %s response from server\n", ((message->flags & IDIGI_MSG_RESP_SUCCESS) != 0) ? "success" : "error");
+ *                APP_DEBUG("Received %s response from server\n", 
+ *                          ((message->flags & IDIGI_MSG_RESP_SUCCESS) != 0) ? "success" : "error");
  *                if (message->length_in_bytes > 0) 
  *                {
  *                    APP_DEBUG("Server response %s\n", (char *)data);
@@ -233,37 +203,12 @@
  * <tr>
  * <th>request_data</th>
  * <td> [IN] pointer to @endhtmlonly idigi_data_service_msg_request_t @htmlonly
- *   <p>The <b><i>idigi_data_service_msg_request_t</i></b> contains a request data from the server or an error.</p>
+ *   <p>The @endhtmlonly idigi_data_service_msg_request_t @htmlonly contains request data from the server or an error.</p>
+ *   <p>The <b><i>"message_type"</i></b> indicates what type of message is received from
+ *   the server, in case of an error the @endhtmlonly idigi_data_service_block_t @htmlonly will contain the 
+ *   @endhtmlonly @ref idigi_msg_error_t @endhtml in the data field.</p>
+ *   <p>The <b><i>"service_context"</i></b> is pointer to @endhtmlonly idigi_data_service_device_request_t @htmlonly.
  *
- *   <dl><dd>The <b>"service_context"</b> is pointer to @endhtmlonly idigi_data_service_device_request_t @htmlonly which 
- *   contains a handle and target name of the request:
- *   <ul><li><b>"device_handle"</b> - is handle of the request</li>
- *   <li><b>"target_name"</b> contains nul terminated target name of the request. The target name
- *   is only provided on the first chunk of data. Otherwise, it's null.</li></ul></dd>
- *
- *   <dd>The <b>"message_type"</b> indicates what type of message is: 
- *   <ul><li> @endhtmlonly @ref idigi_data_service_type_error @htmlonly - Error is encounted and the 
- *   <b>"server_data"</b> will contain the @endhtmlonly @ref idigi_msg_error_t @htmlonly in the data field.</li>
- *   <li> @endhtmlonly @ref idigi_data_service_type_have_data @htmlonly - The <b>"server_data"</b> contains
- *   the request data from server in the data field.</li>
- *   <li> @endhtmlonly @ref idigi_data_service_type_need_data @htmlonly - Request the callback to return data 
- *   to be sent to the server. Data is returned in <b>"response_data"</b>.</li></ul></dd>
- *
- *   <dd>The <b>"server_data"</b> is pointer to @endhtmlonly idigi_data_service_block_t @htmlonly which contains
- *   request data from server when <b>"message_type"</b> is @endhtmlonly @ref idigi_data_service_type_have_data @htmlonly,
- *   @endhtmlonly @ref idigi_msg_error_t @htmlonly from server when <b>"message_type"</b> is
- *   @endhtmlonly @ref idigi_data_service_type_error @htmlonly, or null  when 
- *   <b>"message_type"</b> is @endhtmlonly @ref idigi_data_service_type_need_data @htmlonly.
- *   <ul><li><b>"data"</b> contains request data, or @endhtmlonly @ref idigi_msg_error_t @htmlonly.
- *   </li>
- *   <li><b>"length_in_bytes"</b> contains number of bytes of data</li>
- *   <li><b>"flags"</b> contains @endhtmlonly @ref IDIGI_MSG_FIRST_DATA @htmlonly bit flag for initial request
- *   data and @endhtmlonly @ref IDIGI_MSG_LAST_DATA @htmlonly bit flag for last chunk of request data.
- *   The callback is continually called to process data from server until IDIGI_MSG_LAST_DATA bit flag is set.
- *   The callback is called with @endhtmlonly @ref idigi_data_service_type_need_data @htmlonly <b>"message_type"</b>
- *   after the callback is called to process the last chunk of data for 
- *   @endhtmlonly @ref idigi_data_service_type_have_data @htmlonly <b>"message_type"</b>.
- * </li></ul></dd></dl>
  * </td></tr>
  * <tr>
  * <th>request_length</th>
@@ -272,25 +217,14 @@
  * <tr>
  * <th>response_data</th>
  * <td>[OUT] pointer to @endhtmlonly idigi_data_service_msg_response_t @htmlonly
- *   <p>The <b><i>idigi_data_service_msg_response_t</i></b> field contains status and the data to 
- *   to be sent to the server.</p>
- * 
- *   <dl><dd>The <b>"user_context"</b> is where callback writes its own context which will be 
- *   returned on subsequent callbacks for its reference.</dd>
- *
- *   <dd>The <b>"message_status"</b> is where callback writes @endhtmlonly @ref idigi_msg_error_t @htmlonly 
- *   when an error is encountered while processing the data. This will cancel and delete the message.</dd>
- *
- *   <dd>The <b>"client_data"</b> is pointer to @endhtmlonly idigi_data_service_block_t @htmlonly when 
- *   <b>"message_type"</b> in <i>request_data</i> is <b>idigi_data_service_type_need_data</b>.
- *   The callback must copy data to the data pointer up to the length specified,
- *	 if the data is less than the length specified the callback must update the length filed.
- *   <ul><li><b>"data"</b> is where callback writes data to</li>
- *   <li><b>"length_in_bytes"</b> contains number of bytes of available in data. Callback updates this 
- *   with actual number of bytes written to the data</li>
- *   <li><b>"flags"</b> is where callback writes @endhtmlonly @ref IDIGI_MSG_LAST_DATA @htmlonly bit flag for
- *    last chunk of data to be sent to server. The callback is continually called to get response data
- *    until last chunk of data.</li></ul></dd></dl>
+ *   <p>The @endhtmlonly idigi_data_service_msg_response_t @htmlonly is where callback updates the status and the
+ *   data to be sent to the server, the callback must copy to the data pointer in 
+ *   @endhtmlonly idigi_data_service_block_t @htmlonly
+ *   up to the length specified, if the data is less than the length specified the user must update the
+ *   length field.</p>
+ *   <p>If an error is encountered while processing the callback the application
+ *   can send an error back to the server by setting the error in the <b><i>"message_status"</i></b>
+ *   of @endhtmlonly idigi_data_service_msg_response_t @htmlonly.</p>
 * </td></tr>
  * <tr>
  * <th>response_length</th>
@@ -299,10 +233,49 @@
  * </table>
  * @endhtmlonly
  *
- *
- * An example of an application callback for a put request is show below:
+ * User uses SCI request to send device request to the server and server sends it
+ * to the device.
+ * An example of an application callback for a device request is show below:
  *
  * @code
+ *
+ * idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t const request,
+ *                                                     void const * request_data, size_t const request_length,
+ *                                                     void * response_data, size_t * const response_length)
+ * {
+ *     idigi_callback_status_t status = idigi_callback_continue;
+ *     idigi_data_service_msg_request_t const * const service_device_request = request_data;
+ * 
+ *     UNUSED_PARAMETER(request_length);
+ *     UNUSED_PARAMETER(response_length);
+ * 
+ *     if (request == idigi_data_service_device_request)
+ *     {
+ *         switch (service_device_request->message_type)
+ *         {
+ *         case idigi_data_service_type_have_data:
+ *             status = process_device_request(request_data, response_data);
+ *             break;
+ *         case idigi_data_service_type_need_data:
+ *             status = process_device_response(request_data, response_data);
+ *             break;
+ *         case idigi_data_service_type_error:
+ *             status = process_device_error(request_data, response_data);
+ *             break;
+ *         default:
+ *             APP_DEBUG("idigi_put_request_callback: unknown message type %d for idigi_data_service_device_request\n", 
+ *                        service_device_request->message_type);
+ *             break;
+ *         }
+ *     }
+ *     else
+ *     {
+ *         APP_DEBUG("Unsupported %d  (Only support idigi_data_service_device_request)\n", request);
+ *     }
+ * 
+ *     return status;
+ * }
+ *
  *  static idigi_callback_status_t process_device_request(idigi_data_service_msg_request_t const * const request_data,
  *                                                       idigi_data_service_msg_response_t * const response_data)
  * {
@@ -312,43 +285,46 @@
  * 
  *     device_request_handle_t * client_device_request = response_data->user_context;
  * 
- *     ASSERT(server_data != NULL);
- * 
+ *     ASSERT(server_device_request != NULL);
+ *
  *     if ((server_data->flags & IDIGI_MSG_FIRST_DATA) == IDIGI_MSG_FIRST_DATA)
  *     {
+ *         /* target should not be null on 1st chunk of data */
+ *         ASSERT(server_device_request->target != NULL);
+ *         if (strcmp(server_device_request->target, device_request_target) != 0)
+ *         {   /* unsupported target. let's cancel it */
+ *             response_data->message_data = idigi_msg_error_cancel;
+ *             goto done;
+ *         }
+ *
  *         /* 1st chunk of device request so let's allocate memory for it
  *          * and setup user_context for the client_device_request.
  *          */
- *         void * ptr;
- * 
- *         bool const is_ok = os_malloc(sizeof *client_device_request, &ptr);
- *         if (!is_ok || ptr == NULL)
  *         {
- *             /* no memeory so cancel this request */
- *             APP_DEBUG("process_device_request: malloc fails for device request on session %p\n", server_device_request->device_handle);
- *             response_data->message_status = idigi_msg_error_memory;
- *             goto done;
- *         }
+ *             void * ptr;
  * 
- *         client_device_request = ptr;
+ *             bool const is_ok = os_malloc(sizeof *client_device_request, &ptr);
+ *             if (!is_ok || ptr == NULL)
+ *             {
+ *                 /* no memeory so cancel this request */
+ *                 APP_DEBUG("process_device_request: malloc fails for device request on session %p\n",
+ *                            server_device_request->device_handle);
+ *                 response_data->message_status = idigi_msg_error_memory;
+ *                 goto done;
+ *             }
+ * 
+ *             client_device_request = ptr;
+ *         }
  *         client_device_request->length_in_bytes = 0;
  *         client_device_request->response_data = NULL;
  *         client_device_request->device_handle = server_device_request->device_handle;
+ *         client_device_request->target = (char *)device_request_target;
+ *         /* setup response data for this target */
+ *         client_device_request->response_data = device_response_data; 
+ *
+ *         /* setup the user_context for our device request data */
+ *         response_data->user_context = client_device_request;  
  *         device_request_active_count++;
- * 
- *         response_data->user_context = client_device_request;  /* setup the user_context */
- * 
- *         ASSERT(server_device_request->target != NULL);
- *         if (strcmp(server_device_request->target, device_request_target) == 0)
- *         {
- *             client_device_request->target = (char *)device_request_target;
- *             client_device_request->response_data = device_response_data;
- *         }
- *         else
- *         {
- *             client_device_request->target = NULL;
- *             client_device_request->response_data = device_response_error_data;
- *         }
  * 
  *     }
  *     else
@@ -358,29 +334,26 @@
  *     }
  * 
  *     {
- *         /* prints device request data */
+ *         /* prints out the request data */
  *         char * device_request_data = server_data->data;
  *         if (client_device_request->target != NULL)
  *         {
- *             APP_DEBUG("Device request data: received data = \"%.*s\" for target = \"%s\"\n", server_data->length_in_bytes,
- *                     device_request_data, client_device_request->target);
+ *             /* target is only available on 1st chunk of data */
+ *             APP_DEBUG("Device request data: received data = \"%.*s\" for target = \"%s\"\n", 
+ *                        server_data->length_in_bytes, device_request_data, client_device_request->target);
  *         }
  *         else
  *         {
- *             APP_DEBUG("Device request data: received data = \"%.*s\" for unknown target\n", server_data->length_in_bytes,
+ *             APP_DEBUG("Device request data: received data = \"%.*s\"\n", server_data->length_in_bytes,
  *                     device_request_data);
  * 
  *         }
  *     }
  * 
- *     client_device_request->length_in_bytes += server_data->length_in_bytes;
- * 
  *     if ((server_data->flags & IDIGI_MSG_LAST_DATA) == IDIGI_MSG_LAST_DATA)
- *     {   /* No more chunk. setup the response length to be sent */
+ *     {   /* No more chunk. setup and prepare the response to be sent */
  *         client_device_request->length_in_bytes = strlen(client_device_request->response_data);
  *     }
- * 
- *     response_data->message_status = idigi_msg_error_none;
  * 
  * done:
  *     return status;
@@ -400,10 +373,12 @@
  * 
  *     {
  *         idigi_data_service_block_t * const client_data = response_data->client_data;
- *         /* get number of bytes written to the client data buffer */
- *         size_t const bytes = (client_device_request->length_in_bytes < client_data->length_in_bytes) ? client_device_request->length_in_bytes : client_data->length_in_bytes;
+ *         /* get number of bytes going to be written to the client data buffer */
+ *         size_t const bytes = (client_device_request->length_in_bytes < client_data->length_in_bytes) ? 
+ *                               client_device_request->length_in_bytes : client_data->length_in_bytes;
  * 
- *         APP_DEBUG("Device response data: send response data = %.*s\n", bytes, client_device_request->response_data);
+ *         APP_DEBUG("Device response data: send response data = %.*s\n", bytes, 
+ *                                         client_device_request->response_data);
  * 
  *         /* let's copy the response data to service_response buffer */
  *         memcpy(client_data->data, client_device_request->response_data, bytes);
@@ -412,13 +387,7 @@
  * 
  *         client_data->length_in_bytes = bytes;
  *         client_data->flags = (client_device_request->length_in_bytes == 0) ? IDIGI_MSG_LAST_DATA : 0;
- *         if (client_device_request->target == NULL)
- *         {
- *             client_data->flags |= IDIGI_MSG_DATA_NOT_PROCESSED;
- *         }
  *     }
- * 
- *     response_data->message_status = idigi_msg_error_none;
  * 
  *     if (client_device_request->length_in_bytes == 0)
  *     {   /* done */
@@ -446,42 +415,7 @@
  *     return status;
  * }
  * 
- * idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t const request,
- *                                                       void const * request_data, size_t const request_length,
- *                                                       void * response_data, size_t * const response_length)
- * {
- *     idigi_callback_status_t status = idigi_callback_continue;
- *     idigi_data_service_msg_request_t const * const service_device_request = request_data;
- * 
- *     UNUSED_PARAMETER(request_length);
- *     UNUSED_PARAMETER(response_length);
- * 
- *     if (request == idigi_data_service_device_request)
- *     {
- *         switch (service_device_request->message_type)
- *         {
- *         case idigi_data_service_type_have_data:
- *             status = process_device_request(request_data, response_data);
- *             break;
- *         case idigi_data_service_type_need_data:
- *             status = process_device_response(request_data, response_data);
- *             break;
- *         case idigi_data_service_type_error:
- *             status = process_device_error(request_data, response_data);
- *             break;
- *         default:
- *             APP_DEBUG("idigi_put_request_callback: unknown message type %d for idigi_data_service_device_request\n", service_device_request->message_type);
- *             break;
- *         }
- *     }
- *     else
- *     {
- *         APP_DEBUG("Unsupported %d  (Only support idigi_data_service_device_request)\n", request);
- *     }
- * 
- *     return status;
- * }
- * @endcode
+  * @endcode
  *
  * </td></tr>
  * </table>
