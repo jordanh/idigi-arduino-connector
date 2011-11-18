@@ -42,9 +42,8 @@
  * @section language Language Support
  *
  * The software provided is C89, C99 and ANSI compliant. The sample platforms provided use standard C 
- * calls which are available in most operating systems; the networking portion of the 
- * sample uses Berkley sockets calls.  If you are running on a Linux i486 based platform 
- * and using the GNU toolchain the samples can be run without any modifications.
+ * calls which are available in most operating systems.  If you are running on a Linux i486 based platform 
+ * and using the GNU toolchain the Linux platform and samples can be run without any modifications.
  *
  * @section requirements Platform Requirements
  *
@@ -91,10 +90,10 @@
  *
  * To communicate with your device remotely without using the graphical interface
  * to the iDigi Device Cloud you can use @b iDigi @b Web @b Services.  Web service 
- * requests are sent from an application to the iDigi Clould which then communicates 
- * with the device, this allows for bidirectional machine to machine communication.
- * Python samples are provided to show how to communicate to a device over the
- * iDigi Device Cloud.
+ * requests are sent from an application to the iDigi Device Cloud, the iDigi
+ * Device Cloud then communicates with the device, this allows for bidirectional
+ * machine to machine communication.  Python samples are provided to show how to
+ * communicate to a device over the iDigi Device Cloud.
  *
  * @section threading Threading Model
  *
@@ -102,7 +101,7 @@
  * suggested in a multithreaded OS that the IIK be run as a separate thread, in a
  * single threaded system a step routine is provided which runs a portion of the
  * IIK and must be called periodically.  In the multithreaded model the IIK provides
- * a routine which runs the IIK and does not return, this routine is intended
+ * a routine which executes the IIK and does not return, this routine is intended
  * to be run as separate thread.  The IIK is designed to run in a preemptive or
  * cooperative multithreaded system, the run routine will call sleep to relinquish
  * control of the CPU.
@@ -133,11 +132,11 @@
  * </tr>
  * <tr>
  * <td>public/run</td>
- * <td>Examples of running the IIK as a separate thread</td>
+ * <td>Platforms and samples for running the IIK as a separate thread</td>
  * </tr>
  * <tr>
  * <td>public/step</td>
- * <td>Examples of running the IIK in a single threaded model</td>
+ * <td>Platforms and samples for running the IIK in a single threaded model</td>
  * </tr>
  * <tr>
  * <td>public/run/platforms/linux</td>

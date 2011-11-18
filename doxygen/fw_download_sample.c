@@ -76,7 +76,7 @@
  * <td>platforms/<i>my_platform</i></td>
  * </tr>
  * <tr>
- * <td>main.o</td>
+ * <td>main.c</td>
  * <td>Starting point of program, dependent on build environment</td>
  * <td>platforms/<i>my_platform</i></td>
  * </tr>
@@ -88,7 +88,7 @@
  * The following include paths are required:
  *
  * @li public/include
- * @li run/platforms/linux (substitute with your platform)
+ * @li run/platforms/@a my_platform
  *
  * @subsection Defines
  *
@@ -96,20 +96,29 @@
  *
  * @li -DIDIGI_VERSION=0x1010000UL (indicates version 1.1 of the IIK)
  *
- * @section Results
+ * @section Running
  *
- * Firmware downloads can be initiated by the server using the iDigi Cloud
- * console or by issuing a @ref services "SCI update_firmare operation".
+ * Once successfully built, run the executable, in Linux type ./idigi to run the
+ * sample.
  *
- * To initiate a firmware download from the server login into the server console
- * and click on your device as described in the @ref idigi_login "Getting Started Section".
+ * Firmware downloads can be initiated by the server using the iDigi Device Cloud
+ * GUI or by issuing a @ref services "SCI update_firmare operation".
+ *
+ * @subsection fw_gui Firmware Download using iDigi Device Cloud GUI
+ *
+ * Login to the iDigi Device cloud at http://www.idigi.com  and click on your device 
+ * (described in the @ref idigi_login "Getting Started Section").
  * Once you are logged in and see your device Click the Refresh button. 
  * The device will reconnect to the iDigi Developer Cloud.
  *
  * @image html sample3.png
  *
  * Then click the Firmware Update button to update your firmware, and then select 
- * the file that is your firmare image on your local machine.
+ * the file that is your firmare image on your local machine.  The image will then
+ * start to download to your machine, the GUI will indicate when it's complete.
+ *
+ * @note The firmware image name must match the regular expression given to 
+ * filter names, see @ref fw_namespec.
  *
  * @image html sample4.png
  * 
@@ -117,5 +126,9 @@
  * application, since this is only a sample the fiwmware is not updated on the
  * device.  The application prints out the target, code size and checksum of the
  * downloaded image.
+ *
+ * @subsection fw_sci Firmware Download using iDigi Web Services
+ *
+ *
  *
  */

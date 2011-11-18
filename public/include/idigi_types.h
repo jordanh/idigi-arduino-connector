@@ -36,12 +36,18 @@
 #include <limits.h>
 #include <assert.h>
 
-#if __STDC_VERSION__ >= 199901L
+#if __STDC_VERSION__ >= 199901L /* Test used for C89/C99 Compiler */
+  /* 
+   * If the compilier is C99/C89 compliant, then stdint.h will have the defines
+   * we need.
+   */
   #include <stdint.h>
-  #include <stdbool.h>
 #else
 /**
 * @defgroup user_types User Defined C types
+* If your compiler is not C89/C99 compliant these defines are used: you will need 
+* to define them approprialtly for your system.  If your compiler is C89/C99 compliant 
+* then the types from stdint.h are used.
 * @{
 */
 /** 
@@ -83,20 +89,23 @@ typedef int idigi_network_handle_t;
 #include <stdlib.h>
 #include <stdarg.h>
 
-
 /**
 * @defgroup DEBUG_MACROS User Defined Debug Macros
 * @{
 */
 /**
- * Debug output from the IIK, outputs a formatted string, operates as printf
- * but accepts an array of arguments, this routine is part of the standard
- * C library.
+ * Debug output from the IIK, Writes a formatted string to stdout, expanding the format 
+ * tags with the value of the argument list arg.  This function behaves exactly as 
+ * printf except that the variable argument list is passed as a va_list instead of a 
+ * succession of arguments.
+ *
+ * C library. The prototype for vprintf is vprintf(const char *format, va_list ap);
+ *
  */
 #define USER_DEBUG_VPRINTF  vprintf
 
 /**
- *  Verify that the condition is true, otherwise halt the program
+ *  Verify that the condition is true, otherwise halt the program.
  */
 #define ASSERT(cond)        assert(cond)
 #else

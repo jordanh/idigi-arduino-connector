@@ -43,10 +43,10 @@
  * Routine to get the IP address, you will need to modify this routine for your 
  * platform.
  */
-static bool get_ip_address(uint8_t ** ip_address, size_t *size)
+static int get_ip_address(uint8_t ** ip_address, size_t *size)
 {
     int             fd = -1;
-    bool            status=false;
+    int            status=-1;
     char            *buf = malloc(MAX_INTERFACES*sizeof(struct ifreq));
     struct ifconf   conf;
     unsigned int    entries = 0;
@@ -101,7 +101,7 @@ static bool get_ip_address(uint8_t ** ip_address, size_t *size)
     /* Fill in the size and IP address */
     *size       = sizeof ip_addr.s_addr;
     *ip_address = (uint8_t *)&ip_addr.s_addr;
-    status = true;
+    status = 0;
 
 error:
     if (fd != -1)
@@ -118,17 +118,17 @@ error:
 /* MAC address used in this sample */
 static uint8_t device_mac_addr[MAC_ADDR_LENGTH] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-static bool get_mac_addr(uint8_t ** addr, size_t * size)
+static int get_mac_addr(uint8_t ** addr, size_t * size)
 {
 #error "Specify device MAC address for LAN connection"
 
     *addr = device_mac_addr;
     *size = sizeof device_mac_addr;
 
-    return true;
+    return 0;
 }
 
-static bool get_device_id(uint8_t ** id, size_t * size)
+static int get_device_id(uint8_t ** id, size_t * size)
 {
     static uint8_t device_id[DEVICE_ID_LENGTH] = {0};
 
@@ -147,10 +147,10 @@ static bool get_device_id(uint8_t ** id, size_t * size)
     *id   = device_id;
     *size = sizeof device_id;
 
-    return true;
+    return 0;
 }
 
-static bool get_vendor_id(uint8_t ** id, size_t * size)
+static int get_vendor_id(uint8_t ** id, size_t * size)
 {
 #error  "Specify vendor id"
     static const uint8_t device_vendor_id[VENDOR_ID_LENGTH] = {0x00, 0x00, 0x00, 0x00};
@@ -158,10 +158,10 @@ static bool get_vendor_id(uint8_t ** id, size_t * size)
     *id   = (uint8_t *)device_vendor_id;
     *size = sizeof device_vendor_id;
 
-    return true;
+    return 0;
 }
 
-static bool get_device_type(char ** type, size_t * size)
+static int get_device_type(char ** type, size_t * size)
 {
 #error "Specify device type"
     static const char const *device_type = "Linux Application";
@@ -170,10 +170,10 @@ static bool get_device_type(char ** type, size_t * size)
     *type = (char *)device_type;
     *size = strlen(device_type);
 
-    return true;
+    return 0;
 }
 
-static bool get_server_url(char ** url, size_t * size)
+static int get_server_url(char ** url, size_t * size)
 {
 #error "Specify iDigi Server URL"
     static const char const *idigi_server_url = "developer.idigi.com";
@@ -182,10 +182,10 @@ static bool get_server_url(char ** url, size_t * size)
     *url = (char *)idigi_server_url;
     *size = strlen(idigi_server_url);
 
-    return true;
+    return 0;
 }
 
-static bool get_connection_type(idigi_connection_type_t ** type)
+static int get_connection_type(idigi_connection_type_t ** type)
 {
 #error "Specify LAN or WAN connection type"
 
@@ -194,19 +194,19 @@ static bool get_connection_type(idigi_connection_type_t ** type)
 
     *type = &device_connection_type;
 
-    return true;
+    return 0;
 }
 
-static bool get_link_speed(uint32_t **speed, size_t * size)
+static int get_link_speed(uint32_t **speed, size_t * size)
 {
 #error "Specify link speed for WAN connection type"
     UNUSED_PARAMETER(speed);
     UNUSED_PARAMETER(size);
 
-    return true;
+    return 0;
 }
 
-static bool get_phone_number(uint8_t ** number, size_t * size)
+static int get_phone_number(uint8_t ** number, size_t * size)
 {
 #error "Specify phone number dialed for WAN connection type"
     /* 
@@ -215,12 +215,12 @@ static bool get_phone_number(uint8_t ** number, size_t * size)
     UNUSED_PARAMETER(number);
     UNUSED_PARAMETER(size);
 
-    return true;
+    return 0;
 }
 
 /* Keep alives are from the prospective of the server */
 /* This keep alive is sent from the server to the device */
-static bool get_tx_keepalive_interval(uint16_t **interval, size_t * size)
+static int get_tx_keepalive_interval(uint16_t **interval, size_t * size)
 {
 #error "Specify server to device TX keepalive interval in seconds"
 
@@ -230,12 +230,12 @@ static bool get_tx_keepalive_interval(uint16_t **interval, size_t * size)
     *interval = &device_tx_keepalive_interval;
     *size = sizeof device_tx_keepalive_interval;
 
-    return true;
+    return 0;
 }
 
 
 /* This keep alive is sent from the device to the server  */
-static bool get_rx_keepalive_interval(uint16_t **interval, size_t * size)
+static int get_rx_keepalive_interval(uint16_t **interval, size_t * size)
 {
 #error "Specify server to device RX keepalive interval in seconds"
 #define DEVICE_RX_KEEPALIVE_INTERVAL_IN_SECONDS     60
@@ -244,10 +244,10 @@ static bool get_rx_keepalive_interval(uint16_t **interval, size_t * size)
     *interval = &device_rx_keepalive_interval;
     *size = sizeof device_rx_keepalive_interval;
 
-    return true;
+    return 0;
 }
 
-static bool get_wait_count(uint16_t **count, size_t * size)
+static int get_wait_count(uint16_t **count, size_t * size)
 {
 #error "Specify the number of times that not receiving keepalive messages from server is allowed"
 #define DEVICE_WAIT_COUNT     5
@@ -259,17 +259,17 @@ static bool get_wait_count(uint16_t **count, size_t * size)
     *count = &device_wait_count;
     *size = sizeof device_wait_count;
 
-    return true;
+    return 0;
 }
 
-static bool get_firmware_support(void)
+static int get_firmware_support(void)
 {
-    return true;
+    return 1;
 }
 
-static bool get_data_service_support(void)
+static int get_data_service_support(void)
 {
-    return true;
+    return 1;
 }
 
 /* End of IIK configuration routines */
@@ -278,10 +278,10 @@ static bool get_data_service_support(void)
  * This routine is called when a configuration error is encountered by the IIK.
  * This is currently used as a debug tool for finding configuration errors.
  */
-static bool idigi_config_error(idigi_error_status_t * const error_data)
+static int idigi_config_error(idigi_error_status_t * const error_data)
 {
 
-    bool status = true;
+    int status = 0;
 
     char const * error_status_string[] = {"idigi_success", "idigi_init_error",
                                           "idigi_configuration_error",
@@ -387,7 +387,7 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
                                               size_t * const response_length)
 {
     idigi_callback_status_t status;
-    bool ret = false;
+    int ret = -1;
 
     UNUSED_PARAMETER(request_length);
 
@@ -446,23 +446,23 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
         break;
 
     case idigi_config_firmware_facility:
-        *((bool *)response_data) = get_firmware_support();
-        ret = true;
+        *((int *)response_data) = get_firmware_support();
+        ret = 0;
         break;
 
     case idigi_config_data_service:
-        *((bool *)response_data) = get_data_service_support();
-        ret = true;
+        *((int *)response_data) = get_data_service_support();
+        ret = 0;
         break;
 
     case idigi_config_max_transaction:
         #define IDIGI_MAX_MSG_TRANSACTIONS   1
         *((uint8_t *)response_data) = IDIGI_MAX_MSG_TRANSACTIONS;
-        ret = true;
+        ret = 0;
         break;
     }
 
-    status = (ret == true) ? idigi_callback_continue : idigi_callback_abort;
+    status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
     return status;
 }
 

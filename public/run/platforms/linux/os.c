@@ -46,9 +46,9 @@
  * @param [in] ptr  pointer to be filled in with the address of
  *                  the allocated memory
  *  
- * @retval true  Memory was allocated
+ * @retval 0  Memory was allocated
  * 
- * @retval false  Memory was not allocated
+ * @retval -1  Memory was not allocated
  *
  * Example Usage:
  * @code
@@ -57,15 +57,15 @@
  *  
  * @see os_free
  */
-bool os_malloc(size_t const size, void ** ptr)
+int os_malloc(size_t const size, void ** ptr)
 {
-    bool status=true;
+    int status=-1;
 
     *ptr = malloc(size);
     ASSERT(*ptr != NULL);
     if (*ptr != NULL)
     {
-        status = true;
+        status = 0;
     }
 
     return status;
@@ -101,7 +101,6 @@ void os_free(void * const ptr)
 }
 
 
-extern time_t system_start_time;
 /**
  * @brief   Get the system time.
  *
@@ -120,11 +119,11 @@ extern time_t system_start_time;
  * @endcode 
  *  
  */
-bool os_get_system_time(uint32_t * const uptime)
+int os_get_system_time(uint32_t * const uptime)
 {
     time((time_t *)uptime);
 
-    return true;
+    return 0;
 }
 
 /**
@@ -159,7 +158,7 @@ idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
                                         void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    bool ret=false;
+    int ret=-1;
 
     UNUSED_PARAMETER(request_length);
     UNUSED_PARAMETER(response_length);
@@ -168,7 +167,7 @@ idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
     {
     case idigi_os_malloc:
         ret    = os_malloc(*((size_t *)request_data), (void **)response_data);
-        status = (ret == true) ? idigi_callback_continue : idigi_callback_busy;
+        status = (ret == 0) ? idigi_callback_continue : idigi_callback_busy;
         break;
 
     case idigi_os_free:
@@ -178,7 +177,7 @@ idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
 
     case idigi_os_system_up_time:
         ret    = os_get_system_time((uint32_t *)response_data);
-        status = (ret == true) ? idigi_callback_continue : idigi_callback_abort;
+        status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
         break;
 
     case idigi_os_sleep:
