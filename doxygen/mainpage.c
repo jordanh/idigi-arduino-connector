@@ -79,8 +79,8 @@
  *  
  * @subsection features IIK Features
  *     @li Send data to and from a device over the iDigi Device Cloud
- *     @li Update firmware in the device
- *     @li View and change the configuration settings of a device
+ *     @li Update firmware on the device
+ *     @li View the device configuration
  *     @li Reboot a device
  *
  * @subsection communicating Communicating with your device
@@ -93,6 +93,8 @@
  * to the iDigi Device Cloud you can use @b iDigi @b Web @b Services.  Web service 
  * requests are sent from an application to the iDigi Clould which then communicates 
  * with the device, this allows for bidirectional machine to machine communication.
+ * Python samples are provided to show how to communicate to a device over the
+ * iDigi Device Cloud.
  *
  * @section threading Threading Model
  *
@@ -106,8 +108,8 @@
  * control of the CPU.
  *
  * @note You must decide before proceeding if you want to run as a single threaded
- * model (step) or run the IIK as a separate thread (run).
- * 
+ * model (step) or run the IIK as a separate thread (run).  In a small OS with no
+ * RTOS you should use the step routine, otherwise you should use the run routine.
  *
  * @section code_organization Source Code Organization
  *
@@ -172,12 +174,12 @@
  *
  * @subsection platforms platforms Directory
  * For each supported platform there is a subdirectory along with a set of interface routines.
+ * The Getting Started Procedure will walk you through setting up your platform.
  *
  * @subsection samples samples Directory
  * Samples on how to use the IIK, the compile_and_link sample is used to verify
  * that your new envirorment is able to build. There is a sample for each major
- * feature in the IIK, along with the sample the documentation is provided in this
- * guide.
+ * feature in the IIK, there is documentation in this guide for each sample.
  *
  * @section zlib zlib Support
  * The zlib software library is used for data compression by the IIK, the zlib library 
