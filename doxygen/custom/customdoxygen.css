@@ -60,6 +60,11 @@ p.endtd {
 	margin-bottom: 2px;
 }
 
+p.indent {
+	margin-left: 20pt;
+}
+
+
 /* @end */
 
 caption {
@@ -751,6 +756,29 @@ table.fieldtable {
         font-size: 8pt;
 }
 
+
+table.apitable {
+    border: 4px solid #2D4068;
+    border-spacing: 0px;
+}
+
+.apitable td, apitable th {
+    border: 1px solid #2D4068;
+    padding: 3px 7px 5px;
+}
+
+.apitable th.title {
+    border: 1px solid #2D4068;
+    background-color: #33CC66;
+    font-size: 110%;
+    text-align:center;
+}
+
+.apitable th {
+    border: 1px solid #2D4068;
+    background-color: #D3D3D3;
+    font-size: 100%;
+}
 
 div.summary
 {
