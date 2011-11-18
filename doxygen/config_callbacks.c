@@ -3,7 +3,7 @@
  * @htmlinclude nav.html
  *
  * @section config Configuration Callbacks
- * The IIK interafaces to the platforms configuration through the callbacks listed below, these
+ * The IIK interfaces to the platforms configuration through the callbacks listed below, these
  * are called through the application callback described in the @ref api1_overview.
  * 
  *  -# @ref device_id

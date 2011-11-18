@@ -30,69 +30,90 @@
  *              -# @ref view_result_on_cloud
  *          -# @ref step9
  * 
- * This getting started guide will walk you through the stpes necessary to
+ * This getting started guide will walk you through the steps necessary to
  * get an application running with the IIK, this application will connect your device to the
- * iDigi server and the configuration will be displayed in ConnectWare Manager.
+ * iDigi server and the configuration will be displayed in the iDigi Device Cloud Portal
+ * graphical user interface.
  *
  * @section step1 Step 1: Determine if your compiler is C89 or C99 compliant
  *
- * If your compiler is not C89 or C99 compliant you will have to modify idigi_types.h. 
- * If C99 compliant, then the standard C99 header file stdint.h is included. Otherwise, 
- * if not C99 compliant, data types uint8_t, uint16_t, uint32_t are defined. Note these defines assume at 
- * least a 32-bit machine. If your platform is not at least a 32-bit machine, open up the 
- * file public/include/idigi_types.h and modify the types listed below.
+ * If your compiler is C89 or C99 compliant and you are on a 32-bit processor
+ * you can skip to the next step. If your compilier is not C89 or C99 compliant you 
+ * will have to edit public/include/idigi_types.h and review the data types @ref uint8_t, 
+ * @ref uint16_t, @ref uint32_t. Note that these are defined for a 32-bit machine. 
  *
  *  @li @ref uint8_t
  *  @li @ref uint16_t
  *  @li @ref uint32_t
  *
  * @subsection debug_macros Implement the debug macros
- * The IIK uses the two debug macros listed below, review these definions and
- * modify them for your system.
+ * The file public/include/idigi_api.h implements the two macros listed below, these
+ * are used to debug the IIK.
+ *
+ * Review these definions and modify these for your platform:
  * 
  *  @li @ref USER_DEBUG_VPRINTF
  *  @li @ref ASSERT 
  * 
- * If you don't have printf or assert available you can redefine them to call corresponding 
- * routines in your platform. 
- *
- * These are only used during debug and are turned off if the 
- * debug flag is not specified when building the IIK.  The USER_DEBUG_VPRINTF is used throughout the 
- * IIK and samples to display useful debug output.
+ * If you don't have vprintf or assert available redefine these macros to call corresponding 
+ * routines for your platform. 
  *
  * @section step2 Step 2: Modify idigi_config.h and set the endianess
  *
  * Open the file public/include/idigi_config.h and set the endianess, and define @ref IDIGI_LITTLE_ENDIAN 
- * for little endian or comment out for big endian.
+ * for little endian or comment out for big endian platforms.
  *
  * @section step3 Step 3: Build the compile_and_link sample
  *
- * The first sample we are going to run is in the public/run/samples/compile_and_link directory,
+ * In this step we are going to build the compile_and_link sample,
  * this sample will verify that your build environment is setup correctly.
- * You need to add the source files and include paths to your build system described
+ * You need to add the source files and include paths to your build system listed
  * below.
  *
  * @subsection idigi_initialization IIK Initialization
  *
  * The routine idigi_init() is called to initialize the IIK, currently this is
- * called from the routine main() in main.c, you will need to call idigi_init()
+ * called from the routine main() in main.c; you will need to call idigi_init()
  * at the initialization point for your application. For the compile_and_link
  * sample you can call idigi_init as:
  *
+ * @code
+ * /* 
+ *  * Call idigi_init() where you intend to initialize the IIK, s NULL callback 
+ *  * is passed into idigi_init() for this sample, we want the IIK to be linked in 
+ *  * to veify the build.
+ *  */
  * (void)idigi_init((idigi_callback_t)0);
+ * @endcode
  *
- * This will cause the IIK library to be linked in and verify the build.
+ * If you are not using main() you will need to add in the call to idigi_init()
+ * where appropriate.
  *
  * @subsection add_files Add the source files to your build system
  * The following is a list of files to add to your build system, there is a sample
  * linux Makefile provided (public/samples/compile_and_link/Makefile) which you 
- * can use as a reference.
- *
- *  @li private/idigi_api.c
- *  @li public/samples/compile_and_link/main.c (if applicable)
- *
- * The IIK library consists on one C file idigi_api.c, if you use main.c you 
- * will also need to include it.
+ * can use as a reference.  Add the following files to your make/build system.
+ * 
+ * @htmlonly
+ * <table border="8">
+ * <tr>
+ * <th>Name</td>
+ * <th>Description</td>
+ * <th>Location</td>
+ * </tr>
+ * <tr>
+ * <td>idigi_api.c</td>
+ * <td>Contains the code for the IIK</td>
+ * <td>private</td>
+ * </tr>
+ * <tr>
+ * <td>main.c</td>
+ * <td>Program entry point, calls @endhtmlonly idigi_init() @htmlonly</td>
+ * <td>public/run/samples/compile_and_link</td>
+ * </tr>
+ * <tr>
+ * </table>
+ * @endhtmlonly
  *
  * @subsection add_path Add the include paths
  * The following is a list of include paths to add to your system:
@@ -102,7 +123,8 @@
  * @subsection build_sample Build the sample
  *
  * Now that you have the build environment setup, verify that you can compile and
- * link.  If you are using the Makefile provided, type make in the sample directory.
+ * link.  If you are using the Makefile provided, type make in the compile_and_link directory, 
+ * otherwise execute the build for your system.
  * If you are experiencing a build problem double check the steps listed above.
  * There is only one include path and two C files to build this sample.  Once the
  * build is successful you can proceed to the next step.
@@ -159,12 +181,17 @@
  *
  * @subsection idigi_device_id Obtain an iDigi Device ID
  *
- * The customer is responsible for creating their own unique device ID. Device IDs are used 
- * to identify devices in iDigi. A device ID is a 16-octet number that is unique to the device 
- * and does not change over its lifetime. A device ID is derived from globally unique values 
- * already assigned to a device (such as a MAC address, IMEI, etc).
- * The canonical method for writing device IDs is as four groups of eight hexadecimal digits 
- * separated by a dash. An example device ID is: @b 01234567-89ABCDEF-01234567-89ABCDEF
+ * Device IDs are a globally unique identifier for iDigi clients. The Device ID is a 
+ * 16-octet value derived from the MAC address of a network interface on the client.
+ * The mapping from MAC address to Device ID consist of inserting "FFFF" in the middle 
+ * of the MAC and setting all other bytes of the Device ID to 0.
+ * For Example:
+ * MAC Address 00:04:2D:01:6A:53, would map to a Device ID: 00000000-00042DFF-FF016A53
+ * If a client has more than one network interface, it does not matter to iDigi which 
+ * network interface MAC is used for the basis of the Device ID. If the MAC is read 
+ * directly from the network interface to generate the client's Device ID, care must be 
+ * taken to always use the same network interface's MAC since there is a unique mapping 
+ * between a device and a Device ID.
  *
  *
  * @section step5 Step 5: Setup your platform
@@ -173,11 +200,13 @@
  * if none of the available platforms are similar to yours you can use the 
  * template platform. These routines are callbacks which are described in detail
  * in the API section.  In this guide we use the public/run/platforms/linux as an
- * example, but all platforms have the same structure.
+ * example, but all platforms have the same structure.   So choose a platform (or copy an existing one)
+ * and go into that directory.
  *
  * @subsection os_routines OS Routines
  * Open the file os.c and implement the routines listed below, for the linux platform
- * the file is located at public/run/platforms/linux/os.c.
+ * the file is located at public/run/platforms/@a my_platform/os.c.  Click on the routine
+ * to see a description, then modify to operate with your platform.
  *
  *  @li os_malloc()
  *  @li os_free()
@@ -188,7 +217,7 @@
  * Open the file network.c and implement the network interface routines. 
  * The network interface routines in the sample provided are implemented using the standard 
  * Linux BSD socket calls. You may have to modify the routines in this file based on your 
- * platforms socket implementation.
+ * platforms network implementation.
  *
  * The following is a list of network interface routines which must be implemented:
  *  @li network_connect()
@@ -203,7 +232,23 @@
  * for your platform and implement the configuration routines.
  * All configuration routines are passed in a pointer to a pointer, along with a pointer to the size. 
  * The address of the configuration item is stored in the pointer passed in, and the size is assigned to the pointer to the size variable.
- * For example get_server_url() is the routine used to retrieve the iDigi Developer Cloud URL:
+ * For example get_server_url() is the routine used to retrieve the iDigi Developer Cloud URL
+ * and is shown below.
+ * @code
+ *  static int get_server_url(char ** url, size_t * size)
+ *  {
+ *  #error "Specify iDigi Server URL" /* This #error must be removed to compile */
+ *      /* Statically allocated string containing the sever URL */
+ *      static const char const *idigi_server_url = "developer.idigi.com";
+ *  
+ *      /* Fill in the pointer with the address of the URL in memory */
+ *      *url = (char *)idigi_server_url;
+ *      /* Fill in the size */
+ *      *size = strlen(idigi_server_url);
+ *  
+ *      return 0;
+ *  }
+ * @endcode
  *
  * @note The required routines contain the @b #error preprocessor directive 
  * which must be removed before compiling.
@@ -230,24 +275,81 @@
  *
  * @subsection application_start iDigi Initialization
  *
+ * As in the previous sample you will need to setup the call to idigi_init()
+ * where you intend to start the IIK, in this case you will pass in the 
+ * application callback.
+ *
+ * @code
+ * /* Initialize the IIK with the application callback */
+ * idigi_handle = idigi_init((idigi_callback_t) idigi_callback);
+ * @endcode
+ *
  * In the Linux platform provided the routine main() creates a thread which then
  * calls idigi_run(), you will need to setup a similar thread in your environment
- * or call idigi_step().
+ * or call idigi_step() periodically.
+ * This thread is shown below:
+ * @code
+ * static void * idigi_run_thread(void * arg)
+ * {
+ *     idigi_status_t status;
+ * 
+ *     APP_DEBUG("idigi_run thread starts\n");
+ * 
+ *     /* Run the IIK, this will only return on an IIK abort */
+ *     status = idigi_run((idigi_handle_t)arg);
+ * 
+ *     APP_DEBUG("idigi_run thread exits %d\n", status);
+ * 
+ *     pthread_exit(arg);
+ * }
+ * @endcode
  *
  * @section step6 Step 6: Setup your build enviroment
  *
  * @subsection add_c_files Add the source files to your build system
  *
- * To build the connect_to_idigi sample you will need to add the following
- * files to your build envirment note that in this procedure we are
- * using the linux platform.
+ * To build the connect_to_idigi sample you will need to add the files shown below 
+ * to your build envirment.
  *
- * @li private/idigi_api.c
- * @li public/run/samples/connect_to_idigi/application.c
- * @li public/run/samples/connect_to_idigi/main.c (if applicable)
- * @li public/run/platforms/linux/os.c
- * @li public/run/platforms/linux/network.c
- * @li public/run/platforms/linux/config.c
+ * @htmlonly
+ * <table border="8">
+ * <tr>
+ * <th>Name</td>
+ * <th>Description</td>
+ * <th>Location</td>
+ * </tr>
+ * <td>idigi_api.c</td>
+ * <td>Contains the code for the IIK</td>
+ * <td>private</td>
+ * </tr>
+ * <tr>
+ * <td>application.c</td>
+ * <td>Contains the code which runs the sample</td>
+ * <td>public/run/samples/connect_to_idigi</td>
+ * </tr>
+ * <tr>
+ * <td>os.c</td>
+ * <td>Operating System Routines</td>
+ * <td>public/run/platforms/<i>my_platform</i></td>
+ * </tr>
+ * <tr>
+ * <td>network.c</td>
+ * <td>Network Interface</td>
+ * <td>public/run/platforms/<i>my_platform</i></td>
+ * </tr>
+ * <tr>
+ * <td>config.c</td>
+ * <td>Configuration Routines</td>
+ * <td>public/run/platforms/<i>my_platform</i></td>
+ * </tr>
+ * <tr>
+ * <td>main.c (if applicable)</td>
+ * <td>Program entry point, calls @endhtmlonly idigi_init() @htmlonly</td>
+ * <td>public/run/platforms/<i>my_platform</i></td>
+ * </tr>
+ * <tr>
+ * </table>
+ * @endhtmlonly
  *
  * @subsection add_include_paths Add the include paths
  *
@@ -255,19 +357,20 @@
  * system:
  *
  * @li public/include
- * @li run/platforms/linux
+ * @li run/platforms/@a my_platform
  * 
  * @section step7 Step 7: Build the connect_to_idigi sample
  * Next build the sample, if you are running on Linux you can simply type make in
- * the directory run/samples/connect_to_idigi, if you are not using Linux then
+ * the directory public/run/samples/connect_to_idigi, if you are not using Linux then
  * you will have to build for your enviroment.
  *
  * @section step8 Step 8: View results
  *
- * By default the IDIGI_DEBUG is defined in idigi_config.h, the  name of the
- * executable generated by the Makefile is called idigi.
+ * The name of the executable generated by the linux Makefile is called idigi, in
+ * linux type ./idigi from a console to execute the program.
  *
- * You will see the output shown below when running this sample:
+ * By default @ref IDIGI_DEBUG is defined in idigi_config.h, this will enable the
+ * debug output from the program to be displayed as shown below.
  *
  * Start iDigi
  *
@@ -365,10 +468,11 @@
  *
  * @section step9 Step 9: Next Steps
  *
- * Now that you have a basic sample up and running with the iDigi server, you
+ * Now that you have a basic sample up and running with the iDigi Device Cloud, you
  * can port in more functionality to your application.  We first suggest 
- * reading the @ref api1_overview "API" section of the documentation and then look at the documentation
- * for one of the samples.
+ * reading the @ref api1_overview "API" section of the documentation and then 
+ * select a sample which has the functionality you need and port in the
+ * funcionality to this application.
  *
  * </td></tr>
  * </table>

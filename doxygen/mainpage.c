@@ -1,4 +1,4 @@
- /*! @mainpage iDigi Intergration Kit
+ /*! @mainpage iDigi Integration Kit
  *
  * @htmlinclude nav.html
  *
@@ -41,10 +41,10 @@
  *
  * @section language Language Support
  *
- * The software provided is C89, C99 and ANSI compliant. The samples provided use standard C 
+ * The software provided is C89, C99 and ANSI compliant. The sample platforms provided use standard C 
  * calls which are available in most operating systems; the networking portion of the 
  * sample uses Berkley sockets calls.  If you are running on a Linux i486 based platform 
- * and using the GNU toolchain the linux sample can be run without any modifications.
+ * and using the GNU toolchain the samples can be run without any modifications.
  *
  * @section requirements Platform Requirements
  *
@@ -66,7 +66,7 @@
  * <td>Stack</td>
  * <td>TBD bytes</td>
  * <td>TBD bytes</td>
- * <td>Maximum Stack Useage</td>
+ * <td>Maximum Stack Usage</td>
  * </tr>
  * <tr>
  * <td>Code</td>
@@ -86,21 +86,24 @@
  * @subsection communicating Communicating with your device
  *
  * To manage your device you can use the iDigi Device Cloud Portal, this contains
- * the graphical user interface to the iDigi Device Cloud, using this tool is described
- * in the Getting Started Guide.
+ * the graphical user interface to the iDigi Device Cloud, this tool allows for
+ * complete management of your device.
  *
  * To communicate with your device remotely without using the graphical interface
- * to the iDigi device cloud you will use @b iDigi @b Web @b Services.  This allows
- * for machine to machine communication.  Requests are sent from an application
- * to the iDigi Clould which then communicates with the device, this is described
- * in the Web Services documentation.
+ * to the iDigi Device Cloud you can use @b iDigi @b Web @b Services.  Web service 
+ * requests are sent from an application to the iDigi Clould which then communicates 
+ * with the device, this allows for bidirectional machine to machine communication.
  *
  * @section threading Threading Model
  *
  * The IIK can be run in a multithreaded or single threaded environment, it is
- * suggeted in a multithreaded OS that the IIK be run as a separate thread, in a
+ * suggested in a multithreaded OS that the IIK be run as a separate thread, in a
  * single threaded system a step routine is provided which runs a portion of the
- * IIK and must be called periodically.
+ * IIK and must be called periodically.  In the multithreaded model the IIK provides
+ * a routine which runs the IIK and does not return, this routine is intended
+ * to be run as separate thread.  The IIK is designed to run in a preemptive or
+ * cooperative multithreaded system, the run routine will call sleep to relinquish
+ * control of the CPU.
  *
  * @note You must decide before proceeding if you want to run as a single threaded
  * model (step) or run the IIK as a separate thread (run).
@@ -108,9 +111,9 @@
  *
  * @section code_organization Source Code Organization
  *
- * When uncompressed the directory structure below will be created in the idigi subdirectory.
+ * When uncompressed the directory structure below will be created in the idigi directory.
  * The public directory is divided into step and run, use the appropriate directory
- * based on your system.
+ * based on your threading model.
  *
  * @htmlonly
  * <table border="8">
@@ -151,7 +154,7 @@
  *
  * @subsection private private Directory
  * The private directory contains all the files which are used to build the IIK library. 
- * The user doesn't need to modify any files in this directory. These files are only provided 
+ * The user @b should @b not @b modify @b any @b files @b in @b this @b directory. These files are only provided 
  * so the library can be built using the tool chain for your platform.
  *
  * @subsection public include Directory
@@ -161,29 +164,30 @@
  *
  * @subsection run run Directory
  * Directory containing platforms and samples which run the IIK as a separate 
- * thread in a multitasking envirorment.
+ * thread in a multitasking environment.
  *
 * @subsection step step Directory
  * Directory containing platforms and samples which run the IIK as a single thread
- * in a non multhreaded model.
+ * in a non-multhreaded model.
  *
  * @subsection platforms platforms Directory
- * For each supported platform there is a subdirectory along with a set of routines
- * to interface to the OS.
+ * For each supported platform there is a subdirectory along with a set of interface routines.
  *
  * @subsection samples samples Directory
  * Samples on how to use the IIK, the compile_and_link sample is used to verify
  * that your new envirorment is able to build. There is a sample for each major
- * feature in the IIK.
+ * feature in the IIK, along with the sample the documentation is provided in this
+ * guide.
  *
  * @section zlib zlib Support
  * The zlib software library is used for data compression by the IIK, the zlib library 
  * is required if compression is to be supported by your device. Data compression is 
  * used to reduce the network traffic load. If your application does not require compression, 
- * skip this section. The zlib source code is not under the GNU license, the license is described in zlib.h.
+ * ignore this section. The zlib source code is not under the GNU license, the license is described in zlib.h.
  * The zlib home page is located at: http://zlib.net/. If your platform does not already have the zlib library 
  * you will need to download and build the zlib library. The header file zlib.h is included by the IIK and 
- * must be in the include path for the IIK library. 
+ * must be in the include path for the IIK library.  Instructions on how to build zlib
+ * are provided with the package.
  *
  * @note The first step is to read the @ref getting_started page.
  *
