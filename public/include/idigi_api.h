@@ -717,7 +717,7 @@ typedef enum
 {
     idigi_data_service_type_need_data,      /**< Indicating callback needs to write data onto specified buffer which will be sent to server */
     idigi_data_service_type_have_data,      /**< Indicating a message contains data from server that needs callback to process it. */
-    idigi_data_service_type_error           /**< Indicating error is encountered. Needs to terminate */
+    idigi_data_service_type_error           /**< Indicating error is encountered. Message will be terminated */
 } idigi_data_service_type_t;
 /**
 * @}
@@ -792,10 +792,21 @@ typedef enum
 * @{
 */
 /**
-* idigi_data_service_block_t.
 * Data service block structure is used to send data between iDigi server and client.
-* This structure is used in idigi_data_service_put_request and idigi_data_service_device_request callbacks
+* This structure is used in idigi_data_service_put_request and idigi_data_service_device_request callbacks.
+*
+* When message type is idigi_data_service_type_need_data in idigi_data_service_msg_request_t,
+* callback needs to update this structure with data to be sent to server.
+*
+* When message type is idigi_data_service_type_have_data in idigi_data_service_msg_request_t,
+* this structure contains data for callback to process.
+*
 * @see idigi_data_service_request_t
+* @see idigi_initiate_action
+* @see idigi_data_service_put_request_t
+* @see idigi_data_service_device_request_t
+* @see idigi_data_service_type_t
+
 */
 typedef struct
 {
@@ -812,23 +823,25 @@ typedef struct
 * @{
 */
 /**
-* idigi_data_service_msg_request_t.
 * Data service message request structure is used to tell the callback to process data from
-* iDigi server, to obtain data to be sent to iDigi server, or to cancel an active message.
+* iDigi server, to return data to be sent to iDigi server, or to cancel an active message.
 *
-* This structure is used in idigi_data_service_put_request and idigi_data_service_device_request callbacks
-* (@see idigi_data_service_request_t).
+* This structure is used in idigi_data_service_put_request and idigi_data_service_device_request callbacks.
+*
+* @see idigi_data_service_request_t
+* @see idigi_initiate_action
+* @see idigi_data_service_put_request_t
+* @see idigi_data_service_device_request_t
+* @see idigi_data_service_type_t
 */
 typedef struct
 {
-    void * service_context;                     /**< Service context pointer for idigi_data_service_put_request or idigi_data_service_device_request callback.
-                                                   It's pointer to idigi_data_service_put_request_t for idigi_data_service_put_request callback.
-                                                   @see idigi_initiate_action function with idigi_initiate_data_service.
-                                                   It's pointer to idigi_data_service_device_request_t for idigi_data_service_device_request callback. */
-    idigi_data_service_type_t message_type;     /**< Contains idigi_data_service_type_need_data to request callback for data to be sent to server,
+    void * service_context;                     /**< Service context is pointer to idigi_data_service_put_request_t for idigi_data_service_put_request callback
+                                                    or to idigi_data_service_device_request_t for idigi_data_service_device_request callback. */
+    idigi_data_service_type_t message_type;     /**< It contains idigi_data_service_type_need_data to request callback for data to be sent to server,
                                                    idigi_data_service_type_have_data to tell callback to process data from server, or
                                                    idigi_data_service_type_error to tell callback to cancel the message since error is encountered. */
-    idigi_data_service_block_t * server_data;   /**< Pointer to data from server to be processed for idigi_data_service_type_have_data message type or
+    idigi_data_service_block_t * server_data;   /**< It's pointer to data from server to be processed for idigi_data_service_type_have_data message type or
                                                      pointer to error status for idigi_data_service_type_error message type. */
 } idigi_data_service_msg_request_t;
 /**
@@ -840,20 +853,20 @@ typedef struct
 * @{
 */
 /**
-* Data service message response structure is used in the callback to return data to be sent to
+* Data service message response structure is used in idigi_data_service_put_request
+* and idigi_data_service_device_request callbacks to return data to be sent to
 * iDigi server, or to cancel the message.
 *
-* This structure is used in idigi_data_service_put_request and idigi_data_service_device_request callbacks
-*
 * @see idigi_data_service_request_t
+* @see idigi_data_service_type_t
 */
 typedef struct
 {
-    void * user_context;                        /**< idigi_data_service_device_request callback's context which will
+    void * user_context;                        /**< It's used for idigi_data_service_device_request callback's context which will
                                                     be returned on subsequent callbacks for its reference.
                                                     For idigi_data_service_put_request callback, it's not used. */
-    idigi_msg_error_t message_status;           /**< Message error status that callback encounters */
-    idigi_data_service_block_t * client_data;   /**< Pointer to memory where callback writes data to. */
+    idigi_msg_error_t message_status;           /**< Callback wrties error status when it encounters error and cancels the message */
+    idigi_data_service_block_t * client_data;   /**< Pointer to memory where callback writes data to for idigi_data_service_type_need_data message type */
 } idigi_data_service_msg_response_t;
 /**
 * @}
@@ -867,13 +880,15 @@ typedef struct
 /**
 * Data service device request structure is used in @see idigi_data_service_device_request
 * callback to process device request. idigi_data_service_device_request callback is passed with
-* @see idigi_sevice_msg_request_t where service_context is pointing to this idigi_data_service_device_request_t.
+* @see idigi_sevice_msg_request_t where service_context is pointing to this structure.
+*
+* @see idigi_data_service_type_t
 */
 typedef struct
 {
     void * device_handle;       /**< Device handle for current device request */
     char const * target;        /**< Contains nul terminated target name. The target name is only provided on
-                                    the first chunk of data (IDIGI_MSG_FIRST_DATA bit is set on flags. See the callback).
+                                    the first chunk of data (IDIGI_MSG_FIRST_DATA bit is set on flags. @see idigi_data_service_block_t).
                                     Otherwise, it’s null. */
 } idigi_data_service_device_request_t;
 /**
