@@ -20,22 +20,28 @@
 #  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
 #
 # =======================================================================
-CC = gcc
+CC      = $(CROSS_COMPILE)gcc
+LD      = $(CROSS_COMPILE)gcc
+CXX     = $(CROSS_COMPILE)g++
+STRIP   = $(CROSS_COMPILE)strip
+AR      = $(CROSS_COMPILE)ar
 
 IDIGI_DIR=../../../../private
 PUBLIC_HEADER_DIR=../../../include
+PLATFORM_DIR=../../platforms/linux
 
 vpath $(IDIGI_DIR)/%.c
+vpath $(PLATFORM_DIR)/%.c
 
-CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR)
+CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR) -g
 
-OBJS = main.o $(IDIGI_DIR)/idigi_api.o
-LIBS = -lc -lz
+OBJS = application.o $(IDIGI_DIR)/idigi_api.o $(PLATFORM_DIR)/os.o $(PLATFORM_DIR)/network.o  $(PLATFORM_DIR)/config.o $(PLATFORM_DIR)/main.o
+LIBS = -lc -lz -lpthread
 
 SAMPLE = idigi
 all: $(SAMPLE)
 
-main.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h
+application.o:
 $(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PUBLIC_HEADER_DIR)/idigi_config.h \
                         $(IDIGI_DIR)/chk_config.h $(IDIGI_DIR)/debug.h $(IDIGI_DIR)/ei_packet.h \
                         $(IDIGI_DIR)/idigi_cc.h $(IDIGI_DIR)/idigi_ds.h $(IDIGI_DIR)/idigi_fw.h \
@@ -43,7 +49,7 @@ $(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/
                         $(IDIGI_DIR)/options.h $(IDIGI_DIR)/os_intf.h $(IDIGI_DIR)/bele.h \
                         $(IDIGI_DIR)/idigi_def.h
 
-$(OBJS): *.c $(IDIGI_DIR)/*.c
+$(OBJS): *.c $(IDIGI_DIR)/*.c $(PLATFORM_DIR)/*.c
 
 $(SAMPLE): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(SAMPLE) 
