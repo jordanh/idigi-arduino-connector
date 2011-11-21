@@ -53,10 +53,8 @@
  *
  * @htmlonly
  * <table class="apitable">
- * <tr>
- * <th class="title">Name</th>
- * <th class="title">Description</th>
- * </tr>
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_data_service @htmlonly</td>
@@ -93,7 +91,21 @@
  * <th>response_length</th>
  * <td>[OUT] Size of @endhtmlonly idigi_data_service_msg_response_t @htmlonly</td>
  * </tr>
- * </table>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
+ * <tr>
+ * <th>@endhtmlonly @ref idigi_callback_continue @htmlonly</th>
+ * <td>Continue</td>
+ * </tr>
+ * <tr>
+ * <th>@endhtmlonly @ref idigi_callback_abort @htmlonly</th>
+ * <td>Aborts IIK</td>
+ * </tr>
+ * <tr>
+ * <th>@endhtmlonly @ref idigi_callback_busy @htmlonly</th>
+ * <td>Busy and needs to be called back again</td>
+ * </tr>
+* </table>
  * @endhtmlonly
  *
  * An example of an application callback for a put request is show below:
@@ -189,10 +201,8 @@
  *
  * @htmlonly
  * <table class="apitable">
- * <tr>
- * <th class="title">Name</th>
- * <th class="title">Description</th>
- * </tr>
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_data_service @htmlonly</td>
  * </tr>
@@ -225,10 +235,24 @@
  *   <p>If an error is encountered while processing the callback the application
  *   can send an error back to the server by setting the error in the <b><i>"message_status"</i></b>
  *   of @endhtmlonly idigi_data_service_msg_response_t @htmlonly.</p>
-* </td></tr>
+ * </td></tr>
  * <tr>
  * <th>response_length</th>
  * <td>[OUT] Size of @endhtmlonly idigi_data_service_msg_response_t @htmlonly</td>
+ * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
+ * <tr>
+ * <th>@endhtmlonly @ref idigi_callback_continue @htmlonly</th>
+ * <td>Continue</td>
+ * </tr>
+ * <tr>
+ * <th>@endhtmlonly @ref idigi_callback_abort @htmlonly</th>
+ * <td>Aborts IIK</td>
+ * </tr>
+ * <tr>
+ * <th>@endhtmlonly @ref idigi_callback_busy @htmlonly</th>
+ * <td>Busy and needs to be called back again</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -303,8 +327,8 @@
  *         {
  *             void * ptr;
  * 
- *             bool const is_ok = os_malloc(sizeof *client_device_request, &ptr);
- *             if (!is_ok || ptr == NULL)
+ *             int const ccode = os_malloc(sizeof *client_device_request, &ptr);
+ *             if (ccode != 0 || ptr == NULL)
  *             {
  *                 /* no memeory so cancel this request */
  *                 APP_DEBUG("process_device_request: malloc fails for device request on session %p\n",

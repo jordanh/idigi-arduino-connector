@@ -96,11 +96,11 @@
  * can use as a reference.  Add the following files to your make/build system.
  * 
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Name</td>
- * <th>Description</td>
- * <th>Location</td>
+ * <th class="title">Name</td>
+ * <th class="title">Description</td>
+ * <th class="title">Location</td>
  * </tr>
  * <tr>
  * <td>idigi_api.c</td>
@@ -324,12 +324,13 @@
  * to your build envirment.
  *
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Name</td>
- * <th>Description</td>
- * <th>Location</td>
+ * <th class="title">Name</td>
+ * <th class="title">Description</td>
+ * <th class="title">Location</td>
  * </tr>
+ * <tr>
  * <td>idigi_api.c</td>
  * <td>Contains the code for the IIK</td>
  * <td>private</td>

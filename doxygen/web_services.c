@@ -11,10 +11,10 @@
  *
  
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Name</td>
- * <th>Description</td>
+ * <th class="title">Name</th>
+ * <th  class="title">Description</th>
  * </tr>
  * <tr>
  * <td>update_firmware</td>

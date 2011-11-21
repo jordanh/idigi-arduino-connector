@@ -21,10 +21,8 @@
  *
  * @htmlonly
  * <table class="apitable">
- * <tr>
- * <th class="title">Name</td>
- * <th class="title">Description</td>
- * </tr>
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_network @htmlonly</td>
@@ -49,16 +47,8 @@
  * <th>response_length</th>
  * <td>Pointer to memory where callback writes the size of idigi_network_handle_t</td>
  * </tr>
- * </table>
- * @endhtmlonly
- *
- * Return Values:
- * @htmlonly
- * <table class="apitable">
- * <tr>
- * <th class="title">Value</td>
- * <th class="title">Description</td>
- * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
  * <td>Callback successfully established a connection</td>
@@ -83,10 +73,8 @@
  *
  * @htmlonly
  * <table class="apitable">
- * <tr>
- * <th class="title">Name</td>
- * <th class="title">Description</td>
- * </tr>
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_network @htmlonly</td>
@@ -111,16 +99,8 @@
  * <th>response_length</th>
  * <td>N/A</td>
  * </tr>
- * </table>
- * @endhtmlonly
- *
- * Return Values:
- * @htmlonly
- * <table class="apitable">
- * <tr>
- * <th class="title">Value</td>
- * <th class="title">Description</td>
- * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
  * <td>Callback successfully sent data to server</td>
@@ -148,10 +128,8 @@
  *
  * @htmlonly
  * <table class="apitable">
- * <tr>
- * <th class="title">Name</td>
- * <th class="title">Description</td>
- * </tr>
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_network @htmlonly</td>
@@ -176,16 +154,8 @@
  * <th>response_length</th>
  * <td>N/A</td>
  * </tr>
- * </table>
- * @endhtmlonly
- *
- * Return Values:
- * @htmlonly
- * <table class="apitable">
- * <tr>
- * <th class="title">Value</td>
- * <th class="title">Description</td>
- * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
  * <td>Callback successfully received number of requested bytes</td>
@@ -208,10 +178,8 @@
  *
  * @htmlonly
  * <table class="apitable">
- * <tr>
- * <th class="title">Name</td>
- * <th class="title">Description</td>
- * </tr>
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_network @htmlonly</td>
@@ -236,16 +204,8 @@
  * <th>response_length</th>
  * <td>N/A</td>
  * </tr>
- * </table>
- * @endhtmlonly
- *
- * Return Values:
- * @htmlonly
- * <table class="apitable">
- * <tr>
- * <th class="title">Value</td>
- * <th class="title">Description</td>
- * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
  * <td>Callback successfully closed the connection</td>
@@ -266,10 +226,8 @@
  *
  * @htmlonly
  * <table class="apitable">
- * <tr>
- * <th class="title">Name</td>
- * <th class="title">Description</td>
- * </tr>
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_network @htmlonly</td>
@@ -294,16 +252,8 @@
  * <th>response_length</th>
  * <td>N/A</td>
  * </tr>
- * </table>
- * @endhtmlonly
- *
- * Return Values:
- * @htmlonly
- * <table class="apitable">
- * <tr>
- * <th class="title">Value</td>
- * <th class="title">Description</td>
- * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
  * <td>IIK will continue and establish the connection again</td>
@@ -323,10 +273,8 @@
  *
  * @htmlonly
  * <table class="apitable">
- * <tr>
- * <th class="title">Name</td>
- * <th class="title">Description</td>
- * </tr>
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_network @htmlonly</td>
@@ -351,16 +299,8 @@
  * <th>response_length</th>
  * <td>N/A</td>
  * </tr>
- * </table>
- * @endhtmlonly
- *
- * Return Values:
- * @htmlonly
- * <table class="apitable">
- * <tr>
- * <th class="title">Value</td>
- * <th class="title">Description</td>
- * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>No return</td>
  * <td>none</td>

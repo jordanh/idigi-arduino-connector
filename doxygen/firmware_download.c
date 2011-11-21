@@ -60,11 +60,9 @@
  * Return the number of targets for firmware download.
  *
  * @htmlonly
- * <table border="8">
- * <tr>
- * <th>Name</td>
- * <th>Description</td>
- * </tr>
+ * <table class="apitable">
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>class_id</td>
  * <td>@endhtmlonly @ref idigi_class_firmware @htmlonly</td>
@@ -89,16 +87,8 @@
  * <td>response_length</td>
  * <td>N/A</td>
  * </tr>
- * </table>
- * @endhtmlonly
- *
- * Return Values:
- * @htmlonly
- * <table border="8">
- * <tr>
- * <th>Value</td>
- * <th>Description</td>
- * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
  * <td>Successfully returned the number of targets supported</td>
@@ -115,11 +105,9 @@
  * Return the version number of the target.
  *
  * @htmlonly
- * <table border="8">
- * <tr>
- * <th>Name</td>
- * <th>Description</td>
- * </tr>
+ * <table class="apitable">
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>class_id</td>
  * <td>@endhtmlonly @ref idigi_class_firmware @htmlonly</td>
@@ -144,16 +132,8 @@
  * <td>response_length</td>
  * <td>N/A</td>
  * </tr>
- * </table>
- * @endhtmlonly
- *
- * Return Values:
- * @htmlonly
- * <table border="8">
- * <tr>
- * <th>Value</td>
- * <th>Description</td>
- * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
  * <td>Callback successfully returned version number</td>
@@ -170,11 +150,9 @@
  * Return the code size that is currently stored for the target.
  *
  * @htmlonly
- * <table border="8">
- * <tr>
- * <th>Name</td>
- * <th>Description</td>
- * </tr>
+ * <table class="apitable">
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>class_id</td>
  * <td>@endhtmlonly @ref idigi_class_firmware @htmlonly</td>
@@ -199,16 +177,8 @@
  * <td>response_length</td>
  * <td>N/A</td>
  * </tr>
- * </table>
- * @endhtmlonly
- *
- * Return Values:
- * @htmlonly
- * <table border="8">
- * <tr>
- * <th>Value</td>
- * <th>Description</td>
- * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
  * <td>Callback successfully returned image size</td>
@@ -225,11 +195,9 @@
  * return the description of the target.
  *
  * @htmlonly
- * <table border="8">
- * <tr>
- * <th>Name</td>
- * <th>Description</td>
- * </tr>
+ * <table class="apitable">
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>class_id</td>
  * <td>@endhtmlonly @ref idigi_class_firmware @htmlonly</td>
@@ -254,15 +222,8 @@
  * <td>response_length</td>
  * <td>Pointer to memory where callback writes the length of the description string. The total length of description and name spec must not exceed 127 bytes.</td>
  * </tr>
- * </table>
- * @endhtmlonly
- *
- * Return Values:
- * @htmlonly
- * <table border="8">
- * <tr>
- * <th>Value</td>
- * <th>Description</td>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
@@ -286,11 +247,9 @@
  * The maximum length of the firmware description and file name spec combined is 127 bytes.
  *
  * @htmlonly
- * <table border="8">
- * <tr>
- * <th>Name</td>
- * <th>Description</td>
- * </tr>
+ * <table class="apitable">
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>class_id</td>
  * <td>@endhtmlonly @ref idigi_class_firmware @htmlonly</td>
@@ -315,16 +274,8 @@
  * <td>response_length</td>
  * <td>Pointer to memory where callback writes the length of the description string. The total length of description and name spec must not exceed 127 bytes.</td>
  * </tr>
- * </table>
- * @endhtmlonly
- *
- * Return Values:
- * @htmlonly
- * <table border="8">
- * <tr>
- * <th>Value</td>
- * <th>Description</td>
- * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
  * <td>Callback successfully returned file name spec</td>
@@ -348,11 +299,9 @@
  *  -# The name of the file to be sent. 
  *
  * @htmlonly
- * <table border="8">
- * <tr>
- * <th>Name</td>
- * <th>Description</td>
- * </tr>
+ * <table class="apitable">
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>class_id</td>
  * <td>@endhtmlonly @ref idigi_class_firmware @htmlonly</td>
@@ -377,16 +326,8 @@
  * <td>response_length</td>
  * <td>N/A</td>
  * </tr>
- * </table>
- * @endhtmlonly
- *
- * Return Values:
- * @htmlonly
- * <table border="8">
- * <tr>
- * <th>Value</td>
- * <th>Description</td>
- * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
  * <td>Callback successfully set appropriate status in response_data</td>
@@ -409,11 +350,9 @@
  *  -# Length of the binary data. 
  *
  * @htmlonly
- * <table border="8">
- * <tr>
- * <th>Name</td>
- * <th>Description</td>
- * </tr>
+ * <table class="apitable">
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>class_id</td>
  * <td>@endhtmlonly @ref idigi_class_firmware @htmlonly</td>
@@ -438,16 +377,8 @@
  * <td>response_length</td>
  * <td>N/A</td>
  * </tr>
- * </table>
- * @endhtmlonly
- *
- * Return Values:
- * @htmlonly
- * <table border="8">
- * <tr>
- * <th>Value</td>
- * <th>Description</td>
- * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
  * <td>Callback successfully set appropriate status in response_data</td>
@@ -475,11 +406,9 @@
  *  -# ABORT status, IIK will send a firmware download abort message to the server, stop and exit with error status. 
  *
  * @htmlonly
- * <table border="8">
- * <tr>
- * <th>Name</td>
- * <th>Description</td>
- * </tr>
+ * <table class="apitable">
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>class_id</td>
  * <td>@endhtmlonly @ref idigi_class_firmware @htmlonly</td>
@@ -504,16 +433,8 @@
  * <td>response_length</td>
  * <td>N/A</td>
  * </tr>
- * </table>
- * @endhtmlonly
- *
- * Return Values:
- * @htmlonly
- * <table border="8">
- * <tr>
- * <th>Value</td>
- * <th>Description</td>
- * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
  * <td>Callback successfully set appropriate status in response_data</td>
@@ -535,11 +456,9 @@
  * Called to abort firmware download when IIK receives a firmware download abort message. *
  *
  * @htmlonly
- * <table border="8">
- * <tr>
- * <th>Name</td>
- * <th>Description</td>
- * </tr>
+ * <table class="apitable">
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>class_id</td>
  * <td>@endhtmlonly @ref idigi_class_firmware @htmlonly</td>
@@ -564,16 +483,8 @@
  * <td>response_length</td>
  * <td>N/A</td>
  * </tr>
- * </table>
- * @endhtmlonly
- *
- * Return Values:
- * @htmlonly
- * <table border="8">
- * <tr>
- * <th>Value</td>
- * <th>Description</td>
- * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
  * <td>Callback acknowledged that server aborted download process</td>
@@ -591,11 +502,9 @@
  * it's resetting itself. It may return and continue. However, server may disconnect the device. 
  *
  * @htmlonly
- * <table border="8">
- * <tr>
- * <th>Name</td>
- * <th>Description</td>
- * </tr>
+ * <table class="apitable">
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>class_id</td>
  * <td>@endhtmlonly @ref idigi_class_firmware @htmlonly</td>
@@ -620,16 +529,8 @@
  * <td>response_length</td>
  * <td>N/A</td>
  * </tr>
- * </table>
- * @endhtmlonly
- *
- * Return Values:
- * @htmlonly
- * <table border="8">
- * <tr>
- * <th>Value</td>
- * <th>Description</td>
- * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
  * <td>Callback acknowledged that server reset the target</td>
