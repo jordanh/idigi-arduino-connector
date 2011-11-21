@@ -1,0 +1,19 @@
+Procedure to send device request in http_post.txt to iDigi Cloud using netcat utility.
+
+The http_post.txt inlcudes HTTP POST request header and SCI request for sending device
+request.
+
+1. Register iDigi cloud and obtain your username and password
+
+2. Run perl to encode your username and password as based64 
+   perl -MMIME::Base64 -le "print encode_base64(shift)" "username:password"
+
+3. Update http_post.txt with your base64 encoded username and password.
+   Authorization: Basic <base64 username and password>
+
+4. Update the device ID that you want to send the device request to.
+   <device_id="00000000-00000000-00000000-00000000" />
+
+5. Run netcat to send the device request to iDigi Cloud
+   cat http_post.txt | netcat <iDigi Cloud URL> 80
+
