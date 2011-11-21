@@ -38,7 +38,7 @@
  * @section step1 Step 1: Determine if your compiler is C89 or C99 compliant
  *
  * If your compiler is C89 or C99 compliant and you are on a 32-bit processor
- * you can skip to the next step.  A C89/C99 compliant compilier will have stdint.h
+ * you can skip to the next section.  A C89/C99 compliant compilier will have stdint.h
  * which contains the types used by the IIK.  If your compilier is not C89 or C99 compliant you 
  * will have to edit public/include/idigi_types.h and review the data types @ref uint8_t, 
  * @ref uint16_t, @ref uint32_t. Note that these are defined for a 32-bit machine. 
