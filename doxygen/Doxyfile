@@ -650,6 +650,7 @@ INPUT                  = ./mainpage.c \
                          ./data_service.c \
                          ./api_overview.c \
                          ./fw_download_sample.c \
+                         ./device_request.c \
                          ../public/run/platforms/template \
                          ../public/include
 
