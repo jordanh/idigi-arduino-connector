@@ -48,12 +48,12 @@
  * @section requirements Platform Requirements
  *
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Description</td>
- * <th>Size With Compression On</td>
- * <th>Size With Compression Off</td>
- * <th>Notes</td>
+ * <th class="title">Description</td>
+ * <th class="title">Size With Compression On</td>
+ * <th class="title">Size With Compression Off</td>
+ * <th class="title">Notes</td>
  * </tr>
  * <tr>
  * <td>Heap</td>
@@ -117,10 +117,10 @@
  * based on your threading model.
  *
  * @htmlonly
- * <table border="8">
+ * <table class="apitable">
  * <tr>
- * <th>Directory</td>
- * <th>Description</td>
+ * <th class="title">Directory</td>
+ * <th class="title">Description</td>
  * </tr>
  * <tr>
  * <td>private</td>
