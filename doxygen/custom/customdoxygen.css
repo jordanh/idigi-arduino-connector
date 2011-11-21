@@ -768,22 +768,25 @@ table.apitable {
     border-spacing: 0px;
 }
 
-.apitable td, apitable th {
+.apitable td, .apitable th {
     border: 1px solid #2D4068;
     padding: 3px 7px 5px;
+	text-align: left;
 }
 
 .apitable th.title {
     border: 1px solid #2D4068;
-    background-color: #33CC66;
+    background-color: #108244;
     font-size: 110%;
-    text-align:center;
+	color: #FFFFFF;
+	text-align: left;
 }
 
-.apitable th {
+.apitable th.subtitle{
     border: 1px solid #2D4068;
-    background-color: #D3D3D3;
+    background-color: #CCCCCC;
     font-size: 100%;
+	text-align: left;
 }
 
 div.summary
@@ -994,4 +997,7 @@ dl.citelist dd {
     width: 150px;
 }
 
+.highlight {
+	backgroud-color: yellow;
+}
 
