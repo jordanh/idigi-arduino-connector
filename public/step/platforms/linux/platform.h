@@ -51,5 +51,6 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
 
 int application_step(idigi_handle_t handle);
 void os_sleep(unsigned int const timeout_in_seconds);
+int os_get_system_time(uint32_t * const uptime);
 
 #endif /* _PLATFORM_H */
