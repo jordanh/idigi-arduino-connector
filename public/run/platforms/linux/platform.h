@@ -49,7 +49,7 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
                                               void * response_data,
                                               size_t * const response_length);
 
-int application_start(idigi_handle_t handle);
+int application_run(idigi_handle_t handle);
 void os_sleep(unsigned int const timeout_in_seconds);
 
 #endif /* _PLATFORM_H */

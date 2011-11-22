@@ -45,13 +45,7 @@ int main (void)
         goto done;
     }
 
-    if (application_start(idigi_handle) != 0)
-    {
-        APP_DEBUG("main: application_start() failed\n");
-        goto done;
-       
-    }
-
+    /* Sample program control loop */
     for(;;)
     {
         /*

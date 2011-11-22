@@ -20,11 +20,7 @@
 #  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
 #
 # =======================================================================
-CC      = $(CROSS_COMPILE)gcc
-LD      = $(CROSS_COMPILE)gcc
-CXX     = $(CROSS_COMPILE)g++
-STRIP   = $(CROSS_COMPILE)strip
-AR      = $(CROSS_COMPILE)ar
+CC = gcc
 
 IDIGI_DIR=../../../../private
 PUBLIC_HEADER_DIR=../../../include
@@ -36,7 +32,7 @@ vpath $(PLATFORM_DIR)/%.c
 CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR)  -g
 
 OBJS = application.o  put_request.o $(IDIGI_DIR)/idigi_api.o $(PLATFORM_DIR)/os.o $(PLATFORM_DIR)/network.o $(PLATFORM_DIR)/config.o $(PLATFORM_DIR)/main.o
-LIBS = -lc -lz -lpthread
+LIBS = -lc -lz
 
 SAMPLE = idigi
 all: $(SAMPLE)

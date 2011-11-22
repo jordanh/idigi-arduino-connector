@@ -44,15 +44,15 @@ static void * idigi_run_thread(void * arg)
     pthread_exit(arg);
 }
 
-static void * application_start_thread(void * arg)
+static void * application_run_thread(void * arg)
 {
     int status;
 
     APP_DEBUG("idigi_run thread starts\n");
 
-    status = application_start((idigi_handle_t)arg);
+    status = application_run((idigi_handle_t)arg);
 
-    APP_DEBUG("application_start thread exits %d\n", status);
+    APP_DEBUG("application_run thread exits %d\n", status);
 
     pthread_exit(arg);
 }
@@ -76,7 +76,7 @@ int main (void)
             goto done;
         }
 
-        ccode = pthread_create(&application_thread, NULL, application_start_thread, idigi_handle);
+        ccode = pthread_create(&application_thread, NULL, application_run_thread, idigi_handle);
         if (ccode != 0)
         {
             APP_DEBUG("thread_create() error on idigi_process_thread %d\n", ccode);

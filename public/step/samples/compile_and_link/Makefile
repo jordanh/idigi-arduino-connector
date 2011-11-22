@@ -20,9 +20,7 @@
 #  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
 #
 # =======================================================================
-CC      = $(CROSS_COMPILE)gcc
-LD      = $(CROSS_COMPILE)gcc
-CXX     = $(CROSS_COMPILE)g++
+CC = gcc
 
 IDIGI_DIR=../../../../private
 PUBLIC_HEADER_DIR=../../../include

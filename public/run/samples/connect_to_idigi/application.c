@@ -49,7 +49,7 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
     return status;
 }
 
-int application_start(idigi_handle_t handle)
+int application_run(idigi_handle_t handle)
 {
     UNUSED_PARAMETER(handle);
 

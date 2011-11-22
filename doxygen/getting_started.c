@@ -389,7 +389,7 @@
  *
  * idigi_run thread starts
  *
- * application_start thread exits 0
+ * application_run thread exits 0
  *
  * idigi_run thread starts
  *
