@@ -333,6 +333,7 @@ static idigi_callback_status_t layer_get_supported_facilities(idigi_data_t * con
             {
                 break;
             }
+            idigi_debug("initialize_facilities: callback %s  %d facility\n", facility_enable ? "supports" : "unsupports", request_id);
         }
 
         if (facility_enable == idigi_service_supported)
@@ -572,6 +573,9 @@ enum {
 #undef  init_param
 
         idigi_debug("communication layer: send keepalive params \n");
+        idigi_debug("communication layer: Rx keepalive parameter = %d\n", keepalive_parameters[0].value);
+        idigi_debug("communication layer: Tx keepalive parameter = %d\n", keepalive_parameters[1].value);
+        idigi_debug("communication layer: Wait Count parameter = %d\n", keepalive_parameters[2].value);
 
         packet = get_packet_buffer(idigi_ptr, E_MSG_MT2_MSG_NUM, &ptr, NULL);
         ptr = (uint8_t *)packet;
@@ -746,7 +750,7 @@ enum {
         uint16_t const device_id_message_size = record_bytes(edp_device_id);
         uint8_t * edp_device_id = start_ptr;
 
-        idigi_debug("security layer: send device ID\n");
+        idigi_debug_hexvalue("security layer: send device ID", idigi_ptr->device_id, DEVICE_ID_LENGTH);
         /*
          * packet format:
          *  ----------------------------------------------
@@ -789,7 +793,7 @@ enum {
         char const url_prefix[] = URL_PREFIX;
         size_t const prefix_length = sizeof url_prefix -1;
 
-        idigi_debug("security layer: send server url\n");
+        idigi_debug("security layer: send server url = %.*s\n", idigi_ptr->server_url_length, idigi_ptr->server_url);
 
         message_store_u8(edp_server_url, opcode, SECURITY_OPER_URL);
 
@@ -865,15 +869,16 @@ enum {
         uint16_t const discovery_vendor_header_size = record_bytes(edp_vendor_msg);
         uint8_t * edp_vendor_msg = start_ptr;
 
-        idigi_debug("discovery layer: send vendor id\n");
         message_store_u8(edp_vendor_msg, security_coding, SECURITY_PROTO_NONE);
         message_store_u8(edp_vendor_msg, opcode, DISC_OP_VENDOR_ID);
 #if !defined(IDIGI_VENDOR_ID)
         message_store_array(edp_vendor_msg, vendor_id, idigi_ptr->vendor_id, VENDOR_ID_LENGTH);
+        idigi_debug_hexvalue("discovery layer: send vendor id", idigi_ptr->vendor_id, VENDOR_ID_LENGTH);
 #else
         {
             uint32_t const vendor_id = TO_BE32(IDIGI_VENDOR_ID);
             message_store_array(edp_vendor_msg, vendor_id, &vendor_id, VENDOR_ID_LENGTH);
+            idigi_debug_hexvalue("discovery layer: send vendor id", (uint8_t *)&vendor_id, VENDOR_ID_LENGTH);
         }
 #endif
 
@@ -911,7 +916,7 @@ enum {
 
         uint8_t * edp_device_type = start_ptr;
 
-        idigi_debug("discovery layer: send device type\n");
+        idigi_debug("discovery layer: send device type = %.*s\n", idigi_ptr->device_type_length, idigi_ptr->device_type);
         message_store_u8(edp_device_type, security_coding, SECURITY_PROTO_NONE);
         message_store_u8(edp_device_type, opcode, DISC_OP_DEVICETYPE);
 
