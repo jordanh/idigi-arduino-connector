@@ -1,9 +1,10 @@
 # device_request.py
+# Send device request 
 # -------------------------------------------------
 # The following lines require manual changes
 username = "YourUsername" # enter your username
 password = "YourPassword" # enter your password
-device_id = "Target Device Id" # enter device id of targetimport httplib
+device_id = "Target Device Id" # enter device id of target
 # -------------------------------------------------
 import httplib
 import base64
@@ -14,14 +15,14 @@ auth = base64.encodestring("%s:%s"%(username,password))[:-1]
 
 # device request message to send to server
 message = """<sci_request version="1.0">
-	<data_service>
-		<targets>
-			<device id="%s"/>
-		</targets>
-		<requests>
-		<device_request target_name="myTarget">My device request data</device_request>
-		</requests>
-	</data_service>
+    <data_service>
+        <targets>
+            <device id="%s"/>
+        </targets>
+        <requests>
+        <device_request target_name="myTarget">My device request data</device_request>
+        </requests>
+    </data_service>
 </sci_request>
 """%(device_id)
 
@@ -47,6 +48,7 @@ if statuscode == 200:
 else:
     print '\nError: %d %s' %(statuscode, statusmessage)
 
+webservice.close()
 
 
 
