@@ -160,6 +160,8 @@ static idigi_callback_status_t get_ip_addr(idigi_data_t * const idigi_ptr, uint8
         goto error;
     }
 
+    idigi_debug_hexvalue("get_ip_addr: Device IP address", ip_addr, length);
+
     if (length == CC_IPV6_ADDRESS_LENGTH)
     {
         /* Good IPv6 address */
@@ -196,6 +198,7 @@ static idigi_callback_status_t get_ip_addr(idigi_data_t * const idigi_ptr, uint8
         }
     }
 
+
 error:
     notify_error_status(idigi_ptr->callback, idigi_class_config, request_id, idigi_ptr->error_code);
     /* error occurs so let's abort */
@@ -220,6 +223,7 @@ static idigi_callback_status_t get_connection_type(idigi_data_t * const idigi_pt
         *connection_type = ppp_over_modem_type;
         break;
     }
+    idigi_debug("get_connection_type: connection type = %d\n", IDIGI_CONNECTION_TYPE);
     return idigi_callback_continue;
 
 #else
@@ -250,6 +254,7 @@ static idigi_callback_status_t get_connection_type(idigi_data_t * const idigi_pt
             error_code = idigi_invalid_data;
             break;
         }
+        idigi_debug("get_connection_type: connection type = %d\n", *type);
         break;
     case idigi_callback_abort:
     case idigi_callback_unrecognized:
@@ -293,6 +298,7 @@ static idigi_callback_status_t get_mac_addr(idigi_data_t * const idigi_ptr, uint
         }
         else
         {
+            idigi_debug_hexvalue("get_mac_addr: MAC address", mac, MAC_ADDR_LENGTH);
             memcpy(mac_addr, mac, MAC_ADDR_LENGTH);
         }
         break;
@@ -398,6 +404,8 @@ enum cc_connection_info {
 
 #if defined(IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND)
             message_store_be32(connection_info, link_speed, IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND);
+            idigi_debug("send_connection_report: link_speed = %d\n", IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND);
+
 #else
             /* callback for Link speed for WAN connection type */
             idigi_request_t const request_id = {idigi_config_link_speed};
@@ -421,6 +429,7 @@ enum cc_connection_info {
                 goto error;
             }
             message_store_be32(connection_info, link_speed, *speed);
+            idigi_debug("send_connection_report: link_speed = %d\n", *speed);
 #endif
             cc_ptr->report_length += field_named_data(connection_info, link_speed, size);
 
@@ -450,6 +459,7 @@ enum cc_connection_info {
                 uint8_t const phone[] = IDIGI_WAN_PHONE_NUMBER_DIALED;
                 size_t const length = sizeof phone -1;
 #endif
+                idigi_debug("send_connection_report: phone number = %.*s\n", length, phone);
                 memcpy(connection_report+cc_ptr->report_length, phone, length);
                 cc_ptr->report_length += length;
             }
