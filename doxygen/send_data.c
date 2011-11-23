@@ -15,7 +15,7 @@
  * application defined callback idigi_callback(), this routine calls idigi_data_service_callback()
  * when a data service request is received.
  *
- * The routine application_start() which is called after initialization calls the routine
+ * The routine application_run() (or application_step()) which is called after initialization calls the routine
  * send_put_request() to initiate the data transfer to the iDigi Cloud.  This routine
  * initiates the data transfer by calling idigi_initiate_action(); once the server is 
  * ready to receive data the idigi_data_service_callback() routine is called, the callback then returns
@@ -27,7 +27,7 @@
  * If idigi_data_service_callback() is called with @ref idigi_data_service_type_have_data then this
  * indicates a response from the server, @ref idigi_data_service_type_error would indicate
  * an error is sent back from the server.  In this example send_put_request() is called
- * once a second from application_start().
+ * once a second from application_run() (or application_step()).
  *
  * @section connect_build Building
  *

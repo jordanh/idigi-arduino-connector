@@ -25,6 +25,7 @@
  *
  */
 #include <stdlib.h>
+#include <unistd.h>
 #include "idigi_api.h"
 #include "platform.h"
 
@@ -48,11 +49,12 @@ int main (void)
     /* Sample program control loop */
     for(;;)
     {
+        idigi_status_t status;
         /*
          * Example of using idigi_step(), we run a portion of the IIK then run
          * a portion of the users application.
          */
-        idigi_status = idigi_step(device_data.idigi_handle);
+        status = idigi_step(idigi_handle);
         if (status != idigi_success)
         {
             APP_DEBUG("main: idigi_step() failed\n");

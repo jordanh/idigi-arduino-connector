@@ -29,6 +29,8 @@
 #include "idigi_api.h"
 #include "platform.h"
 
+static unsigned sample_number;
+
 idigi_status_t send_put_request(idigi_handle_t handle) 
 {
     idigi_status_t status = idigi_success;
@@ -45,6 +47,8 @@ idigi_status_t send_put_request(idigi_handle_t handle)
 
     return status;
 }
+
+#define BUFFER_SIZE 64
 
 idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t const request,
                                                   void const * request_data, size_t const request_length,
@@ -71,13 +75,16 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
             {
                 idigi_data_service_block_t * message = put_response->client_data;
                 char * dptr = message->data;
-                char const * const buffer = "Welcome to iDigi data service sample!\n";
-                size_t const bytes = strlen(buffer);
+                size_t bytes;
+                char buffer[BUFFER_SIZE];
 
+                snprintf(buffer, BUFFER_SIZE, "iDigi data service sample [%d]\n", sample_number);
+                bytes = strlen(buffer);
                 memcpy(dptr, buffer, bytes);
                 message->length_in_bytes = bytes;
                 message->flags = IDIGI_MSG_LAST_DATA | IDIGI_MSG_FIRST_DATA;
                 put_response->message_status = idigi_msg_error_none;
+                sample_number++;
             }
             break;
 

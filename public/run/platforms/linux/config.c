@@ -53,8 +53,8 @@ static int get_ip_address(uint8_t ** ip_address, size_t *size)
     unsigned int    i;
     static struct in_addr  ip_addr; /* Used to store the IP address */
 
-/* Remove this #error statement once you modify this routine to return the correct IP address */
-#error "Specify device IP address. Set size to 4 (bytes) for IPv4 or 16 (bytes) for IPv6"
+/* Remove this //#error statement once you modify this routine to return the correct IP address */
+//#error "Specify device IP address. Set size to 4 (bytes) for IPv4 or 16 (bytes) for IPv6"
 
     if (buf == NULL)
     {
@@ -116,11 +116,11 @@ error:
 }
 
 /* MAC address used in this sample */
-static uint8_t device_mac_addr[MAC_ADDR_LENGTH] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+static uint8_t device_mac_addr[MAC_ADDR_LENGTH] = {0x00, 0x0c, 0x29, 0x59, 0x9b, 0xe0};
 
 static int get_mac_addr(uint8_t ** addr, size_t * size)
 {
-#error "Specify device MAC address for LAN connection"
+//#error "Specify device MAC address for LAN connection"
 
     *addr = device_mac_addr;
     *size = sizeof device_mac_addr;
@@ -132,7 +132,7 @@ static int get_device_id(uint8_t ** id, size_t * size)
 {
     static uint8_t device_id[DEVICE_ID_LENGTH] = {0};
 
-#error  "Specify device id"
+//#error  "Specify device id"
 
     /* This sample uses the MAC address to format the device ID */
     device_id[8] = device_mac_addr[0];
@@ -152,8 +152,8 @@ static int get_device_id(uint8_t ** id, size_t * size)
 
 static int get_vendor_id(uint8_t ** id, size_t * size)
 {
-#error  "Specify vendor id"
-    static const uint8_t device_vendor_id[VENDOR_ID_LENGTH] = {0x00, 0x00, 0x00, 0x00};
+//#error  "Specify vendor id"
+    static const uint8_t device_vendor_id[VENDOR_ID_LENGTH] = {0x01, 0x00, 0x01, 0x36};
 
     *id   = (uint8_t *)device_vendor_id;
     *size = sizeof device_vendor_id;
@@ -163,7 +163,7 @@ static int get_vendor_id(uint8_t ** id, size_t * size)
 
 static int get_device_type(char ** type, size_t * size)
 {
-#error "Specify device type"
+//#error "Specify device type"
     static const char const *device_type = "Linux Application";
 
     /* Return pointer to device type. */
@@ -175,7 +175,7 @@ static int get_device_type(char ** type, size_t * size)
 
 static int get_server_url(char ** url, size_t * size)
 {
-#error "Specify iDigi Server URL"
+//#error "Specify iDigi Server URL"
     static const char const *idigi_server_url = "developer.idigi.com";
 
     /* Return pointer to device type. */
@@ -187,7 +187,7 @@ static int get_server_url(char ** url, size_t * size)
 
 static int get_connection_type(idigi_connection_type_t ** type)
 {
-#error "Specify LAN or WAN connection type"
+//#error "Specify LAN or WAN connection type"
 
     /* Return pointer to connection type */
     static idigi_connection_type_t  device_connection_type = idigi_lan_connection_type;
@@ -199,7 +199,7 @@ static int get_connection_type(idigi_connection_type_t ** type)
 
 static int get_link_speed(uint32_t **speed, size_t * size)
 {
-#error "Specify link speed for WAN connection type"
+//#error "Specify link speed for WAN connection type"
     UNUSED_PARAMETER(speed);
     UNUSED_PARAMETER(size);
 
@@ -208,7 +208,7 @@ static int get_link_speed(uint32_t **speed, size_t * size)
 
 static int get_phone_number(uint8_t ** number, size_t * size)
 {
-#error "Specify phone number dialed for WAN connection type"
+//#error "Specify phone number dialed for WAN connection type"
     /* 
      * Return pointer to phone number for WAN connection type.
      */
@@ -222,7 +222,7 @@ static int get_phone_number(uint8_t ** number, size_t * size)
 /* This keep alive is sent from the server to the device */
 static int get_tx_keepalive_interval(uint16_t **interval, size_t * size)
 {
-#error "Specify server to device TX keepalive interval in seconds"
+//#error "Specify server to device TX keepalive interval in seconds"
 
 #define DEVICE_TX_KEEPALIVE_INTERVAL_IN_SECONDS     90
     /* Return pointer to Tx keepalive interval in seconds */
@@ -237,7 +237,7 @@ static int get_tx_keepalive_interval(uint16_t **interval, size_t * size)
 /* This keep alive is sent from the device to the server  */
 static int get_rx_keepalive_interval(uint16_t **interval, size_t * size)
 {
-#error "Specify server to device RX keepalive interval in seconds"
+//#error "Specify server to device RX keepalive interval in seconds"
 #define DEVICE_RX_KEEPALIVE_INTERVAL_IN_SECONDS     60
     /* Return pointer to Rx keepalive interval in seconds */
     static uint16_t device_rx_keepalive_interval = DEVICE_RX_KEEPALIVE_INTERVAL_IN_SECONDS;
@@ -249,7 +249,7 @@ static int get_rx_keepalive_interval(uint16_t **interval, size_t * size)
 
 static int get_wait_count(uint16_t **count, size_t * size)
 {
-#error "Specify the number of times that not receiving keepalive messages from server is allowed"
+//#error "Specify the number of times that not receiving keepalive messages from server is allowed"
 #define DEVICE_WAIT_COUNT     5
     /* 
      * Return pointer to wait count (number of times not receiving Tx keepalive 

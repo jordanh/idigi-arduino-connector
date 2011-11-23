@@ -5,6 +5,7 @@
  * @section callbacks OS Callbacks
  * The IIK interafaces to the platforms OS through the callbacks listed below, these
  * are called through the application callback described in the @ref api1_overview.
+ * The class id is @ref idigi_class_operating_system.
  * 
  *  -# @ref malloc
  *  -# @ref free
@@ -32,7 +33,7 @@
  * </tr>
  * <tr>
  * <th>request_length</th>
- * <td> Specifies the size of *request_data which is size of size_t.</td>
+ * <td> Specifies the size of *request_data which is sizeof size_t.</td>
  * </tr>
  * <tr>
  * <th>response_data</th>

@@ -69,15 +69,33 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
     return status;
 }
 
+/* Frequency to send data to the iDigi device cloud */
+static const unsigned sample_rate=5;
 
 int application_step(idigi_handle_t handle)
 {
+    static int initialized=0;
     idigi_status_t status;
+    static uint32_t last_time; 
+    uint32_t current_time;
+    int ret=0;
 
-    /* Wait for an event to occur then send data to the iDigi server*/
-    status = send_put_request(handle);
+    if (initialized == 0)
+    {
+        os_get_system_time(&last_time);
+        initialized = 1;
+        goto done;
+    }
 
-    return 0;
+    os_get_system_time(&current_time);
+    if ((current_time - last_time) > sample_rate)
+    {
+        status = send_put_request(handle);
+        last_time = current_time;
+    }
+
+done:
+    return ret;
 }
 
 
