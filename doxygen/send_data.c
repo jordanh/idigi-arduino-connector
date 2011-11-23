@@ -98,22 +98,51 @@
  *
  * @li -DIDIGI_VERSION=0x1010000UL (indicates version 1.1 of the IIK)
  *
- * @section Results
+ * @section web_gui Viewing results from iDigi Device Cloud
  *
  * To view the results for this sample login to the iDigi Device Cloud as described
  * in the @ref add_your_device_to_the_cloud "Getting Started" section. 
  *
  * Once logged in click on storage from within the left navigation panel as shown
- * below.
+ * below. Double clicks to the device folder.
  *
  * @image html sample1.png
  *
- * The devices folders and files are then listed as shown (below). You can click on a 
+ * This samples creates test.txt under test directory. Double clicks to open the test directory.
+ *
+ * @image html send_data_sample3.png
+ *
+ * The file is then listed as shown (below). You can click on a 
  * file to view its contents, you will see the file test.txt in the test directory
  * after you run this sample.
  *
  * @image html sample2.png
  *
+ * @section python_script Python script to retrive a file from iDigi Device Cloud storage
+ *
+ * This sample provides a simple python script to retrive the test.txt file from developer.idigi.com
+ * after a device has put the test.txt into the server.
+ *
+ * You need to edit the username, password, and the device ID in the get_file.py file.
+ *
+ * @code
+ *
+ * # -------------------------------------------------
+ * # The following lines require manual changes
+ * username = "YourUsername" # enter your username
+ * password = "YourPassword" # enter your password
+ * device_id = "Target Device Id" # enter device id of target
+ * # -------------------------------------------------
+ *
+ * @endcode
+ *
+ * Run the python script in the sample. 
+ *
+ * @code
+ * python get_file.py
+ * @endcode
+ *
+ * The script prints the content of test.txt.
  *
  *
  */
