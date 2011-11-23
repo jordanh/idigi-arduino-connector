@@ -59,6 +59,35 @@
  * </table>
  * @endhtmlonly
  *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_os_request_t const request,
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *     idigi_callback_status_t status = idigi_callback_continue;
+ *
+ *     UNUSED_PARAMETER(request_length);
+ *     UNUSED_PARAMETER(response_length);
+ *
+ *     if (request == idigi_os_malloc)
+ *     {
+ *         size_t size = *(size_t *)request_data;
+ *         void ** ptr = (void **)response_data;
+ *
+ *         *ptr = malloc(size);
+ *         if (*ptr == NULL)
+ *         {
+ *             status = idigi_callback_abort;
+ *          }
+ *     }
+ *     return status;
+ * }
+ *
+ * @endcode
+ *
  * @section free free
  *
  * Callback is called to free previous allocated memory.
@@ -100,6 +129,27 @@
  * </table>
  * @endhtmlonly
  *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_os_request_t const request,
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *     idigi_callback_status_t status = idigi_callback_continue;
+ *
+ *     UNUSED_PARAMETER(request_length);
+ *     UNUSED_PARAMETER(response_length);
+ *
+ *     if (request == idigi_os_free)
+ *     {
+ *         free((void *)request_data);
+ *     }
+ *     return status;
+ * }
+ *
+ * @endcode
  *
  * @section uptime System Uptime
  * This callback is called to return system up time in seconds. It is the time 
@@ -146,6 +196,28 @@
  * </table>
  * @endhtmlonly
  *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_os_request_t const request,
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *     idigi_callback_status_t status = idigi_callback_continue;
+ *
+ *     UNUSED_PARAMETER(request_length);
+ *     UNUSED_PARAMETER(response_length);
+ *     UNUSED_PARAMETER(request_data);
+ *
+ *     if (request == idigi_os_system_up_time)
+ *     {
+ *         time((time_t *)response_data);
+ *     }
+ *     return status;
+ * }
+ *
+ * @endcode
  *
  * @section sleep Sleep
  * This callback is called relinquish control of the CPU (multithreaded model).
@@ -190,4 +262,29 @@
  * </tr>
  * </table>
  * @endhtmlonly
+ *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_os_request_t const request,
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *     idigi_callback_status_t status = idigi_callback_continue;
+ *
+ *     UNUSED_PARAMETER(request_length);
+ *     UNUSED_PARAMETER(response_length);
+ *     UNUSED_PARAMETER(response_data);
+ *
+ *     if (request == idigi_os_sleep)
+ *     {
+ *         unsigned int *timeout_seconds = request_data;
+ *         usleep(*timeout_seconds * MICROSECONDS_PER_SECOND);
+ *     }
+ *     return status;
+ * }
+ *
+ * @endcode
+ *
  */

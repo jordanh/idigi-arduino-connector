@@ -65,7 +65,41 @@
  * </table>
  * @endhtmlonly
  *
+  * Example:
  *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_os_request_t const request,
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *     idigi_callback_status_t status = idigi_callback_continue;
+ *
+ *     if (request == idigi_config_device_id)
+ *     {
+ *         static uint8_t my_device_id[DEVICE_ID_LENGTH];
+ *         uint8_t ** response_device_id = (uint8_t **)response_data;
+ *
+ *          /* just uses the MAC address to format the device ID */
+ *          my_device_id[8] = my_device_mac_addr[0];
+ *          my_device_id[9] = my_device_mac_addr[1];
+ *          my_device_id[10] = my_device_mac_addr[2];
+ *          my_device_id[11] = 0xFF;
+ *          my_device_id[12] = 0xFF;
+ *          my_device_id[13] = my_device_mac_addr[3];
+ *          my_device_id[14] = my_device_mac_addr[4];
+ *          my_device_id[15] = my_device_mac_addr[5];
+ *
+ *          /* return the address of my_device_id */
+ *          *response_device_id   = my_device_id;
+ *          *response_length = sizeof my_device_id;
+ *     }
+ *     return status;
+ * }
+ *
+ * @endcode
+ *
+*
  * @section vendor_id Vendor ID
  *
  * Return vendor ID which is a unique code identifying the manufacturer of a device. 
