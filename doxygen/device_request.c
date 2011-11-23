@@ -31,23 +31,6 @@
  * an error is encountered and needs to cancel the device request. In this example it cancels 
  * the request by freeing any memory used.
  *
- * @section python_script Python script
- *
- * This sample provides a simple python script to send a device request to developer.idigi.com. 
- * You need to edit the username, password, and the device ID in the device_request.py file.
- *
- * @code
- *
- * # device_request.py
- * # -------------------------------------------------
- * # The following lines require manual changes
- * username = "YourUsername" # enter your username
- * password = "YourPassword" # enter your password
- * device_id = "Target Device Id" # enter device id of targetimport httplib
- * # -------------------------------------------------
- *
- * @endcode
- *
  * @section connect_build Building
  *
  * To build this example for a linux based platform you can go into the directory
@@ -55,7 +38,7 @@
  * will need to setup your build system with the information described below
  * and then build the image for your platform.
  *
- * @subsection Source Files
+ * @subsection source_files Source Files
  *
  * The following is a list of source files required to build this sample:
  *
@@ -109,26 +92,64 @@
  * </table>
  * @endhtmlonly
  *
- * @subsection Include Paths
+ * @subsection include_paths Include Paths
  *
  * The following include paths are required:
  *
  * @li public/include
  * @li run/platforms/linux (substitute with your platform)
  *
- * @subsection Defines
+ * @subsection defines Defines
  *
  * The following defines are used in this sample:
  *
  * @li -DIDIGI_VERSION=0x1010000UL (indicates version 1.1 of the IIK)
  *
- * @section Results
+ * @section python_script Python script to send device request
+ *
+ * This sample provides a simple python script to send a device request to developer.idigi.com. 
+ * You need to edit the username, password, and the device ID in the device_request.py file.
+ *
+ * @code
+ *
+ * # -------------------------------------------------
+ * # The following lines require manual changes
+ * username = "YourUsername" # enter your username
+ * password = "YourPassword" # enter your password
+ * device_id = "Target Device Id" # enter device id of target
+ * # -------------------------------------------------
+ *
+ * @endcode
  *
  * Run the python script in the sample. 
  *
- * This sample prints "My device request data" and "myTarget" for the device request.
+ * @code
+ * python device_rquest.py
+ * @endcode
  *
- * The python script prints "My device response data" for the device response data.
+ * Output from this sample:
  *
+ * @code
+ * Device request data: received data = "My device request data" for target = "myTarget"
+ * Device response data: send response data = My device response data
+ * @endcode
+
+ * Output from the device_request.py:
+ *
+ * @code
+ *
+ * Response:
+ * <sci_reply version="1.0">
+ *    <data_service>
+ *        <device id="00000000-00000000-00000000-00000000">
+ *            <requests>
+ *               <device_request target_name="myTarget" status="0">
+ *               My device response data
+ *               </device_request>
+ *            </requests>
+ *        </device>
+ *    </data_service>
+ * </sci_reply>
+ * @endcode
  *
  */

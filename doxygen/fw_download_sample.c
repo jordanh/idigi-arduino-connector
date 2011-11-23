@@ -15,18 +15,37 @@
  * this callback in turn calls idigi_firmware_callback() when a firmware request
  * is received.  All interaction with the IIK is through the callback in this sample;
  * the FW download is initiated by the server.  The file firmware.c contains the
- * routines which process the firware download requests.  
+ * routines which process the firmware download requests.  
+ *
+ * This sample defines all supported image files with .a and .bin file extensions.
+ * The file extension is only validated when updataing firmware from iDigi Device Cloud.
+ *
+ * @code
+ *
+ * /* list of all supported firmware target info */
+ * static firmware_list_t fimware_list[] = {
+ *   /* version     code_size     name_spec          description */
+ *   {0x01000000, (uint32_t)-1, ".*\\.a",            "Library Image"}, /* any .a image */
+ *   {0x00000100, (uint32_t)-1, ".*\\.[bB][iI][nN]", "Binary Image" }  /* any .bin image */
+ * };
+ *
+ * @endcode
  *
  * The routine firmware_download_request() is called when the download is first
  * initiated, it receives information about the download and retuns @ref idigi_fw_success
- * indicating that is ready to accept the FW download.
+ * status indicating that is ready to accept the FW download.
  *
  * The routine firmware_image_data() is called repeatidly with the image data
  * until the download is complete, the routine firmware_download_complete()
  * is called when the download is complete.  At this point the FW can veirfy
  * that the downloaded image is valid.
  *
- *
+ * When firmware_download_complete() returns @ref idigi_fw_download_success status,
+ * it indicates the firmware image has been updated. iDigi Device Cloud will reset the unit,
+ * the routine firmware_reset() is called for resetting.
+ * 
+ * The routine firmware_download_abort() is called when idigi server encounters error.
+ * 
  * @section connect_build Building
  *
  * To build this example for a linux based platform you can go into the directory
@@ -34,7 +53,7 @@
  * will need to setup your build system with the information described below
  * and then build the image for your platform.
  *
- * @subsection Source Files
+ * @subsection source_files Source Files
  *
  * The following is a list of source files required to build this sample:
  *
@@ -53,6 +72,16 @@
  * <tr>
  * <th>firmware.c</th>
  * <td>Routines used to process the FW download requests</td>
+ * <td>samples/firmware_download</td>
+ * </tr>
+ * <tr>
+ * <th>update_firmware.py</th>
+ * <td>Python script for firmware download</td>
+ * <td>samples/firmware_download</td>
+ * </tr>
+ * <tr>
+ * <th>query_firmware.py</th>
+ * <td>Python script for query supported firmware information</td>
  * <td>samples/firmware_download</td>
  * </tr>
  * <tr>
@@ -83,20 +112,20 @@
  * </table>
  * @endhtmlonly
  *
- * @subsection Include Paths
+ * @subsection include_paths Include Paths
  *
  * The following include paths are required:
  *
  * @li public/include
  * @li run/platforms/@a my_platform
  *
- * @subsection Defines
+ * @subsection defines Defines
  *
  * The following defines are used in this sample:
  *
  * @li -DIDIGI_VERSION=0x1010000UL (indicates version 1.1 of the IIK)
  *
- * @section Running
+ * @section running Running
  *
  * Once successfully built, run the executable, in Linux type ./idigi to run the
  * sample.
@@ -127,7 +156,77 @@
  * device.  The application prints out the target, code size and checksum of the
  * downloaded image.
  *
- * @subsection fw_sci Firmware Download using iDigi Web Services
+ * @subsection fw_python Firmware Download using python script
+ *
+ * This samples provides two simple python scripts to update firmware image and query
+ * supported firmware image information. It sends request to developer.idigi.com. 
+ * You need to edit the username, password, and the device ID in the update_firmware.py
+ * and query_firmware.py.
+ * 
+ * @code
+ *
+ * # -------------------------------------------------
+ * # The following lines require manual changes
+ * username = "YourUsername" # enter your username
+ * password = "YourPassword" # enter your password
+ * device_id = "Target Device Id" # enter device id of target
+ * # -------------------------------------------------
+ *
+ * @endcode
+ *
+ * To execute update_firmware.py python script:
+ *
+ * @code
+ * python update_firmware.py <image file>
+ * @endcode
+ *
+ * An output of update_firmware.py:
+ *
+ * @code
+ *
+ * Response:
+ * <sci_reply version="1.0">
+ *     <update_firmware>
+ *         <device id="00000000-00000000-00000000-00000000">
+ *         <submitted/>
+ *         </device>
+ *     </update_firmware>
+ * </sci_reply>
+ *
+ * @endcode
+ *
+ * To execute query_firmware.py python script:
+ *
+ * @code
+ * python query_firmware.py
+ * @endcode
+ *
+ * An output of query_firmware.py:
+ * @code
+ *
+ * Response:
+ * <sci_reply version="1.0">
+ *    <query_firmware_targets>
+ *    <device id="00000000-00000000-00000000-00000000">
+ *       <targets>
+ *           <target number="0">
+ *               <name>Library Image</name>
+ *               <pattern>.*\.a</pattern>
+ *               <version>1.0.0.0</version>
+ *               <code_size>4294967295</code_size>
+ *           </target>
+ *           <target number="1">
+ *               <name>Binary Image</name>
+ *               <pattern>.*\.[bB][iI][nN]</pattern>
+ *               <version>0.0.1.0</version>
+ *               <code_size>4294967295</code_size>
+ *           </target>
+ *         </targets>
+ *       </device>
+ *   </query_firmware_targets>
+ * </sci_reply>
+ *
+ * @endcode
  *
  *
  *
