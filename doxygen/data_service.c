@@ -5,7 +5,7 @@
  * @section data_service_overview Data Service Overview
  *
  * The data service API is used to send data to and from the iDigi
- * server.  The data service has two mechanisms one for device intiaited transfers and the
+ * Device Cloud.  The data service has two mechanisms one for device intiaited transfers and the
  * second for server initiated transfers.
  * 
  * @li @b Put @b requests: Transfers which are initiated by the device and is used to
@@ -36,7 +36,7 @@
  *   status = idigi_initiate_action(handle, idigi_initiate_data_service, &header, NULL);
  * @endcode
  *
- * This example will instuct the IIK to initiate a file transfer to the iDigi server, the IIK
+ * This example will instuct the IIK to initiate a file transfer to the iDigi Device Cloud, the IIK
  * will create a file test.txt in the the test directory on the server.  Once the server is
  * ready to receive more data the application callback will be called to get more 
  * data from the application.  The application callback is continually called until
@@ -136,14 +136,16 @@
  *            {
  *                idigi_data_service_block_t * message = put_response->client_data;
  *                char * dptr = message->data;
- *                char const * const buffer = "Welcome to iDigi data service sample!\n";
- *                size_t const bytes = strlen(buffer);
+ *                char buffer[BUFFER_SIZE];
  *
+ *                snprintf(buffer, BUFFER_SIZE, "iDigi data service sample [%d]\n", sample_number);
+ *                size_t const bytes = strlen(buffer);
  *                /* Copy to the IIK's buffer */
  *                memcpy(dptr, buffer, bytes);
  *                message->length_in_bytes = bytes;
  *                message->flags = IDIGI_MSG_LAST_DATA | IDIGI_MSG_FIRST_DATA;
  *                put_response->message_status = idigi_msg_error_none;
+ *                    sample_number++;
  *            }
  *            break;
  *

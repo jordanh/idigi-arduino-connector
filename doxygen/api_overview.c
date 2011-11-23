@@ -59,15 +59,14 @@
  *
  * @subsection single_threaded Single-threaded model
  * 
- * The function idigi_step() is called to start and run the IIK. This function performs a sequence of operations or events and returns control back to the caller. 
- * This allows a caller to perform other tasks, especially in single-threaded system. A caller must call this API again to continue IIK operations. 
+ * The function idigi_step() is called to perform a sequence of operations or events and returns control back to the caller. 
+ * This allows a caller to perform other tasks in single-threaded system. A caller must call this API again to continue IIK operations. 
  * The connection is already terminated when idigi_step returns an error, idigi_step will try reconnecting to the iDigi Device Cloud if it's called again.
  * The idigi_step() performs the following operations:
  *  -# Establish a connection with the iDigi Device Cloud.
  *  -# Wait for incoming messages from the iDigi Device Cloud.
- *  -# Invoke and pass message to the appropriate process (such as firmware access facility).
+ *  -# Send outstanding messages to the iDigi Device Cloud.
  *
- * 
  * @subsection multi_threaded Multi-threaded model
  *
  * The function idigi_run() is similar to idigi_step() except it doesn't return control back to 
@@ -76,8 +75,8 @@
  * environment.
  *
  * @note To relinquish contol of the CPU in a multithreaded envirornment the IIK
- * call the receive (idigi_class_network) callback with a timeout or will call
- * OS sleep.
+ * call the receive (@ref idigi_class_network) callback with a timeout or will call
+ * OS sleep (@ref idigi_class_operating_system).
  *
  * @subsection iik_callback Application Callback
  * 
@@ -91,9 +90,9 @@
  * @ref idigi_class_operating_system the corresponding request id's are defined
  * by the enum idigi_os_request_t.
  *
- * The parameters request_data, request_lenght, response_data and response_length
- * are defined by the class_id and the request_id, refer to the HTML page for
- * the class ID for a detailed description of the callback parameters.
+ * The parameters request_data, request_length, response_data and response_length
+ * are defined by the class_id and the request_id, refer to the page for
+ * the API for detailed descriptions of the callback parameters.
  *
  *
  * </td></tr>
