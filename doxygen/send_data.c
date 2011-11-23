@@ -57,6 +57,10 @@
  * <td>data service callback and send_put_request() which starts the data transfer</td>
  * <td>samples/send_data</td>
  * </tr>
+ * <th>get_file.py</th>
+ * <td>Python script to retrieve a file</td>
+ * <td>samples/send_data</td>
+ * </tr>
  * <tr>
  * <th>idigi_api.c</th>
  * <td>Code for the IIK </td>
