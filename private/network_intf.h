@@ -462,7 +462,7 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
              *
              */
             bytes_received = -idigi_keepalive_error;
-            notify_error_status(idigi_ptr->callback, idigi_class_config, request_id, idigi_keepalive_error);
+            notify_error_status(idigi_ptr->callback, idigi_class_network, request_id, idigi_keepalive_error);
             idigi_debug("idigi_receive: keepalive fails\n");
         }
     }
@@ -696,7 +696,7 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
                     idigi_request_t const request_id = {idigi_network_receive};
                     idigi_debug("idigi_get_receive_packet: Invalid payload\n");
                     idigi_ptr->error_code = idigi_invalid_payload_packet;
-                    notify_error_status(idigi_ptr->callback, idigi_class_config, request_id, idigi_invalid_payload_packet);
+                    notify_error_status(idigi_ptr->callback, idigi_class_network, request_id, idigi_invalid_payload_packet);
                 }
             }
             /* set to read message data */
@@ -756,7 +756,7 @@ static idigi_callback_status_t connect_server(idigi_data_t * const idigi_ptr, ch
         else
         {
             idigi_ptr->error_code = idigi_invalid_data_size;
-            notify_error_status(idigi_ptr->callback, idigi_class_config, request_id, idigi_ptr->error_code);
+            notify_error_status(idigi_ptr->callback, idigi_class_network, request_id, idigi_ptr->error_code);
             status = idigi_callback_abort;
         }
         break;
