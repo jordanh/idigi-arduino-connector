@@ -65,17 +65,16 @@
  * </table>
  * @endhtmlonly
  *
-  * Example:
+ * Example:
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_os_request_t const request,
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
- *     idigi_callback_status_t status = idigi_callback_continue;
  *
- *     if (request == idigi_config_device_id)
+ *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_device_id)
  *     {
  *         static uint8_t my_device_id[DEVICE_ID_LENGTH];
  *         uint8_t ** response_device_id = (uint8_t **)response_data;
@@ -94,12 +93,12 @@
  *          *response_device_id   = my_device_id;
  *          *response_length = sizeof my_device_id;
  *     }
- *     return status;
+ *     return idigi_callback_continue;
  * }
  *
  * @endcode
  *
-*
+ *
  * @section vendor_id Vendor ID
  *
  * Return vendor ID which is a unique code identifying the manufacturer of a device. 
@@ -147,6 +146,27 @@
  * </table>
  * @endhtmlonly
  *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_vendor_id)
+ *     {
+ *         extern const uint8_t my_device_vendor_id[VENDOR_ID_LENGTH];
+ *         uint8_t **id = (uint8_t **)response_data;
+ *
+ *         *id   = (uint8_t *)&my_device_vendor_id[0];
+ *         *response_length = sizeof my_device_vendor_id;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ *
+ * @endcode
  *
  * @section device_type Device Type
  *
@@ -194,6 +214,27 @@
  * </table>
  * @endhtmlonly
  *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_device_type)
+ *     {
+ *         /* Return pointer to device type. */
+ *         extern const char device_type[];
+ *         char ** type = (char **)response_data;
+ *         *type = (char *)&device_type[0];
+ *         *response_length = sizeof device_type-1;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ *
+ * @endcode
  *
  * @section server_url iDigi Server URL
  *
@@ -240,6 +281,28 @@
  * </table>
  * @endhtmlonly
  *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_server_url)
+ *     {
+ *         /* Return pointer to server url. */
+ *         static const char idigi_server_url[] = "developer.idigi.com";
+ *         char ** url = (char **)response_data;
+ *
+ *         *url = (char *)&idigi_server_url[0];
+ *         *response_length = sizeof idigi_server_url -1;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ *
+ * @endcode
  *
  * @section connection_type Connection Type
  *
@@ -267,7 +330,7 @@
  * </tr>
  * <tr>
  * <th>response_data</th>
- * <td> Return a pointer to @endhtmlonly @ref idigi_lan_connection_type @htmlonly for LAN connection type or @endhtmlonly @ref idigi_wan_connection_type @htmlonly for WAN connection type. </td>
+ * <td>Callback returns a pointer to @endhtmlonly @ref idigi_lan_connection_type @htmlonly for LAN connection type or @endhtmlonly @ref idigi_wan_connection_type @htmlonly for WAN connection type. </td>
  * </tr>
  * <tr>
  * <th>response_length</th>
@@ -286,6 +349,25 @@
  * </table>
  * @endhtmlonly
  *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_connection_type)
+ *     {
+ *         static idigi_connection_type_t  device_connection_type = idigi_lan_connection_type;
+ *         idigi_connection_type_t ** type = (idigi_connection_type_t **)response_data;
+ *         *type = &device_connection_type;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ *
+ * @endcode
  *
  * @section link_speed Link Speed
  *
@@ -333,6 +415,26 @@
  * </table>
  * @endhtmlonly
  *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_link_speed)
+ *     {
+ *         static uint32_t wan_speed = 19200;
+ *         uint32_t **speed = (uint32_t **)response_data;
+ *         *speed = &wan_speed;
+ *         *response_length = sizeof wan_speed;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ *
+ * @endcode
  *
  * @section phone_number Phone Number
  *
@@ -381,6 +483,27 @@
  * </table>
  * @endhtmlonly
  *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_phone_number)
+ *     {
+ *         static char wan_phone_number[] = "0000000000";
+ *         char **phone = (char **)response_data;
+ *         *phonse = (char *)&wan_phone_number[0];
+ *         *response_length = sizeof wan_phone_number - 1;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ *
+ * @endcode
+ *
  * @section tx_keepalive TX Keepalive Interval
  *
  * Return TX keepalive interval in seconds. This tells how 
@@ -427,6 +550,27 @@
  * </table>
  * @endhtmlonly
  *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_tx_keepalive)
+ *     {
+ *         static uint16_t my_device_tx_keepalive_interval = 60;
+ *         uint16_t ** interval = (uint16_t **)response_data;
+ *         *interval = (uint16_t *)&my_device_tx_keepalive_interval;
+ *         *response_length = sizeof my_device_tx_keepalive_interval;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ *
+ * @endcode
+ *
  * @section rx_keepalive RX Keepalive Interval
  *
  * Return RX keepalive interval in seconds. This tells how 
@@ -454,7 +598,7 @@
  * </tr>
  * <tr>
  * <th>response_data</th>
- * <td> Return pointer to RX keepalive interval in seconds. It must be between 5 and 7200 seconds. </td>
+ * <td>Callback returns pointer to RX keepalive interval in seconds. It must be between 5 and 7200 seconds. </td>
  * </tr>
  * <tr>
  * <th>response_length</th>
@@ -472,6 +616,27 @@
  * </tr>
  * </table>
  * @endhtmlonly
+ *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_rx_keepalive)
+ *     {
+ *         static uint16_t my_device_rx_keepalive_interval = 60;
+ *         uint16_t ** interval = (uint16_t **)response_data;
+ *         *interval = (uint16_t *)&my_device_rx_keepalive_interval;
+ *         *response_length = sizeof my_device_rx_keepalive_interval;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ *
+ * @endcode
  *
  * @section wait_count Wait Count
  *
@@ -500,7 +665,7 @@
  * </tr>
  * <tr>
  * <th>response_data</th>
- * <td> Return a pointer to wait count. It must be between 2 and 63 bytes. </td>
+ * <td> Callback returns a pointer to wait count. It must be between 2 and 63 bytes. </td>
  * </tr>
  * <tr>
  * <th>response_length</th>
@@ -518,6 +683,27 @@
  * </tr>
  * </table>
  * @endhtmlonly
+ *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_wait_count)
+ *     {
+ *         static uint16_t my_wait_count = 10;
+ *         uint16_t ** count = (uint16_t **)response_data;
+ *         *count = (uint16_t *)&my_wait_count;
+ *         *response_length = sizeof my_wait_count;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ *
+ * @endcode
  *
  * @section ip_address Device IP Address
  *
@@ -550,7 +736,7 @@
  * </tr>
  * <tr>
  * <th>response_length</th>
- * <td>Pointer to memory where callback writes the size of IP address. It returns 16 bytes for an IPv6 address or 4 bytes for an IPv4 address.</td>
+ * <td>Callback returns pointer to memory where callback writes the size of IP address. It returns 16 bytes for an IPv6 address or 4 bytes for an IPv4 address.</td>
  * </tr>
  * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
  * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
@@ -564,6 +750,28 @@
  * </tr>
  * </table>
  * @endhtmlonly
+ *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_ip_addr)
+ *     {
+ *         extern uint8_t my_ip_address[];
+ *         uint8_t ** ip_address = (uint8_t **)response_data;
+ *
+ *         *ip_address = (uint8_t *)&my_ip_address[0];
+ *         *response_length = sizeof my_ip_address;
+  *     }
+ *     return idigi_callback_continue;
+ * }
+ *
+ * @endcode
  *
  * @section mac_address MAC Address
  *
@@ -583,7 +791,7 @@
  * </tr>
  * <tr>
  * <th>request_data</th>
- * <td>Pointer to 6-byte MAC address</td>
+ * <td>N/A</td>
  * </tr>
  * <tr>
  * <th>request_length</th>
@@ -591,11 +799,11 @@
  * </tr>
  * <tr>
  * <th>response_data</th>
- * <td> Pointer to memory where callback writes the size of MAC address. It must be 6 bytes. </td>
+ * <td>Callback returns pointer to 6-byte MAC address</td>
  * </tr>
  * <tr>
  * <th>response_length</th>
- * <td>N/A</td>
+ * <td> Pointer to memory where callback writes the size of MAC address. It must be 6 bytes. </td>
  * </tr>
  * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
  * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
@@ -610,4 +818,25 @@
  * </table>
  * @endhtmlonly
  *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_mac_addr)
+ *     {
+ *         extern uint8_t device_mac_addr[];
+ *         uint8_t ** mac_addr = (uint8_t **)response_data;
+ *
+ *         *mac_addr = (uint8_t *)&device_mac_addr[0];
+ *         *response_length = sizeof device_mac_addr;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ *
+ * @endcode
  */
