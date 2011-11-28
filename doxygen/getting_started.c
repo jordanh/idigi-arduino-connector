@@ -48,7 +48,7 @@
  *  @li @ref uint32_t
  *
  * @subsection debug_macros Implement the debug macros
- * The file public/include/idigi_api.h implements the two macros listed below, these
+ * The file public/include/idigi_types.h implements the two macros listed below, these
  * are used to debug the IIK.
  *
  * Review these definions and modify these for your platform:
@@ -92,7 +92,7 @@
  *
  * @subsection add_files Add the source files to your build system
  * The following is a list of files to add to your build system, there is a sample
- * linux Makefile provided (public/samples/compile_and_link/Makefile) which you 
+ * linux Makefile provided (public/run/samples/compile_and_link/Makefile) which you 
  * can use as a reference.  Add the following files to your make/build system.
  * 
  * @htmlonly
@@ -466,7 +466,7 @@
  * is in the iDigi Configuration, review the configuration routines in config.c;
  * The device ID and vendor ID must be valid to connect.
  *
- *  @image html results1.png
+ * @image html results1.png
  *
  * @section step9 Step 9: Next Steps
  *

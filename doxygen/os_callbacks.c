@@ -2,7 +2,7 @@
  *
  * @htmlinclude nav.html
  *
- * @section callbacks OS Callbacks
+ * @section os_callbacks OS Callbacks
  * The IIK interafaces to the platforms OS through the callbacks listed below, these
  * are called through the application callback described in the @ref api1_overview.
  * The class id is @ref idigi_class_operating_system.
@@ -12,7 +12,7 @@
  *  -# @ref uptime
  *  -# @ref sleep
  *
- * @section malloc malloc
+ * @section os_malloc malloc
  * Callback used to dynamically allocate memory.
  *
  * @htmlonly
@@ -88,7 +88,7 @@
  *
  * @endcode
  *
- * @section free free
+ * @section os_free free
  *
  * Callback is called to free previous allocated memory.
  *
@@ -151,7 +151,7 @@
  *
  * @endcode
  *
- * @section uptime System Uptime
+ * @section os_uptime System Uptime
  * This callback is called to return system up time in seconds. It is the time 
  * that a device has been up and running..
  *
@@ -219,7 +219,7 @@
  *
  * @endcode
  *
- * @section sleep Sleep
+ * @section os_sleep Sleep
  * This callback is called relinquish control of the CPU (multithreaded model).
  *
  * @htmlonly

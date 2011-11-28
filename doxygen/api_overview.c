@@ -39,14 +39,14 @@
  * 
  * The API idigi_init() is called once at startup to  initialize the IIK. 
  * The application-defined callback function is passed as an argument; the @ref idigi_callback_t 
- * "application-define callback" is used by the IIK to communicate with the application. 
+ * "application-defined callback" is used by the IIK to communicate with the application. 
  * The idigi_init() function must be called before all other IIK APIs.
  *
  * @subsection single_threaded Single-threaded model: idigi_step() 
  * 
  * The function idigi_step() is called to perform a sequence of operations or events 
  * and returns control back to the caller.  This allows a caller to perform other tasks 
- * in single-threaded system or in a control-loop based system. A caller must call 
+ * in single-threaded system or in a run-loop based system. A caller must call 
  * this API repeatedly to continue IIK operations.
  *
  * The idigi_step() performs the following operations:
@@ -57,20 +57,21 @@
  * @subsection multi_threaded Multi-threaded model: idigi_run() 
  *
  * The function idigi_run() is similar to idigi_step() except it blocks and doesn't return control back to 
- * caller unless IIK encounters an error. This function is typically executed as a separated thread.
+ * caller unless the IIK encounters an error.  This function is typically executed as a separated thread.
  * This is the recommended method of running the IIK within in a multithreaded
  * environment.
  *
  * @note To relinquish control of the CPU in a multithreaded environment the IIK
- * call the receive (@ref idigi_class_network) callback with a timeout or will call
- * OS sleep (@ref idigi_class_operating_system).
+ * call the receive (@ref idigi_network_receive) callback with a timeout or will call
+ * OS sleep (@ref idigi_os_sleep).
  *
  * @subsection initiate_action Initiate an action: idigi_initiate_action() 
  *
- * The function idigi_initiate_action() is used to by the device to indicate to
- * the IIK that a data transfer needs to be started or that a the device requests 
- * that a connection be aborted.  The data service API describes how a data transfer
- * is initiated to the iDigi Device Cloud.
+ * The function idigi_initiate_action() is used to indicate to the IIK to perform a 
+ * device requested action.  The currently supported actions are:
+ *
+ *  @li Initiate a data transfer to the server, described in the data service API
+ *  @li Terminate the IIK
  *
  * @subsection iik_callback Application Callback
  * 
@@ -95,14 +96,16 @@
  * the appropriate action and return data, according to the class and request 
  * enumeration values. 
  *
- * Each callback is passed in a class ID which is defined in the enumerated type
- * @ref idigi_class_t.  For each class ID there is a set request ID, for example the
+ * Each callback is passed in a class ID which is defined by the enumerated type
+ * @ref idigi_class_t.  For each class ID there is a set of request ID's, for example the
  * @ref idigi_class_operating_system the corresponding request id's are defined
- * by the enum idigi_os_request_t.
+ * by the enum @ref idigi_os_request_t.
  *
- * The parameters request_data, request_length, response_data and response_length
- * are defined by the class_id and the request_id, refer to the page for
- * the API for detailed descriptions of the callback parameters.
+ * The parameters for the application-defined callback: request_data, request_length, 
+ * response_data and response_length are defined by the corresponding class_id and 
+ * the request_id. There is a section in the documentation for each class of callbacks,
+ * for example the Operating System callbacks are described on the @ref os_callbacks 
+ * "Operating System" page.
  *
  *
  * </td></tr>
