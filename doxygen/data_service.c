@@ -5,20 +5,20 @@
  * @section data_service_overview Data Service Overview
  *
  * The data service API is used to send data to and from the iDigi
- * Device Cloud.  The data service has two mechanisms one for device intiaited transfers and the
- * second for server initiated transfers.
+ * Device Cloud.  Data service transfers are either initiated by the iDigi
+ * Device Cloud or the device, the two types of requests are listed below:
  * 
- * @li @b Put @b requests: Transfers which are initiated by the device and is used to
- * write files to the iDigi server, the server may send a status response back
- * indicating the transfer was successfull. 
- * @li @b Device @b requests: Transfers which are initiated by the server to the device,
- * this is used to send data to the device and the device may send a response back.
+ * @li @b Put @b requests: Transfers which are initiated by the device and used to
+ * write files to the iDigi Device Cloud, the iDigi Device Cloud may send a status response back
+ * indicating the transfer was successful. 
+ * @li @b Device @b requests: Transfers which are initiated by the iDigi Device Cloud to the device.
+ * This is used to send data to the device and the device may send a response back.
  *
  * @section send_data Put Requests
  *
  * @subsection initiate_send Initiate Sending Data
  *
- * The applicication initiates the put request to the server by calling idigi_initiate_action()
+ * The application initiates the Put Request to the iDigi Device Cloud by calling idigi_initiate_action()
  * with the request parameter set to @ref idigi_initiate_data_service and request_data points to
  * a idigi_data_service_put_request_t structure.
  *
@@ -36,15 +36,16 @@
  *   status = idigi_initiate_action(handle, idigi_initiate_data_service, &header, NULL);
  * @endcode
  *
- * This example will instuct the IIK to initiate a file transfer to the iDigi Device Cloud, the IIK
- * will create a file test.txt in the the test directory on the server.  Once the server is
- * ready to receive more data the application callback will be called to get more 
- * data from the application.  The application callback is continually called until
- * the application indicates to the server there is no more data to send, it does this
+ * This example will invoke the IIK to initiate a data transfer to the iDigi Device 
+ * Cloud, the result of this operation creates a file test.txt in the test directory 
+ * on the iDigi Device Cloud.  Once the iDigi Device Cloud is ready to receive data 
+ * from the device the application callback is called indicating data is requested.  
+ * The application callback is continually called until the application indicates 
+ * there is no more data to send
  * by setting the @ref IDIGI_MSG_LAST_DATA bit in the flag field of the @ref idigi_data_service_block_t
  * which is in the client_data field in the response_data returned by the callback.
  *
- * @subsection get_data Callback to get more data
+ * @subsection get_data Data Callback
  *
  * After calling idigi_initiate_action() the user will keep getting a callback until
  * the application sets the flag indicating there is no more data to be sent.
@@ -105,7 +106,7 @@
  * <th>@endhtmlonly @ref idigi_callback_busy @htmlonly</th>
  * <td>Busy and needs to be called back again</td>
  * </tr>
-* </table>
+ * </table>
  * @endhtmlonly
  *
  * An example of an application callback for a put request is show below:
@@ -119,20 +120,12 @@
  *    idigi_data_service_msg_request_t const * const put_request = request_data;
  *    idigi_data_service_msg_response_t * const put_response = response_data;
  *
- *    UNUSED_PARAMETER(request_length);
- *    UNUSED_PARAMETER(response_length);
- *
- *    if ((put_request == NULL) || (put_response == NULL))
- *    {
- *         APP_DEBUG("Invalid request_data [%p] or response_data[%p]\n", request_data, response_data);
- *         goto done;
- *    }
  *
  *    if (request == idigi_data_service_put_request)
  *    {
  *        switch (put_request->message_type)
  *        {
- *        case idigi_data_service_type_need_data:
+ *        case idigi_data_service_type_need_data: /* iDigi Device Cloud requesting data */
  *            {
  *                idigi_data_service_block_t * message = put_response->client_data;
  *                char * dptr = message->data;
@@ -149,7 +142,7 @@
  *            }
  *            break;
  *
- *        case idigi_data_service_type_have_data:
+ *        case idigi_data_service_type_have_data: /* Response fromt he iDigi Device Cloud */
  *            {
  *                idigi_data_service_block_t * message = put_request->server_data;
  *                uint8_t const * data = message->data;
@@ -163,7 +156,7 @@
  *            }
  *            break;
  *
- *        case idigi_data_service_type_error:
+ *        case idigi_data_service_type_error: /* The iDigi Device Cloud sent back an error */
  *            {
  *                idigi_data_service_block_t * message = put_request->server_data;
  *                idigi_msg_error_t const * const error_value = message->data;
@@ -196,9 +189,9 @@
  *
  * The data from the server is in the idigi_data_service_msg_request_t field,
  * there is either data or an error.  If the application needs to send back
- * a reponse the application fills in the idigi_data_service_msg_response_t.
+ * a response the application fills in the idigi_data_service_msg_response_t.
  *
- * The user will recieve the application callback when a device request is recieved 
+ * The user will receive the application callback when a device request is received 
  * from the server with the following information:
  *
  * @htmlonly
@@ -271,11 +264,8 @@
  * {
  *     idigi_callback_status_t status = idigi_callback_continue;
  *     idigi_data_service_msg_request_t const * const service_device_request = request_data;
- * 
- *     UNUSED_PARAMETER(request_length);
- *     UNUSED_PARAMETER(response_length);
- * 
- *     if (request == idigi_data_service_device_request)
+ *
+ *     if (request == idigi_data_service_device_request) /* Device request from iDigi Device Cloud */
  *     {
  *         switch (service_device_request->message_type)
  *         {
@@ -302,6 +292,7 @@
  *     return status;
  * }
  *
+ * /* Routine to process the device request */
  *  static idigi_callback_status_t process_device_request(idigi_data_service_msg_request_t const * const request_data,
  *                                                       idigi_data_service_msg_response_t * const response_data)
  * {
@@ -311,8 +302,6 @@
  * 
  *     device_request_handle_t * client_device_request = response_data->user_context;
  * 
- *     ASSERT(server_device_request != NULL);
- *
  *     if ((server_data->flags & IDIGI_MSG_FIRST_DATA) == IDIGI_MSG_FIRST_DATA)
  *     {
  *         /* target should not be null on 1st chunk of data */
@@ -332,7 +321,7 @@
  *             int const ccode = os_malloc(sizeof *client_device_request, &ptr);
  *             if (ccode != 0 || ptr == NULL)
  *             {
- *                 /* no memeory so cancel this request */
+ *                 /* no memory so cancel this request */
  *                 APP_DEBUG("process_device_request: malloc fails for device request on session %p\n",
  *                            server_device_request->device_handle);
  *                 response_data->message_status = idigi_msg_error_memory;

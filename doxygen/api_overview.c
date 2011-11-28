@@ -4,13 +4,6 @@
  *
  * @section api1_overview API Overview
  *
- * The IIK uses a single application-defined @ref idigi_callback_t "callback" function to process network events, 
- * handle operating system (OS) calls, return device configuration data, and process firmware updates. 
- * The callback is also used to report error status and event notification.  The application defined 
- * callback is passed into idigi_init() upon startup.  When the IIK needs to allocate 
- * memory, access the network or perform other actions the application defined callback
- * is called.
- *
  * The IIK API includes two major software interfaces:
  *      @li IIK function calls
  *      @li IIK application-defined callback
@@ -41,48 +34,65 @@
  * </table>
  * @endhtmlonly
  *
- * The IIK will invoke the application defined callback to perform the following actions:
+ * 
+ * @subsection initialization Initialization: idigi_init() 
+ * 
+ * The API idigi_init() is called once at startup to  initialize the IIK. 
+ * The application-defined callback function is passed as an argument; the @ref idigi_callback_t 
+ * "application-define callback" is used by the IIK to communicate with the application. 
+ * The idigi_init() function must be called before all other IIK APIs.
+ *
+ * @subsection single_threaded Single-threaded model: idigi_step() 
+ * 
+ * The function idigi_step() is called to perform a sequence of operations or events 
+ * and returns control back to the caller.  This allows a caller to perform other tasks 
+ * in single-threaded system or in a control-loop based system. A caller must call 
+ * this API repeatedly to continue IIK operations.
+ *
+ * The idigi_step() performs the following operations:
+ *  -# Establish and maintain a connection with the iDigi Device Cloud.
+ *  -# Wait for incoming messages from the iDigi Device Cloud.
+ *  -# Send outstanding messages to the iDigi Device Cloud.
+ *
+ * @subsection multi_threaded Multi-threaded model: idigi_run() 
+ *
+ * The function idigi_run() is similar to idigi_step() except it blocks and doesn't return control back to 
+ * caller unless IIK encounters an error. This function is typically executed as a separated thread.
+ * This is the recommended method of running the IIK within in a multithreaded
+ * environment.
+ *
+ * @note To relinquish control of the CPU in a multithreaded environment the IIK
+ * call the receive (@ref idigi_class_network) callback with a timeout or will call
+ * OS sleep (@ref idigi_class_operating_system).
+ *
+ * @subsection initiate_action Initiate an action: idigi_initiate_action() 
+ *
+ * The function idigi_initiate_action() is used to by the device to indicate to
+ * the IIK that a data transfer needs to be started or that a the device requests 
+ * that a connection be aborted.  The data service API describes how a data transfer
+ * is initiated to the iDigi Device Cloud.
+ *
+ * @subsection iik_callback Application Callback
+ * 
+ * The IIK uses a single application-defined @ref idigi_callback_t "callback" function to process network events, 
+ * handle operating system (OS) calls, return device configuration data, and process firmware updates. 
+ * The callback is also used to report error status and event notification.  The application defined 
+ * callback is passed into idigi_init() upon startup.  When the IIK needs to allocate 
+ * memory, access the network or perform other actions the application defined callback
+ * is called.
+ *
+ * The IIK will invoke the application-defined callback to perform the following actions:
  *   @li Obtain configuration information
  *   @li OS calls
  *   @li Networking calls
  *   @li Notify the application of critical events and status
  *   @li Firmware download
- *   @li Send a device request
- *   @li Request more data when sending data to the server
- * 
- * @subsection initialization Initialization
- * 
- * The API idigi_init() is called once upon startup to  initialize the IIK. 
- * It takes the application defined callback function as an argument; this @ref idigi_callback_t 
- * "callback" is used by the IIK to communicate with the application. 
- * This function must be called before all other IIK APIs.
+ *   @li Handle a device request
+ *   @li Request more data when sending data to the iDigi Device Cloud
  *
- * @subsection single_threaded Single-threaded model
- * 
- * The function idigi_step() is called to perform a sequence of operations or events and returns control back to the caller. 
- * This allows a caller to perform other tasks in single-threaded system. A caller must call this API again to continue IIK operations. 
- * The connection is already terminated when idigi_step returns an error, idigi_step will try reconnecting to the iDigi Device Cloud if it's called again.
- * The idigi_step() performs the following operations:
- *  -# Establish a connection with the iDigi Device Cloud.
- *  -# Wait for incoming messages from the iDigi Device Cloud.
- *  -# Send outstanding messages to the iDigi Device Cloud.
- *
- * @subsection multi_threaded Multi-threaded model
- *
- * The function idigi_run() is similar to idigi_step() except it doesn't return control back to 
- * caller unless IIK encounters an error. This function should be executed as a separated thread.
- * This is the suggested method of running the IIK when running in a multithreaded
- * environment.
- *
- * @note To relinquish contol of the CPU in a multithreaded envirornment the IIK
- * call the receive (@ref idigi_class_network) callback with a timeout or will call
- * OS sleep (@ref idigi_class_operating_system).
- *
- * @subsection iik_callback Application Callback
- * 
- * A single callback @ref idigi_callback_t "idigi_callback_t" is used to interface between an application and the IIK. Class and request 
- * enumeration values are used to identify the callback action. The application must perform 
- * the appropriate action and return the corresponding data according to the class and request 
+ * Class and request 
+ * enumeration values are used to identify the callback action. The application must perform and return
+ * the appropriate action and return data, according to the class and request 
  * enumeration values. 
  *
  * Each callback is passed in a class ID which is defined in the enumerated type
