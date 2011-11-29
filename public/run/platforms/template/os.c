@@ -90,7 +90,7 @@ void os_free(void * const ptr)
 /**
  * @brief   Get the system time.
  *
- * Get the current time system time in seconds, this is only used as a reference 
+ * Get the current system time in seconds, this is only used as a reference 
  * by the IIK.
  *
  * 
