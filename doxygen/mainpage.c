@@ -190,7 +190,7 @@
  * must be in the include path for the IIK library.  Instructions on how to build zlib
  * are provided with the package.
  *
- * @note The first step is to read the @ref getting_started page.
+ * @note The next step is to read the @ref getting_started page.
  *
  * </td></tr>
  * </table>

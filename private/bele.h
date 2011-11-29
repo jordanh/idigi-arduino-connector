@@ -111,11 +111,6 @@ static __inline void StoreBE32(void * const array, uint32_t const val)
 /*
  * Endian-dependent stuff
  */
-
-    // Define swap macros for internal use only. Note that I am purposely
-    // avoiding defining "SWAP" macros for general use because they require
-    // that the caller know (or assume) the endianness. It's safer and
-    // more self-documenting to use the TO/FROM macros instead.
 static __inline uint16_t bele_SWAP16(uint16_t const val)
 {
     return MAKE16(LOW8(val), HIGH8(val));
@@ -128,8 +123,6 @@ static __inline uint32_t bele_SWAP32(uint32_t const val)
 
 
 #if defined(IDIGI_LITTLE_ENDIAN)
-
-/* These are the definitions for LITTLE_ENDIAN */
 
 #define TO_LE32(x)		(x)
 #define TO_LE16(x)  		(x)
@@ -194,25 +187,14 @@ extern void WE16cpy(void *dst, void *src, int n);
 
 #endif /* IDIGI_LITTLE_ENDIAN */
 
-/* NOTE: the do{}while constructs in the macros below are a nice way to combine
-   multiple C statements into a single statement.  This allows these macros to
-   be used in if statements without compiler complaints:
-   if (a)
-    StoreBE16(a,b);
-   else
-        StoreBE16(d,b);
-   Otherwise, these would require explicit braces {} to compile.
-*/
-
 /* This set of macros is used to read values from misaligned data areas.
  * Typically this is a buffer received from some device (ethernet?) at
  * arbitrary address.  They have been modified so that pointers to larger
  * than character will work.
- */
-/* void StoreBE16(char array[2], Word w);
+ *
+ * void StoreBE16(char array[2], Word w);
  *  Stores 16-bit value as BigEndian 16-bit value in char array.
  */
-
 #define StoreWE16(array, w)	StoreNative16(array, w)
 
 #define LoadWE16(array)		LoadNative16(array)
@@ -222,6 +204,5 @@ static __inline void StoreWE32(void * const array, uint32_t val)
     StoreNative16(((uint8_t *)(array)),   LOW16(val)); 
 	StoreNative16(((uint8_t *)(array))+2, HIGH16(val)); 
 }
-
 
 #endif /* BELE_H_ */
