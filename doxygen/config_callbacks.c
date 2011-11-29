@@ -18,6 +18,8 @@
  *  -# @ref wait_count
  *  -# @ref ip_address
  *  -# @ref mac_address
+ *  -# @ref firmware_support
+ *  -# @ref data_service_support
  *
  * @section device_id Device ID
  *
@@ -839,4 +841,137 @@
  * }
  *
  * @endcode
+ *
+ * @section firmware_support  Firmware Access Support
+ *
+ * Return @ref idigi_service_supported_status_t status to enable or disable Firmware 
+ * download capability. If it's supported, callback for @ref idigi_firmware_request_t 
+ * must be implemented for firmware download.
+ *
+ * @htmlonly
+ * <table class="apitable">
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
+ * <tr>
+ * <th>class_id</th>
+ * <td>@endhtmlonly @ref idigi_class_config @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <th>request_id</th>
+ * <td>@endhtmlonly @ref idigi_config_firmware_facility @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <th>request_data</th>
+ * <td>N/A</td>
+ * </tr>
+ * <tr>
+ * <th>request_length</th>
+ * <td> N/A</td>
+ * </tr>
+ * <tr>
+ * <th>response_data</th>
+ * <td> Pointer to memory where callback writes @endhtmlonly @ref idigi_service_supported_status_t @htmlonly 
+ * status to support or not support firmware access facility</td>
+ * </tr>
+ * <tr>
+ * <th>response_length</th>
+ * <td>N/A</td>
+ * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
+ * <tr>
+ * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
+ * <td>Callback successfully returned the status</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
+ * <td>Callback aborted IIK</td>
+ * </tr>
+ * </table>
+ * @endhtmlonly
+ *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_firmware_facility)
+ *     {
+ *         *((idigi_service_supported_status_t *)response_data) = idigi_service_supported;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ *
+ * @endcode
+ *
+ * @section data_service_support  Data Service Support
+ *
+ * Return @ref idigi_service_supported_status_t status to enable or disable data service 
+ * capability. If it's supported, callback for @ref idigi_data_service_request_t must be 
+ * implemented for data service.
+ *
+ * @htmlonly
+ * <table class="apitable">
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
+ * <tr>
+ * <th>class_id</th>
+ * <td>@endhtmlonly @ref idigi_class_config @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <th>request_id</th>
+ * <td>@endhtmlonly @ref idigi_config_data_service @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <th>request_data</th>
+ * <td>N/A</td>
+ * </tr>
+ * <tr>
+ * <th>request_length</th>
+ * <td> N/A</td>
+ * </tr>
+ * <tr>
+ * <th>response_data</th>
+ * <td> Pointer to memory where callback writes @endhtmlonly @ref idigi_service_supported_status_t @htmlonly 
+ * status to support or not support data service</td>
+ * </tr>
+ * <tr>
+ * <th>response_length</th>
+ * <td>N/A</td>
+ * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
+ * <tr>
+ * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
+ * <td>Callback successfully returned the status</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
+ * <td>Callback aborted IIK</td>
+ * </tr>
+ * </table>
+ * @endhtmlonly
+ *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_data_service)
+ *     {
+ *         *((idigi_service_supported_status_t *)response_data) = idigi_service_supported;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ *
+ * @endcode
+ *
  */
