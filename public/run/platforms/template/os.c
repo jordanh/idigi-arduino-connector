@@ -90,8 +90,9 @@ void os_free(void * const ptr)
 /**
  * @brief   Get the system time.
  *
- * Get the current time (number of seconds since the start of
- * the Unix epoch January 1, 1970) from the system clock.
+ * Get the current time system time in seconds, this is only used as a reference 
+ * by the IIK.
+ *
  * 
  * @param [in] uptime   Current system time in seconds.
  *  
