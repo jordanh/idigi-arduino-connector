@@ -78,6 +78,7 @@
 /**
  * Used to reference a network session and is passed into IIK API calls. This 
  * type is defined as an int and is used by the application to keep track of and identify sessions.
+ * Application may define this to different type for its own network reference in idigi_type.h
  */
 typedef int idigi_network_handle_t;
 /**
