@@ -12,8 +12,8 @@
  *  -# @ref uptime
  *  -# @ref sleep
  *
- * @section os_malloc malloc
- * Callback used to dynamically allocate memory.
+ * @section malloc malloc
+ * Callback is used to dynamically allocate memory.
  *
  * @htmlonly
  * <table class="apitable">
@@ -63,16 +63,12 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_os_request_t const request,
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
- *     idigi_callback_status_t status = idigi_callback_continue;
  *
- *     UNUSED_PARAMETER(request_length);
- *     UNUSED_PARAMETER(response_length);
- *
- *     if (request == idigi_os_malloc)
+ *     if (class_id = idigi_class_operating_system && request_id.os_request == idigi_os_malloc)
  *     {
  *         size_t size = *(size_t *)request_data;
  *         void ** ptr = (void **)response_data;
@@ -80,10 +76,10 @@
  *         *ptr = malloc(size);
  *         if (*ptr == NULL)
  *         {
- *             status = idigi_callback_abort;
- *          }
+ *             return idigi_callback_abort;
+ *         }
  *     }
- *     return status;
+ *     return idigi_callback_continue;
  * }
  *
  * @endcode
@@ -133,27 +129,23 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_os_request_t const request,
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
- *     idigi_callback_status_t status = idigi_callback_continue;
  *
- *     UNUSED_PARAMETER(request_length);
- *     UNUSED_PARAMETER(response_length);
- *
- *     if (request == idigi_os_free)
+ *     if (class_id = idigi_class_operating_system && request_id.os_request == idigi_os_free)
  *     {
  *         free((void *)request_data);
  *     }
- *     return status;
+ *     return idigi_callback_continue;
  * }
  *
  * @endcode
  *
  * @section os_uptime System Uptime
  * This callback is called to return system up time in seconds. It is the time 
- * that a device has been up and running..
+ * that a device has been up and running.
  *
  * @htmlonly
  * <table class="apitable">
@@ -200,21 +192,16 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_os_request_t const request,
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
- *     idigi_callback_status_t status = idigi_callback_continue;
  *
- *     UNUSED_PARAMETER(request_length);
- *     UNUSED_PARAMETER(response_length);
- *     UNUSED_PARAMETER(request_data);
- *
- *     if (request == idigi_os_system_up_time)
+ *     if (class_id = idigi_class_operating_system && request_id.os_request == idigi_os_system_up_time)
  *     {
  *         time((time_t *)response_data);
  *     }
- *     return status;
+ *     return idigi_callback_continue;
  * }
  *
  * @endcode
@@ -267,22 +254,17 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_os_request_t const request,
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
- *     idigi_callback_status_t status = idigi_callback_continue;
  *
- *     UNUSED_PARAMETER(request_length);
- *     UNUSED_PARAMETER(response_length);
- *     UNUSED_PARAMETER(response_data);
- *
- *     if (request == idigi_os_sleep)
+ *     if (class_id = idigi_class_operating_system && request_id.os_request == idigi_os_sleep)
  *     {
  *         unsigned int *timeout_seconds = request_data;
  *         usleep(*timeout_seconds * MICROSECONDS_PER_SECOND);
  *     }
- *     return status;
+ *     return idigi_callback_continue;
  * }
  *
  * @endcode

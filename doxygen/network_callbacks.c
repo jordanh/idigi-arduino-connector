@@ -64,6 +64,78 @@
  * </table>
  * @endhtmlonly
  *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_network && request_id.network_request == idigi_network_connect)
+ *     {
+ *         static idigi_network_handle_t idigi_fd = -1;
+ *         struct sockaddr_in sin;
+ *         in_addr_t ip_addr;
+ *         int opt=1;
+ *
+ *        idigi_network_handle_t ** network_handle = (idigi_network_handle_t **)response_data;
+ *
+ *         if (idigi_fd == -1)
+ *         {
+ *             if (dns_resolve_name((char *)request_data, request_length, &ip_addr) != 0)
+ *             {
+ *                 return idigi_callback_abort;
+ *             }
+ *
+ *             idigi_fd = socket(AF_INET, SOCK_STREAM, 0);
+ *             if (idigi_fd >= 0)
+ *             {
+ *                 int enabled = 1;
+ *
+ *                 if (setsockopt(idigi_fd, SOL_SOCKET, SO_KEEPALIVE, (char*)&enabled, sizeof(enabled)) < 0)
+ *                {
+ *                    perror("setsockopt SO_KEEPALIVE failed");
+ *                }
+ *
+ *                if (setsockopt(idigi_fd, IPPROTO_TCP, TCP_NODELAY, (char*)&enabled, sizeof(enabled)) < 0)
+ *                {
+ *                    perror("setsockopt TCP_NODELAY failed");
+ *                }
+ *            }
+ *            else
+ *            {
+ *                perror("Could not open socket");
+ *                return idigi_callback_abort;
+ *            }
+ *
+ *            /* set non-blocking socket */
+ *            if (ioctl(idigi_fd, FIONBIO, &opt) < 0)
+ *            {
+ *                perror("FIONBIO failed");
+ *                return idigi_callback_abort;
+ *            }
+ *
+ *            memset((char *)&sin, 0, sizeof(sin));
+ *            memcpy(&sin.sin_addr, &ip_addr, sizeof sin.sin_addr);
+ *            sin.sin_port   = htons(IDIGI_PORT);
+ *            sin.sin_family = AF_INET;
+ *            if (connect(idigi_fd, (struct sockaddr *)&sin, sizeof(sin)) < 0)
+ *            {
+ *                 perror("connect() failed");
+ *                return idigi_callback_abort;
+ *            }
+ *        }
+ *
+ *        *network_handle = &idigi_fd;
+ *        *response_length = sizeof idigi_fd;
+
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ *
+ * @endcode
  *
  * @section send Send
  *
@@ -116,6 +188,40 @@
  * </table>
  * @endhtmlonly
  *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_network && request_id.network_request == idigi_network_send)
+ *     {
+ *          idigi_write_request_t const * const write_data = (idigi_write_request_t *)request_data;
+ *          size_t * return_bytes_written = (size_t *)response_data;
+ *          int bytes_sent;
+ *
+ *          bytes_sent = send(*write_data->network_handle, (char *)write_data->buffer,
+ *                       write_data->length, 0);
+ *          if (bytes_sent < 0)
+ *          {
+ *              if ((errno == EAGAIN) || (errno == EWOULDBLOCK))
+ *              {
+ *                  return idigi_callback_busy;
+ *              }
+ *              else
+ *              {
+ *                  perror("network_send: send() failed");
+ *                  return idigi_callback_abort;
+ *              }
+ *          }
+ *          *return_bytes_written = bytes_sent;
+ *          return idigi_callback_continue;
+ *     }
+ * }
+ * @endcode
  *
  * @section receive Receive
  *
@@ -171,6 +277,47 @@
  * </table>
  * @endhtmlonly
  *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_network && request_id.network_request == idigi_network_receive)
+ *     {
+ *           idigi_read_request_t * read_data = (idigi_read_request_t *)request_data;
+ *           size_t * return_bytes_read = (size_t *)response_data;
+ *          int bytes_received;
+ *
+ *          bytes_received = recv(*read_data->network_handle, (char *)read_data->buffer, (int)read_data->length, 0);
+ *          if (bytes_received == 0)
+ *          {
+ *              /* EOF on input: the connection was closed. */
+ *              return idigi_callback_abort;
+ *          }
+ *          else if (bytes_received < 0)
+ *          {
+ *              /* An error of some sort occurred: handle it appropriately. */
+ *              if (errno == EAGAIN || errno == EWOULDBLOCK)
+ *              {
+ *                  return idigi_callback_busy;
+ *              }
+ *              else
+ *              {
+ *                  perror("network_receive: recv() failed");
+ *                  /* if not timeout (no data) return an error */
+ *                  return idigi_callback_abort;
+ *              }
+ *          }
+ *          *return_bytes_read = (size_t)bytes_received;
+ *          return idigi_callback_continue;
+ *     }
+ * }
+ *
+ * @endcode
  *
  * @section close Close
  *
@@ -217,6 +364,27 @@
  * </table>
  * @endhtmlonly
  *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_network && request_id.network_request == idigi_network_close)
+ *     {
+ *          idigi_network_handle_t * const fd = (idigi_network_handle_t *)request_data;
+ *          if (close(*fd) < 0)
+ *          {
+ *              perror("close() failed");
+ *          }
+ *          return idigi_callback_continue;
+ *     }
+ * }
+ *
+ * @endcode
  *
  * @section disconnected Connection disconnected
  *
@@ -265,6 +433,23 @@
  * </table>
  * @endhtmlonly
  *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_network && request_id.network_request == idigi_network_disconnected)
+ *     {
+ *          /* we've been disconnected. Just return continue to reconnect */
+ *          return idigi_callback_continue;
+ *     }
+ * }
+ *
+ * @endcode
  *
  * @section reboot Reboot
  *
@@ -307,4 +492,23 @@
  * </tr>
  * </table>
  * @endhtmlonly
+ *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_network && request_id.network_request == idigi_network_reboot)
+ *     {
+ *          server_reboot();
+ *          return idigi_callback_continue;
+ *     }
+ * }
+ *
+ * @endcode
+ *
  */
