@@ -100,6 +100,24 @@
  * </table>
  * @endhtmlonly
  *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_firmware && request_id.firmware_request == idigi_firmware_target_count)
+ *     {
+ *          /* return total number of firmware update targets */
+ *          *((uint16_t *)response_data) = fimware_list_count;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ * @endcode
+ *
  * @section fw_version_number Version Number of Firmware Target
  *
  * Return the version number of the target.
@@ -145,6 +163,26 @@
  * </table>
  * @endhtmlonly
  *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_firmware && request_id.firmware_request == idigi_firmware_version)
+ *     {
+ *          idigi_fw_config_t * config = (idigi_fw_config_t *)request_data;
+ *          uint32_t * version = (uint32_t *)response_data;
+ *          /* return the target version number */
+ *          *version = fimware_list[config->target].version;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ * @endcode
+ *
  * @section fw_code_size Code Size of Firmware Target
  *
  * Return the code size that is currently stored for the target.
@@ -189,6 +227,26 @@
  * </tr>
  * </table>
  * @endhtmlonly
+ *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_firmware && request_id.firmware_request == idigi_firmware_code_size)
+ *     {
+ *          idigi_fw_config_t * config = (idigi_fw_config_t *)request_data;
+ *          /* Return the target code size */
+ *          uint32_t * code_size = (uint32_t *)response_data;
+ *          *code_size = fimware_list[config->target].code_size;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ * @endcode
  *
  * @section  fw_description Description of Firmware Target
  *
@@ -236,6 +294,25 @@
  * </table>
  * @endhtmlonly
  *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_firmware && request_id.firmware_request == idigi_firmware_description)
+ *     {
+ *          /* return pointer to firmware target description */
+ *          char ** description = (char **)response_data;
+ *          *description = fimware_list[config->target].description;
+ *          *response_length = strlen(fimware_list[config->target].description);
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ * @endcode
  *
  * @section fw_namespec File Name Spec of Firmware Target
  *
@@ -287,15 +364,31 @@
  * </table>
  * @endhtmlonly
  *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_firmware && request_id.firmware_request == idigi_firmware_name_spec)
+ *     {
+ *           /* return pointer to firmware target description */
+ *          char ** name_spec = (char **)response_data;
+ *          *name_spec = fimware_list[config->target].name_spec;
+ *          *response_length = strlen(fimware_list[config->target].name_spec);
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ * @endcode
+ *
  * @section fw_download File Firmware Download Request
  *
  * Callback is called to start firmware download when IIK receives a firmware download request message.
  * IIK parses the information in the firmware download request and passes the information to the callback:
  *  -# A target number which target the firmware is intended for.
- *  -# 4-octet version number.
- *  -# 32-bit size of the code that is going to be sent.
- *  -# An ASCII string that is used as some form of textual information (user may choose to ignore this field if the current label is not overridden).
- *  -# A new regular expression for file name spec (User may choose to ignore this field if the current regular expression for file name spec is not overridden).
  *  -# The name of the file to be sent. 
  *
  * @htmlonly
@@ -320,7 +413,7 @@
  * </tr>
  * <tr>
  * <td>response_data</td>
- * <td>Pointer to memory where callback writes the @endhtmlonly idigi_fw_status_t @htmlonly to</td>
+ * <td>Pointer to memory where callback writes the @endhtmlonly @ref idigi_fw_status_t @htmlonly to</td>
  * </tr>
  * <tr>
  * <td>response_length</td>
@@ -338,6 +431,36 @@
  * </tr>
  * </table>
  * @endhtmlonly
+ *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_firmware && request_id.firmware_request == idigi_firmware_download_request)
+ *     {
+ *          idigi_fw_download_request_t  * const download_info = request_data;
+ *          idigi_fw_status_t * download_status = response_data;
+ *          if (firmware_download_started)
+ *          {   /* already started */
+ *              *download_status = idigi_fw_device_error;
+ *              return idigi_callback_continue;
+ *          }
+ *
+ *          APP_DEBUG("target = %d\n",         download_info->target);
+ *          APP_DEBUG("filename = %s\n",       download_info->filename);
+ *          /* initialize & prepare for firmware update */
+ *          total_image_size = 0;
+ *          firmware_download_started = 1;
+ *          *download_status = idigi_fw_success;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ * @endcode
  *
  *
  * @section fw_image_data Binary Image Data for Firmware Download
@@ -363,15 +486,15 @@
  * </tr>
  * <tr>
  * <td>request_data</td>
- * <td>Pointer to @endhtmlonly idigi_fw_config_t @htmlonly</td>
+ * <td>Pointer to @endhtmlonly idigi_fw_image_data_t @htmlonly</td>
  * </tr>
  * <tr>
  * <td>request_length</td>
- * <td>Size of @endhtmlonly idigi_fw_config_t @htmlonly</td>
+ * <td>Size of @endhtmlonly idigi_fw_image_data_t @htmlonly</td>
  * </tr>
  * <tr>
  * <td>response_data</td>
- * <td>Pointer to memory where callback writes the @endhtmlonly idigi_fw_status_t @htmlonly to</td>
+ * <td>Pointer to memory where callback writes the @endhtmlonly @ref idigi_fw_status_t @htmlonly to</td>
  * </tr>
  * <tr>
  * <td>response_length</td>
@@ -385,7 +508,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_busy @htmlonly</td>
- * <td>Callback is busy and will be called again</td>
+ * <td>Callback is busy and will be called again with same binary image data</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
@@ -393,6 +516,27 @@
  * </tr>
  * </table>
  * @endhtmlonly
+ *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_firmware && request_id.firmware_request == idigi_firmware_binary_block)
+ *     {
+ *          idigi_fw_image_data_t * const image_data = request_data;
+ *          idigi_fw_status_t * data_status = response_data;
+ *
+ *          fwStoreImage(image_data->target, image_data->data, image_data->length, image_data->offset);
+ *          *data_status = idigi_fw_success;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ * @endcode
  *
  * @section fw_complete Firmware Download Complete
  *
@@ -450,6 +594,35 @@
  * </table>
  * @endhtmlonly
  *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_firmware && request_id.firmware_request == idigi_firmware_download_complete)
+ *     {
+ *         idigi_fw_download_complete_request_t * const complete_request = request_data;
+ *         idigi_fw_download_complete_response_t * complete_response = response_data;
+ *
+ *         if (complete_request->code_size != total_image_size)
+ *         {
+ *             complete_response->status = idigi_fw_download_not_complete;
+ *         }
+ *         else
+ *         {
+ *            complete_response->status = idigi_fw_download_success;
+ *         }
+ *
+ *         fwCloseImage(complete_request->target, complete_response->status);
+ *         firmware_download_started = 0;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ * @endcode
  *
  * @section fw_abort Firmware Download Abort
  *
@@ -496,6 +669,25 @@
  * </table>
  * @endhtmlonly
  *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_firmware && request_id.firmware_request == digi_firmware_abort)
+ *     {
+ *         idigi_fw_download_abort_t * const abort_data = request_data;
+ *         fwCloseImage(abort_data->target, abort_data->status);
+ *         firmware_download_started = 0;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ * @endcode
+ *
  * @section fw_reset Firmware Target Reset
  *
  * Callback is called when server resets target. The callback should not return if 
@@ -541,5 +733,23 @@
  * </tr>
  * </table>
  * @endhtmlonly
+ *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_firmware && request_id.firmware_request == idigi_firmware_target_reset)
+ *     {
+ *         idigi_fw_config_t * config = (idigi_fw_config_t *)request_data;
+ *         fwResetImage(config->target);
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ * @endcode
  *
  */
