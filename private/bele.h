@@ -26,45 +26,113 @@
 #ifndef BELE_H_
 #define BELE_H_
 
+#include "idigi_types.h"
+
 /*
- *  Byte-extraction/creation macros
- *
- *      These are not endian-dependent.
+ *  Endian-independent byte-extraction macros
  */
 
-#define LOW8(x16)       ((unsigned char) (x16))
-#define HIGH8(x16)      ((unsigned char) (((unsigned short)(x16)) >> 8))
+#define	LOW8(x16)		((uint8_t) (x16))
+#define	HIGH8(x16)		((uint8_t) (((uint16_t)(x16)) >> 8))
 
-#define LOW16(x32)      ((unsigned short) (x32))
-#define HIGH16(x32)     ((unsigned short) (((unsigned int)(x32)) >> 16))
+#define	LOW16(x32)		((uint16_t) (x32))
+#define	HIGH16(x32)		((uint16_t) (((uint32_t)(x32)) >> 16))
 
-#define MAKE16(hi8,lo8)     ((unsigned short) (((unsigned short)(((unsigned char) (hi8) ) << 8 )) | ((unsigned char) (lo8))))
-#define MAKE32(hi16,lo16)   ((unsigned int)  (((unsigned int) (((unsigned short)(hi16)) << 16)) | ((unsigned short)(lo16))))
-#define MAKE64(hi32,lo32)   ((unsigned long long)  (((unsigned long long) (((unsigned int)(hi32)) << 32)) | ((unsigned int)(lo32))))
+#define BYTE32_3(x32)		((uint8_t) (((uint32_t)(x32)) >> 24))
+#define BYTE32_2(x32)		((uint8_t) (((uint32_t)(x32)) >> 16))
+#define BYTE32_1(x32)		((uint8_t) (((uint32_t)(x32)) >>  8))
+#define BYTE32_0(x32)		((uint8_t)  ((uint32_t)(x32)))
+
+/*
+ *	Endian-independent multi-byte-creation macros
+ */
+
+#define MAKE16(hi8,lo8)		((uint16_t) (((uint16_t)(((uint16_t) (hi8) ) << 8 )) | ((uint16_t) (lo8))))
+#define MAKE32(hi16,lo16)	((uint32_t)  (((uint32_t) (((uint32_t)(hi16)) << 16)) | ((uint32_t)(lo16))))
+#define MAKE64(hi32,lo32)	((uint64_t)  (((uint64_t) (((uint32_t)(hi32)) << 32)) | ((uint32_t)(lo32))))
 
 #define MAKE32_4(b3, b2, b1, b0)        MAKE32( MAKE16( b3, b2 ), MAKE16( b1, b0 ))
 
 
-    /* These macros handle little-endian vs big-endian
-     * byte-swapping for 16- and 32-bit quantities.
-     *
-     * FROM_xx      Translates FROM xx format to native CPU format
-     * TO_xx        Translates from native CPU format TO xx format
-     */
+/*
+ *	Unaligned access macros
+ */
+
+static __inline uint16_t LoadLE16(void const * const array)
+{
+    return MAKE16(((uint8_t *)(array))[1], ((uint8_t *)(array))[0]);
+}
+
+static __inline uint32_t LoadLE32(void const * const array)
+{
+    return MAKE32_4(((uint8_t *)(array))[3], ((uint8_t *)(array))[2], ((uint8_t *)(array))[1], ((uint8_t *)(array))[0]);
+}
+
+static __inline void StoreLE16(void * const array, uint16_t const val)
+{
+    ((uint8_t *)(array))[0] = LOW8(val);
+    ((uint8_t *)(array))[1] = HIGH8(val);
+}
+
+static __inline void StoreLE32(void * const array, uint32_t const val)
+{
+    ((uint8_t *)(array))[0] = BYTE32_0(val);
+    ((uint8_t *)(array))[1] = BYTE32_1(val);
+    ((uint8_t *)(array))[2] = BYTE32_2(val);
+    ((uint8_t *)(array))[3] = BYTE32_3(val);
+}
+
+
+static __inline uint16_t LoadBE16(void const * const array)		
+{
+    return MAKE16(((uint8_t *)(array))[0], ((uint8_t *)(array))[1]);
+}
+
+static __inline uint32_t LoadBE32(void const * const array)
+{
+    return MAKE32_4(((uint8_t *)(array))[0], ((uint8_t *)(array))[1], ((uint8_t *)(array))[2], ((uint8_t *)(array))[3]);
+}
+
+static __inline void StoreBE16(void * const array, uint16_t const val)
+{
+    ((uint8_t *)(array))[0] = HIGH8(val);
+    ((uint8_t *)(array))[1] = LOW8(val);
+}
+
+static __inline void StoreBE32(void * const array, uint32_t const val)
+{
+    ((uint8_t *)(array))[0] = BYTE32_3(val);
+    ((uint8_t *)(array))[1] = BYTE32_2(val);
+    ((uint8_t *)(array))[2] = BYTE32_1(val);
+    ((uint8_t *)(array))[3] = BYTE32_0(val);
+}
+
+
+/*
+ * Endian-dependent stuff
+ */
+static __inline uint16_t bele_SWAP16(uint16_t const val)
+{
+    return MAKE16(LOW8(val), HIGH8(val));
+}
+
+static __inline uint32_t bele_SWAP32(uint32_t const val)
+{
+    return MAKE32(bele_SWAP16(LOW16(val)), bele_SWAP16(HIGH16(val)));
+}
 
 
 #if defined(IDIGI_LITTLE_ENDIAN)
 
-/* These are the definitions for LITTLE_ENDIAN */
-#define TO_LE32(x)	(x)
-#define TO_LE16(x)  	(x)
-#define FROM_LE32(x)	(x)
-#define FROM_LE16(x)	(x)
+#define TO_LE32(x)		(x)
+#define TO_LE16(x)  		(x)
+#define FROM_LE32(x)		(x)
+#define FROM_LE16(x)		(x)
 
-#define TO_BE32(x)    ((((((x) << 16) | ((x) >> 16)) >> 8) & 0x00ff00ff) | (((((x) << 16) | ((x) >> 16)) << 8) & 0xff00ff00))
-#define TO_BE16(x)	  ((unsigned short)(((x) >> 8 | (x) << 8) & 0xFFFF))
-#define FROM_BE32(x)	((((((x) << 16) | ((x) >> 16)) >> 8) & 0x00ff00ff) | (((((x) << 16) | ((x) >> 16)) << 8) & 0xff00ff00))
-#define FROM_BE16(x)	((unsigned short)(((x) >> 8 | (x) << 8) & 0xFFFF))
+#define TO_BE32(x)		(bele_SWAP32(x))
+#define TO_BE16(x)		(bele_SWAP16(x))
+#define FROM_BE32(x)		(bele_SWAP32(x))
+#define FROM_BE16(x)		(bele_SWAP16(x))
 
 #define LoadNative16(array)    LoadLE16(array)
 #define LoadNative32(array)    LoadLE32(array)
@@ -87,15 +155,15 @@
 #else /* !IDIGI_LITTLE_ENDIAN */
 /* These are the definitions for BIG_ENDIAN */
 
-#define TO_LE32(x)	(swap32(x))
-#define TO_LE16(x)  	((unsigned short)(((x) >> 8 | (x) << 8) & 0xFFFF))
-#define FROM_LE32(x)	(swap32(x))
-#define FROM_LE16(x)	((unsigned short)(((x) >> 8 | (x) << 8) & 0xFFFF))
+#define TO_LE32(x)		(bele_SWAP32(x))
+#define TO_LE16(x)		(bele_SWAP16(x))
+#define FROM_LE32(x)		(bele_SWAP32(x))
+#define FROM_LE16(x)		(bele_SWAP16(x))
 
-#define TO_BE32(x)	(x)
-#define TO_BE16(x)	(x)
-#define FROM_BE32(x)	(x)
-#define FROM_BE16(x)	(x)
+#define TO_BE32(x)		(x)
+#define TO_BE16(x)		(x)
+#define FROM_BE32(x)		(x)
+#define FROM_BE16(x)		(x)
 
 #define LoadNative16(array)    LoadBE16(array)
 #define LoadNative32(array)    LoadBE32(array)
@@ -119,119 +187,22 @@ extern void WE16cpy(void *dst, void *src, int n);
 
 #endif /* IDIGI_LITTLE_ENDIAN */
 
-/* NOTE: the do{}while constructs in the macros below are a nice way to combine
-   multiple C statements into a single statement.  This allows these macros to
-   be used in if statements without compiler complaints:
-   if (a)
-    StoreBE16(a,b);
-   else
-        StoreBE16(d,b);
-   Otherwise, these would require explicit braces {} to compile.
-*/
-
 /* This set of macros is used to read values from misaligned data areas.
  * Typically this is a buffer received from some device (ethernet?) at
  * arbitrary address.  They have been modified so that pointers to larger
  * than character will work.
- */
-/* void StoreBE16(char array[2], Word w);
+ *
+ * void StoreBE16(char array[2], Word w);
  *  Stores 16-bit value as BigEndian 16-bit value in char array.
  */
+#define StoreWE16(array, w)	StoreNative16(array, w)
 
-#define StoreBE16(addr, w) \
-    do { ((unsigned char *)(addr))[0] = (w) >> 8; \
-         ((unsigned char *)(addr))[1] = (w) & 0xff; } while (0)
+#define LoadWE16(array)		LoadNative16(array)
 
-
-/* Word LoadBE16(char array[2]);
- *  Loads BigEndian 16-bit value from char array and returns it as 16-bit value.
- */
-#define LoadBE16(addr) \
-    (((unsigned char *)(addr))[0] << 8 | ((unsigned char *)(addr))[1])
-
-
-/* void StoreBE32(char array[4], DWord dw);
- *  Stores 32-bit value as BigEndian 32-bit value in char array.
- */
-#if 1
-#define StoreBE32(array, dw)    \
-    do {((unsigned char *)(array))[0] = (unsigned char)((dw) >> 24); \
-        ((unsigned char *)(array))[1] = (unsigned char)((dw) >> 16); \
-        ((unsigned char *)(array))[2] = (unsigned char)((dw) >> 8); \
-        ((unsigned char *)(array))[3] = (unsigned char)(dw); } while (0)
-#else
-
-#define StoreBE32(array, dw)    \
-    do {((unsigned char *)(array))[0] = ((dw) >> 24); \
-        ((unsigned char *)(array))[1] = ((dw) >> 16); \
-        ((unsigned char *)(array))[2] = (dw) >> 8; \
-        ((unsigned char *)(array))[3] = (unsigned char)(dw); } while (0)
-#endif
-/* DWord LoadBE32(char array[4]);
- *  Loads BigEndian 32-bit value from char array and returns it as 32-bit value.
- */
-#define LoadBE32(array)    \
-    (((unsigned char *)(array))[0] << 24 | \
-     ((unsigned char *)(array))[1] << 16 | \
-     ((unsigned char *)(array))[2] << 8 | \
-     ((unsigned char *)(array))[3])
-
-
-/* void StoreLE16(char array[2], Word w);
- *  Stores 16-bit value as LittleEndian 16-bit value in char array.
- */
-#define StoreLE16(addr, w) \
-    do { ((unsigned char *)(addr))[0] = (w) & 0xff; \
-         ((unsigned char *)(addr))[1] = (w) >> 8; } while (0)
-
-
-/* Word LoadLE16(char array[2]);
- *  Loads LittleEndian 16-bit value from char array and returns it as 16-bit value.
- */
-#define LoadLE16(addr) \
-    (((unsigned char *)(addr))[0] | ((unsigned char *)(addr))[1] << 8)
-
-/* void StoreLE32(char array[4], DWord dw);
- *  Stores 32-bit value as LittleEndian 32-bit value in char array.
- */
-#define StoreLE32(array, dw)    \
-    do {((unsigned char *)(array))[0] = (dw); \
-        ((unsigned char *)(array))[1] = (dw) >> 8; \
-    ((unsigned char *)(array))[2] = (dw) >> 16; \
-        ((unsigned char *)(array))[3] = (dw) >> 24; } while (0)
-
-/* DWord LoadLE32(char array[4]);
- *  Loads LittleEndian 32-bit value from char array and returns it as 32-bit value.
- */
-#define LoadLE32(array)    \
-    (((unsigned char *)(array))[0] | \
-     ((unsigned char *)(array))[1] << 8 | \
-     ((unsigned char *)(array))[2] << 16 | \
-     ((unsigned char *)(array))[3] << 24)
-
-/* These functions are for 16-bit wide little-endian interfaces. */
-
-/* void StoreWE16(char array[2], Word w);
- *  Stores native 16-bit value as 16-bitEndian 16-bit value in char array.
- */
-#define StoreWE16(array, w) StoreNative16(array, w)
-
-/* Word LoadWE16(char array[2]);
- *  Loads 16-bitEndian 16-bit value from char array and returns it as 16-bit value.
- */
-#define LoadWE16(array)    LoadNative16(array)
-
-/* void StoreWE32(char array[4], DWord dw);
- *  Stores 32-bit value as 16-bitEndian 32-bit value in char array.
- */
-#define StoreWE32(array, dw)    \
-    do {StoreNative16((array), (unsigned short)((dw)&0xFFFF)); \
-    StoreNative16((array)+2, (unsigned short)((dw) >> 16)); } while (0)
-
-/* DWord LoadWE32(char array[4]);
- *  Loads 16-bitEndian 32-bit value from char array and returns it as 32-bit value.
- */
-#define LoadWE32(array)    \
-    (LoadNative16((array)) | LoadNative16((array)+2) << 16)
+static __inline void StoreWE32(void * const array, uint32_t val)
+{
+    StoreNative16(((uint8_t *)(array)),   LOW16(val)); 
+	StoreNative16(((uint8_t *)(array))+2, HIGH16(val)); 
+}
 
 #endif /* BELE_H_ */
