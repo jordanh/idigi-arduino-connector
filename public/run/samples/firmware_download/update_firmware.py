@@ -3,9 +3,9 @@
 # It always update firmware target = 0 with image file name "image.a"
 # -------------------------------------------------
 # The following lines require manual changes
-username = "mlchan" # enter your username
-password = "mlchan" # enter your password
-device_id = "00000000-00000000-78E7D1FF-FF844782" # enter device id of target
+username = "YourUsername" # enter your username
+password = "YourPassword" # enter your password
+device_id = "Target Device Id" # enter device id of target
 # -------------------------------------------------
 image_file = "image.a" # image filename
 
@@ -37,7 +37,7 @@ else:
     """%(image_file, device_id, base64.encodestring("%s"%fileHandle.read())[:-1])
     
     # to what URL to send the request with a given HTTP method
-    webservice = httplib.HTTP("test.idigi.com",80)
+    webservice = httplib.HTTP("developer.idigi.com",80)
     webservice.putrequest("POST", "/ws/sci")
     
     # add the authorization string into the HTTP header
