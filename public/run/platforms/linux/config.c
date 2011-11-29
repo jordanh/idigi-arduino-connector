@@ -34,7 +34,7 @@
 
 /* IIK Configuration routines */
 
-#define MAX_INTERFACES 128
+#define MAX_INTERFACES      128
 #define DEVICE_ID_LENGTH    16
 #define VENDOR_ID_LENGTH    4
 #define MAC_ADDR_LENGTH     6
@@ -262,14 +262,14 @@ static int get_wait_count(uint16_t **count, size_t * size)
     return 0;
 }
 
-static int get_firmware_support(void)
+static idigi_service_supported_status_t get_firmware_support(void)
 {
-    return 1;
+    return idigi_service_supported;
 }
 
-static int get_data_service_support(void)
+static idigi_service_supported_status_t get_data_service_support(void)
 {
-    return 1;
+    return idigi_service_supported;
 }
 
 /* End of IIK configuration routines */
@@ -451,13 +451,13 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
         break;
 
     case idigi_config_data_service:
-        *((int *)response_data) = get_data_service_support();
+        *((idigi_service_supported_status_t *)response_data) = get_data_service_support();
         ret = 0;
         break;
 
     case idigi_config_max_transaction:
         #define IDIGI_MAX_MSG_TRANSACTIONS   1
-        *((uint8_t *)response_data) = IDIGI_MAX_MSG_TRANSACTIONS;
+        *((idigi_service_supported_status_t *)response_data) = IDIGI_MAX_MSG_TRANSACTIONS;
         ret = 0;
         break;
     }
