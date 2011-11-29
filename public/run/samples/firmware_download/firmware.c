@@ -66,10 +66,6 @@ static void firmware_download_request(idigi_fw_download_request_t const * const 
     }
 
     APP_DEBUG("target = %d\n",         download_info->target);
-    APP_DEBUG("version = 0x%04X\n",    download_info->version);
-    APP_DEBUG("code size = %d\n",      download_info->code_size);
-    APP_DEBUG("desc_string = %s\n",    download_info->desc_string);
-    APP_DEBUG("file name spec = %s\n", download_info->file_name_spec);
     APP_DEBUG("filename = %s\n",       download_info->filename);
 
     total_image_size = 0;
@@ -115,12 +111,6 @@ static void firmware_download_complete(idigi_fw_download_complete_request_t cons
     APP_DEBUG("checksum  = 0x%x\n", (unsigned)complete_request->checksum);
 
     complete_response->status = idigi_fw_download_success;
-
-    /* 
-     * The server currently use calculated checksum field for write status.
-     * 0 means no error.
-     */
-    complete_response->calculated_checksum = 0;
 
     if (complete_request->code_size != total_image_size)
     {
