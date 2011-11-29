@@ -27,6 +27,7 @@
 
 #include <netinet/in.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include "idigi_api.h"
 #include "idigi_types.h"
 
