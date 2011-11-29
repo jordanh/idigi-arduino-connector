@@ -84,7 +84,7 @@
  *
  * @endcode
  *
- * @section os_free free
+ * @section free free
  *
  * Callback is called to free previous allocated memory.
  *
@@ -143,7 +143,7 @@
  *
  * @endcode
  *
- * @section os_uptime System Uptime
+ * @section uptime System Uptime
  * This callback is called to return system up time in seconds. It is the time 
  * that a device has been up and running.
  *
@@ -206,7 +206,7 @@
  *
  * @endcode
  *
- * @section os_sleep Sleep
+ * @section sleep Sleep
  * This callback is called relinquish control of the CPU (multithreaded model).
  *
  * @htmlonly
