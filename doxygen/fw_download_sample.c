@@ -161,8 +161,11 @@
  * This samples provides two simple python scripts to update firmware image and query
  * supported firmware image information. It sends request to developer.idigi.com. 
  * You need to edit the username, password, and the device ID in the update_firmware.py
- * and query_firmware.py.
+ * and query_firmware.py. 
  * 
+ * update_firmware.py sends firmware image data for target 0 with "image.a" image file name.
+ * It opens and sends "image.a" to the device.
+ *
  * @code
  *
  * # -------------------------------------------------
@@ -171,13 +174,14 @@
  * password = "YourPassword" # enter your password
  * device_id = "Target Device Id" # enter device id of target
  * # -------------------------------------------------
+ * image_file = "image.a"  # image filename 
  *
  * @endcode
  *
  * To execute update_firmware.py python script:
  *
  * @code
- * python update_firmware.py <image file>
+ * python update_firmware.py
  * @endcode
  *
  * An output of update_firmware.py:
