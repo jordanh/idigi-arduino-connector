@@ -109,7 +109,7 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_pt
     unsigned timeout;
     uint32_t start_time_stamp;
     uint32_t end_time_stamp;
-    uint32_t time_to_send_rx_keepalive;
+    uint32_t time_to_send_rx_keepalive = 0;
     uint32_t time_to_receive_tx_keepalive;
     size_t  length;
     idigi_request_t request_id;
