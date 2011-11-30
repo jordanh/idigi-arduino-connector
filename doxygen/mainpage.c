@@ -5,11 +5,10 @@
  * @section table_of_contents Overview
  *
  *          -# @ref intro
- *              -# @ref features
- *              -# @ref communicating
- *          -# @ref requirements
  *          -# @ref language
+ *          -# @ref requirements
  *          -# @ref features
+ *          -# @ref communicating
  *          -# @ref threading
  *          -# @ref code_organization
  *              -# @ref private
@@ -76,13 +75,13 @@
  * </table>
  * @endhtmlonly
  *  
- * @subsection features IIK Features
+ * @section features IIK Features
  *     @li Send data to and from a device over the iDigi Device Cloud
  *     @li Update firmware on the device
  *     @li View the device configuration
  *     @li Reboot a device
  *
- * @subsection communicating Communicating with your device
+ * @section communicating Communicating with your device
  *
  * To manage your device you can use the iDigi Device Cloud Portal, this contains
  * the graphical user interface to the iDigi Device Cloud, this tool allows for

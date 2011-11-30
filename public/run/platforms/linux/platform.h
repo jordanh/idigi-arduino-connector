@@ -34,7 +34,7 @@
 #define UNUSED_PARAMETER(x)     ((void)x)
 
 /* Callbacks for this platform */
-extern idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
+idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
                            void * const request_data, size_t const request_length,
                            void * response_data, size_t * const response_length);
 
