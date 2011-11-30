@@ -55,10 +55,12 @@ static  uint16_t LoadBE16(void const * const array)
     return MAKE16(((uint8_t *)(array))[0], ((uint8_t *)(array))[1]);
 }
 
+#if defined(IDIGI_DATA_SERVICE) || defined(IDIGI_FIRMWARE_SERVICE)
 static  uint32_t LoadBE32(void const * const array)
 {
     return MAKE32_4(((uint8_t *)(array))[0], ((uint8_t *)(array))[1], ((uint8_t *)(array))[2], ((uint8_t *)(array))[3]);
 }
+#endif
 
 static  void StoreBE16(void * const array, uint16_t const val)
 {
