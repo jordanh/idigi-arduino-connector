@@ -41,6 +41,7 @@ mkdir -p ${BASE_DIR}
 cp Makefile ${BASE_DIR}
 cp -rf private ${BASE_DIR}
 cp -rf public ${BASE_DIR}
+cp -rf doxygen ${BASE_DIR}
 
 # Grab the license
 echo ">> Pulling License from /eng/store/released/90000000/${LICENSE}.zip and copying to ${WORKSPACE}."
@@ -48,13 +49,9 @@ cp /eng/store/released/90000000/${LICENSE}.zip ${WORKSPACE}
 unzip -o ${WORKSPACE}/${LICENSE}.zip -d ${BASE_DIR}
 rm ${WORKSPACE}/${LICENSE}.zip
 
-# Grab the users guide
-echo ">> Pulling Users Guide from /eng/store/released/90000000/${USERS_GUIDE}.pdf and copying to ${BASE_DIR}."
-cp /eng/store/released/90000000/${USERS_GUIDE}.pdf ${BASE_DIR}/${USERS_GUIDE_NAME}
-
 # Create the tarball
 echo ">> Creating the release Tarball as ${OUTPUT_DIR}/${PKG_NAME}.tgz."
-tar --exclude=idigi/hudson.sh --exclude=idigi/public/test -czvf ${WORKSPACE}/${OUTPUT_DIR}/${PKG_NAME}.tgz idigi/
+tar --exclude=idigi/hudson.sh --exclude=idigi/public/test --exclude=idigi/public/dvt  --exclude=idigi/public/sample  -czvf ${WORKSPACE}/${OUTPUT_DIR}/${PKG_NAME}.tgz idigi/
 
 # Delete the original idigi directory
 echo ">> Removing base dir ${BASE_DIR}."
