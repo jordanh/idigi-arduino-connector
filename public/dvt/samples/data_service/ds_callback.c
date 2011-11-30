@@ -23,6 +23,7 @@
  *
  */
 #include <stdlib.h>
+#include <stdbool.h>
 #include "idigi_api.h"
 #include "platform.h"
 
@@ -32,7 +33,7 @@
 
 static int gWait = 0;
 
-extern bool os_malloc(size_t const size, void ** ptr);
+extern int os_malloc(size_t const size, void ** ptr);
 extern void os_free(void * const ptr);
 
 #define DS_MAX_USER   7
@@ -77,8 +78,8 @@ idigi_status_t send_put_request(idigi_handle_t handle, int index)
     {
         void * ptr;
 
-        bool const is_ok = os_malloc(sizeof *user, &ptr);
-        if (!is_ok || ptr == NULL)
+        int const is_ok = os_malloc(sizeof *user, &ptr);
+        if (is_ok < 0|| ptr == NULL)
         {
             /* no memeory stop IIK */
             APP_DEBUG("send_put_request: malloc fails\n");
