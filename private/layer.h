@@ -876,9 +876,9 @@ enum {
         idigi_debug_hexvalue("discovery layer: send vendor id", idigi_ptr->vendor_id, VENDOR_ID_LENGTH);
 #else
         {
-            uint32_t const vendor_id = TO_BE32(IDIGI_VENDOR_ID);
-            message_store_array(edp_vendor_msg, vendor_id, &vendor_id, VENDOR_ID_LENGTH);
-            idigi_debug_hexvalue("discovery layer: send vendor id", (uint8_t *)&vendor_id, VENDOR_ID_LENGTH);
+            ASSERT(sizeof IDIGI_VENDOR_ID == VENDOR_ID_LENGTH);
+            message_store_be32(edp_vendor_msg, vendor_id, IDIGI_VENDOR_ID);
+            idigi_debug("discovery layer: send vendor id = 0x%X\n", IDIGI_VENDOR_ID);
         }
 #endif
 
