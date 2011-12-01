@@ -28,27 +28,32 @@
 
 #if defined(IDIGI_VENDOR_ID)
 #if (IDIGI_VENDOR_ID > 0xFFFFFFFF)
-    #error "Invalid IDIGI_VENDOR_ID 4byte vendor id"
+    #error "Invalid IDIGI_VENDOR_ID 4byte vendor id in idigi_config.h"
 #endif
 #endif
 
 #if defined(IDIGI_TX_KEEPALIVE_IN_SECONDS)
 #if (IDIGI_TX_KEEPALIVE_IN_SECONDS < MIN_TX_KEEPALIVE_INTERVAL_IN_SECONDS) || (IDIGI_TX_KEEPALIVE_IN_SECONDS > MAX_TX_KEEPALIVE_INTERVAL_IN_SECONDS)
-    #error "Invalid IDIGI_TX_KEEPALIVE_IN_SECONDS value in config.h."
+    #error "Invalid IDIGI_TX_KEEPALIVE_IN_SECONDS value in idigi_config.h."
 #endif
 #endif
 
 #if defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
 #if (IDIGI_RX_KEEPALIVE_IN_SECONDS < MIN_RX_KEEPALIVE_INTERVAL_IN_SECONDS) || (IDIGI_RX_KEEPALIVE_IN_SECONDS > MAX_RX_KEEPALIVE_INTERVAL_IN_SECONDS)
-    #error "Invalid IDIGI_RX_KEEPALIVE_IN_SECONDS value in config.h."
+    #error "Invalid IDIGI_RX_KEEPALIVE_IN_SECONDS value in idigi_config.h."
 #endif
 #endif
 
 #if defined(IDIGI_WAIT_COUNT)
 #if (IDIGI_WAIT_COUNT < WAIT_COUNT_MIN) || (IDIGI_WAIT_COUNT > WAIT_COUNT_MAX)
-    #error "Invalid IDIGI_RX_KEEPALIVE_IN_SECONDS value in config.h."
+    #error "Invalid IDIGI_RX_KEEPALIVE_IN_SECONDS value in idigi_config.h."
 #endif
 #endif
 
+#if defined(IDIGI_MSG_MAX_TRANSACTION)
+#if (IDIGI_MSG_MAX_TRANSACTION < 0 || IDIGI_MSG_MAX_TRANSACTION > IDIGI_MAX_TRANSACTIONS_LIMIT)
+    #error "Invalid IDIGI_MSG_MAX_TRANSACTION value in idigi_config.h"
+#endif
+#endif
 
 #endif /* CHK_CONFIG_H_ */
