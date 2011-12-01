@@ -16,7 +16,7 @@
  *
  * @section connect Connect
  *
- * Callback is called to establish connection between IIK and the iDigi Device Cloud. 
+ * This callback is called to establish connection between IIK and the iDigi Device Cloud. 
  * Callback is responsible to setup any socket options.
  *
  * @htmlonly

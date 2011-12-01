@@ -209,15 +209,19 @@
  * 
  * Go into the platforms directory and select a platform which is the similar to your platform, 
  * if none of the available platforms are similar to yours you can use the 
- * template platform. These routines are callbacks which are described in detail
- * in the API section.  In this guide we use the public/run/platforms/linux as an
+ * template platform. 
+ *
+ * @note In this release of the IIK only the Linux platform is provided.
+ *
+ * In this guide we use the public/run/platforms/linux as an
  * example, but all platforms have the same structure.   So choose a platform (or copy an existing one)
  * and go into that directory.
  *
  * @subsection os_routines OS Routines
  * Open the file os.c and implement the routines listed below, for the linux platform
  * the file is located at public/run/platforms/@a my_platform/os.c.  Click on the routine
- * to see a description, then modify to operate with your platform.
+ * to see a description, then modify to operate with your platform.  These routines
+ * are callbacks which are described in the API section.
  *
  *  @li os_malloc()
  *  @li os_free()

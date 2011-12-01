@@ -100,7 +100,7 @@ typedef int idigi_network_handle_t;
  * printf except that the variable argument list is passed as a va_list instead of a 
  * succession of arguments.
  *
- * C library. The prototype for vprintf is vprintf(const char *format, va_list ap);
+ * In the C library the prototype for vprintf is defined as vprintf(const char *format, va_list ap);
  *
  */
 #define USER_DEBUG_VPRINTF  vprintf
