@@ -163,7 +163,7 @@ static int get_vendor_id(uint8_t ** id, size_t * size)
 static int get_device_type(char ** type, size_t * size)
 {
 #error "Specify device type"
-    static const char const *device_type = "Linux Application";
+    static const char const *device_type = "IIK Linux Sample";
 
     /* Return pointer to device type. */
     *type = (char *)device_type;
@@ -406,6 +406,9 @@ static uint8_t get_max_message_transactions(void)
  *
  * This routine is called when IIK encounters an error. This is used as
  * a debug tool for finding configuration or keepalive error.
+ *
+ * If @ref IDIGI_DEBUG is not defined in idigi_config.h, IIK will
+ * not call this callback to notify any error encountered.
  *
  * @retval None
  *
