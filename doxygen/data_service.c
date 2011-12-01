@@ -8,6 +8,9 @@
  * Device Cloud.  Data service transfers are either initiated by the iDigi
  * Device Cloud or the device, the two types of requests are listed below:
  * 
+ * @note See @ref data_service_support under Configuration to enable or
+ * disable data service.
+ * 
  * @li @b Put @b requests: Transfers which are initiated by the device and used to
  * write files to the iDigi Device Cloud, the iDigi Device Cloud may send a status response back
  * indicating the transfer was successful. 
