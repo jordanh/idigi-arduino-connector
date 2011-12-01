@@ -11,11 +11,6 @@
  *          -# @ref communicating
  *          -# @ref threading
  *          -# @ref code_organization
- *              -# @ref private
- *              -# @ref public
- *              -# @ref run
- *              -# @ref platforms
- *              -# @ref samples
  *          -# @ref zlib
  *
  * @section intro Introduction
@@ -56,8 +51,8 @@
  * </tr>
  * <tr>
  * <td>Heap</td>
- * <td>9232 bytes</td>
- * <td>2704 bytes</td>
+ * <td>5920 bytes</td>
+ * <td>2656 bytes</td>
  * <td>IIK memory usage</td>
  * </tr>
  * <tr>
@@ -122,20 +117,41 @@
  * <th class="title">Description</td>
  * </tr>
  * <tr>
- * <td>private</td>
- * <td>IIK Library Code  <strong>(do not modify)</strong></td>
+ * <td rowspan="2">private</td>
+ * <td style="border-bottom: 0px none;">IIK Library Code  <strong>(do not modify)</strong></td>
+ * </tr><tr>
+ * <td style="border-top: 0px none;">It contains all the files which are used to build the IIK library. 
+ * The user <b> should not modify any files in this directory</b>. These files are only provided 
+ * so the library can be built using the tool chain for your platform.</td>
  * </tr>
  * <tr>
- * <td>public/include</td>
- * <td>Public API</td>
+ * <td rowspan=2>public/include</td>
+ * <td style="border-bottom: 0px none;">Public API</td>
+ * </tr><tr>
+ * <td style="border-top: 0px none;">It contains header files used globally by the IIK.
+ * When porting to a new platform the user may need to modify the file @endhtmlonly @ref idigi_types.h. @htmlonly
+ * The file @endhtmlonly @ref idigi_api.h @htmlonly in this directory is the IIK public API.</td>
  * </tr>
  * <tr>
- * <td>public/run</td>
- * <td>Platforms and samples for running the IIK as a separate thread</td>
+ * <td rowspan=2>public/run</td>
+ * <td style="border-bottom: 0px none;">Platforms and samples for running the IIK as a separate thread</td>
+ * </tr><tr>
+ * <td style="border-top: 0px none;">It contains platforms and samples which run the IIK as a separate 
+ * thread in a multitasking environment.</td>
  * </tr>
  * <tr>
- * <td>public/step</td>
- * <td>Platforms and samples for running the IIK in a single threaded model</td>
+ * <td rowspan=2>public/step</td>
+ * <td style="border-bottom: 0px none;">Platforms and samples for running the IIK in a single threaded model</td>
+ * </tr><tr>
+ * <td style="border-top: 0px none;">It contains platforms and samples which run the IIK as a single thread
+ * in a non-multhreaded model.</td>
+ * </tr>
+ * <tr>
+ * <td rowspan=2>public/run/platforms</td>
+ * <td style="border-bottom: 0px none;">Platforms for running the IIK as a separate thread</td>
+ * </tr><tr>
+ * <td style="border-top: 0px none;">For each supported platform there is a subdirectory along with a set of interface routines.
+ * The Getting Started Procedure will walk you through setting up your platform.</td>
  * </tr>
  * <tr>
  * <td>public/run/platforms/linux</td>
@@ -146,38 +162,15 @@
  * <td>Shell routines to implement a new platform from scratch</td>
  * </tr>
  * <tr>
- * <td>public/run/samples</td>
- * <td>Samples for the IIK</td>
+ * <td rowspan="2">public/run/samples</td>
+ * <td style="border-bottom: 0px none;">Samples for the IIK</td>
+ * </tr><tr>
+ * <td style="border-top: 0px none;">Samples on how to use the IIK, the compile_and_link sample is used to verify
+ * that your new envirorment is able to build. There is a sample for each major
+ * feature in the IIK, there is documentation in this guide for each sample.</td>
  * </tr>
  * </table>
  * @endhtmlonly
- *
- * @subsection private private Directory
- * The private directory contains all the files which are used to build the IIK library. 
- * The user @b should @b not @b modify @b any @b files @b in @b this @b directory. These files are only provided 
- * so the library can be built using the tool chain for your platform.
- *
- * @subsection public include Directory
- * The public/include directory contains header files used globally by the IIK. 
- * When porting to a new platform the user may need to modify the file idigi_types.h. 
- * The file idigi_api.h in this directory is the IIK public API.
- *
- * @subsection run run Directory
- * Directory containing platforms and samples which run the IIK as a separate 
- * thread in a multitasking environment.
- *
-* @subsection step step Directory
- * Directory containing platforms and samples which run the IIK as a single thread
- * in a non-multhreaded model.
- *
- * @subsection platforms platforms Directory
- * For each supported platform there is a subdirectory along with a set of interface routines.
- * The Getting Started Procedure will walk you through setting up your platform.
- *
- * @subsection samples samples Directory
- * Samples on how to use the IIK, the compile_and_link sample is used to verify
- * that your new envirorment is able to build. There is a sample for each major
- * feature in the IIK, there is documentation in this guide for each sample.
  *
  * @section zlib zlib Support
  * The zlib software library is used for data compression by the IIK, the zlib library 
