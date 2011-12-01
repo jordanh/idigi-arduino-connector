@@ -324,7 +324,7 @@ idigi_status_t idigi_run(idigi_handle_t const handle)
         rc = idigi_step(handle);
         sleep_timeout(handle);
 
-    } while (rc != idigi_device_terminated);
+    } while (rc == idigi_success);
 
     return rc;
 }
