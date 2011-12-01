@@ -74,7 +74,7 @@ idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
                                         void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    int ret=-1;
+    int ret;
 
     UNUSED_PARAMETER(request_length);
     UNUSED_PARAMETER(response_length);
