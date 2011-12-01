@@ -272,16 +272,21 @@ static idigi_service_supported_status_t get_data_service_support(void)
     return idigi_service_supported;
 }
 
+static uint8_t get_max_message_transactions(void)
+{
+#define IDIGI_MAX_MSG_TRANSACTIONS   1
+
+    return IDIGI_MAX_MSG_TRANSACTIONS;
+}
+
 /* End of IIK configuration routines */
 
 /*
  * This routine is called when a configuration error is encountered by the IIK.
  * This is currently used as a debug tool for finding configuration errors.
  */
-static int idigi_config_error(idigi_error_status_t * const error_data)
+void idigi_config_error(idigi_error_status_t * const error_data)
 {
-
-    int status = 0;
 
     char const * error_status_string[] = {"idigi_success", "idigi_init_error",
                                           "idigi_configuration_error",
@@ -374,7 +379,6 @@ static int idigi_config_error(idigi_error_status_t * const error_data)
         APP_DEBUG("idigi_error_status: unsupport class_id = %d status = %d\n", error_data->class_id, error_data->status);
         break;
     }
-    return status;
 }
 
 /*
@@ -442,11 +446,12 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
         break;
 
     case idigi_config_error_status:
-        ret = idigi_config_error((idigi_error_status_t *)request_data);
+        idigi_config_error((idigi_error_status_t *)request_data);
+        ret = 0;
         break;
 
     case idigi_config_firmware_facility:
-        *((int *)response_data) = get_firmware_support();
+        *((idigi_service_supported_status_t *)response_data) = get_firmware_support();
         ret = 0;
         break;
 
@@ -456,8 +461,7 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
         break;
 
     case idigi_config_max_transaction:
-        #define IDIGI_MAX_MSG_TRANSACTIONS   1
-        *((idigi_service_supported_status_t *)response_data) = IDIGI_MAX_MSG_TRANSACTIONS;
+        *((uint8_t *)response_data) = get_max_message_transactions();
         ret = 0;
         break;
     }
