@@ -298,62 +298,83 @@
  * and memory usage. You can define individual configuration.
  *
  * @code
- * #define IDIGI_TX_KEEPALIVE_IN_SECONDS   90
- * #define IDIGI_RX_KEEPALIVE_IN_SECONDS   60
- * #define IDIGI_WAIT_COUNT                5
- * #define IDIGI_VENDOR_ID                 0x00000000
+ * #define IDIGI_DEVICE_TYPE               "IIK Linux Sample"
+ * #define IDIGI_TX_KEEPALIVE_IN_SECONDS   75
+ * #define IDIGI_RX_KEEPALIVE_IN_SECONDS   75
+ * #define IDIGI_WAIT_COUNT                10
+ * #define IDIGI_VENDOR_ID                 0x01000001
  * #define IDIGI_MSG_MAX_TRANSACTION       1
+ *
  * #define IDIGI_CONNECTION_TYPE                      idigi_lan_connection_type
  * #define IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND    0
  * #define IDIGI_WAN_PHONE_NUMBER_DIALED              "012345678"
+ * 
+ * #define IDIGI_FIRMWARE_SUPPORT
+ * #define IDIGI_DATA_SERVICE_SUPPORT
  * @endcode
  *
  * @htmlonly
  * <table class="apitable">
  * <tr>
  * <th class="title">Configuration Defines</td>
- * <th class="title">Configuration Callbacks</td>
- * <th class="title">Configuration Routines</td>
+ * <th class="title">Description</td>
+ * </tr>
+ * <tr>
+ * <td>IDIGI_DEVICE_TYPE</td>
+ * <td>Device type in iso-8859-1 encoded string to identify the device.
+ * See @endhtmlonly @ref device_type @htmlonly</td>
  * </tr>
  * <tr>
  * <td>IDIGI_TX_KEEPALIVE_IN_SECONDS</td>
- * <td>@endhtmlonly @ref tx_keepalive @htmlonly</td>
- * <td>@endhtmlonly @ref get_tx_keepalive_interval @htmlonly</td>
+ * <td>TX Keepalive interval in seconds between 5 and 7200 seconds.
+ * See @endhtmlonly @ref tx_keepalive @htmlonly</td>
  * </tr>
  * <tr>
  * <td>IDIGI_RX_KEEPALIVE_IN_SECONDS</td>
- * <td>@endhtmlonly @ref rx_keepalive @htmlonly</td>
- * <td>@endhtmlonly @ref get_rx_keepalive_interval @htmlonly</td>
+ * <td>RX Keepalive interval in seconds between 5 and 7200 seconds.
+ * See @endhtmlonly @ref rx_keepalive @htmlonly</td>
  * </tr>
  * <tr>
  * <td>IDIGI_WAIT_COUNT</td>
- * <td>@endhtmlonly @ref wait_count @htmlonly</td>
- * <td>@endhtmlonly @ref get_wait_count @htmlonly</td>
+ * <td>Number of time of not receiving a keepalive message which
+ * a connection should be considered lost.it must be between 2 and 63 times.
+ * See @endhtmlonly @ref wait_count @htmlonly</td>
  * </tr>
  * <tr>
  * <td>IDIGI_VENDOR_ID</td>
- * <td>@endhtmlonly @ref vendor_id @htmlonly</td>
- * <td>@endhtmlonly @ref get_vendor_id @htmlonly</td>
+ * <td>Vendor ID from iDigi Account.
+ * See @endhtmlonly @ref vendor_id @htmlonly</td>
  * </tr>
  * <tr>
  * <td>IDIGI_MSG_MAX_TRANSACTION</td>
- * <td>@endhtmlonly @ref max_msg_transactions @htmlonly</td>
- * <td>@endhtmlonly @ref get_max_message_transactions @htmlonly</td>
+ * <td>Maximum simultaneous transactions for data service receiving message.
+ * See @endhtmlonly @ref max_msg_transactions @htmlonly</td>
  * </tr>
  * <tr>
  * <td>IDIGI_CONNECTION_TYPE</td>
- * <td>@endhtmlonly @ref connection_type @htmlonly</td>
- * <td>@endhtmlonly @ref connection_type @htmlonly</td>
+ * <td> @endhtmlonly @ref idigi_lan_connection_type @htmlonly for LAN connection or
+ * @endhtmlonly @ref idigi_wan_connection_type @htmlonly WAN connection.
+ * See @endhtmlonly @ref connection_type @htmlonly</td>
  * </tr>
  * <tr>
  * <td>IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND</td>
- * <td>@endhtmlonly @ref link_speed @htmlonly</td>
- * <td>@endhtmlonly @ref get_link_speed @htmlonly</td>
+ * <td>Link speed for WAN connection.
+ * See @endhtmlonly @ref link_speed @htmlonly</td>
  * </tr>
  * <tr>
  * <td>IDIGI_WAN_PHONE_NUMBER_DIALED</td>
- * <td>@endhtmlonly @ref phone_number @htmlonly</td>
- * <td>@endhtmlonly @ref get_phone_number @htmlonly</td>
+ * <td>Phone number dialed for WAN connection in a string.
+ * See @endhtmlonly @ref phone_number @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <td>IDIGI_FIRMWARE_SUPPORT</td>
+ * <td>If defined it enables firmware download capability.
+ * See @endhtmlonly @ref firmware_support @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <td>IDIGI_DATA_SERVICE_SUPPORT</td>
+ * <td>If defined it enables data service capability.
+ * See @endhtmlonly @ref data_service_support @htmlonly</td>
  * </tr>
  * </table>
  * @endhtmlonly
