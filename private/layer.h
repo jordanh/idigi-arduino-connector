@@ -66,10 +66,18 @@ static idigi_facility_init_t const idigi_supported_facility_table[] = {
 
         /* list of optional facilities */
 #if defined(IDIGI_FIRMWARE_SERVICE)
+    #if defined(IDIGI_FIRMWARE_SUPPORT)
+        {{MANDATORY_FACILITY}, idigi_facility_firmware_init, idigi_facility_firmware_delete, NULL, fw_discovery, fw_process},
+    #else
         {{idigi_config_firmware_facility}, idigi_facility_firmware_init, idigi_facility_firmware_delete, NULL, fw_discovery, fw_process},
+    #endif
 #endif
 #if defined(IDIGI_DATA_SERVICE)
+    #if defined(IDIGI_DATA_SERVICE_SUPPORT)
+        {{MANDATORY_FACILITY}, idigi_facility_data_service_init, idigi_facility_data_service_delete, idigi_facility_data_service_cleanup, msg_discovery, msg_process}
+    #else
         {{idigi_config_data_service}, idigi_facility_data_service_init, idigi_facility_data_service_delete, idigi_facility_data_service_cleanup, msg_discovery, msg_process}
+    #endif
 #endif
 };
 
@@ -168,10 +176,10 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
 
     static idigi_config_request_t const idigi_edp_init_config_ids[] = {
             idigi_config_server_url,
-#if !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS)
+#if !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
             idigi_config_rx_keepalive,
 #endif
-#if !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
+#if !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS)
             idigi_config_tx_keepalive,
 #endif
 #if !defined(IDIGI_WAIT_COUNT)
@@ -916,17 +924,27 @@ enum {
 
         uint8_t * edp_device_type = start_ptr;
 
-        idigi_debug("discovery layer: send device type = %.*s\n", idigi_ptr->device_type_length, idigi_ptr->device_type);
+
+#if defined(IDIGI_DEVICE_TYPE)
+        static const char const idigi_device_type[] = IDIGI_DEVICE_TYPE;
+        size_t device_type_length  = sizeof idigi_device_type-1;
+#else
+        char * idigi_device_type = idigi_ptr->device_type;
+        size_t const device_type_length = idigi_ptr->device_type_length;
+
+#endif
         message_store_u8(edp_device_type, security_coding, SECURITY_PROTO_NONE);
         message_store_u8(edp_device_type, opcode, DISC_OP_DEVICETYPE);
 
-        message_store_be16(edp_device_type, length, idigi_ptr->device_type_length);
+        message_store_be16(edp_device_type, length, device_type_length);
 
         edp_device_type += device_type_header_size;
-        memcpy(edp_device_type, idigi_ptr->device_type, idigi_ptr->device_type_length);
+        memcpy(edp_device_type, idigi_device_type, device_type_length);
+
+        idigi_debug("discovery layer: send device type = %.*s\n", device_type_length, idigi_device_type);
 
         status = initiate_send_packet(idigi_ptr, edp_header,
-                                    (uint16_t)(device_type_header_size + idigi_ptr->device_type_length),
+                                    (uint16_t)(device_type_header_size + device_type_length),
                                     E_MSG_MT2_TYPE_PAYLOAD,
                                     release_packet_buffer,
                                     NULL);
