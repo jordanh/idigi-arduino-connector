@@ -6,8 +6,6 @@ OUTPUT_DIR=output
 PART_NUMBER=40003007
 PKG_NAME=${PART_NUMBER}_${REVISION}
 LICENSE=90002145_A
-USERS_GUIDE=90002142_A
-USERS_GUIDE_NAME=IntegrationKitUsersGuide.pdf
 
 function cleanup () 
 {
@@ -35,13 +33,18 @@ cd doxygen
 doxygen
 cd ..
 
+# Move the HTML files into the docs directory
+mkdir -p docs/html
+cp -rf doxygen/html/* docs/html
+cp doxygen/user_guide.html docs/
+
 # Create an idigi subdirectory which will be the root of the tarball.
 echo ">> Creating ${BASE_DIR} and copying public and private directories to it."
 mkdir -p ${BASE_DIR}
-cp Makefile ${BASE_DIR}
 cp -rf private ${BASE_DIR}
 cp -rf public ${BASE_DIR}
-cp -rf doxygen ${BASE_DIR}
+cp -rf docs ${BASE_DIR}
+cp Gettin\ Started.docx ${BASE_DIR}
 
 # Grab the license
 echo ">> Pulling License from /eng/store/released/90000000/${LICENSE}.zip and copying to ${WORKSPACE}."
@@ -51,7 +54,7 @@ rm ${WORKSPACE}/${LICENSE}.zip
 
 # Create the tarball
 echo ">> Creating the release Tarball as ${OUTPUT_DIR}/${PKG_NAME}.tgz."
-tar --exclude=idigi/hudson.sh --exclude=idigi/public/test --exclude=idigi/public/dvt  --exclude=idigi/public/sample  -czvf ${WORKSPACE}/${OUTPUT_DIR}/${PKG_NAME}.tgz idigi/
+tar --exclude=idigi/public/test --exclude=idigi/public/dvt  --exclude=idigi/public/sample  -czvf ${WORKSPACE}/${OUTPUT_DIR}/${PKG_NAME}.tgz idigi/
 
 # Delete the original idigi directory
 echo ">> Removing base dir ${BASE_DIR}."
@@ -62,25 +65,17 @@ echo ">> Uncompressing ${OUTPUT_DIR}/${PKG_NAME}.tgz."
 tar -xf ${OUTPUT_DIR}/${PKG_NAME}.tgz
 cd ${BASE_DIR}
 
-# Move the HTML files into the docs directory
-mkdir -p docs/html
-cp -rf doxygen/html/* docs/html
-cp doxygen/user_guide.html docs/
-rm -rf doxygen
 
-
-TARGET=${type}_${featureset}_${arch}
-
-echo ">> Building Library with target ${TARGET}."
-make clean all IDIGI_RULES=../public/test/rules/${TARGET}.rules LIBDIR=../${OUTPUT_DIR}
-
-rc=$?
-
-if [[ ${rc} != 0 ]]; then
-  echo "++ Failed to build Library, exiting."
-  cleanup
-  exit ${rc} 
-fi
+# Build all the IIK samples and platforms
+#TARGET=${type}_${featureset}_${arch}
+#
+#rc=$?
+#
+#if [[ ${rc} != 0 ]]; then
+#  echo "++ Failed to build Library, exiting."
+#  cleanup
+#  exit ${rc} 
+#fi
 
 # Run tests only if release on linux and featureset is full or sharedlib
 if [[ "${type}" == "unrelease" && "${arch}" == "x86" && ("${featureset}" == "full" || "${featureset}" == "unsharedlib") ]]; then
