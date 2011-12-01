@@ -20,6 +20,7 @@
  *              -# @ref os_routines
  *              -# @ref network_routines
  *              -# @ref configuration_routines
+ *              -# @ref default_config
  *              -# @ref application_start
  *          -# @ref step6
  *              -# @ref add_c_files
@@ -112,7 +113,6 @@
  * <td>Program entry point, calls @endhtmlonly idigi_init() @htmlonly</td>
  * <td>public/run/samples/compile_and_link</td>
  * </tr>
- * <tr>
  * </table>
  * @endhtmlonly
  *
@@ -272,7 +272,7 @@
  * @note The memory assigned to configuration items must be @b statically @b allocated and is accessed by the IIK 
  * after the routine returns.
  *
- * The following is a list of configuration routines which must be implemented for
+ * The following is a list of configuration routines which needs to be implemented for
  * your platform, please review each routine:
  *  @li get_ip_address()
  *  @li get_mac_addr()
@@ -288,7 +288,77 @@
  *  @li get_wait_count()
  *  @li get_firmware_support()
  *  @li get_data_service_support()
+ *  @li get_max_message_transactions()
+ *  @li idigi_config_error()
  *
+ * @subsection default_config Default Configurations
+ *
+ * If the followings configurations in @ref idigi_config.h are defined
+ * callback is not needed for these configurations. This reduces code size
+ * and memory usage. You can define individual configuration.
+ *
+ * @code
+ * #define IDIGI_TX_KEEPALIVE_IN_SECONDS   90
+ * #define IDIGI_RX_KEEPALIVE_IN_SECONDS   60
+ * #define IDIGI_WAIT_COUNT                5
+ * #define IDIGI_VENDOR_ID                 0x00000000
+ * #define IDIGI_MSG_MAX_TRANSACTION       1
+ * #define IDIGI_CONNECTION_TYPE                      idigi_lan_connection_type
+ * #define IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND    0
+ * #define IDIGI_WAN_PHONE_NUMBER_DIALED              "012345678"
+ * @endcode
+ *
+ * @htmlonly
+ * <table class="apitable">
+ * <tr>
+ * <th class="title">Configuration Defines</td>
+ * <th class="title">Configuration Callbacks</td>
+ * <th class="title">Configuration Routines</td>
+ * </tr>
+ * <tr>
+ * <td>IDIGI_TX_KEEPALIVE_IN_SECONDS</td>
+ * <td>@endhtmlonly @ref tx_keepalive @htmlonly</td>
+ * <td>@endhtmlonly @ref get_tx_keepalive_interval @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <td>IDIGI_RX_KEEPALIVE_IN_SECONDS</td>
+ * <td>@endhtmlonly @ref rx_keepalive @htmlonly</td>
+ * <td>@endhtmlonly @ref get_rx_keepalive_interval @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <td>IDIGI_WAIT_COUNT</td>
+ * <td>@endhtmlonly @ref wait_count @htmlonly</td>
+ * <td>@endhtmlonly @ref get_wait_count @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <td>IDIGI_VENDOR_ID</td>
+ * <td>@endhtmlonly @ref vendor_id @htmlonly</td>
+ * <td>@endhtmlonly @ref get_vendor_id @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <td>IDIGI_MSG_MAX_TRANSACTION</td>
+ * <td>@endhtmlonly @ref max_msg_transactions @htmlonly</td>
+ * <td>@endhtmlonly @ref get_max_message_transactions @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <td>IDIGI_CONNECTION_TYPE</td>
+ * <td>@endhtmlonly @ref connection_type @htmlonly</td>
+ * <td>@endhtmlonly @ref connection_type @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <td>IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND</td>
+ * <td>@endhtmlonly @ref link_speed @htmlonly</td>
+ * <td>@endhtmlonly @ref get_link_speed @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <td>IDIGI_WAN_PHONE_NUMBER_DIALED</td>
+ * <td>@endhtmlonly @ref phone_number @htmlonly</td>
+ * <td>@endhtmlonly @ref get_phone_number @htmlonly</td>
+ * </tr>
+ * </table>
+ * @endhtmlonly
+  *
+ * 
  * @subsection application_start iDigi Initialization
  *
  * As in the previous sample you will need to setup the call to idigi_init()
@@ -364,7 +434,6 @@
  * <td>Program entry point, calls @endhtmlonly idigi_init() @htmlonly</td>
  * <td>public/run/platforms/<i>my_platform</i></td>
  * </tr>
- * <tr>
  * </table>
  * @endhtmlonly
  *
@@ -391,13 +460,19 @@
  *
  * Start iDigi
  *
+ * initialize_facilities: callback supports  13 facility
+ *
+ * initialize_facilities: callback supports  14 facility
+ *
+ * idigi_run thread starts
+ *
  * idigi_run thread starts
  *
  * application_run thread exits 0
  *
- * idigi_run thread starts
+ * dns_resolve_name: ip address = [50.56.41.153]
  *
- * network_connect: connected to [10.52.18.77] server
+ * network_connect: connected to [developer.idigi.com] server
  *
  * communication layer: Send MT Version
  *
@@ -405,19 +480,31 @@
  *
  * communication layer: send keepalive params
  *
+ * communication layer: Rx keepalive parameter = 60
+ *
+ * communication layer: Tx keepalive parameter = 90
+ *
+ * communication layer: Wait Count parameter = 5
+ *
  * initialization layer: send protocol version
  *
  * initialization layer: receive protocol version
  *
  * Security layer: send security form
  *
- * security layer: send device ID
+ * security layer: send device ID =  00 00 00 00 00 00 00 00 78 E7 D1 FF FF 84 47 82
  *
- * security layer: send server url
+ * security layer: send server url = developer.idigi.com
  *
- * discovery layer: send vendor id
+ * discovery layer: send vendor id = 0x1000043
  *
- * discovery layer: send device type
+ * discovery layer: send device type = Linux Application
+ *
+ * fw_discovery: No target supported
+ *
+ * Connection Control: send redirect_report
+ *
+ * get packet buffer: send pending
  *
  * Connection Control: send redirect_report
  *
@@ -427,7 +514,13 @@
  *
  * get_ip_address: 1: Interface name [lo]  IP Address [127.0.0.1]
  *
- * get_ip_address: 2: Interface name [eth3]        IP Address [10.52.18.77]
+ * get_ip_address: 2: Interface name [eth1]        IP Address [10.52.18.75]
+ *
+ * get_ip_addr: Device IP address =  0A 34 12 4B
+ *
+ * get_connection_type: connection type = 0
+ *
+ * get_mac_addr: MAC address =  78 E7 D1 84 47 82
  *
  * discovery layer: send complete
  *
@@ -481,5 +574,8 @@
  *
  * </td></tr>
  * </table>
+ *
  * @endhtmlonly
+ *
  */
+
