@@ -44,7 +44,8 @@ mkdir -p ${BASE_DIR}
 cp -rf private ${BASE_DIR}
 cp -rf public ${BASE_DIR}
 cp -rf docs ${BASE_DIR}
-cp Gettin\ Started.docx ${BASE_DIR}
+cp Getting\ Started.docx ${BASE_DIR}
+cp Readme.txt ${BASE_DIR}
 
 # Grab the license
 echo ">> Pulling License from /eng/store/released/90000000/${LICENSE}.zip and copying to ${WORKSPACE}."
