@@ -131,8 +131,8 @@ typedef enum {
 /**
 * Service supported status which is used in the application's callback
 * telling IIK whether application supports a service or not.
-* @see idigi_config_firmware_facility
-* @see idigi_config_data_service
+* @see @ref firmware_support
+* @see @ref data_service_support
 */
 typedef enum {
     idigi_service_unsupported,  /**< Service is supported */
@@ -299,7 +299,8 @@ typedef enum {
 typedef enum  {
     idigi_callback_continue,        /**< Continues with no error */
     idigi_callback_busy,            /**< Callback is busy */
-    idigi_callback_abort,           /**< Aborts IIK */
+    idigi_callback_abort,           /**< Aborts IIK. IIK will try reconnecting to iDigi Cloud
+                                         if @ref idigi_step or @ref idigi_run is called again. */
     idigi_callback_unrecognized     /**< Unsupported callback request */
 } idigi_callback_status_t;
 /**
