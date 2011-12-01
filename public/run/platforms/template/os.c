@@ -45,9 +45,9 @@
  * @param [in] ptr  pointer to be filled in with the address of
  *                  the allocated memory
  *  
- * @retval true  Memory was allocated
+ * @retval 0  Memory was allocated
  * 
- * @retval false  Memory was not allocated
+ * @retval -1  Memory was not allocated
  *
  * Example Usage:
  * @code
@@ -60,7 +60,7 @@ int os_malloc(size_t const size, void ** ptr)
 {
     UNUSED_PARAMETER(size);
     UNUSED_PARAMETER(ptr);
-    return false;
+    return 0;
 }
 
 /**
@@ -96,9 +96,9 @@ void os_free(void * const ptr)
  * 
  * @param [in] uptime   Current system time in seconds.
  *  
- * @retval true Able to get system time
+ * @retval 0 Able to get system time
  * 
- * @retval false System time unavailable
+ * @retval -1 System time unavailable
  * 
  * Example Usage:
  * @code
@@ -109,7 +109,7 @@ void os_free(void * const ptr)
 int os_get_system_time(uint32_t * const uptime)
 {
     UNUSED_PARAMETER(uptime);
-    return false;
+    return 0;
 }
 
 /**
@@ -145,7 +145,7 @@ idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
                                         void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    bool ret=false;
+    int ret;
 
     UNUSED_PARAMETER(request_length);
     UNUSED_PARAMETER(response_length);
