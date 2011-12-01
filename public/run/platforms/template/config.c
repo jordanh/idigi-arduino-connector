@@ -150,7 +150,7 @@ static int get_vendor_id(uint8_t ** id, size_t * size)
  * This routine assigns a pointer to the device type which is an iso-8859-1 encoded string 
  * that identifies the type of the device in *device_type along with the size in bytes. 
  * The device type is a string representing a particular kind of device. Devices with the same 
- * device type should share a reasonably similar set of features. A device’s type 
+ * device type should share a reasonably similar set of features. A device's type
  * cannot be an empty string, nor contain only whitespace. 
  *
  * @param [out] type  Pointer to memory containing the device type
@@ -360,13 +360,13 @@ static int get_wait_count(uint16_t ** count, size_t * size)
  * If firmware access facility is not supported, callback for idigi_class_firmware 
  * class will not be executed.
  *
- * @retval 1  Firmware download is supported
- * @retval 0  Firmware download is not supported
+ * @retval idigi_service_supported  Firmware download is supported
+ * @retval idigi_service_unsupported  Firmware download is not supported
  * 
  */
-static int get_firmware_support(void)
+static idigi_service_supported_status_t get_firmware_support(void)
 {
-    return 1;
+    return idigi_service_supported;
 }
 
 /**
@@ -375,26 +375,43 @@ static int get_firmware_support(void)
  * This routine tells IIK whether the data service facility is supported or not. 
  * If you plan on sending data to/from the iDigi server set this to true
  *
- * @retval 1  Firmware download is supported
- * @retval 0  Firmware download is not supported
- * 
+ * @retval idigi_service_supported  Firmware download is supported
+ * @retval idigi_service_unsupported  Firmware download is not supported
+ *
  */
-static int get_data_service_support(void)
+static idigi_service_supported_status_t get_data_service_support(void)
 {
-#if (defined IDIGI_DATA_SERVICE)
-    return 1;
-#else
-    return 0;
-#endif
+    return idigi_service_supported;
 }
 
-/*
- * This routine is called when a configuration error is encountered by the IIK.
- * This is currently used as a debug tool for finding configuration errors.
+/**
+ * @brief   Return maximum transactions
+ *
+ * This routine tells IIK the maximum simultaneous transactions for data service
+ * to receive messages from iDigi Cloud.
+ *
+ * @retval 0  unlimited transactions
+ * @retval >0  maximum transactions
+ * 
  */
-static int idigi_config_error(idigi_error_status_t * const error_data)
+static uint8_t get_max_message_transactions(void)
 {
-    int status = 0;
+#define IDIGI_MAX_MSG_TRANSACTIONS   1
+
+    return IDIGI_MAX_MSG_TRANSACTIONS;
+}
+
+/**
+ * @brief   Error status notification
+ *
+ * This routine is called when IIK encounters an error. This is used as
+ * a debug tool for finding configuration or keepalive error.
+ *
+ * @retval None
+ *
+ */
+static void idigi_config_error(idigi_error_status_t * const error_data)
+{
 
 #if defined(DEBUG)
     char const * error_status_string[] = {"idigi_success", "idigi_init_error",
@@ -492,7 +509,6 @@ static int idigi_config_error(idigi_error_status_t * const error_data)
     UNUSED_PARAMETER(error_data);
 #endif
 
-    return status;
 }
 
 
@@ -564,17 +580,23 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
         break;
 
     case idigi_config_error_status:
-        ret = idigi_config_error((idigi_error_status_t *)request_data);
+        idigi_config_error((idigi_error_status_t *)request_data);
+        ret = 0;
         break;
 
     case idigi_config_firmware_facility:
-        *((int *)response_data) = get_firmware_support();
-        ret = true;
+        *((idigi_service_supported_status_t *)response_data) = get_firmware_support();
+        ret = 0;
         break;
 
     case idigi_config_data_service:
-        *((int *)response_data) = get_data_service_support();
-        ret = true;
+        *((idigi_service_supported_status_t *)response_data) = get_data_service_support();
+        ret = 0;
+        break;
+
+    case idigi_config_max_transaction:
+        *((uint8_t *)response_data) = get_max_message_transactions();
+         ret = 0;
         break;
 
     }
