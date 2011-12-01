@@ -11,15 +11,17 @@
  *  -# @ref device_type
  *  -# @ref server_url
  *  -# @ref connection_type
+ *  -# @ref mac_address
  *  -# @ref link_speed
  *  -# @ref phone_number
  *  -# @ref tx_keepalive
  *  -# @ref rx_keepalive
  *  -# @ref wait_count
  *  -# @ref ip_address
- *  -# @ref mac_address
+ *  -# @ref error_status
  *  -# @ref firmware_support
  *  -# @ref data_service_support
+ *  -# @ref max_msg_transactions
  *
  * @section device_id Device ID
  *
@@ -107,6 +109,9 @@
  * Vendor IDs are assigned to manufacturers by iDigi. 
  * See the section: @ref step4
  *
+ * @note If IDIGI_VENDOR_ID configuration is defined in @ref idigi_config.h, this callback 
+ * will not be called. See @ref default_config
+ * 
  * @htmlonly
  * <table class="apitable">
  * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
@@ -310,6 +315,9 @@
  *
  * Return LAN or WAN connection type. 
  *
+ * @note If IDIGI_CONNECTION_TYPE configuration is defined in @ref idigi_config.h, this callback 
+ * will not be called. See @ref default_config
+ *
  * @htmlonly
  * <table class="apitable">
  * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
@@ -371,10 +379,80 @@
  *
  * @endcode
  *
+ * @section mac_address MAC Address
+ *
+ * Return the device's MAC address. 
+ *
+ * @htmlonly
+ * <table class="apitable">
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
+ * <tr>
+ * <th>class_id</th>
+ * <td>@endhtmlonly @ref idigi_class_config @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <th>request_id</th>
+ * <td>@endhtmlonly @ref idigi_config_mac_addr @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <th>request_data</th>
+ * <td>N/A</td>
+ * </tr>
+ * <tr>
+ * <th>request_length</th>
+ * <td> N/A.</td>
+ * </tr>
+ * <tr>
+ * <th>response_data</th>
+ * <td>Callback returns pointer to 6-byte MAC address</td>
+ * </tr>
+ * <tr>
+ * <th>response_length</th>
+ * <td> Pointer to memory where callback writes the size of MAC address. It must be 6 bytes. </td>
+ * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
+ * <tr>
+ * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
+ * <td>Callback successfully returned MAC address</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
+ * <td>Callback was unable to get MAC address and callback aborted IIK</td>
+ * </tr>
+ * </table>
+ * @endhtmlonly
+ *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_mac_addr)
+ *     {
+ *         extern uint8_t device_mac_addr[];
+ *         uint8_t ** mac_addr = (uint8_t **)response_data;
+ *
+ *         *mac_addr = (uint8_t *)&device_mac_addr[0];
+ *         *response_length = sizeof device_mac_addr;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ *
+ * @endcode
+ *
  * @section link_speed Link Speed
  *
  * Return link speed for a WAN connection type. If connection 
  * type is LAN, IIK will not request link speed configuration.. 
+ *
+ * @note If IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND configuration is defined in @ref idigi_config.h, 
+ * this callback will not be called. See @ref default_config
  *
  * @htmlonly
  * <table class="apitable">
@@ -442,6 +520,9 @@
  *
  * Return the phone number dialed for a WAN connection type. 
  * If connection type is LAN, IIK will not request phone number 
+ *
+ * @note If IDIGI_WAN_PHONE_NUMBER_DIALED configuration is defined in @ref idigi_config.h, 
+ * this callback will not be called. See @ref default_config
  *
  * @htmlonly
  * <table class="apitable">
@@ -511,6 +592,9 @@
  * Return TX keepalive interval in seconds. This tells how 
  * often the iDigi Device Cloud sends keepalive messages to the device. 
  *
+ * @note If IDIGI_TX_KEEPALIVE_IN_SECONDS configuration is defined in @ref idigi_config.h, 
+ * this callback will not be called. See @ref default_config
+ *
  * @htmlonly
  * <table class="apitable">
  * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
@@ -578,6 +662,9 @@
  * Return RX keepalive interval in seconds. This tells how 
  * often the IIK sends keepalive messages to the iDigi Device Cloud (device to the iDigi Device Cloud). 
  *
+ * @note If IDIGI_RX_KEEPALIVE_IN_SECONDS configuration is defined in @ref idigi_config.h, 
+ * this callback will not be called. See @ref default_config
+ *
  * @htmlonly
  * <table class="apitable">
  * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
@@ -644,6 +731,9 @@
  *
  * Return the number of times of not receiving a keepalive message which a connection 
  * should be considered lost. 
+ *
+ * @note If IDIGI_WAIT_COUNT configuration is defined in @ref idigi_config.h, 
+ * this callback will not be called. See @ref default_config
  *
  * @htmlonly
  * <table class="apitable">
@@ -775,9 +865,10 @@
  *
  * @endcode
  *
- * @section mac_address MAC Address
+ * @section error_status  Error Status Notification
  *
- * Return the device's MAC address. 
+ * This callback is called to notify user that IIK encountered an error. When IIK finds an
+ * error, the IIK will call this callback indicating the error status
  *
  * @htmlonly
  * <table class="apitable">
@@ -789,33 +880,29 @@
  * </tr>
  * <tr>
  * <th>request_id</th>
- * <td>@endhtmlonly @ref idigi_config_mac_addr @htmlonly</td>
+ * <td>@endhtmlonly @ref idigi_config_error_status @htmlonly</td>
  * </tr>
  * <tr>
  * <th>request_data</th>
- * <td>N/A</td>
+ * <td>Pointer to @endhtmlonly @ref idigi_error_status_t @htmlonly</td>
  * </tr>
  * <tr>
  * <th>request_length</th>
- * <td> N/A.</td>
+ * <td> Size of idigi_error_status_t</td>
  * </tr>
  * <tr>
  * <th>response_data</th>
- * <td>Callback returns pointer to 6-byte MAC address</td>
+ * <td> N/A</td>
  * </tr>
  * <tr>
  * <th>response_length</th>
- * <td> Pointer to memory where callback writes the size of MAC address. It must be 6 bytes. </td>
+ * <td>N/A</td>
  * </tr>
  * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
  * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
  * <tr>
- * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
- * <td>Callback successfully returned MAC address</td>
- * </tr>
- * <tr>
- * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback was unable to get MAC address and callback aborted IIK</td>
+ * <td>None</td>
+ * <td>None</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -829,24 +916,24 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_mac_addr)
+ *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_error_status)
  *     {
- *         extern uint8_t device_mac_addr[];
- *         uint8_t ** mac_addr = (uint8_t **)response_data;
- *
- *         *mac_addr = (uint8_t *)&device_mac_addr[0];
- *         *response_length = sizeof device_mac_addr;
+ *         idigi_error_status_t * error_data = request_data;
+ *         printf("idigi_error_status: unsupport class_id = %d request_id = %d status = %d\n",
+ *                   error_data->class_id, error_data->request_id.config_request, error_data->status);
  *     }
  *     return idigi_callback_continue;
  * }
  *
  * @endcode
- *
  * @section firmware_support  Firmware Access Support
  *
  * Return @ref idigi_service_supported_status_t status to enable or disable Firmware 
  * download capability. If it's supported, callback for @ref idigi_firmware_request_t 
  * must be implemented for firmware download.
+ *
+ * @note If @ref IDIGI_FIRMWARE_SERVICE configuration is not defined in @ref idigi_config.h, this callback 
+ * will not be called and Firmware Download is not supported.
  *
  * @htmlonly
  * <table class="apitable">
@@ -914,6 +1001,11 @@
  * capability. If it's supported, callback for @ref idigi_data_service_request_t must be 
  * implemented for data service.
  *
+ * @note If @ref IDIGI_DATA_SERVICE configuration is not defined in @ref idigi_config.h, this callback 
+ * will not be called and Data Service is not supported. 
+ * 
+ * @note Define @ref IDIGI_COMPRESSION in @ref idigi_config.h for compression transfer.
+ *
  * @htmlonly
  * <table class="apitable">
  * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
@@ -968,6 +1060,76 @@
  *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_data_service)
  *     {
  *         *((idigi_service_supported_status_t *)response_data) = idigi_service_supported;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ *
+ * @endcode
+ *
+ *
+ * @section max_msg_transactions Maximum Message Transactions
+ *
+ * Return maximum simultaneous transactions for data server to receive message from 
+ * iDigi server. This configuration is required if @ref data_service_support is
+ * enabled. 
+ *
+ * @note If IDIGI_MSG_MAX_TRANSACTION configuration is defined in @ref idigi_config.h, this callback 
+ * will not be called. See @ref default_config
+ *
+ * @htmlonly
+ * <table class="apitable">
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
+ * <tr>
+ * <th>class_id</th>
+ * <td>@endhtmlonly @ref idigi_class_config @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <th>request_id</th>
+ * <td>@endhtmlonly @ref idigi_config_max_transaction @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <th>request_data</th>
+ * <td>N/A</td>
+ * </tr>
+ * <tr>
+ * <th>request_length</th>
+ * <td> N/A</td>
+ * </tr>
+ * <tr>
+ * <th>response_data</th>
+ * <td> Pointer to memory where callback writes maximum transactions.
+ * It must be between 1 to 255. Use 0 for unlimited transactions.</td>
+ * </tr>
+ * <tr>
+ * <th>response_length</th>
+ * <td>N/A</td>
+ * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
+ * <tr>
+ * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
+ * <td>Callback successfully returned maximum transactions</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
+ * <td>Callback aborted IIK</td>
+ * </tr>
+ * </table>
+ * @endhtmlonly
+ *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_max_transaction)
+ *     {
+ *          *((uint8_t *)response_data) = IDIGI_MAX_MSG_TRANSACTIONS;
  *     }
  *     return idigi_callback_continue;
  * }
