@@ -522,7 +522,7 @@ typedef struct {
 */
 typedef struct {
     uint32_t version;                               /**< Version number of the downloaded image */
-    uint32_t calculated_checksum;                   /**< It's currently used for error code that is used by server. Set 0 for no error. */
+    uint32_t calculated_checksum;                   /**< Reserved */
     idigi_fw_download_complete_status_t status;     /**< Status code regarding the download completion */
 } idigi_fw_download_complete_response_t;
 /**
