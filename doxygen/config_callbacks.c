@@ -873,6 +873,9 @@
  * This callback is called to notify user that IIK encountered an error. When IIK finds an
  * error, the IIK will call this callback indicating the error status
  *
+ * @note If @ref IDIGI_DEBUG  is not defined in @ref idigi_config.h, this callback 
+ * will not be called.
+ *
  * @htmlonly
  * <table class="apitable">
  * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
