@@ -54,6 +54,8 @@
  * protect against power loss after your write occurred, but the communication loss or corruption 
  * could be avoided by having a making a checksum test before starting your Flash write.
  *
+ * @note See @ref firmware_support under Configuration to enable or
+ * disable firmware download.
  * 
  * @section fw_num_targets Number of Firmware Targets
  *
