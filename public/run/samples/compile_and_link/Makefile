@@ -24,17 +24,20 @@ CC = gcc
 
 IDIGI_DIR=../../../../private
 PUBLIC_HEADER_DIR=../../../include
+SCRIPTS_DIR= ../../../../scripts
 
 vpath $(IDIGI_DIR)/%.c
 
 CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL 
-CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -Wl,-Map,idigi.map -Os
+CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -Os
 
 OBJS = main.o $(IDIGI_DIR)/idigi_api.o
 LIBS = -lc -lz
 
 SAMPLE = idigi
 all: $(SAMPLE)
+
+CFLAGS += -Wl,-Map,$(SAMPLE).map
 
 main.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h
 $(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PUBLIC_HEADER_DIR)/idigi_config.h \
@@ -47,7 +50,8 @@ $(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/
 $(OBJS): *.c $(IDIGI_DIR)/*.c
 
 $(SAMPLE): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(SAMPLE) 
+	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(SAMPLE)
+	$(AT)python $(SCRIPTS_DIR)/iikmapsum.py $(SAMPLE).map | tee $(basename $@).stats 
 
 .PHONY: clean
 clean:
