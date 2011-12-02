@@ -47,10 +47,9 @@
  * @param [out] ip_address  Pointer to memory containing IP address
  * @param [out] size Size of the IP address in bytes
  *  
- * @retval true  IP address was returned OK
- * @retval false  Could not get IP address
+ * @retval 0  IP address was returned OK
+ * @retval -1  Could not get IP address
  *
- *  
  */
 static int get_ip_address(uint8_t ** ip_address, size_t *size)
 {
@@ -132,6 +131,8 @@ static int get_device_id(uint8_t ** id, size_t * size)
  * @retval 0  Device ID was returned OK
  * @retval -1  Could not get the device ID
  * 
+ * @note This routine is not needed if you define @b IDIGI_VENDOR_ID configuration in @ref idigi_config.h.
+ * See @ref default_config
  */
 static int get_vendor_id(uint8_t ** id, size_t * size)
 {
@@ -159,6 +160,8 @@ static int get_vendor_id(uint8_t ** id, size_t * size)
  * @retval 0  Device type was returned OK
  * @retval -1  Could not get the device type
  * 
+ * @note This routine is not needed if you define @b IDIGI_DEVICE_TYPE configuration in @ref idigi_config.h.
+ * See @ref default_config
  */
 static int get_device_type(char ** type, size_t * size)
 {
@@ -184,6 +187,8 @@ static int get_device_type(char ** type, size_t * size)
  * @retval 0  The URL type was returned OK
  * @retval -1  Could not get the URL
  * 
+ * @note This routine is not needed if you define @b IDIGI_CLOUD_URL configuration in @ref idigi_config.h.
+ * See @ref default_config
  */
 static int get_server_url(char ** url, size_t * size)
 {
@@ -209,6 +214,8 @@ static int get_server_url(char ** url, size_t * size)
  * @retval 0  The URL type was returned OK
  * @retval -1  Could not get the URL
  * 
+ * @note This routine is not needed if you define @b IDIGI_CONNECTION_TYPE configuration in @ref idigi_config.h.
+ * See @ref default_config
  */
 static int get_connection_type(idigi_connection_type_t ** type)
 {
@@ -234,6 +241,8 @@ static int get_connection_type(idigi_connection_type_t ** type)
  * @retval 0  The link speed was returned OK
  * @retval -1  Could not get the link speed
  * 
+ * @note This routine is not needed if you define @b IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND configuration in @ref idigi_config.h.
+ * See @ref default_config
  */
 static int get_link_speed(uint32_t ** speed, size_t * size)
 {
@@ -256,6 +265,8 @@ static int get_link_speed(uint32_t ** speed, size_t * size)
  * @retval 0  The link speed was returned OK
  * @retval -1  Could not get the link speed
  * 
+ * @note This routine is not needed if you define @b IDIGI_WAN_PHONE_NUMBER_DIALED configuration in @ref idigi_config.h.
+ * See @ref default_config
  */
 static int get_phone_number(uint8_t ** number, size_t * size)
 {
@@ -283,6 +294,8 @@ static int get_phone_number(uint8_t ** number, size_t * size)
  * @retval 0  The keep alive interval was returned OK
  * @retval -1  Could not get the keep alive interval
  * 
+ * @note This routine is not needed if you define @b IDIGI_TX_KEEPALIVE_IN_SECONDS configuration in @ref idigi_config.h.
+ * See @ref default_config
  */
 static int get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
 {
@@ -311,6 +324,8 @@ static int get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
  * @retval 0  The keep alive interval was returned OK
  * @retval -1  Could not get the keep alive interval
  * 
+ * @note This routine is not needed if you define @b IDIGI_RX_KEEPALIVE_IN_SECONDS configuration in @ref idigi_config.h.
+ * See @ref default_config
  */
 static int get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
 {
@@ -337,6 +352,8 @@ static int get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
  * @retval 0  The wait count was returned OK
  * @retval -1  Could not get the wait count
  * 
+ * @note This routine is not needed if you define @b IDIGI_WAIT_COUNT configuration in @ref idigi_config.h.
+ * See @ref default_config
  */
 static int get_wait_count(uint16_t ** count, size_t * size)
 {
@@ -363,6 +380,10 @@ static int get_wait_count(uint16_t ** count, size_t * size)
  * @retval idigi_service_supported  Firmware download is supported
  * @retval idigi_service_unsupported  Firmware download is not supported
  * 
+ * @note This routine is not called if you define @b IDIGI_FIRMWARE_SUPPORT configuration in @ref idigi_config.h.
+ * @note This IDIGI_FIRMWARE_SUPPORT indicates application supports firmware download. See @ref default_config
+ *
+ * @note See @ref IDIGI_FIRMWARE_SERVICE to include firmware access facility code in IIK.
  */
 static idigi_service_supported_status_t get_firmware_support(void)
 {
@@ -378,6 +399,11 @@ static idigi_service_supported_status_t get_firmware_support(void)
  * @retval idigi_service_supported  Firmware download is supported
  * @retval idigi_service_unsupported  Firmware download is not supported
  *
+ * @note This routine is not called if you define @b IDIGI_DATA_SERVICE_SUPPORT configuration in @ref idigi_config.h.
+ * @note This IDIGI_DATA_SERVICE_SUPPORT indicates application supports data service. See @ref default_config
+ *
+ * @note See @ref IDIGI_DATA_SERVICE to include data service code in IIK.
+ * @note See @ref IDIGI_COMPRESSION for data service transferring compressed data.
  */
 static idigi_service_supported_status_t get_data_service_support(void)
 {
@@ -393,6 +419,8 @@ static idigi_service_supported_status_t get_data_service_support(void)
  * @retval 0  unlimited transactions
  * @retval >0  maximum transactions
  * 
+ * @note This routine is not needed if you define @b IDIGI_MSG_MAX_TRANSACTION configuration in @ref idigi_config.h.
+ * See @ref default_config
  */
 static uint8_t get_max_message_transactions(void)
 {
@@ -407,7 +435,7 @@ static uint8_t get_max_message_transactions(void)
  * This routine is called when IIK encounters an error. This is used as
  * a debug tool for finding configuration or keepalive error.
  *
- * If @ref IDIGI_DEBUG is not defined in idigi_config.h, IIK will
+ * @note If @ref IDIGI_DEBUG is not defined in idigi_config.h, IIK will
  * not call this callback to notify any error encountered.
  *
  * @retval None
