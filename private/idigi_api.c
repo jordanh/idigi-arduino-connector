@@ -111,16 +111,19 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
         switch (idigi_config_request_ids[i].request)
         {
         case idigi_config_device_id:
-            store_at = (void **)&idigi_handle->device_id;
+            data = &idigi_handle->device_id;
+            store_at = (void **)data;
             break;
 #if !defined(IDIGI_VENDOR_ID)
         case idigi_config_vendor_id:
-            store_at = (void **)&idigi_handle->vendor_id;
+            data = &idigi_handle->vendor_id;
+            store_at = (void **)data;
             break;
 #endif
 #if !defined(IDIGI_DEVICE_TYPE)
         case idigi_config_device_type:
-            store_at = (void **)&idigi_handle->device_type;
+            data = &idigi_handle->device_type;
+            store_at = (void **)data;
             break;
 #endif
         default:
