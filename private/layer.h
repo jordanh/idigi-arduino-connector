@@ -198,6 +198,8 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
         idigi_request_t request_id;
 
         request_id.config_request = idigi_edp_init_config_ids[i];
+
+#if !defined(IDIGI_CLOUD_URL) || !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS) || !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS) || !defined(IDIGI_WAIT_COUNT)
         status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &data, &length);
         if (status != idigi_callback_continue)
         {
@@ -218,10 +220,20 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
             idigi_ptr->error_code = idigi_invalid_data;
             goto error;
         }
+#endif /* !defined(IDIGI_CLOUD_URL) || !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS) ||
+          !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS) || !defined(IDIGI_WAIT_COUNT) */
+
 
         switch(request_id.config_request)
         {
         case idigi_config_server_url:
+#if defined(IDIGI_CLOUD_URL)
+        {
+            static char const idigi_cloud_url[]= IDIGI_CLOUD_URL;
+            length = sizeof idigi_cloud_url -1;
+            data = (void *)idigi_cloud_url;
+        }
+#endif
             if ((length == 0) || (length > SERVER_URL_LENGTH-1))
             {
                 idigi_ptr->error_code = idigi_invalid_data_range;
@@ -302,8 +314,11 @@ error:
         status = idigi_callback_abort;
     }
 
+#if !defined(IDIGI_CLOUD_URL) || !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS) || !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS) || !defined(IDIGI_WAIT_COUNT)
 done:
+#endif
     return status;
+
 }
 
 static idigi_callback_status_t layer_get_supported_facilities(idigi_data_t * const idigi_ptr)
