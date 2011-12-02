@@ -377,7 +377,7 @@ enum cc_connection_info {
     }
 
     {
-        uint8_t type;
+        uint8_t type = ethernet_type;
 
         status = get_connection_type(idigi_ptr, &type);
         if (status != idigi_callback_continue)
