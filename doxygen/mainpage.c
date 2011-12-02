@@ -63,8 +63,8 @@
  * </tr>
  * <tr>
  * <td>Code</td>
- * <td>17393 bytes</td>
- * <td>17393 bytes</td>
+ * <td>17434 bytes</td>
+ * <td>16319 bytes</td>
  * <td>On a 32-bit i486 Linux machine, using GCC v4.4.4, optimized for size (-Os)</td>
  * </tr>
  * </table>
