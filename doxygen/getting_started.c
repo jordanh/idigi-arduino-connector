@@ -299,10 +299,11 @@
  *
  * @code
  * #define IDIGI_DEVICE_TYPE               "IIK Linux Sample"
+ * #define IDIGI_CLOUD_URL                 "developer.idigi.com" 
  * #define IDIGI_TX_KEEPALIVE_IN_SECONDS   75
  * #define IDIGI_RX_KEEPALIVE_IN_SECONDS   75
  * #define IDIGI_WAIT_COUNT                10
- * #define IDIGI_VENDOR_ID                 0x01000001
+ * #define IDIGI_VENDOR_ID                 0x00000000
  * #define IDIGI_MSG_MAX_TRANSACTION       1
  *
  * #define IDIGI_CONNECTION_TYPE                      idigi_lan_connection_type
@@ -323,6 +324,11 @@
  * <td>IDIGI_DEVICE_TYPE</td>
  * <td>Device type in iso-8859-1 encoded string to identify the device.
  * See @endhtmlonly @ref device_type @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <td>IDIGI_CLOUD_URL</td>
+ * <td>iDigi Device Cloud FQDN.
+ * See @endhtmlonly @ref server_url @htmlonly</td>
  * </tr>
  * <tr>
  * <td>IDIGI_TX_KEEPALIVE_IN_SECONDS</td>
