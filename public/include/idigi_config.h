@@ -67,16 +67,20 @@
 * @}
 */
 
-
+/* #define IDIGI_DEVICE_TYPE               "IIK Linux Sample" */
+/* #define IDIGI_CLOUD_URL                 "10.52.18.75" */
 /* #define IDIGI_TX_KEEPALIVE_IN_SECONDS   75 */
 /* #define IDIGI_RX_KEEPALIVE_IN_SECONDS   75 */
-/* #define IDIGI_WAIT_COUNT                5 */
-/* #define IDIGI_VENDOR_ID                 0x00000000 */
+/* #define IDIGI_WAIT_COUNT                10 */
+/* #define IDIGI_VENDOR_ID                 0x01000001 */
 /* #define IDIGI_MSG_MAX_TRANSACTION       1 */
-
 
 /* #define IDIGI_CONNECTION_TYPE                      idigi_lan_connection_type */
 /* #define IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND    0 */
 /* #define IDIGI_WAN_PHONE_NUMBER_DIALED              "012345678" */
+
+/* #define IDIGI_FIRMWARE_SUPPORT */
+/* #define IDIGI_DATA_SERVICE_SUPPORT */
+
 
 #endif

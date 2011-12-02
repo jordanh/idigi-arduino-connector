@@ -1587,7 +1587,6 @@ static idigi_callback_status_t msg_init_facility(idigi_data_t * const idigi_ptr,
         msg_ptr->capabilities[msg_capability_client].max_transactions = IDIGI_MSG_MAX_TRANSACTION;
         #else
         {
-#define IDIGI_MAX_TRANSACTIONS_LIMIT    255
             idigi_request_t const request_id = {idigi_config_max_transaction};
 
             status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id,

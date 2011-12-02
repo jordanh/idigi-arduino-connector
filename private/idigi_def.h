@@ -52,6 +52,7 @@
 #define VENDOR_ID_LENGTH    4
 #define SERVER_URL_LENGTH   64
 #define MAC_ADDR_LENGTH     6
+#define IDIGI_MAX_TRANSACTIONS_LIMIT    255
 
 /* these are limits for Tx and Rx keepalive
  * interval in seconds.
@@ -192,14 +193,20 @@ typedef struct idigi_data {
 #if !defined(IDIGI_VENDOR_ID)
     uint8_t * vendor_id;
 #endif
+
+#if !defined(IDIGI_DEVICE_TYPE)
     char * device_type;
     size_t device_type_length;
+#endif
+
 #if !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS)
     uint16_t tx_keepalive_interval;
 #endif
+
 #if !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
     uint16_t rx_keepalive_interval;
 #endif
+
 #if !defined(IDIGI_WAIT_COUNT)
     uint16_t wait_count;
 #endif

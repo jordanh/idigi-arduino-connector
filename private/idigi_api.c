@@ -62,11 +62,13 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
         size_t min_length;
         size_t max_length;
     } idigi_config_request_ids[] = {
-            {idigi_config_device_id, DEVICE_ID_LENGTH, DEVICE_ID_LENGTH},
 #if !defined(IDIGI_VENDOR_ID)
             {idigi_config_vendor_id, VENDOR_ID_LENGTH, VENDOR_ID_LENGTH},
 #endif
-            {idigi_config_device_type, 1, DEVICE_TYPE_LENGTH}
+#if !defined(IDIGI_DEVICE_TYPE)
+            {idigi_config_device_type, 1, DEVICE_TYPE_LENGTH},
+#endif
+            {idigi_config_device_id, DEVICE_ID_LENGTH, DEVICE_ID_LENGTH}
     };
 
     ASSERT_GOTO(callback != NULL, done);
@@ -116,9 +118,11 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
             store_at = (void **)&idigi_handle->vendor_id;
             break;
 #endif
+#if !defined(IDIGI_DEVICE_TYPE)
         case idigi_config_device_type:
             store_at = (void **)&idigi_handle->device_type;
             break;
+#endif
         default:
             ASSERT(idigi_false);
             break;
@@ -143,10 +147,12 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
                 goto error;
             }
 
+#if !defined(IDIGI_DEVICE_TYPE)
             if (idigi_config_request_ids[i].request == idigi_config_device_type)
             {
                 idigi_handle->device_type_length = length;
             }
+#endif
             break;
         case idigi_callback_abort:
         case idigi_callback_unrecognized:

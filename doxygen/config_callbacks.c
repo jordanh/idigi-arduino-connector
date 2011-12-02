@@ -109,7 +109,7 @@
  * Vendor IDs are assigned to manufacturers by iDigi. 
  * See the section: @ref step4
  *
- * @note If IDIGI_VENDOR_ID configuration is defined in @ref idigi_config.h, this callback 
+ * @note If @b IDIGI_VENDOR_ID configuration is defined in @ref idigi_config.h, this callback 
  * will not be called. See @ref default_config
  * 
  * @htmlonly
@@ -180,6 +180,9 @@
  * Return device type which is an iso-8859-1 encoded string 
  * that identifies the type of the device. 
  *
+ * @note If @b IDIGI_DEVICE_TYPE configuration is defined in @ref idigi_config.h, this callback 
+ * will not be called. See @ref default_config
+ * 
  * @htmlonly
  * <table class="apitable">
  * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
@@ -247,6 +250,9 @@
  *
  * Return the iDigi Device Cloud FQDN.
  *
+ * @note If @b IDIGI_CLOUD_URL configuration is defined in @ref idigi_config.h, this callback 
+ * will not be called. See @ref default_config
+ * 
  * @htmlonly
  * <table class="apitable">
  * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
@@ -315,7 +321,7 @@
  *
  * Return LAN or WAN connection type. 
  *
- * @note If IDIGI_CONNECTION_TYPE configuration is defined in @ref idigi_config.h, this callback 
+ * @note If @b IDIGI_CONNECTION_TYPE configuration is defined in @ref idigi_config.h, this callback 
  * will not be called. See @ref default_config
  *
  * @htmlonly
@@ -451,7 +457,7 @@
  * Return link speed for a WAN connection type. If connection 
  * type is LAN, IIK will not request link speed configuration.. 
  *
- * @note If IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND configuration is defined in @ref idigi_config.h, 
+ * @note If @b IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND configuration is defined in @ref idigi_config.h, 
  * this callback will not be called. See @ref default_config
  *
  * @htmlonly
@@ -521,7 +527,7 @@
  * Return the phone number dialed for a WAN connection type. 
  * If connection type is LAN, IIK will not request phone number 
  *
- * @note If IDIGI_WAN_PHONE_NUMBER_DIALED configuration is defined in @ref idigi_config.h, 
+ * @note If @b IDIGI_WAN_PHONE_NUMBER_DIALED configuration is defined in @ref idigi_config.h, 
  * this callback will not be called. See @ref default_config
  *
  * @htmlonly
@@ -592,7 +598,7 @@
  * Return TX keepalive interval in seconds. This tells how 
  * often the iDigi Device Cloud sends keepalive messages to the device. 
  *
- * @note If IDIGI_TX_KEEPALIVE_IN_SECONDS configuration is defined in @ref idigi_config.h, 
+ * @note If @b IDIGI_TX_KEEPALIVE_IN_SECONDS configuration is defined in @ref idigi_config.h, 
  * this callback will not be called. See @ref default_config
  *
  * @htmlonly
@@ -662,7 +668,7 @@
  * Return RX keepalive interval in seconds. This tells how 
  * often the IIK sends keepalive messages to the iDigi Device Cloud (device to the iDigi Device Cloud). 
  *
- * @note If IDIGI_RX_KEEPALIVE_IN_SECONDS configuration is defined in @ref idigi_config.h, 
+ * @note If @b IDIGI_RX_KEEPALIVE_IN_SECONDS configuration is defined in @ref idigi_config.h, 
  * this callback will not be called. See @ref default_config
  *
  * @htmlonly
@@ -732,7 +738,7 @@
  * Return the number of times of not receiving a keepalive message which a connection 
  * should be considered lost. 
  *
- * @note If IDIGI_WAIT_COUNT configuration is defined in @ref idigi_config.h, 
+ * @note If @b IDIGI_WAIT_COUNT configuration is defined in @ref idigi_config.h, 
  * this callback will not be called. See @ref default_config
  *
  * @htmlonly
@@ -757,7 +763,7 @@
  * </tr>
  * <tr>
  * <th>response_data</th>
- * <td> Callback returns a pointer to wait count. It must be between 2 and 63 bytes. </td>
+ * <td> Callback returns a pointer to wait count. It must be between 2 and 63 times. </td>
  * </tr>
  * <tr>
  * <th>response_length</th>
@@ -870,6 +876,9 @@
  * This callback is called to notify user that IIK encountered an error. When IIK finds an
  * error, the IIK will call this callback indicating the error status
  *
+ * @note If @ref IDIGI_DEBUG  is not defined in @ref idigi_config.h, this callback 
+ * will not be called.
+ *
  * @htmlonly
  * <table class="apitable">
  * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
@@ -933,7 +942,10 @@
  * must be implemented for firmware download.
  *
  * @note If @ref IDIGI_FIRMWARE_SERVICE configuration is not defined in @ref idigi_config.h, this callback 
- * will not be called and Firmware Download is not supported.
+ * will not be called and Firmware Download is not supported. IIK does not include firmware support.
+ *
+ * @note Define @b IDIGI_FIRMWARE_SUPPORT in @ref idigi_config.h to enable firmware download capability.
+ * This callback will not be called. See @ref default_config. IDIGI_FIRMWARE_SERVICE must be defined.
  *
  * @htmlonly
  * <table class="apitable">
@@ -1002,8 +1014,11 @@
  * implemented for data service.
  *
  * @note If @ref IDIGI_DATA_SERVICE configuration is not defined in @ref idigi_config.h, this callback 
- * will not be called and Data Service is not supported. 
- * 
+ * will not be called and Data Service is not supported. IIK does not include data service.
+ *
+ * @note Define @b IDIGI_DATA_SERVICE_SUPPORT in @ref idigi_config.h to enable Data service.
+ * This callback will not be called. See @ref default_config. IDIGI_DATA_SERVICE must be defined.
+ *
  * @note Define @ref IDIGI_COMPRESSION in @ref idigi_config.h for compression transfer.
  *
  * @htmlonly
@@ -1069,11 +1084,11 @@
  *
  * @section max_msg_transactions Maximum Message Transactions
  *
- * Return maximum simultaneous transactions for data server to receive message from 
+ * Return maximum simultaneous transactions for data service to receive message from 
  * iDigi server. This configuration is required if @ref data_service_support is
  * enabled. 
  *
- * @note If IDIGI_MSG_MAX_TRANSACTION configuration is defined in @ref idigi_config.h, this callback 
+ * @note If @b IDIGI_MSG_MAX_TRANSACTION configuration is defined in @ref idigi_config.h, this callback 
  * will not be called. See @ref default_config
  *
  * @htmlonly
