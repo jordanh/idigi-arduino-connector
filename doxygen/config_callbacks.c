@@ -250,6 +250,9 @@
  *
  * Return the iDigi Device Cloud FQDN.
  *
+ * @note If @b IDIGI_CLOUD_URL configuration is defined in @ref idigi_config.h, this callback 
+ * will not be called. See @ref default_config
+ * 
  * @htmlonly
  * <table class="apitable">
  * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
