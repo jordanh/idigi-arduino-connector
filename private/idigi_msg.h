@@ -1235,18 +1235,8 @@ static idigi_callback_status_t msg_process_start(idigi_data_t * const idigi_ptr,
     }
     else
     {
-#if 0
-        /* No error if callback returns busy from previous call and session is already created.
-         * Is it possible for server to send multiple requests on same session id? If possible,
-         * how do we send/catch the error?
-         */
-        if (request)
-        {
-            result = idigi_msg_error_session_in_use;
-            session = NULL;
-            goto error;
-        }
-#endif
+        /* We didn't check for duplicate session intentionally, because the busy
+           from application will result in duplicate session incorrectly */
         if (!request)
             MsgClearRequest(session->status_flag);
     }
