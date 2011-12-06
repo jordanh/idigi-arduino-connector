@@ -24,7 +24,6 @@ CC = gcc
 
 IDIGI_DIR=../../../../private
 PUBLIC_HEADER_DIR=../../../include
-SCRIPTS_DIR= ../../../../scripts
 
 vpath $(IDIGI_DIR)/%.c
 
@@ -51,7 +50,6 @@ $(OBJS): *.c $(IDIGI_DIR)/*.c
 
 $(SAMPLE): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(SAMPLE)
-	$(AT)python $(SCRIPTS_DIR)/iikmapsum.py $(SAMPLE).map | tee $(basename $@).stats 
 
 .PHONY: clean
 clean:

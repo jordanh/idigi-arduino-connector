@@ -2,7 +2,7 @@
 rc=0
 rca=0
 BASE_DIR=$WORKSPACE/idigi
-OUTPUT_DIR=output
+OUTPUT_DIR=$WORKSPACE/output
 PART_NUMBER=40003007
 PKG_NAME=${PART_NUMBER}_${REVISION}
 LICENSE=90002145_A
@@ -13,12 +13,8 @@ function cleanup ()
     ARCHIVE=${WORKSPACE}/archive
     mkdir -p ${ARCHIVE}
 
-    cd ${WORKSPACE}
     echo ">> Archiving tgz file."
     cp -v ${OUTPUT_DIR}/${PKG_NAME}.tgz ${ARCHIVE}/
-
-    echo ">> Archiving lib file."
-    cp -v ${OUTPUT_DIR}/libidigi* ${ARCHIVE}/
 
     echo ">> Cleaning Up ${OUTPUT_DIR} and ${BASE_DIR}"
     rm -r ${OUTPUT_DIR}
@@ -55,7 +51,7 @@ rm ${WORKSPACE}/${LICENSE}.zip
 
 # Create the tarball
 echo ">> Creating the release Tarball as ${OUTPUT_DIR}/${PKG_NAME}.tgz."
-tar --exclude=idigi/public/test --exclude=idigi/public/dvt  --exclude=idigi/public/sample  -czvf ${WORKSPACE}/${OUTPUT_DIR}/${PKG_NAME}.tgz idigi/
+tar --exclude=idigi/public/test --exclude=idigi/public/dvt  --exclude=idigi/public/sample  -czvf ${OUTPUT_DIR}/${PKG_NAME}.tgz idigi/
 
 # Delete the original idigi directory
 echo ">> Removing base dir ${BASE_DIR}."
@@ -64,26 +60,44 @@ rm -rf ${BASE_DIR}
 # Uncompress the tarball we just created and run our tests
 echo ">> Uncompressing ${OUTPUT_DIR}/${PKG_NAME}.tgz."
 tar -xf ${OUTPUT_DIR}/${PKG_NAME}.tgz
-cd ${BASE_DIR}
 
+cd ${BASE_DIR}
+python ../scripts/replace_str.py public/run/platforms/linux/config.c '#error' '//#error'
+python ../scripts/replace_str.py public/run/samples/compile_and_link/Makefile 'c99' 'c89'
 
 # Build all the IIK samples and platforms
-#TARGET=${type}_${featureset}_${arch}
-#
-#rc=$?
-#
-#if [[ ${rc} != 0 ]]; then
-#  echo "++ Failed to build Library, exiting."
-#  cleanup
-#  exit ${rc} 
-#fi
+
+echo ">> Building all samples."
+cd public/run/samples
+
+SAMPLES="compile_and_link
+         connect_to_idigi 
+         device_request
+         firmware_download
+         send_data"
+
+for sample in $SAMPLES
+do
+  echo ">> Building $sample"
+  cd $sample
+  make clean all
+  rc=$?
+  if [[ ${rc} != 0 ]]; then
+    echo "++ Failed to build $sample, exiting."
+    cleanup
+    exit ${rc} 
+  fi
+  cd ../
+done
+
+cd ../../../../
 
 # Run tests only if release on linux and featureset is full or sharedlib
 if [[ "${type}" == "unrelease" && "${arch}" == "x86" && ("${featureset}" == "full" || "${featureset}" == "unsharedlib") ]]; then
   echo ">> Executing Test Harness against $TARGET."
-  export LD_LIBRARY_PATH=${WORKSPACE}/${OUTPUT_DIR}
+  export LD_LIBRARY_PATH=${OUTPUT_DIR}
   cd ../public/test/harness
-  make clean all IDIGI_RULES=../rules/${TARGET}.rules LIBDIR=${WORKSPACE}/${OUTPUT_DIR}
+  make clean all IDIGI_RULES=../rules/${TARGET}.rules LIBDIR=${OUTPUT_DIR}
   (./iik_test cases/admin_tests/config.ini; ) &
   child_pid_admin=$!
   (./iik_test cases/user_tests/config.ini; ) &
@@ -123,7 +137,7 @@ fi
 if [[ "${PENDING}" == "true" ]]; then
     # If successfull push the tarball to pending, if PENDING environment variable is set to 1.
     echo ">> Copying the Tarball to Pending."
-    cp -v ${WORKSPACE}/${OUTPUT_DIR}/${PKG_NAME}.tgz /eng/store/pending/40000000
+    cp -v ${OUTPUT_DIR}/${PKG_NAME}.tgz /eng/store/pending/40000000
 fi
 
 cleanup
