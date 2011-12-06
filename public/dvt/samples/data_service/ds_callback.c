@@ -281,8 +281,8 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
     {
         void * ptr;
 
-        bool const is_ok = os_malloc(sizeof *client_device_request, &ptr);
-        if (!is_ok || ptr == NULL)
+        int const ccode = os_malloc(sizeof *client_device_request, &ptr);
+        if (ccode != 0 || ptr == NULL)
         {
             /* no memeory stop IIK */
             APP_DEBUG("process_device_request: malloc fails for device request on session %p\n", server_device_request->device_handle);
