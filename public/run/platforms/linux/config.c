@@ -31,7 +31,6 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-
 /* IIK Configuration routines */
 
 #define MAX_INTERFACES      128
@@ -322,18 +321,21 @@ void idigi_config_error(idigi_error_status_t * const error_data)
                                              "idigi_config_wait_count",
                                              "idigi_config_ip_addr",
                                              "idigi_config_error_status",
-                                             "idigi_config_disconnected",
                                              "idigi_config_firmware_facility",
-                                             "idigi_config_data_service"};
+                                             "idigi_config_data_service",
+                                              "idigi_config_max_transaction"};
 
-    char const * network_request_string[] = { "idigi_config_connect",
-                                              "idigi_config_send",
-                                              "idigi_config_receive",
-                                              "idigi_config_close"};
+    char const * network_request_string[] = { "idigi_network_connect",
+                                              "idigi_network_send",
+                                              "idigi_network_receive",
+                                              "idigi_network_close"
+                                              "idigi_network_disconnected",
+                                              "idigi_network_reboot"};
 
-    char const * os_request_string[] = { "idigi_config_malloc",
-                                         "idigi_config_free",
-                                         "idigi_config_system_up_time"};
+    char const * os_request_string[] = { "idigi_os_malloc",
+                                         "idigi_os_free",
+                                         "idigi_os_system_up_time",
+                                         "idigi_os_sleep"};
 
     char const * firmware_request_string[] = {"idigi_firmware_target_count",
                                               "idigi_firmware_version",
@@ -346,9 +348,8 @@ void idigi_config_error(idigi_error_status_t * const error_data)
                                               "idigi_firmware_download_abort",
                                               "idigi_firmware_target_reset"};
 
-    char const * data_service_string[] = {"idigi_data_service_send_complete",
-                                          "idigi_data_service_response",
-                                          "idigi_data_service_error"};
+    char const * data_service_string[] = {"idigi_data_service_put_request",
+                                          "idigi_data_service_device_request"};
     switch (error_data->class_id)
     {
     case idigi_class_config:
@@ -401,6 +402,10 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
         ret = get_device_id((uint8_t **)response_data, response_length);
         break;
 
+    case idigi_config_mac_addr:
+        ret = get_mac_addr((uint8_t **)response_data, response_length);
+        break;
+
     case idigi_config_vendor_id:
         ret = get_vendor_id((uint8_t **)response_data, response_length);
         break;
@@ -415,10 +420,6 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
 
     case idigi_config_connection_type:
         ret = get_connection_type((idigi_connection_type_t **)response_data);
-        break;
-
-    case idigi_config_mac_addr:
-        ret = get_mac_addr((uint8_t **)response_data, response_length);
         break;
 
     case idigi_config_link_speed:
@@ -463,6 +464,10 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
     case idigi_config_max_transaction:
         *((uint8_t *)response_data) = get_max_message_transactions();
         ret = 0;
+        break;
+
+    default:
+        APP_DEBUG("idigi_config_callback: unknown configuration request= %d\n", request);
         break;
     }
 
