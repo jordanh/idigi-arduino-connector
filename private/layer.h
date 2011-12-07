@@ -941,7 +941,7 @@ enum {
 
 
 #if defined(IDIGI_DEVICE_TYPE)
-        static const char const idigi_device_type[] = IDIGI_DEVICE_TYPE;
+        static const char idigi_device_type[] = IDIGI_DEVICE_TYPE;
         size_t device_type_length  = sizeof idigi_device_type-1;
 #else
         char * idigi_device_type = idigi_ptr->device_type;

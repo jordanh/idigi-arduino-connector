@@ -1,18 +1,18 @@
 import fileinput, string, sys
 from optparse import OptionParser
 
-parser = OptionParser(usage = "usage: %prog file_name src_str dst_str")
-(options, args) = parser.parse_args()
+def replace_string(file_name, src_str, dst_str):
+  infile = open(file_name, "r")
+  text = infile.read()
+  infile.close()
 
-file_name = args[0]
-src_str = args[1]
-dst_str = args[2]
+  outfile = open(file_name, "w")
+  outfile.write(text.replace(src_str, dst_str))
+  outfile.close()
 
-infile = open(file_name, "r")
-text = infile.read()
-infile.close()
+if __name__ == '__main__':
+  parser = OptionParser(usage = "usage: %prog file_name src_str dst_str")
+  (options, args) = parser.parse_args()
 
-outfile = open(file_name, "w")
-outfile.write(text.replace(src_str, dst_str))
-outfile.close()
+  replace_string(args[0], args[1], args[2])
 
