@@ -52,12 +52,12 @@ typedef struct
 } ds_record_t;
 
 unsigned int put_file_active_count = 0;
+static bool first_time = true;
 
 idigi_status_t send_put_request(idigi_handle_t handle, int index)
 {
     idigi_status_t status = idigi_success;
     static char file_type[] = "text/plain";
-    static bool first_time = true;
     ds_record_t * user;
 
     if (put_file_active_count >= DS_MAX_USER)
@@ -362,6 +362,14 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
     if ((server_data->flags & IDIGI_MSG_LAST_DATA) == IDIGI_MSG_LAST_DATA)
     {   /* No more chunk. let's setup response data */
         /* don't care about what target in here */
+        if (first_time)
+        {
+            int i;
+
+            for (i = 0; i < DS_DATA_SIZE; i++)
+                ds_buffer[i] = 0x41 + (rand() % 0x3B);
+            first_time = false;
+        }
         client_device_request->response_data = ds_buffer;
         client_device_request->length_in_bytes = (rand() % (DS_DATA_SIZE +1));
         client_device_request->count = DEVICE_REPONSE_COUNT;
