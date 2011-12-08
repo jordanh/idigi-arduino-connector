@@ -26,7 +26,6 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-extern __thread long stack_max_size;
 
 extern void check_stack_size(void);
 
@@ -38,7 +37,6 @@ extern idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t 
                                                   void * response_data, size_t * const response_length);
 
 extern idigi_status_t send_put_request(idigi_handle_t handle, int index);
-
 
 idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
                                     void * const request_data, size_t const request_length,
@@ -78,7 +76,6 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
 
 int application_run(idigi_handle_t handle)
 {
-#if 0
     int index = 0;
     int stop_calling = 0;
 
@@ -109,9 +106,6 @@ int application_run(idigi_handle_t handle)
             break;
         }
     }
-#else
-    UNUSED_PARAMETER(handle);
-#endif
     return 0;
 }
 
