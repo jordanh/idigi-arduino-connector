@@ -2,14 +2,7 @@
 #
 # NOTE: To run you must setup the configuration file:
 #            public\test\harness\cases\user_tests\config.ini
-
-BASE_SAMPLE_DIR=./public/run/samples
-TEST_SCRIPT_DIR=./public/test/harness/cases/user_tests
-STARTUP_DELAY=5
-
-export PYTHONPATH=../
-
-###############################################################################
+#
 # Test Samples
 #
 # To add new sample tests to the build:
@@ -22,6 +15,16 @@ SAMPLE_TESTS=("connect_to_idigi"          "test_discovery.py"
               "firmware_download"         "test_firmware.py")
 
 num_samples=2  # Increment you add a new test
+
+BASE_SAMPLE_DIR=./public/run/samples
+TEST_SCRIPT_DIR=./public/test/harness/cases/user_tests
+STARTUP_DELAY=5
+
+export PYTHONPATH=../
+
+# Setup the configuration based on config.ini
+python ./scripts/replace_str.py ./public/run/platforms/linux/config.c "#error" "//#error"
+python ./scripts/config.py ./public/include/idigi_config.h ./public/test/harness/cases/user_tests/config.ini ./public/run/platforms/linux/config.c
 
 j=1
 for ((i = 0 ; i < $num_samples+1 ; i++ ))

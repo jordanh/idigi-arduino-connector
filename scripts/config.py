@@ -68,7 +68,7 @@ def update_config_c():
   infile.close()
 
   if text.find(old_mac) == -1:
-    print 'device_mac_addr in config.c is not %s\n' %old_mac
+    print 'warning: device_mac_addr in config.c is not %s\n' %old_mac
     raise NameError
 
   mac_str = config.get("device", "mac_addr")
