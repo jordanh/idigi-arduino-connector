@@ -27,8 +27,13 @@
 #include "idigi_api.h"
 #include "platform.h"
 #include <unistd.h>
-//#include <sys/resource.h>
-//#include <sys/types.h>
+
+extern idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
+                                    void * const request_data, size_t const request_length,
+                                    void * response_data, size_t * const response_length);
+
+pthread_t idigi_thread;
+pthread_t application_thread;
 
 
 __thread void* stack_start;
@@ -36,6 +41,8 @@ __thread long stack_max_size = 0L;
 
 void check_stack_size(void)
 {
+    if (pthread_self() == idigi_thread)
+    {
     /* address of 'nowhere' approximates end of stack */
     char nowhere;
     void* stack_end = (void*)&nowhere;
@@ -47,6 +54,7 @@ void check_stack_size(void)
     {
       stack_max_size = stack_size;
       APP_DEBUG("check_stack_size= %ld\n", stack_max_size);
+    }
     }
 }
 
@@ -74,3 +82,50 @@ void * idigi_run_thread(void * arg)
     pthread_exit(arg);
 }
 
+
+void * application_run_thread(void * arg)
+{
+    int status;
+
+    APP_DEBUG("idigi_run thread starts\n");
+
+    status = application_run((idigi_handle_t)arg);
+
+    APP_DEBUG("application_run thread exits %d\n", status);
+
+    pthread_exit(arg);
+}
+
+int main (void)
+{
+    idigi_handle_t idigi_handle;
+
+    APP_DEBUG("Start iDigi\n");
+    idigi_handle = idigi_init((idigi_callback_t) idigi_callback);
+    if (idigi_handle != NULL)
+    {
+        int ccode;
+        ccode = pthread_create(&idigi_thread, NULL, idigi_run_thread, idigi_handle);
+        if (ccode != 0)
+        {
+            APP_DEBUG("thread_create() error on idigi_process_thread %d\n", ccode);
+            goto done;
+        }
+
+        ccode = pthread_create(&application_thread, NULL, application_run_thread, idigi_handle);
+        if (ccode != 0)
+        {
+            APP_DEBUG("thread_create() error on idigi_process_thread %d\n", ccode);
+            goto done;
+        }
+
+        pthread_join(idigi_thread, NULL);
+        pthread_join(application_thread, NULL);
+    }
+    else
+    {
+        printf("unable to initialize iDigi\n");
+    }
+done:
+    return 0;
+}

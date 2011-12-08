@@ -359,7 +359,7 @@ static idigi_callback_status_t layer_get_supported_facilities(idigi_data_t * con
             idigi_debug("initialize_facilities: callback %s  %d facility\n", facility_enable ? "supports" : "unsupports", request_id);
         }
 
-        if (facility_enable == idigi_service_supported)
+        if (facility_enable != idigi_service_unsupported)
         {
             idigi_ptr->facilities |= SET_FACILITY_SUPPORT(i);
         }

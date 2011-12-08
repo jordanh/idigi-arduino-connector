@@ -231,17 +231,17 @@ static int get_wait_count(uint16_t **count, size_t * size)
     return 0;
 }
 
-static int get_firmware_support(void)
+static idigi_service_supported_status_t get_firmware_support(void)
 {
-    return 1;
+    return idigi_service_supported;
 }
 
-static int get_data_service_support(void)
+static idigi_service_supported_status_t get_data_service_support(void)
 {
-    return 1;
+    return idigi_service_supported;
 }
 
-static uint8_t get_max_message_transactions(void)
+static unsigned int get_max_message_transactions(void)
 {
 #define IDIGI_MAX_MSG_TRANSACTIONS   1
 
@@ -430,7 +430,7 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
         break;
 
     case idigi_config_max_transaction:
-        *((uint8_t *)response_data) = get_max_message_transactions();
+        *((unsigned int *) response_data) = get_max_message_transactions();
         ret = 0;
         break;
     }

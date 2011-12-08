@@ -1,0 +1,10 @@
+<sci_request version="1.0">
+  <data_service>
+    <targets>
+      <device id="00000000-00000000-00000000-00000000" />
+    </targets>
+    <requests>
+      <device_request target_name="target_name">My request data</device_request>
+    </requests>
+  </data_service>
+</sci_request>
