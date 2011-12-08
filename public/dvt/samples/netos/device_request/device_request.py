@@ -4,7 +4,7 @@
 # The following lines require manual changes
 username = "jravalski" # enter your username
 password = "argo1navt" # enter your password
-device_id = "00409DFF-FF430802" # enter device id of target
+device_id = "00000000-00000000-00000000-00000000" # enter device id of target
 # -------------------------------------------------
 import httplib
 import base64
