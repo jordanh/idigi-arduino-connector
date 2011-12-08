@@ -396,8 +396,8 @@ static idigi_service_supported_status_t get_firmware_support(void)
  * This routine tells IIK whether the data service facility is supported or not. 
  * If you plan on sending data to/from the iDigi server set this to true
  *
- * @retval idigi_service_supported  Firmware download is supported
- * @retval idigi_service_unsupported  Firmware download is not supported
+ * @retval idigi_service_supported  Data service is supported
+ * @retval idigi_service_unsupported  Data service is not supported
  *
  * @note This routine is not called if you define @b IDIGI_DATA_SERVICE_SUPPORT configuration in @ref idigi_config.h.
  * @note This IDIGI_DATA_SERVICE_SUPPORT indicates application supports data service. See @ref default_config
@@ -422,7 +422,7 @@ static idigi_service_supported_status_t get_data_service_support(void)
  * @note This routine is not needed if you define @b IDIGI_MSG_MAX_TRANSACTION configuration in @ref idigi_config.h.
  * See @ref default_config
  */
-static uint8_t get_max_message_transactions(void)
+static unsigned int get_max_message_transactions(void)
 {
 #define IDIGI_MAX_MSG_TRANSACTIONS   1
 
@@ -629,7 +629,7 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
         break;
 
     case idigi_config_max_transaction:
-        *((uint8_t *)response_data) = get_max_message_transactions();
+        *((unsigned int *)response_data) = get_max_message_transactions();
          ret = 0;
         break;
 
