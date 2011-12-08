@@ -1113,7 +1113,7 @@
  * </tr>
  * <tr>
  * <th>response_data</th>
- * <td> Pointer to memory where callback writes maximum transactions.
+ * <td> Pointer to unsigned int memory where callback writes maximum transactions.
  * It must be between 1 to 255. Use 0 for unlimited transactions.</td>
  * </tr>
  * <tr>
@@ -1144,7 +1144,7 @@
  *
  *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_max_transaction)
  *     {
- *          *((uint8_t *)response_data) = IDIGI_MAX_MSG_TRANSACTIONS;
+ *          *((unsigned int *)response_data) = IDIGI_MAX_MSG_TRANSACTIONS;
  *     }
  *     return idigi_callback_continue;
  * }
