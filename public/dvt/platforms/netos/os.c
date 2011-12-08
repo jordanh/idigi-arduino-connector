@@ -23,40 +23,12 @@
  *
  */
 
- /**
-  * @file
-  *  @brief Functions used by the IIK to interface to the OS.
-  *
-  */
 #include <malloc.h>
 #include <time.h>
 #include <unistd.h>
 #include "idigi_api.h"
 #include "platform.h"
 
-/**
- * @brief   Dynamically allocate memory
- *
- * Dynamically allocate memory, if you are not using malloc()
- * from the C library replace the malloc() call to an equivalent
- * call on your system.
- * 
- * @param [in] size  Number of bytes to allocate
- * 
- * @param [in] ptr  pointer to be filled in with the address of
- *                  the allocated memory
- *  
- * @retval 0  Memory was allocated
- * 
- * @retval -1  Memory was not allocated
- *
- * Example Usage:
- * @code
- *     status = os_malloc(len, &ptr);
- * @endcode 
- *  
- * @see os_free
- */
 int os_malloc(size_t const size, void ** ptr)
 {
     int status=-1;
@@ -71,24 +43,6 @@ int os_malloc(size_t const size, void ** ptr)
     return status;
 }
 
-/**
- * @brief   Free Dynamically allocate memory.
- *
- * Free dynamically allocate memory, if you are not using 
- * free() from the C library replace the free() call to an 
- * equivalent call on your system. 
- * 
- * @param [in] ptr  pointer to memory to be freed
- *  
- * @retval void
- * 
- * Example Usage:
- * @code
- *     os_free(ptr);
- * @endcode 
- *  
- * @see os_free
- */
 void os_free(void * const ptr)
 {
     ASSERT(ptr != NULL);
@@ -101,24 +55,6 @@ void os_free(void * const ptr)
 }
 
 
-/**
- * @brief   Get the system time.
- *
- * Get the current time (number of seconds since the start of
- * the Unix epoch January 1, 1970) from the system clock.
- * 
- * @param [in] uptime   Current system time in seconds.
- *  
- * @retval true Able to get system time
- * 
- * @retval false System time unavailable
- * 
- * Example Usage:
- * @code
- *     status = os_get_system_time(&uptime);
- * @endcode 
- *  
- */
 int os_get_system_time(uint32_t * const uptime)
 {
     time((time_t *)uptime);
@@ -126,25 +62,6 @@ int os_get_system_time(uint32_t * const uptime)
     return 0;
 }
 
-/**
- * @brief   Sleep or relinquish for other task execution.
- *
- * Sleep or relinquish to run other task. This is called
- * to let other task to be executed when iik_run is called.
- * IIK calls this callback if IIK is busy and is not calling
- * receive callback
- *
- * @param [in] timeout  Maximum number in seconds to sleep
- *
- * @retval void
- *
- * Example Usage:
- * @code
- *     os_wait(1);
- * @endcode
- *
- * @see os_free
- */
 void os_sleep(unsigned int const timeout_in_seconds)
 {
     unsigned int const timeout_in_milliseconds = timeout_in_seconds * 1000;
@@ -158,7 +75,7 @@ idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
                                         void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    int ret=-1;
+    int ret;
 
     UNUSED_PARAMETER(request_length);
     UNUSED_PARAMETER(response_length);
