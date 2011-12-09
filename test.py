@@ -18,13 +18,15 @@
 #
 # Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
 #
-# Build the IIK test suite
+# Build the IIK test harness
+#
 import commands
 import sys
 import os
 import time
 import getopt
 import signal
+import imp
 
 BASE_SAMPLE_DIR='./public/run/samples/'
 TEST_SCRIPT_DIR='./public/test/harness/cases/user_tests/'
@@ -32,41 +34,64 @@ DIR_ENTRY  = 0
 TESTS_ENTRY = 1
 
 #
-# This table contains all the information for each IIK test.
-# You only need to modify this table when adding a new test
+# Modify this table when adding a new test.
 # 
-# Each entry in the table has:
-# 1. Directory which contains the makefile and the idigi executable
+# Each test has an entry in this table.
+# 1. Directory which contains the makefile and the idigi executable, the
+#    makefile is build with 'make clean all' and the name of the executable
+#    must be idigi
 # 2. List of python test scripts to run
 #
-#              Directory containing executable            Lists of tests to run
+# Note: test scripts are located in the directory:
+#                   public/test/harness/cases/user_tests
+#              Directory.                                Test Scripts
 test_table = [[BASE_SAMPLE_DIR+'connect_to_idigi',       ['test_discovery.py']],
               [BASE_SAMPLE_DIR+'firmware_download',      ['test_firmware.py']]
 ]
 
-for test in test_table:
-    dir    = test[DIR_ENTRY]
-    tests  = test[TESTS_ENTRY]
-    print '>>>Testing [%s]' % dir
+def run_tests():
+    for test in test_table:
+        dir    = test[DIR_ENTRY]
+        tests  = test[TESTS_ENTRY]
+        print '>>>Testing [%s]' % dir
 
-    rc = os.system('cd %s; make clean all;./idigi &' % (dir))
-    if rc != 0:
-        print "+++Build failed dir=[%s]" % dir
-        exit(0)
+        rc = os.system('cd %s; make clean all' % (dir))
+        if rc != 0:
+            print "+++FAIL: Build failed dir=[%s]" % dir
+            exit(0)
 
-    pid = commands.getoutput('pidof idigi')
-    time.sleep(5) # Give the program time to start
+        rc = os.system('cd %s;./idigi &' % (dir))
+        if rc != 0:
+            print "+++FAIL: Could not start idigi dir=[%s]" % dir
+            exit(0)
 
-    for test_script in tests:
-        print '>>>Executing [%s]' % test_script
-        rc = os.system('cd %s; nosetests --with-xunit %s' % (TEST_SCRIPT_DIR, test_script))
+        pid = commands.getoutput('pidof idigi')
+        if pid == '':
+            print "+++FAIL: idigi not running dir=[%s]" % dir
+            exit(0)
 
-    os.kill(int(pid), signal.SIGKILL)
-    os.system('cd ../../../../../')
+        time.sleep(5) # Give the program time to start
 
-    if rc != 0:
-        print '+++Test failed [%s] [%s]' % (dir, test_script)
-        exit(0)
+        for test_script in tests:
+            print '>>>Executing [%s]' % test_script
+            rc = os.system('cd %s; nosetests --with-xunit %s' % (TEST_SCRIPT_DIR, test_script))
 
+        os.kill(int(pid), signal.SIGKILL)
+        os.system('cd ../../../../../')
 
+        if rc != 0:
+            print '+++FAIL: Test failed [%s] [%s]' % (dir, test_script)
+            exit(0)
 
+def setup_platform():
+    f, filename, description = imp.find_module('config', ['./scripts'])
+    config = imp.load_module('config', f, filename, description)
+    config.remove_errors('./public/run/platforms/linux/config.c')
+    config.update_config_files('./public/include/idigi_config.h', './public/test/harness/cases/user_tests/config.ini', './public/run/platforms/linux/config.c')
+
+def main():
+    setup_platform()
+    run_tests()
+
+if __name__ == '__main__':
+    main()

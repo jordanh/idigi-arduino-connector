@@ -5,6 +5,22 @@ from optparse import OptionParser
 
 new_lines = []
 
+def replace_string(file_name, src_str, dst_str):
+  infile = open(file_name, "r")
+  text = infile.read()
+  infile.close()
+  outfile = open(file_name, "w")
+  outfile.write(text.replace(src_str, dst_str))
+  outfile.close()
+
+def remove_errors(file_name):
+    infile = open(file_name, "r")
+    text = infile.read()
+    infile.close()
+    if text.find('//#error') == -1: # Don't run if #error is already commented out.
+        print "Replacing #error in [%s]" % file_name
+        replace_string(file_name, '#error', '//#error')
+
 def update_field(config, line, field, isString):
   elements = line.split()
   if elements[0] != '/*':
@@ -56,8 +72,7 @@ def update_config_c(cnfg_file, config):
   infile.close()
 
   if text.find(old_mac) == -1:
-    print 'warning: device_mac_addr in config.c is not %s\n' %old_mac
-    raise NameError
+    print 'warning: not updating MAC address (config.c already modifyied)'
 
   mac_str = config.get("device", "mac_addr")
   new_mac = '{' + '0x' + mac_str[0] + mac_str[1] + ', '
@@ -77,13 +92,4 @@ def update_config_files(header_file, ini_file, cnfg_file):
   update_idigi_config_h(header_file, config)
   update_config_c(cnfg_file, config)
 
-if __name__ == '__main__':
-  parser = OptionParser(usage = "usage: %prog header_file ini_file cnfg_file")
-  (options, args) = parser.parse_args()
-
-  if len(args) != 3:
-    print "Usage: python config.py <path>/idigi_config.h <path>/config.ini <path>/config.c"
-    raise SyntaxError
-
-  update_config_files(args[0], args[1], args[2])
 
