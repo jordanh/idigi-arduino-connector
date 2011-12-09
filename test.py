@@ -74,7 +74,7 @@ def run_tests():
 
         for test_script in tests:
             print '>>>Executing [%s]' % test_script
-            rc = os.system('cd %s; nosetests --with-xunit %s' % (TEST_SCRIPT_DIR, test_script))
+            rc = os.system('export PYTHONPATH=../;cd %s; nosetests --with-xunit %s' % (TEST_SCRIPT_DIR, test_script))
 
         os.kill(int(pid), signal.SIGKILL)
         os.system('cd ../../../../../')
