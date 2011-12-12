@@ -35,12 +35,12 @@ typedef enum
 typedef struct
 {
     idigi_data_service_request_t  request_type;
-    void * user_context;
+    void * callback_context;
 } data_service_context_t;
 
 static void set_data_service_error(msg_service_request_t * const service_data, idigi_msg_error_t const error_code)
 {
-    idigi_msg_error_t * error = service_data->data_ptr;
+    idigi_msg_error_t * const error = service_data->data_ptr;
 
     *error = error_code;
     service_data->length_in_bytes = sizeof error_code;
@@ -51,7 +51,7 @@ static idigi_callback_status_t process_device_request(idigi_data_t * const idigi
                                                       msg_service_request_t * const service_data)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    data_service_context_t * service_context = service_data->session->service_context;
+    data_service_context_t * device_request_service = service_data->session->service_context;
     uint8_t const * ds_device_request = service_data->data_ptr;
     char * target_string = NULL;
     idigi_msg_error_t error_status = idigi_msg_error_cancel;
@@ -87,36 +87,40 @@ static idigi_callback_status_t process_device_request(idigi_data_t * const idigi
             record_end(ds_device_request_parameter)
         };
 
-        size_t min_data_length;
         uint8_t const target_length =  message_load_u8(ds_device_request, target_length);
 
-        ASSERT_GOTO((message_load_u8(ds_device_request, opcode) == data_service_opcode_device_request), done);
-
-        min_data_length = target_length +
+        size_t const min_data_length = target_length +
                           record_bytes(ds_device_request_header) +
                           field_named_data(ds_device_request, parameter_count, size);
-        ds_device_request += record_bytes(ds_device_request_header);
 
+        ASSERT_GOTO((message_load_u8(ds_device_request, opcode) == data_service_opcode_device_request), done);
         ASSERT_GOTO(service_data->length_in_bytes >= min_data_length, done);
 
-        if (service_context == NULL)
+        ds_device_request += record_bytes(ds_device_request_header);
+
+
+        if (device_request_service == NULL)
         {
-            /* 1st time here so let's allocate service context memory for device request */
+            /* 1st time here so let's allocate service context memory for device request service */
             void * ptr;
 
-            status = malloc_data(idigi_ptr, sizeof *service_context, &ptr);
+            status = malloc_data(idigi_ptr, sizeof *device_request_service, &ptr);
             if (status != idigi_callback_continue)
             {
+                if (status == idigi_callback_busy)
+                {
+                    error_status = idigi_msg_error_none;
+                }
                 goto done;
             }
 
-            service_context = ptr;
-            service_data->session->service_context = service_context;
-            service_context->user_context = NULL;
+            device_request_service = ptr;
+            service_data->session->service_context = device_request_service;
+            device_request_service->callback_context = NULL;
         }
 
         target_string = (char *)ds_device_request;
-        service_context->request_type = idigi_data_service_device_request;
+        device_request_service->request_type = idigi_data_service_device_request;
 
         flag = IDIGI_MSG_FIRST_DATA;
         ds_device_request += target_length;
@@ -133,15 +137,15 @@ static idigi_callback_status_t process_device_request(idigi_data_t * const idigi
 
             for (i=0; i < parameter_count; i++)
             {
-                 uint8_t const parameter_length = message_load_u8(ds_device_request, parameter_length);
-                 min_data_length += record_bytes(ds_device_request_parameter) + parameter_length;
-                 ASSERT_GOTO(service_data->length_in_bytes >= min_data_length, done);
+                 unsigned int const parameter_length = message_load_u8(ds_device_request, parameter_length);
+                 size_t const data_length = min_data_length + record_bytes(ds_device_request_parameter) + parameter_length;
+                 ASSERT_GOTO(service_data->length_in_bytes >= data_length, done);
 
                  ds_device_request += record_bytes(ds_device_request_parameter); /* skip id and length */
                  ds_device_request += parameter_length;
             }
         }
-        /* Add NUL to the target string. Must NULL it after parsing all parameters.
+        /* Add NUL to the target string. Must NUL-terminate it after parsing all parameters.
          * The NUL char is on parameter_count field in the request.
          */
         target_string[target_length] = '\0';
@@ -157,23 +161,23 @@ static idigi_callback_status_t process_device_request(idigi_data_t * const idigi
 
         size_t response_data_length = sizeof response_data;
 
-        ASSERT(service_context != NULL);
+        ASSERT(device_request_service != NULL);
         /* setup structure to the callback */
         request_data.message_type = idigi_data_service_type_have_data;
         request_data.service_context = &device_request;
         request_data.server_data = &server_data;
-
+        /* setup device request data */
         server_data.data = (void *)ds_device_request;
         server_data.length_in_bytes = service_data->length_in_bytes -
                                       (ds_device_request - (uint8_t *)service_data->data_ptr);
         server_data.flags = (MsgIsLastData(service_data->flags)) ? (IDIGI_MSG_LAST_DATA | flag) : flag;
 
-
+        /* setup request target */
         device_request.target = target_string;
         device_request.device_handle = service_data->session;
 
 
-        response_data.user_context = service_context->user_context;
+        response_data.user_context = device_request_service->callback_context;
         response_data.message_status = idigi_msg_error_none;
         response_data.client_data = NULL;
 
@@ -206,11 +210,10 @@ static idigi_callback_status_t process_device_request(idigi_data_t * const idigi
             }
             /* fall thru to clear error status */
         case idigi_callback_busy:
-            /* no error */
             error_status = idigi_msg_error_none;
             break;
         }
-        service_context->user_context = response_data.user_context;
+        device_request_service->callback_context = response_data.user_context;
     }
 
 done:
@@ -224,23 +227,25 @@ done:
 static idigi_callback_status_t process_device_response(idigi_data_t * const idigi_ptr,
                                                        msg_service_request_t * const service_data)
 {
-/* Data Service Device response format:
- *  ---------------------------------
- * |   0    |   1    |     2...      |
- *  ---------------------------------
- * | Opcode | status | Response Data |
- *  ---------------------------------
- */
-enum {
-    field_define(ds_device_response, opcode, uint8_t),
-    field_define(ds_device_response, status, uint8_t),
-    record_end(ds_device_response_header)
-};
+    /* Data Service Device response format:
+     *  ---------------------------------
+     * |   0    |   1    |     2...      |
+     *  ---------------------------------
+     * | Opcode | status | Response Data |
+     *  ---------------------------------
+     */
+    enum {
+        field_define(ds_device_response, opcode, uint8_t),
+        field_define(ds_device_response, status, uint8_t),
+        record_end(ds_device_response_header)
+    };
 
     idigi_callback_status_t status;
-    data_service_context_t * const service_context = service_data->session->service_context;
+    data_service_context_t * const device_request_service = service_data->session->service_context;
+    idigi_bool_t const isFirstResponse = MsgIsStart(service_data->flags);
+
     /* save some room for response header on 1st response data */
-    size_t header_length = (MsgIsStart(service_data->flags)) ? record_bytes(ds_device_response_header) : 0;
+    size_t const header_length = isFirstResponse ? record_bytes(ds_device_response_header) : 0;
     uint8_t * const data_ptr = service_data->data_ptr;
 
     idigi_request_t const request_id = {idigi_data_service_device_request};
@@ -261,7 +266,7 @@ enum {
 
     /* setup response data so that callback updates it */
     response_data.client_data = &client_data;
-    response_data.user_context = service_context->user_context;
+    response_data.user_context = device_request_service->callback_context;
     response_data.message_status = idigi_msg_error_none;
 
     client_data.data = data_ptr + header_length;
@@ -286,7 +291,7 @@ enum {
             goto done;
         }
 
-        if (MsgIsStart(service_data->flags))
+        if (isFirstResponse)
         {
             enum {
                 idigi_data_service_device_success,
@@ -302,12 +307,12 @@ enum {
             message_store_u8(ds_device_response, status, status);
         }
 
-        if ((client_data.flags & IDIGI_MSG_LAST_DATA))
+        if ((client_data.flags & IDIGI_MSG_LAST_DATA) == IDIGI_MSG_LAST_DATA)
         {
             MsgSetLastData(service_data->flags);
         }
         service_data->length_in_bytes = client_data.length_in_bytes + header_length;
-        service_context->user_context = response_data.user_context;
+        device_request_service->callback_context = response_data.user_context;
     }
 
 done:
@@ -318,7 +323,7 @@ static idigi_callback_status_t process_device_error(idigi_data_t * const idigi_p
                                                        msg_service_request_t * const service_data)
 {
     idigi_callback_status_t status;
-    data_service_context_t * const service_context = service_data->session->service_context;
+    data_service_context_t * const device_request_service = service_data->session->service_context;
     idigi_request_t const request_id = {idigi_data_service_device_request};
 
     idigi_data_service_msg_request_t request_data;
@@ -340,7 +345,7 @@ static idigi_callback_status_t process_device_error(idigi_data_t * const idigi_p
     server_data.length_in_bytes = service_data->length_in_bytes;
     server_data.flags = IDIGI_MSG_FIRST_DATA | IDIGI_MSG_LAST_DATA;
 
-    response_data.user_context = service_context->user_context;
+    response_data.user_context = device_request_service->callback_context;
     response_data.message_status = idigi_msg_error_none;
     response_data.client_data = NULL;
 
@@ -392,6 +397,7 @@ static size_t fill_put_request_header(idigi_data_service_put_request_t const * c
     {
         uint8_t const bytes = strlen(request->path);
 
+        ASSERT(strlen(request->path) <= UCHAR_MAX);
         *ptr++ = bytes;
         memcpy(ptr, request->path, bytes);
         ptr += bytes;
@@ -399,9 +405,9 @@ static size_t fill_put_request_header(idigi_data_service_put_request_t const * c
 
     /* fill parameters */
     {
-        idigi_bool_t const type = (request->content_type != NULL);
-        idigi_bool_t const archive = (request->flags & IDIGI_DATA_PUT_ARCHIVE) == IDIGI_DATA_PUT_ARCHIVE;
-        idigi_bool_t const append = (request->flags & IDIGI_DATA_PUT_APPEND) == IDIGI_DATA_PUT_APPEND;
+        idigi_bool_t const have_type = (request->content_type != NULL);
+        idigi_bool_t const have_archive = (request->flags & IDIGI_DATA_PUT_ARCHIVE) == IDIGI_DATA_PUT_ARCHIVE;
+        idigi_bool_t const have_append = (request->flags & IDIGI_DATA_PUT_APPEND) == IDIGI_DATA_PUT_APPEND;
         static uint8_t const parameter_requested = 1;
         uint8_t params = 0;
 
@@ -413,15 +419,17 @@ static size_t fill_put_request_header(idigi_data_service_put_request_t const * c
             parameter_count
         };
 
-        if (type) params++;
-        if (archive) params++;
-        if (append) params++;
+        if (have_type) params++;
+        if (have_archive) params++;
+        if (have_append) params++;
 
         *ptr++ = params;
 
-        if (type)
+        if (have_type)
         {
             uint8_t const bytes = strlen(request->content_type);
+
+            ASSERT(strlen(request->content_type) <= UCHAR_MAX);
 
             *ptr++ = parameter_id_content_type;
             *ptr++ = bytes;
@@ -429,26 +437,25 @@ static size_t fill_put_request_header(idigi_data_service_put_request_t const * c
             ptr += bytes;
         }
 
-        if (archive)
+        if (have_archive)
         {
             *ptr++ = parameter_id_archive;
             *ptr++ = parameter_requested;
         }
 
-        if (append)
+        if (have_append)
         {
             *ptr++ = parameter_id_append;
             *ptr++ = parameter_requested;
         }
     }
 
-    ASSERT(ptr > data);
     return (size_t)(ptr - data);
 }
 
 static idigi_callback_status_t call_put_request_user(idigi_data_t * const idigi_ptr, msg_service_request_t * const service_data, idigi_data_service_msg_request_t * const request, idigi_data_service_msg_response_t * const response)
 {
-    idigi_callback_status_t status = idigi_callback_continue;
+    idigi_callback_status_t status;
 
     {
         idigi_request_t request_id;
@@ -468,7 +475,7 @@ static idigi_callback_status_t call_put_request_user(idigi_data_t * const idigi_
 
         if (service_data->service_type == msg_service_type_need_data)
         {
-            idigi_data_service_block_t * user_data = response->client_data;
+            idigi_data_service_block_t * const user_data = response->client_data;
 
             service_data->flags = 0;
             service_data->length_in_bytes += user_data->length_in_bytes;
@@ -484,7 +491,7 @@ error:
 static idigi_callback_status_t process_put_request(idigi_data_t * const idigi_ptr, msg_service_request_t * const service_data, idigi_data_service_msg_request_t * const request, idigi_data_service_msg_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;    
-    idigi_data_service_block_t * user_data = response->client_data;
+    idigi_data_service_block_t * const user_data = response->client_data;
 
     if (MsgIsStart(service_data->flags))
     {
@@ -593,25 +600,29 @@ static idigi_callback_status_t data_service_put_request_callback(idigi_data_t * 
     idigi_data_service_block_t user_data;
 
     ASSERT_GOTO(context != NULL, error);
-    request_data.server_data = (service_data->service_type == msg_service_type_need_data) ? NULL : &user_data;
-    response_data.client_data = (service_data->service_type == msg_service_type_need_data) ? &user_data : NULL;
-    request_data.service_context = context->user_context;
+    request_data.service_context = context->callback_context;
     response_data.message_status = idigi_msg_error_none;
     user_data.flags = 0;
 
     switch (service_data->service_type)
     {
     case msg_service_type_need_data:
+        request_data.server_data = NULL;
+        response_data.client_data = &user_data;
         request_data.message_type = idigi_data_service_type_need_data;
         status = process_put_request(idigi_ptr, service_data, &request_data, &response_data);
         break;
 
     case msg_service_type_have_data:
+        request_data.server_data =  &user_data;
+        response_data.client_data = NULL;
         request_data.message_type = idigi_data_service_type_have_data;
         status = process_put_response(idigi_ptr, service_data, &request_data, &response_data);
         break;
 
     case msg_service_type_error:
+        request_data.server_data =  &user_data;
+        response_data.client_data = NULL;
         user_data.data = service_data->data_ptr;
         user_data.length_in_bytes = service_data->length_in_bytes;
         request_data.message_type = idigi_data_service_type_error;
@@ -710,16 +721,19 @@ static idigi_status_t data_service_initiate(idigi_data_t * const idigi_ptr,  voi
         msg_session_t * const session = msg_start_session(idigi_ptr, msg_service_id_data, &result);
         if (session == NULL) 
         {
-            free_data(idigi_ptr, context);
             status = (result == idigi_msg_error_memory) ? idigi_no_resource : idigi_service_busy;
-            goto done;
+            goto error;
         }
     
-        context->user_context = (void *)request; /* unconst */
+        context->callback_context = (void *)request; /* unconst */
         session->service_context = context;
     }
 
     status = idigi_success;
+    goto done;
+
+error:
+    free_data(idigi_ptr, context);
 
 done:
     return status;
