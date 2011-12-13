@@ -65,7 +65,7 @@ def run_tests():
             print "+++FAIL: Could not start idigi dir=[%s]" % dir
             exit(0)
 
-        pid = commands.getoutput('pidof idigi')
+        pid = int(commands.getoutput('pidof idigi'))
         if pid == '':
             print "+++FAIL: idigi not running dir=[%s]" % dir
             exit(0)
@@ -77,7 +77,7 @@ def run_tests():
             rc = os.system('export PYTHONPATH=../;cd %s; nosetests --with-xunit %s' % (TEST_SCRIPT_DIR, test_script))
 
         print pid
-        os.kill(int(pid), signal.SIGKILL)
+        os.kill(pid, signal.SIGKILL)
         os.system('cd ../../../../../')
 
         if rc != 0:
