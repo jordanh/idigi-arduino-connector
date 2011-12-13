@@ -345,6 +345,22 @@ idigi_status_t idigi_initiate_action(idigi_handle_t const handle, idigi_initiate
 
     ASSERT_GOTO(handle != NULL, error);
 
+    switch (idigi_ptr->active_state)
+    {
+    case idigi_device_started:
+        break;
+
+    case idigi_device_stop:
+        result = idigi_server_disconnected;
+        goto error;
+
+    case idigi_device_terminate:
+        result = idigi_device_terminated;
+        /* fall thru */
+    default:
+        goto error;
+    }
+
     switch (request)
     {
     case idigi_initiate_terminate:

@@ -928,7 +928,7 @@ static idigi_callback_status_t msg_send_ack(idigi_data_t * const idigi_ptr, idig
 
     message_store_u8(ack_packet, opcode, msg_opcode_ack);
     {
-        uint8_t const flag = MsgSetClientOwned(session->status_flag) ? 0 : MSG_FLAG_REQUEST;
+        uint8_t const flag = MsgIsClientOwned(session->status_flag) ? 0 : MSG_FLAG_REQUEST;
 
         message_store_u8(ack_packet, flags, flag);
     }
