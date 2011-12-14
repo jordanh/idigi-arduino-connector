@@ -55,10 +55,10 @@ static idigi_callback_status_t process_device_request(idigi_data_t * const idigi
     uint8_t const * ds_device_request = service_data->data_ptr;
     char * target_string = NULL;
     idigi_msg_error_t error_status = idigi_msg_error_cancel;
-    unsigned int flag = 0;
+    idigi_bool_t isFirstRequest = MsgIsStart(service_data->flags);
 
 
-    if (MsgIsStart(service_data->flags))
+    if (isFirstRequest)
     {
         /* 1st message so let's parse message-start packet:
          *
@@ -122,7 +122,6 @@ static idigi_callback_status_t process_device_request(idigi_data_t * const idigi
         target_string = (char *)ds_device_request;
         device_request_service->request_type = idigi_data_service_device_request;
 
-        flag = IDIGI_MSG_FIRST_DATA;
         ds_device_request += target_length;
 
         {
@@ -170,7 +169,8 @@ static idigi_callback_status_t process_device_request(idigi_data_t * const idigi
         server_data.data = (void *)ds_device_request;
         server_data.length_in_bytes = service_data->length_in_bytes -
                                       (ds_device_request - (uint8_t *)service_data->data_ptr);
-        server_data.flags = (MsgIsLastData(service_data->flags)) ? (IDIGI_MSG_LAST_DATA | flag) : flag;
+        server_data.flags = ((isFirstRequest ? IDIGI_MSG_FIRST_DATA : 0) |
+                            (MsgIsLastData(service_data->flags) ? IDIGI_MSG_LAST_DATA: 0));
 
         /* setup request target */
         device_request.target = target_string;
