@@ -91,7 +91,7 @@
  *   @li Handle a device request
  *   @li Request more data when sending data to the iDigi Device Cloud
  *
- * Class and request 
+ * @b Class @b ID and @b request @b ID
  * enumeration values are used to identify the callback action. The application must perform and return
  * the appropriate action and return data, according to the class and request 
  * enumeration values. 
