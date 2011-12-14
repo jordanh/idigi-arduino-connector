@@ -69,20 +69,19 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
     return status;
 }
 
-/* Frequency to send data to the iDigi device cloud */
-static const unsigned sample_rate=5;
-
 int application_run(idigi_handle_t handle)
 {
     int stop_calling = 0;
 
     for (;;)
     {
-        os_sleep(sample_rate);
+        unsigned int const sleep_time_in_seconds = 1;
         idigi_status_t const status = send_put_request(handle);
 
-        if (status == idigi_init_error)
+        os_sleep(sleep_time_in_seconds);
+        if (status != idigi_init_error)
         {
+            stop_calling = 1;
             break;
         }
     };
