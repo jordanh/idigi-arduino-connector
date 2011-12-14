@@ -71,7 +71,7 @@ def run_tests():
             print "+++FAIL: idigi not running dir=[%s]" % dir
             exit(0)
 
-        time.sleep(5) # Give the program time to start
+        time.sleep(10) # Give the program time to start
 
         for test_script in tests:
             print '>>>Executing [%s]' % test_script
