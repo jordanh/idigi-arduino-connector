@@ -177,8 +177,12 @@
  *
  * @section device_type Device Type
  *
- * Return device type which is an iso-8859-1 encoded string 
- * that identifies the type of the device. 
+ * Returns a pointer to the device type which is an iso-8859-1 encoded string.
+ * This string should be chosen by the device manufacture as a name that uniquely
+ * identifies this model of device  to the server. When the server finds two devices
+ * with the same device type, it can infer that they are the same product and
+ * product scoped data may be shared among all devices with this device type.
+ * A device's type cannot be an empty string, nor contain only whitespace.
  *
  * @note If @b IDIGI_DEVICE_TYPE configuration is defined in @ref idigi_config.h, this callback 
  * will not be called. See @ref default_config
@@ -525,6 +529,7 @@
  * @section phone_number Phone Number
  *
  * Return the phone number dialed for a WAN connection type. 
+ * The phone number is a variable length, non null-terminated string.
  * If connection type is LAN, IIK will not request phone number 
  *
  * @note If @b IDIGI_WAN_PHONE_NUMBER_DIALED configuration is defined in @ref idigi_config.h, 
@@ -623,7 +628,7 @@
  * </tr>
  * <tr>
  * <th>response_data</th>
- * <td> Callback returns pointer to TX keepalive interval in seconds. It must be between 5 and 7200 seconds. </td>
+ * <td> Callback returns pointer to 2-byte integer TX keepalive interval in seconds. It must be between 5 and 7200 seconds. </td>
  * </tr>
  * <tr>
  * <th>response_length</th>
@@ -693,7 +698,7 @@
  * </tr>
  * <tr>
  * <th>response_data</th>
- * <td>Callback returns pointer to RX keepalive interval in seconds. It must be between 5 and 7200 seconds. </td>
+ * <td>Callback returns pointer to 2-byte integer RX keepalive interval in seconds. It must be between 5 and 7200 seconds. </td>
  * </tr>
  * <tr>
  * <th>response_length</th>
@@ -763,7 +768,7 @@
  * </tr>
  * <tr>
  * <th>response_data</th>
- * <td> Callback returns a pointer to wait count. It must be between 2 and 63 times. </td>
+ * <td> Callback returns a pointer to 2-byte wait count. It must be between 2 and 63 times. </td>
  * </tr>
  * <tr>
  * <th>response_length</th>
@@ -834,7 +839,8 @@
  * </tr>
  * <tr>
  * <th>response_length</th>
- * <td>Callback returns pointer to memory where callback writes the size of IP address. It returns 16 bytes for an IPv6 address or 4 bytes for an IPv4 address.</td>
+ * <td> Pointer to memory where callback writes the size of IP address. 
+ *     It returns 16 bytes for an IPv6 address or 4 bytes for an IPv4 address.</td>
  * </tr>
  * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
  * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
@@ -893,7 +899,8 @@
  * </tr>
  * <tr>
  * <th>request_data</th>
- * <td>Pointer to @endhtmlonly @ref idigi_error_status_t @htmlonly</td>
+ * <td>Pointer to @endhtmlonly @ref idigi_error_status_t @htmlonly containing
+ *     the class id, request id, and error status which IIK encountered error with.</td>
  * </tr>
  * <tr>
  * <th>request_length</th>
@@ -939,13 +946,14 @@
  *
  * Return @ref idigi_service_supported_status_t status to enable or disable Firmware 
  * download capability. If it's supported, callback for @ref idigi_firmware_request_t 
- * must be implemented for firmware download.
+ * must be implemented for firmware download. This callback allows application to enable
+ * or disable firmware download capability during runtime.
  *
  * @note If @ref IDIGI_FIRMWARE_SERVICE configuration is not defined in @ref idigi_config.h, this callback 
  * will not be called and Firmware Download is not supported. IIK does not include firmware support.
  *
- * @note Define @b IDIGI_FIRMWARE_SUPPORT in @ref idigi_config.h to enable firmware download capability.
- * This callback will not be called. See @ref default_config. IDIGI_FIRMWARE_SERVICE must be defined.
+ * @note If @b IDIGI_FIRMWARE_SUPPORT is defined in @ref idigi_config.h, this callback is not needed. 
+ * It enables firmware download capability. See @ref default_config. IDIGI_FIRMWARE_SERVICE must be defined.
  *
  * @htmlonly
  * <table class="apitable">
@@ -1011,13 +1019,14 @@
  *
  * Return @ref idigi_service_supported_status_t status to enable or disable data service 
  * capability. If it's supported, callback for @ref idigi_data_service_request_t must be 
- * implemented for data service.
+ * implemented for data service. This callback allows application to enable
+ * or disable data service capability during runtime.
  *
  * @note If @ref IDIGI_DATA_SERVICE configuration is not defined in @ref idigi_config.h, this callback 
  * will not be called and Data Service is not supported. IIK does not include data service.
  *
- * @note Define @b IDIGI_DATA_SERVICE_SUPPORT in @ref idigi_config.h to enable Data service.
- * This callback will not be called. See @ref default_config. IDIGI_DATA_SERVICE must be defined.
+ * @note If @b IDIGI_DATA_SERVICE_SUPPORT is defined in @ref idigi_config.h, this callback is not needed.
+ * It enables data service capability. See @ref default_config. IDIGI_DATA_SERVICE must be defined.
  *
  * @note Define @ref IDIGI_COMPRESSION in @ref idigi_config.h for compression transfer.
  *

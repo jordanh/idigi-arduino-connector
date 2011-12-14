@@ -76,12 +76,12 @@
  *
  * The routine idigi_init() is called to initialize the IIK, currently this is
  * called from the routine main() in main.c; you will need to call idigi_init()
- * at the initialization point for your application. For the compile_and_link
- * sample you can call idigi_init as:
+ * at the initialization point for your application with an application's callback. 
+ * For the compile_and_link sample you can call idigi_init as:
  *
  * @code
  * /* 
- *  * Call idigi_init() where you intend to initialize the IIK, s NULL callback 
+ *  * Call idigi_init() where you intend to initialize the IIK, a NULL callback 
  *  * is passed into idigi_init() for this sample, we want the IIK to be linked in 
  *  * to veify the build.
  *  */
@@ -214,7 +214,8 @@
  * @note In this release of the IIK only the Linux platform is provided.
  *
  * In this guide we use the public/run/platforms/linux as an
- * example, but all platforms have the same structure.   So choose a platform (or copy an existing one)
+ * example, but all platforms have the same structure.   
+ * So choose a platform (or copy an existing one)
  * and go into that directory.
  *
  * @subsection os_routines OS Routines
@@ -390,7 +391,7 @@
  *
  * As in the previous sample you will need to setup the call to idigi_init()
  * where you intend to start the IIK, in this case you will pass in the 
- * application callback.
+ * application callback which handles all OS, network, and configuration routines.
  *
  * @code
  * /* Initialize the IIK with the application callback */
