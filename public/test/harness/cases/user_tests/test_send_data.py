@@ -64,9 +64,7 @@ class SendDataTestCase(unittest.TestCase):
         
         # Verify file's contents        
         self.assertEqual(expected_content, file_content, 
-            "File's contents do not match what is expected")
-        #if not expected_content == file_content: 
-        #    log.info("File's contents do not match what is expected")
+            "File's contents do not match Expected: %s, Got: %s" %(expected_content, file_content))
 
     def tearDown(self):
             log.info("Performing cleanup.")
