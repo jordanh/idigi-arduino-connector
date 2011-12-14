@@ -947,7 +947,7 @@
  * Return @ref idigi_service_supported_status_t status to enable or disable Firmware 
  * download capability. If it's supported, callback for @ref idigi_firmware_request_t 
  * must be implemented for firmware download. This callback allows application to enable
- * or disable download capability during runtime.
+ * or disable firmware download capability during runtime.
  *
  * @note If @ref IDIGI_FIRMWARE_SERVICE configuration is not defined in @ref idigi_config.h, this callback 
  * will not be called and Firmware Download is not supported. IIK does not include firmware support.
@@ -1020,7 +1020,7 @@
  * Return @ref idigi_service_supported_status_t status to enable or disable data service 
  * capability. If it's supported, callback for @ref idigi_data_service_request_t must be 
  * implemented for data service. This callback allows application to enable
- * or disable data service during runtime.
+ * or disable data service capability during runtime.
  *
  * @note If @ref IDIGI_DATA_SERVICE configuration is not defined in @ref idigi_config.h, this callback 
  * will not be called and Data Service is not supported. IIK does not include data service.
