@@ -71,16 +71,19 @@ def run_tests():
             print "+++FAIL: idigi not running dir=[%s]" % dir
             exit(0)
 
-        time.sleep(5) # Give the program time to start
+        time.sleep(10) # Give the program time to start
 
         for test_script in tests:
             print '>>>Executing [%s]' % test_script
             rc = os.system('export PYTHONPATH=../;cd %s; nosetests --with-xunit %s' % (TEST_SCRIPT_DIR, test_script))
 
+        print '>>>pid [%s]' % pid
         if pid != '':
             p = int(pid)
-            os.kill(p, signal.SIGKILL)
-
+            try:
+                os.kill(p, signal.SIGKILL)
+            except OSError as ex:
+                print"OSError as ex"
         os.system('cd ../../../../../')
 
         if rc != 0:
