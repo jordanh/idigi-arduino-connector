@@ -65,7 +65,7 @@ def run_tests():
             print "+++FAIL: Could not start idigi dir=[%s]" % dir
             exit(0)
 
-        pid = int(commands.getoutput('pidof idigi'))
+        pid = commands.getoutput('pidof idigi')
         if pid == '':
             print "+++FAIL: idigi not running dir=[%s]" % dir
             exit(0)
