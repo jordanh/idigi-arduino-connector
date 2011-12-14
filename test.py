@@ -69,12 +69,14 @@ def run_tests():
             exit(0)
 
         print '>>>Started idigi'
-        time.sleep(10) # Give the program time to start
+        time.sleep(1) # Give the program time to start
 
         pid = commands.getoutput('pidof -s idigi')
         if pid == '':
-            print "+++FAIL: idigi not running dir=[%s]" % dir
-            exit(0)
+            print "idigi not running dir=[%s]" % dir
+
+
+        time.sleep(5) # Give the program time to start
 
         for test_script in tests:
             print '>>>Executing [%s]' % test_script
