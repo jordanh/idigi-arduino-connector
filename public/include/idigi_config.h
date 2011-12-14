@@ -50,7 +50,7 @@
 
 /** 
  * If defined the firmware service is included in IIK.
- * @see firmware_support
+ * @see @ref firmware_support
  */
 #define IDIGI_FIRMWARE_SERVICE
 
@@ -62,7 +62,7 @@
 
 /** 
  * If defined the data service is included in IIK.
- * @see data_service_support
+ * @see @ref data_service_support
  */
 #define IDIGI_DATA_SERVICE
 /**
