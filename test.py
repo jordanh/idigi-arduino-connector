@@ -46,7 +46,7 @@ TESTS_ENTRY = 1
 #                   public/test/harness/cases/user_tests
 #              Directory.                                Test Scripts
 test_table = [[BASE_SAMPLE_DIR+'connect_to_idigi',       ['test_discovery.py']],
-              [BASE_SAMPLE_DIR+'firmware_download',      ['test_firmware.py']],
+#              [BASE_SAMPLE_DIR+'firmware_download',      ['test_firmware.py']],
               [BASE_SAMPLE_DIR+'send_data',              ['test_send_data.py']]
 ]
 
@@ -66,7 +66,7 @@ def run_tests():
             print "+++FAIL: Could not start idigi dir=[%s]" % dir
             exit(0)
 
-        pid = commands.getoutput('pidof idigi')
+        pid = commands.getoutput('pidof -s idigi')
         if pid == '':
             print "+++FAIL: idigi not running dir=[%s]" % dir
             exit(0)
@@ -77,8 +77,10 @@ def run_tests():
             print '>>>Executing [%s]' % test_script
             rc = os.system('export PYTHONPATH=../;cd %s; nosetests --with-xunit %s' % (TEST_SCRIPT_DIR, test_script))
 
-        p = int(pid)
-        os.kill(p, signal.SIGKILL)
+        if pid != '':
+            p = int(pid)
+            os.kill(p, signal.SIGKILL)
+
         os.system('cd ../../../../../')
 
         if rc != 0:
