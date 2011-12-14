@@ -49,18 +49,20 @@
 #define IDIGI_DEBUG
 
 /** 
- * If defined the firmware service is enabled.
+ * If defined the firmware service is included in IIK.
+ * @see firmware_support
  */
 #define IDIGI_FIRMWARE_SERVICE
 
 
 /** 
- * If defined zlib compression is enabled.
+ * If defined zlib compression is enabled for data service.
  */
-#define IDIGI_COMPRESSION
+/* #define IDIGI_COMPRESSION */
 
 /** 
- * If defined the data service is enabled.
+ * If defined the data service is included in IIK.
+ * @see data_service_support
  */
 #define IDIGI_DATA_SERVICE
 /**
