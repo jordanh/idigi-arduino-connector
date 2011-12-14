@@ -63,7 +63,7 @@ static int get_ip_address(uint8_t ** ip_address, size_t *size)
  * with the size. This routine returns fail if an error occurred, otherwise true.
  *
  * @param [out] mac_address  Pointer to memory containing IP address
- * @param [out] size Size of the MAC address in bytes
+ * @param [out] size Size of the MAC address in bytes (6 bytes).
  *  
  * @retval 0  MAC address was returned OK
  * @retval -1  Could not get the MAC address
@@ -90,7 +90,7 @@ static int get_mac_addr(uint8_t ** addr, size_t * size)
  * device ID, size is filled in with the size of the device ID.
 . *
  * @param [out] id  Pointer to memory containing the device ID
- * @param [out] size Size of the device ID in bytes
+ * @param [out] size Size of the device ID in bytes (16 bytes)
  *  
  * @retval 0  Device ID was returned OK
  * @retval -1  Could not get the device ID
@@ -126,10 +126,10 @@ static int get_device_id(uint8_t ** id, size_t * size)
  * This routine returns fail if an error occurred, otherwise true.
  *
  * @param [out] id  Pointer to memory containing the device ID
- * @param [out] size Size of the device ID in bytes
+ * @param [out] size Size of the vendor ID in bytes (4 bytes)
  *  
- * @retval 0  Device ID was returned OK
- * @retval -1  Could not get the device ID
+ * @retval 0  Vendor ID was returned OK
+ * @retval -1  Could not get the vendor ID
  * 
  * @note This routine is not needed if you define @b IDIGI_VENDOR_ID configuration in @ref idigi_config.h.
  * See @ref default_config
@@ -155,7 +155,7 @@ static int get_vendor_id(uint8_t ** id, size_t * size)
  * cannot be an empty string, nor contain only whitespace. 
  *
  * @param [out] type  Pointer to memory containing the device type
- * @param [out] size Size of the MAC address in bytes
+ * @param [out] size Size of the device type in bytes (Maximum is 63 bytes)
  *  
  * @retval 0  Device type was returned OK
  * @retval -1  Could not get the device type
@@ -182,7 +182,7 @@ static int get_device_type(char ** type, size_t * size)
  * Developer Cloud FQDN, this is typically developer.idig.com. 
  *
  * @param [out] url  Pointer to memory containing the URL
- * @param [out] size Size of the MAC address in bytes
+ * @param [out] size Size of the server URL in bytes (Maximum is 63 bytes)
  *  
  * @retval 0  The URL type was returned OK
  * @retval -1  Could not get the URL
@@ -205,14 +205,14 @@ static int get_server_url(char ** url, size_t * size)
 /**
  * @brief   Get the connection type
  *
- * This routine specifies the connection type as idigi_lan_connection_type or 
- * idigi_wan_connection_type. Fill in the type parameter with the address of the 
+ * This routine specifies the connection type as @ref idigi_lan_connection_type or
+ * @ref idigi_wan_connection_type. Fill in the type parameter with the address of the
  * idigi_connection_type_t. 
  *
- * @param [out] type  Pointer to memory containing the idigi_connection_type_t
+ * @param [out] type  Pointer to memory containing the @ref idigi_connection_type_t
  *  
- * @retval 0  The URL type was returned OK
- * @retval -1  Could not get the URL
+ * @retval 0  The connection type was returned OK
+ * @retval -1  Could not get connection type
  * 
  * @note This routine is not needed if you define @b IDIGI_CONNECTION_TYPE configuration in @ref idigi_config.h.
  * See @ref default_config
@@ -256,14 +256,15 @@ static int get_link_speed(uint32_t ** speed, size_t * size)
 /**
  * @brief   Get the WAN phone number
  *
- * This routine assigns the phone number dialed for WAN connection type. 
+ * This routine assigns the phone number dialed for WAN connection type,
+ * including any dialing prefixes. It's a variable length, non null-terminated string.
  * If connection type is LAN, IIK will not request phone number.
  *
  * @param [out] number  Pointer to memory containing the phone number
  * @param [out] size Size of the phone number in bytes
  *  
- * @retval 0  The link speed was returned OK
- * @retval -1  Could not get the link speed
+ * @retval 0  The phone number was returned OK
+ * @retval -1  Could not get the phone number
  * 
  * @note This routine is not needed if you define @b IDIGI_WAN_PHONE_NUMBER_DIALED configuration in @ref idigi_config.h.
  * See @ref default_config
@@ -289,7 +290,7 @@ static int get_phone_number(uint8_t ** number, size_t * size)
  * this keepalive is sent from the cloud to the device. The value must be between 5 and 7200 seconds.
  *
  * @param [out] interval  Pointer to memory containing the keep alive interval
- * @param [out] size Size of the keep alive interval in bytes
+ * @param [out] size Size of memory buffer, containing the keep alive interval in bytes (this must be 2 bytes).
  *  
  * @retval 0  The keep alive interval was returned OK
  * @retval -1  Could not get the keep alive interval
@@ -319,7 +320,7 @@ static int get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
  * device to the cloud. The value must be between 5 and 7200 seconds.
  *
  * @param [out] interval  Pointer to memory containing the keep alive interval
- * @param [out] size Size of the keep alive interval in bytes
+ * @param [out] size Size of memory buffer, containing the keep alive interval in bytes (this must be 2 bytes).
  *  
  * @retval 0  The keep alive interval was returned OK
  * @retval -1  Could not get the keep alive interval
@@ -347,7 +348,7 @@ static int get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
  * This must be a 2-octet integer value between 2 to 64 counts.
  *
  * @param [out] count  Pointer to memory containing the wait count
- * @param [out] size Size of the wait count in bytes
+ * @param [out] size Size of memory buffer, containing the wait count in bytes (this must be 2 bytes).
  *  
  * @retval 0  The wait count was returned OK
  * @retval -1  Could not get the wait count
