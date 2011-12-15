@@ -49,12 +49,8 @@
  * 
  * @retval -1  Memory was not allocated
  *
- * Example Usage:
- * @code
- *     status = os_malloc(len, &ptr);
- * @endcode 
- *  
  * @see os_free
+ * @see @ref malloc API Operating System Callback
  */
 int os_malloc(size_t const size, void ** ptr)
 {
@@ -72,14 +68,10 @@ int os_malloc(size_t const size, void ** ptr)
  * 
  * @param [in] ptr  pointer to memory to be freed
  *  
- * @retval void
+ * @retval none
  * 
- * Example Usage:
- * @code
- *     status = os_free(ptr);
- * @endcode 
- *  
- * @see os_free
+ * @see os_malloc
+ * @see @ref free API Operating System Callback
  */
 void os_free(void * const ptr)
 {
@@ -100,11 +92,7 @@ void os_free(void * const ptr)
  * 
  * @retval -1 System time unavailable
  * 
- * Example Usage:
- * @code
- *     status = os_get_system_time(&uptime);
- * @endcode 
- *  
+ * @see @ref uptime API Operating System Callback
  */
 int os_get_system_time(uint32_t * const uptime)
 {
@@ -116,20 +104,15 @@ int os_get_system_time(uint32_t * const uptime)
  * @brief   Sleep or relinquish for other task execution.
  *
  * Sleep or relinquish to run other task. This is called
- * to let other task to be executed when iik_run is called.
+ * to let other task to be executed when idigi_run is called.
  * IIK calls this callback if IIK is busy and is not calling
  * receive callback
  *
  * @param [in] timeout  Maximum number in seconds to sleep
  *
- * @retval void
+ * @retval None
  *
- * Example Usage:
- * @code
- *     os_wait(1);
- * @endcode
- *
- * @see os_free
+ * @see @ref sleep API Operating System Callback
  */
 void os_sleep(unsigned int const timeout_in_seconds)
 {
