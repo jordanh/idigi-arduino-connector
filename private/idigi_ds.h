@@ -40,9 +40,7 @@ typedef struct
 
 static void set_data_service_error(msg_service_request_t * const service_data, idigi_msg_error_t const error_code)
 {
-    idigi_msg_error_t * const error = service_data->data_ptr;
-
-    *error = error_code;
+    service_data->error_value = error_code;
     service_data->length_in_bytes = sizeof error_code;
     service_data->service_type = msg_service_type_error;
 }
