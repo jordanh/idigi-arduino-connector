@@ -272,7 +272,7 @@ class FirmwareTestCase(unittest.TestCase):
         self.assertNotEqual(-1, complete, 
                         "Asynchronous firmware upgrade did not complete.")
         
-        determine_disconnect_reconnect(self, config, last_connected)
+        #determine_disconnect_reconnect(self, config, last_connected)
         
 if __name__ == '__main__':
 
