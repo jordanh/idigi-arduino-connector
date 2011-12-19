@@ -773,6 +773,8 @@ static idigi_callback_status_t connect_server(idigi_data_t * const idigi_ptr, ch
     return status;
 }
 
+static idigi_callback_status_t layer_cleanup_facilities(idigi_data_t * const idigi_ptr);
+
 static idigi_callback_status_t close_server(idigi_data_t * const idigi_ptr)
 {
     idigi_callback_status_t status = idigi_callback_continue;
@@ -796,6 +798,9 @@ static idigi_callback_status_t close_server(idigi_data_t * const idigi_ptr)
             idigi_ptr->receive_packet.index = 0;
             idigi_ptr->edp_connected = idigi_false;
             idigi_ptr->network_connected = idigi_false;
+
+            send_complete_callback(idigi_ptr);
+            layer_cleanup_facilities(idigi_ptr);
             break;
         default:
             break;
