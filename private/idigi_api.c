@@ -95,11 +95,6 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
     idigi_handle->edp_connected = idigi_false;
     idigi_handle->network_connected = idigi_false;
 
-    idigi_handle->send_packet.packet_buffer.in_use = idigi_false;
-    idigi_handle->receive_packet.packet_buffer.in_use = idigi_false;
-    idigi_handle->receive_packet.packet_buffer.next = NULL;
-
-
     /* get device id, vendor id, & device type */
     for (i=0; i < asizeof(idigi_config_request_ids); i++)
     {
@@ -286,8 +281,6 @@ error:
         status = close_server(idigi_handle);
         if (status != idigi_callback_busy)
         {
-            send_complete_callback(idigi_handle);
-            layer_cleanup_facilities(idigi_handle);
             if (idigi_handle->active_state == idigi_device_terminate)
             {   /*
                  * Terminated by idigi_dispatch call
@@ -310,7 +303,6 @@ error:
                     result = idigi_handle->error_code;
                 }
                 reset_initial_data(idigi_handle);
-
             }
         }
         else
