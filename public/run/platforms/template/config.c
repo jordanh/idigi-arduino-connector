@@ -419,7 +419,7 @@ static idigi_service_supported_status_t get_firmware_support(void)
  * @brief   Return true if the data service is supported
  *
  * This routine tells IIK whether the data service facility is supported or not. 
- * If you plan on sending data to/from the iDigi server set this to true
+ * If you plan on sending data to/from the iDigi server set this to idigi_service_supported.
  *
  * @retval idigi_service_supported  Data service is supported
  * @retval idigi_service_unsupported  Data service is not supported
