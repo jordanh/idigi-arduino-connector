@@ -51,6 +51,7 @@ test_table = [[BASE_SAMPLE_DIR+'connect_to_idigi',       ['test_discovery.py']],
 ]
 
 def run_tests():
+    i = 0
     for test in test_table:
         dir    = test[DIR_ENTRY]
         tests  = test[TESTS_ENTRY]
@@ -80,7 +81,8 @@ def run_tests():
 
         for test_script in tests:
             print '>>>Executing [%s]' % test_script
-            rc = os.system('export PYTHONPATH=../;cd %s; nosetests --with-xunit %s' % (SAMPLE_SCRIPT_DIR, test_script))
+            rc = os.system('export PYTHONPATH=../;cd %s; nosetests --with-xunit --xunit-file=nosestest%1d.xml %s' % (SAMPLE_SCRIPT_DIR, i, test_script))
+            i += 1
 
         print '>>>pid [%s]' % pid
         if pid != '':
