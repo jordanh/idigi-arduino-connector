@@ -28,6 +28,7 @@
 
 
 extern void check_stack_size(void);
+extern void clear_stack_size(void);
 
 extern idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t const request,
                                                   void const * request_data, size_t const request_length,
@@ -71,6 +72,8 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
         /* not supported */
         break;
     }
+
+    clear_stack_size();
     return status;
 }
 
