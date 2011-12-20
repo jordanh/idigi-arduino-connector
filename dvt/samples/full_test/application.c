@@ -25,7 +25,7 @@
 
 #include "idigi_api.h"
 #include "platform.h"
-
+#include "idigi_dvt.h"
 
 extern void check_stack_size(void);
 extern void clear_stack_size(void);
@@ -37,7 +37,7 @@ extern idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t 
                                                   void * const request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length);
 
-extern idigi_status_t send_put_request(idigi_handle_t handle, int index);
+extern idigi_status_t send_put_request(idigi_handle_t handle);
 
 idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
                                     void * const request_data, size_t const request_length,
@@ -79,34 +79,31 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
 
 int application_run(idigi_handle_t handle)
 {
-    int index = 0;
     int stop_calling = 0;
 
     while (!stop_calling)
     {
-        idigi_status_t const status = send_put_request(handle, index);
-
-        switch (status)
+        if (dvt_current_ptr == NULL) 
         {
-        case idigi_init_error:
             #define SLEEP_ONE_SECOND  1
             os_sleep(SLEEP_ONE_SECOND);
-            break;
-
-        case idigi_success:
-            index++;
-            break;
-
-        case idigi_invalid_data_range:
-            index = 0;
-
-            #define SLEEP_BETWEEN_TESTS   20
-            os_sleep(SLEEP_BETWEEN_TESTS);
-            break;
+        }
+        else
+        {
+            idigi_status_t const status = send_put_request(handle);
     
-        default:
-            stop_calling = 1;
-            break;
+            switch (status)
+            {
+            case idigi_success:
+            case idigi_init_error:
+                #define SLEEP_ONE_SECOND  1
+                os_sleep(SLEEP_ONE_SECOND);    
+                break;
+    
+            default:
+                stop_calling = 1;
+                break;
+            }
         }
     }
     return 0;

@@ -83,7 +83,6 @@ static void firmware_download_request(idigi_fw_download_request_t const * const 
         goto error;
     }
 
-    dvt_current_ptr->state = dvt_state_init;
     APP_DEBUG("target = %d\n", download_info->target);
     if (download_info->target >= dvt_case_last) 
     {
@@ -92,6 +91,7 @@ static void firmware_download_request(idigi_fw_download_request_t const * const 
     }
     dvt_current_ptr = &dvt_data_list[download_info->target];
     dvt_current_ptr->target = download_info->target;
+    dvt_current_ptr->state = dvt_state_init;
 
     APP_DEBUG("version = 0x%04X\n", download_info->version);
     dvt_current_ptr->version = download_info->version;
@@ -397,12 +397,15 @@ idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t const r
 
 void cleanup_dvt_data(void)
 {
-    if (dvt_current_ptr->file_content != NULL) 
+    if (dvt_current_ptr != NULL) 
     {
-        free(dvt_current_ptr->file_content);
-        dvt_current_ptr->file_content = NULL;
-    }
+        if (dvt_current_ptr->file_content != NULL) 
+        {
+            free(dvt_current_ptr->file_content);
+            dvt_current_ptr->file_content = NULL;
+        }
 
-    dvt_current_ptr->state = dvt_state_init;
+        dvt_current_ptr = NULL;
+    }
 }
 
