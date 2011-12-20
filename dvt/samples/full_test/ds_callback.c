@@ -42,7 +42,30 @@ idigi_status_t send_put_request(idigi_handle_t handle)
         goto done;
 
     sprintf(file_path, "test/dvt/%s", dvt_current_ptr->file_name);
-    header->flags = 0;
+
+    switch (dvt_current_ptr->target)
+    {
+    case dvt_case_put_request_no_flag:
+        header->flags = 0;
+        break;
+
+    case dvt_case_put_request_append:
+        header->flags = IDIGI_DATA_PUT_APPEND;
+        break;
+
+    case dvt_case_put_request_archive:
+        header->flags = IDIGI_DATA_PUT_ARCHIVE;
+        break;
+
+    case dvt_case_put_request_both:
+        header->flags = IDIGI_DATA_PUT_APPEND | IDIGI_DATA_PUT_ARCHIVE;
+        break;
+
+    default:
+        header->flags = 0;
+        break;
+    }
+
     header->path  = file_path;
     header->content_type = file_type;
     header->context = dvt_current_ptr->ds_info;
