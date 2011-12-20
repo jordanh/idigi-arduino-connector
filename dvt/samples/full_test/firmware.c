@@ -273,8 +273,11 @@ static void firmware_download_complete(idigi_fw_download_complete_request_t cons
                       complete_request->code_size, dvt_current_ptr->file_size);
     }
 
-    dvt_current_ptr->state = dvt_state_fw_download_complete;
-    goto done;
+    if (dvt_current_ptr->target >= dvt_case_put_request_no_flag) 
+    {
+        dvt_current_ptr->state = dvt_state_fw_download_complete;
+        goto done;
+    }
 
 error:
     cleanup_dvt_data();
