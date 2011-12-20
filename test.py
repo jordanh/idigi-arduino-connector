@@ -29,7 +29,7 @@ import signal
 import imp
 
 BASE_SAMPLE_DIR='./public/run/samples/'
-TEST_SCRIPT_DIR='./public/test/harness/cases/user_tests/'
+SAMPLE_SCRIPT_DIR='./dvt/cases/sample_tests/'
 DIR_ENTRY  = 0
 TESTS_ENTRY = 1
 
@@ -80,7 +80,7 @@ def run_tests():
 
         for test_script in tests:
             print '>>>Executing [%s]' % test_script
-            rc = os.system('export PYTHONPATH=../;cd %s; nosetests --with-xunit %s' % (TEST_SCRIPT_DIR, test_script))
+            rc = os.system('export PYTHONPATH=../;cd %s; nosetests --with-xunit %s' % (SAMPLE_SCRIPT_DIR, test_script))
 
         print '>>>pid [%s]' % pid
         if pid != '':
@@ -96,10 +96,10 @@ def run_tests():
             exit(0)
 
 def setup_platform():
-    f, filename, description = imp.find_module('config', ['./scripts'])
+    f, filename, description = imp.find_module('config', ['./dvt/scripts'])
     config = imp.load_module('config', f, filename, description)
     config.remove_errors('./public/run/platforms/linux/config.c')
-    config.update_config_files('./public/include/idigi_config.h', './public/test/harness/cases/user_tests/config.ini', './public/run/platforms/linux/config.c')
+    config.update_config_files('./public/include/idigi_config.h', './dvt/cases/sample_tests/config.ini', './public/run/platforms/linux/config.c')
 
 def main():
     setup_platform()
