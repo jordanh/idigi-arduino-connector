@@ -211,6 +211,7 @@ typedef struct
     void * data_ptr;
     size_t length_in_bytes;
     unsigned int flags;
+    idigi_msg_error_t error_value;
 } msg_service_request_t;
 
 typedef idigi_callback_status_t idigi_msg_callback_t(idigi_data_t * const idigi_ptr, msg_service_request_t * const service_data);
@@ -333,7 +334,6 @@ static idigi_callback_status_t msg_call_service_layer(idigi_data_t * const idigi
     status = cb_fn(idigi_ptr, service_ptr);
     if ((status == idigi_callback_continue) && (service_ptr->service_type != type))
     {
-        idigi_msg_error_t const * const error_ptr = service_ptr->data_ptr;
 
         if (MsgIsStart(session->status_flag) && MsgIsClientOwned(session->status_flag))
         {
@@ -341,7 +341,7 @@ static idigi_callback_status_t msg_call_service_layer(idigi_data_t * const idigi
         }
         else
         {
-            msg_set_error(session, *error_ptr);
+            msg_set_error(session, service_ptr->error_value);
         }
         status = idigi_callback_unrecognized;
     }

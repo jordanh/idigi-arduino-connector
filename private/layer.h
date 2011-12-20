@@ -487,6 +487,12 @@ enum {
         {
             idigi_ptr->request_id = 0;
             idigi_ptr->layer_state = communication_send_version;
+
+            idigi_ptr->send_packet.packet_buffer.in_use = idigi_false;
+            idigi_ptr->receive_packet.packet_buffer.in_use = idigi_false;
+            idigi_ptr->receive_packet.packet_buffer.next = NULL;
+            idigi_ptr->receive_packet.free_packet_buffer = &idigi_ptr->receive_packet.packet_buffer;
+
         }
         break;
 
@@ -1156,10 +1162,10 @@ error:
                     {
                         break;
                     }
-                }
-                else if (status == idigi_callback_unrecognized)
-                {
-                    status = idigi_callback_continue;
+                    if (status == idigi_callback_unrecognized)
+                    {
+                        status = idigi_callback_continue;
+                    }
                 }
             }
         }

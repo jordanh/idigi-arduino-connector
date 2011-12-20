@@ -439,7 +439,8 @@
  * </tr>
  * <tr>
  * <td>application.c</td>
- * <td>Contains the code which runs the sample</td>
+ * <td>Contains the code which runs the sample and main callback that calls
+ * callbacks in os.c, network.c, & config.c</td>
  * <td>public/run/samples/connect_to_idigi</td>
  * </tr>
  * <tr>

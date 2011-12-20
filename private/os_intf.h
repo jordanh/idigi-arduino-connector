@@ -47,8 +47,6 @@ static void reset_initial_data(idigi_data_t * const idigi_ptr)
     idigi_ptr->receive_packet.data_packet = NULL;
     idigi_ptr->receive_packet.timeout = MAX_RECEIVE_TIMEOUT_IN_SECONDS;
 
-    idigi_ptr->receive_packet.free_packet_buffer = &idigi_ptr->receive_packet.packet_buffer;
-
 }
 
 static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, idigi_class_t const class_id,  idigi_request_t const request_id,

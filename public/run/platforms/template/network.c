@@ -58,6 +58,7 @@
  *
  * @retval idigi_callback_status_t
  *
+ * @see @ref connect API Network Callback
  */
 static idigi_callback_status_t network_connect(char const * const host_name, size_t const length, idigi_network_handle_t ** network_handle)
 {
@@ -79,6 +80,7 @@ static idigi_callback_status_t network_connect(char const * const host_name, siz
  *
  * @retval idigi_callback_status_t
  *
+ * @see @ref send API Network Callback
  */
 static idigi_callback_status_t network_send(idigi_write_request_t const * const write_data,
                                             size_t * sent_length)
@@ -105,6 +107,7 @@ static idigi_callback_status_t network_send(idigi_write_request_t const * const 
  * relinquish control, the user should sleep until data is received up to the 
  * timeout given.
  *
+ * @see @ref receive API Network Callback
  */
 static idigi_callback_status_t network_receive(idigi_read_request_t * read_data, size_t * read_length)
 {
@@ -122,6 +125,7 @@ static idigi_callback_status_t network_receive(idigi_read_request_t * read_data,
  *
  * @retval idigi_callback_status_t
  *
+ * @see @ref close API Network Callback
  */
 static idigi_callback_status_t network_close(idigi_network_handle_t * const fd)
 {

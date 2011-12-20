@@ -46,7 +46,7 @@ TESTS_ENTRY = 1
 #                   public/test/harness/cases/user_tests
 #              Directory.                                Test Scripts
 test_table = [[BASE_SAMPLE_DIR+'connect_to_idigi',       ['test_discovery.py']],
-#              [BASE_SAMPLE_DIR+'firmware_download',      ['test_firmware.py']],
+              [BASE_SAMPLE_DIR+'firmware_download',      ['test_firmware.py']],
               [BASE_SAMPLE_DIR+'send_data',              ['test_send_data.py']]
 ]
 

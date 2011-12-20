@@ -50,6 +50,7 @@
  * @retval 0  IP address was returned OK
  * @retval -1  Could not get IP address
  *
+ * @see @ref ip_address API Configuration Callback
  */
 static int get_ip_address(uint8_t ** ip_address, size_t *size)
 {
@@ -68,6 +69,7 @@ static int get_ip_address(uint8_t ** ip_address, size_t *size)
  * @retval 0  MAC address was returned OK
  * @retval -1  Could not get the MAC address
  * 
+ * @see @ref mac_address API Configuration Callback
  */
 static int get_mac_addr(uint8_t ** addr, size_t * size)
 {
@@ -95,6 +97,7 @@ static int get_mac_addr(uint8_t ** addr, size_t * size)
  * @retval 0  Device ID was returned OK
  * @retval -1  Could not get the device ID
  * 
+ * @see @ref device_id API Configuration Callback
  */
 static int get_device_id(uint8_t ** id, size_t * size)
 {
@@ -131,6 +134,8 @@ static int get_device_id(uint8_t ** id, size_t * size)
  * @retval 0  Vendor ID was returned OK
  * @retval -1  Could not get the vendor ID
  * 
+ * @see @ref vendor_id API Configuration Callback
+ *
  * @note This routine is not needed if you define @b IDIGI_VENDOR_ID configuration in @ref idigi_config.h.
  * See @ref default_config
  */
@@ -148,17 +153,20 @@ static int get_vendor_id(uint8_t ** id, size_t * size)
 /**
  * @brief   Get the device type
  *
- * This routine assigns a pointer to the device type which is an iso-8859-1 encoded string 
- * that identifies the type of the device in *device_type along with the size in bytes. 
- * The device type is a string representing a particular kind of device. Devices with the same 
- * device type should share a reasonably similar set of features. A device's type
- * cannot be an empty string, nor contain only whitespace. 
+ * This routine returns a pointer to the device type which is an iso-8859-1 encoded string.
+ * This string should be chosen by the device manufacture as a name that uniquely
+ * identifies this model of device  to the server. When the server finds two devices
+ * with the same device type, it can infer that they are the same product and
+ * product scoped data may be shared among all devices with this device type.
+ * A device's type cannot be an empty string, nor contain only whitespace.
  *
  * @param [out] type  Pointer to memory containing the device type
  * @param [out] size Size of the device type in bytes (Maximum is 63 bytes)
  *  
  * @retval 0  Device type was returned OK
  * @retval -1  Could not get the device type
+ *
+ * @see @ref device_type API Configuration Callback
  * 
  * @note This routine is not needed if you define @b IDIGI_DEVICE_TYPE configuration in @ref idigi_config.h.
  * See @ref default_config
@@ -187,6 +195,8 @@ static int get_device_type(char ** type, size_t * size)
  * @retval 0  The URL type was returned OK
  * @retval -1  Could not get the URL
  * 
+ * @see @ref server_url API Configuration Callback
+ *
  * @note This routine is not needed if you define @b IDIGI_CLOUD_URL configuration in @ref idigi_config.h.
  * See @ref default_config
  */
@@ -214,6 +224,8 @@ static int get_server_url(char ** url, size_t * size)
  * @retval 0  The connection type was returned OK
  * @retval -1  Could not get connection type
  * 
+ * @see @ref connection_type API Configuration Callback
+ *
  * @note This routine is not needed if you define @b IDIGI_CONNECTION_TYPE configuration in @ref idigi_config.h.
  * See @ref default_config
  */
@@ -241,6 +253,8 @@ static int get_connection_type(idigi_connection_type_t ** type)
  * @retval 0  The link speed was returned OK
  * @retval -1  Could not get the link speed
  * 
+ * @see @ref link_speed API Configuration Callback
+ *
  * @note This routine is not needed if you define @b IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND configuration in @ref idigi_config.h.
  * See @ref default_config
  */
@@ -266,6 +280,8 @@ static int get_link_speed(uint32_t ** speed, size_t * size)
  * @retval 0  The phone number was returned OK
  * @retval -1  Could not get the phone number
  * 
+ * @see @ref phone_number API Configuration Callback
+ *
  * @note This routine is not needed if you define @b IDIGI_WAN_PHONE_NUMBER_DIALED configuration in @ref idigi_config.h.
  * See @ref default_config
  */
@@ -295,6 +311,8 @@ static int get_phone_number(uint8_t ** number, size_t * size)
  * @retval 0  The keep alive interval was returned OK
  * @retval -1  Could not get the keep alive interval
  * 
+ * @see @ref tx_keepalive API Configuration Callback
+ *
  * @note This routine is not needed if you define @b IDIGI_TX_KEEPALIVE_IN_SECONDS configuration in @ref idigi_config.h.
  * See @ref default_config
  */
@@ -325,6 +343,8 @@ static int get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
  * @retval 0  The keep alive interval was returned OK
  * @retval -1  Could not get the keep alive interval
  * 
+ * @see @ref rx_keepalive API Configuration Callback
+ *
  * @note This routine is not needed if you define @b IDIGI_RX_KEEPALIVE_IN_SECONDS configuration in @ref idigi_config.h.
  * See @ref default_config
  */
@@ -353,6 +373,8 @@ static int get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
  * @retval 0  The wait count was returned OK
  * @retval -1  Could not get the wait count
  * 
+ * @see @ref wait_count API Configuration Callback
+ *
  * @note This routine is not needed if you define @b IDIGI_WAIT_COUNT configuration in @ref idigi_config.h.
  * See @ref default_config
  */
@@ -380,6 +402,8 @@ static int get_wait_count(uint16_t ** count, size_t * size)
  *
  * @retval idigi_service_supported  Firmware download is supported
  * @retval idigi_service_unsupported  Firmware download is not supported
+ *
+ * @see @ref firmware_support API Configuration Callback
  * 
  * @note This routine is not called if you define @b IDIGI_FIRMWARE_SUPPORT configuration in @ref idigi_config.h.
  * @note This IDIGI_FIRMWARE_SUPPORT indicates application supports firmware download. See @ref default_config
@@ -395,10 +419,12 @@ static idigi_service_supported_status_t get_firmware_support(void)
  * @brief   Return true if the data service is supported
  *
  * This routine tells IIK whether the data service facility is supported or not. 
- * If you plan on sending data to/from the iDigi server set this to true
+ * If you plan on sending data to/from the iDigi server set this to idigi_service_supported.
  *
  * @retval idigi_service_supported  Data service is supported
  * @retval idigi_service_unsupported  Data service is not supported
+ *
+ * @see @ref data_service_support API Configuration Callback
  *
  * @note This routine is not called if you define @b IDIGI_DATA_SERVICE_SUPPORT configuration in @ref idigi_config.h.
  * @note This IDIGI_DATA_SERVICE_SUPPORT indicates application supports data service. See @ref default_config
@@ -420,12 +446,14 @@ static idigi_service_supported_status_t get_data_service_support(void)
  * @retval 0  unlimited transactions
  * @retval >0  maximum transactions
  * 
+ * @see @ref max_msg_transactions API Configuration Callback
+ *
  * @note This routine is not needed if you define @b IDIGI_MSG_MAX_TRANSACTION configuration in @ref idigi_config.h.
  * See @ref default_config
  */
 static unsigned int get_max_message_transactions(void)
 {
-#define IDIGI_MAX_MSG_TRANSACTIONS   1
+#define IDIGI_MAX_MSG_TRANSACTIONS   388
 
     return IDIGI_MAX_MSG_TRANSACTIONS;
 }
@@ -436,11 +464,14 @@ static unsigned int get_max_message_transactions(void)
  * This routine is called when IIK encounters an error. This is used as
  * a debug tool for finding configuration or keepalive error.
  *
+ * The error_data argument contains class id, request id, and error status.
+ *
  * @note If @ref IDIGI_DEBUG is not defined in idigi_config.h, IIK will
  * not call this callback to notify any error encountered.
  *
  * @retval None
  *
+ * @see @ref error_status API Configuration Callback
  */
 static void idigi_config_error(idigi_error_status_t * const error_data)
 {
