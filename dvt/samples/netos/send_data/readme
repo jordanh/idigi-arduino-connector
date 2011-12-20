@@ -1,0 +1,12 @@
+This is the port of the firmware_download sample to NET+OS 7.4
+
+1. The NET+OS directory in Makefile is f:/74/netos/netos, hange it 
+   to your NET+OS directory.
+
+2. The following changes are needed in public\include\idigi_config.h:
+   Comment outIDIGI_LITTLE_ENDIAN and IDIGI_COMPRESSION:
+
+   //#define IDIGI_LITTLE_ENDIAN
+   //#define IDIGI_COMPRESSION
+
+
