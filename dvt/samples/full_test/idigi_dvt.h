@@ -1,10 +1,6 @@
 #ifndef IDIGI_DVT_H
 #define IDIGI_DVT_H
 
-#define DVT_FILE_NAME_SIZE      32
-#define DVT_NAME_SPEC_SIZE      32
-#define DVT_DESCRIPTION_SIZE    64
-
 typedef enum
 {
     dvt_case_fw_bin_image,
@@ -56,9 +52,9 @@ typedef struct
     uint32_t target;
     uint32_t version;
     dvt_state_t state;
-    char description[DVT_DESCRIPTION_SIZE];
-    char name_spec[DVT_NAME_SPEC_SIZE];
-    char file_name[DVT_FILE_NAME_SIZE];
+    char * description;
+    char * name_spec;
+    char * file_name;
     size_t file_size;
     uint8_t * file_content;
     dvt_ds_t * ds_info;

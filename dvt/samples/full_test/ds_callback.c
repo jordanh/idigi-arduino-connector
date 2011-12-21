@@ -34,14 +34,11 @@ extern void os_free(void * const ptr);
 idigi_status_t send_put_request(idigi_handle_t handle)
 {
     idigi_status_t status = idigi_success;
-    static char file_path[sizeof "test/dvt/" + DVT_FILE_NAME_SIZE];
     static char file_type[] = "text/plain";
     idigi_data_service_put_request_t * header = &dvt_current_ptr->ds_info->header;
 
     if (dvt_current_ptr->state != dvt_state_fw_download_complete)
         goto done;
-
-    sprintf(file_path, "test/dvt/%s", dvt_current_ptr->file_name);
 
     switch (dvt_current_ptr->target)
     {
@@ -66,12 +63,12 @@ idigi_status_t send_put_request(idigi_handle_t handle)
         break;
     }
 
-    header->path  = file_path;
+    header->path  = dvt_current_ptr->file_name;
     header->content_type = file_type;
     header->context = dvt_current_ptr->ds_info;
 
     status = idigi_initiate_action(handle, idigi_initiate_data_service, header, NULL);
-    APP_DEBUG("send_put_request: %s status  %d total file length = %d\n", file_path, status, dvt_current_ptr->file_size);
+    APP_DEBUG("send_put_request: %s status  %d total file length = %d\n", dvt_current_ptr->file_name, status, dvt_current_ptr->file_size);
     if (status != idigi_success)
         cleanup_dvt_data();
     else
