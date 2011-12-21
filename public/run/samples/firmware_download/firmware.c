@@ -139,6 +139,8 @@ static idigi_callback_status_t firmware_download_abort(idigi_fw_download_abort_t
 
     /* Server is aborting firmware update */
     APP_DEBUG("firmware_download_abort\n");
+    firmware_download_started = 0;
+
     if (abort_data == NULL)
     {
         APP_DEBUG("firmware_download_abort Error: iDigi passes incorrect parameters\n");
@@ -156,6 +158,8 @@ static idigi_callback_status_t firmware_reset(idigi_fw_config_t const * const re
     UNUSED_PARAMETER(reset_data);
     /* Server requests firmware reboot */
     APP_DEBUG("firmware_reset\n");
+
+    firmware_download_started = 0;
 
     return status;
 }
