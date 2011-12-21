@@ -124,6 +124,7 @@ static void firmware_download_complete(idigi_fw_download_complete_request_t cons
     {
         APP_DEBUG("firmware_download_complete: actual image size (%u) != the code size received (%zu)\n",
                       complete_request->code_size, total_image_size);
+        complete_response->status = idigi_fw_download_not_complete;
     }
 
     firmware_download_started = 0;
