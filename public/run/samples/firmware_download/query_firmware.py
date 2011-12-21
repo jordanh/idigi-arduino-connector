@@ -1,6 +1,6 @@
 # query_firmware.py
-# Query firmware target infor SCI operation.
-# It returns all supported targets info.
+# Send query_firmware_targets SCI operation to get a list of 
+# firmware targets on the device. 
 # -------------------------------------------------
 # The following lines require manual changes
 username = "YourUsername" # enter your username
@@ -48,4 +48,4 @@ else:
 
 webservice.close()
 
-    
+
