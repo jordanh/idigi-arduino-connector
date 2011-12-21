@@ -1,3 +1,23 @@
+# ****************************************************************************
+# Copyright (c) 2011 Digi International Inc., All Rights Reserved
+# 
+# This software contains proprietary and confidential information of Digi
+# International Inc.  By accepting transfer of this copy, Recipient agrees
+# to retain this software in confidence, to prevent disclosure to others,
+# and to make no use of this software other than that for which it was
+# delivered.  This is an unpublished copyrighted work of Digi International
+# Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
+# prohibited.
+# 
+# Notwithstanding anything to the contrary therein you may reuse and modify 
+# the script for your internal business purposes.  This script is provided 
+# “AS IS” without warranty of any kind.  You accept sole responsibility and 
+# liability for its use as well as any modifications you make.
+# Restricted Rights Legend
+#
+# Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
+#
+# ***************************************************************************
 # query_firmware.py
 # Send query_firmware_targets SCI operation to get a list of 
 # firmware targets on the device. 
