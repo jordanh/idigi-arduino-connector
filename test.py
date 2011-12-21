@@ -47,7 +47,8 @@ TESTS_ENTRY = 1
 #              Directory.                                Test Scripts
 test_table = [[BASE_SAMPLE_DIR+'connect_to_idigi',       ['test_discovery.py']],
               [BASE_SAMPLE_DIR+'firmware_download',      ['test_firmware.py']],
-              [BASE_SAMPLE_DIR+'send_data',              ['test_send_data.py']]
+              [BASE_SAMPLE_DIR+'send_data',              ['test_send_data.py']],
+              [BASE_SAMPLE_DIR+'device_request',         ['test_device_request.py']]
 ]
 
 def run_tests():
