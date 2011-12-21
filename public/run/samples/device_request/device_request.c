@@ -32,7 +32,7 @@ extern void os_free(void * const ptr);
 /* supported targets */
 static char const device_request_target[] = "myTarget";
 
-static char device_response_data[] = "My device response data\n";
+static char device_response_data[] = "My device response data";
 
 typedef struct device_request_handle {
     void * device_handle;
