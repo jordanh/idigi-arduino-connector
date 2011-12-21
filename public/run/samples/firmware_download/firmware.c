@@ -75,7 +75,7 @@ static void firmware_image_data(idigi_fw_image_data_t const * const image_data, 
 {
     if (image_data == NULL || data_status == NULL)
     {
-        APP_DEBUG("firmware_image_data: invalid parameter\n");
+        APP_DEBUG("firmware_image_data ERROR: iDigi passes incorrect parameters\n");
         goto done;
     }
 
