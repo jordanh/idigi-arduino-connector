@@ -1,6 +1,6 @@
 # update_firmware.py
-# Send update_firmware SCI operation.
-# It always update firmware target = 0 with image file name "image.a"
+# Send an image file to do firmware upgrade using update_firmware SCI operation.
+# It updates firmware target = 0 with image file name "image.a"
 # -------------------------------------------------
 # The following lines require manual changes
 username = "YourUsername" # enter your username
