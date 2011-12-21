@@ -39,8 +39,8 @@
  * @section step1 Step 1: Determine if your compiler is C89 or C99 compliant
  *
  * If your compiler is C89 or C99 compliant and you are on a 32-bit processor
- * you can skip to the next section.  A C89/C99 compliant compilier will have stdint.h
- * which contains the types used by the IIK.  If your compilier is not C89 or C99 compliant you 
+ * you can skip to the next section.  A C89/C99 compliant compiler will have stdint.h
+ * which contains the types used by the IIK.  If your compiler is not C89 or C99 compliant you 
  * will have to edit public/include/idigi_types.h and review the data types @ref uint8_t, 
  * @ref uint16_t, @ref uint32_t. Note that these are defined for a 32-bit machine. 
  *
@@ -52,7 +52,7 @@
  * The file public/include/idigi_types.h implements the two macros listed below, these
  * are used to debug the IIK.
  *
- * Review these definions and modify these for your platform:
+ * Review these definitions and modify these for your platform:
  * 
  *  @li @ref USER_DEBUG_VPRINTF
  *  @li @ref ASSERT 
@@ -60,10 +60,13 @@
  * If you don't have vprintf or assert available redefine these macros to call corresponding 
  * routines for your platform. 
  *
- * @section step2 Step 2: Modify idigi_config.h and set the endianess
+ * @section step2 Step 2: Modify idigi_config.h
  *
  * Open the file public/include/idigi_config.h and set the endianess, and define @ref IDIGI_LITTLE_ENDIAN 
  * for little endian or comment out for big endian platforms.
+ *
+ * If your device does not support compression (see @ref zlib) then comment out @ref IDIGI_COMPRESSION,
+ * if compression is supported leave this define alone.
  *
  * @section step3 Step 3: Build the compile_and_link sample
  *
@@ -83,7 +86,7 @@
  * /* 
  *  * Call idigi_init() where you intend to initialize the IIK, a NULL callback 
  *  * is passed into idigi_init() for this sample, we want the IIK to be linked in 
- *  * to veify the build.
+ *  * to verify the build.
  *  */
  * (void)idigi_init((idigi_callback_t)0);
  * @endcode
@@ -138,7 +141,7 @@
  * build is successful you can proceed to the next step.
  *
  * @note Do not execute the compile_and_link sample, this only verifies that the
- * build enviroment is setup correctly, the application will ASSERT when run.
+ * build environment is setup correctly, the application will ASSERT when run.
  *
  * @section step4 Step 4: Get a vendor and device ID
  *
@@ -184,9 +187,6 @@
  *
  *
  * @image html idigi6.jpg
- *
- * @note When you are ready to deploy in production, contact Digi customer support in order to move your 
- * vendor ID to my.idigi.com
  *
  * @subsection idigi_device_id Obtain an iDigi Device ID
  *
@@ -294,7 +294,7 @@
  *
  * @subsection default_config Default Configurations
  *
- * If the followings configurations in @ref idigi_config.h are defined
+ * If the following configurations in @ref idigi_config.h are defined
  * callback is not needed for these configurations. This reduces code size
  * and memory usage. You can define individual configuration.
  *
@@ -418,12 +418,12 @@
  * }
  * @endcode
  *
- * @section step6 Step 6: Setup your build enviroment
+ * @section step6 Step 6: Setup your build environment
  *
  * @subsection add_c_files Add the source files to your build system
  *
  * To build the connect_to_idigi sample you will need to add the files shown below 
- * to your build envirment.
+ * to your build environment.
  *
  * @htmlonly
  * <table class="apitable">
@@ -477,7 +477,7 @@
  * @section step7 Step 7: Build the connect_to_idigi sample
  * Next build the sample, if you are running on Linux you can simply type make in
  * the directory public/run/samples/connect_to_idigi, if you are not using Linux then
- * you will have to build for your enviroment.
+ * you will have to build for your environment.
  *
  * @section step8 Step 8: View results
  *
