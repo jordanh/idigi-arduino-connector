@@ -11,7 +11,7 @@
 # 
 # Notwithstanding anything to the contrary therein you may reuse and modify 
 # the script for your internal business purposes.  This script is provided 
-# “AS IS” without warranty of any kind.  You accept sole responsibility and 
+# AS IS without warranty of any kind.  You accept sole responsibility and 
 # liability for its use as well as any modifications you make.
 # Restricted Rights Legend
 #
