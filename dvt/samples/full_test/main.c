@@ -34,7 +34,7 @@ extern idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idig
 
 pthread_t idigi_thread;
 pthread_t application_thread;
-#if 0
+
 #define  STACK_SIZE  (1024 * 1024 * 8)
 #define  STACK_INIT_VALUE   0xEF
 
@@ -43,7 +43,7 @@ __thread void * stack_start;
 __thread long iik_stack_max_size = 0L;
 __thread long thread_stack_size = STACK_SIZE;
 
-size_t PrintThreadStackInfo(long thread_stack_start)
+size_t PrintThreadStackInfo(void)
 {
     pthread_attr_t Attributes;
     void *StackTop;
@@ -60,7 +60,7 @@ size_t PrintThreadStackInfo(long thread_stack_start)
     pthread_attr_destroy (&Attributes);
 
     StackBottom = (void *)((long)StackTop + StackSize);
-    StackUsed = (size_t)((long)StackBottom - (long)thread_stack_start);
+    StackUsed = (size_t)((long)StackBottom - (long)stack_start);
 
     APP_DEBUG ("-------------------\n");
     APP_DEBUG ("Stack top:     %p\n", StackTop);
@@ -115,7 +115,7 @@ void clear_stack_size(void)
         }
 
         APP_DEBUG("<<<< %p (%ld)\n", stack_end, empty_size);
-        //memset((void *)stack_top , STACK_INIT_VALUE, empty_size);
+        memset((void *)stack_top , STACK_INIT_VALUE, empty_size);
     }
 }
 
@@ -134,37 +134,36 @@ size_t PrintSummaryStack(void)
     APP_DEBUG("Size in bytes = %d\n", (unsigned)((uint8_t *)stack_start-ptr));
     return (size_t)((uint8_t *)stack_start-ptr);
 }
-#endif
+
 
 void * idigi_run_thread(void * arg)
 {
-#if 0
+
     char nowhere;
     stack_start = (void*)&nowhere;
-#endif
+
     idigi_status_t status;
 
-#if 0
+
     stack_top = (void *)((long)stack_start - thread_stack_size);
     memset(stack_top , STACK_INIT_VALUE, thread_stack_size);
     /* Call check_stack_size() at beginning of the thread.
      * Also call it in deeply nested functions */
 
-    PrintThreadStackInfo((long)stack_start);
+    PrintThreadStackInfo();
 
     check_stack_size();
-#endif
+
     APP_DEBUG("idigi_run_thread starts %d\n", getpid());
 
     status = idigi_run((idigi_handle_t)arg);
 
     APP_DEBUG("idigi_run thread exits %d\n", status);
-#if 0
+
     PrintSummaryStack();
-    PrintThreadStackInfo((long)stack_start);
+    PrintThreadStackInfo();
 
     APP_DEBUG("idigi_run_thread: stack size = %ld\n", iik_stack_max_size);
-#endif
     pthread_exit(arg);
 }
 
