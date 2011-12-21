@@ -175,8 +175,11 @@
  * @section zlib zlib Support
  * The zlib software library is used for data compression by the IIK, the zlib library 
  * is required if compression is to be supported by your device. Data compression is 
- * used to reduce the network traffic load. If your application does not require compression, 
- * ignore this section. The zlib source code is not under the GNU license, the license is described in zlib.h.
+ * used to reduce the network traffic load. 
+ *
+ * @note If your application does not require compression, ignore this section. 
+ * 
+ * The zlib source code is not under the GNU license, the license is described in zlib.h.
  * The zlib home page is located at: http://zlib.net/. If your platform does not already have the zlib library 
  * you will need to download and build the zlib library. The header file zlib.h is included by the IIK and 
  * must be in the include path for the IIK library.  Instructions on how to build zlib
