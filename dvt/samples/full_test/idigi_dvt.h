@@ -37,8 +37,9 @@ typedef enum
     dvt_state_init,
     dvt_state_fw_download_progress,
     dvt_state_fw_download_complete,
+    dvt_state_request_start,
     dvt_state_request_progress,
-    dvt_state_request_complete
+    dvt_state_stop
 } dvt_state_t;
 
 typedef struct

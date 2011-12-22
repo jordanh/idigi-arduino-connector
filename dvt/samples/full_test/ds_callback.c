@@ -31,15 +31,19 @@
 extern int os_malloc(size_t const size, void ** ptr);
 extern void os_free(void * const ptr);
 
+static dvt_ds_t  data_service_info;
+
 idigi_status_t send_put_request(idigi_handle_t handle)
 {
     idigi_status_t status = idigi_success;
     static char file_type[] = "text/plain";
-    idigi_data_service_put_request_t * header = &dvt_current_ptr->ds_info->header;
+    idigi_data_service_put_request_t * header = NULL;
 
-    if (dvt_current_ptr->state != dvt_state_fw_download_complete)
-        goto done;
+    dvt_current_ptr->ds_info = &data_service_info;
 
+    data_service_info.bytes_sent = 0;
+    header = &data_service_info.header;
+    APP_DEBUG("Sending %s of length %d\n", dvt_current_ptr->file_name, dvt_current_ptr->file_size);
     switch (dvt_current_ptr->target)
     {
     case dvt_case_put_request_no_flag:
@@ -74,7 +78,6 @@ idigi_status_t send_put_request(idigi_handle_t handle)
     else
         dvt_current_ptr->state = dvt_state_request_progress;
 
-done:
     return status;
 }
 
@@ -162,7 +165,7 @@ idigi_callback_status_t idigi_put_request_callback(void const * request_data, si
     case idigi_data_service_type_have_data:
         {
             idigi_data_service_block_t * message = put_request->server_data;
-            uint8_t const * data = message->data;
+            uint8_t * const data = message->data;
 
             if (dvt_current_ptr->state != dvt_state_fw_download_complete)
             {
@@ -174,6 +177,7 @@ idigi_callback_status_t idigi_put_request_callback(void const * request_data, si
                                         (((message->flags & IDIGI_MSG_RESP_SUCCESS) != 0) ? "success" : "error"), (unsigned)message->flags);
             if (message->length_in_bytes > 0)
             {
+                data[message->length_in_bytes] = '\0';
                 APP_DEBUG("idigi_put_request_callback: server response %s\n", (char *)data);
             }
 
