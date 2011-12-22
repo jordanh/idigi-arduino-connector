@@ -44,7 +44,7 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
 {
     idigi_callback_status_t   status = idigi_callback_continue;
 
-//    check_stack_size();
+    check_stack_size();
 
     switch (class_id)
     {
@@ -72,7 +72,7 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
         break;
     }
 
-//    clear_stack_size();
+    clear_stack_size();
     return status;
 }
 

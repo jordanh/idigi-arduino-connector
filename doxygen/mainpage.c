@@ -172,19 +172,17 @@
  * </table>
  * @endhtmlonly
  *
- * @section zlib zlib Support
- * The zlib software library is used for data compression by the IIK, the zlib library 
- * is required if compression is to be supported by your device. Data compression is 
- * used to reduce the network traffic load. 
- *
- * @note If your application does not require compression, ignore this section. 
+ * @section zlib Optional Data Compression
+ * The IIK has a Data Compression option used to reduce the amount of network traffic.  The option 
+ * requires applications to link with the zlib library and add the zlib header file (zlib.h) to the IIK include path.   
  * 
- * The zlib source code is not under the GNU license, the license is described in zlib.h.
- * The zlib home page is located at: http://zlib.net/. If your platform does not already have the zlib library 
- * you will need to download and build the zlib library. The header file zlib.h is included by the IIK and 
- * must be in the include path for the IIK library.  Instructions on how to build zlib
- * are provided with the package.
- *
+ * @note The zlib library is only required if your application enables Data Compression.  
+ * Enabling this option greatly increases the application code size and memory required to execute.
+ *   
+ * If your application requires Data compression, but your development environment does not include the zlib library, 
+ * you will need to download and build the library.  The zlib home page is located at: http://zlib.net/.   Instructions 
+ * on how to build zlib are provided with the package.
+ * 
  * @note The next step is to read the @ref getting_started page.
  *
  * </td></tr>
