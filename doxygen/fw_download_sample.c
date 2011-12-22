@@ -159,29 +159,17 @@
  * @subsection fw_python Firmware Download using python script
  *
  * This samples provides two simple python scripts to update firmware image and query
- * supported firmware image information. It sends request to developer.idigi.com. 
- * You need to edit the username, password, and the device ID in the update_firmware.py
- * and query_firmware.py. 
+ * a list of firmware target information using
+ * @htmlonly <a href="web_services.html">iDigi Web Services.</a> @endhtmlonly
+ * It sends a request to developer.idigi.com.
  * 
- * update_firmware.py sends firmware image data for target 0 with "image.a" image file name.
- * It opens and sends "image.a" to the device.
+ * update_firmware.py opens and sends "image.a" to the device.
  *
- * @code
- *
- * # -------------------------------------------------
- * # The following lines require manual changes
- * username = "YourUsername" # enter your username
- * password = "YourPassword" # enter your password
- * device_id = "Target Device Id" # enter device id of target
- * # -------------------------------------------------
- * image_file = "image.a"  # image filename 
- *
- * @endcode
  *
  * To execute update_firmware.py python script:
  *
  * @code
- * python update_firmware.py
+ * python update_firmware.py <username> <password> <device_id>
  * @endcode
  *
  * An output of update_firmware.py:
@@ -202,7 +190,7 @@
  * To execute query_firmware.py python script:
  *
  * @code
- * python query_firmware.py
+ * python query_firmware.py <username> <password> <device_id>
  * @endcode
  *
  * An output of query_firmware.py:

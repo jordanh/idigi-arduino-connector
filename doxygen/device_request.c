@@ -107,24 +107,13 @@
  *
  * @section python_script Python script to send device request
  *
- * This sample provides a simple python script to send a device request to developer.idigi.com. 
- * You need to edit the username, password, and the device ID in the device_request.py file.
- *
- * @code
- *
- * # -------------------------------------------------
- * # The following lines require manual changes
- * username = "YourUsername" # enter your username
- * password = "YourPassword" # enter your password
- * device_id = "Target Device Id" # enter device id of target
- * # -------------------------------------------------
- *
- * @endcode
+ * This sample provides a simple python script to send a data service device request to developer.idigi.com
+ * using @htmlonly <a href="web_services.html">iDigi Web Services.</a> @endhtmlonly
  *
  * Run the python script in the sample. 
  *
  * @code
- * python device_rquest.py
+ * python device_request.py <username> <password> <device_id>
  * @endcode
  *
  * Output from this sample:

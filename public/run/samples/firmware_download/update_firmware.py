@@ -22,10 +22,7 @@
 # Send an image file to do firmware upgrade using update_firmware SCI operation.
 # It updates firmware target = 0 with image file name "image.a"
 # -------------------------------------------------
-# The following lines require manual changes
-username = "YourUsername" # enter your username
-password = "YourPassword" # enter your password
-device_id = "Target Device Id" # enter device id of target
+# Usage: update_firmware.py <username> <password> <device_id>
 # -------------------------------------------------
 image_file = "image.a" # image filename
 
@@ -33,18 +30,24 @@ import httplib
 import base64
 import sys
 
-# create HTTP basic authentication string, this consists of
-# "username:password" base64 encoded
-auth = base64.encodestring("%s:%s"%(username,password))[:-1]
-
-# open download file and encoded the data
-try: 
-    fileHandle = open(image_file, 'r')
-except IOError:
-    print '\nError: cannot open ', image_file
-    print 'Usage: python update_firmware.py image.a'
+def Usage():
+    print 'Usage: update_firmware.py <username> <password> <device_id>'
+    print '       It opens \"image.a\" file and sends firmware update to device on target 0\n'  
+   
+def PostMessage(username, password, device_id):
+    # create HTTP basic authentication string, this consists of
+    # "username:password" base64 encoded
+    auth = base64.encodestring("%s:%s"%(username,password))[:-1]
     
-else:
+    # open download file and encoded the data
+    try: 
+        fileHandle = open(image_file, 'r')
+    except IOError:
+        print '\nError: cannot open', image_file
+        Usage();
+        return -1
+        
+
     # build firmware download message sent to server
     message = """<sci_request version="1.0">
         <update_firmware firmware_target="0" filename="%s">
@@ -80,4 +83,18 @@ else:
         print response_body
         
     webservice.close()
-            
+
+
+def main(argv):
+    #process arguments
+    count = len(argv);
+    if count != 3:
+        Usage()
+    else:
+        PostMessage(argv[0], argv[1], argv[2])
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
+
+

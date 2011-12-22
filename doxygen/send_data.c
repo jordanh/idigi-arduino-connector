@@ -127,23 +127,10 @@
  * This sample provides a simple python script to retrive the test.txt file from developer.idigi.com
  * after a device has put the test.txt into the server.
  *
- * You need to edit the username, password, and the device ID in the get_file.py file.
- *
- * @code
- *
- * # -------------------------------------------------
- * # The following lines require manual changes
- * username = "YourUsername" # enter your username
- * password = "YourPassword" # enter your password
- * device_id = "Target Device Id" # enter device id of target
- * # -------------------------------------------------
- *
- * @endcode
- *
  * Run the python script in the sample. 
  *
  * @code
- * python get_file.py
+ * python get_file.py <username> <password> <device_id>
  * @endcode
  *
  * The script prints the content of test.txt.
