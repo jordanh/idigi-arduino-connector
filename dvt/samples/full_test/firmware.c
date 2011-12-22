@@ -57,10 +57,10 @@ static dvt_data_t dvt_data_list[dvt_case_last] =
     {dvt_case_put_request_append,       0x00000013, dvt_state_init, "Data Service PUT, Append", ".*\\.ds.p.ap", "main/appender.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
     {dvt_case_put_request_archive,      0x00000014, dvt_state_init, "Data Service PUT, Archive", ".*\\.ds.p.ar", "totally/archived.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
     {dvt_case_put_request_both,         0x00000015, dvt_state_init, "Data Service PUT, Both", ".*\\.ds.p.b", "not/uploaded.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_put_request_busy,         0x00000016, dvt_state_init, "Data Service PUT, Busy", ".*\\.[Ee][Xx][Nn]", "busy.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_put_request_cancel_at_start, 0x00000017, dvt_state_init, "Data Service PUT, Cancel at start", ".*\\.[Ee][Xx][Nn]", "cancel1.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_put_request_cancel_at_middle, 0x00000018, dvt_state_init, "Data Service PUT, Cancel at middle", ".*\\.[Ee][Xx][Nn]", "cancel2.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_put_request_timeout,      0x00000019, dvt_state_init, "Data Service PUT, Timeout", ".*\\.[Ee][Xx][Nn]", "timeout.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL}
+    {dvt_case_put_request_busy,         0x00000016, dvt_state_init, "Data Service PUT, Busy", ".*\\.[Ee][Xx][Nn]", "test/busy.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
+    {dvt_case_put_request_cancel_at_start, 0x00000017, dvt_state_init, "Data Service PUT, Cancel at start", ".*\\.[Ee][Xx][Nn]", "test/cancel1.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
+    {dvt_case_put_request_cancel_at_middle, 0x00000018, dvt_state_init, "Data Service PUT, Cancel at middle", ".*\\.[Ee][Xx][Nn]", "test/cancel2.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
+    {dvt_case_put_request_timeout,      0x00000019, dvt_state_init, "Data Service PUT, Timeout", ".*\\.[Ee][Xx][Nn]", "test/timeout.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL}
 };
 
 dvt_data_t * dvt_current_ptr = NULL;

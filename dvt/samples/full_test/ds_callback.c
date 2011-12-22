@@ -207,7 +207,15 @@ error:
     put_response->message_status = idigi_msg_error_cancel;
 
 cleanup:
-    cleanup_dvt_data();
+    if (dvt_current_ptr->target == /* dvt_case_last */ dvt_case_put_request_busy - 1)
+    {
+        dvt_current_ptr->state = dvt_state_stop;
+        status = idigi_callback_abort;
+    }
+    else
+    {
+        cleanup_dvt_data();
+    }
 
 done:
     return status;

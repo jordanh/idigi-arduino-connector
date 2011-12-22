@@ -112,6 +112,7 @@ int application_run(idigi_handle_t handle)
                     break;
 
                 case dvt_state_stop:
+                    cleanup_dvt_data();
                     stop_calling = 1;
                     break;
 
