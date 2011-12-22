@@ -40,10 +40,8 @@
  *
  * @section step1 Step 1: Determine if your compiler is C89 or C99 compliant
  *
- * The IIK is ANSI C89 or C99 compliant.  
- * 
- * If your compiler is ANSI C89 or C99 compliant and you are running on a 32-bit processor
- * you can skip to the next section.  
+ * The IIK is ANSI C89 or C99 compliant.  If your compiler is ANSI C89 or C99 compliant and you are running on a 
+ * 32-bit processor you can skip to the next section.  
  *
  * If your compiler is not ANSI C89 or C99 compliant, you will have to edit public/include/idigi_types.h 
  * to review the data types @ref uint8_t, @ref uint16_t, @ref uint32_t.  Note by default these are defined 
