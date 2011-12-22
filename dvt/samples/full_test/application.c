@@ -22,7 +22,6 @@
  * =======================================================================
  *
  */
-
 #include "idigi_api.h"
 #include "platform.h"
 #include "idigi_dvt.h"
@@ -79,33 +78,51 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
 
 int application_run(idigi_handle_t handle)
 {
+    #define SLEEP_IN_SECONDS  1
     int stop_calling = 0;
 
     while (!stop_calling)
     {
-        if (dvt_current_ptr == NULL) 
+        if (dvt_current_ptr != NULL)
         {
-            #define SLEEP_ONE_SECOND  1
-            os_sleep(SLEEP_ONE_SECOND);
-        }
-        else
-        {
-            idigi_status_t const status = send_put_request(handle);
-    
-            switch (status)
+            switch (dvt_current_ptr->state)
             {
-            case idigi_success:
-            case idigi_init_error:
-                #define SLEEP_ONE_SECOND  1
-                os_sleep(SLEEP_ONE_SECOND);    
-                break;
-    
-            default:
-                stop_calling = 1;
-                break;
+                case dvt_state_request_start:
+                {
+                    idigi_status_t const status = send_put_request(handle);
+        
+                    switch (status)
+                    {
+                        case idigi_success:
+                        case idigi_init_error:
+                            break;
+        
+                        default:
+                            APP_DEBUG("Exiting main loop because of error [%d]\n", status);
+                            stop_calling = 1;
+                            break;
+                    }
+
+                    break;
+                }
+
+                case dvt_state_fw_download_complete:
+                    dvt_current_ptr->state = dvt_state_request_start;
+                    os_sleep(SLEEP_IN_SECONDS); /* let reset complete */
+                    break;
+
+                case dvt_state_stop:
+                    stop_calling = 1;
+                    break;
+
+                default:
+                    break;
             }
         }
+
+        os_sleep(SLEEP_IN_SECONDS);
     }
+
     return 0;
 }
 
