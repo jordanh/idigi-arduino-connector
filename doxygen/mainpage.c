@@ -172,7 +172,7 @@
  * </table>
  * @endhtmlonly
  *
- * @section zlib Optional Data Compression
+ * @section zlib Optional Data Compression Support
  * The IIK has a Data Compression option used to reduce the amount of network traffic.  The option 
  * requires applications to link with the zlib library and add the zlib header file (zlib.h) to the IIK include path.   
  * 

@@ -4,6 +4,9 @@
  *
  * @section table_of_contents_porting Getting Started
  *
+ * The Getting Started process will walk you through the steps necessary to get an IIK application 
+ * running and connected to the iDigi Device Cloud.  These steps include:
+ *   
  *          -# @ref step1
  *              -# @ref debug_macros
  *          -# @ref step2
@@ -31,18 +34,20 @@
  *              -# @ref view_result_on_cloud
  *          -# @ref step9
  * 
- * This getting started guide will walk you through the steps necessary to
- * get an application running with the IIK, this application will connect your device to the
- * iDigi server and the configuration will be displayed in the iDigi Device Cloud Portal
- * graphical user interface.
+ * Two sample applications (compile_and_link and connect_to_idigi) will be used to confirm your compilation 
+ * tool clain and IIK port, to ultimately connect your device to the iDigi Device Cloud and have it displayed 
+ * in the iDigi Device Cloud Portal graphical user interface.
  *
  * @section step1 Step 1: Determine if your compiler is C89 or C99 compliant
  *
- * If your compiler is C89 or C99 compliant and you are on a 32-bit processor
- * you can skip to the next section.  A C89/C99 compliant compiler will have stdint.h
- * which contains the types used by the IIK.  If your compiler is not C89 or C99 compliant you 
- * will have to edit public/include/idigi_types.h and review the data types @ref uint8_t, 
- * @ref uint16_t, @ref uint32_t. Note that these are defined for a 32-bit machine. 
+ * The IIK is ANSI C89 or C99 compliant.  
+ * 
+ * If your compiler is ANSI C89 or C99 compliant and you are running on a 32-bit processor
+ * you can skip to the next section.  
+ *
+ * If your compiler is not ANSI C89 or C99 compliant, you will have to edit public/include/idigi_types.h 
+ * to review the data types @ref uint8_t, @ref uint16_t, @ref uint32_t.  Note by default these are defined 
+ * for a 32-bit machine. 
  *
  *  @li @ref uint8_t
  *  @li @ref uint16_t
@@ -62,10 +67,11 @@
  *
  * @section step2 Step 2: Modify idigi_config.h
  *
- * Open the file public/include/idigi_config.h and set the endianess, and define @ref IDIGI_LITTLE_ENDIAN 
- * for little endian or comment out for big endian platforms.
+ * Open the file public/include/idigi_config.h to configure processor endianess.  
+ * 
+ * The IIK defaults to little endian.  To reconfigure for big endian, comment out the #define @ref IDIGI_LITTLE_ENDIAN line.
  *
- * If your device does not support compression (see @ref zlib) then comment out @ref IDIGI_COMPRESSION,
+ * If your application does not want the optional Data Compression (see @ref zlib) then comment out @ref IDIGI_COMPRESSION,
  * if compression is supported leave this define alone.
  *
  * @section step3 Step 3: Build the compile_and_link sample
