@@ -12,6 +12,7 @@
  *          -# @ref threading
  *          -# @ref code_organization
  *          -# @ref zlib
+ *          -# @ref the_getting_started_process
  *
  * @section intro Introduction
  *
@@ -35,8 +36,8 @@
  *
  * @section language Language Support
  *
- * The software provided is C89, C99 and ANSI compliant. The sample platforms provided use standard C 
- * calls which are available in most operating systems.  If you are running on a Linux i486 based platform 
+ * The IIK software provided is ANSI X3.159-1989 (ANSI C89) and ISO/IEC 9899:1999 (ANSI C99) compliant. The sample platforms 
+ * provided use standard ANSI C calls which are available in most operating systems.  If you are running on a Linux i486 based platform 
  * and using the GNU toolchain the Linux platform and samples can be run without any modifications.
  *
  * @section requirements Platform Requirements
@@ -91,18 +92,19 @@
  *
  * @section threading Threading Model
  *
- * The IIK can be run in a multithreaded or single threaded environment, it is
- * suggested in a multithreaded OS that the IIK be run as a separate thread, in a
- * single threaded system a step routine is provided which runs a portion of the
- * IIK and must be called periodically.  In the multithreaded model the IIK provides
- * a routine which executes the IIK and does not return, this routine is intended
- * to be run as separate thread.  The IIK is designed to run in a preemptive or
- * cooperative multithreaded system, the run routine will call sleep to relinquish
- * control of the CPU.
- *
- * @note You must decide before proceeding if you want to run as a single threaded
- * model (step) or run the IIK as a separate thread (run).  In a small OS with no
- * RTOS you should use the step routine, otherwise you should use the run routine.
+ * The IIK can be deployed in a multithreaded (idigi_run()) or round robin control loop (idigi_step()) environment.    
+ * In environemnts that include preemptive threading, the IIK can be implemented as a seperate stand-alone thread
+ * by calling idigi_run().  This a blocking call that only returns on a major system failure.
+ *    
+ * Alternatively, when threading is unavailable, in a round robin control loop or fixed state machine, the IIK can 
+ * be implemented using the non-blocking idigi_step() call within the round robin control loop.  
+ * 
+ * Note in a cooperative, non-preemptive multithreaded environment, either idigi_run() or idigi_step() can used, based on 
+ * system determinism and the potential for a non-cooperative thread to exceed the IIK's system timing.  
+ * 
+ * @note You should decide before proceeding how you intend to call the IIK (within a round robin control loop or running 
+ * as a separate thread).  In a limited services OS with no real time threading, you should use the idigi_step() routine.  
+ * Otherwise you should use the idigi_run() routine.
  *
  * @section code_organization Source Code Organization
  *
@@ -120,31 +122,31 @@
  * <td rowspan="2">private</td>
  * <td style="border-bottom: 0px none;">IIK Library Code  <strong>(do not modify)</strong></td>
  * </tr><tr>
- * <td style="border-top: 0px none;">It contains all the files which are used to build the IIK library. 
- * The user <b> should not modify any files in this directory</b>. These files are only provided 
+ * <td style="border-top: 0px none;">This directory contains all the private and internal files used to build the IIK library. 
+ * <b>You should never modify files in this directory</b>. These files are only provided 
  * so the library can be built using the tool chain for your platform.</td>
  * </tr>
  * <tr>
  * <td rowspan=2>public/include</td>
  * <td style="border-bottom: 0px none;">Public API</td>
  * </tr><tr>
- * <td style="border-top: 0px none;">It contains header files used globally by the IIK.
- * When porting to a new platform the user may need to modify the file @endhtmlonly @ref idigi_types.h. @htmlonly
+ * <td style="border-top: 0px none;">This directory contains the IIK public header files required for application development.
+ * When porting to a new platform, you may need to modify @endhtmlonly @ref idigi_types.h @htmlonly to match your platform's characteristics (i.e., data size and supported compiler data types).
  * The file @endhtmlonly @ref idigi_api.h @htmlonly in this directory is the IIK public API.</td>
  * </tr>
  * <tr>
  * <td rowspan=2>public/run</td>
  * <td style="border-bottom: 0px none;">Platforms and samples for running the IIK as a separate thread</td>
  * </tr><tr>
- * <td style="border-top: 0px none;">It contains platforms and samples which run the IIK as a separate 
+ * <td style="border-top: 0px none;">This directory contains platforms and samples which run the IIK as a separate 
  * thread in a multitasking environment.</td>
  * </tr>
  * <tr>
  * <td rowspan=2>public/step</td>
- * <td style="border-bottom: 0px none;">Platforms and samples for running the IIK in a single threaded model</td>
+ * <td style="border-bottom: 0px none;">Platforms and samples for stepping the IIK in a round robin control loop</td>
  * </tr><tr>
- * <td style="border-top: 0px none;">It contains platforms and samples which run the IIK as a single thread
- * in a non-multhreaded model.</td>
+ * <td style="border-top: 0px none;">This directory contains platforms and samples which step the IIK in a round robin state machine or 
+ * control loop model.  These samples are for those systems that do not include pre-emptive RTOS.  </td>
  * </tr>
  * <tr>
  * <td rowspan=2>public/run/platforms</td>
@@ -173,17 +175,19 @@
  * @endhtmlonly
  *
  * @section zlib Optional Data Compression Support
- * The IIK has a Data Compression option used to reduce the amount of network traffic.  The option 
- * requires applications to link with the zlib library and add the zlib header file (zlib.h) to the IIK include path.   
- * 
- * @note The zlib library is only required if your application enables Data Compression.  
- * Enabling this option greatly increases the application code size and memory required to execute.
+ * The IIK has an optional Data Compression switch that reduces the amount of network traffic.  This option requires applications 
+ * to link with the zlib library and add the zlib header file (zlib.h) to the IIK include path.
  *   
+ * @note Enabling this option greatly increases the application code size and memory required to execute.   
+ * 
  * If your application requires Data compression, but your development environment does not include the zlib library, 
  * you will need to download and build the library.  The zlib home page is located at: http://zlib.net/.   Instructions 
  * on how to build zlib are provided with the package.
  * 
- * @note The next step is to read the @ref getting_started page.
+ * @note The zlib library is required only if your application enables the Data Compression switch.  
+ *   
+ * @section the_getting_started_process Getting Started 
+ * To get started, follow along the steps of the @ref getting_started process.
  *
  * </td></tr>
  * </table>

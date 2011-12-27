@@ -4,8 +4,10 @@
  *
  * @section table_of_contents_porting Getting Started
  *
- * The Getting Started process will walk you through the steps necessary to get an IIK application 
- * running and connected to the iDigi Device Cloud.  These steps include:
+ * The Getting Started process will walk you through the steps necessary to get the IIK integrated into your 
+ * development environment and running applications which connect to the iDigi Device Cloud.  
+ * 
+ * These steps include:
  *   
  *          -# @ref step1
  *              -# @ref debug_macros
@@ -34,31 +36,31 @@
  *              -# @ref view_result_on_cloud
  *          -# @ref step9
  * 
- * Two sample applications (compile_and_link and connect_to_idigi) will be used to confirm your compilation 
- * tool clain and IIK port, to ultimately connect your device to the iDigi Device Cloud and have it displayed 
+ * Two sample applications, compile_and_link and connect_to_idigi, will be used to confirm your compilation tool chain 
+ * and integration, respectively.  When complete, your device device will be connected to the iDigi Device Cloud and be displayed 
  * in the iDigi Device Cloud Portal graphical user interface.
  *
  * @section step1 Step 1: Determine if your compiler is C89 or C99 compliant
  *
- * The IIK is ANSI C89 or C99 compliant.  If your compiler is ANSI C89 or C99 compliant and you are running on a 
- * 32-bit processor you can skip to the next section.  
+ * The IIK is ANSI X3.159-1989 (ANSI C89) and ISO/IEC 9899:1999 (ANSI C99) compliant.  If your compiler is ANSI C89 or C99 compliant and you are 
+ * running on a 32-bit processor you can skip to the next section.  
  *
- * If your compiler is not ANSI C89 or C99 compliant, you will have to edit public/include/idigi_types.h 
- * to review the data types @ref uint8_t, @ref uint16_t, @ref uint32_t.  Note by default these are defined 
- * for a 32-bit machine. 
+ * If your compiler is not ANSI C89 or C99 compliant, you will have to review (and edit) public/include/idigi_types.h 
+ * to adjust the data types @ref uint8_t, @ref uint16_t, @ref uint32_t.  
  *
  *  @li @ref uint8_t
  *  @li @ref uint16_t
  *  @li @ref uint32_t
  *
+ * Note by default these are defined for a 32-bit machine.
+ *  
  * @subsection debug_macros Implement the debug macros
- * The file public/include/idigi_types.h implements the two macros listed below, these
- * are used to debug the IIK.
+ * The file public/include/idigi_types.h implements the two macros listed below, which are used to debug the IIK.
  *
- * Review these definitions and modify these for your platform:
- * 
  *  @li @ref USER_DEBUG_VPRINTF
  *  @li @ref ASSERT 
+ * 
+ * Review these definitions and modify these for your platform:
  * 
  * If you don't have vprintf or assert available redefine these macros to call corresponding 
  * routines for your platform. 
