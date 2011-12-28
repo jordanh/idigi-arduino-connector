@@ -45,8 +45,8 @@
  * @subsection single_threaded Single-threaded model: idigi_step() 
  * 
  * The function idigi_step() is called to perform a sequence of operations or events 
- * and returns control back to the caller.  This allows a caller to perform other tasks 
- * in single-threaded system or in a run-loop based system. A caller must call 
+ * and then returns control back to the caller.  This allows a caller to perform other tasks 
+ * within single-thread or round robin based control loop.  A caller must call 
  * this API repeatedly to continue IIK operations.
  *
  * The idigi_step() performs the following operations:
