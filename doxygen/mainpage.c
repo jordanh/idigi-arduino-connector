@@ -7,6 +7,8 @@
  *          -# @ref intro
  *          -# @ref language
  *          -# @ref requirements
+ *              -# @ref CodespaceRequirements
+ *              -# @ref RAMRequirements 
  *          -# @ref features
  *          -# @ref communicating
  *          -# @ref threading
@@ -40,33 +42,103 @@
  * provided use standard ANSI C calls which are available in most operating systems.  If you are running on a Linux i486 based platform 
  * and using the GNU toolchain the Linux platform and samples can be run without any modifications.
  *
- * @section requirements Platform Requirements
+ * @section requirements Platform Memory Requirements
+ * The IIK requires both Flash and RAM.  Flash is needed to store instructions and variables.  RAM is needed for dynamic allocation
+ * and program stack.  
+ *     
+ * @subsection CodespaceRequirements Code Space Estimates 
+ * The following Flash/Code space data was generated using Ubuntu 4.4.3 gcc with the compile_and_link sample application.  The
+ * build used optimization for size (-Os) and disabled @ref IDIGI_COMPRESSION in all cases.  The metrics exclude any code space 
+ * required for application layer calls.  This information should be treated as a typical use case.  
+ * 
+ * @htmlonly
+ * <table class="apitable">
+ * <tr>
+ * <th class="title"></td>
+ * <th class="title">Text</td>
+ * <th class="title">rodata</td>
+ * <th class="title">data</td>
+ * <th class="title">bss</td>
+ * </tr>
+ * <tr>
+ * <td>IDIGI_DEBUG, IDIGI_FIRMWARE_SERVICE, IDIGI_DATA_SERVICE enabled.</td>
+ * <td>20285</td>
+ * <td>6840</td>
+ * <td>0</td>
+ * <td>12</td>
+ * </tr>
+ * <tr>
+ * <td>IDIGI_FIRMWARE_SERVICE, IDIGI_DATA_SERVICE enabled.</td>
+ * <td>16400</td>
+ * <td>372</td>
+ * <td>0</td>
+ * <td>0</td>
+ * </tr>
+ * <tr>
+ * <td>IDIGI_FIRMWARE_SERVICE, IDIGI_DATA_SERVICE enabled.  config.h compile time #defines enabled</td>
+ * <td>15545</td>
+ * <td>372</td>
+ * <td>0</td>
+ * <td>0</td>
+ * </tr>
+ * <tr>
+ * <td>IDIGI_FIRMWARE_SERVICE enabled only.  config.h compile time #defines enabled</td>
+ * <td>9813</td>
+ * <td>280</td>
+ * <td>0</td>
+ * <td>0</td>
+ * </tr>
+ * <tr>
+ * <td>IDIGI_DATA_SERVICE enabled only.  config.h compile time #defines enabled</td>
+ * <td>12413</td>
+ * <td>244</td>
+ * <td>0</td>
+ * <td>0</td>
+ * </tr>
+ * </table>
+ * @endhtmlonly
  *
+ * References to Text, rodata, data, and bss refer to program instructions, Constant-Read-only data, Initialized global and 
+ * static variables, and Uninitialized zero-ed data, respectively.  The reference to config.h compile time #defines refers to 
+ * using the code reduction defines in config.h: IDIGI_DEVICE_TYPE, IDIGI_CLOUD_URL, IDIGI_TX_KEEPALIVE_IN_SECONDS, 
+ * IDIGI_RX_KEEPALIVE_IN_SECONDS, IDIGI_WAIT_COUNT, IDIGI_VENDOR_ID, IDIGI_MSG_MAX_TRANSACTION, IDIGI_CONNECTION_TYPE, 
+ * IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND, and IDIGI_WAN_PHONE_NUMBER_DIALED.
+ * 
+ * @subsection RAMRequirements RAM Usage 
+ * The following dynamic RAM usage was developed by monitoring the high water mark during the 
+ * @ref idigi_os_malloc @ref idigi_callback_t "application-defined callback".  
+ * 
  * @htmlonly
  * <table class="apitable">
  * <tr>
  * <th class="title">Description</td>
- * <th class="title">Size With Compression On</td>
- * <th class="title">Size With Compression Off</td>
+ * <th class="title">IDIGI_COMPRESSION enabled</td>
+ * <th class="title">IDIGI_COMPRESSION disabled</td>
  * <th class="title">Notes</td>
  * </tr>
  * <tr>
- * <td>Heap</td>
- * <td>5920 bytes</td>
- * <td>2656 bytes</td>
- * <td>IIK memory usage</td>
+ * <td>IIK Base usage</td>
+ * <td>2436</td>
+ * <td>2436</td>
+ * <td>Memory usage for internal state machines, infrastructure and communication buffers</td>
  * </tr>
  * <tr>
- * <td>Stack</td>
- * <td>TBD bytes</td>
- * <td>TBD bytes</td>
- * <td>Maximum Stack Usage</td>
+ * <td>With IDIGI_FIRMWARE_SERVICE enabled</td>
+ * <td>72</td>
+ * <td>72</td>
+ * <td></td>
  * </tr>
  * <tr>
- * <td>Code</td>
- * <td>17434 bytes</td>
- * <td>16319 bytes</td>
- * <td>On a 32-bit i486 Linux machine, using GCC v4.4.4, optimized for size (-Os)</td>
+ * <td>With IDIGI_DATA_SERVICE enabled</td>
+ * <td>92 + 3320*n</td>
+ * <td>92 + 56*n</td>
+ * <td>Where n is the maximum number of simultaneous message transactions, defined in the IDIGI_MSG_MAX_TRANSACTION</td>
+ * </tr>
+ * <tr>
+ * <td>Total</td>
+ * <td>5920</td>
+ * <td>2656</td>
+ * <td>Assumes both IDIGI_FIRMWARE_SERVICE and IDIGI_FIRMWARE_SERVICE enabled, with n=1 (one data service message transaction maximum)</td>
  * </tr>
  * </table>
  * @endhtmlonly
