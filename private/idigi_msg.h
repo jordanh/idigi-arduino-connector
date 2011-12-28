@@ -350,12 +350,12 @@ error:
     return status;
 }
 
-static void msg_inform_error(idigi_data_t * const idigi_ptr, msg_session_t * const session, idigi_msg_error_t error_code)
+static idigi_callback_status_t msg_inform_error(idigi_data_t * const idigi_ptr, msg_session_t * const session, idigi_msg_error_t error_code)
 {
     msg_service_request_t service_data;
 
     msg_set_error(session, error_code);
-    msg_call_service_layer(idigi_ptr, &service_data, session, msg_service_type_error, &error_code, sizeof error_code, 0);
+    return msg_call_service_layer(idigi_ptr, &service_data, session, msg_service_type_error, &error_code, sizeof error_code, 0);
 }
 
 static msg_session_t * msg_create_session(idigi_data_t * const idigi_ptr, idigi_msg_data_t * const msg_ptr, unsigned int const service_id, 
@@ -775,7 +775,7 @@ static idigi_callback_status_t msg_compress_data(idigi_data_t * const idigi_ptr,
         break;
 
     default:
-        msg_inform_error(idigi_ptr, session, idigi_msg_error_compression_failure);
+        status = msg_inform_error(idigi_ptr, session, idigi_msg_error_compression_failure);
         goto done;
     }
 
@@ -1024,7 +1024,7 @@ static idigi_callback_status_t msg_pass_service_data(idigi_data_t * const idigi_
                 MsgClearRequest(session->status_flag);
 
                 if (result != idigi_msg_error_none)
-                    msg_inform_error(idigi_ptr, session, result);
+                    status = msg_inform_error(idigi_ptr, session, result);
             }
             else
                 session->state = msg_state_delete;
@@ -1129,7 +1129,7 @@ static idigi_callback_status_t msg_decompress_data(idigi_data_t * const idigi_pt
     goto done;
 
 error:    
-    msg_inform_error(idigi_ptr, session, idigi_msg_error_decompression_failure);
+    status = msg_inform_error(idigi_ptr, session, idigi_msg_error_decompression_failure);
 
 done:
     return status;
@@ -1261,15 +1261,13 @@ static idigi_callback_status_t msg_process_start(idigi_data_t * const idigi_ptr,
         }
         #endif
     }
+
     MsgSetStart(flag);
     status = msg_process_service_data(idigi_ptr, session, ptr, length, record_end(start_packet), flag);
     goto done;
 
 error:
-    if (session != NULL)
-        msg_inform_error(idigi_ptr, session, result);
-    else
-        status = msg_send_error(idigi_ptr, msg_ptr, session, session_id, result, flag);
+    status = (session != NULL) ? msg_inform_error(idigi_ptr, session, result) : msg_send_error(idigi_ptr, msg_ptr, session, session_id, result, flag);
 
 done:
     return status;
@@ -1346,7 +1344,7 @@ static idigi_callback_status_t msg_process_error(idigi_data_t * const idigi_ptr,
     {
         idigi_msg_error_t error = message_load_u8(error_packet, error_code);
 
-        msg_inform_error(idigi_ptr, session, error);
+        status = msg_inform_error(idigi_ptr, session, error);
         msg_delete_session(idigi_ptr, msg_fac, session);
     }
     else
