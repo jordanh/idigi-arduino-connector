@@ -84,9 +84,6 @@
 #define IDIGI_CONNECTION_TYPE                      idigi_lan_connection_type 
 #define IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND    0 
 #define IDIGI_WAN_PHONE_NUMBER_DIALED              "012345678"
-
-#define IDIGI_FIRMWARE_SUPPORT 
-#define IDIGI_DATA_SERVICE_SUPPORT 
 #endif
 
 #endif
