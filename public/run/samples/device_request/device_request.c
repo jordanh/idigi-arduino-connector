@@ -29,7 +29,7 @@
 extern int os_malloc(size_t const size, void ** ptr);
 extern void os_free(void * const ptr);
 
-/* supported targets */
+/* supported target name */
 static char const device_request_target[] = "myTarget";
 
 static char device_response_data[] = "My device response data";
@@ -46,9 +46,8 @@ static unsigned int device_request_active_count = 0;
 static idigi_callback_status_t process_device_request(idigi_data_service_msg_request_t const * const request_data,
                                                       idigi_data_service_msg_response_t * const response_data)
 {
-    idigi_callback_status_t status = idigi_callback_continue;
-    idigi_data_service_device_request_t * server_device_request = request_data->service_context;
-    idigi_data_service_block_t * server_data = request_data->server_data;
+    idigi_data_service_device_request_t * const server_device_request = request_data->service_context;
+    idigi_data_service_block_t * const server_data = request_data->server_data;
 
     device_request_handle_t * client_device_request = response_data->user_context;
 
@@ -87,9 +86,6 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
         client_device_request->device_handle = server_device_request->device_handle;
         client_device_request->target = (char *)device_request_target;
 
-        /* setup response data for this target */
-         client_device_request->response_data = device_response_data;
-
          /* setup the user_context for our device request data */
          response_data->user_context = client_device_request;
          device_request_active_count++;
@@ -118,18 +114,19 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
     }
 
     if ((server_data->flags & IDIGI_MSG_LAST_DATA) == IDIGI_MSG_LAST_DATA)
-    {   /* No more chunk. setup the response length to be sent */
+    {   /* No more chunk */
+        /* setup response data for this target */
+        client_device_request->response_data = device_response_data;
         client_device_request->length_in_bytes = strlen(client_device_request->response_data);
     }
 
 done:
-    return status;
+    return idigi_callback_continue;
 }
 
 static idigi_callback_status_t process_device_response(idigi_data_service_msg_request_t const * const request_data,
                                                        idigi_data_service_msg_response_t * const response_data)
 {
-    idigi_callback_status_t status = idigi_callback_continue;
     device_request_handle_t * const client_device_request = response_data->user_context;
 
     UNUSED_PARAMETER(request_data);
@@ -165,13 +162,12 @@ static idigi_callback_status_t process_device_response(idigi_data_service_msg_re
         device_request_active_count--;
         os_free(client_device_request);
     }
-    return status;
+    return idigi_callback_continue;
 }
 
 static idigi_callback_status_t process_device_error(idigi_data_service_msg_request_t const * const request_data,
                                                     idigi_data_service_msg_response_t * const response_data)
 {
-    idigi_callback_status_t status = idigi_callback_continue;
     device_request_handle_t * const client_device_request = response_data->user_context;
     idigi_data_service_block_t * error_data = request_data->server_data;
     idigi_msg_error_t const error_code = *((idigi_msg_error_t *)error_data->data);
@@ -183,7 +179,7 @@ static idigi_callback_status_t process_device_error(idigi_data_service_msg_reque
     device_request_active_count--;
     os_free(client_device_request);
 
-    return status;
+    return idigi_callback_continue;
 }
 
 idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t const request,
