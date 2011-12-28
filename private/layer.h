@@ -1134,38 +1134,35 @@ error:
         release_receive_packet(idigi_ptr, packet);
     }
 
-    if (status != idigi_callback_abort)
+    /* invoke facility process */
+    for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL && status != idigi_callback_abort; fac_ptr = fac_ptr->next)
     {
-        /* invoke facility process */
-        for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL; fac_ptr = fac_ptr->next)
+        unsigned int const i = fac_ptr->facility_index;
+
+        if (idigi_supported_facility_table[i].process_cb)
         {
-            unsigned int const i = fac_ptr->facility_index;
+            status = idigi_supported_facility_table[i].process_cb(idigi_ptr, fac_ptr->facility_data,
+                                                                  fac_ptr->packet, &idigi_ptr->receive_packet.timeout);
+            if (status != idigi_callback_busy && fac_ptr->packet != NULL)
+            {   /* release the packet when it's done */
+                release_receive_packet(idigi_ptr, fac_ptr->packet);
+                fac_ptr->packet = NULL;
+            }
 
-            if (idigi_supported_facility_table[i].process_cb)
+            if (status != idigi_callback_abort)
             {
-                status = idigi_supported_facility_table[i].process_cb(idigi_ptr, fac_ptr->facility_data,
-                                                                      fac_ptr->packet, &idigi_ptr->receive_packet.timeout);
-                if (status != idigi_callback_busy && fac_ptr->packet != NULL)
-                {   /* release the packet when it's done */
-                    release_receive_packet(idigi_ptr, fac_ptr->packet);
-                    fac_ptr->packet = NULL;
-                }
-
-                if (status != idigi_callback_abort)
+                uint32_t rx_keepalive = 0;
+                uint32_t tx_keepalive = 0;
+                uint32_t current_system_time;
+                /* check rx_keepalive and tx_keepalive timing */
+                status =  get_keepalive_timeout(idigi_ptr, &rx_keepalive, &tx_keepalive, &current_system_time);
+                if (rx_keepalive == 0 || tx_keepalive == 0 || status != idigi_callback_continue)
                 {
-                    uint32_t rx_keepalive = 0;
-                    uint32_t tx_keepalive = 0;
-                    uint32_t current_system_time;
-                    /* check rx_keepalive and tx_keepalive timing */
-                    status =  get_keepalive_timeout(idigi_ptr, &rx_keepalive, &tx_keepalive, &current_system_time);
-                    if (rx_keepalive == 0 || tx_keepalive == 0 || status != idigi_callback_continue)
-                    {
-                        break;
-                    }
-                    if (status == idigi_callback_unrecognized)
-                    {
-                        status = idigi_callback_continue;
-                    }
+                    break;
+                }
+                if (status == idigi_callback_unrecognized)
+                {
+                    status = idigi_callback_continue;
                 }
             }
         }
