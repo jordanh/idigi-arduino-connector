@@ -1397,7 +1397,7 @@ static idigi_callback_status_t msg_process_pending(idigi_data_t * const idigi_pt
             break;
 
         case msg_state_get_data:
-            msg_get_service_data(idigi_ptr, session);
+            status = msg_get_service_data(idigi_ptr, session);
             break;
 
         #if (defined IDIGI_COMPRESSION)
