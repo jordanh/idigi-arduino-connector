@@ -44,15 +44,15 @@ LIBS = -lc -lz
 SAMPLE = idigi
 all: $(SAMPLE)
 
-CFLAGS += -Wl,-Map,$(SAMPLE).map -DIDIGI_DATA_SERVICE -DIDIGI_FIRMWARE_SERVICE -D______IDIGI_COMPRESSION -D__USE_THE_DEFINES
+CFLAGS += -Wl,-Map,$(SAMPLE).map -DIDIGI_DATA_SERVICE -DIDIGI_FIRMWARE_SERVICE -D____IDIGI_COMPRESSION -D___IDIGI_DEBUG -DUSE_THE_DEFINES
 
-main.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h
+main.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h Makefile
 $(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PUBLIC_HEADER_DIR)/idigi_config.h \
                         $(IDIGI_DIR)/chk_config.h $(IDIGI_DIR)/debug.h $(IDIGI_DIR)/ei_packet.h \
                         $(IDIGI_DIR)/idigi_cc.h $(IDIGI_DIR)/idigi_ds.h $(IDIGI_DIR)/idigi_fw.h \
                         $(IDIGI_DIR)/idigi_msg.h $(IDIGI_DIR)/layer.h $(IDIGI_DIR)/network_intf.h \
                         $(IDIGI_DIR)/options.h $(IDIGI_DIR)/os_intf.h $(IDIGI_DIR)/bele.h \
-                        $(IDIGI_DIR)/idigi_def.h
+                        $(IDIGI_DIR)/idigi_def.h Makefile
 
 $(OBJS): *.c $(IDIGI_DIR)/*.c
 
