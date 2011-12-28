@@ -268,7 +268,7 @@ idigi_status_t idigi_step(idigi_handle_t const handle)
     {
     case idigi_callback_abort:
     case idigi_callback_unrecognized:
-        result = idigi_handle->error_code;
+        result = idigi_configuration_error;
         goto error;
     case idigi_callback_continue:
     case idigi_callback_busy:
