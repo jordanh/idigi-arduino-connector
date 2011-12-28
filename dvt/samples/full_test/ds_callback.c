@@ -121,21 +121,6 @@ idigi_callback_status_t idigi_put_request_callback(void const * request_data, si
         case dvt_case_put_request_cancel_at_start:
             goto error;
 
-        case dvt_case_put_request_cancel_at_middle:
-            if (ds_info->bytes_sent > 0)
-                goto error;
-            break;
-
-        case dvt_case_put_request_timeout:
-            #if !defined (IDIGI_COMPRESSION)
-            if (ds_info->bytes_sent > 0)
-            {
-                status = idigi_callback_busy;
-                goto done;
-            }
-            #endif
-            break;
-
         default:
             break;
         }
@@ -151,11 +136,27 @@ idigi_callback_status_t idigi_put_request_callback(void const * request_data, si
             message->length_in_bytes = bytes_copy;
             message->flags = 0;
             if (ds_info->bytes_sent == 0)
+            {
                 message->flags |= IDIGI_MSG_FIRST_DATA;
+            }
 
             ds_info->bytes_sent += bytes_copy;
             if (ds_info->bytes_sent == dvt_current_ptr->file_size)
             {
+
+                switch (dvt_current_ptr->target)
+                {
+                case dvt_case_put_request_timeout:
+                    status = idigi_callback_busy;
+                    goto done;
+
+                case dvt_case_put_request_cancel_in_middle:
+                    goto error;
+
+                default:
+                    break;
+                }
+
                 message->flags |= IDIGI_MSG_LAST_DATA;
                 dvt_current_ptr->state = dvt_state_fw_download_complete;
             }
@@ -207,7 +208,7 @@ error:
     put_response->message_status = idigi_msg_error_cancel;
 
 cleanup:
-    if (dvt_current_ptr->target == /* dvt_case_last */ dvt_case_put_request_busy - 1)
+    if (dvt_current_ptr->target == dvt_case_last - 1)
     {
         dvt_current_ptr->state = dvt_state_stop;
         status = idigi_callback_abort;

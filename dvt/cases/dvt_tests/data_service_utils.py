@@ -34,7 +34,6 @@ def update_firmware(api, device, target, content):
     targets.appendChild(device_element)
         
     sci_element.appendChild(update_firmware_element)
-    
         
     data = request.createElement("data")
     data_value = request.createTextNode(b64encode(content))
@@ -50,7 +49,7 @@ def update_firmware(api, device, target, content):
 def update_and_verify(instance, api, device_id, target, content, 
                     datetime_created, file_location, 
                     file_name, expected_content=None, dne=False,
-                    original_created_time=None, wait_time=5):
+                    original_created_time=None, wait_time=8):
                     
     """Sends firmware update to trigger a data push, then performs
     a GET on the file_location to determine if the correct content 

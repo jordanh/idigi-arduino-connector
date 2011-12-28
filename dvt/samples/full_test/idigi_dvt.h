@@ -27,7 +27,7 @@ typedef enum
     dvt_case_put_request_both,
     dvt_case_put_request_busy,
     dvt_case_put_request_cancel_at_start,
-    dvt_case_put_request_cancel_at_middle,
+    dvt_case_put_request_cancel_in_middle,
     dvt_case_put_request_timeout,
     dvt_case_last
 } dvt_cases_t;

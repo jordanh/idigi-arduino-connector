@@ -30,6 +30,10 @@ filedatahistory = 'FileDataHistory/~/'
 APPEND = 'Data Service PUT, Append'
 ARCHIVE = 'Data Service PUT, Archive'
 BOTH = 'Data Service PUT, Both'
+BUSY = 'Data Service PUT, Busy'
+CANCEL_AT_START = 'Data Service PUT, Cancel at start'
+CANCEL_IN_MIDDLE = 'Data Service PUT, Cancel in middle'
+TIMEOUT = 'Data Service PUT, Timeout'
 
 config_file = 'config.ini'
 config = configuration.DeviceConfiguration(config_file)
@@ -401,9 +405,94 @@ class DataServiceBothTestCase(unittest.TestCase):
         # Verify correct response to request (may not have one)
         
         # Check that file was not created
-        time.sleep(1)
+        time.sleep(8)
         self.assertRaises(Exception, config.api.get_raw, file_location)
-    
+
+def send_and_receive_target_data(instance, config, target_str, wait_time, file_expected):
+
+    target = config.data_service_target[target_str]['target']
+    file_name = config.data_service_target[target_str]['file_name']
+
+    f = open(config.firmware_target_file[target], 'rb')
+    file_content = f.read()
+    f.close()
+
+    # Create file path.
+    file_location = filedata + config.device_id + '/' + file_name
+
+    # Check that file does not already exist.
+    clean_slate(config.api, file_location)
+
+    # Send first firmware update to Both=True target
+    log.info("Sending first firmware update to create file.")
+    datetime_created = []
+    datetime_created.append(datetime.datetime.utcnow())
+    response = update_firmware(config.api, config.device_id, "%d" %target, file_content)
+
+    # Verify correct response to request (may not have one)
+
+    time.sleep(wait_time)
+
+    if file_expected:
+        expected_content = config.api.get_raw(file_location)
+        instance.assertEqual(expected_content, file_content,
+                             "File's contents do not match what is expected")
+        config.api.delete_location(file_location)
+    else:
+        # Check that file was not created
+        instance.assertRaises(Exception, config.api.get_raw, file_location)
+
+class DataServiceSpecialTestCase(unittest.TestCase):
+
+    def setUp(self):
+        # Ensure device is connected.
+        log.info("Ensuring Device %s is connected." % config.device_id)
+        self.device_core = config.api.get_first('DeviceCore', 
+                        condition="devConnectwareId='%s'" % config.device_id)
+
+        # If not connected, fail the TestCase.
+        if not self.device_core.dpConnectionStatus == '1':
+            self.assertEqual('1', self.device_core.dpConnectionStatus, 
+                        "Device %s not connected." % config.device_id)
+
+    def test_ds_busy(self):
+
+        """ Sends a firmware update to a data service firmware target which
+            pushes data when client app is temporarily busy. Test verifies
+            that the file is created. """
+
+        log.info("Beginning Data Service Test - Busy")
+        send_and_receive_target_data(self, config, BUSY, 10, True)
+
+
+    def test_ds_cancel_at_start(self):
+
+        """ Sends a firmware update to a data service firmware target which
+            pushes data and client app cancels the transaction when data 
+            transfer starts. Test verifies that the file is not created. """
+
+        log.info("Beginning Data Service Test - Cancel at start")
+        send_and_receive_target_data(self, config, CANCEL_AT_START, 10, False)
+
+
+    def test_ds_cancel_in_middle(self):
+
+        """ Sends a firmware update to a data service firmware target which
+            pushes data and client app cancels the transaction in the middle
+            of data transfer. Test verifies that the file is not created. """
+
+        log.info("Beginning Data Service Test - Cancel in middle")
+        send_and_receive_target_data(self, config, CANCEL_IN_MIDDLE, 10, False)
+
+    def test_ds_timeout(self):
+
+       """ Sends a firmware update to a data service firmware target which
+           pushes data and client app times out in the middle of the data
+           transfer. Test verifies that the file is not created. """
+
+       log.info("Beginning Data Service Test - Timeout")
+       send_and_receive_target_data(self, config, TIMEOUT, 70, False)
+
 class ContentTestCase(unittest.TestCase):
     
     def setUp(self):
