@@ -306,10 +306,11 @@ static idigi_callback_status_t firmware_reset(idigi_fw_config_t const * const re
     /* Server requests firmware reboot */
     APP_DEBUG("firmware_reset\n");
 
+
     return status;
 }
 
-idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t const request,
+idigi_callback_status_t app_firmware_handler(idigi_firmware_request_t const request,
                                                   void * const request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length)
 {
