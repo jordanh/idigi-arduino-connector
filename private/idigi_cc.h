@@ -507,7 +507,6 @@ static idigi_callback_status_t process_connection_control(idigi_data_t * const i
             break;
         case idigi_callback_abort:
         case idigi_callback_unrecognized:
-            idigi_ptr->error_code =  idigi_configuration_error;
             status = idigi_callback_abort;
             break;
         case idigi_callback_busy:
