@@ -155,7 +155,7 @@ static int app_get_device_id(uint8_t ** id, size_t * size)
 static int app_get_vendor_id(uint8_t ** id, size_t * size)
 {
 #error  "Specify vendor id"
-    static const uint8_t device_vendor_id[VENDOR_ID_LENGTH] = {0x01, 0x00, 0x00, 0x01};
+    static const uint8_t device_vendor_id[VENDOR_ID_LENGTH] = {0x00, 0x00, 0x00, 0x00};
 
     *id   = (uint8_t *)device_vendor_id;
     *size = sizeof device_vendor_id;
