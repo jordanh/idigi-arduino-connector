@@ -102,7 +102,7 @@
  * static variables, and Uninitialized zero-ed data, respectively.  The reference to config.h compile time #defines refers to 
  * using the code reduction defines in config.h: IDIGI_DEVICE_TYPE, IDIGI_CLOUD_URL, IDIGI_TX_KEEPALIVE_IN_SECONDS, 
  * IDIGI_RX_KEEPALIVE_IN_SECONDS, IDIGI_WAIT_COUNT, IDIGI_VENDOR_ID, IDIGI_MSG_MAX_TRANSACTION, IDIGI_CONNECTION_TYPE, 
- * IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND, and IDIGI_WAN_PHONE_NUMBER_DIALED.
+ * IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND, IDIGI_WAN_PHONE_NUMBER_DIALED, IDIGI_FIRMWARE_SUPPORT, and IDIGI_DATA_SERVICE_SUPPORT.
  * 
  * @subsection RAMRequirements RAM Usage 
  * The following dynamic RAM usage was developed by monitoring the high water mark during the 
