@@ -475,7 +475,7 @@ static unsigned int app_get_max_message_transactions(void)
 static void app_config_error(idigi_error_status_t * const error_data)
 {
 
-#if defined(DEBUG)
+    /* do not arrange the strings. The strings are corresponding to enum list */
     char const * error_status_string[] = {"idigi_success", "idigi_init_error",
                                           "idigi_configuration_error",
                                           "idigi_invalid_data_size",
@@ -495,7 +495,8 @@ static void app_config_error(idigi_error_status_t * const error_data)
                                           "idigi_close_error",
                                           "idigi_device_terminated",
                                           "idigi_service_busy",
-                                          "idigi_invalid_response"};
+                                          "idigi_invalid_response",
+                                          "idigi_no_resource"};
 
     char const * config_request_string[] = { "idigi_config_device_id",
                                              "idigi_config_vendor_id",
@@ -570,7 +571,6 @@ static void app_config_error(idigi_error_status_t * const error_data)
         print("idigi_error_status: unsupport class_id = %d status = %d\n", error_data->class_id, error_data->status);
         break;
     }
-#endif
 
 }
 
