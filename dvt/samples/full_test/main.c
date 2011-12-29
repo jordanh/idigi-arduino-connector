@@ -175,8 +175,9 @@ void * idigi_run_thread(void * arg)
     APP_DEBUG("idigi_run thread exits %d\n", status);
 
     PrintSummaryStack();
-
-    APP_DEBUG("idigi_run_thread: stack size = %d\n", stack_size_used);
+    APP_DEBUG("idigi_run - callback: stack size = %d\n", stack_size_used);
+    APP_DEBUG("\nidigi_run_thread:\n");
+    PrintThreadStackInit(&stack_size, &threadGuardSize);
     pthread_exit(arg);
 }
 
@@ -184,12 +185,16 @@ void * idigi_run_thread(void * arg)
 void * application_run_thread(void * arg)
 {
     idigi_status_t status;
+    size_t threadGuardSize;
+    size_t threadStackSize;
 
     APP_DEBUG("application_run_thread starts\n");
 
     status = application_run((idigi_handle_t)arg);
 
     APP_DEBUG("application_run thread exits %d\n", status);
+    APP_DEBUG("\napplication_run_thread:\n");
+    PrintThreadStackInit(&threadStackSize, &threadGuardSize);
 
     pthread_exit(arg);
 }
