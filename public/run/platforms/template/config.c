@@ -28,13 +28,12 @@
   *  @brief Configuration routines for the IIK.
   *
   */
-#include <unistd.h>
-#include <malloc.h>
-#include <arpa/inet.h>
-#include <sys/ioctl.h>
-#include <net/if.h>
-#include "idigi_data.h"
-#include "idigi_types.h"
+#include <string.h>
+#include "idigi_api.h"
+
+#define DEVICE_ID_LENGTH    16
+#define VENDOR_ID_LENGTH    4
+#define MAC_ADDR_LENGTH     6
 
 /**
  * @brief   Get the IP address of the device
@@ -52,7 +51,7 @@
  *
  * @see @ref ip_address API Configuration Callback
  */
-static int get_ip_address(uint8_t ** ip_address, size_t *size)
+static int app_get_ip_address(uint8_t ** ip_address, size_t * size)
 {
     return 0;
 }
@@ -71,7 +70,7 @@ static int get_ip_address(uint8_t ** ip_address, size_t *size)
  * 
  * @see @ref mac_address API Configuration Callback
  */
-static int get_mac_addr(uint8_t ** addr, size_t * size)
+static int app_get_mac_addr(uint8_t ** addr, size_t * size)
 {
     /* MAC address used in this sample */
     static uint8_t device_mac_addr[MAC_ADDR_LENGTH] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -99,21 +98,25 @@ static int get_mac_addr(uint8_t ** addr, size_t * size)
  * 
  * @see @ref device_id API Configuration Callback
  */
-static int get_device_id(uint8_t ** id, size_t * size)
+static int app_get_device_id(uint8_t ** id, size_t * size)
 {
     static uint8_t device_id[DEVICE_ID_LENGTH] = {0};
+    uint8_t * mac_addr;
+    size_t mac_size;
 
 #error  "Specify device id"
 
     /* This sample uses the MAC address to format the device ID */
-    device_id[8] = device_mac_addr[0];
-    device_id[9] = device_mac_addr[1];
-    device_id[10] = device_mac_addr[2];
+    app_get_mac_addr(&mac_addr, &mac_size);
+
+    device_id[8] = mac_addr[0];
+    device_id[9] = mac_addr[1];
+    device_id[10] = mac_addr[2];
     device_id[11] = 0xFF;
     device_id[12] = 0xFF;
-    device_id[13] = device_mac_addr[3];
-    device_id[14] = device_mac_addr[4];
-    device_id[15] = device_mac_addr[5];
+    device_id[13] = mac_addr[3];
+    device_id[14] = mac_addr[4];
+    device_id[15] = mac_addr[5];
 
     *id   = device_id;
     *size = sizeof device_id;
@@ -139,7 +142,7 @@ static int get_device_id(uint8_t ** id, size_t * size)
  * @note This routine is not needed if you define @b IDIGI_VENDOR_ID configuration in @ref idigi_config.h.
  * See @ref default_config
  */
-static int get_vendor_id(uint8_t ** id, size_t * size)
+static int app_get_vendor_id(uint8_t ** id, size_t * size)
 {
 #error  "Specify vendor id"
     static const uint8_t device_vendor_id[VENDOR_ID_LENGTH] = {0x00, 0x00, 0x00, 0x00};
@@ -172,7 +175,7 @@ static int get_vendor_id(uint8_t ** id, size_t * size)
  * @note This routine is not needed if you define @ref IDIGI_DEVICE_TYPE configuration in @ref idigi_config.h.
  * See @ref default_config
  */
-static int get_device_type(char ** type, size_t * size)
+static int app_get_device_type(char ** type, size_t * size)
 {
 #error "Specify device type"
     static const char const *device_type = "IIK Linux Sample";
@@ -201,7 +204,7 @@ static int get_device_type(char ** type, size_t * size)
  * @note This routine is not needed if you define @b IDIGI_CLOUD_URL configuration in @ref idigi_config.h.
  * See @ref default_config
  */
-static int get_server_url(char ** url, size_t * size)
+static int app_get_server_url(char ** url, size_t * size)
 {
 #error "Specify iDigi Server URL"
     static const char const *idigi_server_url = "developer.idigi.com";
@@ -230,7 +233,7 @@ static int get_server_url(char ** url, size_t * size)
  * @note This routine is not needed if you define @b IDIGI_CONNECTION_TYPE configuration in @ref idigi_config.h.
  * See @ref default_config
  */
-static int get_connection_type(idigi_connection_type_t ** type)
+static int app_get_connection_type(idigi_connection_type_t ** type)
 {
 #error "Specify LAN or WAN connection type"
 
@@ -259,11 +262,9 @@ static int get_connection_type(idigi_connection_type_t ** type)
  * @note This routine is not needed if you define @b IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND configuration in @ref idigi_config.h.
  * See @ref default_config
  */
-static int get_link_speed(uint32_t ** speed, size_t * size)
+static int app_get_link_speed(uint32_t ** speed, size_t * size)
 {
 #error "Specify link speed for WAN connection type"
-    UNUSED_PARAMETER(speed);
-    UNUSED_PARAMETER(size);
 
     return 0;
 }
@@ -286,15 +287,12 @@ static int get_link_speed(uint32_t ** speed, size_t * size)
  * @note This routine is not needed if you define @b IDIGI_WAN_PHONE_NUMBER_DIALED configuration in @ref idigi_config.h.
  * See @ref default_config
  */
-static int get_phone_number(uint8_t ** number, size_t * size)
+static int app_get_phone_number(uint8_t ** number, size_t * size)
 {
 #error "Specify phone number dialed for WAN connection type"
     /* 
      * Return pointer to phone number for WAN connection type.
      */
-    UNUSED_PARAMETER(number);
-    UNUSED_PARAMETER(size);
-
     return 0;
 }
 
@@ -317,7 +315,7 @@ static int get_phone_number(uint8_t ** number, size_t * size)
  * @note This routine is not needed if you define @b IDIGI_TX_KEEPALIVE_IN_SECONDS configuration in @ref idigi_config.h.
  * See @ref default_config
  */
-static int get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
+static int app_get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
 {
 #error "Specify server to device TX keepalive interval in seconds"
 
@@ -349,7 +347,7 @@ static int get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
  * @note This routine is not needed if you define @b IDIGI_RX_KEEPALIVE_IN_SECONDS configuration in @ref idigi_config.h.
  * See @ref default_config
  */
-static int get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
+static int app_get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
 {
 #error "Specify server to device RX keepalive interval in seconds"
 #define DEVICE_RX_KEEPALIVE_INTERVAL_IN_SECONDS     60
@@ -379,7 +377,7 @@ static int get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
  * @note This routine is not needed if you define @b IDIGI_WAIT_COUNT configuration in @ref idigi_config.h.
  * See @ref default_config
  */
-static int get_wait_count(uint16_t ** count, size_t * size)
+static int app_get_wait_count(uint16_t ** count, size_t * size)
 {
 #error "Specify the number of times that not receiving keepalive messages from server is allowed"
 #define DEVICE_WAIT_COUNT     5
@@ -411,7 +409,7 @@ static int get_wait_count(uint16_t ** count, size_t * size)
  *
  * @note See @ref IDIGI_FIRMWARE_SERVICE to include firmware access facility code in IIK.
  */
-static idigi_service_supported_status_t get_firmware_support(void)
+static idigi_service_supported_status_t app_get_firmware_support(void)
 {
     return idigi_service_supported;
 }
@@ -433,7 +431,7 @@ static idigi_service_supported_status_t get_firmware_support(void)
  * @note See @ref IDIGI_DATA_SERVICE to include data service code in IIK.
  * @note See @ref IDIGI_COMPRESSION for data service transferring compressed data.
  */
-static idigi_service_supported_status_t get_data_service_support(void)
+static idigi_service_supported_status_t app_get_data_service_support(void)
 {
     return idigi_service_supported;
 }
@@ -452,7 +450,7 @@ static idigi_service_supported_status_t get_data_service_support(void)
  * @note This routine is not needed if you define @b IDIGI_MSG_MAX_TRANSACTION configuration in @ref idigi_config.h.
  * See @ref default_config
  */
-static unsigned int get_max_message_transactions(void)
+static unsigned int app_get_max_message_transactions(void)
 {
 #define IDIGI_MAX_MSG_TRANSACTIONS   388
 
@@ -474,7 +472,7 @@ static unsigned int get_max_message_transactions(void)
  *
  * @see @ref error_status API Configuration Callback
  */
-static void idigi_config_error(idigi_error_status_t * const error_data)
+static void app_config_error(idigi_error_status_t * const error_data)
 {
 
 #if defined(DEBUG)
@@ -545,35 +543,33 @@ static void idigi_config_error(idigi_error_status_t * const error_data)
     switch (error_data->class_id)
     {
     case idigi_class_config:
-        DEBUG_PRINTF("idigi_error_status: Config - %s (%d)  status = %s (%d)\n", config_request_string[error_data->request_id.config_request],
+        print("idigi_error_status: Config - %s (%d)  status = %s (%d)\n", config_request_string[error_data->request_id.config_request],
                      error_data->request_id.config_request, error_status_string[error_data->status],error_data->status);
         break;
     case idigi_class_network:
-        DEBUG_PRINTF("idigi_error_status: Network - %s (%d)  status = %s (%d)\n", network_request_string[error_data->request_id.network_request],
+        print("idigi_error_status: Network - %s (%d)  status = %s (%d)\n", network_request_string[error_data->request_id.network_request],
                      error_data->request_id.network_request, error_status_string[error_data->status],error_data->status);
         break;
     case idigi_class_operating_system:
-        DEBUG_PRINTF("idigi_error_status: Operating System - %s (%d)  status = %s (%d)\n", os_request_string[error_data->request_id.os_request],
+        print("idigi_error_status: Operating System - %s (%d)  status = %s (%d)\n", os_request_string[error_data->request_id.os_request],
                      error_data->request_id.os_request, error_status_string[error_data->status],error_data->status);
         break;
     case idigi_class_firmware:
-        DEBUG_PRINTF("idigi_error_status: Firmware facility - %s (%d)  status = %s (%d)\n",
+        print("idigi_error_status: Firmware facility - %s (%d)  status = %s (%d)\n",
                      firmware_request_string[error_data->request_id.firmware_request],
                      error_data->request_id.firmware_request,
                      error_status_string[error_data->status],error_data->status);
         break;
     case idigi_class_data_service:
-        DEBUG_PRINTF("idigi_error_status: Data service - %s (%d)  status = %s (%d)\n",
+        print("idigi_error_status: Data service - %s (%d)  status = %s (%d)\n",
                      data_service_string[error_data->request_id.data_service_request],
                      error_data->request_id.data_service_request,
                      error_status_string[error_data->status],error_data->status);
         break;
     default:
-        DEBUG_PRINTF("idigi_error_status: unsupport class_id = %d status = %d\n", error_data->class_id, error_data->status);
+        print("idigi_error_status: unsupport class_id = %d status = %d\n", error_data->class_id, error_data->status);
         break;
     }
-#else
-    UNUSED_PARAMETER(error_data);
 #endif
 
 }
@@ -585,7 +581,7 @@ static void idigi_config_error(idigi_error_status_t * const error_data)
 /*
  * Configuration callback routine.
  */
-idigi_callback_status_t idigi_config_callback(idigi_config_request_t const request,
+idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
                                               void * const request_data,
                                               size_t const request_length,
                                               void * response_data,
@@ -594,75 +590,73 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
     idigi_callback_status_t status;
     int ret = -1;
 
-    UNUSED_PARAMETER(request_length);
-
     switch (request)
     {
     case idigi_config_device_id:
-        ret = get_device_id((uint8_t **)response_data, response_length);
+        ret = app_get_device_id((uint8_t **)response_data, response_length);
         break;
 
     case idigi_config_vendor_id:
-        ret = get_vendor_id((uint8_t **)response_data, response_length);
+        ret = app_get_vendor_id((uint8_t **)response_data, response_length);
         break;
 
     case idigi_config_device_type:
-        ret = get_device_type((char **)response_data, response_length);
+        ret = app_get_device_type((char **)response_data, response_length);
         break;
 
     case idigi_config_server_url:
-        ret = get_server_url((char **)response_data, response_length);
+        ret = app_get_server_url((char **)response_data, response_length);
         break;
 
     case idigi_config_connection_type:
-        ret = get_connection_type((idigi_connection_type_t **)response_data);
+        ret = app_get_connection_type((idigi_connection_type_t **)response_data);
         break;
 
     case idigi_config_mac_addr:
-        ret = get_mac_addr((uint8_t **)response_data, response_length);
+        ret = app_get_mac_addr((uint8_t **)response_data, response_length);
         break;
 
     case idigi_config_link_speed:
-        ret = get_link_speed((uint32_t **)response_data, response_length);
+        ret = app_get_link_speed((uint32_t **)response_data, response_length);
         break;
 
     case idigi_config_phone_number:
-        ret = get_phone_number((uint8_t **)response_data, response_length);
+        ret = app_get_phone_number((uint8_t **)response_data, response_length);
        break;
 
     case idigi_config_tx_keepalive:
-        ret = get_tx_keepalive_interval((uint16_t **)response_data, response_length);
+        ret = app_get_tx_keepalive_interval((uint16_t **)response_data, response_length);
         break;
 
     case idigi_config_rx_keepalive:
-        ret = get_rx_keepalive_interval((uint16_t **)response_data, response_length);
+        ret = app_get_rx_keepalive_interval((uint16_t **)response_data, response_length);
         break;
 
     case idigi_config_wait_count:
-        ret = get_wait_count((uint16_t **)response_data, response_length);
+        ret = app_get_wait_count((uint16_t **)response_data, response_length);
         break;
 
     case idigi_config_ip_addr:
-        ret = get_ip_address((uint8_t **)response_data, response_length);
+        ret = app_get_ip_address((uint8_t **)response_data, response_length);
         break;
 
     case idigi_config_error_status:
-        idigi_config_error((idigi_error_status_t *)request_data);
+        app_config_error((idigi_error_status_t *)request_data);
         ret = 0;
         break;
 
     case idigi_config_firmware_facility:
-        *((idigi_service_supported_status_t *)response_data) = get_firmware_support();
+        *((idigi_service_supported_status_t *)response_data) = app_get_firmware_support();
         ret = 0;
         break;
 
     case idigi_config_data_service:
-        *((idigi_service_supported_status_t *)response_data) = get_data_service_support();
+        *((idigi_service_supported_status_t *)response_data) = app_get_data_service_support();
         ret = 0;
         break;
 
     case idigi_config_max_transaction:
-        *((unsigned int *)response_data) = get_max_message_transactions();
+        *((unsigned int *)response_data) = app_get_max_message_transactions();
          ret = 0;
         break;
 
