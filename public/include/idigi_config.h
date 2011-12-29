@@ -37,39 +37,62 @@
 * @{
 */
 /** 
- *  If defined the system is little endian, comment out for big endian.
+ *  When defined, the system is little endian.  
+ *  
+ *  @note For Big endian systems, this line should be commented out.
  */
 #define IDIGI_LITTLE_ENDIAN
 
 /** 
- *  If defined the debugging is enabled in the IIK.
+ * If defined, IIK includes debug support.  IIK state and debug data is displayed using the
+ * @ref USER_DEBUG_VPRINTF tags.  Macro error testing is compiled and implemented using the
+ * @ref ASSERT macro.
+ * 
+ * These can be eliminated in a product release, which will greatly reduce memory codespace and 
+ * RAM needs.  
+ * 
  * @see USER_DEBUG_VPRINTF
  * @see ASSERT
  */
 #define IDIGI_DEBUG
 
 /** 
- * If defined the firmware service is included in IIK.
+ * If defined, IIK includes the @ref firmware_download "Firmware Download Service".  
+ * 
  * @see @ref firmware_support
  */
 #define IDIGI_FIRMWARE_SERVICE
 
 
 /** 
- * If defined zlib compression is enabled for data service.
+ * If defined, the IIK includes the @ref zlib "Data Compression" used with the  @ref data_service. 
+ * @note When included, this requires the zlib library.
+ * @see @ref data_service
+ * @see @ref IDIGI_DATA_SERVICE
+ * 
  */
 #define IDIGI_COMPRESSION
 
 /** 
- * If defined the data service is included in IIK.
+ * If defined, IIK includes the @ref data_service.  
  * @see @ref data_service_support
+ * @see @ref zlib
+ * @see @ref IDIGI_COMPRESSION
  */
 #define IDIGI_DATA_SERVICE
-/**
-* @}
-*/
 
-/* #define IDIGI_DEVICE_TYPE               "IIK Linux Sample" */
+#ifdef ENABLE_COMPILE_TIME_DATA_PASSING
+
+/** 
+ * If defined, this eliminates the callback used to retrieve the @ref device_type.
+ * 
+ * @see @ref device_type API Configuration Callback
+ * @see @ref get_device_type
+ * @see @ref default_config
+ *   
+ */
+#define IDIGI_DEVICE_TYPE               "IIK Linux Sample"
+
 /* #define IDIGI_CLOUD_URL                 "developer.idigi.com" */
 /* #define IDIGI_TX_KEEPALIVE_IN_SECONDS   75 */
 /* #define IDIGI_RX_KEEPALIVE_IN_SECONDS   75 */
@@ -84,5 +107,11 @@
 
 /* #define IDIGI_FIRMWARE_SUPPORT */
 /* #define IDIGI_DATA_SERVICE_SUPPORT */
+
+#endif
+
+/**
+* @}
+*/
 
 #endif

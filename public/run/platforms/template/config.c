@@ -167,8 +167,9 @@ static int get_vendor_id(uint8_t ** id, size_t * size)
  * @retval -1  Could not get the device type
  *
  * @see @ref device_type API Configuration Callback
+ * @see @ref IDIGI_DEVICE_TYPE
  * 
- * @note This routine is not needed if you define @b IDIGI_DEVICE_TYPE configuration in @ref idigi_config.h.
+ * @note This routine is not needed if you define @ref IDIGI_DEVICE_TYPE configuration in @ref idigi_config.h.
  * See @ref default_config
  */
 static int get_device_type(char ** type, size_t * size)
