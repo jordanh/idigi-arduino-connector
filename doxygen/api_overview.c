@@ -62,8 +62,8 @@
  * environment.
  *
  * @note To relinquish control of the CPU in a multithreaded environment the IIK
- * call the receive (@ref idigi_network_receive) callback with a timeout or will call
- * OS sleep (@ref idigi_os_sleep).
+ * call the receive (@ref app_network_receive) callback with a timeout or will call
+ * OS sleep (@ref app_os_sleep).
  *
  * @subsection initiate_action Initiate an action: idigi_initiate_action() 
  *
