@@ -29,7 +29,7 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-int os_malloc(size_t const size, void ** ptr)
+int app_os_malloc(size_t const size, void ** ptr)
 {
     int status=-1;
 
@@ -43,7 +43,7 @@ int os_malloc(size_t const size, void ** ptr)
     return status;
 }
 
-void os_free(void * const ptr)
+void app_os_free(void * const ptr)
 {
     ASSERT(ptr != NULL);
 
@@ -54,14 +54,14 @@ void os_free(void * const ptr)
     return;
 }
 
-int os_get_system_time(uint32_t * const uptime)
+int app_os_get_system_time(uint32_t * const uptime)
 {
     time((time_t *)uptime);
 
     return 0;
 }
 
-void os_sleep(unsigned int const timeout_in_seconds)
+void app_os_sleep(unsigned int const timeout_in_seconds)
 {
     unsigned int const timeout_in_microseconds = timeout_in_seconds * 1000000;
 
@@ -69,7 +69,7 @@ void os_sleep(unsigned int const timeout_in_seconds)
     return;
 }
 
-idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
+idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
                                         void * const request_data, size_t const request_length,
                                         void * response_data, size_t * const response_length)
 {
@@ -82,22 +82,22 @@ idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
     switch (request)
     {
     case idigi_os_malloc:
-        ret    = os_malloc(*((size_t *)request_data), (void **)response_data);
+        ret    = app_os_malloc(*((size_t *)request_data), (void **)response_data);
         status = (ret == 0) ? idigi_callback_continue : idigi_callback_busy;
         break;
 
     case idigi_os_free:
-        os_free(request_data);
+        app_os_free(request_data);
         status = idigi_callback_continue;
         break;
 
     case idigi_os_system_up_time:
-        ret    = os_get_system_time((uint32_t *)response_data);
+        ret    = app_os_get_system_time((uint32_t *)response_data);
         status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
         break;
 
     case idigi_os_sleep:
-        os_sleep(*((unsigned int *)request_data));
+        app_os_sleep(*((unsigned int *)request_data));
         status = idigi_callback_continue;
         break;
 
