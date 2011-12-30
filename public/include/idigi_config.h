@@ -100,105 +100,105 @@
 */
 /** 
  * When defined, this string is hardcode for the @ref device_type instead of the application framework 
- * function @ref get_device_type (called via the @ref idigi_config_device_type @ref idigi_callback_t "callback" in config.c).   
+ * function @ref app_get_device_type (called via the @ref idigi_config_device_type @ref idigi_callback_t "callback" in config.c).   
  * 
- * @note There is no need to implement or port @ref get_device_type when IDIGI_DEVICE_TYPE is defined. 
+ * @note There is no need to implement or port @ref app_get_device_type when IDIGI_DEVICE_TYPE is defined. 
  *  
  * @see @ref device_type
  * @see @ref idigi_config_device_type
- * @see @ref get_device_type
+ * @see @ref app_get_device_type
  * @see @ref default_config
  */
 #define IDIGI_DEVICE_TYPE                             "IIK Linux Sample"
 
 /** 
  * When defined, this string hardcode for the @ref server_url instead of the application framework 
- * function @ref get_server_url (called via the @ref idigi_config_server_url @ref idigi_callback_t "callback" in config.c).   
+ * function @ref app_get_server_url (called via the @ref idigi_config_server_url @ref idigi_callback_t "callback" in config.c).   
  * 
- * @note There is no need to implement or port @ref get_server_url when IDIGI_CLOUD_URL is defined. 
+ * @note There is no need to implement or port @ref app_get_server_url when IDIGI_CLOUD_URL is defined. 
  *  
  * @see @ref server_url
  * @see @ref idigi_config_server_url
- * @see @ref get_server_url() 
+ * @see @ref app_get_server_url() 
  * @see @ref default_config
  */
 #define IDIGI_CLOUD_URL                               "developer.idigi.com"
 
 /** 
  * When defined, this string hardcode for the @ref tx_keepalive instead of the application framework 
- * function @ref  get_tx_keepalive_interval() (called via the @ref idigi_config_tx_keepalive @ref idigi_callback_t "callback" in config.c).   
+ * function @ref  app_get_tx_keepalive_interval() (called via the @ref idigi_config_tx_keepalive @ref idigi_callback_t "callback" in config.c).   
  * 
- * @note There is no need to implement or port @ref  get_tx_keepalive_interval() when IDIGI_TX_KEEPALIVE_IN_SECONDS is defined. 
+ * @note There is no need to implement or port @ref  app_get_tx_keepalive_interval() when IDIGI_TX_KEEPALIVE_IN_SECONDS is defined. 
  *  
  * @see @ref tx_keepalive
  * @see @ref idigi_config_tx_keepalive
- * @see @ref  get_tx_keepalive_interval() 
+ * @see @ref  app_get_tx_keepalive_interval() 
  * @see @ref default_config
  */
 #define IDIGI_TX_KEEPALIVE_IN_SECONDS                 75
 
 /** 
  * When defined, this string hardcode for the @ref rx_keepalive instead of the application framework 
- * function @ref get_rx_keepalive_interval() (called via the @ref idigi_config_rx_keepalive @ref idigi_callback_t "callback" in config.c).   
+ * function @ref app_get_rx_keepalive_interval() (called via the @ref idigi_config_rx_keepalive @ref idigi_callback_t "callback" in config.c).   
  * 
- * @note There is no need to implement or port @ref get_rx_keepalive_interval() when IDIGI_RX_KEEPALIVE_IN_SECONDS is defined. 
+ * @note There is no need to implement or port @ref app_get_rx_keepalive_interval() when IDIGI_RX_KEEPALIVE_IN_SECONDS is defined. 
  *  
  * @see @ref rx_keepalive
  * @see @ref idigi_config_rx_keepalive
- * @see @ref get_rx_keepalive_interval() 
+ * @see @ref app_get_rx_keepalive_interval() 
  * @see @ref default_config
  */
 #define IDIGI_RX_KEEPALIVE_IN_SECONDS                 75 
 
 /** 
  * When defined, this string hardcode for the @ref wait_count instead of the application framework 
- * function @ref get_wait_count() (called via the @ref idigi_config_wait_count @ref idigi_callback_t "callback" in config.c).   
+ * function @ref app_get_wait_count() (called via the @ref idigi_config_wait_count @ref idigi_callback_t "callback" in config.c).   
  * 
- * @note There is no need to implement or port @ref get_wait_count() when IDIGI_RX_KEEPALIVE_IN_SECONDS is defined. 
+ * @note There is no need to implement or port @ref app_get_wait_count() when IDIGI_RX_KEEPALIVE_IN_SECONDS is defined. 
  *  
  * @see @ref wait_count
  * @see @ref idigi_config_wait_count
- * @see @ref get_wait_count() 
+ * @see @ref app_get_wait_count() 
  * @see @ref default_config
  */
 #define IDIGI_WAIT_COUNT                              5
 
 /** 
  * When defined, this string hardcode for the @ref wait_count instead of the application framework 
- * function @ref get_wait_count() (called via the @ref idigi_config_wait_count @ref idigi_callback_t "callback" in config.c).   
+ * function @ref app_get_wait_count() (called via the @ref idigi_config_wait_count @ref idigi_callback_t "callback" in config.c).   
  * 
- * @note There is no need to implement or port @ref get_wait_count() when IDIGI_RX_KEEPALIVE_IN_SECONDS is defined. 
+ * @note There is no need to implement or port @ref app_get_wait_count() when IDIGI_RX_KEEPALIVE_IN_SECONDS is defined. 
  *  
  * @see @ref wait_count
  * @see @ref idigi_config_wait_count
- * @see @ref get_wait_count() 
+ * @see @ref app_get_wait_count() 
  * @see @ref default_config
  */
 #define IDIGI_VENDOR_ID                            0x00000000
 
 /** 
  * When defined, this string hardcode for the @ref max_msg_transactions instead of the application framework 
- * function @ref get_max_message_transactions() (called via the @ref idigi_config_max_transaction @ref idigi_callback_t "callback" in config.c).   
+ * function @ref app_get_max_message_transactions() (called via the @ref idigi_config_max_transaction @ref idigi_callback_t "callback" in config.c).   
  * 
- * @note There is no need to implement or port @ref get_max_message_transactions() when IDIGI_MSG_MAX_TRANSACTION is defined. 
+ * @note There is no need to implement or port @ref app_get_max_message_transactions() when IDIGI_MSG_MAX_TRANSACTION is defined. 
  *  
  * @see @ref max_msg_transactions
  * @see @ref idigi_config_max_transaction
- * @see @ref get_max_message_transactions() 
+ * @see @ref app_get_max_message_transactions() 
  * @see @ref default_config
  */
 #define IDIGI_MSG_MAX_TRANSACTION                  1
 
 /** 
  * When defined, this string hardcode for the @ref connection_type instead of the application framework 
- * function @ref get_connection_type() (called via the @ref idigi_config_connection_type @ref idigi_callback_t "callback" in config.c).   
+ * function @ref app_get_connection_type() (called via the @ref idigi_config_connection_type @ref idigi_callback_t "callback" in config.c).   
  * 
- * @note There is no need to implement or port @ref get_connection_type() when IDIGI_CONNECTION_TYPE is defined.  The
+ * @note There is no need to implement or port @ref app_get_connection_type() when IDIGI_CONNECTION_TYPE is defined.  The
  * values for this define are limited to @ref idigi_lan_connection_type or @ref idigi_wan_connection_type.
  *  
  * @see @ref connection_type
  * @see @ref idigi_config_connection_type
- * @see @ref get_connection_type() 
+ * @see @ref app_get_connection_type() 
  * @see @ref idigi_connection_type_t
  * @see @ref default_config
  */
@@ -206,40 +206,40 @@
 
 /** 
  * When defined, this string hardcode for the @ref link_speed instead of the application framework 
- * function @ref get_link_speed() (called via the @ref idigi_config_link_speed @ref idigi_callback_t "callback" in config.c).   
+ * function @ref app_get_link_speed() (called via the @ref idigi_config_link_speed @ref idigi_callback_t "callback" in config.c).   
  * 
- * @note There is no need to implement or port @ref get_link_speed() when IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND is defined. 
+ * @note There is no need to implement or port @ref app_get_link_speed() when IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND is defined. 
  *  
  * @see @ref link_speed
  * @see @ref idigi_config_link_speed
- * @see @ref get_link_speed() 
+ * @see @ref app_get_link_speed() 
  * @see @ref default_config
  */
 #define IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND    0
 
 /** 
  * When defined, this string hardcode for the @ref phone_number instead of the application framework 
- * function @ref get_phone_number() (called via the @ref idigi_config_phone_number @ref idigi_callback_t "callback" in config.c).   
+ * function @ref app_get_phone_number() (called via the @ref idigi_config_phone_number @ref idigi_callback_t "callback" in config.c).   
  * 
- * @note There is no need to implement or port @ref get_phone_number() when IDIGI_WAN_PHONE_NUMBER_DIALED is defined. 
+ * @note There is no need to implement or port @ref app_get_phone_number() when IDIGI_WAN_PHONE_NUMBER_DIALED is defined. 
  *  
  * @see @ref phone_number
  * @see @ref idigi_config_phone_number
- * @see @ref get_phone_number() 
+ * @see @ref app_get_phone_number() 
  * @see @ref default_config
  */
 #define IDIGI_WAN_PHONE_NUMBER_DIALED              "012345678"
 
 /** 
  * When defined, this string hardcode for the @ref firmware_support instead of the application framework 
- * function @ref get_firmware_support() (called via the @ref idigi_config_firmware_facility @ref idigi_callback_t "callback" in config.c).   
+ * function @ref app_get_firmware_support() (called via the @ref idigi_config_firmware_facility @ref idigi_callback_t "callback" in config.c).   
  * 
- * @note There is no need to implement or port @ref get_firmware_support() when IDIGI_FIRMWARE_SUPPORT is defined. 
+ * @note There is no need to implement or port @ref app_get_firmware_support() when IDIGI_FIRMWARE_SUPPORT is defined. 
  * @note This define is only used when @ref IDIGI_FIRMWARE_SERVICE is defined in @ref idigi_config.h.
  * 
  * @see @ref firmware_support
  * @see @ref idigi_config_firmware_facility
- * @see @ref get_firmware_support() 
+ * @see @ref app_get_firmware_support() 
  * @see @ref IDIGI_FIRMWARE_SERVICE  
  * @see @ref default_config
  */
@@ -247,14 +247,14 @@
 
 /** 
  * When defined, this string hardcode for the @ref data_service_support instead of the application framework 
- * function @ref get_data_service_support() (called via the @ref idigi_config_data_service @ref idigi_callback_t "callback" in config.c).   
+ * function @ref app_get_data_service_support() (called via the @ref idigi_config_data_service @ref idigi_callback_t "callback" in config.c).   
  * 
- * @note There is no need to implement or port @ref get_data_service_support() when IDIGI_DATA_SERVICE_SUPPORT is defined. 
+ * @note There is no need to implement or port @ref app_get_data_service_support() when IDIGI_DATA_SERVICE_SUPPORT is defined. 
  * @note This define is only used when @ref IDIGI_DATA_SERVICE is defined in @ref idigi_config.h.
  *  
  * @see @ref data_service_support
  * @see @ref idigi_config_data_service
- * @see @ref get_data_service_support() 
+ * @see @ref app_get_data_service_support() 
  * @see @ref IDIGI_DATA_SERVICE  
  * @see @ref default_config
  */
