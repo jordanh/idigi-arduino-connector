@@ -172,7 +172,7 @@ idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
         break;
 
     default:
-        DEBUG_PRINTF("idigi_os_callback: unrecognized request [%d]\n", request);
+        APP_DEBUG("idigi_os_callback: unrecognized request [%d]\n", request);
         break;
     }
 
