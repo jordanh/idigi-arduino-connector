@@ -298,11 +298,11 @@
  *  @li get_max_message_transactions()
  *  @li idigi_config_error()
  *
- * @subsection default_config Default Configurations
+ * @subsection default_config Hard Code Configuration 
  *
- * If the following configurations in @ref idigi_config.h are defined
- * callback is not needed for these configurations. This reduces code size
- * and memory usage. You can define individual configuration.
+ * If the following configurations in @ref idigi_config.h are defined, the
+ * callback is not used or called for these configurations.  This reduces code size
+ * and memory usage.  You can define individual configuration.
  *
  * @code
  * #define IDIGI_DEVICE_TYPE               "IIK Linux Sample"
@@ -328,71 +328,72 @@
  * <th class="title">Description</td>
  * </tr>
  * <tr>
- * <td>IDIGI_DEVICE_TYPE</td>
+ * <td>@endhtmlonly @ref IDIGI_DEVICE_TYPE @htmlonly</td>
  * <td>Device type in iso-8859-1 encoded string to identify the device.
  * See @endhtmlonly @ref device_type @htmlonly</td>
  * </tr>
  * <tr>
- * <td>IDIGI_CLOUD_URL</td>
+ * <td>@endhtmlonly @ref IDIGI_CLOUD_URL @htmlonly </td>
  * <td>iDigi Device Cloud FQDN.
  * See @endhtmlonly @ref server_url @htmlonly</td>
  * </tr>
  * <tr>
- * <td>IDIGI_TX_KEEPALIVE_IN_SECONDS</td>
+ * <td>@endhtmlonly @ref IDIGI_TX_KEEPALIVE_IN_SECONDS @htmlonly </td>
  * <td>TX Keepalive interval in seconds between 5 and 7200 seconds.
  * See @endhtmlonly @ref tx_keepalive @htmlonly</td>
  * </tr>
  * <tr>
- * <td>IDIGI_RX_KEEPALIVE_IN_SECONDS</td>
+ * <td>@endhtmlonly @ref IDIGI_RX_KEEPALIVE_IN_SECONDS @htmlonly </td>
  * <td>RX Keepalive interval in seconds between 5 and 7200 seconds.
  * See @endhtmlonly @ref rx_keepalive @htmlonly</td>
  * </tr>
  * <tr>
- * <td>IDIGI_WAIT_COUNT</td>
+ * <td>@endhtmlonly @ref IDIGI_WAIT_COUNT @htmlonly </td>
  * <td>Number of time of not receiving a keepalive message which
  * a connection should be considered lost.it must be between 2 and 63 times.
  * See @endhtmlonly @ref wait_count @htmlonly</td>
  * </tr>
  * <tr>
- * <td>IDIGI_VENDOR_ID</td>
+ * <td>@endhtmlonly @ref IDIGI_VENDOR_ID @htmlonly </td>
  * <td>Vendor ID from iDigi Account.
  * See @endhtmlonly @ref vendor_id @htmlonly</td>
  * </tr>
  * <tr>
- * <td>IDIGI_MSG_MAX_TRANSACTION</td>
+ * <td>@endhtmlonly @ref IDIGI_MSG_MAX_TRANSACTION @htmlonly </td>
  * <td>Maximum simultaneous transactions for data service receiving message.
  * See @endhtmlonly @ref max_msg_transactions @htmlonly</td>
  * </tr>
  * <tr>
- * <td>IDIGI_CONNECTION_TYPE</td>
+ * <td>@endhtmlonly @ref IDIGI_CONNECTION_TYPE @htmlonly </td>
  * <td> @endhtmlonly @ref idigi_lan_connection_type @htmlonly for LAN connection or
  * @endhtmlonly @ref idigi_wan_connection_type @htmlonly WAN connection.
  * See @endhtmlonly @ref connection_type @htmlonly</td>
  * </tr>
  * <tr>
- * <td>IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND</td>
+ * <td>@endhtmlonly @ref IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND @htmlonly </td>
  * <td>Link speed for WAN connection.
  * See @endhtmlonly @ref link_speed @htmlonly</td>
  * </tr>
  * <tr>
- * <td>IDIGI_WAN_PHONE_NUMBER_DIALED</td>
+ * <td>@endhtmlonly @ref IDIGI_WAN_PHONE_NUMBER_DIALED @htmlonly </td>
  * <td>Phone number dialed for WAN connection in a string.
  * See @endhtmlonly @ref phone_number @htmlonly</td>
  * </tr>
  * <tr>
- * <td>IDIGI_FIRMWARE_SUPPORT</td>
+ * <td>@endhtmlonly @ref IDIGI_FIRMWARE_SUPPORT @htmlonly </td>
  * <td>If defined it enables firmware download capability.
  * See @endhtmlonly @ref firmware_support @htmlonly</td>
  * </tr>
  * <tr>
- * <td>IDIGI_DATA_SERVICE_SUPPORT</td>
+ * <td>@endhtmlonly @ref IDIGI_DATA_SERVICE_SUPPORT @htmlonly </td>
  * <td>If defined it enables data service capability.
  * See @endhtmlonly @ref data_service_support @htmlonly</td>
  * </tr>
  * </table>
  * @endhtmlonly
   *
- * 
+ * @see @ref idigi_config_data_options
+ 
  * @subsection application_start iDigi Initialization
  *
  * As in the previous sample you will need to setup the call to idigi_init()
