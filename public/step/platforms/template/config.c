@@ -28,13 +28,9 @@
   *  @brief Configuration routines for the IIK.
   *
   */
-#include <unistd.h>
-#include <malloc.h>
-#include <arpa/inet.h>
-#include <sys/ioctl.h>
-#include <net/if.h>
-#include "idigi_data.h"
-#include "idigi_types.h"
+#include <stdio.h>
+#include "idigi_api.h"
+
 
 /**
  * @brief   Get the IP address of the device
@@ -461,31 +457,31 @@ static int idigi_config_error(idigi_error_status_t * const error_data)
     switch (error_data->class_id)
     {
     case idigi_class_config:
-        DEBUG_PRINTF("idigi_error_status: Config - %s (%d)  status = %s (%d)\n", config_request_string[error_data->request_id.config_request],
+        APP_DEBUG("idigi_error_status: Config - %s (%d)  status = %s (%d)\n", config_request_string[error_data->request_id.config_request],
                      error_data->request_id.config_request, error_status_string[error_data->status],error_data->status);
         break;
     case idigi_class_network:
-        DEBUG_PRINTF("idigi_error_status: Network - %s (%d)  status = %s (%d)\n", network_request_string[error_data->request_id.network_request],
+        APP_DEBUG("idigi_error_status: Network - %s (%d)  status = %s (%d)\n", network_request_string[error_data->request_id.network_request],
                      error_data->request_id.network_request, error_status_string[error_data->status],error_data->status);
         break;
     case idigi_class_operating_system:
-        DEBUG_PRINTF("idigi_error_status: Operating System - %s (%d)  status = %s (%d)\n", os_request_string[error_data->request_id.os_request],
+        APP_DEBUG("idigi_error_status: Operating System - %s (%d)  status = %s (%d)\n", os_request_string[error_data->request_id.os_request],
                      error_data->request_id.os_request, error_status_string[error_data->status],error_data->status);
         break;
     case idigi_class_firmware:
-        DEBUG_PRINTF("idigi_error_status: Firmware facility - %s (%d)  status = %s (%d)\n",
+        APP_DEBUG("idigi_error_status: Firmware facility - %s (%d)  status = %s (%d)\n",
                      firmware_request_string[error_data->request_id.firmware_request],
                      error_data->request_id.firmware_request,
                      error_status_string[error_data->status],error_data->status);
         break;
     case idigi_class_data_service:
-        DEBUG_PRINTF("idigi_error_status: Data service - %s (%d)  status = %s (%d)\n",
+        APP_DEBUG("idigi_error_status: Data service - %s (%d)  status = %s (%d)\n",
                      data_service_string[error_data->request_id.data_service_request],
                      error_data->request_id.data_service_request,
                      error_status_string[error_data->status],error_data->status);
         break;
     default:
-        DEBUG_PRINTF("idigi_error_status: unsupport class_id = %d status = %d\n", error_data->class_id, error_data->status);
+        APP_DEBUG("idigi_error_status: unsupport class_id = %d status = %d\n", error_data->class_id, error_data->status);
         break;
     }
 #else

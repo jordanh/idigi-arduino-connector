@@ -452,7 +452,7 @@ static idigi_service_supported_status_t app_get_data_service_support(void)
  */
 static unsigned int app_get_max_message_transactions(void)
 {
-#define IDIGI_MAX_MSG_TRANSACTIONS   388
+#define IDIGI_MAX_MSG_TRANSACTIONS   1
 
     return IDIGI_MAX_MSG_TRANSACTIONS;
 }

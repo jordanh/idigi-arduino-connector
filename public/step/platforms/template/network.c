@@ -28,16 +28,8 @@
  */
 #include <stdio.h>
 #include <string.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
-#include <errno.h>
-
 #include "idigi_data.h"
+#include "idigi_api.h"
 
 /**
  * @brief   Connect to the iDigi server
