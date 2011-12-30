@@ -54,42 +54,42 @@
  * @htmlonly
  * <table class="apitable">
  * <tr>
- * <th class="title"></td>
+ * <th class="title">IIK Service Options and Configuration Methodology</td>
  * <th class="title">Text</td>
  * <th class="title">rodata</td>
  * <th class="title">data</td>
  * <th class="title">bss</td>
  * </tr>
  * <tr>
- * <td>IDIGI_DEBUG, IDIGI_FIRMWARE_SERVICE, IDIGI_DATA_SERVICE enabled.</td>
+ * <td>@endhtmlonly @ref IDIGI_DEBUG, @ref IDIGI_FIRMWARE_SERVICE, @ref IDIGI_DATA_SERVICE @htmlonly enabled.</td>
  * <td>20285</td>
  * <td>6840</td>
  * <td>0</td>
  * <td>12</td>
  * </tr>
  * <tr>
- * <td>IDIGI_FIRMWARE_SERVICE, IDIGI_DATA_SERVICE enabled.</td>
+ * <td>@endhtmlonly @ref IDIGI_FIRMWARE_SERVICE, @ref IDIGI_DATA_SERVICE @htmlonly enabled.</td>
  * <td>16400</td>
  * <td>372</td>
  * <td>0</td>
  * <td>0</td>
  * </tr>
  * <tr>
- * <td>IDIGI_FIRMWARE_SERVICE, IDIGI_DATA_SERVICE enabled.  config.h compile time #defines enabled</td>
+ * <td>@endhtmlonly @ref IDIGI_FIRMWARE_SERVICE, @ref IDIGI_DATA_SERVICE enabled.  @ref idigi_config_data_options used. @htmlonly </td>
  * <td>15545</td>
  * <td>372</td>
  * <td>0</td>
  * <td>0</td>
  * </tr>
  * <tr>
- * <td>IDIGI_FIRMWARE_SERVICE enabled only.  config.h compile time #defines enabled</td>
+ * <td>@endhtmlonly @ref IDIGI_FIRMWARE_SERVICE enabled.  @ref idigi_config_data_options used. @htmlonly </td>
  * <td>9813</td>
  * <td>280</td>
  * <td>0</td>
  * <td>0</td>
  * </tr>
  * <tr>
- * <td>IDIGI_DATA_SERVICE enabled only.  config.h compile time #defines enabled</td>
+ * <td>@endhtmlonly @ref IDIGI_DATA_SERVICE enabled.  @ref idigi_config_data_options used. @htmlonly </td>
  * <td>12413</td>
  * <td>244</td>
  * <td>0</td>
@@ -99,10 +99,10 @@
  * @endhtmlonly
  *
  * References to Text, rodata, data, and bss refer to program instructions, Constant-Read-only data, Initialized global and 
- * static variables, and Uninitialized zero-ed data, respectively.  The reference to config.h compile time #defines refers to 
- * using the code reduction defines in config.h: IDIGI_DEVICE_TYPE, IDIGI_CLOUD_URL, IDIGI_TX_KEEPALIVE_IN_SECONDS, 
- * IDIGI_RX_KEEPALIVE_IN_SECONDS, IDIGI_WAIT_COUNT, IDIGI_VENDOR_ID, IDIGI_MSG_MAX_TRANSACTION, IDIGI_CONNECTION_TYPE, 
- * IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND, and IDIGI_WAN_PHONE_NUMBER_DIALED.
+ * static variables, and Uninitialized zero-ed data, respectively.  References to the @ref idigi_config_data_options refers to 
+ * the code reduction defines in idigi_config.h: @ref IDIGI_DEVICE_TYPE, @ref IDIGI_CLOUD_URL, @ref IDIGI_TX_KEEPALIVE_IN_SECONDS, 
+ * @ref IDIGI_RX_KEEPALIVE_IN_SECONDS, @ref IDIGI_WAIT_COUNT, @ref IDIGI_VENDOR_ID, @ref IDIGI_MSG_MAX_TRANSACTION, @ref IDIGI_CONNECTION_TYPE, 
+ * @ref IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND, @ref IDIGI_WAN_PHONE_NUMBER_DIALED, @ref IDIGI_FIRMWARE_SUPPORT, and @ref IDIGI_DATA_SERVICE_SUPPORT.
  * 
  * @subsection RAMRequirements RAM Usage 
  * The following dynamic RAM usage was developed by monitoring the high water mark during the 
@@ -123,22 +123,22 @@
  * <td>Memory usage for internal state machines, infrastructure and communication buffers</td>
  * </tr>
  * <tr>
- * <td>With IDIGI_FIRMWARE_SERVICE enabled</td>
+ * <td>With @endhtmlonly @ref IDIGI_FIRMWARE_SERVICE @htmlonly enabled</td>
  * <td>72</td>
  * <td>72</td>
  * <td></td>
  * </tr>
  * <tr>
- * <td>With IDIGI_DATA_SERVICE enabled</td>
+ * <td>With @endhtmlonly @ref IDIGI_DATA_SERVICE @htmlonly enabled</td>
  * <td>92 + 3320*n</td>
  * <td>92 + 56*n</td>
- * <td>Where n is the maximum number of simultaneous message transactions, defined in the IDIGI_MSG_MAX_TRANSACTION</td>
+ * <td>Where n is the maximum number of simultaneous message transactions, defined in the @endhtmlonly @ref IDIGI_MSG_MAX_TRANSACTION @htmlonly </td>
  * </tr>
  * <tr>
  * <td>Total</td>
  * <td>5920</td>
  * <td>2656</td>
- * <td>Assumes both IDIGI_FIRMWARE_SERVICE and IDIGI_FIRMWARE_SERVICE enabled, with n=1 (one data service message transaction maximum)</td>
+ * <td>Assumes both @endhtmlonly @ref IDIGI_FIRMWARE_SERVICE and @ref IDIGI_FIRMWARE_SERVICE @htmlonly enabled, with n=1 (one data service message transaction maximum)</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -261,35 +261,5 @@
  * @section the_getting_started_process Getting Started 
  * To get started, follow along the steps of the @ref getting_started process.
  *
- * </td></tr>
- * </table>
- * @endhtmlonly
  */
-
-/*! @page troubleshooting Troubleshooting
-  Read this page if you are having trouble with your device.
-  @section sec An example section
-  This page contains the subsections @ref subsection1 and @ref subsection2.
-  For more info see page @ref page2.
-  @subsection subsection1 The first subsection
-  Text.
-  @subsection subsection2 The second subsection
-  More text.
-*/
-
-/*! @page sample_code Examples
-  Read this page if you are having trouble with your device.
-  @section sec An example section
-  This page contains the subsections @ref subsection1 and @ref subsection2.
-  For more info see page @ref page2.
-  @subsection subsection1 The first subsection
-  Text.
-  @subsection subsection2 The second subsection
-  More text.
-*/
-/** 
-* \def KIT_NAME 
-* IIK 
-*/ 
-
 

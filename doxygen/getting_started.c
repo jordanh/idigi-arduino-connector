@@ -69,7 +69,7 @@
  *
  * Open the file public/include/idigi_config.h to configure processor endianess.  
  * 
- * The IIK defaults to little endian.  To reconfigure for big endian, comment out the #define @ref IDIGI_LITTLE_ENDIAN line.
+ * The IIK defaults to little endian.  To reconfigure for big endian, comment out the @ref IDIGI_LITTLE_ENDIAN define.
  *
  * If your application does not want the optional Data Compression (see @ref zlib) then comment out @ref IDIGI_COMPRESSION,
  * if compression is supported leave this define alone.
@@ -174,7 +174,7 @@
  * 4. Login with the user credentials you created in section @ref idigi_account
  * 
  * @image html idigi4.jpg
- *
+
  * @subsection idigi_vendor_id Obtain an iDigi Vendor ID
  *
  * @note You will need to contact Digi to request a vendor ID. You will need the vendor ID 
@@ -190,7 +190,6 @@
  *
  * The page will refresh and your unique vendor ID number will be displayed in place of the
  * Register for new vendor id button.  Record the Vendor ID you will need it later.
- *
  *
  * @image html idigi6.jpg
  *
@@ -230,10 +229,10 @@
  * to see a description, then modify to operate with your platform.  These routines
  * are callbacks which are described in the API section.
  *
- *  @li os_malloc()
- *  @li os_free()
- *  @li os_get_system_time()
- *  @li os_sleep()
+ *  @li app_os_malloc()
+ *  @li app_os_free()
+ *  @li app_os_get_system_time()
+ *  @li app_os_sleep()
  *
  * @subsection network_routines Network Routines
  * Open the file network.c and implement the network interface routines. 
@@ -243,10 +242,10 @@
  * platforms network implementation.
  *
  * The following is a list of network interface routines which must be implemented:
- *  @li network_connect()
- *  @li network_send()
- *  @li network_receive()
- *  @li network_close()
+ *  @li app_network_connect()
+ *  @li app_network_send()
+ *  @li app_network_receive()
+ *  @li app_network_close()
  *
  * @subsection configuration_routines Configuration Routines
  *
@@ -255,10 +254,10 @@
  * for your platform and implement the configuration routines.
  * All configuration routines are passed in a pointer to a pointer, along with a pointer to the size. 
  * The address of the configuration item is stored in the pointer passed in, and the size is assigned to the pointer to the size variable.
- * For example get_server_url() is the routine used to retrieve the iDigi Developer Cloud URL
+ * For example app_get_server_url() is the routine used to retrieve the iDigi Developer Cloud URL
  * and is shown below.
  * @code
- *  static int get_server_url(char ** url, size_t * size)
+ *  static int app_get_server_url(char ** url, size_t * size)
  *  {
  *  #error "Specify iDigi Server URL" /* This #error must be removed to compile */
  *      /* Statically allocated string containing the sever URL */
@@ -273,7 +272,7 @@
  *  }
  * @endcode
  *
- * @note The required routines contain the @b #error preprocessor directive 
+ * @note The required routines contain the @htmlonly #error @endhtmlonly preprocessor directive 
  * which must be removed before compiling.
  *
  * @note The memory assigned to configuration items must be @b statically @b allocated and is accessed by the IIK 
@@ -281,28 +280,28 @@
  *
  * The following is a list of configuration routines which needs to be implemented for
  * your platform, please review each routine:
- *  @li get_ip_address()
- *  @li get_mac_addr()
- *  @li get_device_id()
- *  @li get_vendor_id()
- *  @li get_device_type()
- *  @li get_server_url()
- *  @li get_connection_type()
- *  @li get_link_speed()
- *  @li get_phone_number()
- *  @li get_tx_keepalive_interval()
- *  @li get_rx_keepalive_interval()
- *  @li get_wait_count()
- *  @li get_firmware_support()
- *  @li get_data_service_support()
- *  @li get_max_message_transactions()
- *  @li idigi_config_error()
+ *  @li app_get_ip_address()
+ *  @li app_get_mac_addr()
+ *  @li app_get_device_id()
+ *  @li app_get_vendor_id()
+ *  @li app_get_device_type()
+ *  @li app_get_server_url()
+ *  @li app_get_connection_type()
+ *  @li app_get_link_speed()
+ *  @li app_get_phone_number()
+ *  @li app_get_tx_keepalive_interval()
+ *  @li app_get_rx_keepalive_interval()
+ *  @li app_get_wait_count()
+ *  @li app_get_firmware_support()
+ *  @li app_get_data_service_support()
+ *  @li app_get_max_message_transactions()
+ *  @li app_config_error()
  *
- * @subsection default_config Default Configurations
+ * @subsection default_config Hard Code Configuration 
  *
- * If the following configurations in @ref idigi_config.h are defined
- * callback is not needed for these configurations. This reduces code size
- * and memory usage. You can define individual configuration.
+ * If the following configurations in @ref idigi_config.h are defined, the
+ * callback is not used or called for these configurations.  This reduces code size
+ * and memory usage.  You can define individual configuration.
  *
  * @code
  * #define IDIGI_DEVICE_TYPE               "IIK Linux Sample"
@@ -328,71 +327,72 @@
  * <th class="title">Description</td>
  * </tr>
  * <tr>
- * <td>IDIGI_DEVICE_TYPE</td>
+ * <td>@endhtmlonly @ref IDIGI_DEVICE_TYPE @htmlonly</td>
  * <td>Device type in iso-8859-1 encoded string to identify the device.
  * See @endhtmlonly @ref device_type @htmlonly</td>
  * </tr>
  * <tr>
- * <td>IDIGI_CLOUD_URL</td>
+ * <td>@endhtmlonly @ref IDIGI_CLOUD_URL @htmlonly </td>
  * <td>iDigi Device Cloud FQDN.
  * See @endhtmlonly @ref server_url @htmlonly</td>
  * </tr>
  * <tr>
- * <td>IDIGI_TX_KEEPALIVE_IN_SECONDS</td>
+ * <td>@endhtmlonly @ref IDIGI_TX_KEEPALIVE_IN_SECONDS @htmlonly </td>
  * <td>TX Keepalive interval in seconds between 5 and 7200 seconds.
  * See @endhtmlonly @ref tx_keepalive @htmlonly</td>
  * </tr>
  * <tr>
- * <td>IDIGI_RX_KEEPALIVE_IN_SECONDS</td>
+ * <td>@endhtmlonly @ref IDIGI_RX_KEEPALIVE_IN_SECONDS @htmlonly </td>
  * <td>RX Keepalive interval in seconds between 5 and 7200 seconds.
  * See @endhtmlonly @ref rx_keepalive @htmlonly</td>
  * </tr>
  * <tr>
- * <td>IDIGI_WAIT_COUNT</td>
+ * <td>@endhtmlonly @ref IDIGI_WAIT_COUNT @htmlonly </td>
  * <td>Number of time of not receiving a keepalive message which
  * a connection should be considered lost.it must be between 2 and 63 times.
  * See @endhtmlonly @ref wait_count @htmlonly</td>
  * </tr>
  * <tr>
- * <td>IDIGI_VENDOR_ID</td>
+ * <td>@endhtmlonly @ref IDIGI_VENDOR_ID @htmlonly </td>
  * <td>Vendor ID from iDigi Account.
  * See @endhtmlonly @ref vendor_id @htmlonly</td>
  * </tr>
  * <tr>
- * <td>IDIGI_MSG_MAX_TRANSACTION</td>
+ * <td>@endhtmlonly @ref IDIGI_MSG_MAX_TRANSACTION @htmlonly </td>
  * <td>Maximum simultaneous transactions for data service receiving message.
  * See @endhtmlonly @ref max_msg_transactions @htmlonly</td>
  * </tr>
  * <tr>
- * <td>IDIGI_CONNECTION_TYPE</td>
+ * <td>@endhtmlonly @ref IDIGI_CONNECTION_TYPE @htmlonly </td>
  * <td> @endhtmlonly @ref idigi_lan_connection_type @htmlonly for LAN connection or
  * @endhtmlonly @ref idigi_wan_connection_type @htmlonly WAN connection.
  * See @endhtmlonly @ref connection_type @htmlonly</td>
  * </tr>
  * <tr>
- * <td>IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND</td>
+ * <td>@endhtmlonly @ref IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND @htmlonly </td>
  * <td>Link speed for WAN connection.
  * See @endhtmlonly @ref link_speed @htmlonly</td>
  * </tr>
  * <tr>
- * <td>IDIGI_WAN_PHONE_NUMBER_DIALED</td>
+ * <td>@endhtmlonly @ref IDIGI_WAN_PHONE_NUMBER_DIALED @htmlonly </td>
  * <td>Phone number dialed for WAN connection in a string.
  * See @endhtmlonly @ref phone_number @htmlonly</td>
  * </tr>
  * <tr>
- * <td>IDIGI_FIRMWARE_SUPPORT</td>
+ * <td>@endhtmlonly @ref IDIGI_FIRMWARE_SUPPORT @htmlonly </td>
  * <td>If defined it enables firmware download capability.
  * See @endhtmlonly @ref firmware_support @htmlonly</td>
  * </tr>
  * <tr>
- * <td>IDIGI_DATA_SERVICE_SUPPORT</td>
+ * <td>@endhtmlonly @ref IDIGI_DATA_SERVICE_SUPPORT @htmlonly </td>
  * <td>If defined it enables data service capability.
  * See @endhtmlonly @ref data_service_support @htmlonly</td>
  * </tr>
  * </table>
  * @endhtmlonly
   *
- * 
+ * @see @ref idigi_config_data_options
+ 
  * @subsection application_start iDigi Initialization
  *
  * As in the previous sample you will need to setup the call to idigi_init()
@@ -606,11 +606,6 @@
  * can port in more functionality to your application.  We first suggest 
  * reading the @ref api1_overview "API" section of the documentation and then 
  * select a sample which has the functionality you need.
- *
- * </td></tr>
- * </table>
- *
- * @endhtmlonly
  *
  */
 

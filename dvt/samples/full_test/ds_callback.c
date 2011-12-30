@@ -78,7 +78,7 @@ idigi_status_t send_put_request(idigi_handle_t handle)
     return status;
 }
 
-idigi_callback_status_t idigi_put_request_callback(void const * request_data, size_t const request_length,
+idigi_callback_status_t app_put_request_handler(void const * request_data, size_t const request_length,
                                                    void * response_data, size_t * const response_length)
 {
     idigi_data_service_msg_request_t const * const put_request = request_data;
@@ -471,7 +471,7 @@ static idigi_callback_status_t process_device_error(idigi_data_service_msg_reque
     return status;
 }
 
-idigi_callback_status_t idigi_device_request_callback(void const * request_data, size_t const request_length,
+idigi_callback_status_t app_device_request_handler(void const * request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
@@ -502,7 +502,7 @@ idigi_callback_status_t idigi_device_request_callback(void const * request_data,
     return status;
 }
 
-idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t const request,
+idigi_callback_status_t app_data_service_handler(idigi_data_service_request_t const request,
                                                   void const * request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length)
 {
@@ -511,11 +511,11 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
     switch (request)
     {
     case idigi_data_service_put_request:
-        status = idigi_put_request_callback(request_data, request_length, response_data, response_length);
+        status = app_put_request_handler(request_data, request_length, response_data, response_length);
         break;
 
     case idigi_data_service_device_request:
-        status = idigi_device_request_callback(request_data, request_length, response_data, response_length);
+        status = app_device_request_handler(request_data, request_length, response_data, response_length);
         break;
 
     default:

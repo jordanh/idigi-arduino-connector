@@ -313,7 +313,7 @@ typedef enum  {
 */
 /**
 * Return status code for firmware update. These status codes are used for @ref idigi_firmware_download_request,
-* @see idigi_firmware_binary_block and @see idigi_firmware_abort callbacks.
+* @see @ref idigi_firmware_binary_block and @ref idigi_firmware_download_abort callbacks.
 */
 typedef enum {
    idigi_fw_success,                        /**< No error */
@@ -1045,7 +1045,7 @@ idigi_status_t idigi_run(idigi_handle_t const handle);
  * @param [in] handle  Handle returned from idigi_init 
  *  
  * @param [in] request  Request action (one of the following):
-                        @li @b idigi_initiate_terminate:
+ *                      @li @b idigi_initiate_terminate:
  *                          Terminates and stops IIK from running. It closes the connection to the
  *                          iDigi server and frees all allocated
  *                          memory. If the application is using
@@ -1066,10 +1066,12 @@ idigi_status_t idigi_run(idigi_handle_t const handle);
  *                           data is stored in a specified file
  *                           on the server.
  *
+ * @param [in] request_data  Pointer to Request data 
+ *  
+ * @param [out] response_data  Pointer to Response data
  * 
  * @retval idigi_success  No error
- * 
- * @retval idigi_configuration_error  IIK was not initialized
+  * @retval idigi_configuration_error  IIK was not initialized
  *
  * Example Usage:
  * @code

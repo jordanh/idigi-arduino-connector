@@ -640,7 +640,7 @@
  * </tr>
  * <tr>
  * <td>request_id</td>
- * <td>@endhtmlonly @ref digi_firmware_abort @htmlonly</td>
+ * <td>@endhtmlonly @ref idigi_firmware_download_abort @htmlonly</td>
  * </tr>
  * <tr>
  * <td>request_data</td>

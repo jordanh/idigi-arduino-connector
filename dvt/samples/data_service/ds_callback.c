@@ -33,8 +33,8 @@
 
 static int gWait = 0;
 
-extern int os_malloc(size_t const size, void ** ptr);
-extern void os_free(void * const ptr);
+extern int app_os_malloc(size_t const size, void ** ptr);
+extern void app_os_free(void * const ptr);
 
 #define DS_MAX_USER   7
 #define DS_FILE_NAME_LEN  20
@@ -78,7 +78,7 @@ idigi_status_t send_put_request(idigi_handle_t handle, int index)
     {
         void * ptr;
 
-        int const is_ok = os_malloc(sizeof *user, &ptr);
+        int const is_ok = app_os_malloc(sizeof *user, &ptr);
         if (is_ok < 0|| ptr == NULL)
         {
             /* no memeory stop IIK */
@@ -106,14 +106,14 @@ idigi_status_t send_put_request(idigi_handle_t handle, int index)
     }
     else
     {
-        os_free(user);
+        app_os_free(user);
     }
 
 done:
     return status;
 }
 
-idigi_callback_status_t idigi_put_request_callback(void const * request_data, size_t const request_length,
+idigi_callback_status_t app_put_request_handler(void const * request_data, size_t const request_length,
                                                    void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
@@ -202,7 +202,7 @@ idigi_callback_status_t idigi_put_request_callback(void const * request_data, si
 
               /* should be done now */
                 ASSERT(user != NULL);
-                os_free(user);
+                app_os_free(user);
                 put_file_active_count--;
             }
             break;
@@ -215,7 +215,7 @@ idigi_callback_status_t idigi_put_request_callback(void const * request_data, si
                 APP_DEBUG("idigi_put_request_callback: Data service error %p %d\n", (void *)user, *error_value);
 
                 ASSERT(user != NULL);
-                os_free(user);
+                app_os_free(user);
                 put_file_active_count--;
             }
             break;
@@ -229,7 +229,7 @@ idigi_callback_status_t idigi_put_request_callback(void const * request_data, si
 error:
         APP_DEBUG("idigi_put_request_callback (need_data): %p cancel this session\n", (void *)user);
         put_response->message_status = idigi_msg_error_cancel;
-        os_free(user);
+        app_os_free(user);
         put_file_active_count--;
 
     }
@@ -281,7 +281,7 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
     {
         void * ptr;
 
-        int const ccode = os_malloc(sizeof *client_device_request, &ptr);
+        int const ccode = app_os_malloc(sizeof *client_device_request, &ptr);
         if (ccode != 0 || ptr == NULL)
         {
             /* no memeory stop IIK */
@@ -323,7 +323,7 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
             /* testing to return cancel message status */
             APP_DEBUG("process_device_request: handle %p cancel\n", server_device_request->device_handle);
             response_data->message_status = idigi_msg_error_cancel;
-            os_free(ptr);
+            app_os_free(ptr);
             device_request_active_count--;
             goto done;
 
@@ -332,7 +332,7 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
         {
             /* testing to return unrecognized status */
             APP_DEBUG("process_device_request: unrecognized target = %s\n", server_device_request->target);
-            os_free(ptr);
+            app_os_free(ptr);
             device_request_active_count--;
             status = idigi_callback_unrecognized;
             goto done;
@@ -461,7 +461,7 @@ static idigi_callback_status_t process_device_response(idigi_data_service_msg_re
 error:
     /* done */
     device_request_active_count--;
-    os_free(client_device_request);
+    app_os_free(client_device_request);
 
 done:
     return status;
@@ -481,12 +481,12 @@ static idigi_callback_status_t process_device_error(idigi_data_service_msg_reque
                 server_device_request->device_handle, error_code);
 
     device_request_active_count--;
-    os_free(client_device_request);
+    app_os_free(client_device_request);
 
     return status;
 }
 
-idigi_callback_status_t idigi_device_request_callback(void const * request_data, size_t const request_length,
+idigi_callback_status_t app_device_request_handler(void const * request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
@@ -514,7 +514,7 @@ idigi_callback_status_t idigi_device_request_callback(void const * request_data,
     return status;
 }
 
-idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t const request,
+idigi_callback_status_t app_data_service_handler(idigi_data_service_request_t const request,
                                                   void const * request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length)
 {
@@ -523,10 +523,10 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
     switch (request)
     {
     case idigi_data_service_put_request:
-        status = idigi_put_request_callback(request_data, request_length, response_data, response_length);
+        status = app_put_request_handler(request_data, request_length, response_data, response_length);
         break;
     case idigi_data_service_device_request:
-        status = idigi_device_request_callback(request_data, request_length, response_data, response_length);
+        status = app_device_request_handler(request_data, request_length, response_data, response_length);
         break;
     default:
         APP_DEBUG("idigi_data_service_callback: Request not supported: %d\n", request);

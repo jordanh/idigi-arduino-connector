@@ -28,10 +28,7 @@
   *  @brief Functions used by the IIK to interface to the OS.
   *
   */
-#include <malloc.h>
-#include <time.h>
-#include <unistd.h>
-#include "idigi_data.h"
+#include "idigi_api.h"
 
 /**
  * @brief   Dynamically allocate memory
@@ -52,10 +49,8 @@
  * @see os_free
  * @see @ref malloc API Operating System Callback
  */
-int os_malloc(size_t const size, void ** ptr)
+int app_os_malloc(size_t const size, void ** ptr)
 {
-    UNUSED_PARAMETER(size);
-    UNUSED_PARAMETER(ptr);
     return 0;
 }
 
@@ -73,9 +68,8 @@ int os_malloc(size_t const size, void ** ptr)
  * @see os_malloc
  * @see @ref free API Operating System Callback
  */
-void os_free(void * const ptr)
+void app_os_free(void * const ptr)
 {
-    UNUSED_PARAMETER(ptr);
     return;
 }
 
@@ -94,9 +88,8 @@ void os_free(void * const ptr)
  * 
  * @see @ref uptime API Operating System Callback
  */
-int os_get_system_time(uint32_t * const uptime)
+int app_os_get_system_time(uint32_t * const uptime)
 {
-    UNUSED_PARAMETER(uptime);
     return 0;
 }
 
@@ -108,55 +101,50 @@ int os_get_system_time(uint32_t * const uptime)
  * IIK calls this callback if IIK is busy and is not calling
  * receive callback
  *
- * @param [in] timeout  Maximum number in seconds to sleep
+ * @param [in] timeout_in_seconds  Maximum number in seconds to sleep
  *
  * @retval None
  *
  * @see @ref sleep API Operating System Callback
  */
-void os_sleep(unsigned int const timeout_in_seconds)
+void app_os_sleep(unsigned int const timeout_in_seconds)
 {
-    UNUSED_PARAMETER(timeout_in_seconds);
     return;
 }
 
 /**
  * @cond DEV
  */
-idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
+idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
                                         void * const request_data, size_t const request_length,
                                         void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     int ret;
 
-    UNUSED_PARAMETER(request_length);
-    UNUSED_PARAMETER(response_length);
-
     switch (request)
     {
     case idigi_os_malloc:
-        ret    = os_malloc(*((size_t *)request_data), (void **)response_data);
+        ret    = app_os_malloc(*((size_t *)request_data), (void **)response_data);
         status = (ret == 0) ? idigi_callback_continue : idigi_callback_busy;
         break;
 
     case idigi_os_free:
-        os_free(request_data);
+        app_os_free(request_data);
         status = idigi_callback_continue;
         break;
 
     case idigi_os_system_up_time:
-        ret    = os_get_system_time((uint32_t *)response_data);
+        ret    = app_os_get_system_time((uint32_t *)response_data);
         status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
         break;
 
     case idigi_os_sleep:
-        os_sleep(*((unsigned int *)request_data));
+        app_os_sleep(*((unsigned int *)request_data));
         status = idigi_callback_continue;
         break;
 
     default:
-        DEBUG_PRINTF("idigi_os_callback: unrecognized request [%d]\n", request);
         break;
     }
 
