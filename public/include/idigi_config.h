@@ -1,3 +1,4 @@
+
 /*
  *  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
  *
@@ -30,12 +31,14 @@
 #ifndef __IDIGI_CONFIG_H_
 #define __IDIGI_CONFIG_H_
 
+
 /**
 * @defgroup idigi_config_options iDigi Configuration Options
 * @{
 * 
 * @brief Defines the major blocks of functionality used in the IIK 
 */
+
 /** 
  *  When defined, the system is little endian.  
  *  
@@ -82,10 +85,9 @@
 #define IDIGI_DATA_SERVICE
 
 /**
-* @}
-*/
+ * @}*/
 
-#ifdef ENABLE_COMPILE_TIME_DATA_PASSING
+#if ENABLE_COMPILE_TIME_DATA_PASSING
 
 /**
 * @defgroup idigi_config_data_options Hard Code Application Configuration options
