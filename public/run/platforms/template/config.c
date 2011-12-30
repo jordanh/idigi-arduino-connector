@@ -28,13 +28,10 @@
   *  @brief Configuration routines for the IIK.
   *
   */
-#include <unistd.h>
-#include <malloc.h>
-#include <arpa/inet.h>
-#include <sys/ioctl.h>
-#include <net/if.h>
+#include "idigi_api.h"
 #include "idigi_data.h"
 #include "idigi_types.h"
+#include "platform.h"
 
 /**
  * @brief   Get the IP address of the device
@@ -314,7 +311,7 @@ static int get_phone_number(uint8_t ** number, size_t * size)
  * 
  * @see @ref tx_keepalive API Configuration Callback
  *
- * @note This routine is not needed if you define @b IDIGI_TX_KEEPALIVE_IN_SECONDS configuration in @ref idigi_config.h.
+ * @note This routine is not needed if you define @ref IDIGI_TX_KEEPALIVE_IN_SECONDS configuration in @ref idigi_config.h.
  * See @ref default_config
  */
 static int get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
