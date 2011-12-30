@@ -1,10 +1,34 @@
+/*
+ *  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
+ *
+ *  This software contains proprietary and confidential information of Digi
+ *  International Inc.  By accepting transfer of this copy, Recipient agrees
+ *  to retain this software in confidence, to prevent disclosure to others,
+ *  and to make no use of this software other than that for which it was
+ *  delivered.  This is an unpublished copyrighted work of Digi International
+ *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
+ *  prohibited.
+ *
+ *  Restricted Rights Legend
+ *
+ *  Use, duplication, or disclosure by the Government is subject to
+ *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
+ *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
+ *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
+ *  Restricted Rights at 48 CFR 52.227-19, as applicable.
+ *
+ *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
+ *
+ * =======================================================================
+ *
+ */
 
  /**
   * @file
   *  @brief Configuration routines for the IIK.
   *
   */
-#include <string.h>
+#include <stdio.h>
 #include "idigi_api.h"
 
 #define DEVICE_ID_LENGTH    16
@@ -520,31 +544,31 @@ static void app_config_error(idigi_error_status_t * const error_data)
     switch (error_data->class_id)
     {
     case idigi_class_config:
-        print("idigi_error_status: Config - %s (%d)  status = %s (%d)\n", config_request_string[error_data->request_id.config_request],
+        printf("idigi_error_status: Config - %s (%d)  status = %s (%d)\n", config_request_string[error_data->request_id.config_request],
                      error_data->request_id.config_request, error_status_string[error_data->status],error_data->status);
         break;
     case idigi_class_network:
-        print("idigi_error_status: Network - %s (%d)  status = %s (%d)\n", network_request_string[error_data->request_id.network_request],
+        printf("idigi_error_status: Network - %s (%d)  status = %s (%d)\n", network_request_string[error_data->request_id.network_request],
                      error_data->request_id.network_request, error_status_string[error_data->status],error_data->status);
         break;
     case idigi_class_operating_system:
-        print("idigi_error_status: Operating System - %s (%d)  status = %s (%d)\n", os_request_string[error_data->request_id.os_request],
+        printf("idigi_error_status: Operating System - %s (%d)  status = %s (%d)\n", os_request_string[error_data->request_id.os_request],
                      error_data->request_id.os_request, error_status_string[error_data->status],error_data->status);
         break;
     case idigi_class_firmware:
-        print("idigi_error_status: Firmware facility - %s (%d)  status = %s (%d)\n",
+        printf("idigi_error_status: Firmware facility - %s (%d)  status = %s (%d)\n",
                      firmware_request_string[error_data->request_id.firmware_request],
                      error_data->request_id.firmware_request,
                      error_status_string[error_data->status],error_data->status);
         break;
     case idigi_class_data_service:
-        print("idigi_error_status: Data service - %s (%d)  status = %s (%d)\n",
+        printf("idigi_error_status: Data service - %s (%d)  status = %s (%d)\n",
                      data_service_string[error_data->request_id.data_service_request],
                      error_data->request_id.data_service_request,
                      error_status_string[error_data->status],error_data->status);
         break;
     default:
-        print("idigi_error_status: unsupport class_id = %d status = %d\n", error_data->class_id, error_data->status);
+        printf("idigi_error_status: unsupport class_id = %d status = %d\n", error_data->class_id, error_data->status);
         break;
     }
 
