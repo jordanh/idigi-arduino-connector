@@ -214,8 +214,8 @@
  *   <p>The @endhtmlonly idigi_data_service_msg_request_t @htmlonly contains request data from the server or an error.</p>
  *   <p>The <b><i>"message_type"</i></b> indicates what type of message is received from
  *   the server, in case of an error the @endhtmlonly idigi_data_service_block_t @htmlonly will contain the 
- *   @endhtmlonly @ref idigi_msg_error_t @endhtml in the data field.</p>
- *   <p>The <b><i>"service_context"</i></b> is pointer to @endhtmlonly idigi_data_service_device_request_t @htmlonly.
+ *   @endhtmlonly @ref idigi_msg_error_t @htmlonly in the data field.</p>
+ *   <p>The <b><i>"service_context"</i></b> is pointer to @endhtmlonly @ref idigi_data_service_device_request_t @htmlonly.
  *
  * </td></tr>
  * <tr>
@@ -373,11 +373,8 @@
  *     return idigi_callback_continue;
  * }
  * 
-  * @endcode
+ * @endcode
  *
- * </td></tr>
- * </table>
- * @endhtmlonly
  */
 
 

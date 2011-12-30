@@ -101,7 +101,7 @@ int app_os_get_system_time(uint32_t * const uptime)
  * IIK calls this callback if IIK is busy and is not calling
  * receive callback
  *
- * @param [in] timeout  Maximum number in seconds to sleep
+ * @param [in] timeout_in_seconds  Maximum number in seconds to sleep
  *
  * @retval None
  *

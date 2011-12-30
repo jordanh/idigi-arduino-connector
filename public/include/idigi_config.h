@@ -1,4 +1,3 @@
-
 /*
  *  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
  *
@@ -23,14 +22,13 @@
  * =======================================================================
  *
  */
-
-/**
- * @file
- *  @brief IIK configuration options.
- *
- */
-#ifndef IDIGI_CONFIG_H_
-#define IDIGI_CONFIG_H_
+ /**
+  * @file
+  *  @brief IIK configuration options
+  *
+  */
+#ifndef __IDIGI_CONFIG_H_
+#define __IDIGI_CONFIG_H_
 
 /**
 * @defgroup idigi_config_options iDigi Configuration Options
@@ -100,9 +98,9 @@
 */
 /** 
  * When defined, this string is hardcode for the @ref device_type instead of the application framework 
- * function @ref get_device_type() (called via the @ref idigi_config_device_type @ref idigi_callback_t "callback" in config.c).   
+ * function @ref get_device_type (called via the @ref idigi_config_device_type @ref idigi_callback_t "callback" in config.c).   
  * 
- * @note There is no need to implement or port @ref get_device_type() when IDIGI_DEVICE_TYPE is defined. 
+ * @note There is no need to implement or port @ref get_device_type when IDIGI_DEVICE_TYPE is defined. 
  *  
  * @see @ref device_type
  * @see @ref idigi_config_device_type
@@ -113,9 +111,9 @@
 
 /** 
  * When defined, this string hardcode for the @ref server_url instead of the application framework 
- * function @ref get_server_url() (called via the @ref idigi_config_server_url @ref idigi_callback_t "callback" in config.c).   
+ * function @ref get_server_url (called via the @ref idigi_config_server_url @ref idigi_callback_t "callback" in config.c).   
  * 
- * @note There is no need to implement or port @ref get_server_url() when IDIGI_CLOUD_URL is defined. 
+ * @note There is no need to implement or port @ref get_server_url when IDIGI_CLOUD_URL is defined. 
  *  
  * @see @ref server_url
  * @see @ref idigi_config_server_url
