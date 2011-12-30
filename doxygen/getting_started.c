@@ -230,10 +230,10 @@
  * to see a description, then modify to operate with your platform.  These routines
  * are callbacks which are described in the API section.
  *
- *  @li os_malloc()
- *  @li os_free()
- *  @li os_get_system_time()
- *  @li os_sleep()
+ *  @li app_os_malloc()
+ *  @li app_os_free()
+ *  @li app_os_get_system_time()
+ *  @li app_os_sleep()
  *
  * @subsection network_routines Network Routines
  * Open the file network.c and implement the network interface routines. 
@@ -243,10 +243,10 @@
  * platforms network implementation.
  *
  * The following is a list of network interface routines which must be implemented:
- *  @li network_connect()
- *  @li network_send()
- *  @li network_receive()
- *  @li network_close()
+ *  @li app_network_connect()
+ *  @li app_network_send()
+ *  @li app_network_receive()
+ *  @li app_network_close()
  *
  * @subsection configuration_routines Configuration Routines
  *
@@ -255,10 +255,10 @@
  * for your platform and implement the configuration routines.
  * All configuration routines are passed in a pointer to a pointer, along with a pointer to the size. 
  * The address of the configuration item is stored in the pointer passed in, and the size is assigned to the pointer to the size variable.
- * For example get_server_url() is the routine used to retrieve the iDigi Developer Cloud URL
+ * For example app_get_server_url() is the routine used to retrieve the iDigi Developer Cloud URL
  * and is shown below.
  * @code
- *  static int get_server_url(char ** url, size_t * size)
+ *  static int app_get_server_url(char ** url, size_t * size)
  *  {
  *  #error "Specify iDigi Server URL" /* This #error must be removed to compile */
  *      /* Statically allocated string containing the sever URL */
@@ -281,22 +281,22 @@
  *
  * The following is a list of configuration routines which needs to be implemented for
  * your platform, please review each routine:
- *  @li get_ip_address()
- *  @li get_mac_addr()
- *  @li get_device_id()
- *  @li get_vendor_id()
- *  @li get_device_type()
- *  @li get_server_url()
- *  @li get_connection_type()
- *  @li get_link_speed()
- *  @li get_phone_number()
- *  @li get_tx_keepalive_interval()
- *  @li get_rx_keepalive_interval()
- *  @li get_wait_count()
- *  @li get_firmware_support()
- *  @li get_data_service_support()
- *  @li get_max_message_transactions()
- *  @li idigi_config_error()
+ *  @li app_get_ip_address()
+ *  @li app_get_mac_addr()
+ *  @li app_get_device_id()
+ *  @li app_get_vendor_id()
+ *  @li app_get_device_type()
+ *  @li app_get_server_url()
+ *  @li app_get_connection_type()
+ *  @li app_get_link_speed()
+ *  @li app_get_phone_number()
+ *  @li app_get_tx_keepalive_interval()
+ *  @li app_get_rx_keepalive_interval()
+ *  @li app_get_wait_count()
+ *  @li app_get_firmware_support()
+ *  @li app_get_data_service_support()
+ *  @li app_get_max_message_transactions()
+ *  @li app_config_error()
  *
  * @subsection default_config Hard Code Configuration 
  *

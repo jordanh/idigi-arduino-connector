@@ -36,7 +36,7 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-static int dns_resolve_name(char const * const domain_name, in_addr_t * ip_addr)
+static int app_dns_resolve_name(char const * const domain_name, in_addr_t * ip_addr)
 {
     int rc=-1;
     struct addrinfo *res0, *res, hint;
@@ -74,7 +74,7 @@ done:
     return rc;
 }
 
-static idigi_callback_status_t network_connect(char const * const host_name, size_t const length, idigi_network_handle_t ** network_handle)
+static idigi_callback_status_t app_network_connect(char const * const host_name, size_t const length, idigi_network_handle_t ** network_handle)
 {
     idigi_callback_status_t rc = idigi_callback_abort;
     struct timeval timeout = {1, 0};
@@ -100,7 +100,7 @@ static idigi_callback_status_t network_connect(char const * const host_name, siz
         ip_addr = inet_addr(server_name);
         if (ip_addr == INADDR_NONE)
         {
-            if (dns_resolve_name(server_name, &ip_addr) != 0)
+            if (app_dns_resolve_name(server_name, &ip_addr) != 0)
             {
                 APP_DEBUG("network_connect: Can't resolve DNS for %s\n", server_name);
                 goto done;
@@ -197,7 +197,7 @@ done:
  * EAGAIN or EWOULDBLOCK error, 0 bytes must be returned and IIK will continue
  * calling this function.
  */
-static idigi_callback_status_t network_send(idigi_write_request_t const * const write_data,
+static idigi_callback_status_t app_network_send(idigi_write_request_t const * const write_data,
                                             size_t * sent_length)
 {
     idigi_callback_status_t rc = idigi_callback_continue;
@@ -227,7 +227,7 @@ static idigi_callback_status_t network_send(idigi_write_request_t const * const 
  * function must not block. If it encounters EAGAIN or EWOULDBLOCK error, 0 
  * bytes must be returned and IIK will continue calling this function.
  */
-static idigi_callback_status_t network_receive(idigi_read_request_t * read_data, size_t * read_length)
+static idigi_callback_status_t app_network_receive(idigi_read_request_t * read_data, size_t * read_length)
 {
     idigi_callback_status_t rc = idigi_callback_continue;
     struct timeval timeout;
@@ -284,7 +284,7 @@ done:
     return rc;
 }
 
-static idigi_callback_status_t network_close(idigi_network_handle_t * const fd)
+static idigi_callback_status_t app_network_close(idigi_network_handle_t * const fd)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     struct linger ling_opt;
@@ -310,14 +310,14 @@ static idigi_callback_status_t network_close(idigi_network_handle_t * const fd)
     return status;
 }
 
-static int server_disconnected(void)
+static int app_server_disconnected(void)
 {
 
     APP_DEBUG("Disconnected from server\n");
     return 0;
 }
 
-static int server_reboot(void)
+static int app_server_reboot(void)
 {
 
     APP_DEBUG("Reboot from server\n");
@@ -328,7 +328,7 @@ static int server_reboot(void)
 /*
  *  Callback routine to handle all networking related calls.
  */
-idigi_callback_status_t idigi_network_callback(idigi_network_request_t const request,
+idigi_callback_status_t app_network_handler(idigi_network_request_t const request,
                                             void * const request_data, size_t const request_length,
                                             void * response_data, size_t * const response_length)
 {
@@ -340,29 +340,29 @@ idigi_callback_status_t idigi_network_callback(idigi_network_request_t const req
     switch (request)
     {
     case idigi_network_connect:
-        status = network_connect((char *)request_data, request_length, (idigi_network_handle_t **)response_data);
+        status = app_network_connect((char *)request_data, request_length, (idigi_network_handle_t **)response_data);
         *response_length = sizeof(idigi_network_handle_t);
         break;
 
     case idigi_network_send:
-        status = network_send((idigi_write_request_t *)request_data, (size_t *)response_data);
+        status = app_network_send((idigi_write_request_t *)request_data, (size_t *)response_data);
         break;
 
     case idigi_network_receive:
-        status = network_receive((idigi_read_request_t *)request_data, (size_t *)response_data);
+        status = app_network_receive((idigi_read_request_t *)request_data, (size_t *)response_data);
         break;
 
     case idigi_network_close:
-        status = network_close((idigi_network_handle_t *)request_data);
+        status = app_network_close((idigi_network_handle_t *)request_data);
         break;
 
     case idigi_network_disconnected:
-       ret = server_disconnected();
+       ret = app_server_disconnected();
        status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
        break;
 
     case idigi_network_reboot:
-        ret = server_reboot();
+        ret = app_server_reboot();
         status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
         break;
 

@@ -115,7 +115,7 @@
  * An example of an application callback for a put request is show below:
  *
  * @code
- * idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t const request,
+ * idigi_callback_status_t app_data_service_callback(idigi_class_t const class_id, idigi_request_t const request_d,
  *                                                  void const * request_data, size_t const request_length,
  *                                                  void * response_data, size_t * const response_length)
  * {
@@ -124,7 +124,7 @@
  *    idigi_data_service_msg_response_t * const put_response = response_data;
  *
  *
- *    if (request == idigi_data_service_put_request)
+ *     if (class_id == idigi_class_data_service && request_id.data_service_request == idigi_data_service_device_request) 
  *    {
  *        switch (put_request->message_type)
  *        {
@@ -261,15 +261,16 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t const request,
+ * idigi_callback_status_t app_data_service_callback(idigi_class_t const request_id,
+                                                     idigi_request_t const request_id,
  *                                                     void const * request_data, size_t const request_length,
  *                                                     void * response_data, size_t * const response_length)
  * {
  *     idigi_callback_status_t status = idigi_callback_continue;
  *     idigi_data_service_msg_request_t const * const service_device_request = request_data;
  *
- *     if (request == idigi_data_service_device_request) /* Device request from iDigi Device Cloud */
- *     {
+ *     if (class_id == idigi_class_data_service && request_id.data_service_request == idigi_data_service_device_request) 
+ *     {   /* Device request from iDigi Device Cloud */
  *         switch (service_device_request->message_type)
  *         {
  *         case idigi_data_service_type_have_data:

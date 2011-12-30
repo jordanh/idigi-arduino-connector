@@ -29,10 +29,10 @@
 extern void check_stack_size(void);
 extern void clear_stack_size(void);
 
-extern idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t const request,
+extern idigi_callback_status_t app_data_service_handler(idigi_data_service_request_t const request,
                                                   void const * request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length);
-extern idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t const request,
+extern idigi_callback_status_t app_firmware_handler(idigi_firmware_request_t const request,
                                                   void * const request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length);
 
@@ -49,23 +49,23 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
     switch (class_id)
     {
     case idigi_class_config:
-        status = idigi_config_callback(request_id.config_request, request_data, request_length, response_data, response_length);
+        status = app_config_handler(request_id.config_request, request_data, request_length, response_data, response_length);
         break;
 
     case idigi_class_operating_system:
-        status = idigi_os_callback(request_id.os_request, request_data, request_length, response_data, response_length);
+        status = app_os_handler(request_id.os_request, request_data, request_length, response_data, response_length);
         break;
 
     case idigi_class_network:
-        status = idigi_network_callback(request_id.network_request, request_data, request_length, response_data, response_length);
+        status = app_network_handler(request_id.network_request, request_data, request_length, response_data, response_length);
         break;
 
     case idigi_class_data_service:
-        status = idigi_data_service_callback(request_id.data_service_request, request_data, request_length, response_data, response_length);
+        status = app_data_service_handler(request_id.data_service_request, request_data, request_length, response_data, response_length);
         break;
 
     case idigi_class_firmware:
-        status = idigi_firmware_callback(request_id.firmware_request, request_data, request_length, response_data, response_length);
+        status = app_firmware_handler(request_id.firmware_request, request_data, request_length, response_data, response_length);
 
     default:
         /* not supported */
@@ -108,7 +108,7 @@ int application_run(idigi_handle_t handle)
 
                 case dvt_state_fw_download_complete:
                     dvt_current_ptr->state = dvt_state_request_start;
-                    os_sleep(SLEEP_IN_SECONDS); /* let reset complete */
+                    app_os_sleep(SLEEP_IN_SECONDS); /* let reset complete */
                     break;
 
                 case dvt_state_stop:
@@ -121,7 +121,7 @@ int application_run(idigi_handle_t handle)
             }
         }
 
-        os_sleep(SLEEP_IN_SECONDS);
+        app_os_sleep(SLEEP_IN_SECONDS);
     }
 
     return 0;
