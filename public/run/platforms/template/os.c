@@ -29,6 +29,7 @@
   *
   */
 #include "idigi_api.h"
+#include "platform.h"
 
 /**
  * @brief   Dynamically allocate memory
@@ -51,6 +52,8 @@
  */
 int app_os_malloc(size_t const size, void ** ptr)
 {
+    UNUSED_ARGUMENT(size);
+    UNUSED_ARGUMENT(ptr);
     return 0;
 }
 
@@ -70,6 +73,7 @@ int app_os_malloc(size_t const size, void ** ptr)
  */
 void app_os_free(void * const ptr)
 {
+    UNUSED_ARGUMENT(ptr);
     return;
 }
 
@@ -90,6 +94,7 @@ void app_os_free(void * const ptr)
  */
 int app_os_get_system_time(uint32_t * const uptime)
 {
+    UNUSED_ARGUMENT(uptime);
     return 0;
 }
 
@@ -109,6 +114,7 @@ int app_os_get_system_time(uint32_t * const uptime)
  */
 void app_os_sleep(unsigned int const timeout_in_seconds)
 {
+    UNUSED_ARGUMENT(timeout_in_seconds);
     return;
 }
 
@@ -121,6 +127,9 @@ idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
 {
     idigi_callback_status_t status = idigi_callback_continue;
     int ret;
+
+    UNUSED_ARGUMENT(request_length);
+    UNUSED_ARGUMENT(response_length);
 
     switch (request)
     {
