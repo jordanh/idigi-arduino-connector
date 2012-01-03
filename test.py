@@ -51,15 +51,16 @@ TEST_LIST = 2
 # 1. Directory which contains the makefile and the idigi executable, the
 #    makefile is build with 'make clean all' and the name of the executable
 #    must be idigi
-# 2. List of python test scripts to run
+# 2. Directory of the python test script
+# 3. List of python test scripts to run
 #
-              Directory.                                Test Scripts
+#              Directory.                            Script directory                Test Scripts
 test_table = [[BASE_SAMPLE_DIR+'connect_to_idigi',  BASE_SCRIPT_DIR+'sample_tests', ['test_discovery.py']],
               [BASE_SAMPLE_DIR+'firmware_download', BASE_SCRIPT_DIR+'sample_tests', ['test_firmware.py']],
               [BASE_SAMPLE_DIR+'send_data',         BASE_SCRIPT_DIR+'sample_tests', ['test_send_data.py']],
               [BASE_SAMPLE_DIR+'device_request',    BASE_SCRIPT_DIR+'sample_tests', ['test_device_request.py']],
               [BASE_DVT_SRC+'full_test',            BASE_SCRIPT_DIR+'dvt_tests',    ['test_firmware.py', 'test_firmware_errors.py', 'test_device_request.py', 'test_data_service.py']]
-
+]
 
 def build_test(dir):
     print '>>>Testing [%s]' % dir
@@ -96,10 +97,10 @@ def run_tests():
 
         time.sleep(5) # Give the program time to start
 
-       for test_script in test_list:
+        for test_script in test_list:
             print '>>>Executing [%s]' % test_script
             rc = os.system('export PYTHONPATH=../;cd %s; nosetests --with-xunit --xunit-file=nosestest%1d.xml %s' % (test_dir, i, test_script))
-           i += 1
+            i += 1
 
         print '>>>pid [%s]' % pid
         if pid != '':
