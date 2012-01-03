@@ -58,8 +58,8 @@
  */
 int os_malloc(size_t const size, void ** ptr)
 {
-    UNUSED_PARAMETER(size);
-    UNUSED_PARAMETER(ptr);
+    UNUSED_ARGUMENT(size);
+    UNUSED_ARGUMENT(ptr);
     return false;
 }
 
@@ -83,7 +83,7 @@ int os_malloc(size_t const size, void ** ptr)
  */
 void os_free(void * const ptr)
 {
-    UNUSED_PARAMETER(ptr);
+    UNUSED_ARGUMENT(ptr);
     return;
 }
 
@@ -107,7 +107,7 @@ void os_free(void * const ptr)
  */
 int os_get_system_time(uint32_t * const uptime)
 {
-    UNUSED_PARAMETER(uptime);
+    UNUSED_ARGUMENT(uptime);
     return false;
 }
 
@@ -132,7 +132,7 @@ int os_get_system_time(uint32_t * const uptime)
  */
 void os_sleep(unsigned int const timeout_in_seconds)
 {
-    UNUSED_PARAMETER(timeout_in_seconds);
+    UNUSED_ARGUMENT(timeout_in_seconds);
     return;
 }
 
@@ -146,8 +146,8 @@ idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
     idigi_callback_status_t status = idigi_callback_continue;
     bool ret=false;
 
-    UNUSED_PARAMETER(request_length);
-    UNUSED_PARAMETER(response_length);
+    UNUSED_ARGUMENT(request_length);
+    UNUSED_ARGUMENT(response_length);
 
     switch (request)
     {
@@ -172,7 +172,7 @@ idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
         break;
 
     default:
-        DEBUG_PRINTF("idigi_os_callback: unrecognized request [%d]\n", request);
+        APP_DEBUG("idigi_os_callback: unrecognized request [%d]\n", request);
         break;
     }
 

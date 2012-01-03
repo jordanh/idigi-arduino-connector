@@ -57,8 +57,8 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
     idigi_data_service_msg_request_t const * const put_request = request_data;
     idigi_data_service_msg_response_t * const put_response = response_data;
 
-    UNUSED_PARAMETER(request_length);
-    UNUSED_PARAMETER(response_length);
+    UNUSED_ARGUMENT(request_length);
+    UNUSED_ARGUMENT(response_length);
 
     if ((put_request == NULL) || (put_response == NULL))
     {

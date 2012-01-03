@@ -108,8 +108,5 @@
  * "Operating System" page.
  *
  *
- * </td></tr>
- * </table>
- * @endhtmlonly
  *
  */

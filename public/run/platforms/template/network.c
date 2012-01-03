@@ -110,7 +110,7 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t * read_d
  *
  * This routine closes the connection to the iDigi Device Cloud 
  *
- * @param [in] idigi_network_handle_t  Pointer to a idigi_read_request_t structure
+ * @param [in] fd  Pointer to a idigi_read_request_t structure
  *
  * @retval idigi_callback_status_t
  *

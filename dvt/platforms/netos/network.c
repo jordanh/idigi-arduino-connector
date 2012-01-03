@@ -336,7 +336,7 @@ idigi_callback_status_t idigi_network_callback(idigi_network_request_t const req
     idigi_callback_status_t status = idigi_callback_continue;
     int ret;
 
-    UNUSED_PARAMETER(request_length);
+    UNUSED_ARGUMENT(request_length);
 
     switch (request)
     {

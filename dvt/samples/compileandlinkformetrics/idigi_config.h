@@ -24,53 +24,18 @@
  *
  */
 
-/**
- * @file
- *  @brief IIK configuration options.
- *
- */
 #ifndef IDIGI_CONFIG_H_
 #define IDIGI_CONFIG_H_
 
-/**
-* @defgroup idigi_config_options iDigi Configuration Options
-* @{
-*/
-/** 
- *  If defined the system is little endian, comment out for big endian.
- */
 #define IDIGI_LITTLE_ENDIAN
 
 #ifdef USE_THE_MAKEFILE_INSTEAD
-/** 
- *  If defined the debugging is enabled in the IIK.
- * @see USER_DEBUG_VPRINTF
- * @see ASSERT
- */
+
 #define IDIGI_DEBUG
-
-/** 
- * If defined the firmware service is included in IIK.
- * @see @ref firmware_support
- */
 #define IDIGI_FIRMWARE_SERVICE
-
-
-/** 
- * If defined zlib compression is enabled for data service.
- */
 #define IDIGI_COMPRESSION
-
-/** 
- * If defined the data service is included in IIK.
- * @see @ref data_service_support
- */
 #define IDIGI_DATA_SERVICE
 #endif
-
-/**
-* @}
-*/
 
 #ifdef USE_THE_DEFINES
 #define IDIGI_DEVICE_TYPE                          "IIK Linux Sample"
@@ -85,7 +50,6 @@
 #define IDIGI_WAN_PHONE_NUMBER_DIALED              "012345678"
 #define IDIGI_FIRMWARE_SUPPORT
 #define IDIGI_DATA_SERVICE_SUPPORT
-
 #endif
 
 #endif

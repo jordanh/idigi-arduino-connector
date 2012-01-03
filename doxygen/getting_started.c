@@ -69,7 +69,7 @@
  *
  * Open the file public/include/idigi_config.h to configure processor endianess.  
  * 
- * The IIK defaults to little endian.  To reconfigure for big endian, comment out the #define @ref IDIGI_LITTLE_ENDIAN line.
+ * The IIK defaults to little endian.  To reconfigure for big endian, comment out the @ref IDIGI_LITTLE_ENDIAN define.
  *
  * If your application does not want the optional Data Compression (see @ref zlib) then comment out @ref IDIGI_COMPRESSION,
  * if compression is supported leave this define alone.
@@ -174,7 +174,7 @@
  * 4. Login with the user credentials you created in section @ref idigi_account
  * 
  * @image html idigi4.jpg
- *
+
  * @subsection idigi_vendor_id Obtain an iDigi Vendor ID
  *
  * @note You will need to contact Digi to request a vendor ID. You will need the vendor ID 
@@ -190,7 +190,6 @@
  *
  * The page will refresh and your unique vendor ID number will be displayed in place of the
  * Register for new vendor id button.  Record the Vendor ID you will need it later.
- *
  *
  * @image html idigi6.jpg
  *
@@ -273,7 +272,7 @@
  *  }
  * @endcode
  *
- * @note The required routines contain the @b #error preprocessor directive 
+ * @note The required routines contain the @htmlonly #error @endhtmlonly preprocessor directive 
  * which must be removed before compiling.
  *
  * @note The memory assigned to configuration items must be @b statically @b allocated and is accessed by the IIK 
@@ -607,11 +606,6 @@
  * can port in more functionality to your application.  We first suggest 
  * reading the @ref api1_overview "API" section of the documentation and then 
  * select a sample which has the functionality you need.
- *
- * </td></tr>
- * </table>
- *
- * @endhtmlonly
  *
  */
 

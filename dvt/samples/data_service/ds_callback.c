@@ -118,8 +118,8 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
-    UNUSED_PARAMETER(request_length);
-    UNUSED_PARAMETER(response_length);
+    UNUSED_ARGUMENT(request_length);
+    UNUSED_ARGUMENT(response_length);
 
     {
         idigi_data_service_msg_request_t const * const put_request = request_data;
@@ -492,8 +492,8 @@ idigi_callback_status_t app_device_request_handler(void const * request_data, si
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_data_service_msg_request_t const * const service_device_request = request_data;
 
-    UNUSED_PARAMETER(request_length);
-    UNUSED_PARAMETER(response_length);
+    UNUSED_ARGUMENT(request_length);
+    UNUSED_ARGUMENT(response_length);
 
     switch (service_device_request->message_type)
     {

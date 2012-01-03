@@ -28,16 +28,8 @@
  */
 #include <stdio.h>
 #include <string.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
-#include <errno.h>
-
 #include "idigi_data.h"
+#include "idigi_api.h"
 
 /**
  * @brief   Connect to the iDigi server
@@ -154,7 +146,7 @@ idigi_callback_status_t idigi_network_callback(idigi_network_request_t const req
     idigi_callback_status_t status = idigi_callback_continue;
     int ret;
 
-    UNUSED_PARAMETER(request_length);
+    UNUSED_ARGUMENT(request_length);
 
     switch (request)
     {

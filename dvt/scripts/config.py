@@ -23,11 +23,11 @@ def remove_errors(file_name):
 
 def update_field(config, line, field, isString):
   elements = line.split()
-  if elements[0] != '/*':
+  if elements[0] != '#define':
     new_lines.append(line)
     return
 
-  modified_line = elements[1] + '    ' + elements[2] + '    '
+  modified_line = elements[0] + '    ' + elements[1] + '    '
   if isString:
     modified_line += '"' + config.get("device", field) + '"' + '\n'  
   else:
@@ -36,11 +36,19 @@ def update_field(config, line, field, isString):
 
 def update_idigi_config_h(header_file, config):
 
+  found_enable = False
   infile = open(header_file, "r")
   new_lines[:] = []
 
   for line in infile:
-    if 'IDIGI_DEVICE_TYPE' in line:
+    if 'ENABLE_COMPILE_TIME_DATA_PASSING' in line:
+      if found_enable == False:
+        found_enable = True
+        elements = line.split()
+        if elements[0] == '#if':
+          new_lines.append("#define   ENABLE_COMPILE_TIME_DATA_PASSING   1\n")
+      new_lines.append(line)
+    elif 'IDIGI_DEVICE_TYPE' in line:
       update_field(config, line, "device_type", True)
     elif 'IDIGI_CLOUD_URL' in line:
       update_field(config, line, "server_url", True)

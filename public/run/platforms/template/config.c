@@ -62,7 +62,7 @@ static int app_get_ip_address(uint8_t ** ip_address, size_t * size)
  * This routine assigns a pointer to the MAC address of the device in *mac_address along 
  * with the size. This routine returns fail if an error occurred, otherwise true.
  *
- * @param [out] mac_address  Pointer to memory containing IP address
+ * @param [out] addr  Pointer to memory containing IP address
  * @param [out] size Size of the MAC address in bytes (6 bytes).
  *  
  * @retval 0  MAC address was returned OK
@@ -251,7 +251,7 @@ static int app_get_connection_type(idigi_connection_type_t ** type)
  * This routine assigns the link speed for WAN connection type. If connection type is LAN, 
  * IIK will not request link speed configuration.
  *
- * @param [out] url  Pointer to memory containing the link speed
+ * @param [out] speed Pointer to memory containing the link speed
  * @param [out] size Size of the link speed in bytes
  *  
  * @retval 0  The link speed was returned OK
@@ -452,7 +452,7 @@ static idigi_service_supported_status_t app_get_data_service_support(void)
  */
 static unsigned int app_get_max_message_transactions(void)
 {
-#define IDIGI_MAX_MSG_TRANSACTIONS   388
+#define IDIGI_MAX_MSG_TRANSACTIONS   1
 
     return IDIGI_MAX_MSG_TRANSACTIONS;
 }
