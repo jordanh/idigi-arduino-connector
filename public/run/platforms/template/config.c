@@ -30,6 +30,7 @@
   */
 #include <stdio.h>
 #include "idigi_api.h"
+#include "platform.h"
 
 #define DEVICE_ID_LENGTH    16
 #define VENDOR_ID_LENGTH    4
@@ -53,6 +54,9 @@
  */
 static int app_get_ip_address(uint8_t ** ip_address, size_t * size)
 {
+    UNUSED_ARGUMENT(ip_address);
+    UNUSED_ARGUMENT(size);
+
     return 0;
 }
 
@@ -266,6 +270,8 @@ static int app_get_link_speed(uint32_t ** speed, size_t * size)
 {
 #error "Specify link speed for WAN connection type"
 
+    UNUSED_ARGUMENT(speed);
+    UNUSED_ARGUMENT(size);
     return 0;
 }
 
@@ -293,6 +299,8 @@ static int app_get_phone_number(uint8_t ** number, size_t * size)
     /* 
      * Return pointer to phone number for WAN connection type.
      */
+    UNUSED_ARGUMENT(number);
+    UNUSED_ARGUMENT(size);
     return 0;
 }
 
@@ -544,31 +552,31 @@ static void app_config_error(idigi_error_status_t * const error_data)
     switch (error_data->class_id)
     {
     case idigi_class_config:
-        printf("idigi_error_status: Config - %s (%d)  status = %s (%d)\n", config_request_string[error_data->request_id.config_request],
+        APP_DEBUG("idigi_error_status: Config - %s (%d)  status = %s (%d)\n", config_request_string[error_data->request_id.config_request],
                      error_data->request_id.config_request, error_status_string[error_data->status],error_data->status);
         break;
     case idigi_class_network:
-        printf("idigi_error_status: Network - %s (%d)  status = %s (%d)\n", network_request_string[error_data->request_id.network_request],
+        APP_DEBUG("idigi_error_status: Network - %s (%d)  status = %s (%d)\n", network_request_string[error_data->request_id.network_request],
                      error_data->request_id.network_request, error_status_string[error_data->status],error_data->status);
         break;
     case idigi_class_operating_system:
-        printf("idigi_error_status: Operating System - %s (%d)  status = %s (%d)\n", os_request_string[error_data->request_id.os_request],
+        APP_DEBUG("idigi_error_status: Operating System - %s (%d)  status = %s (%d)\n", os_request_string[error_data->request_id.os_request],
                      error_data->request_id.os_request, error_status_string[error_data->status],error_data->status);
         break;
     case idigi_class_firmware:
-        printf("idigi_error_status: Firmware facility - %s (%d)  status = %s (%d)\n",
+        APP_DEBUG("idigi_error_status: Firmware facility - %s (%d)  status = %s (%d)\n",
                      firmware_request_string[error_data->request_id.firmware_request],
                      error_data->request_id.firmware_request,
                      error_status_string[error_data->status],error_data->status);
         break;
     case idigi_class_data_service:
-        printf("idigi_error_status: Data service - %s (%d)  status = %s (%d)\n",
+        APP_DEBUG("idigi_error_status: Data service - %s (%d)  status = %s (%d)\n",
                      data_service_string[error_data->request_id.data_service_request],
                      error_data->request_id.data_service_request,
                      error_status_string[error_data->status],error_data->status);
         break;
     default:
-        printf("idigi_error_status: unsupport class_id = %d status = %d\n", error_data->class_id, error_data->status);
+        APP_DEBUG("idigi_error_status: unsupport class_id = %d status = %d\n", error_data->class_id, error_data->status);
         break;
     }
 
@@ -589,6 +597,8 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
 {
     idigi_callback_status_t status;
     int ret = -1;
+
+    UNUSED_ARGUMENT(request_length);
 
     switch (request)
     {

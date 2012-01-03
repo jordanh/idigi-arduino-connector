@@ -27,6 +27,7 @@
  *  @brief Rountines which implement the IIK network interface.
  */
 #include "idigi_api.h"
+#include "platform.h"
 
 /**
  * @brief   Connect to the iDigi server
@@ -53,6 +54,10 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
 {
     idigi_callback_status_t rc = idigi_callback_continue;
 
+    UNUSED_ARGUMENT(host_name);
+    UNUSED_ARGUMENT(length);
+    UNUSED_ARGUMENT(network_handle);
+
     return rc;
 }
 
@@ -75,6 +80,9 @@ static idigi_callback_status_t app_network_send(idigi_write_request_t const * co
                                             size_t * sent_length)
 {
     idigi_callback_status_t rc = idigi_callback_continue;
+
+    UNUSED_ARGUMENT(write_data);
+    UNUSED_ARGUMENT(sent_length);
 
     return rc;
 }
@@ -102,6 +110,8 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t * read_d
 {
     idigi_callback_status_t rc = idigi_callback_continue;
 
+    UNUSED_ARGUMENT(read_data);
+    UNUSED_ARGUMENT(read_length);
     return rc;
 }
 
@@ -119,6 +129,8 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t * read_d
 static idigi_callback_status_t app_network_close(idigi_network_handle_t * const fd)
 {
     idigi_callback_status_t status = idigi_callback_continue;
+
+    UNUSED_ARGUMENT(fd);
 
     return status;
 }

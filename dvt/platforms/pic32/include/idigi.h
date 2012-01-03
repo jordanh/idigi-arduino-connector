@@ -34,7 +34,7 @@ extern "C"
 {
 #endif
 
-#define UNUSED_PARAMETER(x)     ((void)x)
+#define UNUSED_ARGUMENT(x)     ((void)x)
 
 #define DEVICE_ID_LENGTH    16
 #define VENDOR_ID_LENGTH    4

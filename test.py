@@ -28,9 +28,19 @@ import getopt
 import signal
 import imp
 
+TEMPLATE_TEST_DIR = './dvt/samples/template_test'
+TEMPLATE_SCRIPT_DIR = './dvt/cases/dvt_tests/'
+TEMPLATE_PLATFORM_DIR = './public/run/platforms/template/'
+
+SAMPLE_DIR='./public/run/samples/'
+SAMPLE_SCRIPT_DIR='./dvt/cases/sample_tests/'
+SAMPLE_PLATFORM_DIR = './public/run/platforms/linux/'
+#
 BASE_SAMPLE_DIR='./public/run/samples/'
 BASE_DVT_SRC='./dvt/samples/'
 BASE_SCRIPT_DIR='./dvt/cases/'
+#
+#indices of test_table
 SRC_DIR  = 0
 TEST_DIR = 1
 TEST_LIST = 2
@@ -42,17 +52,24 @@ TEST_LIST = 2
 # 1. Directory which contains the makefile and the idigi executable, the
 #    makefile is build with 'make clean all' and the name of the executable
 #    must be idigi
-# 2. List of python test scripts to run
+# 2. Directory of the python test script
+# 3. List of python test scripts to run
 #
-# Note: test scripts are located in the directory:
-#                   public/test/harness/cases/user_tests
-#              Directory.                                Test Scripts
+#              Directory.                            Script directory                Test Scripts
 test_table = [[BASE_SAMPLE_DIR+'connect_to_idigi',  BASE_SCRIPT_DIR+'sample_tests', ['test_discovery.py']],
               [BASE_SAMPLE_DIR+'firmware_download', BASE_SCRIPT_DIR+'sample_tests', ['test_firmware.py']],
               [BASE_SAMPLE_DIR+'send_data',         BASE_SCRIPT_DIR+'sample_tests', ['test_send_data.py']],
               [BASE_SAMPLE_DIR+'device_request',    BASE_SCRIPT_DIR+'sample_tests', ['test_device_request.py']],
               [BASE_DVT_SRC+'full_test',            BASE_SCRIPT_DIR+'dvt_tests',    ['test_firmware.py', 'test_firmware_errors.py', 'test_device_request.py', 'test_data_service.py']]
 ]
+
+def build_test(dir):
+    print '>>>Testing [%s]' % dir
+
+    rc = os.system('cd %s; make clean all' % (dir))
+    if rc != 0:
+        print "+++FAIL: Build failed dir=[%s]" % dir
+        exit(0)
 
 def run_tests():
     i = 0
@@ -63,11 +80,7 @@ def run_tests():
 
         print '>>>Testing [%s]' % src_dir
 
-        rc = os.system('cd %s; make clean all' % (src_dir))
-        if rc != 0:
-            print "+++FAIL: Build failed dir=[%s]" % src_dir
-            exit(0)
-
+        build_test(src_dir)
 
         print '>>>Starting idigi'
         rc = os.system('cd %s;./idigi &' % (src_dir))
@@ -103,15 +116,19 @@ def run_tests():
             print '+++FAIL: Test failed [%s] [%s]' % (src_dir, test_script)
             exit(0)
 
-def setup_platform():
+def setup_platform(config_dir, platform_dir):
     f, filename, description = imp.find_module('config', ['./dvt/scripts'])
     config = imp.load_module('config', f, filename, description)
-    config.remove_errors('./public/run/platforms/linux/config.c')
-    config.update_config_files('./public/include/idigi_config.h', './dvt/cases/sample_tests/config.ini', './public/run/platforms/linux/config.c')
+    config.remove_errors(platform_dir+'config.c')
+    config.update_config_files('./public/include/idigi_config.h', config_dir+'config.ini', platform_dir+'config.c')
 
 def main():
-    setup_platform()
+    setup_platform(SAMPLE_SCRIPT_DIR, SAMPLE_PLATFORM_DIR)
     run_tests()
+
+    setup_platform(TEMPLATE_SCRIPT_DIR, TEMPLATE_PLATFORM_DIR)
+    build_test(TEMPLATE_TEST_DIR)
+    
 
 if __name__ == '__main__':
     main()

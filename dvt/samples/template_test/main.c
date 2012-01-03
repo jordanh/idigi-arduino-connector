@@ -1,9 +1,8 @@
-
 /*
  *  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
  *
  *  This software contains proprietary and confidential information of Digi
- *  International Inc.  By accepting transfer of this copy, Recipient agrees
+ *  International Inc.  By accepting transfer of this copy, Recipient agrees+
  *  to retain this software in confidence, to prevent disclosure to others,
  *  and to make no use of this software other than that for which it was
  *  delivered.  This is an unpublished copyrighted work of Digi International
@@ -24,16 +23,16 @@
  *
  */
 
-#ifndef _PLATFORM_H
-#define _PLATFORM_H
-
+//#include <unistd.h>
 #include <stdio.h>
+#include "idigi_api.h"
 
 #define APP_DEBUG  printf
 
-#define UNUSED_ARGUMENT(x)     ((void)x)
+extern idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
+                                    void * const request_data, size_t const request_length,
+                                    void * response_data, size_t * const response_length);
 
-/* Callbacks for this platform */
 idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
                            void * const request_data, size_t const request_length,
                            void * response_data, size_t * const response_length);
@@ -49,6 +48,48 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
                                               void * response_data,
                                               size_t * const response_length);
 
-int application_run(idigi_handle_t handle);
+idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
+                                    void * const request_data, size_t const request_length,
+                                    void * response_data, size_t * const response_length)
+{
+    idigi_callback_status_t   status = idigi_callback_continue;
 
-#endif /* _PLATFORM_H */
+
+    switch (class_id)
+    {
+    case idigi_class_config:
+        status = app_config_handler(request_id.config_request, request_data, request_length, response_data, response_length);
+        break;
+
+    case idigi_class_operating_system:
+        status = app_os_handler(request_id.os_request, request_data, request_length, response_data, response_length);
+        break;
+
+    case idigi_class_network:
+        status = app_network_handler(request_id.network_request, request_data, request_length, response_data, response_length);
+        break;
+
+    default:
+        /* not supported */
+        break;
+    }
+
+    return status;
+}
+
+int main (void)
+{
+    idigi_handle_t idigi_handle;
+
+    APP_DEBUG("Start iDigi\n");
+    idigi_handle = idigi_init((idigi_callback_t) idigi_callback);
+    if (idigi_handle != NULL)
+    {
+        APP_DEBUG("This is only testing the template platform\n");
+    }
+    else
+    {
+        APP_DEBUG("unable to initialize iDigi\n");
+    }
+    return 0;
+}

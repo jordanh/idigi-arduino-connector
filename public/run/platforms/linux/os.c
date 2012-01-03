@@ -76,8 +76,8 @@ idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
     idigi_callback_status_t status = idigi_callback_continue;
     int ret;
 
-    UNUSED_PARAMETER(request_length);
-    UNUSED_PARAMETER(response_length);
+    UNUSED_ARGUMENT(request_length);
+    UNUSED_ARGUMENT(response_length);
 
     switch (request)
     {

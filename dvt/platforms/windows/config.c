@@ -258,8 +258,8 @@ static bool get_connection_type(idigi_connection_type_t * type)
 static bool get_link_speed(uint32_t *speed, size_t * size)
 {
 // #error "Specify link speed for WAN connection type"
-    UNUSED_PARAMETER(speed);
-    UNUSED_PARAMETER(size);
+    UNUSED_ARGUMENT(speed);
+    UNUSED_ARGUMENT(size);
 
     return true;
 }
@@ -270,8 +270,8 @@ static bool get_phone_number(uint8_t ** number, size_t * size)
     /* 
      * Return pointer to phone number for WAN connection type.
      */
-    UNUSED_PARAMETER(number);
-    UNUSED_PARAMETER(size);
+    UNUSED_ARGUMENT(number);
+    UNUSED_ARGUMENT(size);
 
     return true;
 }
@@ -447,7 +447,7 @@ idigi_callback_status_t idigi_config_callback(idigi_config_request_t const reque
     idigi_callback_status_t status;
     bool ret = false;
 
-    UNUSED_PARAMETER(request_length);
+    UNUSED_ARGUMENT(request_length);
 
     switch (request)
     {
