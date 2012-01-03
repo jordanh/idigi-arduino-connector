@@ -28,10 +28,18 @@ import getopt
 import signal
 import imp
 
-BASE_SAMPLE_DIR='./public/run/samples/'
+TEMPLATE_DIR = './dvt/samples/template_test'
+TEMPLATE_SCRIPT_DIR = './dvt/cases/dvt_tests/'
+TEMPLATE_PLATFORM_DIR = './public/run/platforms/template/'
+
+SAMPLE_DIR='./public/run/samples/'
 SAMPLE_SCRIPT_DIR='./dvt/cases/sample_tests/'
-DIR_ENTRY  = 0
-TESTS_ENTRY = 1
+SAMPLE_PLATFORM_DIR = './public/run/platforms/linux/'
+#
+# indices of test_table
+DIR_ENTRY       = 0
+TESTS_ENTRY     = 1
+
 
 #
 # Modify this table when adding a new test.
@@ -43,26 +51,29 @@ TESTS_ENTRY = 1
 # 2. List of python test scripts to run
 #
 # Note: test scripts are located in the directory:
-#                   public/test/harness/cases/user_tests
-#              Directory.                                Test Scripts
-test_table = [[BASE_SAMPLE_DIR+'connect_to_idigi',       ['test_discovery.py']],
-              [BASE_SAMPLE_DIR+'firmware_download',      ['test_firmware.py']],
-              [BASE_SAMPLE_DIR+'send_data',              ['test_send_data.py']],
-              [BASE_SAMPLE_DIR+'device_request',         ['test_device_request.py']]
+#                   public/test/harness/cases/sample_tests (SAMPLE_SCRIPT_DIR)
+#              Directory.                       Test Scripts
+test_table = [[SAMPLE_DIR+'connect_to_idigi',   ['test_discovery.py']],
+              [SAMPLE_DIR+'firmware_download',  ['test_firmware.py']],
+              [SAMPLE_DIR+'send_data',          ['test_send_data.py']],
+              [SAMPLE_DIR+'device_request',     ['test_device_request.py']]
 ]
+
+def build_test(dir):
+    print '>>>Testing [%s]' % dir
+
+    rc = os.system('cd %s; make clean all' % (dir))
+    if rc != 0:
+        print "+++FAIL: Build failed dir=[%s]" % dir
+        exit(0)
 
 def run_tests():
     i = 0
     for test in test_table:
-        dir    = test[DIR_ENTRY]
-        tests  = test[TESTS_ENTRY]
-        print '>>>Testing [%s]' % dir
-
-        rc = os.system('cd %s; make clean all' % (dir))
-        if rc != 0:
-            print "+++FAIL: Build failed dir=[%s]" % dir
-            exit(0)
-
+        dir       = test[DIR_ENTRY]
+        tests     = test[TESTS_ENTRY]
+        
+        build_test(dir)
 
         print '>>>Starting idigi'
         rc = os.system('cd %s;./idigi &' % (dir))
@@ -81,7 +92,7 @@ def run_tests():
         time.sleep(5) # Give the program time to start
 
         for test_script in tests:
-            print '>>>Executing [%s]' % test_script
+            print '>>>Executing [%s] in %s' % (test_script, SAMPLE_SCRIPT_DIR)
             rc = os.system('export PYTHONPATH=../;cd %s; nosetests --with-xunit --xunit-file=nosestest%1d.xml %s' % (SAMPLE_SCRIPT_DIR, i, test_script))
             i += 1
 
@@ -98,15 +109,19 @@ def run_tests():
             print '+++FAIL: Test failed [%s] [%s]' % (dir, test_script)
             exit(0)
 
-def setup_platform():
+def setup_platform(config_dir, platform_dir):
     f, filename, description = imp.find_module('config', ['./dvt/scripts'])
     config = imp.load_module('config', f, filename, description)
-    config.remove_errors('./public/run/platforms/linux/config.c')
-    config.update_config_files('./public/include/idigi_config.h', './dvt/cases/sample_tests/config.ini', './public/run/platforms/linux/config.c')
+    config.remove_errors(platform_dir+'config.c')
+    config.update_config_files('./public/include/idigi_config.h', config_dir+'config.ini', platform_dir+'config.c')
 
 def main():
-    setup_platform()
+    setup_platform(SAMPLE_SCRIPT_DIR, SAMPLE_PLATFORM_DIR)
     run_tests()
+
+    setup_platform(TEMPLATE_SCRIPT_DIR, TEMPLATE_PLATFORM_DIR)
+    build_test(TEMPLATE_TEST_DIR)
+    
 
 if __name__ == '__main__':
     main()
