@@ -28,7 +28,7 @@ import getopt
 import signal
 import imp
 
-TEMPLATE_DIR = './dvt/samples/template_test'
+TEMPLATE_TEST_DIR = './dvt/samples/template_test'
 TEMPLATE_SCRIPT_DIR = './dvt/cases/dvt_tests/'
 TEMPLATE_PLATFORM_DIR = './public/run/platforms/template/'
 
@@ -39,6 +39,7 @@ SAMPLE_PLATFORM_DIR = './public/run/platforms/linux/'
 BASE_SAMPLE_DIR='./public/run/samples/'
 BASE_DVT_SRC='./dvt/samples/'
 BASE_SCRIPT_DIR='./dvt/cases/'
+#
 #indices of test_table
 SRC_DIR  = 0
 TEST_DIR = 1
