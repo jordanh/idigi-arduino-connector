@@ -34,7 +34,7 @@
 
 #define APP_DEBUG  printf
 
-#define UNUSED_PARAMETER(x)     ((void)x)
+#define UNUSED_ARGUMENT(x)     ((void)x)
 
 #ifndef in_addr_t
 typedef uint32_t in_addr_t;

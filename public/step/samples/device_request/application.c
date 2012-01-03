@@ -58,7 +58,7 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
 
 int application_step(idigi_handle_t handle)
 {
-    UNUSED_PARAMETER(handle);
+    UNUSED_ARGUMENT(handle);
 
    return 0;
 }

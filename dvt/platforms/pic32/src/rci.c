@@ -38,10 +38,10 @@ idigi_callback_status_t idigi_rci_callback(idigi_rci_request_t const request_id,
     idigi_callback_status_t status;
     bool ret = false;
 
-    UNUSED_PARAMETER(request_data);
-    UNUSED_PARAMETER(request_length);
-    UNUSED_PARAMETER(response_data);
-    UNUSED_PARAMETER(response_length);
+    UNUSED_ARGUMENT(request_data);
+    UNUSED_ARGUMENT(request_length);
+    UNUSED_ARGUMENT(response_data);
+    UNUSED_ARGUMENT(response_length);
 
 
     switch (request_id)

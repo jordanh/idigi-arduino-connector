@@ -31,7 +31,7 @@
 
 #define APP_DEBUG  printf
 
-#define UNUSED_PARAMETER(x)     ((void)x)
+#define UNUSED_ARGUMENT(x)     ((void)x)
 
 /* Callbacks for this platform */
 extern idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,

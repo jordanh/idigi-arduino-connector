@@ -129,7 +129,7 @@ static idigi_callback_status_t app_process_device_response(idigi_data_service_ms
 {
     device_request_handle_t * const client_device_request = response_data->user_context;
 
-    UNUSED_PARAMETER(request_data);
+    UNUSED_ARGUMENT(request_data);
 
     ASSERT(response_data->client_data != NULL);
     ASSERT(client_device_request != NULL); /* we use user_context for our client_device_request */
@@ -189,8 +189,8 @@ idigi_callback_status_t app_data_service_handler(idigi_data_service_request_t co
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_data_service_msg_request_t const * const service_device_request = request_data;
 
-    UNUSED_PARAMETER(request_length);
-    UNUSED_PARAMETER(response_length);
+    UNUSED_ARGUMENT(request_length);
+    UNUSED_ARGUMENT(response_length);
 
     if (request == idigi_data_service_device_request)
     {
