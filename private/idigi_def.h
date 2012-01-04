@@ -127,7 +127,6 @@ typedef enum {
 #define add_list_node(head, tail, node) \
     do { \
         ASSERT(node != NULL); \
-        ASSERT(head != NULL); \
         if (*head != NULL) \
         {\
             *head->prev = node;\
@@ -144,7 +143,6 @@ typedef enum {
 #define remove_list_node(head, tail, node) \
     do { \
         ASSERT(node != NULL); \
-        ASSERT(head != NULL); \
         if (node->next != NULL) \
         {\
             node->next->prev = node->prev;\
