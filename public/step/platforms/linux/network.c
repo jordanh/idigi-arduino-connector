@@ -32,7 +32,6 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <errno.h>
-#include <pthread.h>
 
 #include "idigi_api.h"
 #include "platform.h"
@@ -175,12 +174,12 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
         /* If we also got a "socket readable" we have an error. */
         if (FD_ISSET(fd, &read_set))
         {
-            APP_DEBUG("network_connect: error to connect to %.*s server\n", length, host_name);
+            APP_DEBUG("network_connect: error to connect to %.*s server\n", (int)length, host_name);
             goto done;
         }
         *network_handle = &fd;
         rc = idigi_callback_continue;
-        APP_DEBUG("network_connect: connected to [%.*s] server\n", length, host_name);
+        APP_DEBUG("network_connect: connected to [%.*s] server\n", (int)length, host_name);
     }
 
 done:
@@ -313,17 +312,9 @@ static idigi_callback_status_t app_network_close(idigi_network_handle_t * const 
 
 static int app_server_disconnected(void)
 {
-    extern idigi_handle_t idigi_handle;
-//    extern pthread_t application_thread;
-
-    idigi_status_t status;
 
     APP_DEBUG("Disconnected from server\n");
-
-    status =  idigi_initiate_action(idigi_handle, idigi_initiate_terminate, NULL, NULL);
-//    pthread_cancel(application_thread);
-
-    return (status == idigi_success) ? 0 : -1;
+    return 0;
 }
 
 static int app_server_reboot(void)
