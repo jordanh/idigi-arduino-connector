@@ -40,6 +40,7 @@ def firmware_update_with_error(instance, config, target, error_message):
     instance.assertNotEqual(-1, correct_error,
             "The expected error message (%s) was not returned."
             % error_message)
+    time.sleep(4)
     
 class FirmwareErrorsTestCase(unittest.TestCase):
 

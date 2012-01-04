@@ -86,6 +86,7 @@ static void firmware_download_request(idigi_fw_download_request_t const * const 
     APP_DEBUG("target = %d\n", download_info->target);
     if (download_info->target >= dvt_case_last) 
     {
+        APP_DEBUG("firmware_download_request ERROR: In progress target : %d\n", dvt_current_ptr->target);
         *download_status = idigi_fw_user_abort;
         goto error;
     }
@@ -223,7 +224,10 @@ static void firmware_image_data(idigi_fw_image_data_t const * const image_data, 
 
     default:        
         *data_status = idigi_fw_success;
-        memcpy(&dvt_current_ptr->file_content[image_data->offset], image_data->data, image_data->length);
+        if (dvt_current_ptr->target >= dvt_case_put_request_no_flag) 
+        {
+            memcpy(&dvt_current_ptr->file_content[image_data->offset], image_data->data, image_data->length);
+        }
         dvt_current_ptr->file_size += image_data->length;
         goto done;
     }
