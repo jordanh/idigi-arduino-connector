@@ -34,23 +34,22 @@
 #define UNUSED_ARGUMENT(x)     ((void)x)
 
 /* Callbacks for this platform */
-extern idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
+idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
                            void * const request_data, size_t const request_length,
                            void * response_data, size_t * const response_length);
 
 
-idigi_callback_status_t idigi_network_callback(idigi_network_request_t const request,
+idigi_callback_status_t app_network_handler(idigi_network_request_t const request,
                          void * const request_data, size_t const request_length,
                          void * response_data, size_t * const response_length);
 
-idigi_callback_status_t idigi_config_callback(idigi_config_request_t const request,
+idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
                                               void * const request_data,
                                               size_t const request_length,
                                               void * response_data,
                                               size_t * const response_length);
 
 int application_step(idigi_handle_t handle);
-void os_sleep(unsigned int const timeout_in_seconds);
-int os_get_system_time(uint32_t * const uptime);
+void app_os_sleep(unsigned int const timeout_in_seconds);
 
 #endif /* _PLATFORM_H */
