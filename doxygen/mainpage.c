@@ -9,6 +9,7 @@
  *          -# @ref requirements
  *              -# @ref CodespaceRequirements
  *              -# @ref RAMRequirements 
+ *              -# @ref StackRequirements 
  *          -# @ref features
  *          -# @ref communicating
  *          -# @ref threading
@@ -104,7 +105,7 @@
  * @ref IDIGI_RX_KEEPALIVE_IN_SECONDS, @ref IDIGI_WAIT_COUNT, @ref IDIGI_VENDOR_ID, @ref IDIGI_MSG_MAX_TRANSACTION, @ref IDIGI_CONNECTION_TYPE, 
  * @ref IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND, @ref IDIGI_WAN_PHONE_NUMBER_DIALED, @ref IDIGI_FIRMWARE_SUPPORT, and @ref IDIGI_DATA_SERVICE_SUPPORT.
  * 
- * @subsection RAMRequirements RAM Usage 
+ * @subsection RAMRequirements Dynamic RAM Usage 
  * The following dynamic RAM usage was developed by monitoring the high water mark during the 
  * @ref idigi_os_malloc @ref idigi_callback_t "application-defined callback".  
  * 
@@ -143,6 +144,31 @@
  * </table>
  * @endhtmlonly
  *  
+ * @subsection StackRequirements Program Stack Usage 
+ * The following program stack usage was observed using gcc 4.2.0 compiled for a 32-bit ARM9 TDMI architecture.  
+ *
+ * @htmlonly
+ * <table class="apitable">
+ * <tr>
+ * <th class="title">Build Details </td>
+ * <th class="title"> Program stack size</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly @ref IDIGI_DEBUG @htmlonly disabled</td>
+ * <td>1723</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly @ref IDIGI_DEBUG @htmlonly enabled</td>
+ * <td>2091</td>
+ * </tr>
+ * </table>
+ * @endhtmlonly
+ *   
+ * This includes all code from within the private IIK library, but none of the code implemented in the @ref idigi_callback_t 
+ * "application-defined callback".  These metrics should be treated as typical.  It is recommended that the actual program stack size 
+ * used to call @ref idigi_run() or idigi_step() be these metrics plus the amount of memory typical for handling a TCP network client, 
+ * or a thread that accesses local configuration, or makes malloc/free OS calls, whichever is the worst case.
+ * 
  * @section features IIK Features
  *     @li Send data to and from a device over the iDigi Device Cloud
  *     @li Update firmware on the device
