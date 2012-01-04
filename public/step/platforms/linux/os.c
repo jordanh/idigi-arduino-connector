@@ -23,41 +23,13 @@
  *
  */
 
- /**
-  * @file
-  *  @brief Functions used by the IIK to interface to the OS.
-  *
-  */
 #include <malloc.h>
 #include <time.h>
 #include <unistd.h>
 #include "idigi_api.h"
 #include "platform.h"
 
-/**
- * @brief   Dynamically allocate memory
- *
- * Dynamically allocate memory, if you are not using malloc()
- * from the C library replace the malloc() call to an equivalent
- * call on your system.
- * 
- * @param [in] size  Number of bytes to allocate
- * 
- * @param [in] ptr  pointer to be filled in with the address of
- *                  the allocated memory
- *  
- * @retval 0  Memory was allocated
- * 
- * @retval -1  Memory was not allocated
- *
- * Example Usage:
- * @code
- *     status = os_malloc(len, &ptr);
- * @endcode 
- *  
- * @see os_free
- */
-int os_malloc(size_t const size, void ** ptr)
+int app_os_malloc(size_t const size, void ** ptr)
 {
     int status=-1;
 
@@ -71,25 +43,7 @@ int os_malloc(size_t const size, void ** ptr)
     return status;
 }
 
-/**
- * @brief   Free Dynamically allocate memory.
- *
- * Free dynamically allocate memory, if you are not using 
- * free() from the C library replace the free() call to an 
- * equivalent call on your system. 
- * 
- * @param [in] ptr  pointer to memory to be freed
- *  
- * @retval void
- * 
- * Example Usage:
- * @code
- *     os_free(ptr);
- * @endcode 
- *  
- * @see os_free
- */
-void os_free(void * const ptr)
+void app_os_free(void * const ptr)
 {
     ASSERT(ptr != NULL);
 
@@ -100,52 +54,14 @@ void os_free(void * const ptr)
     return;
 }
 
-
-/**
- * @brief   Get the system time.
- *
- * Get the current time (number of seconds since the start of
- * the Unix epoch January 1, 1970) from the system clock.
- * 
- * @param [in] uptime   Current system time in seconds.
- *  
- * @retval true Able to get system time
- * 
- * @retval false System time unavailable
- * 
- * Example Usage:
- * @code
- *     status = os_get_system_time(&uptime);
- * @endcode 
- *  
- */
-int os_get_system_time(uint32_t * const uptime)
+int app_os_get_system_time(uint32_t * const uptime)
 {
     time((time_t *)uptime);
 
     return 0;
 }
 
-/**
- * @brief   Sleep or relinquish for other task execution.
- *
- * Sleep or relinquish to run other task. This is called
- * to let other task to be executed when iik_run is called.
- * IIK calls this callback if IIK is busy and is not calling
- * receive callback
- *
- * @param [in] timeout  Maximum number in seconds to sleep
- *
- * @retval void
- *
- * Example Usage:
- * @code
- *     os_wait(1);
- * @endcode
- *
- * @see os_free
- */
-void os_sleep(unsigned int const timeout_in_seconds)
+void app_os_sleep(unsigned int const timeout_in_seconds)
 {
     unsigned int const timeout_in_microseconds = timeout_in_seconds * 1000000;
 
@@ -153,12 +69,12 @@ void os_sleep(unsigned int const timeout_in_seconds)
     return;
 }
 
-idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
+idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
                                         void * const request_data, size_t const request_length,
                                         void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    int ret=-1;
+    int ret;
 
     UNUSED_ARGUMENT(request_length);
     UNUSED_ARGUMENT(response_length);
@@ -166,22 +82,22 @@ idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
     switch (request)
     {
     case idigi_os_malloc:
-        ret    = os_malloc(*((size_t *)request_data), (void **)response_data);
+        ret    = app_os_malloc(*((size_t *)request_data), (void **)response_data);
         status = (ret == 0) ? idigi_callback_continue : idigi_callback_busy;
         break;
 
     case idigi_os_free:
-        os_free(request_data);
+        app_os_free(request_data);
         status = idigi_callback_continue;
         break;
 
     case idigi_os_system_up_time:
-        ret    = os_get_system_time((uint32_t *)response_data);
+        ret    = app_os_get_system_time((uint32_t *)response_data);
         status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
         break;
 
     case idigi_os_sleep:
-        os_sleep(*((unsigned int *)request_data));
+        app_os_sleep(*((unsigned int *)request_data));
         status = idigi_callback_continue;
         break;
 
