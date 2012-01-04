@@ -1166,7 +1166,7 @@ done:
 }
 #endif
 
-static idigi_callback_status_t msg_process_service_data(idigi_data_t * const idigi_ptr, msg_session_t * const session, uint8_t * msg_data, size_t const frame_bytes, size_t const header_bytes, uint8_t const flag)
+static idigi_callback_status_t msg_process_service_data(idigi_data_t * const idigi_ptr, msg_session_t * const session, uint8_t * msg_data, size_t const frame_bytes, size_t const header_bytes, unsigned const flag)
 {
     idigi_callback_status_t status;
     uint8_t * buffer = msg_data + header_bytes;
@@ -1204,7 +1204,7 @@ static idigi_callback_status_t msg_process_start(idigi_data_t * const idigi_ptr,
     idigi_msg_error_t result = idigi_msg_error_none;
     msg_session_t * session;
     uint8_t * start_packet = ptr;
-    uint8_t flag = message_load_u8(start_packet, flags);
+    unsigned flag = message_load_u8(start_packet, flags);
     uint16_t const session_id = message_load_be16(start_packet, transaction_id);
     idigi_bool_t const request = MsgIsRequest(flag);
     idigi_bool_t const client_owned = !request;
@@ -1278,7 +1278,7 @@ static idigi_callback_status_t msg_process_data(idigi_data_t * const idigi_ptr, 
     idigi_callback_status_t status = idigi_callback_continue;
     msg_session_t * session;
     uint8_t * const data_packet = ptr;
-    uint8_t const flag = message_load_u8(data_packet, flags);
+    unsigned const flag = message_load_u8(data_packet, flags);
     uint16_t const session_id = message_load_be16(data_packet, transaction_id);
     idigi_bool_t const client_owned = !MsgIsRequest(flag);
 
