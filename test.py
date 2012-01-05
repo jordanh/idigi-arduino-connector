@@ -45,6 +45,8 @@ SRC_DIR  = 0
 TEST_DIR = 1
 TEST_LIST = 2
 
+test_case = 0
+
 #
 # Modify this table when adding a new test.
 # 
@@ -72,7 +74,8 @@ def build_test(dir):
         exit(0)
 
 def run_tests():
-    i = 0
+    global test_case
+
     for test in test_table:
         src_dir   = test[SRC_DIR]
         test_dir  = test[TEST_DIR]
@@ -99,8 +102,8 @@ def run_tests():
 
         for test_script in test_list:
             print '>>>Executing [%s]' % test_script
-            rc = os.system('export PYTHONPATH=../;cd %s; nosetests --with-xunit --xunit-file=nosestest%1d.xml %s' % (test_dir, i, test_script))
-            i += 1
+            rc = os.system('export PYTHONPATH=../;cd %s; nosetests --with-xunit --xunit-file=nosestest%1d.xml %s' % (test_dir, test_case, test_script))
+            test_case += 1
 
         print '>>>pid [%s]' % pid
         if pid != '':
