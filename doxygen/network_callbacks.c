@@ -139,9 +139,9 @@
  *
  * @section send Send
  *
- * Callback is called to send data to the iDigi Device Cloud. This function must 
- * not block. If it encounters EAGAIN or EWOULDBLOCK error, 0 bytes must be returned 
- * and IIK will continue calling this function. 
+ * Callback is called to send data to the iDigi Device Cloud. This function may block up to
+ * the timeout specified in the idigi_write_request_t. If it encounters EAGAIN or EWOULDBLOCK
+ * error, 0 bytes must be returned and IIK will continue calling this function.
  *
  * @htmlonly
  * <table class="apitable">
