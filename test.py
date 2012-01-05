@@ -35,11 +35,11 @@ TEMPLATE_PLATFORM_DIR = './public/run/platforms/template/'
 SAMPLE_DIR='./public/run/samples/'
 SAMPLE_SCRIPT_DIR='./dvt/cases/sample_tests/'
 SAMPLE_PLATFORM_DIR = './public/run/platforms/linux/'
-#
+
 BASE_SAMPLE_DIR='./public/run/samples/'
 BASE_DVT_SRC='./dvt/samples/'
 BASE_SCRIPT_DIR='./dvt/cases/'
-#
+
 #indices of test_table
 SRC_DIR  = 0
 TEST_DIR = 1
@@ -60,7 +60,7 @@ test_table = [[BASE_SAMPLE_DIR+'connect_to_idigi',  BASE_SCRIPT_DIR+'sample_test
               [BASE_SAMPLE_DIR+'firmware_download', BASE_SCRIPT_DIR+'sample_tests', ['test_firmware.py']],
               [BASE_SAMPLE_DIR+'send_data',         BASE_SCRIPT_DIR+'sample_tests', ['test_send_data.py']],
               [BASE_SAMPLE_DIR+'device_request',    BASE_SCRIPT_DIR+'sample_tests', ['test_device_request.py']],
-              [BASE_DVT_SRC+'full_test',            BASE_SCRIPT_DIR+'dvt_tests',    ['test_firmware.py', 'test_firmware_errors.py', 'test_device_request.py', 'test_data_service.py']]
+              [BASE_DVT_SRC+'full_test',            BASE_SCRIPT_DIR+'dvt_tests',    ['test_firmware_errors.py', 'test_device_request.py', 'test_data_service.py']]
 ]
 
 def build_test(dir):
@@ -94,7 +94,6 @@ def run_tests():
         pid = commands.getoutput('pidof -s idigi')
         if pid == '':
             print "idigi not running dir=[%s]" % src_dir
-
 
         time.sleep(5) # Give the program time to start
 
@@ -132,3 +131,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
