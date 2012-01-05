@@ -115,17 +115,29 @@ def run_tests():
             print '+++FAIL: Test failed [%s] [%s]' % (src_dir, test_script)
             exit(0)
 
-def setup_platform(config_dir, platform_dir):
-    f, filename, description = imp.find_module('config', ['./dvt/scripts'])
-    config = imp.load_module('config', f, filename, description)
+def setup_platform(config, config_dir, platform_dir):
     config.remove_errors(platform_dir+'config.c')
     config.update_config_files('./public/include/idigi_config.h', config_dir+'config.ini', platform_dir+'config.c')
 
 def main():
-    setup_platform(SAMPLE_SCRIPT_DIR, SAMPLE_PLATFORM_DIR)
+    f, filename, description = imp.find_module('config', ['./dvt/scripts'])
+    config = imp.load_module('config', f, filename, description)
+
+    setup_platform(config, SAMPLE_SCRIPT_DIR, SAMPLE_PLATFORM_DIR)
     run_tests()
 
-    setup_platform(TEMPLATE_SCRIPT_DIR, TEMPLATE_PLATFORM_DIR)
+    config.replace_string('./public/include/idigi_config.h', 'IDIGI_DEBUG', 'IDIGI_NODEBUG')
+    run_tests()
+
+    config.replace_string('./public/include/idigi_config.h', 'IDIGI_COMPRESSION', 'IDIGI_NOCOMPRESSION')
+    run_tests()
+
+    config.replace_string('./public/include/idigi_config.h', 'IDIGI_NODEBUG', 'IDIGI_DEBUG')
+    run_tests()
+
+    config.replace_string('./public/include/idigi_config.h', 'IDIGI_NOCOMPRESSION', 'IDIGI_COMPRESSION')
+
+    setup_platform(config, TEMPLATE_SCRIPT_DIR, TEMPLATE_PLATFORM_DIR)
     build_test(TEMPLATE_TEST_DIR)
     
 
