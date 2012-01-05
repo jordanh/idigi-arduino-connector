@@ -258,9 +258,9 @@ class FirmwareTestCase(unittest.TestCase):
         dom = xml.dom.minidom.parseString(response_asynch)
         jobid_number = getText(dom.getElementsByTagName("jobId")[0])
         
-        log.info("Waiting up to 80 seconds for asynchronous firmware update to complete.")
+        log.info("Waiting up to 100 seconds for asynchronous firmware update to complete.")
         # Poll every 5 seconds to determine if firmware update has completed
-        for i in range(15):
+        for i in range(20):
             time.sleep(5)
             response = config.api.sci_status(jobid_number)
             complete = response.find("complete")

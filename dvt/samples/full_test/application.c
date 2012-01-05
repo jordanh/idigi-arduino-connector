@@ -106,7 +106,7 @@ int application_run(idigi_handle_t handle)
                     break;
                 }
 
-                case dvt_state_fw_download_complete:
+                case dvt_state_reset_called:
                     dvt_current_ptr->state = dvt_state_request_start;
                     app_os_sleep(SLEEP_IN_SECONDS); /* let reset complete */
                     break;

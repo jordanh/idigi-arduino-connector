@@ -225,9 +225,7 @@ static void firmware_image_data(idigi_fw_image_data_t const * const image_data, 
     default:        
         *data_status = idigi_fw_success;
         if (dvt_current_ptr->target >= dvt_case_put_request_no_flag) 
-        {
             memcpy(&dvt_current_ptr->file_content[image_data->offset], image_data->data, image_data->length);
-        }
         dvt_current_ptr->file_size += image_data->length;
         goto done;
     }
@@ -310,6 +308,8 @@ static idigi_callback_status_t firmware_reset(idigi_fw_config_t const * const re
     /* Server requests firmware reboot */
     APP_DEBUG("firmware_reset\n");
 
+    if (dvt_current_ptr->state == dvt_state_fw_download_complete) 
+        dvt_current_ptr->state = dvt_state_reset_called;
 
     return status;
 }
