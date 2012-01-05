@@ -35,11 +35,11 @@ TEMPLATE_PLATFORM_DIR = './public/run/platforms/template/'
 SAMPLE_DIR='./public/run/samples/'
 SAMPLE_SCRIPT_DIR='./dvt/cases/sample_tests/'
 SAMPLE_PLATFORM_DIR = './public/run/platforms/linux/'
-#
+
 BASE_SAMPLE_DIR='./public/run/samples/'
 BASE_DVT_SRC='./dvt/samples/'
 BASE_SCRIPT_DIR='./dvt/cases/'
-#
+
 #indices of test_table
 SRC_DIR  = 0
 TEST_DIR = 1
@@ -60,7 +60,7 @@ test_table = [[BASE_SAMPLE_DIR+'connect_to_idigi',  BASE_SCRIPT_DIR+'sample_test
               [BASE_SAMPLE_DIR+'firmware_download', BASE_SCRIPT_DIR+'sample_tests', ['test_firmware.py']],
               [BASE_SAMPLE_DIR+'send_data',         BASE_SCRIPT_DIR+'sample_tests', ['test_send_data.py']],
               [BASE_SAMPLE_DIR+'device_request',    BASE_SCRIPT_DIR+'sample_tests', ['test_device_request.py']],
-              [BASE_DVT_SRC+'full_test',            BASE_SCRIPT_DIR+'dvt_tests',    ['test_firmware.py', 'test_firmware_errors.py', 'test_device_request.py', 'test_data_service.py']]
+              [BASE_DVT_SRC+'full_test',            BASE_SCRIPT_DIR+'dvt_tests',    ['test_firmware_errors.py', 'test_device_request.py', 'test_data_service.py']]
 ]
 
 def build_test(dir):
@@ -95,7 +95,6 @@ def run_tests():
         if pid == '':
             print "idigi not running dir=[%s]" % src_dir
 
-
         time.sleep(5) # Give the program time to start
 
         for test_script in test_list:
@@ -116,19 +115,32 @@ def run_tests():
             print '+++FAIL: Test failed [%s] [%s]' % (src_dir, test_script)
             exit(0)
 
-def setup_platform(config_dir, platform_dir):
-    f, filename, description = imp.find_module('config', ['./dvt/scripts'])
-    config = imp.load_module('config', f, filename, description)
+def setup_platform(config, config_dir, platform_dir):
     config.remove_errors(platform_dir+'config.c')
     config.update_config_files('./public/include/idigi_config.h', config_dir+'config.ini', platform_dir+'config.c')
 
 def main():
-    setup_platform(SAMPLE_SCRIPT_DIR, SAMPLE_PLATFORM_DIR)
+    f, filename, description = imp.find_module('config', ['./dvt/scripts'])
+    config = imp.load_module('config', f, filename, description)
+
+    setup_platform(config, SAMPLE_SCRIPT_DIR, SAMPLE_PLATFORM_DIR)
     run_tests()
 
-    setup_platform(TEMPLATE_SCRIPT_DIR, TEMPLATE_PLATFORM_DIR)
+    config.replace_string('./public/include/idigi_config.h', 'IDIGI_DEBUG', 'IDIGI_NODEBUG')
+    run_tests()
+
+    config.replace_string('./public/include/idigi_config.h', 'IDIGI_COMPRESSION', 'IDIGI_NOCOMPRESSION')
+    run_tests()
+
+    config.replace_string('./public/include/idigi_config.h', 'IDIGI_NODEBUG', 'IDIGI_DEBUG')
+    run_tests()
+
+    config.replace_string('./public/include/idigi_config.h', 'IDIGI_NOCOMPRESSION', 'IDIGI_COMPRESSION')
+
+    setup_platform(config, TEMPLATE_SCRIPT_DIR, TEMPLATE_PLATFORM_DIR)
     build_test(TEMPLATE_TEST_DIR)
     
 
 if __name__ == '__main__':
     main()
+

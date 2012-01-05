@@ -35,11 +35,6 @@
 
 static dvt_data_t dvt_data_list[dvt_case_last] =
 {
-    {dvt_case_fw_bin_image,             0x00000100, dvt_state_init, "Binary Image",     ".*\\.[bB][iI][nN]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_fw_lib_image,             0x01000000, dvt_state_init, "Library Image",    ".*\\.a", "libidigi.a", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL}, 
-    {dvt_case_fw_exe_image,             0x0D010104, dvt_state_init, "Executable",       ".*\\.[Ee][Xx][Ee]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_fw_exi_image,             0x0D01010C, dvt_state_init, "Executable",       ".*\\.[Ee][Xx][Ii]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_fw_exn_image,             0x0D010117, dvt_state_init, "Executable",       ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
     {dvt_case_fw_download_denied,       0x15000000, dvt_state_init, "Download Denied",  ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
     {dvt_case_fw_invalid_size,          0x16000000, dvt_state_init, "Download Invalid Size",     ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
     {dvt_case_fw_invalid_version,       0x17000000, dvt_state_init, "Download Invalid Version",  ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
@@ -86,6 +81,7 @@ static void firmware_download_request(idigi_fw_download_request_t const * const 
     APP_DEBUG("target = %d\n", download_info->target);
     if (download_info->target >= dvt_case_last) 
     {
+        APP_DEBUG("firmware_download_request ERROR: In progress target : %d\n", dvt_current_ptr->target);
         *download_status = idigi_fw_user_abort;
         goto error;
     }
@@ -146,7 +142,7 @@ static void firmware_download_request(idigi_fw_download_request_t const * const 
 
     default:
         {
-            #define DEFAULT_FIRMWARE_SIZE  (1200 * 1024)
+            #define DEFAULT_FIRMWARE_SIZE  (32 * 1024)
             size_t const file_size = (download_info->code_size != DVT_FW_UNKNOWN_FILE_SIZE) ? download_info->code_size : DEFAULT_FIRMWARE_SIZE;
 
             dvt_current_ptr->file_content = malloc(file_size + 4);
@@ -306,6 +302,8 @@ static idigi_callback_status_t firmware_reset(idigi_fw_config_t const * const re
     /* Server requests firmware reboot */
     APP_DEBUG("firmware_reset\n");
 
+    if (dvt_current_ptr->state == dvt_state_fw_download_complete) 
+        dvt_current_ptr->state = dvt_state_reset_called;
 
     return status;
 }
