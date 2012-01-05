@@ -3,11 +3,6 @@
 
 typedef enum
 {
-    dvt_case_fw_bin_image,
-    dvt_case_fw_lib_image,
-    dvt_case_fw_exe_image,
-    dvt_case_fw_exi_image,
-    dvt_case_fw_exn_image,
     dvt_case_fw_download_denied,
     dvt_case_fw_invalid_size,
     dvt_case_fw_invalid_version,

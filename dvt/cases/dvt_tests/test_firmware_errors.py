@@ -61,84 +61,84 @@ class FirmwareErrorsTestCase(unittest.TestCase):
     
     def test_download_denied(self):
         log.info("Beginning Test - Firmware Download Denied.")
-        target = 5
+        target = 0
         error_message = 'the firmware upgrade deferred by client'
         
         firmware_update_with_error(self, config, target, error_message)
            
     def test_download_invalid_size(self):
         log.info("Beginning Test - Firmware Download Invalid Size.")
-        target = 6
+        target = 1
         error_message = 'client has insufficient space to hold the download'
         
         firmware_update_with_error(self, config, target, error_message)
     
     def test_download_invalid_version(self):
         log.info("Beginning Test - Firmware Download Invalid Version.")
-        target = 7
+        target = 2
         error_message = 'incompatible version number detected'
         
         firmware_update_with_error(self, config, target, error_message)
         
     def test_download_unauthenticated(self):
         log.info("Beginning Test - Firmware Download Unauthenticated.")
-        target = 8
+        target = 3
         error_message = 'client has not authenticated the server'
         
         firmware_update_with_error(self, config, target, error_message)
     
     def test_download_not_allowed(self):
         log.info("Beginning Test - Firmware Download Not Allowed.")
-        target = 9
+        target = 4
         error_message = 'updates are  rejected by the client'
         
         firmware_update_with_error(self, config, target, error_message)
         
     def test_download_configured_to_reject(self):
         log.info("Beginning Test - Firmware Download Configured to Reject.")
-        target = 10
+        target = 5
         error_message = 'client does not accept upgrades'
         
         firmware_update_with_error(self, config, target, error_message)
         
     def test_download_encountered_error(self):
         log.info("Beginning Test - Firmware Download Encountered Error.")
-        target = 11
+        target = 6
         error_message = 'client error allocating space for new image or internal processing error'
         
         firmware_update_with_error(self, config, target, error_message)
         
     def test_download_user_abort(self):
         log.info("Beginning Test - Firmware Download User Abort.")
-        target = 12
+        target = 7
         error_message = 'Aborted By Target'
         
         firmware_update_with_error(self, config, target, error_message) 
     
     def test_download_device_error(self):
         log.info("Beginning Test - Firmware Download Device Error.")
-        target = 13
+        target = 8
         error_message = 'Aborted By Target'
         
         firmware_update_with_error(self, config, target, error_message)
     
     def test_download_invalid_offset(self):
         log.info("Beginning Test - Firmware Download Invalid Offset.")
-        target = 14
+        target = 9
         error_message = 'Aborted By Target'
         
         firmware_update_with_error(self, config, target, error_message)
     
     def test_download_invalid_data(self):
         log.info("Beginning Test - Firmware Download Invalid Data.")
-        target = 15
+        target = 10
         error_message = 'Aborted By Target'
         
         firmware_update_with_error(self, config, target, error_message)
    
     def test_download_hardware_error(self):
         log.info("Beginning Test - Firmware Download Hardware Error.")
-        target = 16
+        target = 11
         error_message = 'Aborted By Target'
         
         firmware_update_with_error(self, config, target, error_message)
