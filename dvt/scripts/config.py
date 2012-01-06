@@ -72,15 +72,37 @@ def update_idigi_config_h(header_file, config):
     outfile.write(line)
   outfile.close()
 
-def update_config_c(cnfg_file, config):
-  old_mac = '{0x00, 0x00, 0x00, 0x00, 0x00, 0x00}'
 
-  infile = open(cnfg_file, "r")
-  text = infile.read()
+def update_idigi_config_c(src_file, config):
+
+  infile = open(src_file, "r")
+  new_lines[:] = []
+
+  for line in infile:
+    if 'DEVICE_TX_KEEPALIVE_INTERVAL_IN_SECONDS' in line:
+      update_field(config, line, "tx_keepalive", False)
+    elif 'DEVICE_RX_KEEPALIVE_INTERVAL_IN_SECONDS' in line:
+      update_field(config, line, "rx_keepalive", False)
+    elif 'DEVICE_WAIT_COUNT' in line:
+      update_field(config, line, "wait_count", False)
+    elif 'IDIGI_MAX_MSG_TRANSACTIONS' in line:
+      update_field(config, line, "max_transaction", False)
+    else:
+      new_lines.append(line)
+
   infile.close()
+  outfile = open(src_file, "wb")
+  for line in new_lines:
+    line = line.replace('\r\n', '\n')
+    outfile.write(line)
+  outfile.close()
 
-  if text.find(old_mac) == -1:
-    print 'warning: not updating MAC address (config.c already modifyied)'
+def update_config_c(cnfg_file, config):
+
+  old_mac = '{0x00, 0x00, 0x00, 0x00, 0x00, 0x00}'
+  old_vendor_id = '{0x00, 0x00, 0x00, 0x00}'
+  old_device_type = '"Linux Application"'
+  old_server_url = '"developer.idigi.com"'
 
   mac_str = config.get("device", "mac_addr")
   new_mac = '{' + '0x' + mac_str[0] + mac_str[1] + ', '
@@ -90,14 +112,30 @@ def update_config_c(cnfg_file, config):
   new_mac += '0x' + mac_str[9] + mac_str[10] + ', '
   new_mac += '0x' + mac_str[11] + mac_str[12] + '}'
 
-  outfile = open(cnfg_file, "w")
-  outfile.write(text.replace(old_mac, new_mac))
-  outfile.close()
+  vendor_id = config.getint("device", "vendor_id")
+  hex_string = hex(vendor_id)
+  new_vendor_id = '{' + '0x0' + hex_string[2] + ', ' 
+  new_vendor_id += '0x' + hex_string[3:5] + ', '
+  new_vendor_id += '0x' + hex_string[5:7] + ', '
+  new_vendor_id += '0x' + hex_string[7:9] + '}'
+  print new_vendor_id
 
-def update_config_files(header_file, ini_file, cnfg_file):
+  new_device_type = '"' + config.get("device", "device_type") + '"'
+  new_server_url  = '"' + config.get("device", "server_url") + '"'
+
+  replace_string(cnfg_file, old_mac, new_mac)
+  replace_string(cnfg_file, old_vendor_id, new_vendor_id)
+  replace_string(cnfg_file, old_device_type, new_device_type)
+  replace_string(cnfg_file, old_server_url, new_server_url)
+
+def update_config_header(header_file, ini_file):
   config = ConfigParser.SafeConfigParser()
   config.read(ini_file)
   update_idigi_config_h(header_file, config)
-  update_config_c(cnfg_file, config)
 
+def update_config_source(cnfg_file, ini_file):
+  config = ConfigParser.SafeConfigParser()
+  config.read(ini_file)
+  update_idigi_config_c(cnfg_file, config)
+  update_config_c(cnfg_file, config)
 

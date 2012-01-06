@@ -120,7 +120,7 @@ def run_tests():
 
 def setup_platform(config, config_dir, platform_dir):
     config.remove_errors(platform_dir+'config.c')
-    config.update_config_files('./public/include/idigi_config.h', config_dir+'config.ini', platform_dir+'config.c')
+    config.update_config_source(platform_dir+'config.c', config_dir+'config.ini')
 
 def main():
     f, filename, description = imp.find_module('config', ['./dvt/scripts'])
@@ -139,10 +139,12 @@ def main():
     run_tests()
 
     config.replace_string('./public/include/idigi_config.h', 'IDIGI_NOCOMPRESSION', 'IDIGI_COMPRESSION')
+    config.update_config_header('./public/include/idigi_config.h', SAMPLE_SCRIPT_DIR+'config.ini')
+    run_tests()
 
     setup_platform(config, TEMPLATE_SCRIPT_DIR, TEMPLATE_PLATFORM_DIR)
     build_test(TEMPLATE_TEST_DIR)
-    
+
 
 if __name__ == '__main__':
     main()
