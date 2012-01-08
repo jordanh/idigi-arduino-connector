@@ -11,18 +11,18 @@ function cleanup ()
 {
     echo ">> Creating Archive Directory."
     ARCHIVE=${WORKSPACE}/archive
-    mkdir -p ${ARCHIVE}
+    mkdir -p "${ARCHIVE}"
 
     echo ">> Archiving tgz file."
-    cp -v ${OUTPUT_DIR}/${PKG_NAME}.tgz ${ARCHIVE}/
+    cp -v "${OUTPUT_DIR}/${PKG_NAME}.tgz" "${ARCHIVE}/"
 
     echo ">> Cleaning Up ${OUTPUT_DIR} and ${BASE_DIR}"
-    rm -r ${OUTPUT_DIR}
-    rm -r ${BASE_DIR}
+    rm -r "${OUTPUT_DIR}"
+    rm -r "${BASE_DIR}"
 }
 
 # Create the output directory.
-mkdir -p ${OUTPUT_DIR}
+mkdir -p "${OUTPUT_DIR}"
 
 # Create the doxygen documentation
 cd doxygen
@@ -36,31 +36,31 @@ cp doxygen/user_guide.html docs/
 
 # Create an idigi subdirectory which will be the root of the tarball.
 echo ">> Creating ${BASE_DIR} and copying public and private directories to it."
-mkdir -p ${BASE_DIR}
-cp -rf private ${BASE_DIR}
-cp -rf public ${BASE_DIR}
-cp -rf docs ${BASE_DIR}
-cp Getting\ Started.docx ${BASE_DIR}
+mkdir -p "${BASE_DIR}"
+cp -rf private "${BASE_DIR}"
+cp -rf public "${BASE_DIR}"
+cp -rf docs "${BASE_DIR}"
+cp Getting\ Started.docx "${BASE_DIR}"
 
 # Grab the license
 echo ">> Pulling License from /eng/store/released/90000000/${LICENSE}.zip and copying to ${WORKSPACE}."
-cp /eng/store/released/90000000/${LICENSE}.zip ${WORKSPACE}
-unzip -o ${WORKSPACE}/${LICENSE}.zip -d ${BASE_DIR}
-rm ${WORKSPACE}/${LICENSE}.zip
+cp /eng/store/released/90000000/${LICENSE}.zip "${WORKSPACE}"
+unzip -o "${WORKSPACE}/${LICENSE}.zip" -d "${BASE_DIR}"
+rm "${WORKSPACE}/${LICENSE}.zip"
 
 # Create the tarball
 echo ">> Creating the release Tarball as ${OUTPUT_DIR}/${PKG_NAME}.tgz."
-tar --exclude=idigi/public/test --exclude=idigi/public/dvt  --exclude=idigi/public/sample  -czvf ${OUTPUT_DIR}/${PKG_NAME}.tgz idigi/
+tar --exclude=idigi/public/test --exclude=idigi/public/dvt  --exclude=idigi/public/sample  -czvf "${OUTPUT_DIR}/${PKG_NAME}.tgz" idigi/
 
 # Delete the original idigi directory
 echo ">> Removing base dir ${BASE_DIR}."
-rm -rf ${BASE_DIR}
+rm -rf "${BASE_DIR}"
 
 # Uncompress the tarball we just created and run our tests
 echo ">> Uncompressing ${OUTPUT_DIR}/${PKG_NAME}.tgz."
-tar -xf ${OUTPUT_DIR}/${PKG_NAME}.tgz
+tar -xf "${OUTPUT_DIR}/${PKG_NAME}.tgz"
 
-cd ${BASE_DIR}
+cd "${BASE_DIR}"
 python ../dvt/scripts/replace_str.py public/run/platforms/linux/config.c '#error' '//#error'
 python ../dvt/scripts/replace_str.py public/run/samples/compile_and_link/Makefile 'c99' 'c89'
 
