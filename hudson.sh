@@ -9,10 +9,14 @@ LICENSE=90002145_A
 
 function cleanup () 
 {
-    echo ">> Creating Archive Directory."
     ARCHIVE=${WORKSPACE}/archive
-    mkdir -p "${ARCHIVE}"
-
+    if [ -d "${ARCHIVE}" ]; then
+        echo ">> Archive Directory already exists, cleaning it."
+        rm -rfv "${ARCHIVE}"/*
+    else
+        echo ">> Creating Archive Directory."
+        mkdir -p "${ARCHIVE}"
+    fi
     echo ">> Archiving tgz file."
     cp -v "${OUTPUT_DIR}/${PKG_NAME}.tgz" "${ARCHIVE}/"
 
