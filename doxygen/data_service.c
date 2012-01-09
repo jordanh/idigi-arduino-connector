@@ -11,24 +11,27 @@
  * @note See @ref data_service_support under Configuration to enable or
  * disable data service.
  * 
- * @li @b Put @b requests: Transfers which are initiated by the device and used to
+ * @li @b Put @b Requests: Transfers which are initiated by the device and used to
  * write files to the iDigi Device Cloud, the iDigi Device Cloud may send a status response back
  * indicating the transfer was successful. 
- * @li @b Device @b requests: Transfers which are initiated by the iDigi Device Cloud to the device.
+ * @li @b Device @b Requests: Transfers which are initiated by the iDigi Device Cloud to the device.
  * This is used to send data to the device and the device may send a response back.
  *
- * @section send_data Put Requests
+ * @section put_request Put Requests
  *
  * @subsection initiate_send Initiate Sending Data
  *
  * The application initiates the Put Request to the iDigi Device Cloud by calling idigi_initiate_action()
- * with the request parameter set to @ref idigi_initiate_data_service and request_data points to
+ * with the request parameter set to @ref idigi_initiate_data_service and request_data pointing to
  * a idigi_data_service_put_request_t structure.
+ *
+ * @note The idigi_initiate_action() does not send any data.  Instead, the @ref idigi_data_service_put_request "Put Request"
+ * @ref idigi_callback_t "callback" is used to supply data to the server.
  *
  * An example of initiating a device transfer is shown below:
  * @code
  *   static idigi_data_service_put_request_t header;
- *   static char file_path[] = "test/test.txt";
+ *   static char file_path[] = "testdir/testfile.txt";
  *   static char file_type[] = "text/plain";
  *
  *   header.flags = IDIGI_DATA_PUT_APPEND;
@@ -40,20 +43,17 @@
  * @endcode
  *
  * This example will invoke the IIK to initiate a data transfer to the iDigi Device 
- * Cloud, the result of this operation creates a file test.txt in the test directory 
+ * Cloud, the result of this operation creates a file testfile.txt in the testdir directory
  * on the iDigi Device Cloud.  Once the iDigi Device Cloud is ready to receive data 
- * from the device the application callback is called indicating data is requested.  
- * The application callback is continually called until the application indicates 
- * there is no more data to send
- * by setting the @ref IDIGI_MSG_LAST_DATA bit in the flag field of the @ref idigi_data_service_block_t
- * which is in the client_data field in the response_data returned by the callback.
+ * from the device the application callback is called requesting data.
  *
- * @subsection get_data Data Callback
+ * @subsection get_data Put Request Callback
  *
- * After calling idigi_initiate_action() the user will keep getting a callback until
- * the application sets the flag indicating there is no more data to be sent.
+ * After calling idigi_initiate_action(), the IIK will make @ref idigi_data_service_put_request "Put Request"
+ * @ref idigi_callback_t "callbacks" to retrieve the application data.  These callbacks will continue until
+ * the @ref idigi_data_service_block_t response_data flag field has the @ref IDIGI_MSG_LAST_DATA bit set.
  *
- * The put request callback is called with the following information:
+ * The @ref idigi_data_service_put_request "Put Request"  @ref idigi_callback_t "callback" is called with the following information:
  *
  * @htmlonly
  * <table class="apitable">
