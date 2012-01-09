@@ -145,6 +145,16 @@ def main():
     setup_platform(config, TEMPLATE_SCRIPT_DIR, TEMPLATE_PLATFORM_DIR)
     build_test(TEMPLATE_TEST_DIR)
 
+    config.replace_string('./public/include/idigi_config.h', 'IDIGI_FIRMWARE_SERVICE', 'IDIGI_NO_FIRMWARE_SERVICE')
+    build_test(TEMPLATE_TEST_DIR)
+
+    config.replace_string('./public/include/idigi_config.h', 'IDIGI_DATA_SERVICE', 'IDIGI_NO_DATA_SERVICE')
+    build_test(TEMPLATE_TEST_DIR)
+
+    config.replace_string('./public/include/idigi_config.h', 'IDIGI_NO_FIRMWARE_SERVICE', 'IDIGI_FIRMWARE_SERVICE')
+    build_test(TEMPLATE_TEST_DIR)
+
+    config.replace_string('./public/include/idigi_config.h', 'IDIGI_NO_DATA_SERVICE', 'IDIGI_DATA_SERVICE')
 
 if __name__ == '__main__':
     main()
