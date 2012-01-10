@@ -36,7 +36,7 @@ static int gWait = 0;
 extern int app_os_malloc(size_t const size, void ** ptr);
 extern void app_os_free(void * const ptr);
 
-#define DS_MAX_USER   7
+#define DS_MAX_USER   20
 #define DS_FILE_NAME_LEN  20
 #define DS_DATA_SIZE  (1024 * 16)
 
@@ -54,8 +54,11 @@ typedef struct
 unsigned int put_file_active_count = 0;
 static bool first_time = true;
 
+size_t put_request_size = 0;
+
 idigi_status_t send_put_request(idigi_handle_t handle, int index)
 {
+
     idigi_status_t status = idigi_success;
     static char file_type[] = "text/plain";
     ds_record_t * user;
@@ -87,6 +90,7 @@ idigi_status_t send_put_request(idigi_handle_t handle, int index)
             goto done;
         }
         user = ptr;
+        put_request_size += sizeof *user;
     }
 
     sprintf(user->file_path, "test/dvt%d.txt", index);
@@ -99,7 +103,6 @@ idigi_status_t send_put_request(idigi_handle_t handle, int index)
     user->file_length_in_bytes = (rand() % (DS_DATA_SIZE +1));
 
     status = idigi_initiate_action(handle, idigi_initiate_data_service, &user->header, NULL);
-    APP_DEBUG("send_put_request: %p %s status  %d total file length = %d\n", (void *)user, user->file_path, status, user->file_length_in_bytes);
     if (status == idigi_success)
     {
         put_file_active_count++;
@@ -184,7 +187,6 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
                 if (user->bytes_sent == user->file_length_in_bytes)
                     message->flags |= IDIGI_MSG_LAST_DATA;
 
-                printf("idigi_put_request_callback (need_data): %p copy %d bytes remaining bytes = %d\n", (void *)user, bytes_copy, user->file_length_in_bytes - user->bytes_sent);
             }
             break;
 
@@ -193,8 +195,6 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
                 idigi_data_service_block_t * message = put_request->server_data;
                 uint8_t const * data = message->data;
 
-                APP_DEBUG("idigi_put_request_callback (have_data): %p Received %s (0x%x) response from server\n", (void *)user,
-                                    (((message->flags & IDIGI_MSG_RESP_SUCCESS) != 0) ? "success" : "error"), (unsigned)message->flags);
                 if (message->length_in_bytes > 0)
                 {
                     APP_DEBUG("idigi_put_request_callback: server response %s\n", (char *)data);
@@ -209,10 +209,6 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
 
         case idigi_data_service_type_error:
             {
-                idigi_data_service_block_t * message = put_request->server_data;
-                idigi_msg_error_t const * const error_value = message->data;
-
-                APP_DEBUG("idigi_put_request_callback: Data service error %p %d\n", (void *)user, *error_value);
 
                 ASSERT(user != NULL);
                 app_os_free(user);
@@ -289,6 +285,7 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
             response_data->message_status = idigi_msg_error_memory;
             goto done;
         }
+        put_request_size += sizeof *client_device_request;
 
         client_device_request = ptr;
         client_device_request->length_in_bytes = 0;

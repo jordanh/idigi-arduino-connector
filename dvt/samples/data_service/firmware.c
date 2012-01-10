@@ -26,6 +26,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+#include <pthread.h>
 
 #include "idigi_api.h"
 #include "platform.h"
@@ -142,11 +143,25 @@ done:
 
 static idigi_callback_status_t app_firmware_reset(idigi_fw_config_t const * const reset_data)
 {
-    idigi_callback_status_t   status = idigi_callback_continue;
+    extern idigi_handle_t idigi_handle;
+    extern pthread_t application_thread;
+    extern unsigned int put_file_active_count;
+
+    idigi_callback_status_t status = idigi_callback_busy;
+
 
     UNUSED_ARGUMENT(reset_data);
-    /* Server requests firmware reboot */
     APP_DEBUG("firmware_reset\n");
+
+    if (put_file_active_count > 0)
+    {
+        /* let's terminate IIK and free all memory used in IIK.
+         *
+         */
+        idigi_initiate_action(idigi_handle, idigi_initiate_terminate, NULL, NULL);
+        pthread_cancel(application_thread);
+        status = idigi_callback_continue;
+    }
 
     return status;
 }

@@ -28,6 +28,7 @@
 
 
 extern void check_stack_size(void);
+extern void clear_stack_size(void);
 
 extern idigi_callback_status_t app_data_service_handler(idigi_data_service_request_t const request,
                                                   void const * request_data, size_t const request_length,
@@ -44,7 +45,6 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
 {
     idigi_callback_status_t   status = idigi_callback_continue;
 
-    check_stack_size();
 
     switch (class_id)
     {
@@ -71,6 +71,8 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
         /* not supported */
         break;
     }
+    clear_stack_size();
+
     return status;
 }
 
@@ -86,7 +88,7 @@ int application_run(idigi_handle_t handle)
         switch (status)
         {
         case idigi_init_error:
-            #define SLEEP_ONE_SECOND  1
+           #define SLEEP_ONE_SECOND  1
             app_os_sleep(SLEEP_ONE_SECOND);
             break;
 
@@ -97,7 +99,7 @@ int application_run(idigi_handle_t handle)
         case idigi_invalid_data_range:
             index = 0;
 
-            #define SLEEP_BETWEEN_TESTS   20
+            #define SLEEP_BETWEEN_TESTS   5
             app_os_sleep(SLEEP_BETWEEN_TESTS);
             break;
     
@@ -106,6 +108,7 @@ int application_run(idigi_handle_t handle)
             break;
         }
     }
+
     return 0;
 }
 

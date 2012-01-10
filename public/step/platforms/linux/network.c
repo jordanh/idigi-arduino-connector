@@ -154,16 +154,8 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
     write_set = read_set;
 
     result = select(fd+1, &read_set, &write_set, NULL, &timeout);
-    if (result < 0)
+    if (result <= 0)
     {
-        goto done;
-    }
-
-    if (result == 0)
-    {
-        rc = idigi_callback_busy;
-        APP_DEBUG("network_connect: select timeout\r\n");
-        perror("network_connect: select");
         goto done;
     }
 
