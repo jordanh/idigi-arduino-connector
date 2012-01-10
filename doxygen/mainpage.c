@@ -125,8 +125,8 @@
  * </tr>
  * <tr>
  * <td>With @endhtmlonly @ref IDIGI_FIRMWARE_SERVICE @htmlonly enabled</td>
- * <td>72</td>
- * <td>72</td>
+ * <td>108</td>
+ * <td>108</td>
  * <td></td>
  * </tr>
  * <tr>
