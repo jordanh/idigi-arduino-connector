@@ -81,7 +81,8 @@ def build_test(dir):
         exit(0)
 
 def run_tests(debug_on):
-    i = 0
+    global test_case    
+
     for test in test_table:
         src_dir   = test[SRC_DIR]
         test_dir  = test[TEST_DIR]
@@ -111,7 +112,7 @@ def run_tests(debug_on):
                 print '>>>Skip [%s] since debug is on' % test_script
             else:
                 print '>>>Executing [%s]' % test_script
-                rc = os.system('export PYTHONPATH=../;cd %s; nosetests --with-xunit --xunit-file=nosestest%1d.xml %s' % (test_dir, i, test_script))
+                rc = os.system('export PYTHONPATH=../;cd %s; nosetests --with-xunit --xunit-file=nosestest%1d.xml %s' % (test_dir, test_case, test_script))
                 test_case += 1
 
         print '>>>pid [%s]' % pid
