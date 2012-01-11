@@ -7,8 +7,6 @@ import configuration
 from utils import determine_disconnect_reconnect
 
 config = configuration.DeviceConfiguration('config.ini')
-nonidigi_host = 'google.com'
-
 
 log = logging.getLogger('connectioncontrol')
 log.setLevel(logging.INFO)
