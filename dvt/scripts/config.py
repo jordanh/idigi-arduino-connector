@@ -51,7 +51,7 @@ def update_idigi_config_h(header_file, config):
     elif 'IDIGI_DEVICE_TYPE' in line:
       update_field(config, line, "device_type", True)
     elif 'IDIGI_CLOUD_URL' in line:
-      update_field(config, line, "server_url", True)
+      update_field(config, line, "proxy_url", True)
     elif 'IDIGI_TX_KEEPALIVE_IN_SECONDS' in line:
       update_field(config, line, "tx_keepalive", False)
     elif 'IDIGI_RX_KEEPALIVE_IN_SECONDS' in line:
@@ -121,7 +121,7 @@ def update_config_c(cnfg_file, config):
   print new_vendor_id
 
   new_device_type = '"' + config.get("device", "device_type") + '"'
-  new_server_url  = '"' + config.get("device", "server_url") + '"'
+  new_server_url  = '"' + config.get("device", "proxy_url") + '"'
 
   replace_string(cnfg_file, old_mac, new_mac)
   replace_string(cnfg_file, old_vendor_id, new_vendor_id)
