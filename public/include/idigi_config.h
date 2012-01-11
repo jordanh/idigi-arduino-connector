@@ -74,7 +74,7 @@
  * @see @ref IDIGI_DATA_SERVICE
  * 
  */
-#define IDIGI_COMPRESSION
+#define IDIGI_NO_COMPRESSION
 
 /** 
  * If defined, IIK includes the @ref data_service.  

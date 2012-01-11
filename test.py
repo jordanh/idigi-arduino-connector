@@ -166,23 +166,23 @@ def main():
     run_tests(debug_on)
 
     debug_on = False
-    config.replace_string('./public/include/idigi_config.h', 'IDIGI_DEBUG', 'IDIGI_NODEBUG')
+    config.replace_string('./public/include/idigi_config.h', 'IDIGI_DEBUG', 'IDIGI_NO_DEBUG')
     run_tests(debug_on)
 
-    config.replace_string('./public/include/idigi_config.h', 'IDIGI_COMPRESSION', 'IDIGI_NOCOMPRESSION')
+    config.replace_string('./public/include/idigi_config.h', 'IDIGI_NO_COMPRESSION', 'IDIGI_COMPRESSION')
     run_tests(debug_on)
 
     debug_on = True
-    config.replace_string('./public/include/idigi_config.h', 'IDIGI_NODEBUG', 'IDIGI_DEBUG')
+    config.replace_string('./public/include/idigi_config.h', 'IDIGI_NO_DEBUG', 'IDIGI_DEBUG')
     run_tests(debug_on)
 
-    config.replace_string('./public/include/idigi_config.h', 'IDIGI_NOCOMPRESSION', 'IDIGI_COMPRESSION')
     config.update_config_header('./public/include/idigi_config.h', SAMPLE_SCRIPT_DIR+'config.ini')
     run_tests(debug_on)
 
     setup_platform(config, TEMPLATE_SCRIPT_DIR, TEMPLATE_PLATFORM_DIR)
     build_test(TEMPLATE_TEST_DIR)
 
+    config.replace_string('./public/include/idigi_config.h', 'IDIGI_COMPRESSION', 'IDIGI_NO_COMPRESSION')
     config.replace_string('./public/include/idigi_config.h', 'IDIGI_FIRMWARE_SERVICE', 'IDIGI_NO_FIRMWARE_SERVICE')
     build_test(TEMPLATE_TEST_DIR)
 
@@ -194,7 +194,6 @@ def main():
 
     config.replace_string('./public/include/idigi_config.h', 'IDIGI_NO_DATA_SERVICE', 'IDIGI_DATA_SERVICE')
 
-    
 
 if __name__ == '__main__':
     main()
