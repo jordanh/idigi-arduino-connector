@@ -194,7 +194,7 @@
  * @section threading Threading Model
  *
  * The IIK can be deployed in a multithreaded (idigi_run()) or round robin control loop (idigi_step()) environment.    
- * In environemnts that include preemptive threading, the IIK can be implemented as a seperate stand-alone thread
+ * In environemnts that include preemptive threading, the IIK can be implemented as a separate stand-alone thread
  * by calling idigi_run().  This a blocking call that only returns on a major system failure.
  *    
  * Alternatively, when threading is unavailable, in a round robin control loop or fixed state machine, the IIK can 
@@ -223,48 +223,31 @@
  * </tr>
  * <tr>
  * <td rowspan="2">private</td>
- * <td style="border-bottom: 0px none;">IIK Library Code  <strong>(do not modify)</strong></td>
+ * <td style="border-bottom: 0px none;">IIK Library Code</td>
  * </tr><tr>
  * <td style="border-top: 0px none;">This directory contains all the private and internal files used to build the IIK library. 
- * <b>You should never modify files in this directory</b>. These files are only provided 
- * so the library can be built using the tool chain for your platform.</td>
+ * <b>You should never modify, use, debug, or reference any file from this directory</b>.</td>
  * </tr>
  * <tr>
  * <td rowspan=2>public/include</td>
- * <td style="border-bottom: 0px none;">Public API</td>
+ * <td style="border-bottom: 0px none;"> @endhtmlonly  @ref api_overview "IIK Public API" @htmlonly </td>
  * </tr><tr>
- * <td style="border-top: 0px none;">This directory contains the IIK public header files required for application development.
- * When porting to a new platform, you may need to modify @endhtmlonly @ref idigi_types.h @htmlonly to match your platform's characteristics (i.e., data size and supported compiler data types).
- * The file @endhtmlonly @ref idigi_api.h @htmlonly in this directory is the IIK public API.</td>
+ * <td style="border-top: 0px none;">This directory contains @endhtmlonly @ref idigi_api.h @htmlonly, the IIK public header
+ * required for application development.  When porting to a new platform, you may need to modify @endhtmlonly @ref idigi_types.h @htmlonly
+ * to match your platform's characteristics (i.e., data size and supported compiler data types).</td>
  * </tr>
  * <tr>
  * <td rowspan=2>public/run</td>
  * <td style="border-bottom: 0px none;">Platforms and samples for running the IIK as a separate thread</td>
  * </tr><tr>
- * <td style="border-top: 0px none;">This directory contains platforms and samples which run the IIK as a separate 
- * thread in a multitasking environment.</td>
+ * <td style="border-top: 0px none;">This directory contains platforms and samples that use @endhtmlonly idigi_run() @htmlonly which runs
+ * the IIK as a separate thread in a multitasking environment.</td>
  * </tr>
- * <tr>
- * <td rowspan=2>public/step</td>
- * <td style="border-bottom: 0px none;">Platforms and samples for stepping the IIK in a round robin control loop</td>
- * </tr><tr>
- * <td style="border-top: 0px none;">This directory contains platforms and samples which step the IIK in a round robin state machine or 
- * control loop model.  These samples are for those systems that do not include pre-emptive RTOS.  </td>
- * </tr>
- * <tr>
  * <td rowspan=2>public/run/platforms</td>
  * <td style="border-bottom: 0px none;">Platforms for running the IIK as a separate thread</td>
  * </tr><tr>
- * <td style="border-top: 0px none;">For each supported platform there is a subdirectory along with a set of interface routines.
+ * <td style="border-top: 0px none;">For each supported platform there is a sub-directory along with a set of interface routines.
  * The Getting Started Procedure will walk you through setting up your platform.</td>
- * </tr>
- * <tr>
- * <td>public/run/platforms/linux</td>
- * <td>Code used to interface to a linux system</td>
- * </tr>
- * <tr>
- * <td>public/run/platforms/template</td>
- * <td>Shell routines to implement a new platform from scratch</td>
  * </tr>
  * <tr>
  * <td rowspan="2">public/run/samples</td>
@@ -274,25 +257,47 @@
  * that your new envirorment is able to build. There is a sample for each major
  * feature in the IIK, there is documentation in this guide for each sample.</td>
  * </tr>
+ * <tr>
+ * <td rowspan=2>public/step</td>
+ * <td style="border-top: 0px none;">This directory contains platforms and samples that use @endhtmlonly idigi_step() @htmlonly which makes
+ * repeated calls within a round robin control loop.</td>
+ * </tr><tr>
  * </table>
  * @endhtmlonly
  *
- * @subsection AppStructure Application Structure
- * The IIK has an optional Data Compression switch that reduces the amount of network traffic.  This option requires applications
- * to link with the zlib library and add the zlib header file (zlib.h) to the IIK include path.
+ * @subsection AppStructure Application Hierarchy
+ * The IIK is split into two separate partitions, a private partition and a public Application Framework.
+ *
+ * The private partition includes source code that implements the @ref api_overview "IIK public API", plus all the internal code used to implement the
+ * iDigi Cloud protocol.  This private partition should be treated as a black box and never used, changed, or referenced directly.  It's recommended after completing
+ * the  @ref getting_started process, that this private partition be converted into a library.  Note the term "IIK library" refers to the IIK private partition.
+ *
+ * The public Application Framework partition is further broken into two: a Platform and Sample section.  The Platform section is related to system
+ * specific porting dependencies (i.e., fleshing out operating system calls, networking, system configuration).  The Sample section contains an application
+ * structure to cleanly interface between the Platform section and the IIK private partition.
+ *
+ * For instance, in a linux run thread model, the main() routine starts two threads: idigi_run_thread() and application_run_thread(), this main.c is in the Platform section
+ * since it relies on threads (which is an operating system dependency).  The idigi_run_thread() directly calls the @ref api_overview "IIK API" idigi_run(), but the
+ * application_run_thread() calls application_run(), which resides within the Sample section.
+ *
+ * In the diagram below, the lower left side shows main() calling idigi_init() and then spawning the two threads.  The Sample section is encapsulated within the
+ * dotted line on the center-right.  The IIK Library, or private partition is encapsulated in the dotted line on top in the Private Source Code Area.  Also shown
+ * is the Platform application_run_thread() calling into the Sample application_run().
  *
  * @image html SWOverview.jpg
  *
- * The IIK has an optional Data Compression switch that reduces the amount of network traffic.  This option requires applications
- * to link with the zlib library and add the zlib header file (zlib.h) to the IIK include path.
+ * Based on the particular sample, application_run() could either make calls to idigi_initiate_action(), or could just return and complete.
+ *
+ * The diagram further shows the IIK Library making callbacks into the Sample section.  The @ref idigi_callback_t "Application callback", initially passed to the
+ * IIK library via the idigi_init() call, will forward the callback to the appropriate handler, which will either be in the Platform section for
+ * @ref os_callbacks "operating system", @ref network_callbacks "networking", or @ref config_callbacks "configuration" callbacks, or be handled
+ * locally in the Sample section for Data Service callbacks.
  *
  * @subsection PortingFocus Porting Sections
- * The IIK has an optional Data Compression switch that reduces the amount of network traffic.  This option requires applications
- * to link with the zlib library and add the zlib header file (zlib.h) to the IIK include path.
+ * The IIK Porting should be really easy. . . .
  *
  * @subsection DebugTips Debugging your Port
- * The IIK has an optional Data Compression switch that reduces the amount of network traffic.  This option requires applications
- * to link with the zlib library and add the zlib header file (zlib.h) to the IIK include path.
+ * After your port, you will have to debug to get started. . . .
  *
  * @section the_getting_started_process Getting Started 
  * To get started, follow along the steps of the @ref getting_started process.
