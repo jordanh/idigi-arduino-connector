@@ -208,12 +208,20 @@
  * Otherwise you should use the idigi_run() routine.
  *
  * @section code_organization Source Code Organization
+ * The IIK is divided into two partitions, a private partition and a public Application Framework.  The private partition
+ * includes the source code that implements the @ref api_overview "IIK public API".  The public Application Framework is
+ * set of sample applications used for demonstration purposes.
+ *
+ * @note The private partition should be treated as a black box and never used, changed, debugged or referenced directly.  It's recommended
+ * after completing the @ref getting_started process that this private partition be converted into a library.   Note the term
+ * "IIK library" is used synonymously for the "IIK private partition".
  *
  * @subsection DirectoryStructure Directory Structure
  *
  * When uncompressed the directory structure below will be created in the idigi directory.
- * The public directory is divided into step and run, use the appropriate directory
- * based on your threading model.
+ * The public directory is divided into a step and run branch to easily distinguish the different thread modeling
+ * requirements.
+ *
  *
  * @htmlonly
  * <table class="apitable">
@@ -268,9 +276,8 @@
  * @subsection AppStructure Application Hierarchy
  * The IIK is split into two separate partitions, a private partition and a public Application Framework.
  *
- * The private partition includes source code that implements the @ref api_overview "IIK public API", plus all the internal code used to implement the
- * iDigi Cloud protocol.  This private partition should be treated as a black box and never used, changed, or referenced directly.  It's recommended after completing
- * the  @ref getting_started process, that this private partition be converted into a library.  Note the term "IIK library" refers to the IIK private partition.
+ * The private partition (IIK Library) includes source code that implements the @ref api_overview "IIK public API", plus all the internal code used to implement the
+ * iDigi Cloud protocol.  This private partition should be treated as a black box and never used, changed, or referenced directly.
  *
  * The public Application Framework partition is further broken into two: a Platform and Sample section.  The Platform section is related to system
  * specific porting dependencies (i.e., fleshing out operating system calls, networking, system configuration).  The Sample section contains an application
@@ -280,21 +287,31 @@
  * since it relies on threads (which is an operating system dependency).  The idigi_run_thread() directly calls the @ref api_overview "IIK API" idigi_run(), but the
  * application_run_thread() calls application_run(), which resides within the Sample section.
  *
- * In the diagram below, the lower left side shows main() calling idigi_init() and then spawning the two threads.  The Sample section is encapsulated within the
- * dotted line on the center-right.  The IIK Library, or private partition is encapsulated in the dotted line on top in the Private Source Code Area.  Also shown
- * is the Platform application_run_thread() calling into the Sample application_run().
+ * In the diagram below, the IIK Library or private partition, is encapsulated in the dotted line on top in the Private Source Code Area.  The
+ * bottom shows the Platform section, where the bottom left side shows main() calling idigi_init() and then spawning the two threads.   Also
+ * shown is the application_run_thread() calling into the Sample section application_run().  The Sample section is encapsulated within the
+ * dotted line on the center-right.
  *
  * @image html SWOverview.jpg
  *
  * Based on the particular sample, application_run() could either make calls to idigi_initiate_action(), or could just return and complete.
  *
- * The diagram further shows the IIK Library making callbacks into the Sample section.  The @ref idigi_callback_t "Application callback", initially passed to the
- * IIK library via the idigi_init() call, will forward the callback to the appropriate handler, which will either be in the Platform section for
- * @ref os_callbacks "operating system", @ref network_callbacks "networking", or @ref config_callbacks "configuration" callbacks, or be handled
- * locally in the Sample section for Data Service callbacks.
+ * The diagram further shows the IIK Library making callbacks into the Sample section.  The @ref idigi_callback_t "application callback function", initially passed
+ * to the IIK library via the idigi_init() call, will pass the callback request to the appropriate handler, which will either be in the Platform section for
+ * @ref os_callbacks "operating system", @ref network_callbacks "networking", or @ref config_callbacks "configuration" callbacks; or remain locally
+ * handled (in the Sample section) for the Data Service callbacks.
  *
  * @subsection PortingFocus Porting Sections
- * The IIK Porting should be really easy. . . .
+ * The IIK @ref getting_started process includes pulling the IIK into your local build environment, getting the private partition
+ * compiled and linked (using the @ref step3 "compile_and_link" sample) and then your @ref step5 "platform ported".  Once your platform
+ * is ported, you will verify and confirm your port using the @ref step7 "connect_to_idigi" sample.
+ *
+ * When porting, the only code requiring update is the very lowest layer of the Platform code: the static @ref os_routines "operating system"
+ * routines located in os.c, the @ref network_routines "networking" routines in network.c and the @ref configuration_routines "configuration" routines
+ * in config.c.  No other code requires porting, excluding the @ref step1 "changes" required to get your code compiled.
+ *
+ * lastly, it is strongly recommended to maintain the structure of the public Application Framework.  Once porting and test are complete,
+ * the implementor can dismantle this framework and incorporate into their environment as you see fit.
  *
  * @subsection DebugTips Debugging your Port
  * After your port, you will have to debug to get started. . . .
