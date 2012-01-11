@@ -1,0 +1,11 @@
+# Ignore C output files
+*.a
+*.so
+*.o
+*.map
+
+# Ignore compiled python data
+*.pyc
+
+# Ignore generate nosetests
+nosestest*.xml
