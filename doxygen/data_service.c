@@ -375,6 +375,18 @@
  * 
  * @endcode
  *
+ * @section zlib Optional Data Compression Support
+ * The IIK has an optional Data Compression switch that reduces the amount of network traffic.  This option requires applications
+ * to link with the zlib library and add the zlib header file (zlib.h) to the IIK include path.
+ *
+ * @note Enabling this option greatly increases the application code size and memory required to execute.
+ *
+ * If your application requires Data compression, but your development environment does not include the zlib library,
+ * you will need to download and build the library.  The zlib home page is located at: http://zlib.net/.   Instructions
+ * on how to build zlib are provided with the package.
+ *
+ * @note The zlib library is required only if your application enables the Data Compression switch.
+ *
  */
 
 

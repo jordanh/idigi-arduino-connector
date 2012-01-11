@@ -14,7 +14,10 @@
  *          -# @ref communicating
  *          -# @ref threading
  *          -# @ref code_organization
- *          -# @ref zlib
+ *              -# @ref DirectoryStructure
+ *              -# @ref AppStructure
+ *              -# @ref PortingFocus
+ *              -# @ref DebugTips
  *          -# @ref the_getting_started_process
  *
  * @section intro Introduction
@@ -206,6 +209,8 @@
  *
  * @section code_organization Source Code Organization
  *
+ * @subsection DirectoryStructure Directory Structure
+ *
  * When uncompressed the directory structure below will be created in the idigi directory.
  * The public directory is divided into step and run, use the appropriate directory
  * based on your threading model.
@@ -272,18 +277,23 @@
  * </table>
  * @endhtmlonly
  *
- * @section zlib Optional Data Compression Support
- * The IIK has an optional Data Compression switch that reduces the amount of network traffic.  This option requires applications 
+ * @subsection AppStructure Application Structure
+ * The IIK has an optional Data Compression switch that reduces the amount of network traffic.  This option requires applications
  * to link with the zlib library and add the zlib header file (zlib.h) to the IIK include path.
- *   
- * @note Enabling this option greatly increases the application code size and memory required to execute.   
- * 
- * If your application requires Data compression, but your development environment does not include the zlib library, 
- * you will need to download and build the library.  The zlib home page is located at: http://zlib.net/.   Instructions 
- * on how to build zlib are provided with the package.
- * 
- * @note The zlib library is required only if your application enables the Data Compression switch.  
- *   
+ *
+ * @image html SWOverview.jpg
+ *
+ * The IIK has an optional Data Compression switch that reduces the amount of network traffic.  This option requires applications
+ * to link with the zlib library and add the zlib header file (zlib.h) to the IIK include path.
+ *
+ * @subsection PortingFocus Porting Sections
+ * The IIK has an optional Data Compression switch that reduces the amount of network traffic.  This option requires applications
+ * to link with the zlib library and add the zlib header file (zlib.h) to the IIK include path.
+ *
+ * @subsection DebugTips Debugging your Port
+ * The IIK has an optional Data Compression switch that reduces the amount of network traffic.  This option requires applications
+ * to link with the zlib library and add the zlib header file (zlib.h) to the IIK include path.
+ *
  * @section the_getting_started_process Getting Started 
  * To get started, follow along the steps of the @ref getting_started process.
  *
