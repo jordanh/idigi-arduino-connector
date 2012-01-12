@@ -347,10 +347,11 @@
  * functions, your porting effort is complete.
  *
  * @subsection DebugTips How to debug your Port
- * After porting and compiling, you will run the @ref step7 "connect_to_idigi" sample.
+ * After porting and compiling, you will run the @ref step7 "connect_to_idigi" sample.  You are recommended to carefully
+ * observe the standard output from the application.  In particular, the @ref idigi_config_error_status will display error
+ * data when porting errors are detected in the callbacks.
  *
- * It is recommended that you carefully observe the standard output, from the application layer.  In particular,
- * the @ref idigi_config_error_status will display error data when porting errors are detected in the callbacks.
+ * Examples of @ref good_results_output "successful" and @ref bad_results_output "erroneous" output streams are available.
  *
  * @section the_getting_started_process Getting Started 
  * To get started, follow along the steps of the @ref getting_started process.
