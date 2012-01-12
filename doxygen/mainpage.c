@@ -208,8 +208,8 @@
  * Otherwise you should use the idigi_run() routine.
  *
  * @section code_organization Source Code Organization
- * The IIK is divided into two partitions, a private partition and a public Application Framework.  The private partition
- * includes the source code that implements the @ref api_overview "IIK public API".  The public Application Framework is
+ * The IIK source code is divided into two partitions, a private partition and a public Application Framework.  The private partition
+ * includes the sources that implement the @ref api_overview "IIK public API".  The public Application Framework includes a
  * set of sample applications used for demonstration purposes.
  *
  * @note The private partition should be treated as a black box and never used, changed, debugged or referenced directly.  It's recommended
@@ -273,23 +273,24 @@
  * </table>
  * @endhtmlonly
  *
- * @subsection AppStructure Application Hierarchy
+ * @subsection AppStructure Source Code Hierarchy
  * The IIK is split into two separate partitions, a private partition and a public Application Framework.
  *
  * The private partition (IIK Library) includes source code that implements the @ref api_overview "IIK public API", plus all the internal code used to implement the
- * iDigi Cloud protocol.  This private partition should be treated as a black box and never used, changed, or referenced directly.
+ * iDigi Cloud protocol.  This private partition should be treated as a black box and never used, changed, debugged or referenced directly.
  *
- * The public Application Framework partition is further broken into two: a Platform and Sample section.  The Platform section is related to system
- * specific porting dependencies (i.e., fleshing out operating system calls, networking, system configuration).  The Sample section contains an application
+ * The public Application Framework partition is further divided in two: a Platform and Sample section.  The Platform section is related to system
+ * specific porting dependencies (i.e., fleshing out @ref os_callbacks "operating system" calls, @ref network_callbacks "networking", @ref config_callbacks "system configuration").  The Sample section contains an application
  * structure to cleanly interface between the Platform section and the IIK private partition.
  *
- * For instance, in a linux run thread model, the main() routine starts two threads: idigi_run_thread() and application_run_thread(), this main.c is in the Platform section
- * since it relies on threads (which is an operating system dependency).  The idigi_run_thread() directly calls the @ref api_overview "IIK API" idigi_run(), but the
- * application_run_thread() calls application_run(), which resides within the Sample section.
+ * For instance, in a linux run thread model, the main() routine starts two threads: idigi_run_thread() and application_run_thread() in main.c.  This file is
+ * located in the Platform section since it relies on threads (an operating system dependency).  The idigi_run_thread() directly calls the @ref api_overview "IIK API"
+ * idigi_run(), and the application_run_thread() calls application_run().  The application_run() function has no system dependencies and contains
+ * IIK specific functions, therefore, it resides within the Sample section.
  *
- * In the diagram below, the IIK Library or private partition, is encapsulated in the dotted line on top in the Private Source Code Area.  The
- * bottom shows the Platform section, where the bottom left side shows main() calling idigi_init() and then spawning the two threads.   Also
- * shown is the application_run_thread() calling into the Sample section application_run().  The Sample section is encapsulated within the
+ * In the diagram below, the IIK Library is shown encapsulated within the dotted line on top (in the Private Source Code Area).  The
+ * bottom is the Platform section, where the bottom left side shows main() calling idigi_init() and spawning the two threads.   Also
+ * shown is the application_run_thread() calling application_run() in the Sample section.  The Sample section is encapsulated within the
  * dotted line on the center-right.
  *
  * @image html SWOverview.jpg
@@ -301,20 +302,55 @@
  * @ref os_callbacks "operating system", @ref network_callbacks "networking", or @ref config_callbacks "configuration" callbacks; or remain locally
  * handled (in the Sample section) for the Data Service callbacks.
  *
- * @subsection PortingFocus Porting Sections
+ * @subsection PortingFocus Porting Guidelines
  * The IIK @ref getting_started process includes pulling the IIK into your local build environment, getting the private partition
  * compiled and linked (using the @ref step3 "compile_and_link" sample) and then your @ref step5 "platform ported".  Once your platform
  * is ported, you will verify and confirm your port using the @ref step7 "connect_to_idigi" sample.
  *
- * When porting, the only code requiring update is the very lowest layer of the Platform code: the static @ref os_routines "operating system"
- * routines located in os.c, the @ref network_routines "networking" routines in network.c and the @ref configuration_routines "configuration" routines
- * in config.c.  No other code requires porting, excluding the @ref step1 "changes" required to get your code compiled.
+ * When porting, it is strongly recommended to maintain the structure of the public Application Framework.  Once porting, compilation and test
+ * are complete, the implementor can dismantle this framework and incorporate into their environment as you see fit.
  *
- * lastly, it is strongly recommended to maintain the structure of the public Application Framework.  Once porting and test are complete,
- * the implementor can dismantle this framework and incorporate into their environment as you see fit.
+ * When reusing the Application Framework, the largest effort will be updating the lowest layer of the Platform code.  Specifically, the
+ * static @ref os_routines "operating system" functions located in os.c, the @ref network_routines "networking" functions in network.c and
+ * the @ref configuration_routines "configuration" functions in config.c.
  *
- * @subsection DebugTips Debugging your Port
- * After your port, you will have to debug to get started. . . .
+ * There is no expectation to port any other code, with the exception of the @ref step1 "changes" required to get your code compiled.
+ *
+ * For example, the Application Framework includes code to handle an @ref idigi_os_system_up_time callback in os.c.  The function requires a
+ * stable system timer at one second resolution.  In the linux platform example, the function is implemented using the POSIX standard
+ * time() function:
+ *
+ * @code
+ * int app_os_get_system_time(uint32_t * const uptime)
+ * {
+ *    time((time_t *)uptime);
+ *
+ *    return 0;
+ * }
+ * @endcode
+ *
+ * However, a platform that does not support POSIX time() might port this function as such:
+ *
+ * @code
+ * int app_os_get_system_time(uint32_t * const uptime)
+ * {
+ *    // Note mysys_GetTickTime() returns the system up time in milliseconds
+ *    extern int mysys_GetTickTime(void);
+ *
+ *    *uptime = mysys_GetTickTime()/1000;
+ *
+ *    return 0;
+ * }
+ * @endcode
+ *
+ * After converting all the static @ref os_routines "operating system", @ref network_routines "networking", and @ref configuration_routines "configuration"
+ * functions, your porting effort is complete.
+ *
+ * @subsection DebugTips How to debug your Port
+ * After porting and compiling, you will run the @ref step7 "connect_to_idigi" sample.
+ *
+ * It is recommended that you carefully observe the standard output, from the application layer.  In particular,
+ * the @ref idigi_config_error_status will display error data when porting errors are detected in the callbacks.
  *
  * @section the_getting_started_process Getting Started 
  * To get started, follow along the steps of the @ref getting_started process.
