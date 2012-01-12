@@ -8,7 +8,7 @@
 
 typedef int bool;
 #define true 1
-#define false 1
+#define false 0
 
 typedef struct __attribute__((__packed__))
 {
