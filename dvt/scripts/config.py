@@ -10,7 +10,7 @@ def replace_string(file_name, src_str, dst_str):
   text = infile.read()
   infile.close()
   outfile = open(file_name, "w")
-  outfile.write(text.replace(src_str, dst_str))
+  outfile.write(text.replace(src_str, dst_str, 1))
   outfile.close()
 
 def remove_errors(file_name):
@@ -19,7 +19,9 @@ def remove_errors(file_name):
     infile.close()
     if text.find('//#error') == -1: # Don't run if #error is already commented out.
         print "Replacing #error in [%s]" % file_name
-        replace_string(file_name, '#error', '//#error')
+        outfile = open(file_name, "w")
+        outfile.write(text.replace('#error', '//#error'))
+        outfile.close()
 
 def update_field(config, line, field, isString):
   elements = line.split()
