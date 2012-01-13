@@ -144,7 +144,7 @@ static int app_get_device_id(uint8_t ** id, size_t * size)
  * @see @ref vendor_id API Configuration Callback
  *
  * @note This routine is not needed if you define @b IDIGI_VENDOR_ID configuration in @ref idigi_config.h.
- * See @ref default_config
+ * See @ref idigi_config_data_options
  */
 static int app_get_vendor_id(uint8_t ** id, size_t * size)
 {
@@ -177,7 +177,7 @@ static int app_get_vendor_id(uint8_t ** id, size_t * size)
  * @see @ref IDIGI_DEVICE_TYPE
  * 
  * @note This routine is not needed if you define @ref IDIGI_DEVICE_TYPE configuration in @ref idigi_config.h.
- * See @ref default_config
+ * See @ref idigi_config_data_options
  */
 static int app_get_device_type(char ** type, size_t * size)
 {
@@ -206,7 +206,7 @@ static int app_get_device_type(char ** type, size_t * size)
  * @see @ref server_url API Configuration Callback
  *
  * @note This routine is not needed if you define @b IDIGI_CLOUD_URL configuration in @ref idigi_config.h.
- * See @ref default_config
+ * See @ref idigi_config_data_options
  */
 static int app_get_server_url(char ** url, size_t * size)
 {
@@ -235,7 +235,7 @@ static int app_get_server_url(char ** url, size_t * size)
  * @see @ref connection_type API Configuration Callback
  *
  * @note This routine is not needed if you define @b IDIGI_CONNECTION_TYPE configuration in @ref idigi_config.h.
- * See @ref default_config
+ * See @ref idigi_config_data_options
  */
 static int app_get_connection_type(idigi_connection_type_t ** type)
 {
@@ -264,7 +264,7 @@ static int app_get_connection_type(idigi_connection_type_t ** type)
  * @see @ref link_speed API Configuration Callback
  *
  * @note This routine is not needed if you define @b IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND configuration in @ref idigi_config.h.
- * See @ref default_config
+ * See @ref idigi_config_data_options
  */
 static int app_get_link_speed(uint32_t ** speed, size_t * size)
 {
@@ -291,7 +291,7 @@ static int app_get_link_speed(uint32_t ** speed, size_t * size)
  * @see @ref phone_number API Configuration Callback
  *
  * @note This routine is not needed if you define @b IDIGI_WAN_PHONE_NUMBER_DIALED configuration in @ref idigi_config.h.
- * See @ref default_config
+ * See @ref idigi_config_data_options
  */
 static int app_get_phone_number(uint8_t ** number, size_t * size)
 {
@@ -321,7 +321,7 @@ static int app_get_phone_number(uint8_t ** number, size_t * size)
  * @see @ref tx_keepalive API Configuration Callback
  *
  * @note This routine is not needed if you define @ref IDIGI_TX_KEEPALIVE_IN_SECONDS configuration in @ref idigi_config.h.
- * See @ref default_config
+ * See @ref idigi_config_data_options
  */
 static int app_get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
 {
@@ -353,7 +353,7 @@ static int app_get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
  * @see @ref rx_keepalive API Configuration Callback
  *
  * @note This routine is not needed if you define @b IDIGI_RX_KEEPALIVE_IN_SECONDS configuration in @ref idigi_config.h.
- * See @ref default_config
+ * See @ref idigi_config_data_options
  */
 static int app_get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
 {
@@ -383,7 +383,7 @@ static int app_get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
  * @see @ref wait_count API Configuration Callback
  *
  * @note This routine is not needed if you define @b IDIGI_WAIT_COUNT configuration in @ref idigi_config.h.
- * See @ref default_config
+ * See @ref idigi_config_data_options
  */
 static int app_get_wait_count(uint16_t ** count, size_t * size)
 {
@@ -413,7 +413,7 @@ static int app_get_wait_count(uint16_t ** count, size_t * size)
  * @see @ref firmware_support API Configuration Callback
  * 
  * @note This routine is not called if you define @b IDIGI_FIRMWARE_SUPPORT configuration in @ref idigi_config.h.
- * @note This IDIGI_FIRMWARE_SUPPORT indicates application supports firmware download. See @ref default_config
+ * @note This IDIGI_FIRMWARE_SUPPORT indicates application supports firmware download. See @ref idigi_config_data_options
  *
  * @note See @ref IDIGI_FIRMWARE_SERVICE to include firmware access facility code in IIK.
  */
@@ -434,7 +434,7 @@ static idigi_service_supported_status_t app_get_firmware_support(void)
  * @see @ref data_service_support API Configuration Callback
  *
  * @note This routine is not called if you define @b IDIGI_DATA_SERVICE_SUPPORT configuration in @ref idigi_config.h.
- * @note This IDIGI_DATA_SERVICE_SUPPORT indicates application supports data service. See @ref default_config
+ * @note This IDIGI_DATA_SERVICE_SUPPORT indicates application supports data service. See @ref idigi_config_data_options
  *
  * @note See @ref IDIGI_DATA_SERVICE to include data service code in IIK.
  * @note See @ref IDIGI_COMPRESSION for data service transferring compressed data.
@@ -456,7 +456,7 @@ static idigi_service_supported_status_t app_get_data_service_support(void)
  * @see @ref max_msg_transactions API Configuration Callback
  *
  * @note This routine is not needed if you define @b IDIGI_MSG_MAX_TRANSACTION configuration in @ref idigi_config.h.
- * See @ref default_config
+ * See @ref idigi_config_data_options
  */
 static unsigned int app_get_max_message_transactions(void)
 {

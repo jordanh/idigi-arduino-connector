@@ -90,14 +90,107 @@
 #if ENABLE_COMPILE_TIME_DATA_PASSING
 
 /**
-* @defgroup idigi_config_data_options Hard Coded Application Configuration options
-* @{
-* 
-* These optional defines are used to hardcode some of the configuration @ref idigi_callback_t "callbacks".  
-* This is useful for reducing codesize footprint when these configuration values are static (which they
-* often are).
-*    
-*/
+ * @defgroup idigi_config_data_options Hard Coded Application Configuration options
+ * @{
+ *
+ *  @brief Hard Coded Application Configuration options is an optional method where configuration is pulled from hardcode
+ *  defined at compile time instead of the @ref idigi_callback_t "Application callback" method.
+ *
+ *  If the following configurations in @ref idigi_config.h are defined, the code to make the @ref idigi_callback_t "application callbacks"
+ *  is uncompiled and the hard-coded values are used instead:
+ *
+ * @code
+ *     #define IDIGI_DEVICE_TYPE                          "IIK Linux Sample"
+ *     #define IDIGI_CLOUD_URL                            "developer.idigi.com"
+ *     #define IDIGI_TX_KEEPALIVE_IN_SECONDS              75
+ *     #define IDIGI_RX_KEEPALIVE_IN_SECONDS              75
+ *     #define IDIGI_WAIT_COUNT                           10
+ *     #define IDIGI_VENDOR_ID                            0x01006113
+ *     #define IDIGI_MSG_MAX_TRANSACTION                  1
+ *     #define IDIGI_CONNECTION_TYPE                      idigi_lan_connection_type
+ *     #define IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND    0
+ *     #define IDIGI_WAN_PHONE_NUMBER_DIALED              "617-731-1018"
+ *     #define IDIGI_FIRMWARE_SUPPORT
+ *     #define IDIGI_DATA_SERVICE_SUPPORT
+ * @endcode
+ *
+ * This option is useful for reducing the IIK code space for those applications that are sensitive to memory usage.  The following
+ * table describes the each define and the callback cross reference:
+ *
+ * @htmlonly
+ * <table class="apitable">
+ * <tr>
+ * <th class="title">Configuration Defines</td>
+ * <th class="title">Description</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly @ref IDIGI_DEVICE_TYPE @htmlonly</td>
+ * <td>Device type in iso-8859-1 encoded string to identify the device.
+ * See @endhtmlonly @ref device_type @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly @ref IDIGI_CLOUD_URL @htmlonly </td>
+ * <td>iDigi Device Cloud FQDN.
+ * See @endhtmlonly @ref server_url @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly @ref IDIGI_TX_KEEPALIVE_IN_SECONDS @htmlonly </td>
+ * <td>TX Keepalive interval in seconds between 5 and 7200 seconds.
+ * See @endhtmlonly @ref tx_keepalive @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly @ref IDIGI_RX_KEEPALIVE_IN_SECONDS @htmlonly </td>
+ * <td>RX Keepalive interval in seconds between 5 and 7200 seconds.
+ * See @endhtmlonly @ref rx_keepalive @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly @ref IDIGI_WAIT_COUNT @htmlonly </td>
+ * <td>Maximum number of consecutive missing keepalive messages for a
+ * connection to be considered lost.  Valid range is greater than 1 and less than 64.
+ * See @endhtmlonly @ref wait_count @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly @ref IDIGI_VENDOR_ID @htmlonly </td>
+ * <td>Vendor ID from iDigi Account.
+ * See @endhtmlonly @ref vendor_id @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly @ref IDIGI_MSG_MAX_TRANSACTION @htmlonly </td>
+ * <td>Maximum simultaneous transactions for data service receiving message.
+ * See @endhtmlonly @ref max_msg_transactions @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly @ref IDIGI_CONNECTION_TYPE @htmlonly </td>
+ * <td> @endhtmlonly @ref idigi_lan_connection_type @htmlonly for LAN connection or
+ * @endhtmlonly @ref idigi_wan_connection_type @htmlonly WAN connection.
+ * See @endhtmlonly @ref connection_type @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly @ref IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND @htmlonly </td>
+ * <td>Link speed for WAN connection.
+ * See @endhtmlonly @ref link_speed @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly @ref IDIGI_WAN_PHONE_NUMBER_DIALED @htmlonly </td>
+ * <td>String represetnation of a WAN cellular phone connection.
+ * See @endhtmlonly @ref phone_number @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly @ref IDIGI_FIRMWARE_SUPPORT @htmlonly </td>
+ * <td>If defined it enables firmware download capability.
+ * See @endhtmlonly @ref firmware_support @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly @ref IDIGI_DATA_SERVICE_SUPPORT @htmlonly </td>
+ * <td>If defined it enables data service capability.
+ * See @endhtmlonly @ref data_service_support @htmlonly</td>
+ * </tr>
+ * </table>
+ * @endhtmlonly
+ *
+ *
+ *
+ */
 /** 
  * When defined, this string is hardcode for the @ref device_type instead of the application framework 
  * function @ref app_get_device_type (called via the @ref idigi_config_device_type @ref idigi_callback_t "callback" in config.c).   
@@ -107,7 +200,6 @@
  * @see @ref device_type
  * @see @ref idigi_config_device_type
  * @see @ref app_get_device_type
- * @see @ref default_config
  */
 #define IDIGI_DEVICE_TYPE                             "IIK Linux Sample"
 
@@ -120,7 +212,6 @@
  * @see @ref server_url
  * @see @ref idigi_config_server_url
  * @see @ref app_get_server_url() 
- * @see @ref default_config
  */
 #define IDIGI_CLOUD_URL                               "developer.idigi.com"
 
@@ -133,7 +224,6 @@
  * @see @ref tx_keepalive
  * @see @ref idigi_config_tx_keepalive
  * @see @ref  app_get_tx_keepalive_interval() 
- * @see @ref default_config
  */
 #define IDIGI_TX_KEEPALIVE_IN_SECONDS                 75
 
@@ -146,7 +236,6 @@
  * @see @ref rx_keepalive
  * @see @ref idigi_config_rx_keepalive
  * @see @ref app_get_rx_keepalive_interval() 
- * @see @ref default_config
  */
 #define IDIGI_RX_KEEPALIVE_IN_SECONDS                 75 
 
@@ -159,7 +248,6 @@
  * @see @ref wait_count
  * @see @ref idigi_config_wait_count
  * @see @ref app_get_wait_count() 
- * @see @ref default_config
  */
 #define IDIGI_WAIT_COUNT                              5
 
@@ -172,7 +260,6 @@
  * @see @ref wait_count
  * @see @ref idigi_config_wait_count
  * @see @ref app_get_wait_count() 
- * @see @ref default_config
  */
 #define IDIGI_VENDOR_ID                            0x00000000
 
@@ -185,7 +272,6 @@
  * @see @ref max_msg_transactions
  * @see @ref idigi_config_max_transaction
  * @see @ref app_get_max_message_transactions() 
- * @see @ref default_config
  */
 #define IDIGI_MSG_MAX_TRANSACTION                  1
 
@@ -200,7 +286,6 @@
  * @see @ref idigi_config_connection_type
  * @see @ref app_get_connection_type() 
  * @see @ref idigi_connection_type_t
- * @see @ref default_config
  */
 #define IDIGI_CONNECTION_TYPE                      idigi_lan_connection_type
 
@@ -213,7 +298,6 @@
  * @see @ref link_speed
  * @see @ref idigi_config_link_speed
  * @see @ref app_get_link_speed() 
- * @see @ref default_config
  */
 #define IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND    0
 
@@ -226,7 +310,6 @@
  * @see @ref phone_number
  * @see @ref idigi_config_phone_number
  * @see @ref app_get_phone_number() 
- * @see @ref default_config
  */
 #define IDIGI_WAN_PHONE_NUMBER_DIALED              "012345678"
 
@@ -241,7 +324,6 @@
  * @see @ref idigi_config_firmware_facility
  * @see @ref app_get_firmware_support() 
  * @see @ref IDIGI_FIRMWARE_SERVICE  
- * @see @ref default_config
  */
 #define IDIGI_FIRMWARE_SUPPORT
 
@@ -256,7 +338,6 @@
  * @see @ref idigi_config_data_service
  * @see @ref app_get_data_service_support() 
  * @see @ref IDIGI_DATA_SERVICE  
- * @see @ref default_config
  */
 #define IDIGI_DATA_SERVICE_SUPPORT
 

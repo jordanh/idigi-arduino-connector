@@ -110,7 +110,7 @@
  * See the section: @ref step4
  *
  * @note If @ref IDIGI_VENDOR_ID configuration is defined in @ref idigi_config.h, this callback 
- * will not be called. See @ref default_config
+ * will not be called. See @ref idigi_config_data_options
  * 
  * @htmlonly
  * <table class="apitable">
@@ -185,9 +185,9 @@
  * A device's type cannot be an empty string, nor contain only whitespace.
  *
  * @note If @ref IDIGI_DEVICE_TYPE configuration is defined in @ref idigi_config.h, this callback 
- * will not be called.  
+ * will not be called.
  *
- * @see @ref default_config
+ * @see @ref idigi_config_data_options
  * 
  * @htmlonly
  * <table class="apitable">
@@ -257,7 +257,7 @@
  * Return the iDigi Device Cloud FQDN.
  *
  * @note If @ref IDIGI_CLOUD_URL configuration is defined in @ref idigi_config.h, this callback 
- * will not be called. See @ref default_config
+ * will not be called. See @ref idigi_config_data_options
  * 
  * @htmlonly
  * <table class="apitable">
@@ -328,7 +328,7 @@
  * Return LAN or WAN connection type. 
  *
  * @note If @ref IDIGI_CONNECTION_TYPE configuration is defined in @ref idigi_config.h, this callback 
- * will not be called. See @ref default_config
+ * will not be called. See @ref idigi_config_data_options
  *
  * @htmlonly
  * <table class="apitable">
@@ -464,7 +464,7 @@
  * type is LAN, IIK will not request link speed configuration.. 
  *
  * @note If @ref IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND configuration is defined in @ref idigi_config.h, 
- * this callback will not be called. See @ref default_config
+ * this callback will not be called. See @ref idigi_config_data_options
  *
  * @htmlonly
  * <table class="apitable">
@@ -535,7 +535,7 @@
  * If connection type is LAN, IIK will not request phone number 
  *
  * @note If @ref IDIGI_WAN_PHONE_NUMBER_DIALED configuration is defined in @ref idigi_config.h, 
- * this callback will not be called.  See @ref default_config
+ * this callback will not be called.  See @ref idigi_config_data_options
  *
  * @htmlonly
  * <table class="apitable">
@@ -606,7 +606,7 @@
  * often the iDigi Device Cloud sends keepalive messages to the device. 
  *
  * @note If @ref IDIGI_TX_KEEPALIVE_IN_SECONDS is defined in @ref idigi_config.h, 
- * this callback will not be called.  See @ref default_config
+ * this callback will not be called.  See @ref idigi_config_data_options
  *
  * @htmlonly
  * <table class="apitable">
@@ -676,7 +676,7 @@
  * often the IIK sends keepalive messages to the iDigi Device Cloud (device to the iDigi Device Cloud). 
  *
  * @note If @ref IDIGI_RX_KEEPALIVE_IN_SECONDS configuration is defined in @ref idigi_config.h, 
- * this callback will not be called.  See @ref default_config
+ * this callback will not be called.  See @ref idigi_config_data_options
  *
  * @htmlonly
  * <table class="apitable">
@@ -746,7 +746,7 @@
  * should be considered lost. 
  *
  * @note If @ref IDIGI_WAIT_COUNT configuration is defined in @ref idigi_config.h, 
- * this callback will not be called.  See @ref default_config
+ * this callback will not be called.  See @ref idigi_config_data_options
  *
  * @htmlonly
  * <table class="apitable">
@@ -955,7 +955,7 @@
  * will not be called and Firmware Download is not supported. IIK does not include firmware support.
  *
  * @note If @ref IDIGI_FIRMWARE_SUPPORT is defined in @ref idigi_config.h, this callback is not needed. 
- * It enables firmware download capability. See @ref default_config. IDIGI_FIRMWARE_SERVICE must be defined.
+ * It enables firmware download capability. See @ref idigi_config_data_options. IDIGI_FIRMWARE_SERVICE must be defined.
  *
  * @htmlonly
  * <table class="apitable">
@@ -1028,7 +1028,7 @@
  * will not be called and Data Service is not supported. IIK does not include data service.
  *
  * @note If @ref IDIGI_DATA_SERVICE_SUPPORT is defined in @ref idigi_config.h, this callback is not needed.
- * It enables data service capability. See @ref default_config. IDIGI_DATA_SERVICE must be defined.
+ * It enables data service capability. See @ref idigi_config_data_options. IDIGI_DATA_SERVICE must be defined.
  *
  * @note Define @ref IDIGI_COMPRESSION in @ref idigi_config.h for compression transfer.
  *
@@ -1100,7 +1100,7 @@
  * enabled. 
  *
  * @note If @ref IDIGI_MSG_MAX_TRANSACTION configuration is defined in @ref idigi_config.h, this callback 
- * will not be called. See @ref default_config
+ * will not be called. See @ref idigi_config_data_options
  *
  * @htmlonly
  * <table class="apitable">
