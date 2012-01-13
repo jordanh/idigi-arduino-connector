@@ -72,9 +72,6 @@
  * 
  * The IIK defaults to little endian.  To reconfigure for big endian, comment out the @ref IDIGI_LITTLE_ENDIAN define.
  *
- * If your application does not want the optional Data Compression (see @ref zlib) then comment out @ref IDIGI_COMPRESSION,
- * if compression is supported leave this define alone.
- *
  * @section step3 Step 3: Build the compile_and_link sample
  *
  * In this step we are going to build the compile_and_link sample,

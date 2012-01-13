@@ -385,7 +385,7 @@
  * you will need to download and build the library.  The zlib home page is located at: http://zlib.net/.   Instructions
  * on how to build zlib are provided with the package.
  *
- * @note The zlib library is required only if your application enables the Data Compression switch.
+ * @note The zlib library is required only if your application enables the @ref IDIGI_COMPRESSION "Data Compression switch".
  *
  */
 
