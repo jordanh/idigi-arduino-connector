@@ -90,7 +90,7 @@
 #if ENABLE_COMPILE_TIME_DATA_PASSING
 
 /**
-* @defgroup idigi_config_data_options Hard Code Application Configuration options
+* @defgroup idigi_config_data_options Hard Coded Application Configuration options
 * @{
 * 
 * These optional defines are used to hardcode some of the configuration @ref idigi_callback_t "callbacks".  
