@@ -31,7 +31,7 @@
  * iDigi Device Cloud, and customer applications. An important part of this communication
  * is the transfer of data from a device to the iDigi Device Cloud.
  * iDigi is based upon a cloud computing model that provides on-demand scalability so
- * you can rest assured that when you need additional computing and storage iDigi will
+ * you can rest assured that when you need additional computing and storage, iDigi will
  * scale to meet your needs. The iDigi Device Cloud is designed using a high-availability
  * architecture, with redundancy and failover characteristics in mind.
  * Using iDigi, customers can now easily develop cloud connected devices and
@@ -173,7 +173,7 @@
  * or a thread that accesses local configuration, or makes malloc/free OS calls, whichever is the worst case.
  * 
  * @section features IIK Features
- *     @li Send data to and from a device over the iDigi Device Cloud
+ *     @li Send data to and from a device using the iDigi Device Cloud
  *     @li Update firmware on the device
  *     @li View the device configuration
  *     @li Reboot a device
@@ -189,13 +189,13 @@
  * requests are sent from an application to the iDigi Device Cloud, the iDigi
  * Device Cloud then communicates with the device, this allows for bidirectional
  * machine to machine communication.  Python samples are provided to show how to
- * communicate to a device over the iDigi Device Cloud.
+ * communicate to a device using the iDigi Device Cloud.
  *
  * @section threading Threading Model
  *
  * The IIK can be deployed in a multithreaded (idigi_run()) or round robin control loop (idigi_step()) environment.    
  * In environemnts that include preemptive threading, the IIK can be implemented as a separate stand-alone thread
- * by calling idigi_run().  This a blocking call that only returns on a major system failure.
+ * by calling idigi_run().  This is a blocking call that only returns due to a major system failure.
  *    
  * Alternatively, when threading is unavailable, in a round robin control loop or fixed state machine, the IIK can 
  * be implemented using the non-blocking idigi_step() call within the round robin control loop.  
@@ -234,7 +234,7 @@
  * <td style="border-bottom: 0px none;">IIK Library Code</td>
  * </tr><tr>
  * <td style="border-top: 0px none;">This directory contains all the private and internal files used to build the IIK library. 
- * <b>You should never modify, use, debug, or reference any file from this directory</b>.</td>
+ * <b>You should never modify, directly call, debug, or reference any file from this directory</b>.</td>
  * </tr>
  * <tr>
  * <td rowspan=2>public/include</td>
@@ -307,14 +307,14 @@
  * compiled and linked (using the @ref step3 "compile_and_link" sample) and then your @ref step5 "platform ported".  Once your platform
  * is ported, you will verify and confirm your port using the @ref step7 "connect_to_idigi" sample.
  *
- * When porting, it is strongly recommended to maintain the structure of the public Application Framework.  Once porting, compilation and test
- * are complete, the implementor can dismantle this framework and incorporate into their environment as you see fit.
+ * When porting, it is strongly recommended that you maintain the structure of the public Application Framework.  Once porting, compilation and test
+ * are complete, the you can dismantle this framework and incorporate into your environment as you see fit.
  *
  * When reusing the Application Framework, the largest effort will be updating the lowest layer of the Platform code.  Specifically, the
  * static @ref os_routines "operating system" functions located in os.c, the @ref network_routines "networking" functions in network.c and
  * the @ref configuration_routines "configuration" functions in config.c.
  *
- * There is no expectation to port any other code, with the exception of the @ref step1 "changes" required to get your code compiled.
+ * There is no expectation that you will need to port any other code, with the exception of the @ref step1 "changes" required to get your code compiled.
  *
  * For example, the Application Framework includes code to handle an @ref idigi_os_system_up_time callback in os.c.  The function requires a
  * stable system timer at one second resolution.  In the linux platform example, the function is implemented using the POSIX standard
@@ -347,7 +347,7 @@
  * functions, your porting effort is complete.
  *
  * @subsection DebugTips How to debug your Port
- * After porting and compiling, you will run the @ref step7 "connect_to_idigi" sample.  You are recommended to carefully
+ * After porting and compiling, you will run the @ref step7 "connect_to_idigi" sample.  We recommend that you carefully
  * observe the standard output from the application.  In particular, the @ref idigi_config_error_status will display error
  * data when porting errors are detected in the callbacks.
  *
