@@ -75,6 +75,16 @@
  * 
  */
 #define IDIGI_NO_COMPRESSION
+#if (!defined (IDIGI_NO_COMPRESSION) || defined(DIGI_REQUIRED_TO_GENERATE_INTERNAL_DOCUMENATION))
+/**
+ * If defined, the IIK includes the @ref zlib "Data Compression" used with the  @ref data_service.
+ * @note When included, this requires the zlib library.
+ * @see @ref data_service
+ * @see @ref IDIGI_DATA_SERVICE
+ *
+ */
+#define IDIGI_COMPRESSION
+#endif
 
 /** 
  * If defined, IIK includes the @ref data_service.  
