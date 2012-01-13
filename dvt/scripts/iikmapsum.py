@@ -27,7 +27,7 @@ print mapfile
 
 print '----------------------------------------------------------------------------'
 
-MEMORY_USAGE_FILE = '../..//memory_usage.txt'
+MEMORY_USAGE_FILE = '../../memory_usage.txt'
 
 def check_release_build():
     global buildOptions
