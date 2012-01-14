@@ -1,7 +1,5 @@
 #include "idigi_app.h"
 
-#include "TCPIP Stack/TCPIP.h"
-
 static void get_mac_addr(uint8_t ** addr, size_t * size){
     *addr = AppConfig.MyMACAddr.v;
     *size = sizeof AppConfig.MyMACAddr.v;

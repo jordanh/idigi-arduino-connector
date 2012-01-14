@@ -1,5 +1,4 @@
 #include "idigi_app.h"
-#include "TCPIP Stack/TCPIP.h"
 
 static BOOL dns_resolve_name(char const * const domain_name,
         IP_ADDR * ip_addr){
@@ -104,11 +103,9 @@ static idigi_callback_status_t network_receive(idigi_read_request_t * read_data,
     int rc;
     int sock = idigi_config.socket_fd;
 
-    StackTask();
-    if((rc = recv(sock, (char *)read_data->buffer, (int)read_data->length, 0)) < 0){
+    if((rc = recv(sock, read_data->buffer, read_data->length, 0)) < 0){
         return idigi_callback_abort;
     }
-    StackTask();
     
     // If result from recv >= 0, rc is number of bytes received.
     *read_length = (size_t)rc;
@@ -130,7 +127,6 @@ idigi_callback_status_t idigi_network_callback(idigi_network_request_t request,
                                             size_t * response_length){
     
     idigi_callback_status_t status = idigi_callback_continue;
-
     switch(request){
         case idigi_network_connect:
             status = network_connect((char *)request_data,

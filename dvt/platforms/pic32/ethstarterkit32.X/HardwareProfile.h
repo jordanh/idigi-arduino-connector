@@ -1650,7 +1650,7 @@
 	#define LCD_DATA_TRIS		(TRISE)
 	#define LCD_DATA_IO			(LATE)
 	#define LCD_RD_WR_TRIS		(TRISHbits.TRISH1)
-	#define LCD_RD_WR_IO		(LATHbits.LATH1)
+	#define LCD_RD_WR_IO		(LATHbitsTemp.LATH1)
 	#define LCD_RS_TRIS			(TRISHbits.TRISH2)
 	#define LCD_RS_IO			(LATHbits.LATH2)
 	#define LCD_E_TRIS			(TRISHbits.TRISH0)

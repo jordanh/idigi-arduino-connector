@@ -1,20 +1,24 @@
 #include "idigi_app.h"
 #include <stdlib.h>
-#include "TCPIP Stack/Tick.h"
 
 
-static bool os_malloc(size_t size, void const ** ptr){
+bool os_malloc(size_t const size, void const ** ptr){
     *ptr = malloc(size);
     return ptr != NULL;
 }
 
-static void os_free(void ** const ptr){
+bool os_realloc(size_t const size, void * ptr){
+    ptr = realloc(ptr, size);
+    return ptr != NULL;
+}
+
+void os_free(void ** const ptr){
     if(ptr != NULL){
         free(ptr);
     }
 }
 
-static void os_time(uint32_t * const uptime){
+void os_time(uint32_t * const uptime){
     uint32_t cur_time = TickGet() / TICKS_PER_SECOND;
     *uptime = (cur_time - idigi_config.start_time);
 }
@@ -22,7 +26,7 @@ static void os_time(uint32_t * const uptime){
 idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request_id,
                                             const void * const request_data,
                                             void * response_data){
-    
+
     switch(request_id){
         case idigi_os_malloc:
             return os_malloc(*((size_t *)request_data),

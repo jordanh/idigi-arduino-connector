@@ -77,7 +77,7 @@
 //#define STACK_USE_SNMP_SERVER			// Simple Network Management Protocol v2C Community Agent
 //#define STACK_USE_SNMPV3_SERVER			// Simple Network Management Protocol v3 Agent
 //#define STACK_USE_TFTP_CLIENT			// Trivial File Transfer Protocol client
-#define STACK_USE_GENERIC_TCP_CLIENT_EXAMPLE	// HTTP Client example in GenericTCPClient.c
+//#define STACK_USE_GENERIC_TCP_CLIENT_EXAMPLE	// HTTP Client example in GenericTCPClient.c
 //#define STACK_USE_GENERIC_TCP_SERVER_EXAMPLE	// ToUpper server example in GenericTCPServer.c
 //#define STACK_USE_TELNET_SERVER			// Telnet server
 //#define STACK_USE_ANNOUNCE				// Microchip Embedded Ethernet Device Discoverer server/client
@@ -301,7 +301,7 @@
  *   Define the maximum number of available UDP Sockets, and whether
  *   or not to include a checksum on packets being transmitted.
  */
-#define MAX_UDP_SOCKETS     (8u)
+#define MAX_UDP_SOCKETS     (1u)
 #define UDP_USE_TX_CHECKSUM		// This slows UDP TX performance by nearly 50%, except when using the ENCX24J600 or PIC32MX6XX/7XX, which have a super fast DMA and incurs virtually no speed pentalty.
 
 
@@ -315,7 +315,7 @@
  *   Berkeley Sockets are disabled.  Set this value as low as your application
  *   requires to avoid waisting RAM.
  */
-#define BSD_SOCKET_COUNT (12u)
+#define BSD_SOCKET_COUNT (2u)
 
 
 // =======================================================================
@@ -326,7 +326,7 @@
 
 	// Maximum numbers of simultaneous HTTP connections allowed.
 	// Each connection consumes 2 bytes of RAM and a TCP socket
-	#define MAX_HTTP_CONNECTIONS	(2u)
+	#define MAX_HTTP_CONNECTIONS	(1u)
 
 	// Optional setting to use PIC RAM instead of Ethernet/Wi-Fi RAM for
 	// storing HTTP Connection Context variables (HTTP_CONN structure for each
@@ -397,7 +397,7 @@
 	// connections to work.  If fewer sockets are available than this
 	// definition, then the the lesser of the two quantities will be the
 	// actual limit.
-	#define MAX_TELNET_CONNECTIONS	(1u)
+	#define MAX_TELNET_CONNECTIONS	(0u)
 
 	// Default local listening port for the Telnet server.  Port 23 is the
 	// protocol default.

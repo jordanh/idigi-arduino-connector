@@ -1,14 +1,27 @@
+// Include all headers for any enabled TCPIP Stack functions
+#define DEBUG_PRINTF(...)   DBPRINTF(__VA_ARGS__)
+
+#include "TCPIP Stack/TCPIP.h"
+#include "TCPIP Stack/Tick.h"
+
 #include "idigi_api.h"
+#include "idigi_config.h"
 
 #define DEVICE_ID_LENGTH    16
 #define VENDOR_ID_LENGTH    4
 #define MAC_ADDR_LENGTH     6
 
-#define DEBUG_PRINTF(...)   DBPRINTF(__VA_ARGS__)
-
 typedef int bool;
 #define true 1
 #define false 0
+
+#define RED_LED             BIT_0
+#define YELLOW_LED          BIT_1
+#define GREEN_LED           BIT_2
+
+#define SW1                 BIT_6
+#define SW2                 BIT_7
+#define SW3                 BIT_13
 
 typedef struct __attribute__((__packed__))
 {
@@ -30,16 +43,18 @@ extern IDIGI_CONFIG idigi_config;
 
 void sleep(unsigned int);
 
-idigi_callback_status_t idigi_config_callback(idigi_config_request_t const request_id,
-                                            const void * const request_data,
-                                            void * response_data,
-                                            size_t * const response_length);
+idigi_callback_status_t idigi_config_callback(
+        idigi_config_request_t const request_id,
+        const void * const request_data, void * response_data,
+        size_t * const response_length);
 
-idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request_id,
-                                            const void * const request_data,
-                                            void * response_data);
+idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request_id, 
+        const void * const request_data, void * response_data);
 
 idigi_callback_status_t idigi_network_callback(idigi_network_request_t request,
-                                            const void * const request_data,
-                                            void * response_data,
-                                            size_t * response_length);
+        const void * const request_data, void * response_data,
+        size_t * response_length);
+
+idigi_callback_status_t idigi_data_service_callback(
+        idigi_data_service_request_t request, const void * const request_data,
+        void * response_data, size_t * response_length);

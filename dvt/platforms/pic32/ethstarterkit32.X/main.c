@@ -1,17 +1,5 @@
 #define THIS_IS_STACK_APPLICATION
-
-// Include all headers for any enabled TCPIP Stack functions
-#include "TCPIP Stack/TCPIP.h"
-
 #include "idigi_app.h"
-
-#define RED_LED             BIT_0
-#define YELLOW_LED          BIT_1
-#define GREEN_LED           BIT_2
-
-#define SW1                 BIT_6
-#define SW2                 BIT_7
-#define SW3                 BIT_13
 
 static void InitializeBoard(void);
 static void InitAppConfig(void);
@@ -31,7 +19,7 @@ BYTE AN0String[8];
 APP_CONFIG AppConfig;
 IDIGI_CONFIG idigi_config;
 
-#if defined(__PIC32MX__) && (IDIGI_DATA_SERVICE)
+#if defined(__PIC32MX__) && defined(IDIGI_DATA_SERVICE)
     uint8_t buttons[2] = { SW1, SW2 };
     char * button_text[2] = { "SW1", "SW2" };
     char * button_log_proto = "%5d second uptime : %s Button Pressed.\n";
@@ -41,7 +29,6 @@ IDIGI_CONFIG idigi_config;
     char * content_type = "text/plain";
     char * path = "log.txt";
     char * connect_log_proto = "%5d second uptime : Connected to %s.\n";
-    idigi_data_request_t * data_service_request;
 #endif
 
 int main(void){
@@ -60,23 +47,11 @@ int main(void){
     // Initialize core stack layers (MAC, ARP, TCP, UDP) and
     // application modules (HTTP, SNMP, etc.)
     StackInit();
-
-    #if defined(IDIGI_DATA_SERVICE)
-    {
-        data_service_request = malloc(sizeof(idigi_data_request_t));
-        data_service_request->content_type.value = content_type;
-        data_service_request->content_type.size = strlen(content_type);
-        data_service_request->path.value = path;
-        data_service_request->path.size = strlen(path);
-    }
-    #endif
-
+    
+    DBINIT();
+    DEBUG_PRINTF("Program Started.\n");
     idigi_handle_t handle = NULL;
     idigi_status_t status = idigi_success;
-
-    unsigned int leds[] = { RED_LED, YELLOW_LED, GREEN_LED };
-    unsigned int i = 0;
-    int length = sizeof(leds)/sizeof(unsigned int);
 
     bool ip_assigned = false;
     bool initial_connect = true;
@@ -85,11 +60,6 @@ int main(void){
 
     while(1){
         StackTask();
-        toggle_led(leds[i]);
-        i++;
-        if(i > length-1){
-            i = 0;
-        }
         if(cur_addr.Val != AppConfig.MyIPAddr.Val){
             cur_addr = AppConfig.MyIPAddr;
             if(ip_assigned){
@@ -125,23 +95,24 @@ int main(void){
                 if(connect_time == 0){
                     connect_time = get_uptime();
                 }
-                else if(cur_time - 5 > connect_time){
+                else if(cur_time - 120 > connect_time){
                     // Been 5 second since connection established
                     // Assume discovery complete.
                     // TODO: Make this more intelligent (detect discovery complete?)
                     idigi_config.connected = true;
                     # if defined(IDIGI_DATA_SERVICE)
                     {
+                        idigi_data_service_put_request_t data_service_request;
+                        data_service_request.content_type = content_type;
+                        data_service_request.path = path;
                         char buffer[255];
                         int time = SNTPGetUTCSeconds()-5;
                         sprintf(buffer, connect_log_proto, time, idigi_config.server_url);
-                        data_service_request->payload.data = buffer;
-                        data_service_request->payload.size = strlen(buffer);
-                        data_service_request->flag = IDIGI_DATA_REQUEST_START | IDIGI_DATA_REQUEST_LAST;
+                        data_service_request.context = buffer;
                         if(!initial_connect){ // Append if this is a reconnect.
-                            data_service_request->flag |= IDIGI_DATA_REQUEST_APPEND;
+                            data_service_request.flags = IDIGI_DATA_PUT_APPEND;
                         }
-                        status = idigi_initiate_action(handle, idigi_initiate_data_service, data_service_request, &data_service_request->session);
+                        status = idigi_initiate_action(handle, idigi_initiate_data_service, &data_service_request, NULL);
                     }
                     #endif
                     initial_connect = false;
@@ -156,13 +127,15 @@ int main(void){
                 while(idigi_config.connected && i < 2){
                     switch_on = mPORTDReadBits(buttons[i]);
                     if(switch_on == 0){
+                        idigi_data_service_put_request_t data_service_request;
+                        data_service_request.content_type = content_type;
+                        data_service_request.path = path;
                         char buffer[50];
                         int time = SNTPGetUTCSeconds();
                         sprintf(buffer, button_log_proto, time, button_text[i]);
-                        data_service_request->payload.data = buffer;
-                        data_service_request->payload.size = strlen(buffer);
-                        data_service_request->flag = IDIGI_DATA_REQUEST_START | IDIGI_DATA_REQUEST_LAST | IDIGI_DATA_REQUEST_APPEND;
-                        status = idigi_initiate_action(handle, idigi_initiate_data_service, data_service_request, &data_service_request->session);
+                        data_service_request.context = &buffer;
+                        data_service_request.flags = IDIGI_DATA_PUT_APPEND;
+                        status = idigi_initiate_action(handle, idigi_initiate_data_service, &data_service_request, NULL);
                         sleep(200); // sleep 200ms to prevent 1 button press being registered multiple times.
                     }
                     i++;
@@ -186,10 +159,6 @@ void sleep(unsigned int ms){
     wait = (GetSystemClock()/2000) * ms;
     start= ReadCoreTimer();
     while((ReadCoreTimer()-start) < wait);
-}
-
-static void toggle_led(unsigned int led){
-    mPORTDToggleBits(led);
 }
 
 /****************************************************************************
@@ -892,6 +861,11 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id,
         case idigi_class_network:
             status = idigi_network_callback(request_id.network_request,
                     request_data, response_data, response_length);
+            break;
+        case idigi_class_data_service:
+            status = idigi_data_service_callback(request_id.data_service_request,
+                    request_data, response_data, response_length);
+            break;
     }
 
     return status;
