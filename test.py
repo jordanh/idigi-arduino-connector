@@ -51,6 +51,7 @@ TEST_LIST = 2
 test_case = 0
 
 STDERR_FILE = 'stderr.txt'
+MEMORY_USAGE_FILE = './dvt/memory_usage.txt'
 
 #
 # Modify this table when adding a new test.
@@ -160,6 +161,10 @@ def setup_platform(config, config_dir, platform_dir):
 def main():
     f, filename, description = imp.find_module('config', ['./dvt/scripts'])
     config = imp.load_module('config', f, filename, description)
+
+    # create empty memory usage file
+    mem_usage_file = open(MEMORY_USAGE_FILE, 'w')
+    mem_usage_file.close()
 
     debug_on = True
     setup_platform(config, SAMPLE_SCRIPT_DIR, SAMPLE_PLATFORM_DIR)
