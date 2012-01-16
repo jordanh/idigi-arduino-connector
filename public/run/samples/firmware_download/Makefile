@@ -58,5 +58,7 @@ $(SAMPLE): $(OBJS)
 .PHONY: clean
 clean:
 	-rm -f $(OBJS)
+	-rm -f $(SAMPLE).map 
+	-rm -f $(SAMPLE)
 
 
