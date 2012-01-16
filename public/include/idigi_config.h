@@ -47,47 +47,109 @@
 #define IDIGI_LITTLE_ENDIAN
 
 /** 
- * If defined, IIK includes debug support.  IIK state and debug data is displayed using the
+ * When defined, IIK private library includes debug support.  IIK state and debug data will be displayed using the
  * @ref USER_DEBUG_VPRINTF tags.  Macro error testing is compiled and implemented using the
  * @ref ASSERT macro.
  * 
- * These can be eliminated in a product release, which will greatly reduce memory codespace and 
- * RAM needs.  
+ * This debug feature can be eliminated in a product release, which will greatly reduce memory codespace and
+ * RAM needs, by changing this line in idigi_config.h:
+ *
+ * @code
+ * #define IDIGI_DEBUG
+ * @endcode
  * 
+ * To this:
+ * @code
+ * //#define IDIGI_DEBUG
+ * @endcode
+ *
  * @see USER_DEBUG_VPRINTF
  * @see ASSERT
  */
 #define IDIGI_DEBUG
 
 /** 
- * If defined, IIK includes the @ref firmware_download "Firmware Download Service".  
+ * When defined, IIK private library includes the @ref firmware_download "Firmware Download Service".
+ *
+ * To disable the @ref firmware_download "Firmware Download Service" feature, change this line in idigi_config.h:
+ *
+ * @code
+ * #define IDIGI_FIRMWARE_SERVICE
+ * @endcode
+ *
+ * To this:
+ * @code
+ * //#define IDIGI_FIRMWARE_SERVICE
+ * @endcode
  * 
  * @see @ref firmware_support
  */
 #define IDIGI_FIRMWARE_SERVICE
 
 
-/** 
- * If defined, the IIK includes the @ref zlib "Data Compression" used with the  @ref data_service. 
- * @note When included, this requires the zlib library.
- * @see @ref data_service
- * @see @ref IDIGI_DATA_SERVICE
- * 
+/**
+ * This is a compilation convenience definition.  See @ref IDIGI_COMPRESSION.
+ *
  */
 #define IDIGI_NO_COMPRESSION
 #if (!defined (IDIGI_NO_COMPRESSION) || defined(DIGI_REQUIRED_TO_GENERATE_INTERNAL_DOCUMENATION))
 /**
- * If defined, the IIK includes the @ref zlib "Data Compression" used with the  @ref data_service.
- * @note When included, this requires the zlib library.
+ * When defined, the IIK includes the @ref zlib "compression" support used with the @ref data_service.
+ *
+ * By default, compression support is disabled.  To enable Optional Data Compression Support, change this line in idigi_config.h:
+ * By default, optional @ref zlib "compression" support is disabled.
+ *
+ * To enable @ref zlib "compression", change the following from idigi_config.h:
+ *
+ * @code
+ * #define IDIGI_NO_COMPRESSION
+ * #if (!defined (IDIGI_NO_COMPRESSION) || defined(DIGI_REQUIRED_TO_GENERATE_INTERNAL_DOCUMENATION))
+ *
+ * ...
+ *
+ * #define IDIGI_COMPRESSION
+ * #endif
+ * @endcode
+ *
+ * To this:
+ * @code
+ * //#define IDIGI_NO_COMPRESSION
+ * #if (!defined (IDIGI_NO_COMPRESSION) || defined(DIGI_REQUIRED_TO_GENERATE_INTERNAL_DOCUMENATION))
+ *
+ * ...
+ *
+ * #define IDIGI_COMPRESSION
+ * #endif
+ * @endcode
+ *
+ * Or just this:
+ * @code
+ * #define IDIGI_COMPRESSION
+ * @endcode
+ *
+ * @note When included, this requires the @ref zlib "zlib" library.
+ *
  * @see @ref data_service
  * @see @ref IDIGI_DATA_SERVICE
+ * @see @ref IDIGI_NO_COMPRESSION
  *
  */
 #define IDIGI_COMPRESSION
 #endif
 
 /** 
- * If defined, IIK includes the @ref data_service.  
+ * If defined, IIK includes the @ref data_service.
+ * To disable the @ref data_service feature, change this line in idigi_config.h:
+ *
+ * @code
+ * #define IDIGI_DATA_SERVICE
+ * @endcode
+ *
+ * To this:
+ * @code
+ * //#define IDIGI_DATA_SERVICE
+ * @endcode
+ *
  * @see @ref data_service_support
  * @see @ref zlib
  * @see @ref IDIGI_COMPRESSION
