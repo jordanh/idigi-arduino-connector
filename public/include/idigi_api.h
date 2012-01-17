@@ -1067,15 +1067,31 @@ idigi_status_t idigi_run(idigi_handle_t const handle);
  *                           on the server.
  *
  * @param [in] request_data  Pointer to Request data 
- *  
+ *                      @li @b idigi_initiate_terminate:
+ *                          This is NULL.
+ *                      @li @b idigi_initiate_data_service:
+ *                          Pointer to idigi_data_service_put_request_t.
  * @param [out] response_data  Pointer to Response data
- * 
+ *                      @li @b idigi_initiate_terminate:
+ *                          This is NULL.
+ *                      @li @b idigi_initiate_data_service:
+ *                          This is NULL.
+ *
  * @retval idigi_success  No error
-  * @retval idigi_configuration_error  IIK was not initialized
+ * @retval idigi_init_error           IIK was not initialized or not connected to the iDigi.
+ * @retval idigi_configuration_error  Callback aborted IIK.
+ * @retval idigi_invalid_data         Invalid parameter
+ * @retval idigi_no_resource          Insufficient memory
+ * @retval idigi_service_busy         IIK is busy
  *
  * Example Usage:
  * @code
- *     status = idigi_initiate_action(idigi_handle);
+ *     idigi_data_service_put_request_t  file_info;
+ *     :
+ *     status = idigi_initiate_action(handle, idigi_initiate_data_service, &file_info, NULL);
+ *     :
+ *     :
+ *     status = idigi_initiate_action(idigi_handle, idigi_initiate_terminate, NULL, NULL);
  * @endcode 
  *  
  * @see idigi_handle_t

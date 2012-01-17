@@ -579,11 +579,24 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
             idigi_ptr->receive_packet.bytes_received = 0;
             idigi_ptr->receive_packet.total_length = 0;
             idigi_ptr->receive_packet.index = 0;
-            idigi_ptr->receive_packet.data_packet = new_receive_packet(idigi_ptr);
-            if (idigi_ptr->receive_packet.data_packet == NULL)
+
+            if (idigi_ptr->edp_connected == idigi_false)
             {
-                goto done;
+                /* We are still in edp connection process.
+                 * So we need to setup the packet for any message
+                 * during edp connection process since no facility is
+                 * running.
+                 * Otherwise, we setup the packet in receive_packet_data index
+                 * to receive actual data. Otherwise, we dont have actual
+                 * data received but we need to be able to receive keepalive.
+                 */
+                idigi_ptr->receive_packet.data_packet = new_receive_packet(idigi_ptr);
+                if (idigi_ptr->receive_packet.data_packet == NULL)
+                {
+                    goto done;
+                }
             }
+
             idigi_ptr->receive_packet.index++;
             break;
 
@@ -609,47 +622,17 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
             switch (type_val)
             {
                 /* Expected MTv2 message types... */
-                case E_MSG_MT2_TYPE_LEGACY_EDP_VER_RESP:
-                {
-                    uint8_t * edp_header = idigi_ptr->receive_packet.data_packet;
-
-                    idigi_debug("receive_packet: E_MSG_MT2_TYPE_LEGACY_EDP_VER_RESP 0x%x\n", (unsigned) type_val);
-                    /*
-                     * Obtain the MT message length (2 bytes).
-                     * Note that legacy EDP version response messages do not have a length
-                     * field. There is just a single byte of data remaining in the stream
-                     * for this MT message type, so we provide a dummy length value of 1 in
-                     * this case. All other MT message types do have a length field, which
-                     * we will validate according to message type after we read the length
-                     * field bytes.
-                     */
-                    /* Supply a length of 1 byte. */
-                    message_store_be16(edp_header, length, 1);
-
-                    /*
-                     * Read the actual message data bytes into the packet buffer.
-                     */
-                    idigi_ptr->receive_packet.index++; /* set to read message data */
-                    idigi_ptr->receive_packet.ptr = GET_PACKET_DATA_POINTER(idigi_ptr->receive_packet.data_packet,
-                                                                            PACKET_EDP_HEADER_SIZE);
-                    idigi_ptr->receive_packet.bytes_received = 0;
-
-                    idigi_ptr->receive_packet.total_length = 1; /* length to receive */
-
-                    break;
-                }
                 case E_MSG_MT2_TYPE_VERSION_OK:
-                    break;
-                case E_MSG_MT2_TYPE_VERSION_BAD:
-                    idigi_debug("receive_packet: E_MSG_MT2_TYPE_VERSION_BAD 0x%x\n", (unsigned) type_val);
-                    break;
-                case E_MSG_MT2_TYPE_SERVER_OVERLOAD:
-                    idigi_debug("receive_packet: E_MSG_MT2_TYPE_SERVER_OVERLOAD 0x%x\n", (unsigned) type_val);
                     break;
                 case E_MSG_MT2_TYPE_KA_KEEPALIVE:
                     break;
                 case E_MSG_MT2_TYPE_PAYLOAD:
                     break;
+                case E_MSG_MT2_TYPE_LEGACY_EDP_VER_RESP:
+                case E_MSG_MT2_TYPE_VERSION_BAD:
+                case E_MSG_MT2_TYPE_SERVER_OVERLOAD:
+                    status = idigi_callback_abort;
+
                 /* Unexpected/unknown MTv2 message types... */
                 case E_MSG_MT2_TYPE_VERSION:
                 case E_MSG_MT2_TYPE_KA_RX_INTERVAL:
@@ -657,28 +640,25 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
                 case E_MSG_MT2_TYPE_KA_WAIT:
                 default:
                 {
-                    /* tell caller we have unexpected packet message .
-                     * If callback tells us to continue, we continue reading packet data.
-                     */
+                    /* tell caller we have unexpected packet message */
                     idigi_request_t const request_id = {idigi_network_receive};
                     idigi_debug("receive_packet: error type 0x%x\n", (unsigned) type_val);
                     idigi_ptr->error_code = idigi_invalid_packet;
                     notify_error_status(idigi_ptr->callback, idigi_class_network, request_id, idigi_invalid_packet);
                 }
-           }
-
-            if (type_val != E_MSG_MT2_TYPE_LEGACY_EDP_VER_RESP)
-            {   /* set up to read message length */
-                idigi_ptr->receive_packet.ptr = (uint8_t *)&idigi_ptr->receive_packet.packet_length;
-                idigi_ptr->receive_packet.bytes_received = 0;
-                idigi_ptr->receive_packet.total_length = sizeof idigi_ptr->receive_packet.packet_length;
-                idigi_ptr->receive_packet.index++;
             }
+
+            /* set up to read message length */
+            idigi_ptr->receive_packet.ptr = (uint8_t *)&idigi_ptr->receive_packet.packet_length;
+            idigi_ptr->receive_packet.bytes_received = 0;
+            idigi_ptr->receive_packet.total_length = sizeof idigi_ptr->receive_packet.packet_length;
+            idigi_ptr->receive_packet.index++;
             break;
         }
         case receive_packet_data:
+        {
             /* got packet length so set to read message data */
-            idigi_ptr->receive_packet.packet_length = FROM_BE16(idigi_ptr->receive_packet.packet_length);
+            uint16_t packet_length = FROM_BE16(idigi_ptr->receive_packet.packet_length);
 
             if (idigi_ptr->receive_packet.packet_type != E_MSG_MT2_TYPE_PAYLOAD)
             {
@@ -691,7 +671,7 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
                  *    E_MSG_MT2_TYPE_SERVER_OVERLOAD
                  *    E_MSG_MT2_TYPE_KA_KEEPALIVE
                  */
-                if (idigi_ptr->receive_packet.packet_length != 0)
+                if (packet_length != 0)
                 {
                     idigi_request_t const request_id = {idigi_network_receive};
                     idigi_debug("idigi_get_receive_packet: Invalid payload\n");
@@ -699,37 +679,60 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
                     notify_error_status(idigi_ptr->callback, idigi_class_network, request_id, idigi_invalid_payload_packet);
                 }
             }
-            /* set to read message data */
-            idigi_ptr->receive_packet.total_length = idigi_ptr->receive_packet.packet_length;
 
-            if (idigi_ptr->receive_packet.packet_length == 0)
+
+            if (packet_length == 0)
             {
                 /* set to complete data since no data to be read. */
                 idigi_ptr->receive_packet.index = receive_packet_complete;
+                idigi_ptr->receive_packet.packet_length = packet_length;
+                idigi_ptr->receive_packet.total_length = packet_length;
             }
             else 
             {
-                ASSERT(idigi_ptr->receive_packet.packet_length <= (sizeof idigi_ptr->receive_packet.packet_buffer.buffer - PACKET_EDP_HEADER_SIZE));
                 /*
                  * Read the actual message data bytes into the packet buffer.
                  */
+                ASSERT(packet_length <= (sizeof idigi_ptr->receive_packet.packet_buffer.buffer - PACKET_EDP_HEADER_SIZE));
+
+                if (idigi_ptr->edp_connected != idigi_false)
+                {
+                    /* if edp_connected is false, we already setup data_packet in
+                     * receive_packet_init index. So we setup data_packet when we
+                     * are already connected.
+                     */
+                    idigi_ptr->receive_packet.data_packet = new_receive_packet(idigi_ptr);
+                    if (idigi_ptr->receive_packet.data_packet == NULL)
+                    {
+                        goto done;
+                    }
+                }
+
+                idigi_ptr->receive_packet.packet_length = packet_length;
+                idigi_ptr->receive_packet.total_length = packet_length;
+
                 idigi_ptr->receive_packet.ptr = GET_PACKET_DATA_POINTER(idigi_ptr->receive_packet.data_packet, PACKET_EDP_HEADER_SIZE);
                 idigi_ptr->receive_packet.bytes_received = 0;
                 idigi_ptr->receive_packet.index++;
 
             }
             break;
-        case receive_packet_complete:
-        {
-            uint8_t * edp_header = idigi_ptr->receive_packet.data_packet;
-            /* got message data. Let's set edp header */
-            message_store_be16(edp_header, type, idigi_ptr->receive_packet.packet_type);
-            message_store_be16(edp_header, length, idigi_ptr->receive_packet.packet_length);
-            idigi_ptr->receive_packet.index = receive_packet_init;
-            *packet = idigi_ptr->receive_packet.data_packet;
-            status = idigi_callback_continue;
-            goto done;
         }
+        case receive_packet_complete:
+
+            if (idigi_ptr->receive_packet.data_packet != NULL &&
+                idigi_ptr->receive_packet.packet_type != E_MSG_MT2_TYPE_KA_KEEPALIVE)
+            {
+                uint8_t * edp_header = idigi_ptr->receive_packet.data_packet;
+                /* got message data. Let's set edp header */
+                message_store_be16(edp_header, type, idigi_ptr->receive_packet.packet_type);
+                message_store_be16(edp_header, length, idigi_ptr->receive_packet.packet_length);
+                *packet = idigi_ptr->receive_packet.data_packet;
+                status = idigi_callback_continue;
+            }
+
+            idigi_ptr->receive_packet.index = receive_packet_init;
+            goto done;
         } /* switch */
     }
 
@@ -794,10 +797,9 @@ static idigi_callback_status_t close_server(idigi_data_t * const idigi_ptr)
             status = idigi_callback_abort;
             /* fall thru */
         case idigi_callback_continue:
-            idigi_ptr->send_packet.total_length = 0;
-            idigi_ptr->receive_packet.index = 0;
             idigi_ptr->edp_connected = idigi_false;
             idigi_ptr->network_connected = idigi_false;
+            reset_initial_data(idigi_ptr);
 
             send_complete_callback(idigi_ptr);
             layer_cleanup_facilities(idigi_ptr);

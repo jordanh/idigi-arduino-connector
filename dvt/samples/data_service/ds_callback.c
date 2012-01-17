@@ -133,7 +133,7 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
 
         if ((put_request == NULL) || (put_response == NULL))
         {
-             APP_DEBUG("idigi_put_request_callback: Invalid request_data [%p] or response_data[%p]\n", request_data, response_data);
+             APP_DEBUG("app_put_request_handler: Invalid request_data [%p] or response_data[%p]\n", request_data, response_data);
              goto done;
         }
 
@@ -197,7 +197,7 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
 
                 if (message->length_in_bytes > 0)
                 {
-                    APP_DEBUG("idigi_put_request_callback: server response %s\n", (char *)data);
+                    APP_DEBUG("app_put_request_handler: server response %s\n", (char *)data);
                 }
 
               /* should be done now */
@@ -217,19 +217,18 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
             break;
 
         default:
-            APP_DEBUG("idigi_put_request_callback: Unexpected message type: %d\n", put_request->message_type);
+            APP_DEBUG("app_put_request_handler: Unexpected message type: %d\n", put_request->message_type);
             break;
         }
         goto done;
 
 error:
-        APP_DEBUG("idigi_put_request_callback (need_data): %p cancel this session\n", (void *)user);
+        APP_DEBUG("app_put_request_handler (need_data): %p cancel this session\n", (void *)user);
         put_response->message_status = idigi_msg_error_cancel;
         app_os_free(user);
         put_file_active_count--;
 
     }
-
 
 done:
     return status;
@@ -504,7 +503,7 @@ idigi_callback_status_t app_device_request_handler(void const * request_data, si
         status = process_device_error(request_data, response_data);
         break;
     default:
-        APP_DEBUG("idigi_put_request_callback: unknown message type %d for idigi_data_service_device_request\n", service_device_request->message_type);
+        APP_DEBUG("app_device_request_handler: unknown message type %d for idigi_data_service_device_request\n", service_device_request->message_type);
         break;
     }
 
@@ -526,7 +525,7 @@ idigi_callback_status_t app_data_service_handler(idigi_data_service_request_t co
         status = app_device_request_handler(request_data, request_length, response_data, response_length);
         break;
     default:
-        APP_DEBUG("idigi_data_service_callback: Request not supported: %d\n", request);
+        APP_DEBUG("app_data_service_handler: Request not supported: %d\n", request);
         break;
     }
     return status;

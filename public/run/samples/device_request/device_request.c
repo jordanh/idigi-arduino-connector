@@ -74,7 +74,7 @@ static idigi_callback_status_t app_process_device_request(idigi_data_service_msg
             if (ccode != 0 || ptr == NULL)
             {
                 /* no memeory so cancel this request */
-                APP_DEBUG("process_device_request: malloc fails for device request on session %p\n", server_device_request->device_handle);
+                APP_DEBUG("app_process_device_request: malloc fails for device request on session %p\n", server_device_request->device_handle);
                 response_data->message_status = idigi_msg_error_memory;
                 goto done;
             }
@@ -173,7 +173,7 @@ static idigi_callback_status_t app_process_device_error(idigi_data_service_msg_r
     idigi_msg_error_t const error_code = *((idigi_msg_error_t *)error_data->data);
 
 
-    APP_DEBUG("process_device_error: handle %p error %d from server\n",
+    APP_DEBUG("app_process_device_error: handle %p error %d from server\n",
                 client_device_request->device_handle, error_code);
 
     device_request_active_count--;
@@ -206,7 +206,7 @@ idigi_callback_status_t app_data_service_handler(idigi_data_service_request_t co
             status = app_process_device_error(request_data, response_data);
             break;
         default:
-            APP_DEBUG("idigi_put_request_callback: unknown message type %d for idigi_data_service_device_request\n", service_device_request->message_type);
+            APP_DEBUG("app_data_service_handler: unknown message type %d for idigi_data_service_device_request\n", service_device_request->message_type);
             break;
         }
     }
