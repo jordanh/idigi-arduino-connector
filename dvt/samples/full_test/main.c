@@ -28,7 +28,7 @@
 #include "platform.h"
 #include <unistd.h>
 
-extern idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
+extern idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
                                     void * const request_data, size_t const request_length,
                                     void * response_data, size_t * const response_length);
 
@@ -204,7 +204,7 @@ int main (void)
     idigi_handle_t idigi_handle;
 
     APP_DEBUG("Start iDigi\n");
-    idigi_handle = idigi_init((idigi_callback_t) idigi_callback);
+    idigi_handle = idigi_init((idigi_callback_t) app_idigi_callback);
     if (idigi_handle != NULL)
     {
         int ccode;

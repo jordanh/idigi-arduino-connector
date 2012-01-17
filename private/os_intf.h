@@ -163,7 +163,7 @@ static void free_data(idigi_data_t * const idigi_ptr, void * const ptr)
 {
     idigi_request_t request_id = {idigi_os_free};
 
-    idigi_callback_no_response(idigi_ptr->callback, idigi_class_operating_system, request_id, ptr, sizeof ptr);
+    idigi_callback_no_response(idigi_ptr->callback, idigi_class_operating_system, request_id, ptr, 0);
     del_malloc_stats(ptr);
 
     return;
@@ -177,7 +177,6 @@ static void sleep_timeout(idigi_data_t * const idigi_ptr)
     {
         idigi_request_t const request_id = {idigi_os_sleep};
         unsigned int const timeout = idigi_ptr->receive_packet.timeout;
-
         idigi_callback_no_response(idigi_ptr->callback, idigi_class_operating_system, request_id, &timeout, sizeof timeout);
     }
 
