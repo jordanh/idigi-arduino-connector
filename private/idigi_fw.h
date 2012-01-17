@@ -202,7 +202,7 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_pt
         goto done;
     }
 
-    if ((end_time_stamp- start_time_stamp) > timeout)
+    if ((end_time_stamp- start_time_stamp) > timeout+1)
     {
         /* Just notify callback that we exceed keepalive timeout.
          * No need to abort just notify caller.
@@ -210,7 +210,7 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_pt
          * Server will disconnect us if we miss sending
          * Rx keepalive.
          */
-        idigi_debug("get_fw_config: callback exceeds timeout > %u seconds\n", timeout);
+        idigi_debug("get_fw_config: callback exceeds timeout %u  > %u seconds\n", (end_time_stamp- start_time_stamp), timeout);
         notify_error_status(idigi_ptr->callback, idigi_class_firmware, request_id, idigi_exceed_timeout);
     }
 
@@ -293,10 +293,6 @@ static idigi_callback_status_t send_fw_message(idigi_firmware_data_t * const fw_
 
     status = initiate_send_facility_packet(fw_ptr->idigi_ptr, fw_ptr->response_buffer, fw_ptr->response_size, E_MSG_FAC_FW_NUM, NULL, NULL);
     fw_ptr->send_busy = (status == idigi_callback_busy);
-    if (status == idigi_callback_continue)
-    {
-        idigi_debug("send_fw_message: send\n");
-    }
     return status;
 
 }
@@ -324,8 +320,10 @@ static idigi_callback_status_t send_fw_abort(idigi_firmware_data_t * const fw_pt
     fw_ptr->response_size = FW_ABORT_HEADER_SIZE;
     status = send_fw_message(fw_ptr);
 
-    fw_ptr->update_started = idigi_false;
-
+    if (fw_ptr->target == target)
+    {
+        fw_ptr->update_started = idigi_false;
+    }
     return status;
 
 }
@@ -540,7 +538,6 @@ enum fw_download_response {
 
     uint8_t abort_opcode = fw_download_abort_opcode;
 
-    idigi_debug("Firmware Facility: process download request\n");
 
     request_data.target = message_load_u8(fw_download_request, target);
 
@@ -554,7 +551,7 @@ enum fw_download_response {
 
     if (fw_ptr->update_started == idigi_true)
     {
-        idigi_debug("process_fw_download_reqeust: cannot start another firmware update\n");
+        idigi_debug("process_fw_download_reqeust: cannot start another firmware update target %d\n", request_data.target);
         goto error;
     }
 
@@ -682,12 +679,20 @@ enum fw_binary_ack {
     /* Parse firmware binary block */
     request_data.target = message_load_u8(fw_binary_block, target);
 
-    if ((fw_ptr->update_started == idigi_false) || (fw_ptr->target != request_data.target) ||
-        (length < record_bytes(fw_binary_block)))
+    if (fw_ptr->update_started == idigi_false)
+    {
+        /* Ignore this packet since we have not started downloading.
+         * We may already abort download request.
+         */
+        status = idigi_callback_continue;
+        goto done;
+    }
+
+    if ((fw_ptr->target != request_data.target) || (length < record_bytes(fw_binary_block)))
     {
         idigi_request_t const request_id = {idigi_firmware_download_request};
 
-        idigi_debug("process_fw_binary_block: invalid message length\n");
+        idigi_debug("process_fw_binary_block: invalid target or message length\n");
         status = send_fw_abort(fw_ptr, request_data.target, fw_error_opcode, (idigi_fw_status_t const)fw_invalid_msg);
         if (status == idigi_callback_continue)
         {
@@ -736,8 +741,6 @@ static idigi_callback_status_t process_fw_abort(idigi_firmware_data_t * const fw
 {
 
     idigi_callback_status_t status = idigi_callback_continue;
-
-    idigi_debug("Firmware Facility: process server abort\n");
 
     /* parse firmware download abort */
     if (length != FW_ABORT_HEADER_SIZE)
@@ -806,7 +809,6 @@ enum fw_complete_response {
     idigi_fw_download_complete_request_t request_data;
     idigi_fw_download_complete_response_t response_data;
 
-    idigi_debug("Firmware Facility: process download complete\n");
     request_data.target = message_load_u8(fw_complete_request, target);
 
     if ((length != record_bytes(fw_complete_request)) ||
