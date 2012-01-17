@@ -303,7 +303,6 @@ error:
                 {
                     result = idigi_handle->error_code;
                 }
-                reset_initial_data(idigi_handle);
             }
         }
         else
