@@ -134,7 +134,7 @@ static idigi_callback_status_t malloc_cb(idigi_callback_t const callback, size_t
     idigi_request_t request_id;
 
     request_id.os_request = idigi_os_malloc;
-    status = idigi_callback(callback, idigi_class_operating_system, request_id, &size, 0, ptr, &len);
+    status = idigi_callback(callback, idigi_class_operating_system, request_id, &size, sizeof size, ptr, &len);
     if (status == idigi_callback_continue)
     {
         add_malloc_stats(*ptr, size);
@@ -177,7 +177,7 @@ static void sleep_timeout(idigi_data_t * const idigi_ptr)
     {
         idigi_request_t const request_id = {idigi_os_sleep};
         unsigned int const timeout = idigi_ptr->receive_packet.timeout;
-        idigi_callback_no_response(idigi_ptr->callback, idigi_class_operating_system, request_id, &timeout, 0);
+        idigi_callback_no_response(idigi_ptr->callback, idigi_class_operating_system, request_id, &timeout, sizeof timeout);
     }
 
     return;
