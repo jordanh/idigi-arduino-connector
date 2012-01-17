@@ -256,7 +256,10 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_
         break;
             
     case msg_service_type_free:
-        free_data(idigi_ptr, service_data->session->service_context);
+        if (service_data->session->service_context != NULL) 
+        {
+            free_data(idigi_ptr, service_data->session->service_context);
+        }
         status = idigi_callback_continue;
         break;
 
