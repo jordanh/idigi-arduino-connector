@@ -786,7 +786,7 @@ static idigi_callback_status_t close_server(idigi_data_t * const idigi_ptr)
     {
         idigi_request_t const request_id = {idigi_network_close};
 
-        status = idigi_callback_no_response(idigi_ptr->callback, idigi_class_network, request_id, idigi_ptr->network_handle, sizeof *idigi_ptr->network_handle);
+        status = idigi_callback_no_response(idigi_ptr->callback, idigi_class_network, request_id, idigi_ptr->network_handle, 0);
         switch (status)
         {
         case idigi_callback_busy:
