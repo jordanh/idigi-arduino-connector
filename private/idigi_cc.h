@@ -500,18 +500,6 @@ static idigi_callback_status_t process_connection_control(idigi_data_t * const i
         idigi_request_t request_id;
         request_id.network_request = request;
         status = idigi_callback_no_response(idigi_ptr->callback, idigi_class_network, request_id, NULL, 0);
-        switch (status)
-        {
-        case idigi_callback_continue:
-            reset_initial_data(idigi_ptr);
-            break;
-        case idigi_callback_abort:
-        case idigi_callback_unrecognized:
-            status = idigi_callback_abort;
-            break;
-        case idigi_callback_busy:
-            break;
-        }
     }
 
     return status;
@@ -641,7 +629,6 @@ enum cc_redirect_url {
          * Even if connect fails, we want to continue to
          * orginal server.
          */
-        reset_initial_data(idigi_ptr);
         cc_ptr->state = cc_state_redirect_report;
         set_idigi_state(idigi_ptr, edp_communication_layer);
         status = idigi_callback_continue;
