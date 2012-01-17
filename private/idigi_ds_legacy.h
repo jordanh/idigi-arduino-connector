@@ -247,6 +247,7 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_
                 service_data->error_value = error_code;
                 service_data->length_in_bytes = sizeof error_code;
                 service_data->service_type = msg_service_type_error;
+                status = idigi_callback_continue;
             }
         }
         break;
