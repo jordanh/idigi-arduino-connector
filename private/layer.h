@@ -1045,54 +1045,41 @@ enum {
      * 2. parses message and passes it to the facility
      * 3. invokes facility to process message.
      */
-    switch (idigi_ptr->layer_state)
-    {
-    case facility_receive_message:
-        status = receive_packet(idigi_ptr, &packet);
-        if (status == idigi_callback_continue)
-        {
-            uint8_t * edp_header = packet;
-            uint8_t * edp_protocol = packet + PACKET_EDP_HEADER_SIZE;
-            ASSERT(packet != NULL);
-            /*
-             * received packet format:
-             *  ----------------------------------------------------------
-             * |  0 - 1  |  2 - 3 |   4    |     5     |  6 - 7   |  8... |
-             *  ----------------------------------------------------------
-             * | Payload | length | coding | discovery | facility | Data  |
-             * |   Type  |        | scheme |  payload  |          |       |
-             * -----------------------------------------------------------
-             * |    EDP Header    |           EDP Protocol                |
-             * -----------------------------------------------------------
-            */
-            if (message_load_be16(edp_header, type) == E_MSG_MT2_TYPE_PAYLOAD)
-            {
-                uint16_t length = message_load_be16(edp_header, length);
-                uint8_t const sec_code = message_load_u8(edp_protocol, sec_coding);
-                uint8_t const payload = message_load_u8(edp_protocol, payload);
+    status = receive_packet(idigi_ptr, &packet);
 
-                /* currently we don't support any other security protocol */
-                ASSERT_GOTO(sec_code == SECURITY_PROTO_NONE, error);
-                ASSERT_GOTO(payload == DISC_OP_PAYLOAD, error);
-                ASSERT_GOTO(length > PACKET_EDP_PROTOCOL_SIZE, error);
-
-                idigi_debug("idigi_facility_layer: receive data facility = 0x%04x\n", message_load_be16(edp_protocol, facility));
-                /* adjust the length for facility process */
-                length -= PACKET_EDP_PROTOCOL_SIZE;
-                message_store_be16(edp_header, length, length);
-
-            }
-        }
-        break;
-    case facility_process_message:
-        /* existing packet */
-        packet = idigi_ptr->receive_packet.data_packet;
-        break;
-    }
-
-    if ((status == idigi_callback_continue) && (packet != NULL) )
+    if (status == idigi_callback_continue)
     {
         uint8_t * edp_header = packet;
+        uint8_t * edp_protocol = packet + PACKET_EDP_HEADER_SIZE;
+        ASSERT(packet != NULL);
+        /*
+         * received packet format:
+         *  ----------------------------------------------------------
+         * |  0 - 1  |  2 - 3 |   4    |     5     |  6 - 7   |  8... |
+         *  ----------------------------------------------------------
+         * | Payload | length | coding | discovery | facility | Data  |
+         * |   Type  |        | scheme |  payload  |          |       |
+         * -----------------------------------------------------------
+         * |    EDP Header    |           EDP Protocol                |
+         * -----------------------------------------------------------
+        */
+        if (message_load_be16(edp_header, type) == E_MSG_MT2_TYPE_PAYLOAD)
+        {
+            uint16_t length = message_load_be16(edp_header, length);
+            uint8_t const sec_code = message_load_u8(edp_protocol, sec_coding);
+            uint8_t const payload = message_load_u8(edp_protocol, payload);
+
+            /* currently we don't support any other security protocol */
+            ASSERT_GOTO(sec_code == SECURITY_PROTO_NONE, error);
+            ASSERT_GOTO(payload == DISC_OP_PAYLOAD, error);
+            ASSERT_GOTO(length > PACKET_EDP_PROTOCOL_SIZE, error);
+
+            idigi_debug("idigi_facility_layer: receive data facility = 0x%04x\n", message_load_be16(edp_protocol, facility));
+            /* adjust the length for facility process */
+            length -= PACKET_EDP_PROTOCOL_SIZE;
+            message_store_be16(edp_header, length, length);
+
+        }
 
         if (message_load_be16(edp_header, type) == E_MSG_MT2_TYPE_PAYLOAD)
         {
@@ -1113,18 +1100,22 @@ enum {
                         fac_ptr->packet = packet;
                         idigi_ptr->active_facility = fac_ptr;
                         done_packet = idigi_false;
-
                     }
                     else
-                    { /* Facility is busy so hold on the packet and stop receiving data */
-                        idigi_ptr->layer_state = facility_process_message;
-                        done_packet = idigi_false;
+                    {
+                        /* we only have one receive buffer.
+                         * Since a facility holds on the receive buffer,
+                         * receive should not able to get a free receive buffer
+                         * to receive any data
+                         */
+                        ASSERT(idigi_false);
                     }
                     break;
                 }
             }
         }
     }
+
 error:
     /* if we are done with packet, release it for another
      * receive_packet .
@@ -1134,8 +1125,10 @@ error:
         release_receive_packet(idigi_ptr, packet);
     }
 
+
     /* invoke facility process */
-    for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL && status != idigi_callback_abort; fac_ptr = fac_ptr->next)
+    for (fac_ptr = (idigi_ptr->active_facility != NULL) ? idigi_ptr->active_facility : idigi_ptr->facility_list;
+         fac_ptr != NULL && status != idigi_callback_abort; fac_ptr = fac_ptr->next)
     {
         unsigned int const i = fac_ptr->facility_index;
 
@@ -1146,8 +1139,19 @@ error:
             if (status != idigi_callback_busy && fac_ptr->packet != NULL)
             {   /* release the packet when it's done */
                 release_receive_packet(idigi_ptr, fac_ptr->packet);
+                if (idigi_ptr->active_facility == fac_ptr)
+                {
+                    idigi_ptr->active_facility = NULL;
+                }
                 fac_ptr->packet = NULL;
             }
+
+            if (idigi_ptr->edp_connected == idigi_false)
+            {
+                break;
+            }
+
+            idigi_ptr->active_facility = fac_ptr->next;
 
             if (status != idigi_callback_abort)
             {
@@ -1160,10 +1164,7 @@ error:
                 {
                     break;
                 }
-                if (status == idigi_callback_unrecognized)
-                {
-                    status = idigi_callback_continue;
-                }
+                ASSERT(status != idigi_callback_unrecognized);
             }
         }
     }
