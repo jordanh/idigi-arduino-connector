@@ -49,7 +49,7 @@ static void app_firmware_download_request(idigi_fw_download_request_t const * co
 
     if ((download_info == NULL) || (download_status == NULL))
     {
-        APP_DEBUG("firmware_download_request ERROR: iDigi passes incorrect parameters\n");
+        APP_DEBUG("app_firmware_download_request ERROR: iDigi passes incorrect parameters\n");
         ASSERT(false);
         goto done;
     }
@@ -76,14 +76,14 @@ static void app_firmware_image_data(idigi_fw_image_data_t const * const image_da
 {
     if (image_data == NULL || data_status == NULL)
     {
-        APP_DEBUG("firmware_image_data ERROR: iDigi passes incorrect parameters\n");
+        APP_DEBUG("app_firmware_image_data ERROR: iDigi passes incorrect parameters\n");
         ASSERT(false);
         goto done;
     }
 
     if (!firmware_download_started)
     {
-        APP_DEBUG("firmware_image_data:no firmware download request started\n");
+        APP_DEBUG("app_firmware_image_data:no firmware download request started\n");
         *data_status = idigi_fw_download_denied;
         goto done;
     }
@@ -105,14 +105,14 @@ static void app_firmware_download_complete(idigi_fw_download_complete_request_t 
 
     if ((complete_request == NULL) || (complete_response == NULL))
     {
-        APP_DEBUG("firmware_download_complete Error: iDigi passes incorrect parameters\n");
+        APP_DEBUG("app_firmware_download_complete Error: iDigi passes incorrect parameters\n");
         ASSERT(false);
         goto done;
     }
 
     if (!firmware_download_started)
     {
-        APP_DEBUG("firmware_download_complete:no firmware download request started\n");
+        APP_DEBUG("app_firmware_download_complete:no firmware download request started\n");
         complete_response->status = idigi_fw_download_not_complete;
         goto done;
     }
@@ -125,7 +125,7 @@ static void app_firmware_download_complete(idigi_fw_download_complete_request_t 
 
     if (complete_request->code_size != total_image_size)
     {
-        APP_DEBUG("firmware_download_complete: actual image size (%u) != the code size received (%zu)\n",
+        APP_DEBUG("app_firmware_download_complete: actual image size (%u) != the code size received (%zu)\n",
                       complete_request->code_size, total_image_size);
         complete_response->status = idigi_fw_download_not_complete;
     }
@@ -141,12 +141,12 @@ static idigi_callback_status_t app_firmware_download_abort(idigi_fw_download_abo
     idigi_callback_status_t   status = idigi_callback_continue;
 
     /* Server is aborting firmware update */
-    APP_DEBUG("firmware_download_abort\n");
+    APP_DEBUG("app_firmware_download_abort\n");
     firmware_download_started = 0;
 
     if (abort_data == NULL)
     {
-        APP_DEBUG("firmware_download_abort Error: iDigi passes incorrect parameters\n");
+        APP_DEBUG("app_firmware_download_abort Error: iDigi passes incorrect parameters\n");
         ASSERT(false);
         goto done;
     }
@@ -161,7 +161,7 @@ static idigi_callback_status_t app_firmware_reset(idigi_fw_config_t const * cons
 
     UNUSED_ARGUMENT(reset_data);
     /* Server requests firmware reboot */
-    APP_DEBUG("firmware_reset\n");
+    APP_DEBUG("app_firmware_reset\n");
 
     firmware_download_started = 0;
 
