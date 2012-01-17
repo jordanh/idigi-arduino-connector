@@ -248,6 +248,7 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_
                 service_data->length_in_bytes = sizeof error_code;
                 service_data->service_type = msg_service_type_error;
                 status = idigi_callback_continue;
+                idigi_debug("Data service request/response with opcode %d is not supported\n", opcode);
             }
         }
         break;
