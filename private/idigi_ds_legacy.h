@@ -234,7 +234,22 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_
         break;
 
     case msg_service_type_have_data:
-        status = data_service_call_user(idigi_ptr, idigi_data_service_response, service_data->session, service_data->data_ptr, service_data->length_in_bytes);
+        {
+            uint8_t const opcode = *(uint8_t *)service_data->data_ptr;
+
+            if (opcode == data_service_opcode_put_response)
+            {
+                status = data_service_call_user(idigi_ptr, idigi_data_service_response, service_data->session, service_data->data_ptr, service_data->length_in_bytes);
+            }
+            else
+            {
+                idigi_msg_error_t const error_code = idigi_msg_error_no_service;
+
+                service_data->error_value = error_code;
+                service_data->length_in_bytes = sizeof error_code;
+                service_data->service_type = msg_service_type_error;
+            }
+        }
         break;
 
     case msg_service_type_error:
