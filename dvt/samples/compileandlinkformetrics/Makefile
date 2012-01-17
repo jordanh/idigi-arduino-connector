@@ -30,8 +30,8 @@ IIK_DIR=../../..
 IDIGI_DIR=$(IIK_DIR)/private
 PUBLIC_HEADER_DIR=$(IIK_DIR)/public/include
 PLATFORM_DIR=$(IIK_DIR)/public/run/platforms/linux
-SCRIPTS_DIR=$(IIK_DIR)/dvt/scripts
-COMPILE_AND_LINK_DIR=$(IIK_DIR)/public/run/samples/compile_and_link 
+DVT_DIR=$(IIK_DIR)/dvt
+SCRIPTS_DIR=$(DVT_DIR)/scripts
 
 vpath $(IDIGI_DIR)/%.c
 
@@ -66,5 +66,6 @@ clean:
 	-rm -f $(SAMPLE).map 
 	-rm -f $(SAMPLE).stats
 	-rm -f $(SAMPLE)
+	-rm -f $(DVT_DIR)/memory_usage.txt
 
 
