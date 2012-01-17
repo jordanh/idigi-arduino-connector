@@ -178,6 +178,8 @@ static idigi_callback_status_t data_service_get_data(idigi_data_t * const idigi_
     uint8_t * dptr = service_data->data_ptr;
     size_t data_bytes = 0;
 
+    ASSERT_GOTO(context != NULL, done);
+
     if (!context->have_data) 
     {
         status = idigi_callback_busy;
@@ -223,9 +225,6 @@ done:
 static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_ptr, msg_service_request_t * const service_data)
 {
     idigi_callback_status_t status = idigi_callback_abort;
-    data_service_context_t * const context = service_data->session->service_context;
-
-    ASSERT_GOTO(context != NULL, error);
 
     switch (service_data->service_type)
     {
@@ -257,7 +256,7 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_
         break;
             
     case msg_service_type_free:
-        free_data(idigi_ptr, context);
+        free_data(idigi_ptr, service_data->session->service_context);
         status = idigi_callback_continue;
         break;
 
