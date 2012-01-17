@@ -54,7 +54,12 @@ def check_release_build():
     else:
         buildOptions = both_disabled
 
-    mem_usage_fd = open(MEMORY_USAGE_FILE, 'r')
+    try:
+        mem_usage_fd = open(MEMORY_USAGE_FILE, 'r')
+    except IOError:
+        mem_usage_fd = open(MEMORY_USAGE_FILE, 'w')
+        mem_usage_fd.close()
+        mem_usage_fd = open(MEMORY_USAGE_FILE, 'r')
     mem_usage_text = mem_usage_fd.read()
     mem_usage_fd.close()
     if (mem_usage_text.find('All Enabled') == -1) and (buildOptions == both_enabled):
