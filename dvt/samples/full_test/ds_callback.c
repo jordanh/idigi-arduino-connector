@@ -40,7 +40,7 @@ idigi_status_t send_put_request(idigi_handle_t handle)
 
     data_service_info.bytes_sent = 0;
     header = &data_service_info.header;
-    APP_DEBUG("Sending %s of length %d\n", dvt_current_ptr->file_name, dvt_current_ptr->file_size);
+    APP_DEBUG("Sending %s of length %zu\n", dvt_current_ptr->file_name, dvt_current_ptr->file_size);
     switch (dvt_current_ptr->target)
     {
     case dvt_case_put_request_no_flag:
@@ -69,7 +69,7 @@ idigi_status_t send_put_request(idigi_handle_t handle)
     header->context = dvt_current_ptr->ds_info;
 
     status = idigi_initiate_action(handle, idigi_initiate_data_service, header, NULL);
-    APP_DEBUG("send_put_request: %s status  %d total file length = %d\n", dvt_current_ptr->file_name, status, dvt_current_ptr->file_size);
+    APP_DEBUG("send_put_request: %s status  %d total file length = %zu\n", dvt_current_ptr->file_name, status, dvt_current_ptr->file_size);
     if (status != idigi_success)
         cleanup_dvt_data();
     else
