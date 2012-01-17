@@ -33,7 +33,7 @@
  * </tr>
  * <tr>
  * <th>request_length</th>
- * <td> Specifies the size of *request_data which is sizeof size_t.</td>
+ * <td> The size of *request_data which is sizeof size_t.</td>
  * </tr>
  * <tr>
  * <th>response_data</th>
@@ -106,7 +106,7 @@
  * </tr>
  * <tr>
  * <th>request_length</th>
- * <td> Specifies the size of *request_data which is size of void*.</td>
+ * <td> N/A </td>
  * </tr>
  * <tr>
  * <th>response_data</th>
@@ -227,7 +227,7 @@
  * </tr>
  * <tr>
  * <th>request_length</th>
- * <td> N/A</td>
+ * <td> The size of request_data which is unsigned int </td>
  * </tr>
  * <tr>
  * <th>response_data</th>
