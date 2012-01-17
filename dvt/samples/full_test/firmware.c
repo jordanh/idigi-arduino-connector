@@ -186,7 +186,7 @@ static void firmware_image_data(idigi_fw_image_data_t const * const image_data, 
         goto error;
     }
 
-    APP_DEBUG("target = %d, offset = %zu, length = %zu\n", image_data->target, image_data->offset, image_data->length);
+    APP_DEBUG("target = %d, offset = 0x%04X, length = %zu\n", image_data->target, image_data->offset, image_data->length);
     
     if (dvt_current_ptr->file_size != image_data->offset)
     {
