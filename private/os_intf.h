@@ -110,7 +110,7 @@ static void notify_error_status(idigi_callback_t const callback, idigi_class_t c
 }
 
 
-static idigi_callback_status_t get_system_time(idigi_data_t * const idigi_ptr, uint32_t * const uptime)
+static idigi_callback_status_t get_system_time(idigi_data_t * const idigi_ptr, unsigned long * const uptime)
 {
     size_t  length;
     idigi_callback_status_t status;
@@ -183,10 +183,10 @@ static void sleep_timeout(idigi_data_t * const idigi_ptr)
     return;
 }
 
-static uint32_t get_elapsed_value(uint32_t const max_value, uint32_t const last_value, uint32_t const current_value)
+static unsigned long get_elapsed_value(unsigned long const max_value, unsigned long const last_value, unsigned long const current_value)
 {
-    uint32_t elapsed_value;
-    uint32_t the_value = max_value;
+    unsigned long elapsed_value;
+    unsigned long the_value = max_value;
 
     ASSERT(current_value >= last_value);
 
@@ -204,7 +204,7 @@ static uint32_t get_elapsed_value(uint32_t const max_value, uint32_t const last_
     return the_value;
 }
 
-static idigi_callback_status_t get_keepalive_timeout(idigi_data_t * const idigi_ptr, uint32_t * const rx_timeout, uint32_t * const tx_timeout, uint32_t * const cur_system_time)
+static idigi_callback_status_t get_keepalive_timeout(idigi_data_t * const idigi_ptr, unsigned long * const rx_timeout, unsigned long * const tx_timeout, unsigned long * const cur_system_time)
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
