@@ -69,8 +69,12 @@ test_table = [
               [BASE_SAMPLE_DIR+'firmware_download', BASE_SCRIPT_DIR+'sample_tests', ['test_firmware.py']],
               [BASE_SAMPLE_DIR+'send_data',         BASE_SCRIPT_DIR+'sample_tests', ['test_send_data.py']],
               [BASE_SAMPLE_DIR+'device_request',    BASE_SCRIPT_DIR+'sample_tests', ['test_device_request.py']],
-              [BASE_DVT_SRC+'full_test',            BASE_SCRIPT_DIR+'dvt_tests',    ['test_firmware_errors.py', 'test_device_request.py', 'test_data_service.py']],
-              [BASE_DVT_SRC+'data_service',         BASE_SCRIPT_DIR+'admin_tests',  ['test_reboot.py', 'test_redirect.py']]
+              [BASE_DVT_SRC+'full_test',            BASE_SCRIPT_DIR+'dvt_tests',    ['test_firmware_errors.py', 
+                                                                                     'test_device_request.py', 
+                                                                                     'test_data_service.py']],
+              [BASE_DVT_SRC+'data_service',         BASE_SCRIPT_DIR+'admin_tests',  ['test_reboot.py', 
+                                                                                     'test_redirect.py']],
+              [BASE_DVT_SRC+'data_service',         BASE_SCRIPT_DIR+'admin_tests',  ['test_nodebug_redirect.py']],
 ]
 
 def build_test(dir):
@@ -109,7 +113,8 @@ def run_tests(debug_on):
         time.sleep(5) # Give the program time to start
 
         for test_script in test_list:
-            if debug_on and test_script == 'test_redirect.py':
+            # skip the test if script filename starts with 'test_nodebug'
+            if debug_on and test_script.find('test_nodebug') == 0:
                 print '>>>Skip [%s] since debug is on' % test_script
             else:
                 print '>>>Executing [%s]' % test_script
@@ -166,24 +171,30 @@ def main():
     mem_usage_file = open(MEMORY_USAGE_FILE, 'w')
     mem_usage_file.close()
 
+    print "============ Default ============="
     debug_on = True
     setup_platform(config, SAMPLE_SCRIPT_DIR, SAMPLE_PLATFORM_DIR)
     run_tests(debug_on)
 
+    print "============ No Debug ============="
     debug_on = False
     config.replace_string('./public/include/idigi_config.h', 'IDIGI_DEBUG', 'IDIGI_NO_DEBUG')
     run_tests(debug_on)
 
+    print "============ Compression On ============="
     config.replace_string('./public/include/idigi_config.h', 'IDIGI_NO_COMPRESSION', 'IDIGI_COMPRESSION')
     run_tests(debug_on)
 
+    print "============ Debug On ============="
     debug_on = True
     config.replace_string('./public/include/idigi_config.h', 'IDIGI_NO_DEBUG', 'IDIGI_DEBUG')
     run_tests(debug_on)
 
+    print "============ Configurations in idigi_config.h ============="
     config.update_config_header('./public/include/idigi_config.h', SAMPLE_SCRIPT_DIR+'config.ini')
     run_tests(debug_on)
 
+    print "============ Template platform ============="
     setup_platform(config, TEMPLATE_SCRIPT_DIR, TEMPLATE_PLATFORM_DIR)
     build_test(TEMPLATE_TEST_DIR)
 
