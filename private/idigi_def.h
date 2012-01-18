@@ -208,8 +208,8 @@ typedef struct idigi_data {
 #if !defined(IDIGI_WAIT_COUNT)
     uint16_t wait_count;
 #endif
-    uint32_t last_rx_keepalive_sent_time;
-    uint32_t last_tx_keepalive_received_time;
+    unsigned long last_rx_keepalive_sent_time;
+    unsigned long last_tx_keepalive_received_time;
 
     idigi_facility_t * active_facility;
     idigi_facility_t * facility_list;
