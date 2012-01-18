@@ -69,8 +69,8 @@ void * PrintThreadStackInit(size_t * StackSize, size_t * GuardSize)
 
     APP_DEBUG ("-------------------------------------\n");
     APP_DEBUG ("Thread Stack top:        %p\n", StackTop);
-    APP_DEBUG ("Thread Stack size:       %u bytes\n", *StackSize);
-    APP_DEBUG ("Thread Stack guard size: %u bytes\n", *GuardSize);
+    APP_DEBUG ("Thread Stack size:       %zu bytes\n", *StackSize);
+    APP_DEBUG ("Thread Stack guard size: %zu bytes\n", *GuardSize);
     APP_DEBUG ("Thread Min Stack size:   %d bytes\n", PTHREAD_STACK_MIN);
     APP_DEBUG ("Thread Stack bottom:     %p\n", StackBottom);
     APP_DEBUG ("-------------------------------------\n");
@@ -166,14 +166,14 @@ void * idigi_run_thread(void * arg)
         *ptr = STACK_INIT_VALUE;
     }
 
-    APP_DEBUG("idigi_run_thread starts %d Stack = %p to %p (size = %d)\n", getpid(), stack_top, stack_bottom, stack_size);
+    APP_DEBUG("idigi_run_thread starts %d Stack = %p to %p (size = %zu)\n", getpid(), stack_top, stack_bottom, stack_size);
 
     idigi_run_thread_status = idigi_run((idigi_handle_t)arg);
 
     APP_DEBUG("idigi_run thread exits %d\n", idigi_run_thread_status);
 
     PrintSummaryStack();
-    APP_DEBUG("idigi_run - callback: stack size = %d\n", stack_size_used);
+    APP_DEBUG("idigi_run - callback: stack size = %zu\n", stack_size_used);
     APP_DEBUG("\nidigi_run_thread:\n");
     PrintThreadStackInit(&stack_size, &threadGuardSize);
 
@@ -235,7 +235,7 @@ int main (void)
 
         if (total_malloc_size != 0)
         {
-            APP_DEBUG("total malloc memory = %d after all threads are canceled\n", total_malloc_size);
+            APP_DEBUG("total malloc memory = %zu after all threads are canceled\n", total_malloc_size);
             if (idigi_run_thread_status == idigi_device_terminated)
             {
                 APP_DEBUG("Error idigi_run has been terminated by initiate_action but total malloc memory is not 0 after all threads are canceled\n");
