@@ -92,7 +92,7 @@ void app_os_free(void * const ptr)
  * 
  * @see @ref uptime API Operating System Callback
  */
-int app_os_get_system_time(uint32_t * const uptime)
+int app_os_get_system_time(unsigned long * const uptime)
 {
     UNUSED_ARGUMENT(uptime);
     return 0;
@@ -144,7 +144,7 @@ idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
         break;
 
     case idigi_os_system_up_time:
-        ret    = app_os_get_system_time((uint32_t *)response_data);
+        ret    = app_os_get_system_time((unsigned long *)response_data);
         status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
         break;
 
