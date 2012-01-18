@@ -10,7 +10,7 @@ def replace_string(file_name, src_str, dst_str):
   text = infile.read()
   infile.close()
   outfile = open(file_name, "w")
-  outfile.write(text.replace(src_str, dst_str, 1))
+  outfile.write(text.replace(src_str, dst_str))
   outfile.close()
 
 def remove_errors(file_name):
