@@ -1,8 +1,8 @@
-/*! @page api_overview API Overview
+/*! @page api_overview Public API Overview
  *
  * @htmlinclude nav.html
  *
- * @section api1_overview API Overview
+ * @section api1_overview Public API Overview
  *
  * The IIK API includes two major software interfaces:
  *      @li IIK function calls
