@@ -86,7 +86,7 @@ enum fw_message {
 
 typedef struct {
     idigi_data_t * idigi_ptr;
-    uint32_t last_fw_keepalive_sent_time;
+    unsigned long last_fw_keepalive_sent_time;
     uint32_t version;
     uint32_t code_size;
     char * description;
@@ -110,11 +110,11 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_pt
 {
     idigi_data_t * const idigi_ptr = fw_ptr->idigi_ptr;
     idigi_callback_status_t status;
-    unsigned timeout;
-    uint32_t start_time_stamp;
-    uint32_t end_time_stamp;
-    uint32_t time_to_send_rx_keepalive = 0;
-    uint32_t time_to_receive_tx_keepalive;
+    unsigned long timeout;
+    unsigned long start_time_stamp;
+    unsigned long end_time_stamp;
+    unsigned long time_to_send_rx_keepalive = 0;
+    unsigned long time_to_receive_tx_keepalive;
     size_t  length;
     idigi_request_t request_id;
 
@@ -146,7 +146,7 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_pt
          * keepalive timing for sending target list message.
          *
          */
-        unsigned const keepalive_timeout = get_elapsed_value(FW_TARGET_LIST_MSG_INTERVAL_IN_SECONDS,
+        unsigned long const keepalive_timeout = get_elapsed_value(FW_TARGET_LIST_MSG_INTERVAL_IN_SECONDS,
                                        fw_ptr->last_fw_keepalive_sent_time,
                                        start_time_stamp);
 
