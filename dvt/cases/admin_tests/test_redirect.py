@@ -215,33 +215,6 @@ class RedirectTestCase(unittest.TestCase):
         error = response.find("error")
         self.assertNotEqual(-1, error, "Received unexpected response from invalid redirect.")
 
-    def test_redirect_three_destinations(self):
-    
-        """ Sends redirect request to given device and verifies that
-        the device disconnects and reconnects to an iDigi server.
-        
-        Test may terminate IIK device session running in debug.
-        """
-        
-        log.info("***** Beginnning Redirect Test with three destination URLs *****")
-        last_connected = self.device_core.dpLastConnectTime
-        
-        # Send redirect with three destinations
-        log.info("Sending Connection Control Redirect to %s." % config.device_id)
-        destinations = DESTINATION % config.api.hostname + DESTINATION % config.api.hostname + DESTINATION % config.api.hostname
-        redirect_request = REDIRECT_REQUEST % \
-            (config.device_id, destinations)
-        
-        response = config.api.sci_expect_fail(redirect_request)
-        log.info("response:\n%s" % response)
-        
-        log.info("Determining if device was redirected.")
-        redirected = response.find("redirected")
-        self.assertNotEqual(-1, redirected, "Unexpected response: %s." % response)
-        
-        # Determine if device disconnects and reconnects
-        determine_disconnect_reconnect(self, config, last_connected, 30)
-       
  
 if __name__ == '__main__':
 
