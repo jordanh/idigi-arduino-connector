@@ -4,20 +4,19 @@
  *
  * @section data_service_overview Data Service Overview
  *
- * The data service API is used to send data to and from the iDigi
- * Device Cloud.  Data service transfers are either initiated by the iDigi
- * Device Cloud or the device, the two types of requests are listed below:
+ * The Data Service API is used to send data to and from the iDigi Device Cloud.  Data service transfers
+ * are either initiated from the iDigi Device Cloud or the device itself.  The two types of requests are
+ * listed below:
  * 
- * @note See @ref data_service_support under Configuration to enable or
- * disable data service.
- * 
- * @li @b Put @b Requests: Transfers which are initiated by the device and used to
- * write files to the iDigi Device Cloud, the iDigi Device Cloud may send a status response back
+ * @li @ref put_request : Data transfers initiated by the device and used to
+ * write files on to the iDigi Device Cloud.  The iDigi Device Cloud may send a status response back
  * indicating the transfer was successful. 
- * @li @b Device @b Requests: Transfers which are initiated by the iDigi Device Cloud to the device.
- * This is used to send data to the device and the device may send a response back.
+ * @li @ref device_request : Transfers initiated from a web services client connected to the iDigi Device Cloud
+ * to the device.  This transfer is used to send data to the device and the device may send a response back.
  *
- * @section put_request Put Requests
+ * @note See @ref data_service_support under Configuration to disable this data service.
+ *
+ * @section put_request Put Request
  *
  * @subsection initiate_send Initiate Sending Data
  *
@@ -38,7 +37,7 @@
  *   header.path  = file_path;
  *   header.content_type = file_type;
  *
- *   /* Kick off the file trasfer to the iDigi Server */
+ *   // Begin a file transfer to the iDigi Cloud
  *   status = idigi_initiate_action(handle, idigi_initiate_data_service, &header, NULL);
  * @endcode
  *
@@ -112,7 +111,7 @@
  * </table>
  * @endhtmlonly
  *
- * An example of an application callback for a put request is show below:
+ * An example of an application callback for a put request is shown below:
  *
  * @code
  * idigi_callback_status_t app_data_service_callback(idigi_class_t const class_id, idigi_request_t const request_d,
@@ -128,7 +127,7 @@
  *    {
  *        switch (put_request->message_type)
  *        {
- *        case idigi_data_service_type_need_data: /* iDigi Device Cloud requesting data */
+ *        case idigi_data_service_type_need_data: // iDigi Device Cloud requesting data
  *            {
  *                idigi_data_service_block_t * message = put_response->client_data;
  *                char * dptr = message->data;
@@ -136,7 +135,7 @@
  *
  *                snprintf(buffer, BUFFER_SIZE, "iDigi data service sample [%d]\n", sample_number);
  *                size_t const bytes = strlen(buffer);
- *                /* Copy to the IIK's buffer */
+ *                // Copy to the IIK's buffer
  *                memcpy(dptr, buffer, bytes);
  *                message->length_in_bytes = bytes;
  *                message->flags = IDIGI_MSG_LAST_DATA | IDIGI_MSG_FIRST_DATA;
@@ -145,7 +144,7 @@
  *            }
  *            break;
  *
- *        case idigi_data_service_type_have_data: /* Response fromt he iDigi Device Cloud */
+ *        case idigi_data_service_type_have_data: // Response from the iDigi Device Cloud
  *            {
  *                idigi_data_service_block_t * message = put_request->server_data;
  *                uint8_t const * data = message->data;
@@ -159,7 +158,7 @@
  *            }
  *            break;
  *
- *        case idigi_data_service_type_error: /* The iDigi Device Cloud sent back an error */
+ *        case idigi_data_service_type_error: // The iDigi Device Cloud sent back an error
  *            {
  *                idigi_data_service_block_t * message = put_request->server_data;
  *                idigi_msg_error_t const * const error_value = message->data;
@@ -183,7 +182,7 @@
  * }
  * @endcode
  * 
- * @section device_request  Device requests
+ * @section device_request Device Request
  *
  * Device requests are data transfers initiated by the server and are used to
  * send data from the server to the device, the device may send back a reply.
@@ -270,7 +269,7 @@
  *     idigi_data_service_msg_request_t const * const service_device_request = request_data;
  *
  *     if (class_id == idigi_class_data_service && request_id.data_service_request == idigi_data_service_device_request) 
- *     {   /* Device request from iDigi Device Cloud */
+ *     {   // Device request from iDigi Device Cloud
  *         switch (service_device_request->message_type)
  *         {
  *         case idigi_data_service_type_have_data:
@@ -290,7 +289,7 @@
  *     return status;
  * }
  *
- * /* Routines to process the device request, response, & error */
+ *  // Routines to process the device request, response, & error
  *  static idigi_callback_status_t process_device_request(idigi_data_service_msg_request_t const * const request_data,
  *                                                       idigi_data_service_msg_response_t * const response_data)
  * {
@@ -299,24 +298,24 @@
  * 
  *     if ((server_data->flags & IDIGI_MSG_FIRST_DATA) == IDIGI_MSG_FIRST_DATA)
  *     {
- *         /* target should not be null on 1st chunk of data */
+ *         // target should not be null on 1st chunk of data
  *         if (strcmp(server_device_request->target, device_request_target.target) != 0)
- *         {   /* unsupported target. */
+ *         {   // unsupported target
  *             response_data->user_context = NULL;
  *             return idigi_callback_continue;
  *         }
  *
- *         /* 1st chunk of device request so let's initialize client_device_request. */
+ *         // 1st chunk of device request so let's initialize client_device_request
  *         client_device_request.length_in_bytes = 0;
  *         client_device_request.device_handle = server_device_request->device_handle;
  *
- *         /* setup the user_context for our device request data */
+ *         // setup the user_context for our device request data
  *         response_data->user_context = &client_device_request;  
  * 
  *     }
  *     else if (response_data->user_context != &client_device_request)
  *     {
- *         /* unsupport target. Ignore data */
+ *         // Unsupported target. Ignore.
  *         return idigi_callback_continue;
  *     }
  * 
@@ -329,23 +328,24 @@
  *                                                        idigi_data_service_msg_response_t * const response_data)
  * {
  *     idigi_data_service_block_t * const client_data = response_data->client_data;
- *     /* get number of bytes going to be written to the client data buffer */
+ *     // get number of bytes going to be written to the client data buffer
  *     size_t const bytes = (client_device_request.length_in_bytes < client_data->length_in_bytes) ? 
  *                           client_device_request.length_in_bytes : client_data->length_in_bytes;
  * 
  *     if (response_data->user_context == NULL)
  *     {
- *         /* unsupported target. let's return not-processed data */
+ *         // unsupported target. let's return not-processed data
  *         client_data->length_in_bytes = strlen(not_process_response_data);
  *         client_data->flags = IDIGI_MSG_LAST_DATA | IDIGI_MSG_DATA_NOT_PROCESSED;
  *         client_data->data, not_processed_response_data, strlen(not_process_response_data));
  *         return idigi_callback_continue;
  *     }
  *     if (client_device_request.length_in_bytes == 0)
- *     {   /* get response data */
+ *     {
+ *         // get response data
  *         response_device_request_data();
  *     }
- *     /* let's copy the response data to response buffer */
+ *     // let's copy the response data to response buffer
  *     memcpy(client_data->data, client_device_request.response_data, bytes);
  *     client_device_request.response_data += bytes;
  *     client_device_request.length_in_bytes -= bytes;
@@ -354,7 +354,7 @@
  *     client_data->flags = (client_device_request.length_in_bytes == 0) ? IDIGI_MSG_LAST_DATA : 0;
  *     if (client_device_request.length_in_bytes == 0)
  *     {
- *         /* done */
+ *         // done
  *         done_device_request();
  *     }
  * 

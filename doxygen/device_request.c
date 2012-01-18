@@ -1,4 +1,4 @@
-/*! @page device_request Data Service Device Request Sample
+/*! @page device_request_sample Data Service Device Request Sample
  *
  * @htmlinclude nav.html
  *
