@@ -60,7 +60,7 @@
 
 static idigi_bool_t valid_timing_limit(idigi_data_t * const idigi_ptr, uint32_t const start, uint32_t const limit)
 {
-    uint32_t elapsed;
+    unsigned long elapsed;
     idigi_bool_t rc = idigi_false;
 
     if (get_system_time(idigi_ptr, &elapsed) == idigi_callback_continue)
