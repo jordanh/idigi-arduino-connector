@@ -165,7 +165,7 @@ def setup_platform(config, config_dir, platform_dir):
 
 def clean_output():
     for root, folders, files in os.walk(BASE_SCRIPT_DIR):
-        for test_result in filter(lambda f: f.find('nosetest') != -1, files):
+        for test_result in filter(lambda f: f.find('nosetest') == 0, files):
             file_path = os.path.join(root, test_result)
             print "Removing %s." % file_path
             os.remove(file_path)
