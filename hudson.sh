@@ -6,6 +6,7 @@ OUTPUT_DIR=$WORKSPACE/output
 PART_NUMBER=40003007
 PKG_NAME=${PART_NUMBER}_${REVISION}
 LICENSE=90002145_A
+GETTING_STARTED=90002142_C.pdf
 
 function cleanup () 
 {
@@ -51,6 +52,10 @@ echo ">> Pulling License from /eng/store/released/90000000/${LICENSE}.zip and co
 cp /eng/store/released/90000000/${LICENSE}.zip "${WORKSPACE}"
 unzip -o "${WORKSPACE}/${LICENSE}.zip" -d "${BASE_DIR}"
 rm "${WORKSPACE}/${LICENSE}.zip"
+
+# Grab the getting started guide
+echo ">> Pulling Getting Started Guide from /eng/store/released/90000000/${GETTING_STARTED} and copying to ${WORKSPACE}."
+cp /eng/store/released/90000000/${GETTING_STARTED} "${WORKSPACE}"
 
 # Create the tarball
 echo ">> Creating the release Tarball as ${OUTPUT_DIR}/${PKG_NAME}.tgz."
