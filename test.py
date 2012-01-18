@@ -118,7 +118,7 @@ def run_tests(debug_on):
                 print '>>>Skip [%s] since debug is on' % test_script
             else:
                 print '>>>Executing [%s]' % test_script
-                rc = os.system('export PYTHONPATH=../;cd %s; nosetests --with-xunit --xunit-file=nosestest%1d.xml %s' % (test_dir, test_case, test_script))
+                rc = os.system('export PYTHONPATH=../;cd %s; nosetests --with-xunit --xunit-file=nosetest%1d.xml %s' % (test_dir, test_case, test_script))
                 test_case += 1
 
         print '>>>pid [%s]' % pid
@@ -163,9 +163,20 @@ def setup_platform(config, config_dir, platform_dir):
     config.remove_errors(platform_dir+'config.c')
     config.update_config_source(platform_dir+'config.c', config_dir+'config.ini')
 
+def clean_output():
+    for root, folders, files in os.walk(BASE_SCRIPT_DIR):
+        for test_result in filter(lambda f: f.find('nosetest') != -1, files):
+            file_path = os.path.join(root, test_result)
+            print "Removing %s." % file_path
+            os.remove(file_path)
+
+
 def main():
     f, filename, description = imp.find_module('config', ['./dvt/scripts'])
     config = imp.load_module('config', f, filename, description)
+
+    print "============ Cleaning Test Previous Output Files. ============"
+    clean_output()
 
     # create empty memory usage file
     mem_usage_file = open(MEMORY_USAGE_FILE, 'w')
