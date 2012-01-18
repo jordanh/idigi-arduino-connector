@@ -83,7 +83,7 @@ class RebootTestCase(unittest.TestCase):
                 
     def test_reboot(self):
     
-        """ Sends reboot request to given device and verifies taht
+        """ Sends reboot request to given device and verifies that
         the device disconnects and reconnects to an iDigi server.
         """
         
