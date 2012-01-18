@@ -169,7 +169,7 @@
  * </tr>
  * <tr>
  * <th>response_data</th>
- * <td> Pointer to uint32_t integer memory where callback writes the system up time to (in seconds) </td>
+ * <td> Pointer to unsigned long integer memory where callback writes the system up time to (in seconds) </td>
  * </tr>
  * <tr>
  * <th>response_length</th>
