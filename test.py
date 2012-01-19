@@ -93,6 +93,10 @@ def run_tests(debug_on):
         test_dir  = test[TEST_DIR]
         test_list = test[TEST_LIST]
 
+        pid = commands.getoutput('pidof -s idigi')
+        if pid != '':
+            print "idigi pid %s is already exist before running idigi" % pid
+
         print '>>>Testing [%s]' % src_dir
 
         build_test(src_dir)
