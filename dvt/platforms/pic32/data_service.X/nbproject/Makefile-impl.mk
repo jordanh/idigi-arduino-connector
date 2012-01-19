@@ -24,7 +24,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=ethstarterkit32.X
+PROJECTNAME=data_service.X
 
 # Active Configuration
 DEFAULTCONF=default

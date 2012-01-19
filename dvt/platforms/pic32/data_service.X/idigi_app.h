@@ -5,6 +5,7 @@
 #include "TCPIP Stack/Tick.h"
 
 #include "idigi_api.h"
+#include "idigi_config.h"
 
 #define DEVICE_ID_LENGTH    16
 #define VENDOR_ID_LENGTH    4
