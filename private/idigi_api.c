@@ -95,6 +95,7 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
     idigi_handle->edp_connected = idigi_false;
     idigi_handle->network_connected = idigi_false;
     idigi_handle->active_state = idigi_device_started;
+    idigi_handle->error_code = idigi_success;
 
     /* get device id, vendor id, & device type */
     for (i=0; i < asizeof(idigi_config_request_ids); i++)
@@ -302,6 +303,8 @@ error:
                 if (idigi_handle->error_code != idigi_success)
                 {
                     result = idigi_handle->error_code;
+                    idigi_handle->error_code = idigi_success;
+
                 }
             }
         }
