@@ -1,4 +1,4 @@
-The included code in 'ethstarterkit32.X' is an MPLABX project and will not work with MPLAB 8.
+The included projects are MPLABX projects and will not work with MPLAB 8.
 
 You can download MPLABX from http://ww1.microchip.com/downloads/mplab/X_Beta/index.html.
 
@@ -6,5 +6,5 @@ The code built is designed to run on PIC32 Ethernet Starter Kit, but may work on
 
 Note that there is one hardcoding in this project, this is that the Microchip Application Libraries are stored in 
 /opt/microchip/Microchip.  You can adjust this to where you have it installed by doing a Replace All on 
-/opt/microchip/ in ethstarterkit32.X/nbproject/configurations.xml.  The TCP/IP stack included in the Microchip 
+/opt/microchip/ in ${PROJECT}/nbproject/configurations.xml.  The TCP/IP stack included in the Microchip 
 Application Libraries is used for this project.
