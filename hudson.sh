@@ -55,11 +55,11 @@ rm "${WORKSPACE}/${LICENSE}.zip"
 # Grab the getting started guide from pending if it exists
 if [ -f /eng/store/pending/90000000/${GETTING_STARTED} ]
   then
-    echo ">> Pulling Getting Started Guide from /eng/store/pending/90000000/${GETTING_STARTED} and copying to ${WORKSPACE}."
-    cp /eng/store/pending/90000000/${GETTING_STARTED} "${WORKSPACE}"
+    echo ">> Pulling Getting Started Guide from /eng/store/pending/90000000/${GETTING_STARTED} and copying to ${BASE_DIR}."
+    cp /eng/store/pending/90000000/${GETTING_STARTED} "${BASE_DIR}"
   else
-    echo ">> Pulling Getting Started Guide from /eng/store/released/90000000/${GETTING_STARTED} and copying to ${WORKSPACE}."
-    cp /eng/store/released/90000000/${GETTING_STARTED} "${WORKSPACE}"
+    echo ">> Pulling Getting Started Guide from /eng/store/released/90000000/${GETTING_STARTED} and copying to ${BASE_DIR}."
+    cp /eng/store/released/90000000/${GETTING_STARTED} "${BASE_DIR}"
 fi
 
 # Create the tarball
