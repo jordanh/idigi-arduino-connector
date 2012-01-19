@@ -88,7 +88,7 @@ int main (void)
 
         pthread_join(idigi_thread, NULL);
         pthread_join(application_thread, NULL);
-        APP_DEBUG("iDigi Stopped\n")
+        APP_DEBUG("iDigi Stopped\n");
     }
     else
     {
