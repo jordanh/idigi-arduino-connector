@@ -39,6 +39,9 @@ static void * idigi_run_thread(void * arg)
 
     status = idigi_run((idigi_handle_t)arg);
 
+    /* if status is not idigi_success, calling idigi_run
+     * again will cause to re-connect to idigi.
+     */
     APP_DEBUG("idigi_run thread exits %d\n", status);
 
     pthread_exit(arg);
