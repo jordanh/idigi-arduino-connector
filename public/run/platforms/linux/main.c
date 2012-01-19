@@ -88,10 +88,11 @@ int main (void)
 
         pthread_join(idigi_thread, NULL);
         pthread_join(application_thread, NULL);
+        APP_DEBUG("iDigi Stopped\n")
     }
     else
     {
-        printf("unable to initialize iDigi\n");
+        APP_DEBUG("unable to initialize iDigi\n");
     }
 done:
     return 0;
