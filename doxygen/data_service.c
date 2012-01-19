@@ -31,7 +31,7 @@
  * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <th>handle</th>
- * <td>@endhtmlonly @ref idigi_handle_t @htmlonly returned from the function to @endhtmlonly idigi_init() @htmlonly</td>
+ * <td>@endhtmlonly @ref idigi_handle_t @htmlonly returned from the @endhtmlonly idigi_init() @htmlonly function.</td>
  * </tr>
  * <tr>
  * <th>request</th>
@@ -39,10 +39,11 @@
  * </tr>
  * <tr>
  * <th>request_data</th>
- * <td> Pointer to @endhtmlonly idigi_data_service_put_request_t@htmlonly
- *      structure, which specifies file path, type, flags, and context.</br></br>
- *      The context field should be used to identify the Put Request session
- *      if several files are sent</br>concurrently to the iDigi Device Cloud.
+ * <td> Pointer to @endhtmlonly idigi_data_service_put_request_t @htmlonly structure:</br>
+ *      </br> - <b><i>path</i></b> - file path to store the data on device cloud
+ *      </br> - <b><i>content_type</i></b> - "text/plain", "text/xml", "application/json", etc
+ *      </br> - <b><i>flags</i></b> - @endhtmlonly @ref put_flags @htmlonly
+ *      </br> - <b><i>context</i></b> - can be used to identify the Put Request session
  * </td>
  * </tr>
  * <tr>
