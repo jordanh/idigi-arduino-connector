@@ -48,14 +48,20 @@ cp -rf docs "${BASE_DIR}"
 cp Getting\ Started.docx "${BASE_DIR}"
 
 # Grab the license
-echo ">> Pulling License from /eng/store/released/90000000/${LICENSE}.zip and copying to ${WORKSPACE}."
-cp /eng/store/released/90000000/${LICENSE}.zip "${WORKSPACE}"
+echo ">> Pulling License from /eng/public/store/released/90000000/${LICENSE}.zip and copying to ${WORKSPACE}."
+cp /eng/public/store/released/90000000/${LICENSE}.zip "${WORKSPACE}"
 unzip -o "${WORKSPACE}/${LICENSE}.zip" -d "${BASE_DIR}"
 rm "${WORKSPACE}/${LICENSE}.zip"
 
-# Grab the getting started guide
-echo ">> Pulling Getting Started Guide from /eng/store/released/90000000/${GETTING_STARTED} and copying to ${WORKSPACE}."
-cp /eng/store/released/90000000/${GETTING_STARTED} "${WORKSPACE}"
+# Grab the getting started guide from pending if it exists
+if [ -f /eng/public/store/pending/90000000/${GETTING_STARTED} ]
+  then
+    echo ">> Pulling Getting Started Guide from /eng/public/store/pending/90000000/${GETTING_STARTED} and copying to ${WORKSPACE}."
+    cp /eng/public/store/pending/90000000/${GETTING_STARTED} "${WORKSPACE}"
+  else
+    echo ">> Pulling Getting Started Guide from /eng/public/store/released/90000000/${GETTING_STARTED} and copying to ${WORKSPACE}."
+    cp /eng/public/store/released/90000000/${GETTING_STARTED} "${WORKSPACE}"
+fi
 
 # Create the tarball
 echo ">> Creating the release Tarball as ${OUTPUT_DIR}/${PKG_NAME}.tgz."
@@ -145,7 +151,7 @@ fi
 if [[ "${PENDING}" == "true" ]]; then
     # If successfull push the tarball to pending, if PENDING environment variable is set to 1.
     echo ">> Copying the Tarball to Pending."
-    cp -v ${OUTPUT_DIR}/${PKG_NAME}.tgz /eng/store/pending/40000000
+    cp -v ${OUTPUT_DIR}/${PKG_NAME}.tgz /eng/public/store/pending/40000000
 fi
 
 cleanup
