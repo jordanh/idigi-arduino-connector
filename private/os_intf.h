@@ -29,7 +29,6 @@ static void reset_initial_data(idigi_data_t * const idigi_ptr)
     idigi_ptr->edp_state = edp_init_layer;
     idigi_ptr->layer_state = 0;
     idigi_ptr->request_id = 0;
-    idigi_ptr->error_code = idigi_success;
     idigi_ptr->active_facility = NULL;
     idigi_ptr->last_rx_keepalive_sent_time = 0;
     idigi_ptr->last_tx_keepalive_received_time = 0;
