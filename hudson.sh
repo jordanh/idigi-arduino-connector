@@ -56,10 +56,10 @@ rm "${WORKSPACE}/${LICENSE}.zip"
 if [ -f /eng/store/pending/90000000/${GETTING_STARTED} ]
   then
     echo ">> Pulling Getting Started Guide from /eng/store/pending/90000000/${GETTING_STARTED} and copying to ${BASE_DIR}."
-    cp /eng/store/pending/90000000/${GETTING_STARTED} "${BASE_DIR}"
+    cp /eng/store/pending/90000000/${GETTING_STARTED} "${BASE_DIR}/GettingStarted.pdf"
   else
     echo ">> Pulling Getting Started Guide from /eng/store/released/90000000/${GETTING_STARTED} and copying to ${BASE_DIR}."
-    cp /eng/store/released/90000000/${GETTING_STARTED} "${BASE_DIR}"
+    cp /eng/store/released/90000000/${GETTING_STARTED} "${BASE_DIR}/GettingStarted.pdf"
 fi
 
 # Create the tarball
