@@ -31,7 +31,7 @@
  * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <th>handle</th>
- * <td>@endhtmlonly @ref idigi_handle_t @htmlonly returned from the function to @endhtmlonly @ref idigi_init @htmlonly</td>
+ * <td>@endhtmlonly @ref idigi_handle_t @htmlonly returned from the function to @endhtmlonly idigi_init() @htmlonly</td>
  * </tr>
  * <tr>
  * <th>request</th>
