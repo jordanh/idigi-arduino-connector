@@ -147,49 +147,38 @@
  * @note Do not execute the compile_and_link sample, this only verifies that the
  * build environment is setup correctly, the application will ASSERT when run.
  *
- * @section step4 Step 4: Get a vendor and device ID
+ * @section step4 Step 4: Setup your iDigi Account
  *
  * @subsection idigi_account Create an iDigi Account
- * Before getting started you will need to create a new iDigi account.  To create an account navigate to
- * https://developer.idigi.com/user_registration.do and fill out the iDigi registration form. 
- * If you are a current iDigi developer account user, login with your existing user name and password and proceed to:
+ * Before getting started you will need to create a new iDigi account, obtain a unique iDigi Vendor ID, which is tied
+ * to this account, and then add a device (Device ID) to be tracked for this account.
+ *
+ * The Vendor ID is a unique identifier for your company, whereas the Device ID registers a
+ * device that will be tracked to your particular Vendor ID.
+ *
+ * To create an account, navigate to
+ * https://developer.idigi.com/user_registration.do and follow the instructions to create and register your
+ * iDigi account.
+ *
+ * @note If you have already created and registiered an iDigi Account, navigate here
+ * https://developer.idigi.com/ and follow the instructions in the next step.
  *
  * @image html idigi1.jpg 
  *
  * @subsection idigi_login Login to the iDigi Server
- * 1. Navigate to http://www.idigi.com
- *
- * 2. Click the iDigi Login button in the upper right corner of the page.
- *
- * @image html idigi2.jpg 
- *
- * 3. Click the iDigi Developer Cloud Login button.
- *
- * @image html idigi3.jpg
- * 
- * You will be redirected to the iDigi Developer Cloud login page.
- *
- * 4. Login with the user credentials you created in section @ref idigi_account
+ * 1. Login with the user credentials you created in section @ref idigi_account
  * 
  * @image html idigi4.jpg
-
+ *
  * @subsection idigi_vendor_id Obtain an iDigi Vendor ID
+ * 2. If you are a first time iDigi developer, you will need to register for a Vendor ID.  This button is in the
+ * Vendor Inforamtion section on the bottom of the @b My @b Account tab after you successfully logging into
+ * https://developer.idigi.com/.
  *
- * @note You will need to contact Digi to request a vendor ID. You will need the vendor ID 
- * before your device can connect to iDigi.
+ * After selecting the register for a Vendor ID button, the page will refresh and your unique vendor ID number
+ * will be displayed in place of the button.  Record the Vendor ID, you will need it later.
  *
- * To request a vendor ID within iDigi:
- *
- * 1. Click on My Account within the left navigation panel.
- *
- * 2. Click the Register for new vendor id button.
- *
- * @image html idigi5.jpg
- *
- * The page will refresh and your unique vendor ID number will be displayed in place of the
- * Register for new vendor id button.  Record the Vendor ID you will need it later.
- *
- * @image html idigi6.jpg
+ * @note If you already have a vendor ID, it will be displayed instead of the button.
  *
  * @subsection idigi_device_id Obtain an iDigi Device ID
  *
@@ -198,15 +187,19 @@
  * The mapping from MAC address to Device ID consist of inserting "FFFF" in the middle 
  * of the MAC and setting all other bytes of the Device ID to 0.
  * For Example:
- * MAC Address 00:04:2D:01:6A:53, would map to a Device ID: 00000000-00042DFF-FF016A53
+ * MAC Address 00:04:2D:01:6A:53, would map to a Device ID: 00000000-00042DFF-FF016A53.
  * If a client has more than one network interface, it does not matter to iDigi which 
  * network interface MAC is used for the basis of the Device ID. If the MAC is read 
  * directly from the network interface to generate the client's Device ID, care must be 
  * taken to always use the same network interface's MAC since there is a unique mapping 
- * between a device and a Device ID. 
- *  Use the above mapping with your MAC address to create the Device ID and record
- * it for later.
+ * between a device and a Device ID.
  *
+ * 3. Go to the Devices tab and select the add Device button.
+ *
+ *
+ *    TO DO TO DO TO DO TO DO TO DO TO DO
+ *
+ * @image html AddDevice.jpg
  *
  * @section step5 Step 5: Setup your platform for the connect_to_idigi sample
  *
@@ -401,7 +394,7 @@
  * @note By default @ref IDIGI_DEBUG is defined in idigi_config.h, which prints helpful IIK Library debug
  * messages to the standard output.
  *
- * @subsection good_results_output Example output from a successful run of @ref step7 "connect_to_idigi"
+ * @subsection good_results_output Example output from a successful run of connect_to_idigi
  * Below is the standard output shown for a successful @ref step7 "connect_to_idigi" run:
  *
  * @code
