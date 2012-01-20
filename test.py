@@ -95,7 +95,7 @@ def run_tests(debug_on):
 
         pid = commands.getoutput('pidof -s idigi')
         if pid != '':
-            print "idigi pid %s is already exist before running idigi" % pid
+            print "idigi pid %s already exists before running idigi" % pid
 
         print '>>>Testing [%s]' % src_dir
 
@@ -123,6 +123,9 @@ def run_tests(debug_on):
             else:
                 print '>>>Executing [%s]' % test_script
                 rc = os.system('export PYTHONPATH=../;cd %s; nosetests --with-xunit --xunit-file=nosetest%1d.xml %s' % (test_dir, test_case, test_script))
+                if rc != 0:
+                    print "+++FAIL: Could not start nosetests"
+                    exit(0)
                 test_case += 1
 
         print '>>>pid [%s]' % pid
