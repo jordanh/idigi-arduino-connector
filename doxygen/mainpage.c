@@ -51,9 +51,9 @@
  * and program stack.  
  *     
  * @subsection CodespaceRequirements Code Space Estimates 
- * The following Flash/Code space data was generated using Ubuntu 4.4.3 gcc with the compile_and_link sample application.  The
- * build used optimization for size (-Os) and disabled @ref IDIGI_COMPRESSION in all cases.  The metrics exclude any code space 
- * required for application layer calls.  This information should be treated as a typical use case.  
+ * The following Flash/Code space data was generated using Ubuntu 4.4.3 gcc for 32-bit i486 architecture using the
+ * @ref step3 "compile_and_link" sample application.  The build was optimized for size (-Os) with @ref IDIGI_COMPRESSION disabled in all cases.
+ * The metrics exclude any code space required for application layer calls.  This information should be treated as a typical use case.
  * 
  * @htmlonly
  * <table class="apitable">
@@ -194,7 +194,7 @@
  * @section threading Threading Model
  *
  * The IIK can be deployed in a multithreaded (idigi_run()) or round robin control loop (idigi_step()) environment.    
- * In environemnts that include preemptive threading, the IIK can be implemented as a separate stand-alone thread
+ * In environments that include preemptive threading, the IIK can be implemented as a separate stand-alone thread
  * by calling idigi_run().  This is a blocking call that only returns due to a major system failure.
  *    
  * Alternatively, when threading is unavailable, in a round robin control loop or fixed state machine, the IIK can 
@@ -240,9 +240,11 @@
  * <td rowspan=2>public/include</td>
  * <td style="border-bottom: 0px none;"> @endhtmlonly  @ref api_overview "IIK Public API" @htmlonly </td>
  * </tr><tr>
- * <td style="border-top: 0px none;">This directory contains @endhtmlonly @ref idigi_api.h @htmlonly, the IIK public header
- * required for application development.  When porting to a new platform, you may need to modify @endhtmlonly @ref idigi_types.h @htmlonly
- * to match your platform's characteristics (i.e., data size and supported compiler data types).</td>
+ * <td style="border-top: 0px none;">Contains the three public headers: @endhtmlonly  @ref idigi_api.h,  @ref idigi_types.h,
+ * and @ref idigi_config.h @htmlonly.  The @endhtmlonly @ref api_overview "IIK Public API"  @htmlonly is located in @endhtmlonly @ref idigi_api.h @htmlonly and
+ * required for application development.  All the machine device types are located in @endhtmlonly @ref idigi_types.h @htmlonly and might
+ * require updating to match your platform's characteristics (i.e., data size and supported compiler data types).  The header @endhtmlonly
+ * @ref idigi_config.h @htmlonly contains all the IIK settings and configurations. </td>
  * </tr>
  * <tr>
  * <td rowspan=2>public/run</td>
@@ -252,10 +254,11 @@
  * the IIK as a separate thread in a multitasking environment.</td>
  * </tr>
  * <td rowspan=2>public/run/platforms</td>
- * <td style="border-bottom: 0px none;">Platforms for running the IIK as a separate thread</td>
+ * <td style="border-bottom: 0px none;">Platform files for running the IIK as a separate thread</td>
  * </tr><tr>
- * <td style="border-top: 0px none;">For each supported platform there is a sub-directory along with a set of interface routines.
- * The Getting Started Procedure will walk you through setting up your platform.</td>
+ * <td style="border-top: 0px none;">Platform dependent files that interface between the IIK library (private) and the sample applications.
+ * These files include @endhtmlonly os.c, network.c, config.c, platform.h and main.c.@htmlonly
+ * The Getting Started Procedure walks you through the process of porting and setting these platform files.</td>
  * </tr>
  * <tr>
  * <td rowspan="2">public/run/samples</td>
@@ -321,7 +324,7 @@
  * time() function:
  *
  * @code
- * int app_os_get_system_time(uint32_t * const uptime)
+ * int app_os_get_system_time(unsigned long * const uptime)
  * {
  *    time((time_t *)uptime);
  *
@@ -332,10 +335,10 @@
  * However, a platform that does not support POSIX time() might port this function as such:
  *
  * @code
- * int app_os_get_system_time(uint32_t * const uptime)
+ * int app_os_get_system_time(unsigned long * const uptime)
  * {
  *    // Note mysys_GetTickTime() returns the system up time in milliseconds
- *    extern int mysys_GetTickTime(void);
+ *    extern unsigned long mysys_GetTickTime(void);
  *
  *    *uptime = mysys_GetTickTime()/1000;
  *
