@@ -16,7 +16,7 @@ log.addHandler(handler)
 
 class DeviceConfiguration:
     
-    def __init__(self, config_file = "config.ini"):
+    def __init__(self, device_id, config_file = "config.ini"):
         # Retrieve configuration from file
         log.info("Reading configuration file.")
         config = ConfigParser.SafeConfigParser()
@@ -29,8 +29,11 @@ class DeviceConfiguration:
  
         self.vendor_id = config.get("device", "vendor_id")
   
-        self.mac_addr = config.get("device", "mac_addr")
-        self.device_id = config.get("device", "device_id")
+        if len(device_id) != 35:
+            raise Exception("Device ID must be 35 characters.")
+
+        self.mac_addr = '%s:%s' % (device_id[18:24], device_id[:-6])
+        self.device_id = device_id
         self.device_type = config.get("device", "device_type")
     
         host = config.get("device", "server_url")
