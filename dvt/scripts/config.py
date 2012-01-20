@@ -119,7 +119,6 @@ def update_config_c(cnfg_file, config, mac_addr):
   new_vendor_id += '0x' + hex_string[3:5] + ', '
   new_vendor_id += '0x' + hex_string[5:7] + ', '
   new_vendor_id += '0x' + hex_string[7:9] + '}'
-  print new_vendor_id
 
   new_device_type = '"' + config.get("device", "device_type") + '"'
   new_server_url  = '"' + config.get("device", "proxy_url") + '"'
