@@ -27,13 +27,16 @@ PUBLIC_HEADER_DIR=../../../include
 
 vpath $(IDIGI_DIR)/%.c
 
-CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR)
+CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL 
+CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -Os
 
 OBJS = main.o $(IDIGI_DIR)/idigi_api.o
 LIBS = -lc -lz
 
 SAMPLE = idigi
 all: $(SAMPLE)
+
+CFLAGS += -Wl,-Map,$(SAMPLE).map
 
 main.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h
 $(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PUBLIC_HEADER_DIR)/idigi_config.h \
@@ -46,7 +49,7 @@ $(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/
 $(OBJS): *.c $(IDIGI_DIR)/*.c
 
 $(SAMPLE): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(SAMPLE) 
+	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(SAMPLE)
 
 .PHONY: clean
 clean:

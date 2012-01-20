@@ -26,15 +26,13 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-extern bool os_malloc(size_t const size, void ** ptr);
-extern void os_free(void * const ptr);
+extern int app_os_malloc(size_t const size, void ** ptr);
+extern void app_os_free(void * const ptr);
 
-/* supported targets */
-static char const device_request_target[] = "target_name";
+/* supported target name */
+static char const device_request_target[] = "myTarget";
 
-static char device_response_data[] = "Response data for target_name\n";
-
-static char *device_response_error_data = "Unrecognized target";
+static char device_response_data[] = "My device response data";
 
 typedef struct device_request_handle {
     void * device_handle;
@@ -45,12 +43,11 @@ typedef struct device_request_handle {
 
 static unsigned int device_request_active_count = 0;
 
-static idigi_callback_status_t process_device_request(idigi_data_service_msg_request_t const * const request_data,
+static idigi_callback_status_t app_process_device_request(idigi_data_service_msg_request_t const * const request_data,
                                                       idigi_data_service_msg_response_t * const response_data)
 {
-    idigi_callback_status_t status = idigi_callback_continue;
-    idigi_data_service_device_request_t * server_device_request = request_data->service_context;
-    idigi_data_service_block_t * server_data = request_data->server_data;
+    idigi_data_service_device_request_t * const server_device_request = request_data->service_context;
+    idigi_data_service_block_t * const server_data = request_data->server_data;
 
     device_request_handle_t * client_device_request = response_data->user_context;
 
@@ -58,40 +55,40 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
 
     if ((server_data->flags & IDIGI_MSG_FIRST_DATA) == IDIGI_MSG_FIRST_DATA)
     {
-        /* 1st chunk of device request so let's allocate memory for it
-         * and setup user_context for the client_device_request.
-         */
-        void * ptr;
-
-        bool const is_ok = os_malloc(sizeof *client_device_request, &ptr);
-        if (!is_ok || ptr == NULL)
+        /* target should not be null on 1st chunk of data */
+        ASSERT(server_device_request->target != NULL);
+        if (strcmp(server_device_request->target, device_request_target) != 0)
         {
-            /* no memeory so cancel this request */
-            APP_DEBUG("process_device_request: malloc fails for device request on session %p\n", server_device_request->device_handle);
-            response_data->message_status = idigi_msg_error_memory;
+            /* unsupported target so let's cancel it */
+            response_data->message_status = idigi_msg_error_cancel;
             goto done;
         }
 
-        client_device_request = ptr;
+        /* 1st chunk of device request so let's allocate memory for it
+         * and setup user_context for the client_device_request.
+         */
+        {
+            void * ptr;
+
+            int const ccode = app_os_malloc(sizeof *client_device_request, &ptr);
+            if (ccode != 0 || ptr == NULL)
+            {
+                /* no memeory so cancel this request */
+                APP_DEBUG("app_process_device_request: malloc fails for device request on session %p\n", server_device_request->device_handle);
+                response_data->message_status = idigi_msg_error_memory;
+                goto done;
+            }
+
+            client_device_request = ptr;
+        }
         client_device_request->length_in_bytes = 0;
         client_device_request->response_data = NULL;
         client_device_request->device_handle = server_device_request->device_handle;
-        device_request_active_count++;
+        client_device_request->target = (char *)device_request_target;
 
-        response_data->user_context = client_device_request;  /* setup the user_context */
-
-        ASSERT(server_device_request->target != NULL);
-        if (strcmp(server_device_request->target, device_request_target) == 0)
-        {
-            client_device_request->target = (char *)device_request_target;
-            client_device_request->response_data = device_response_data;
-        }
-        else
-        {
-            client_device_request->target = NULL;
-            client_device_request->response_data = device_response_error_data;
-        }
-
+         /* setup the user_context for our device request data */
+         response_data->user_context = client_device_request;
+         device_request_active_count++;
     }
     else
     {
@@ -104,34 +101,32 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
         char * device_request_data = server_data->data;
         if (client_device_request->target != NULL)
         {
-            APP_DEBUG("Device request data: received data = \"%.*s\" for target = \"%s\"\n", server_data->length_in_bytes,
+            /* target is only available on 1st chunk of data */
+            APP_DEBUG("Device request data: received data = \"%.*s\" for target = \"%s\"\n", (int)server_data->length_in_bytes,
                     device_request_data, client_device_request->target);
         }
         else
         {
-            APP_DEBUG("Device request data: received data = \"%.*s\" for unknown target\n", server_data->length_in_bytes,
+            APP_DEBUG("Device request data: received data = \"%.*s\" for unknown target\n", (int)server_data->length_in_bytes,
                     device_request_data);
 
         }
     }
 
-    client_device_request->length_in_bytes += server_data->length_in_bytes;
-
     if ((server_data->flags & IDIGI_MSG_LAST_DATA) == IDIGI_MSG_LAST_DATA)
-    {   /* No more chunk. setup the response length to be sent */
+    {   /* No more chunk */
+        /* setup response data for this target */
+        client_device_request->response_data = device_response_data;
         client_device_request->length_in_bytes = strlen(client_device_request->response_data);
     }
 
-    response_data->message_status = idigi_msg_error_none;
-
 done:
-    return status;
+    return idigi_callback_continue;
 }
 
-static idigi_callback_status_t process_device_response(idigi_data_service_msg_request_t const * const request_data,
+static idigi_callback_status_t app_process_device_response(idigi_data_service_msg_request_t const * const request_data,
                                                        idigi_data_service_msg_response_t * const response_data)
 {
-    idigi_callback_status_t status = idigi_callback_continue;
     device_request_handle_t * const client_device_request = response_data->user_context;
 
     UNUSED_ARGUMENT(request_data);
@@ -145,7 +140,7 @@ static idigi_callback_status_t process_device_response(idigi_data_service_msg_re
         /* get number of bytes written to the client data buffer */
         size_t const bytes = (client_device_request->length_in_bytes < client_data->length_in_bytes) ? client_device_request->length_in_bytes : client_data->length_in_bytes;
 
-        APP_DEBUG("Device response data: send response data = %.*s\n", bytes, client_device_request->response_data);
+        APP_DEBUG("Device response data: send response data = %.*s\n", (int)bytes, client_device_request->response_data);
 
         /* let's copy the response data to service_response buffer */
         memcpy(client_data->data, client_device_request->response_data, bytes);
@@ -165,30 +160,29 @@ static idigi_callback_status_t process_device_response(idigi_data_service_msg_re
     if (client_device_request->length_in_bytes == 0)
     {   /* done */
         device_request_active_count--;
-        os_free(client_device_request);
+        app_os_free(client_device_request);
     }
-    return status;
+    return idigi_callback_continue;
 }
 
-static idigi_callback_status_t process_device_error(idigi_data_service_msg_request_t const * const request_data,
+static idigi_callback_status_t app_process_device_error(idigi_data_service_msg_request_t const * const request_data,
                                                     idigi_data_service_msg_response_t * const response_data)
 {
-    idigi_callback_status_t status = idigi_callback_continue;
     device_request_handle_t * const client_device_request = response_data->user_context;
     idigi_data_service_block_t * error_data = request_data->server_data;
     idigi_msg_error_t const error_code = *((idigi_msg_error_t *)error_data->data);
 
 
-    APP_DEBUG("process_device_error: handle %p error %d from server\n",
+    APP_DEBUG("app_process_device_error: handle %p error %d from server\n",
                 client_device_request->device_handle, error_code);
 
     device_request_active_count--;
-    os_free(client_device_request);
+    app_os_free(client_device_request);
 
-    return status;
+    return idigi_callback_continue;
 }
 
-idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t const request,
+idigi_callback_status_t app_data_service_handler(idigi_data_service_request_t const request,
                                                       void const * request_data, size_t const request_length,
                                                       void * response_data, size_t * const response_length)
 {
@@ -203,16 +197,16 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
         switch (service_device_request->message_type)
         {
         case idigi_data_service_type_have_data:
-            status = process_device_request(request_data, response_data);
+            status = app_process_device_request(request_data, response_data);
             break;
         case idigi_data_service_type_need_data:
-            status = process_device_response(request_data, response_data);
+            status = app_process_device_response(request_data, response_data);
             break;
         case idigi_data_service_type_error:
-            status = process_device_error(request_data, response_data);
+            status = app_process_device_error(request_data, response_data);
             break;
         default:
-            APP_DEBUG("idigi_put_request_callback: unknown message type %d for idigi_data_service_device_request\n", service_device_request->message_type);
+            APP_DEBUG("app_data_service_handler: unknown message type %d for idigi_data_service_device_request\n", service_device_request->message_type);
             break;
         }
     }
