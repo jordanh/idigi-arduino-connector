@@ -38,7 +38,9 @@ int main (void)
 
     APP_DEBUG("main: Starting iDigi\n");
     /* TODO: Initialized iik by calling idigi_init
-     * with a callback. Replace your callback function.
+     * with a callback. Replace idigi_callback with
+     * your callback function or add idigi_callback.
+     *
      */
     idigi_handle = idigi_init((idigi_callback_t) idigi_callback);
     if (idigi_handle == NULL)
