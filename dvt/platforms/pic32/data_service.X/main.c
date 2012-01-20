@@ -95,8 +95,8 @@ int main(void){
                 if(connect_time == 0){
                     connect_time = get_uptime();
                 }
-                else if(cur_time - 120 > connect_time){
-                    // Been 5 second since connection established
+                else if(cur_time - 10 > connect_time){
+                    // Been 10 seconds since connection established
                     // Assume discovery complete.
                     // TODO: Make this more intelligent (detect discovery complete?)
                     idigi_config.connected = true;
@@ -105,10 +105,10 @@ int main(void){
                         idigi_data_service_put_request_t data_service_request;
                         data_service_request.content_type = content_type;
                         data_service_request.path = path;
-                        char buffer[255];
-                        int time = SNTPGetUTCSeconds()-5;
+                        char buffer[50];
+                        int time = SNTPGetUTCSeconds();
                         sprintf(buffer, connect_log_proto, time, idigi_config.server_url);
-                        data_service_request.context = buffer;
+                        data_service_request.context = &buffer;
                         if(!initial_connect){ // Append if this is a reconnect.
                             data_service_request.flags = IDIGI_DATA_PUT_APPEND;
                         }

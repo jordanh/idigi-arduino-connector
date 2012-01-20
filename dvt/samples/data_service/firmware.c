@@ -184,23 +184,19 @@ static idigi_callback_status_t app_firmware_reset(idigi_fw_config_t const * cons
 {
     extern idigi_handle_t idigi_handle;
     extern pthread_t application_thread;
-    extern unsigned int put_file_active_count;
 
-    idigi_callback_status_t status = idigi_callback_busy;
+    idigi_callback_status_t status ;
 
 
     UNUSED_ARGUMENT(reset_data);
     APP_DEBUG("firmware_reset\n");
 
-    if (put_file_active_count > 0)
-    {
-        /* let's terminate IIK and free all memory used in IIK.
-         *
-         */
-        idigi_initiate_action(idigi_handle, idigi_initiate_terminate, NULL, NULL);
-        pthread_cancel(application_thread);
-        status = idigi_callback_continue;
-    }
+    /* let's terminate IIK and free all memory used in IIK.
+     *
+     */
+    idigi_initiate_action(idigi_handle, idigi_initiate_terminate, NULL, NULL);
+    pthread_cancel(application_thread);
+    status = idigi_callback_continue;
 
     return status;
 }

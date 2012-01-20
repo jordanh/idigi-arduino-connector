@@ -66,7 +66,7 @@ class DisconnectTestCase(unittest.TestCase):
         config.api.sci(disconnect_request)
         
         # Determine if device disconnects and reconnects
-        determine_disconnect_reconnect(self, config, last_connected, 30)
+        determine_disconnect_reconnect(self, config, last_connected, 60)
 
 class RebootTestCase(unittest.TestCase):
     
@@ -99,7 +99,7 @@ class RebootTestCase(unittest.TestCase):
         log.info("response to reboot request = %s" % response)
         
         # Determine if device disconnects and reconnects
-        determine_disconnect_reconnect(self, config, last_connected, 30)
+        determine_disconnect_reconnect(self, config, last_connected, 60)
         
         
 if __name__ == '__main__':

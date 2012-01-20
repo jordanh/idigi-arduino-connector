@@ -6,6 +6,7 @@ OUTPUT_DIR=$WORKSPACE/output
 PART_NUMBER=40003007
 PKG_NAME=${PART_NUMBER}_${REVISION}
 LICENSE=90002145_A
+GETTING_STARTED=90002142_C.pdf
 
 function cleanup () 
 {
@@ -44,13 +45,22 @@ mkdir -p "${BASE_DIR}"
 cp -rf private "${BASE_DIR}"
 cp -rf public "${BASE_DIR}"
 cp -rf docs "${BASE_DIR}"
-cp Getting\ Started.docx "${BASE_DIR}"
 
 # Grab the license
 echo ">> Pulling License from /eng/store/released/90000000/${LICENSE}.zip and copying to ${WORKSPACE}."
 cp /eng/store/released/90000000/${LICENSE}.zip "${WORKSPACE}"
 unzip -o "${WORKSPACE}/${LICENSE}.zip" -d "${BASE_DIR}"
 rm "${WORKSPACE}/${LICENSE}.zip"
+
+# Grab the getting started guide from pending if it exists
+if [ -f /eng/store/pending/90000000/${GETTING_STARTED} ]
+  then
+    echo ">> Pulling Getting Started Guide from /eng/store/pending/90000000/${GETTING_STARTED} and copying to ${BASE_DIR}."
+    cp /eng/store/pending/90000000/${GETTING_STARTED} "${BASE_DIR}/GettingStarted.pdf"
+  else
+    echo ">> Pulling Getting Started Guide from /eng/store/released/90000000/${GETTING_STARTED} and copying to ${BASE_DIR}."
+    cp /eng/store/released/90000000/${GETTING_STARTED} "${BASE_DIR}/GettingStarted.pdf"
+fi
 
 # Create the tarball
 echo ">> Creating the release Tarball as ${OUTPUT_DIR}/${PKG_NAME}.tgz."

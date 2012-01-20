@@ -261,6 +261,8 @@ class Api:
     def __init__(self, username, password,
                  hostname='developer.idigi.com', ws_root='/ws'):
         self.hostname = hostname
+        self.username = username
+        self.password = password
         self.ws_root = ws_root
         self.headers = {
             'Content-Type' : 'text/xml',

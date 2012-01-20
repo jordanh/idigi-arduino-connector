@@ -99,20 +99,19 @@ def update_idigi_config_c(src_file, config):
     outfile.write(line)
   outfile.close()
 
-def update_config_c(cnfg_file, config):
+def update_config_c(cnfg_file, config, mac_addr):
 
   old_mac = '{0x00, 0x00, 0x00, 0x00, 0x00, 0x00}'
   old_vendor_id = '{0x00, 0x00, 0x00, 0x00}'
   old_device_type = '"Linux Application"'
   old_server_url = '"developer.idigi.com"'
 
-  mac_str = config.get("device", "mac_addr")
-  new_mac = '{' + '0x' + mac_str[0] + mac_str[1] + ', '
-  new_mac += '0x' + mac_str[2] + mac_str[3] + ', '
-  new_mac += '0x' + mac_str[4] + mac_str[5] + ', '
-  new_mac += '0x' + mac_str[7] + mac_str[8] + ', '
-  new_mac += '0x' + mac_str[9] + mac_str[10] + ', '
-  new_mac += '0x' + mac_str[11] + mac_str[12] + '}'
+  new_mac = '{' + '0x' + mac_addr[0] + mac_addr[1] + ', '
+  new_mac += '0x' + mac_addr[2] + mac_addr[3] + ', '
+  new_mac += '0x' + mac_addr[4] + mac_addr[5] + ', '
+  new_mac += '0x' + mac_addr[7] + mac_addr[8] + ', '
+  new_mac += '0x' + mac_addr[9] + mac_addr[10] + ', '
+  new_mac += '0x' + mac_addr[11] + mac_addr[12] + '}'
 
   vendor_id = config.getint("device", "vendor_id")
   hex_string = hex(vendor_id)
@@ -135,9 +134,9 @@ def update_config_header(header_file, ini_file):
   config.read(ini_file)
   update_idigi_config_h(header_file, config)
 
-def update_config_source(cnfg_file, ini_file):
+def update_config_source(cnfg_file, ini_file, mac_addr):
   config = ConfigParser.SafeConfigParser()
   config.read(ini_file)
   update_idigi_config_c(cnfg_file, config)
-  update_config_c(cnfg_file, config)
+  update_config_c(cnfg_file, config, mac_addr)
 

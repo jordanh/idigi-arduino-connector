@@ -168,8 +168,20 @@ void * idigi_run_thread(void * arg)
 
     APP_DEBUG("idigi_run_thread starts %d Stack = %p to %p (size = %zu)\n", getpid(), stack_top, stack_bottom, stack_size);
 
-    idigi_run_thread_status = idigi_run((idigi_handle_t)arg);
-
+    while (idigi_run_thread_status == idigi_success)
+    {
+        idigi_run_thread_status = idigi_run((idigi_handle_t)arg);
+        if (idigi_run_thread_status == idigi_receive_error ||
+            idigi_run_thread_status == idigi_send_error)
+        {
+            if (errno == ECONNRESET)
+            {
+                APP_DEBUG("idigi_run_thread: idigi_run returns %d. Let's continue calling idigi_run since it's connection reset by peer\n",
+                        idigi_run_thread_status);
+                idigi_run_thread_status = idigi_success;
+            }
+        }
+    }
     APP_DEBUG("idigi_run thread exits %d\n", idigi_run_thread_status);
 
     PrintSummaryStack();

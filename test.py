@@ -91,9 +91,10 @@ test_table = [
               #[BASE_DVT_SRC+'data_service',         BASE_SCRIPT_DIR+'admin_tests',  ['test_nodebug_redirect.py']],
 ]
 
-def build_test(dir):
+def build_test(dir, stdout=subprocess.PIPE):
+
     process = subprocess.Popen(['make', 'clean', 'all'], cwd=dir, 
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        stdout=stdout, stderr=subprocess.STDOUT)
     process.wait()
     if process.returncode != 0:
         print "+++FAIL: Build failed dir=[%s]" % dir
@@ -138,6 +139,7 @@ def sandbox(directory):
 
 def run_tests(description, base_dir, debug_on, api, replace_list=[], 
     update_config_header=False):
+
     sandbox_dir = sandbox(base_dir)
 
     try: 
@@ -162,21 +164,21 @@ def run_tests(description, base_dir, debug_on, api, replace_list=[],
             print '>>> Testing [%s]' % src_dir
 
             stdout_path = os.path.join(base_dir, '%s_%s' % (description, STDOUT_FILE))
-            #stdout_file = open(stdout_path, 'wb')
-            rc = build_test(src_dir)
-            #stdout_file.close()
+            stdout_file = open(stdout_path, 'w')
+            rc = build_test(src_dir, stdout_file)
+            stdout_file.close()
+
             if rc != 0:
                 raise Exception("Failed to Build from %s." % src_dir)
         
             #stdout_file = open(stdout_path, 'a')
 
             stderr_path = os.path.join(base_dir, '%s_%s' % (description, STDERR_FILE))
-            #stderr_file = open(stderr_path, 'w')
 
             print '>>> Starting idigi'
             iik_path = os.path.join(src_dir, 'idigi')
 
-            process = subprocess.Popen('%s > %s 2> %s &' % (iik_path, 
+            process = subprocess.Popen('%s >> %s 2> %s &' % (iik_path, 
                 stdout_path, stderr_path), shell=True)
 
             print '>>> Started idigi'

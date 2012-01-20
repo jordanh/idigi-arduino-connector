@@ -88,7 +88,7 @@
 
 
 /**
- * This is a compilation convenience definition.  See @ref IDIGI_COMPRESSION.
+ * This is a compilation convenience definition.  See @ref IDIGI_NO_COMPRESSION.
  *
  */
 #define IDIGI_NO_COMPRESSION
@@ -107,7 +107,7 @@
  *
  * ...
  *
- * #define IDIGI_COMPRESSION
+ * #define IDIGI_NO_COMPRESSION
  * #endif
  * @endcode
  *
@@ -118,13 +118,13 @@
  *
  * ...
  *
- * #define IDIGI_COMPRESSION
+ * #define IDIGI_NO_COMPRESSION
  * #endif
  * @endcode
  *
  * Or just this:
  * @code
- * #define IDIGI_COMPRESSION
+ * #define IDIGI_NO_COMPRESSION
  * @endcode
  *
  * @note When included, this requires the @ref zlib "zlib" library.
@@ -134,7 +134,7 @@
  * @see @ref IDIGI_NO_COMPRESSION
  *
  */
-#define IDIGI_COMPRESSION
+#define IDIGI_NO_COMPRESSION
 #endif
 
 /** 
@@ -152,7 +152,7 @@
  *
  * @see @ref data_service_support
  * @see @ref zlib
- * @see @ref IDIGI_COMPRESSION
+ * @see @ref IDIGI_NO_COMPRESSION
  */
 #define IDIGI_DATA_SERVICE
 

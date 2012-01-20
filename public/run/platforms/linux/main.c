@@ -39,6 +39,9 @@ static void * idigi_run_thread(void * arg)
 
     status = idigi_run((idigi_handle_t)arg);
 
+    /* if status is not idigi_success, calling idigi_run
+     * again will cause to re-connect to idigi.
+     */
     APP_DEBUG("idigi_run thread exits %d\n", status);
 
     pthread_exit(arg);
@@ -85,10 +88,11 @@ int main (void)
 
         pthread_join(idigi_thread, NULL);
         pthread_join(application_thread, NULL);
+        APP_DEBUG("iDigi Stopped\n");
     }
     else
     {
-        printf("unable to initialize iDigi\n");
+        APP_DEBUG("unable to initialize iDigi\n");
     }
 done:
     return 0;
