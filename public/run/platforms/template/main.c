@@ -30,9 +30,9 @@
 int main (void)
 {
 
-    /* TODO: should start a thread to initialize and start idigi.
+    /* TODO: should start a thread to initialize and start IIK.
      * idigi_init() and idigi_run should be called to initialize
-     * and start idigi.
+     * and start IIK.
      */
 
     return 0;
