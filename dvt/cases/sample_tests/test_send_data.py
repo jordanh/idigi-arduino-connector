@@ -25,6 +25,7 @@ class SendDataTestCase(iik_testcase.TestCase):
         # Create paths to files.
         file_name = 'test/test.txt'
         file_location = filedata + self.device_config.device_id + '/' + file_name
+        self.log.info("Attempting to Retrieve data from File Location: %s" % file_location)
         match = re.match(".*\/(.*)$", file_name)
         if match:
             file_name = match.groups()[0]
@@ -32,9 +33,9 @@ class SendDataTestCase(iik_testcase.TestCase):
         # Check for existing file and its contents.
         try:
             file_content = self.api.get_raw(file_location)
-        except Exception:
-            file_content = ''
-            self.log.info("File %s doesn't exist" %file_name)
+        except Exception, e:
+            self.failureException = e
+            self.fail('Failed to Get Device Contents.  Reason: %s' % e)
         
         # Verify file's contents        
         self.assertEqual(expected_content, file_content, 
