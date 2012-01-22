@@ -154,12 +154,6 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
                 idigi_executable, stderr_path))
             if rc != 0:
                 raise Exception("+++FAIL: Could not start idigi dir=[%s]" % src_dir)
-            
-            pid = commands.getoutput('pidof -s %s' % idigi_executable)
-            if pid == '':
-                raise Exception(">>> [%s] idigi not running dir=[%s]" % (description, src_dir))
-
-            print '>>> [%s] Started idigi' % description
 
             connected = False
             for _ in xrange(1,10):
@@ -171,9 +165,15 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
                     break
                 else:
                     time.sleep(1)
-        
+
+            pid = commands.getoutput('pidof -s %s' % idigi_executable)
+            if pid == '':
+                raise Exception(">>> [%s] idigi not running dir=[%s]" % (description, src_dir))
+
             if not connected:
                 raise Exception("Device %s was not connected after 10 seconds." % device_id)
+
+            print '>>> [%s] Started idigi' % description
 
             try:
                 for test_script in test_list:
