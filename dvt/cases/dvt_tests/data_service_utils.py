@@ -120,7 +120,7 @@ def get_filedatahistory(api, file_history_location):
     and then parses it into separate enries
     """
     
-    log.info("Verifying data in FileDataHistory")
+    log.info("Verifying data in %s" % file_history_location)
     fdh_response = api.get_raw(file_history_location, embed='true', 
         orderby='fdLastModifiedDate')
     dom = xml.dom.minidom.parseString(fdh_response)
