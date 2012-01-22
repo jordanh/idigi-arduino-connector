@@ -1,8 +1,5 @@
-import idigi_ws_api
-import logging
 import time
-import unittest
-import configuration
+import iik_testcase
 
 from base64 import encodestring
 
@@ -13,18 +10,7 @@ impl = getDOMImplementation()
 # from utils import getText, determine_disconnect_reconnect, update_firmware
 from utils import determine_disconnect_reconnect
 
-config = configuration.DeviceConfiguration('config.ini')
 nonidigi_host = 'google.com'
-
-
-log = logging.getLogger('connectioncontrol')
-log.setLevel(logging.INFO)
-
-handler = logging.StreamHandler()
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-log.addHandler(handler)
 
 DESTINATION = "<destination>%s</destination>"
 
@@ -79,18 +65,18 @@ FIRMWARE_ZERO_DATA_REQUEST= \
     </update_firmware>
 </sci_request>"""
 
-class Redirect3UrlsTestCase(unittest.TestCase):
+class Redirect3UrlsTestCase(iik_testcase.TestCase):
     
     def setUp(self):
         # Ensure device is connected.
-        log.info("Ensuring Device %s is connected." % config.device_id)
-        self.device_core = config.api.get_first('DeviceCore', 
-                        condition="devConnectwareId='%s'" % config.device_id)
+        self.log.info("Ensuring Device %s is connected." % self.device_config.device_id)
+        self.device_core = self.api.get_first('DeviceCore', 
+                        condition="devConnectwareId='%s'" % self.device_config.device_id)
         
         # If not connected, fail the TestCase.
         if not self.device_core.dpConnectionStatus == '1':
             self.assertEqual('1', self.device_core.dpConnectionStatus, 
-                "Device %s not connected." % config.device_id)
+                "Device %s not connected." % self.device_config.device_id)
 
     def test_redirect_three_destinations(self):
     
@@ -100,26 +86,25 @@ class Redirect3UrlsTestCase(unittest.TestCase):
         Test may terminate IIK device session running in debug.
         """
         
-        log.info("***** Beginnning Redirect Test with three destination URLs *****")
+        self.log.info("***** Beginnning Redirect Test with three destination URLs *****")
         last_connected = self.device_core.dpLastConnectTime
         
         # Send redirect with three destinations
-        log.info("Sending Connection Control Redirect to %s." % config.device_id)
-        destinations = DESTINATION % config.api.hostname + DESTINATION % config.api.hostname + DESTINATION % config.api.hostname
+        self.log.info("Sending Connection Control Redirect to %s." % self.device_config.device_id)
+        destinations = DESTINATION % self.api.hostname + DESTINATION % self.api.hostname + DESTINATION % self.api.hostname
         redirect_request = REDIRECT_REQUEST % \
-            (config.device_id, destinations)
+            (self.device_config.device_id, destinations)
         
-        response = config.api.sci_expect_fail(redirect_request)
-        log.info("response:\n%s" % response)
+        response = self.api.sci_expect_fail(redirect_request)
+        self.log.info("response:\n%s" % response)
         
-        log.info("Determining if device was redirected.")
+        self.log.info("Determining if device was redirected.")
         redirected = response.find("redirected")
         self.assertNotEqual(-1, redirected, "Unexpected response: %s." % response)
         
         # Determine if device disconnects and reconnects
-        determine_disconnect_reconnect(self, config, last_connected, 30)
+        determine_disconnect_reconnect(self, self.device_config, self.api, last_connected, 30)
        
  
 if __name__ == '__main__':
-
     unittest.main()
