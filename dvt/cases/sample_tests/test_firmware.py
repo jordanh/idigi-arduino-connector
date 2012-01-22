@@ -1,6 +1,5 @@
-import logging
 import time
-import unittest
+import iik_testcase
 from base64 import encodestring
 
 import xml.dom.minidom
@@ -8,19 +7,7 @@ from xml.dom.minidom import getDOMImplementation
 impl = getDOMImplementation()
 
 import idigi_ws_api
-import configuration
 from utils import getText, determine_disconnect_reconnect, update_firmware
-
-config = configuration.DeviceConfiguration('config.ini')
-
-log = logging.getLogger('firmware')
-log.setLevel(logging.INFO)
-
-handler = logging.StreamHandler()
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-log.addHandler(handler)
 
 target = 0
 
@@ -33,19 +20,7 @@ FIRMWARE_QUERY_REQUEST = \
   </query_firmware_targets>
 </sci_request>"""
     
-class FirmwareTestCase(unittest.TestCase):
-    
-    def setUp(self):
-        # Ensure device is connected.
-        log.info("Ensuring Device %s is connected." % config.device_id)
-        self.device_core = config.api.get_first('DeviceCore', 
-                        condition="devConnectwareId='%s'" % config.device_id)
-        
-        # If not connected, fail the TestCase.
-        if not self.device_core.dpConnectionStatus == '1':
-            self.assertEqual('1', self.device_core.dpConnectionStatus, 
-                "Device %s not connected." % config.device_id)
-    
+class FirmwareTestCase(iik_testcase.TestCase):    
 
     def test_confirm_firmware_version_match(self):
     
@@ -53,17 +28,17 @@ class FirmwareTestCase(unittest.TestCase):
         firmware version in configuration.
         """
         
-        log.info("Beginning Test to Confirm Firmware Version.")
+        self.log.info("Beginning Test to Confirm Firmware Version.")
         # Retrieve Firmware Version
-        log.info("Retrieving Firmware Version from %s." % config.device_id)
-        new_device_core = config.api.get_first('DeviceCore',
-                        condition="devConnectwareId='%s'" % config.device_id)
+        self.log.info("Retrieving Firmware Version from %s." % self.device_config.device_id)
+        new_device_core = self.api.get_first('DeviceCore',
+                        condition="devConnectwareId='%s'" % self.device_config.device_id)
         # Ensure firmware version is correct
         self.assertEqual(new_device_core.dpFirmwareLevelDesc, 
-                        config.firmware_version,
+                        self.device_config.firmware_version,
                         "Firmware Version (%s) does not match expected (%s)" % 
                         (new_device_core.dpFirmwareLevelDesc, 
-                        config.firmware_version))
+                        self.device_config.firmware_version))
     
     def test_validate_firmware_targets(self):
     
@@ -71,21 +46,21 @@ class FirmwareTestCase(unittest.TestCase):
         targets in the configuration.
         """
     
-        log.info("Beginning Test to Validate Firmware Targets.")
-        log.info("Sending firmware target query to %s." % config.device_id)
+        self.log.info("Beginning Test to Validate Firmware Targets.")
+        self.log.info("Sending firmware target query to %s." % self.device_config.device_id)
         
         # Send firmware target query request
-        firmware_targets_xml = config.api.sci(FIRMWARE_QUERY_REQUEST % 
-            config.device_id)
+        firmware_targets_xml = self.api.sci(FIRMWARE_QUERY_REQUEST % 
+            self.device_config.device_id)
         
         # Parse request response for firmware targets
         dom = xml.dom.minidom.parseString(firmware_targets_xml)
         targets = dom.getElementsByTagName("target")
         
-        log.info("Determining if the number of targets matches targets in configuration.")
-        self.assertEqual(len(targets), len(config.firmware_target), 
+        self.log.info("Determining if the number of targets matches targets in configuration.")
+        self.assertEqual(len(targets), len(self.device_config.firmware_target), 
             "number of returned firmware targets (%i) does not match number of targets given (%i)" 
-            % (len(targets), len(config.firmware_target)))
+            % (len(targets), len(self.device_config.firmware_target)))
                 
         for i in range(len(targets)):
             target = int(targets[i].getAttribute("number"))
@@ -93,13 +68,13 @@ class FirmwareTestCase(unittest.TestCase):
                                     getText(targets[i].getElementsByTagName("pattern")[0]),
                                     getText(targets[i].getElementsByTagName("version")[0])]
                                     
-            log.info("firmware target %i name: %s" % (target, parse_firmware_target[0]))
-            log.info("firmware target %i pattern: %s" % (target, parse_firmware_target[1]))
-            log.info("firmware target %i version: %s" % (target, parse_firmware_target[2]))
-            log.info("Determining if firmware target %s matches given target" % target)
-            self.assertEqual(parse_firmware_target, config.firmware_target[target], 
+            self.log.info("firmware target %i name: %s" % (target, parse_firmware_target[0]))
+            self.log.info("firmware target %i pattern: %s" % (target, parse_firmware_target[1]))
+            self.log.info("firmware target %i version: %s" % (target, parse_firmware_target[2]))
+            self.log.info("Determining if firmware target %s matches given target" % target)
+            self.assertEqual(parse_firmware_target, self.device_config.firmware_target[target], 
                             "Firmware Target %s does not match given target %s" %  
-                            (parse_firmware_target, config.firmware_target[target])) 
+                            (parse_firmware_target, self.device_config.firmware_target[target])) 
     
 
     def test_update_firmware_bytarget_multitargets(self):
@@ -108,35 +83,35 @@ class FirmwareTestCase(unittest.TestCase):
         is submitted and that the device disconnects and reconnects
         """
         
-        log.info("Beginning Test to Update Firmware by Target.")
+        self.log.info("Beginning Test to Update Firmware by Target.")
         last_connected = self.device_core.dpLastConnectTime
         
-        log.info("Sending firmware target query to %s." % config.device_id)
+        self.log.info("Sending firmware target query to %s." % self.device_config.device_id)
         
         # Determine if device has firmware targets
-        firmware_targets_xml = config.api.sci(FIRMWARE_QUERY_REQUEST % 
-            config.device_id)
+        firmware_targets_xml = self.api.sci(FIRMWARE_QUERY_REQUEST % 
+            self.device_config.device_id)
         dom = xml.dom.minidom.parseString(firmware_targets_xml)
         targets = dom.getElementsByTagName("target")
         
-        log.info("Determining if the device has defined firmware targets.")
+        self.log.info("Determining if the device has defined firmware targets.")
         self.assertNotEqual(0, len(targets), 
-                "No targets exist on device %s" % config.device_id)
+                "No targets exist on device %s" % self.device_config.device_id)
         
         # Send request to update firmware
-        log.info("Sending request to update firmware.")
-        response = update_firmware(config.api, config.device_id, 
-            config.firmware_target_file[target], "%d" % target)
+        self.log.info("Sending request to update firmware.")
+        response = update_firmware(self.api, self.device_config.device_id, 
+            self.device_config.firmware_target_file[target], "%d" % target)
         
         # Print response
-        log.info("response: \n%s" % response)
+        self.log.info("response: \n%s" % response)
        
         # Determine if Firmware was submitted
         submitted = response.find("submitted")
         self.assertNotEqual(-1, submitted, "Firmware was not submitted.")        
 
         # Check if the device disconnects and reconnects
-        determine_disconnect_reconnect(self, config, last_connected)
+        determine_disconnect_reconnect(self, self.device_config, self.api, last_connected)
         
     
     def test_update_firmware_nonexisting_target(self):
@@ -145,17 +120,17 @@ class FirmwareTestCase(unittest.TestCase):
         that an error message is returned.
         """
         
-        log.info("Beginning Test to Update Non-Existing Firmware Target.")
+        self.log.info("Beginning Test to Update Non-Existing Firmware Target.")
         # Check time the device was last connected
         last_connected = self.device_core.dpLastConnectTime
         
         # Send firmware target query
-        log.info("Sending firmware target query to %s." % config.device_id)
+        self.log.info("Sending firmware target query to %s." % self.device_config.device_id)
                 
-        firmware_targets_xml = config.api.sci(FIRMWARE_QUERY_REQUEST % config.device_id)
+        firmware_targets_xml = self.api.sci(FIRMWARE_QUERY_REQUEST % self.device_config.device_id)
         
         # Determine number of firmware targets
-        log.info("Determining number of firmware targets.")
+        self.log.info("Determining number of firmware targets.")
         dom = xml.dom.minidom.parseString(firmware_targets_xml)
         targets = dom.getElementsByTagName("target")
         
@@ -163,15 +138,15 @@ class FirmwareTestCase(unittest.TestCase):
         upgrade_target = len(targets)
         
         #Send upgrade request
-        log.info("Sending request to update firmware on target %d." % upgrade_target)
-        response = update_firmware(config.api, config.device_id, 
-            config.firmware_target_file[target], "%d" % upgrade_target)
+        self.log.info("Sending request to update firmware on target %d." % upgrade_target)
+        response = update_firmware(self.api, self.device_config.device_id, 
+            self.device_config.firmware_target_file[target], "%d" % upgrade_target)
         
-        log.info("response: \n%s" % response)
+        self.log.info("response: \n%s" % response)
         
         # Verify that firmware was not updated 
         # should not find "submitted" in response
-        log.info("Verify that the firmware was not updated.")
+        self.log.info("Verify that the firmware was not updated.")
         submitted = response.find("submitted")
         self.assertEqual(-1, submitted, 
                 "Firmware was successfully submitted to non-existing target.")
@@ -190,25 +165,25 @@ class FirmwareTestCase(unittest.TestCase):
         reconnects
         """
     
-        log.info("Beginning Test to Update Firmware While Update in Progress.")
+        self.log.info("Beginning Test to Update Firmware While Update in Progress.")
         # Check time the device was last connected
         last_connected = self.device_core.dpLastConnectTime
         
         # Send firmware target query
-        log.info("Sending firmware target query to %s." % config.device_id)
+        self.log.info("Sending firmware target query to %s." % self.device_config.device_id)
                
         # Find firmware targets
-        firmware_targets_xml = config.api.sci(FIRMWARE_QUERY_REQUEST % 
-            config.device_id)
+        firmware_targets_xml = self.api.sci(FIRMWARE_QUERY_REQUEST % 
+            self.device_config.device_id)
         dom = xml.dom.minidom.parseString(firmware_targets_xml)
         targets = dom.getElementsByTagName("target")
         
-        log.info("Determining if the device has defined firmware targets.")
+        self.log.info("Determining if the device has defined firmware targets.")
         self.assertNotEqual(0, len(targets), 
-                "No targets exist on device %s" % config.device_id)
+                "No targets exist on device %s" % self.device_config.device_id)
         
         # Encode firmware for transmittal
-        f = open(config.firmware_target_file[target], 'rb')
+        f = open(self.device_config.firmware_target_file[target], 'rb')
         data_value = encodestring(f.read())
         f.close()
         
@@ -221,7 +196,7 @@ class FirmwareTestCase(unittest.TestCase):
         </targets>
         <data>%s</data>
     </update_firmware>
-</sci_request>""" % ("%d" % target, config.device_id, data_value)
+</sci_request>""" % ("%d" % target, self.device_config.device_id, data_value)
 
         # Create synchronous update request
         upgrade_firmware_request_synch= \
@@ -232,17 +207,17 @@ class FirmwareTestCase(unittest.TestCase):
         </targets>
         <data>%s</data>
     </update_firmware>
-</sci_request>""" % ("%d" % target, config.device_id, data_value)
+</sci_request>""" % ("%d" % target, self.device_config.device_id, data_value)
         
         # Send asynchronous update request
-        log.info("Sending request to update firmware asynchronously.")
-        response_asynch = config.api.sci(upgrade_firmware_request_asynch)
-        log.info("Response to Asynchronous Update:\n%s" % response_asynch)
+        self.log.info("Sending request to update firmware asynchronously.")
+        response_asynch = self.api.sci(upgrade_firmware_request_asynch)
+        self.log.info("Response to Asynchronous Update:\n%s" % response_asynch)
         
         # Send synchronous update request
-        log.info("Sending request to update firmware synchronously.")
-        response_synch = config.api.sci(upgrade_firmware_request_synch)
-        log.info("Response to Synchronous Update:\n%s" % response_synch)
+        self.log.info("Sending request to update firmware synchronously.")
+        response_synch = self.api.sci(upgrade_firmware_request_synch)
+        self.log.info("Response to Synchronous Update:\n%s" % response_synch)
         
         # search for jobId in response to determine if asynchronous firmware
         # upgrade was queued
@@ -258,21 +233,23 @@ class FirmwareTestCase(unittest.TestCase):
         dom = xml.dom.minidom.parseString(response_asynch)
         jobid_number = getText(dom.getElementsByTagName("jobId")[0])
         
-        log.info("Waiting up to 60 seconds for asynchronous firmware update to complete.")
+        self.log.info("Waiting up to 60 seconds for asynchronous firmware update to complete.")
         # Poll every 5 seconds to determine if firmware update has completed
-        for i in range(11):
+        complete = None
+        for i in range(10):
             time.sleep(5)
-            response = config.api.sci_status(jobid_number)
+            response = self.api.sci_status(jobid_number)
+            self.log.info(response)
             complete = response.find("complete")
             if complete != -1:
                 break
         
         # Do final check to determine if firmware update has completed
-        log.info("complete message:\n%s" % response)
+        self.log.info("complete message:\n%s" % response)
         self.assertNotEqual(-1, complete, 
                         "Asynchronous firmware upgrade did not complete.")
         
-        #determine_disconnect_reconnect(self, config, last_connected)
+        #determine_disconnect_reconnect(self, self.device_config, last_connected)
         
 if __name__ == '__main__':
 

@@ -41,6 +41,7 @@ import nose
 import iik_plugin
 sys.path.append('./dvt/scripts')
 import config
+from threading import Thread
 
 from stat import * # ST_SIZE etc
 
@@ -62,7 +63,6 @@ TEST_DIR = 1
 TEST_LIST = 2
 
 STDERR_FILE = 'stderr.txt'
-STDOUT_FILE = 'stdout.txt'
 MEMORY_USAGE_FILE = './dvt/memory_usage.txt'
 
 DEVICE_ID_PROTOTYPE = '00000000-00000000-%sFF-FF%s'
@@ -80,24 +80,26 @@ MAC_ADDR_PROTOTYPE = '%s:%s'
 #              Directory.                            Script directory                Test Scripts
 test_table = [
               [BASE_SAMPLE_DIR+'connect_to_idigi',  BASE_SCRIPT_DIR+'sample_tests', ['test_discovery.py']],
-              #[BASE_SAMPLE_DIR+'firmware_download', BASE_SCRIPT_DIR+'sample_tests', ['test_firmware.py']],
-              #[BASE_SAMPLE_DIR+'send_data',         BASE_SCRIPT_DIR+'sample_tests', ['test_send_data.py']],
-              #[BASE_SAMPLE_DIR+'device_request',    BASE_SCRIPT_DIR+'sample_tests', ['test_device_request.py']],
-              #[BASE_DVT_SRC+'full_test',            BASE_SCRIPT_DIR+'dvt_tests',    ['test_firmware_errors.py', 
-              #                                                                       'test_device_request.py', 
-              #                                                                       'test_data_service.py']],
-              #[BASE_DVT_SRC+'data_service',         BASE_SCRIPT_DIR+'admin_tests',  ['test_reboot.py', 
-              #                                                                       'test_redirect.py']],
-              #[BASE_DVT_SRC+'data_service',         BASE_SCRIPT_DIR+'admin_tests',  ['test_nodebug_redirect.py']],
+              [BASE_SAMPLE_DIR+'firmware_download', BASE_SCRIPT_DIR+'sample_tests', ['test_firmware.py']],
+              [BASE_SAMPLE_DIR+'send_data',         BASE_SCRIPT_DIR+'sample_tests', ['test_send_data.py']],
+              [BASE_SAMPLE_DIR+'device_request',    BASE_SCRIPT_DIR+'sample_tests', ['test_device_request.py']],
+              [BASE_DVT_SRC+'full_test',            BASE_SCRIPT_DIR+'dvt_tests',    ['test_firmware_errors.py', 
+                                                                                     'test_device_request.py',
+                                                                                     'test_data_service.py']],
+              [BASE_DVT_SRC+'data_service',         BASE_SCRIPT_DIR+'admin_tests',  ['test_reboot.py', 
+                                                                                     'test_redirect.py']],
+              [BASE_DVT_SRC+'data_service',         BASE_SCRIPT_DIR+'admin_tests',  ['test_nodebug_redirect.py']],
 ]
 
-def build_test(dir, stdout=subprocess.PIPE):
+def build_test(dir):
 
     process = subprocess.Popen(['make', 'clean', 'all'], cwd=dir, 
-        stdout=stdout, stderr=subprocess.STDOUT)
-    process.wait()
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    data = process.communicate()[0]
     if process.returncode != 0:
         print "+++FAIL: Build failed dir=[%s]" % dir
+        if data is not None:
+            print data
     
     return process.returncode
 
@@ -139,11 +141,9 @@ def sandbox(directory):
 
 def run_tests(description, base_dir, debug_on, api, replace_list=[], 
     update_config_header=False):
-
     sandbox_dir = sandbox(base_dir)
-
+    device_location = None
     try: 
-
         for (f, s, r) in replace_list:
             config.replace_string(os.path.join(sandbox_dir, f), s, r)
 
@@ -161,35 +161,55 @@ def run_tests(description, base_dir, debug_on, api, replace_list=[],
             test_dir  = os.path.join(sandbox_dir, test[TEST_DIR])
             test_list = test[TEST_LIST]
      
-            print '>>> Testing [%s]' % src_dir
+            print '>>> [%s] Testing [%s]' % (description, src_dir)
 
-            stdout_path = os.path.join(base_dir, '%s_%s' % (description, STDOUT_FILE))
-            stdout_file = open(stdout_path, 'w')
-            rc = build_test(src_dir, stdout_file)
-            stdout_file.close()
+            rc = build_test(src_dir)
 
             if rc != 0:
                 raise Exception("Failed to Build from %s." % src_dir)
         
-            #stdout_file = open(stdout_path, 'a')
-
             stderr_path = os.path.join(base_dir, '%s_%s' % (description, STDERR_FILE))
+            print '>>> [%s] Starting idigi' % description
 
-            print '>>> Starting idigi'
-            iik_path = os.path.join(src_dir, 'idigi')
+            # Move idigi executable to a unique file name to allow us to isolate
+            # the pid.
+            old_idigi_path = os.path.join(src_dir, 'idigi')
+            idigi_executable = str(uuid.uuid4())
+            idigi_path = os.path.join(src_dir, idigi_executable)
+            shutil.move(old_idigi_path, idigi_path)
 
-            process = subprocess.Popen('%s >> %s 2> %s &' % (iik_path, 
-                stdout_path, stderr_path), shell=True)
+            rc = os.system('cd %s;./%s 2>%s &' % (src_dir, 
+                idigi_executable, stderr_path))
+            if rc != 0:
+                raise Exception("+++FAIL: Could not start idigi dir=[%s]" % src_dir)
+            
+            pid = commands.getoutput('pidof -s %s' % idigi_executable)
+            if pid == '':
+                raise Exception(">>> [%s] idigi not running dir=[%s]" % (description, src_dir))
 
-            print '>>> Started idigi'
-            time.sleep(5) # Give the program time to start
+            print '>>> [%s] Started idigi' % description
+
+            connected = False
+            for _ in xrange(1,10):
+                device_core = api.get_first('DeviceCore', 
+                        condition="devConnectwareId='%s'" % device_id)
+                if device_core.dpConnectionStatus == '1':
+                    print ">>> [%s] Device %s Connected." % (description, device_id)
+                    connected = True
+                    break
+                else:
+                    time.sleep(1)
+        
+            if not connected:
+                raise Exception("Device %s was not connected after 10 seconds." % device_id)
+
             try:
                 for test_script in test_list:
                     # skip the test if script filename starts with 'test_nodebug'
                     if debug_on and test_script.find('test_nodebug') == 0:
-                        print '>>> Skip [%s] since debug is on' % test_script
+                        print '>>> [%s] Skip [%s] since debug is on' % (description, test_script)
                     else:
-                        print '>>> Executing [%s]' % test_script
+                        print '>>> [%s] Executing [%s]' % (description, test_script)
                         
                         # Argument list to call nose with.  Generate a nosetest xml file in 
                         # current directory, pass in idigi / iik connection settings.
@@ -201,34 +221,36 @@ def run_tests(description, base_dir, debug_on, api, replace_list=[],
                                      '--idigi_password=%s'  % api.password,
                                      '--idigi_hostname=%s'  % api.hostname,
                                      '--iik_device_id=%s' % device_id,
-                                     '--iik_config=%s/config.ini' % test_dir ]
+                                     '--iik_config=%s/config.ini' % test_dir]
                         
                         test_to_run = os.path.join(test_dir, test_script)
                         nose.run(defaultTest=[test_to_run], argv=arguments,
                             addplugins=[iik_plugin.IIKPlugin()])
-            except Exception, e:
-                print e
+                        print '>>> [%s] Finished [%s]' % (description, test_script)
             finally:
-                print '>>> Killing Process with pid [%s]' % process.pid
-                process.terminate()
-                
-                # Delete the Device after we're done with it.
-                api.delete_location(device_location)
+                print '>>> [%s] Killing Process with pid [%s]' % (description, pid)
+                os.kill(int(pid), signal.SIGKILL)
                 # open standard error file to see any Error message
                 try:
-                    st = os.stat(stderr_path)
-                    if st[ST_SIZE] != 0:
-                        previous_line = ""
-                        infile = open(stderr_path, "r")
-                        for current_line in infile:
-                            if 'Error:' in previous_line:
-                                print "Error: %s" % current_line
-                                rc = -1
-                            previous_line = current_line
-                        infile.close()
+                    if os.path.exists(stderr_path):
+                        st = os.stat(stderr_path)
+                        if st[ST_SIZE] != 0:
+                            previous_line = ""
+                            infile = open(stderr_path, "r")
+                            for current_line in infile:
+                                if 'Error:' in previous_line:
+                                    print "Error: %s" % current_line
+                                    rc = -1
+                                previous_line = current_line
+                            infile.close()
                 except IOError:
-                    print "failed to get information from %s" % errorfile
+                    print ">>> [%s] Failed to get information from %s" % (description, errorfile)
+    except Exception, e:
+        print ">>> [%s] Error: %s" % (description, e)
     finally:
+        # Delete the Device after we're done with it.
+        if device_location is not None:
+            api.delete_location(device_location)
         shutil.rmtree(sandbox_dir)
 
 def setup_platform(config, config_dir, platform_dir, mac_addr):
@@ -238,10 +260,44 @@ def setup_platform(config, config_dir, platform_dir, mac_addr):
 def clean_output(directory):
     for root, folders, files in os.walk(directory):
         for test_result in filter(lambda f: f.endswith('.nxml') \
-            or f.endswith(STDOUT_FILE) or f.endswith(STDERR_FILE), files):
+            or f.endswith(STDERR_FILE), files):
             file_path = os.path.join(root, test_result)
             print "Removing %s." % file_path
             os.remove(file_path)
+
+def get_template_dirs():
+    sandbox_dir = sandbox('.')
+    template_script_dir = os.path.join(sandbox_dir, TEMPLATE_SCRIPT_DIR)
+    template_platform_dir = os.path.join(sandbox_dir, TEMPLATE_PLATFORM_DIR)
+    template_test_dir = os.path.join(sandbox_dir, TEMPLATE_TEST_DIR)
+    idigi_config_path = os.path.join(sandbox_dir, 'public/include/idigi_config.h')
+
+    return (sandbox_dir, template_script_dir, template_platform_dir, template_test_dir, idigi_config_path)
+
+def build_template():
+    (sandbox_dir, template_script_dir, template_platform_dir, template_test_dir, idigi_config_path) = get_template_dirs()
+    setup_platform(config, template_script_dir, template_platform_dir, '000000:000000')
+    build_test(template_test_dir)
+    shutil.rmtree(sandbox_dir)
+
+    (sandbox_dir, template_script_dir, template_platform_dir, template_test_dir, idigi_config_path) = get_template_dirs()
+    setup_platform(config, template_script_dir, template_platform_dir, '000000:000000')
+    config.replace_string(idigi_config_path, 'IDIGI_COMPRESSION', 'IDIGI_NO_COMPRESSION')
+    config.replace_string(idigi_config_path, 'IDIGI_FIRMWARE_SERVICE', 'IDIGI_NO_FIRMWARE_SERVICE')
+    build_test(TEMPLATE_TEST_DIR)
+    shutil.rmtree(sandbox_dir)
+
+    (sandbox_dir, template_script_dir, template_platform_dir, template_test_dir, idigi_config_path) = get_template_dirs()
+    setup_platform(config, template_script_dir, template_platform_dir, '000000:000000')
+    config.replace_string(idigi_config_path, 'IDIGI_DATA_SERVICE', 'IDIGI_NO_DATA_SERVICE')
+    build_test(TEMPLATE_TEST_DIR)
+    shutil.rmtree(sandbox_dir)
+
+    (sandbox_dir, template_script_dir, template_platform_dir, template_test_dir, idigi_config_path) = get_template_dirs()
+    setup_platform(config, template_script_dir, template_platform_dir, '000000:000000')
+    config.replace_string(idigi_config_path, 'IDIGI_NO_FIRMWARE_SERVICE', 'IDIGI_FIRMWARE_SERVICE')
+    build_test(TEMPLATE_TEST_DIR)
+    shutil.rmtree(sandbox_dir)
 
 def main():
     parser = argparse.ArgumentParser(description="IIK TestCase",
@@ -251,6 +307,10 @@ def main():
     parser.add_argument('--password', action='store', type=str, default='iik1sfun')
     parser.add_argument('--hostname', action='store', type=str, default='test.idigi.com')
     parser.add_argument('--descriptor', action='store', type=str, default='linux-x64')
+    parser.add_argument('--configuration', action='store', type=str, 
+        default='all', choices=['default', 'nodebug', 'compression', 
+                                    'debug', 'config_header', 'template', 
+                                    'all'])
 
     args = parser.parse_args()
 
@@ -263,42 +323,34 @@ def main():
     mem_usage_file = open(MEMORY_USAGE_FILE, 'w')
     mem_usage_file.close()
 
-    print "============ Default ============="
-    run_tests('%s_%s' % (args.descriptor, 'Default'), '.', True, api)
+    if args.configuration == 'default' or args.configuration == 'all':
+        print "============ Default ============="
+        run_tests('%s_%s' % (args.descriptor, 'Default'), '.', True, api)
 
-    print "============ No Debug ============="
-    run_tests('%s_%s' % (args.descriptor, 'Release'), '.', False, api, 
+    if args.configuration == 'nodebug' or args.configuration == 'all':
+        print "============ No Debug ============="
+        run_tests('%s_%s' % (args.descriptor, 'Release'), '.', False, api, 
         [('public/include/idigi_config.h', 'IDIGI_DEBUG', 'IDIGI_NO_DEBUG')])
 
-    print "============ Compression On ============="
-    run_tests('%s_%s' % (args.descriptor, 'Compression'), '.', False, api, 
+    if args.configuration == 'compression' or args.configuration == 'all':
+        print "============ Compression On ============="
+        run_tests('%s_%s' % (args.descriptor, 'Compression'), '.', False, api, 
         [('public/include/idigi_config.h', 'IDIGI_NO_COMPRESSION', 
          'IDIGI_COMPRESSION')])
 
-    print "============ Debug On ============="
-    run_tests('%s_%s' % (args.descriptor, 'Debug'), '.', True, api, 
+    if args.configuration == 'debug' or args.configuration == 'all':
+        print "============ Debug On ============="
+        run_tests('%s_%s' % (args.descriptor, 'Debug'), '.', True, api, 
         [('public/include/idigi_config.h', 'IDIGI_NO_DEBUG', 'IDIGI_DEBUG')])
 
-    print "============ Configurations in idigi_config.h ============="
-    run_tests('%s_%s' % (args.descriptor, 'idigiconfig'), '.', True, api, 
-        update_config_header=True)
+    if args.configuration == 'config_header' or args.configuration == 'all':
+        print "============ Configurations in idigi_config.h ============="
+        run_tests('%s_%s' % (args.descriptor, 'idigiconfig'), '.', True, api, 
+            update_config_header=True)
 
-    print "============ Template platform ============="
-    setup_platform(config, TEMPLATE_SCRIPT_DIR, TEMPLATE_PLATFORM_DIR, '000000:000000')
-    build_test(TEMPLATE_TEST_DIR)
-
-    config.replace_string('./public/include/idigi_config.h', 'IDIGI_COMPRESSION', 'IDIGI_NO_COMPRESSION')
-    config.replace_string('./public/include/idigi_config.h', 'IDIGI_FIRMWARE_SERVICE', 'IDIGI_NO_FIRMWARE_SERVICE')
-    build_test(TEMPLATE_TEST_DIR)
-
-    config.replace_string('./public/include/idigi_config.h', 'IDIGI_DATA_SERVICE', 'IDIGI_NO_DATA_SERVICE')
-    build_test(TEMPLATE_TEST_DIR)
-
-    config.replace_string('./public/include/idigi_config.h', 'IDIGI_NO_FIRMWARE_SERVICE', 'IDIGI_FIRMWARE_SERVICE')
-    build_test(TEMPLATE_TEST_DIR)
-
-    config.replace_string('./public/include/idigi_config.h', 'IDIGI_NO_DATA_SERVICE', 'IDIGI_DATA_SERVICE')
-
+    if args.configuration == 'template' or args.configuration == 'all':
+        print "============ Template platform ============="
+        build_template()
 
 if __name__ == '__main__':
     main()

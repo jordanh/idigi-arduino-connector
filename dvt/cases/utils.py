@@ -10,7 +10,7 @@ log = logging.getLogger('utils')
 log.setLevel(logging.INFO)
 
 handler = logging.StreamHandler()
-handler.setLevel(logging.DEBUG)
+handler.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 log.addHandler(handler)
@@ -56,16 +56,18 @@ def clean_slate(api, file_location):
     except Exception:
         pass
         
-def determine_disconnect_reconnect(instance, config, last_connected, wait_time=15):
+def determine_disconnect_reconnect(instance, config, api, last_connected, wait_time=15):
     log.info("Determining if Device %s disconnected." 
             % config.device_id)
-    new_device_core = config.api.get_first('DeviceCore',
+    new_device_core = api.get_first('DeviceCore',
         condition="devConnectwareid='%s'" % config.device_id)
 
+    # TODO: This logic is a bit broken as the logic triggers really fast,
+    # should use push instead to key off the disconnect and reconnect events.
     if new_device_core.dpConnectionStatus == "1":
-        for i in range(wait_time/5):
+        for i in range(int(wait_time/5)):
             # it's possible device has not disconnected yet, poll for a bit till disconnected.
-            new_device_core = config.api.get_first('DeviceCore', 
+            new_device_core = api.get_first('DeviceCore', 
                                     condition="devConnectwareId='%s'" % config.device_id)
             if new_device_core.dpConnectionStatus == "0":
                 break
@@ -80,7 +82,7 @@ def determine_disconnect_reconnect(instance, config, last_connected, wait_time=1
     
     for i in range(int(wait_time/5)):
         time.sleep(5)
-        new_device_core = config.api.get_first('DeviceCore', 
+        new_device_core = api.get_first('DeviceCore', 
                             condition="devConnectwareId='%s'" % config.device_id)
         if new_device_core.dpConnectionStatus == "1":
             break

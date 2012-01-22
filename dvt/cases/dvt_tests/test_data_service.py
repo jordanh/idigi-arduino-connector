@@ -1,28 +1,15 @@
-import logging
 import time
-import unittest
+import iik_testcase
 import datetime
 import re
 import os
 from base64 import b64encode
 from xml.dom.minidom import getDOMImplementation
 
-import configuration
 import idigi_ws_api
 from utils import clean_slate
 from data_service_utils import update_firmware, update_and_verify, \
                                 get_filedatahistory, check_filedatahistory
-
-impl = getDOMImplementation()
-
-log = logging.getLogger('msg_fac')
-log.setLevel(logging.INFO)
-
-handler = logging.StreamHandler()
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-log.addHandler(handler)
 
 filedata = 'FileData/~/'
 filedatahistory = 'FileDataHistory/~/'
@@ -34,22 +21,8 @@ BUSY = 'Data Service PUT, Busy'
 CANCEL_AT_START = 'Data Service PUT, Cancel at start'
 CANCEL_IN_MIDDLE = 'Data Service PUT, Cancel in middle'
 TIMEOUT = 'Data Service PUT, Timeout'
-
-config_file = 'config.ini'
-config = configuration.DeviceConfiguration(config_file)
     
-class DataServiceArchiveTestCase(unittest.TestCase):
-    
-    def setUp(self):
-        # Ensure device is connected.
-        log.info("Ensuring Device %s is connected." % config.device_id)
-        self.device_core = config.api.get_first('DeviceCore', 
-                        condition="devConnectwareId='%s'" % config.device_id)
-        
-        # If not connected, fail the TestCase.
-        if not self.device_core.dpConnectionStatus == '1':
-            self.assertEqual('1', self.device_core.dpConnectionStatus, 
-                "Device %s not connected." % config.device_id)
+class DataServiceArchiveTestCase(iik_testcase.TestCase):
        
     def test_archive_true(self):
     
@@ -58,14 +31,14 @@ class DataServiceArchiveTestCase(unittest.TestCase):
         filedatahistory. Also verifies that all metadata is correct.
         """
         
-        log.info("Beginning Data Service Test - Archive = True")
+        self.log.info("Beginning Data Service Test - Archive = True")
        
         # Check if appropriate target exists
-        if ARCHIVE in config.data_service_target:
-            target = config.data_service_target[ARCHIVE]['target']
-            file_name = config.data_service_target[ARCHIVE]['file_name']
+        if ARCHIVE in self.device_config.data_service_target:
+            target = self.device_config.data_service_target[ARCHIVE]['target']
+            file_name = self.device_config.data_service_target[ARCHIVE]['file_name']
         else:
-            log.info("No Archive=True target exists, skipping test")
+            self.log.info("No Archive=True target exists, skipping test")
             return
         
         # Create content to be pushed.
@@ -74,26 +47,26 @@ class DataServiceArchiveTestCase(unittest.TestCase):
         datetime_created = []
 
         # Create paths to files.
-        file_location = filedata + config.device_id + '/' + file_name
-        file_history_location = filedatahistory + config.device_id + '/' + file_name
+        file_location = filedata + self.device_config.device_id + '/' + file_name
+        file_history_location = filedatahistory + self.device_config.device_id + '/' + file_name
         match = re.match(".*\/(.*)$", file_name)
         if match:
             file_name = match.groups()[0]
         
         # Send firmware update and verify correct content is pushed.
-        update_and_verify(self, config.api, config.device_id, target, 
+        update_and_verify(self, self.api, self.device_config.device_id, target, 
             content[0], datetime_created, file_location, file_name)
         
         # Verify filedatahistory contents and metadata.
-        check_filedatahistory(self, get_filedatahistory(config.api, 
+        check_filedatahistory(self, get_filedatahistory(self.api, 
             file_history_location), datetime_created[0], encoded_content[0], 
             0)
         
         # Send firmware update and verify correct content is pushed.
-        update_and_verify(self, config.api, config.device_id, target, 
+        update_and_verify(self, self.api, self.device_config.device_id, target, 
             content[1], datetime_created, file_location, file_name)
         
-        fdh = get_filedatahistory(config.api, file_history_location)
+        fdh = get_filedatahistory(self.api, file_history_location)
         
         # Verify filedatahistory contents and metadata for first file pushed.
         check_filedatahistory(self, fdh, datetime_created[0], 
@@ -112,14 +85,14 @@ class DataServiceArchiveTestCase(unittest.TestCase):
         File does not previously exist before firmware update.
         """
         
-        log.info("Beginning Data Service Test - Archive = True, File does not previously exist")
+        self.log.info("Beginning Data Service Test - Archive = True, File does not previously exist")
         
         # Check if appropriate target exists
-        if ARCHIVE in config.data_service_target:
-            target = config.data_service_target[ARCHIVE]['target']
-            file_name = config.data_service_target[ARCHIVE]['file_name']
+        if ARCHIVE in self.device_config.data_service_target:
+            target = self.device_config.data_service_target[ARCHIVE]['target']
+            file_name = self.device_config.data_service_target[ARCHIVE]['file_name']
         else:
-            log.info("No Archive=True target exists")
+            self.log.info("No Archive=True target exists")
             return
         
         # Create content to be pushed
@@ -128,21 +101,21 @@ class DataServiceArchiveTestCase(unittest.TestCase):
         datetime_created = []
         
         # Create paths to files.
-        file_location = filedata + config.device_id + '/' + file_name
-        file_history_location = filedatahistory + config.device_id + '/' + file_name
+        file_location = filedata + self.device_config.device_id + '/' + file_name
+        file_history_location = filedatahistory + self.device_config.device_id + '/' + file_name
         match = re.match(".*\/(.*)$", file_name)
         if match:
             file_name = match.groups()[0]
             
         # If the file exists, delete it.
-        clean_slate(config.api, file_location)
+        clean_slate(self.api, file_location)
         
         # Send firmware update and verify correct content is pushed.
-        update_and_verify(self, config.api, config.device_id, target, 
+        update_and_verify(self, self.api, self.device_config.device_id, target, 
             content, datetime_created, file_location, file_name, dne=True)
         
         # Verify filedatahistory contents and metadata.
-        check_filedatahistory(self, get_filedatahistory(config.api, 
+        check_filedatahistory(self, get_filedatahistory(self.api, 
             file_history_location), datetime_created[0], encoded_content, 
             0, dne=True)      
 
@@ -154,14 +127,14 @@ class DataServiceArchiveTestCase(unittest.TestCase):
         is correct.
         """
         
-        log.info("Beginning Data Service Test - Archive = True, No Data")
+        self.log.info("Beginning Data Service Test - Archive = True, No Data")
        
         # Check if appropriate target exists
-        if ARCHIVE in config.data_service_target:
-            target = config.data_service_target[ARCHIVE]['target']
-            file_name = config.data_service_target[ARCHIVE]['file_name']
+        if ARCHIVE in self.device_config.data_service_target:
+            target = self.device_config.data_service_target[ARCHIVE]['target']
+            file_name = self.device_config.data_service_target[ARCHIVE]['file_name']
         else:
-            log.info("No Archive=True target exists, skipping test")
+            self.log.info("No Archive=True target exists, skipping test")
             return
         
         # Create content to be pushed.
@@ -170,26 +143,26 @@ class DataServiceArchiveTestCase(unittest.TestCase):
         datetime_created = []
 
         # Create paths to files.
-        file_location = filedata + config.device_id + '/' + file_name
-        file_history_location = filedatahistory + config.device_id + '/' + file_name
+        file_location = filedata + self.device_config.device_id + '/' + file_name
+        file_history_location = filedatahistory + self.device_config.device_id + '/' + file_name
         match = re.match(".*\/(.*)$", file_name)
         if match:
             file_name = match.groups()[0]
         
         # Send firmware update and verify correct content is pushed.
-        update_and_verify(self, config.api, config.device_id, target, 
+        update_and_verify(self, self.api, self.device_config.device_id, target, 
             content[0], datetime_created, file_location, file_name)
         
         # Verify filedatahistory contents and metadata.
-        check_filedatahistory(self, get_filedatahistory(config.api, 
+        check_filedatahistory(self, get_filedatahistory(self.api, 
             file_history_location), datetime_created[0], encoded_content[0], 
             0)
         
         # Send firmware update and verify correct content is pushed.
-        update_and_verify(self, config.api, config.device_id, target, 
+        update_and_verify(self, self.api, self.device_config.device_id, target, 
             content[1], datetime_created, file_location, file_name)
         
-        fdh = get_filedatahistory(config.api, file_history_location)
+        fdh = get_filedatahistory(self.api, file_history_location)
         
         # Verify filedatahistory contents and metadata for first file pushed.
         check_filedatahistory(self, fdh, datetime_created[0], 
@@ -200,22 +173,11 @@ class DataServiceArchiveTestCase(unittest.TestCase):
             encoded_content[1], 0)
 
     def tearDown(self):
-        log.info("Performing cleanup.")
-        config.api.delete_location(filedata+config.data_service_target[ARCHIVE]['file_name'])
+        self.log.info("Performing cleanup.")
+        self.api.delete_location(filedata+self.device_config.data_service_target[ARCHIVE]['file_name'])
     
     
-class DataServiceAppendTestCase(unittest.TestCase):
-    
-    def setUp(self):
-        # Ensure device is connected.
-        log.info("Ensuring Device %s is connected." % config.device_id)
-        self.device_core = config.api.get_first('DeviceCore', 
-                        condition="devConnectwareId='%s'" % config.device_id)
-        
-        # If not connected, fail the TestCase.
-        if not self.device_core.dpConnectionStatus == '1':
-            self.assertEqual('1', self.device_core.dpConnectionStatus, 
-                "Device %s not connected." % config.device_id)
+class DataServiceAppendTestCase(iik_testcase.TestCase):
                 
     def test_append_true(self):
     
@@ -224,14 +186,14 @@ class DataServiceAppendTestCase(unittest.TestCase):
         appended. Also verifies that all metadata is correct.
         """
         
-        log.info("Beginning Data Service Test - Append = True")
+        self.log.info("Beginning Data Service Test - Append = True")
         
         # Check if appropriate target exists.
-        if APPEND in config.data_service_target:
-            target = config.data_service_target[APPEND]['target']
-            file_name = config.data_service_target[APPEND]['file_name']
+        if APPEND in self.device_config.data_service_target:
+            target = self.device_config.data_service_target[APPEND]['target']
+            file_name = self.device_config.data_service_target[APPEND]['file_name']
         else:
-            log.info("No Append=True target exists")
+            self.log.info("No Append=True target exists")
             return
         
         # Create content to be pushed.
@@ -239,27 +201,27 @@ class DataServiceAppendTestCase(unittest.TestCase):
         datetime_created = []
         
         # Create path to files.
-        file_location = filedata + config.device_id + '/' + file_name
+        file_location = filedata + self.device_config.device_id + '/' + file_name
         match = re.match(".*\/(.*)$", file_name)
         if match:
             file_name = match.groups()[0]
         
         # Check for existing file and its contents.
         try:
-            original_content = config.api.get_raw(file_location)
+            original_content = self.api.get_raw(file_location)
         except Exception:
             original_content = ""
-            log.info("No file previously exists.")
+            self.log.info("No file previously exists.")
         
         # Send firmware update and verify correct content is pushed and
         # appended to origiinal content.
-        first_content = update_and_verify(self, config.api, config.device_id, 
+        first_content = update_and_verify(self, self.api, self.device_config.device_id, 
             target, content[0], datetime_created, file_location, file_name, 
             expected_content=original_content+content[0])
         
         # Send firmware update and verify correct content is pushed and
         # appended to the contents found after the first firmware update.
-        update_and_verify(self, config.api, config.device_id, target, 
+        update_and_verify(self, self.api, self.device_config.device_id, target, 
             content[1], datetime_created, file_location, file_name, 
             expected_content=first_content+content[1])
  
@@ -272,14 +234,14 @@ class DataServiceAppendTestCase(unittest.TestCase):
         File does not previously exist before firmware update.
         """
         
-        log.info("Beginning Data Service Test - Append = True, File does not previously exist")
+        self.log.info("Beginning Data Service Test - Append = True, File does not previously exist")
         
         # Check if appropriate firmware target exists.
-        if APPEND in config.data_service_target:
-            target = config.data_service_target[APPEND]['target']
-            file_name = config.data_service_target[APPEND]['file_name']
+        if APPEND in self.device_config.data_service_target:
+            target = self.device_config.data_service_target[APPEND]['target']
+            file_name = self.device_config.data_service_target[APPEND]['file_name']
         else:
-            log.info("No Append=True target exists")
+            self.log.info("No Append=True target exists")
             return
         
         # Create content to be pushed.
@@ -287,21 +249,21 @@ class DataServiceAppendTestCase(unittest.TestCase):
         datetime_created = []
         
         # Create file paths.
-        file_location = filedata + config.device_id + '/' + file_name
+        file_location = filedata + self.device_config.device_id + '/' + file_name
         match = re.match(".*\/(.*)$", file_name)
         if match:
             file_name = match.groups()[0]
             
         # Check that file does not already exist.
-        clean_slate(config.api, file_location)
+        clean_slate(self.api, file_location)
         
         # Send firmware update and verify that correct content is pushed.
-        update_and_verify(self, config.api, config.device_id, target, 
+        update_and_verify(self, self.api, self.device_config.device_id, target, 
             content[0], datetime_created, file_location, file_name, dne=True)
         
         # Send firmware update and verify that correct content is pushed
         # and appended to first content pushed.
-        update_and_verify(self, config.api, config.device_id, target, 
+        update_and_verify(self, self.api, self.device_config.device_id, target, 
             content[1], datetime_created, file_location, file_name, 
             expected_content=content[0]+content[1], 
             original_created_time=datetime_created[0])
@@ -314,14 +276,14 @@ class DataServiceAppendTestCase(unittest.TestCase):
         is correct.
         """
         
-        log.info("Beginning Data Service Test - Append = True, No Data")
+        self.log.info("Beginning Data Service Test - Append = True, No Data")
         
         # Check if appropriate target exists.
-        if APPEND in config.data_service_target:
-            target = config.data_service_target[APPEND]['target']
-            file_name = config.data_service_target[APPEND]['file_name']
+        if APPEND in self.device_config.data_service_target:
+            target = self.device_config.data_service_target[APPEND]['target']
+            file_name = self.device_config.data_service_target[APPEND]['file_name']
         else:
-            log.info("No Append=True target exists")
+            self.log.info("No Append=True target exists")
             return
         
         # Create content to be pushed.
@@ -329,46 +291,35 @@ class DataServiceAppendTestCase(unittest.TestCase):
         datetime_created = []
         
         # Create path to files.
-        file_location = filedata + config.device_id + '/' + file_name
+        file_location = filedata + self.device_config.device_id + '/' + file_name
         match = re.match(".*\/(.*)$", file_name)
         if match:
             file_name = match.groups()[0]
         
         # Check for existing file and its contents.
         try:
-            original_content = config.api.get_raw(file_location)
+            original_content = self.api.get_raw(file_location)
         except Exception:
             original_content = ""
-            log.info("No file previously exists.")
+            self.log.info("No file previously exists.")
         
         # Send firmware update and verify correct content is pushed and
         # appended to origiinal content.
-        first_content = update_and_verify(self, config.api, config.device_id,
+        first_content = update_and_verify(self, self.api, self.device_config.device_id,
             target, content[0], datetime_created, file_location, file_name, 
             expected_content=original_content+content[0])
         
         # Send firmware update and verify correct content is pushed and
         # appended to the contents found after the first firmware update.
-        update_and_verify(self, config.api, config.device_id, target, 
+        update_and_verify(self, self.api, self.device_config.device_id, target, 
             content[1], datetime_created, file_location, file_name, 
             expected_content=first_content+content[1])
 
     def tearDown(self):
-        log.info("Performing cleanup.")
-        config.api.delete_location(filedata+config.data_service_target[APPEND]['file_name'])
+        self.log.info("Performing cleanup.")
+        self.api.delete_location(filedata+self.device_config.data_service_target[APPEND]['file_name'])
 
-class DataServiceBothTestCase(unittest.TestCase):
-    
-    def setUp(self):
-        # Ensure device is connected.
-        log.info("Ensuring Device %s is connected." % config.device_id)
-        self.device_core = config.api.get_first('DeviceCore', 
-                        condition="devConnectwareId='%s'" % config.device_id)
-        
-        # If not connected, fail the TestCase.
-        if not self.device_core.dpConnectionStatus == '1':
-            self.assertEqual('1', self.device_core.dpConnectionStatus, 
-                "Device %s not connected." % config.device_id)
+class DataServiceBothTestCase(iik_testcase.TestCase):
                 
     def test_both_true(self):
     
@@ -377,83 +328,72 @@ class DataServiceBothTestCase(unittest.TestCase):
         that no file is created.
         """
         
-        log.info("Beginning Data Service Test - Both = True")
+        self.log.info("Beginning Data Service Test - Both = True")
         
         # Check if appropriate firmware target exists.
-        if BOTH in config.data_service_target:
-            target = config.data_service_target[BOTH]['target']
-            file_name = config.data_service_target[BOTH]['file_name']
+        if BOTH in self.device_config.data_service_target:
+            target = self.device_config.data_service_target[BOTH]['target']
+            file_name = self.device_config.data_service_target[BOTH]['file_name']
         else:
-            log.info("No Both=True target exists")
+            self.log.info("No Both=True target exists")
             return
         
         content = os.urandom(8)
         
         # Create file path.
-        file_location = filedata + config.device_id + '/' + file_name
+        file_location = filedata + self.device_config.device_id + '/' + file_name
                 
         # Check that file does not already exist.
-        clean_slate(config.api, file_location)
+        clean_slate(self.api, file_location)
         
         # Send first firmware update to Both=True target
-        log.info("Sending first firmware update to create file.")
+        self.log.info("Sending first firmware update to create file.")
         datetime_created = []
         datetime_created.append(datetime.datetime.utcnow())
-        response = update_firmware(config.api, config.device_id, "%d" % 
+        response = update_firmware(self.api, self.device_config.device_id, "%d" % 
             target, content)
         
         # Verify correct response to request (may not have one)
         
         # Check that file was not created
         time.sleep(8)
-        self.assertRaises(Exception, config.api.get_raw, file_location)
+        self.assertRaises(Exception, self.api.get_raw, file_location)
 
-def send_and_receive_target_data(instance, config, target_str, wait_time, file_expected):
+def send_and_receive_target_data(instance, target_str, wait_time, file_expected):
 
-    target = config.data_service_target[target_str]['target']
-    file_name = config.data_service_target[target_str]['file_name']
+    target = instance.device_config.data_service_target[target_str]['target']
+    file_name = instance.device_config.data_service_target[target_str]['file_name']
 
-    f = open(config.firmware_target_file[target], 'rb')
+    f = open(instance.device_config.firmware_target_file[target], 'rb')
     file_content = f.read()
     f.close()
 
     # Create file path.
-    file_location = filedata + config.device_id + '/' + file_name
+    file_location = filedata + instance.device_config.device_id + '/' + file_name
 
     # Check that file does not already exist.
-    clean_slate(config.api, file_location)
+    clean_slate(instance.api, file_location)
 
     # Send first firmware update to Both=True target
-    log.info("Sending first firmware update to create file.")
+    instance.log.info("Sending first firmware update to create file.")
     datetime_created = []
     datetime_created.append(datetime.datetime.utcnow())
-    response = update_firmware(config.api, config.device_id, "%d" %target, file_content)
+    response = update_firmware(instance.api, instance.device_config.device_id, "%d" %target, file_content)
 
     # Verify correct response to request (may not have one)
 
     time.sleep(wait_time)
 
     if file_expected:
-        expected_content = config.api.get_raw(file_location)
+        expected_content = instance.api.get_raw(file_location)
         instance.assertEqual(expected_content, file_content,
                              "File's contents do not match what is expected")
-        config.api.delete_location(file_location)
+        instance.api.delete_location(file_location)
     else:
         # Check that file was not created
-        instance.assertRaises(Exception, config.api.get_raw, file_location)
+        instance.assertRaises(Exception, instance.api.get_raw, file_location)
 
-class DataServiceSpecialTestCase(unittest.TestCase):
-
-    def setUp(self):
-        # Ensure device is connected.
-        log.info("Ensuring Device %s is connected." % config.device_id)
-        self.device_core = config.api.get_first('DeviceCore', 
-                        condition="devConnectwareId='%s'" % config.device_id)
-
-        # If not connected, fail the TestCase.
-        if not self.device_core.dpConnectionStatus == '1':
-            self.assertEqual('1', self.device_core.dpConnectionStatus, 
-                        "Device %s not connected." % config.device_id)
+class DataServiceSpecialTestCase(iik_testcase.TestCase):
 
     def test_ds_busy(self):
 
@@ -461,8 +401,8 @@ class DataServiceSpecialTestCase(unittest.TestCase):
             pushes data when client app is temporarily busy. Test verifies
             that the file is created. """
 
-        log.info("Beginning Data Service Test - Busy")
-        send_and_receive_target_data(self, config, BUSY, 10, True)
+        self.log.info("Beginning Data Service Test - Busy")
+        send_and_receive_target_data(self, BUSY, 10, True)
 
 
     def test_ds_cancel_at_start(self):
@@ -471,8 +411,8 @@ class DataServiceSpecialTestCase(unittest.TestCase):
             pushes data and client app cancels the transaction when data 
             transfer starts. Test verifies that the file is not created. """
 
-        log.info("Beginning Data Service Test - Cancel at start")
-        send_and_receive_target_data(self, config, CANCEL_AT_START, 10, False)
+        self.log.info("Beginning Data Service Test - Cancel at start")
+        send_and_receive_target_data(self, CANCEL_AT_START, 10, False)
 
 
     def test_ds_cancel_in_middle(self):
@@ -481,8 +421,8 @@ class DataServiceSpecialTestCase(unittest.TestCase):
             pushes data and client app cancels the transaction in the middle
             of data transfer. Test verifies that the file is not created. """
 
-        log.info("Beginning Data Service Test - Cancel in middle")
-        send_and_receive_target_data(self, config, CANCEL_IN_MIDDLE, 10, False)
+        self.log.info("Beginning Data Service Test - Cancel in middle")
+        send_and_receive_target_data(self, CANCEL_IN_MIDDLE, 10, False)
 
     def test_ds_timeout(self):
 
@@ -490,24 +430,8 @@ class DataServiceSpecialTestCase(unittest.TestCase):
            pushes data and client app times out in the middle of the data
            transfer. Test verifies that the file is not created. """
 
-       log.info("Beginning Data Service Test - Timeout")
-       send_and_receive_target_data(self, config, TIMEOUT, 70, False)
-
-class ContentTestCase(unittest.TestCase):
-    
-    def setUp(self):
-        # Ensure device is connected.
-        log.info("Ensuring Device %s is connected." % config.device_id)
-        self.device_core = config.api.get_first('DeviceCore', 
-                        condition="devConnectwareId='%s'" % config.device_id)
-        
-        # If not connected, fail the TestCase.
-        if not self.device_core.dpConnectionStatus == '1':
-            self.assertEqual('1', self.device_core.dpConnectionStatus, 
-                "Device %s not connected." % config.device_id)
+       self.log.info("Beginning Data Service Test - Timeout")
+       send_and_receive_target_data(self, TIMEOUT, 70, False)
     
 if __name__ == '__main__':
-
-    config = configuration.DeviceConfiguration(config_file)
-        
     unittest.main() 

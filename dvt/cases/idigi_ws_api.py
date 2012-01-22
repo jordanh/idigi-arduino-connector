@@ -125,10 +125,10 @@ from base64 import encodestring
 from xml.dom.minidom import getDOMImplementation, parseString, Element
 
 log = logging.getLogger('idigi_ws_api')
-log.setLevel(logging.INFO)
+log.setLevel(logging.WARN)
 
 handler = logging.StreamHandler()
-handler.setLevel(logging.DEBUG)
+handler.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 log.addHandler(handler)
@@ -399,7 +399,7 @@ class Api:
         if target == "User":
             target = "RawUser"
             
-        print request.toprettyxml()
+        log.debug(request.toprettyxml())
         connection.request(method, '%s/%s' % (self.ws_root, target),
                            request.toxml(), self.headers)
         response = connection.getresponse()

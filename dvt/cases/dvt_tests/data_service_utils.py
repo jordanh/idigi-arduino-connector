@@ -10,10 +10,10 @@ import idigi_ws_api
 from utils import convert_to_datetime, total_seconds, getText
 
 log = logging.getLogger('ds_utils')
-log.setLevel(logging.INFO)
+log.setLevel(logging.WARN)
 
 handler = logging.StreamHandler()
-handler.setLevel(logging.DEBUG)
+handler.setLevel(logging.WARN)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 log.addHandler(handler)

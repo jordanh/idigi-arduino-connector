@@ -18,7 +18,7 @@ def remove_errors(file_name):
     text = infile.read()
     infile.close()
     if text.find('//#error') == -1: # Don't run if #error is already commented out.
-        print "Replacing #error in [%s]" % file_name
+        #print "Replacing #error in [%s]" % file_name
         outfile = open(file_name, "w")
         outfile.write(text.replace('#error', '//#error'))
         outfile.close()
