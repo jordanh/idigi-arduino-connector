@@ -34,7 +34,6 @@ class SendDataTestCase(iik_testcase.TestCase):
         try:
             file_content = self.api.get_raw(file_location)
         except Exception, e:
-            self.failureException = e
             self.fail('Failed to Get Device Contents.  Reason: %s' % e)
         
         # Verify file's contents        
