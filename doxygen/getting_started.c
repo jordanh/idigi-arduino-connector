@@ -5,7 +5,7 @@
  * @section table_of_contents_porting Getting Started
  *
  * The Getting Started process will walk you through the steps necessary to get the IIK integrated into your 
- * development environment and running applications which connect to the iDigi Device Cloud.  
+ * development environment and running applications which connect to the iDigi Developer Cloud.
  * 
  * These steps include:
  *   
@@ -37,8 +37,8 @@
  *          -# @ref step9
  * 
  * Two sample applications, @ref step3 "compile_and_link" and @ref step7 "connect_to_idigi", will be used to confirm your compilation tool chain
- * and integration, respectively.  When complete, your device will be connected to the iDigi Device Cloud and be displayed
- * in the iDigi Device Cloud Portal graphical user interface.
+ * and integration, respectively.  When complete, your device will be connected to the iDigi Developer Cloud and be displayed
+ * in the iDigi Developer Cloud Portal graphical user interface.
  *
  * @section step1 Step 1: Determine if your compiler is C89 or C99 compliant
  *
@@ -471,7 +471,7 @@
  * is to integrate in one of the samples to add in more functionality to your
  * application.
  *
- * @note If you cannot connect to the iDigi Device cloud, the most likely problem
+ * @note If you cannot connect to the iDigi Developer cloud, the most likely problem
  * is in the iDigi Configuration, review the configuration routines in config.c;
  * The device ID and vendor ID must be valid to connect.
  *
@@ -479,7 +479,7 @@
  *
  * @section step9 Step 9: Next Steps
  *
- * Now that you have a basic sample up and running with the iDigi Device Cloud, you
+ * Now that you have a basic sample up and running with the iDigi Developer Cloud, you
  * can port in more functionality to your application.  We first suggest 
  * reading the @ref api1_overview "API" section of the documentation and then 
  * select a sample which has the functionality you need.

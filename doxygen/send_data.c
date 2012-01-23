@@ -102,9 +102,9 @@
  *
  * @li -DIDIGI_VERSION=0x1010000UL (indicates version 1.1 of the IIK)
  *
- * @section web_gui Viewing results from iDigi Device Cloud
+ * @section web_gui Viewing results from iDigi Developer Cloud
  *
- * To view the results for this sample login to the iDigi Device Cloud as described
+ * To view the results for this sample login to the iDigi Developer Cloud as described
  * in the @ref add_your_device_to_the_cloud "Getting Started" section. 
  *
  * Once logged in click on storage from within the left navigation panel as shown
@@ -122,7 +122,7 @@
  *
  * @image html sample2.png
  *
- * @section python_script Python script to retrive a file from iDigi Device Cloud storage
+ * @section python_script Python script to retrive a file from iDigi Developer Cloud storage
  *
  * This sample provides a simple python script to retrive the test.txt file from developer.idigi.com
  * after a device has put the test.txt into the server.

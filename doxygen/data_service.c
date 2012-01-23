@@ -4,14 +4,14 @@
  *
  * @section data_service_overview Data Service Overview
  *
- * The Data Service API is used to send data to and from the iDigi Device Cloud.  Data service transfers
- * are either initiated from the iDigi Device Cloud or the device itself.  The two types of requests are
+ * The Data Service API is used to send data to and from the iDigi Developer Cloud.  Data service transfers
+ * are either initiated from the iDigi Developer Cloud or the device itself.  The two types of requests are
  * listed below:
  * 
  * @li @ref put_request : Data transfers initiated by the device and used to
- * write files on to the iDigi Device Cloud.  The iDigi Device Cloud may send a status response back
+ * write files on to the iDigi Developer Cloud.  The iDigi Developer Cloud may send a status response back
  * indicating the transfer was successful. 
- * @li @ref device_request : Transfers initiated from a web services client connected to the iDigi Device Cloud
+ * @li @ref device_request : Transfers initiated from a web services client connected to the iDigi Developer Cloud
  * to the device.  This transfer is used to send data to the device and the device may send a response back.
  *
  * @note See @ref data_service_support under Configuration to disable this data service.
@@ -20,7 +20,7 @@
  *
  * @subsection initiate_send Initiate Sending Data
  *
- * The application initiates the Put Request to the iDigi Device Cloud by calling idigi_initiate_action()
+ * The application initiates the Put Request to the iDigi Developer Cloud by calling idigi_initiate_action()
  * with @ref idigi_initiate_data_service request and @ref idigi_data_service_put_request_t request_data.
  *
  * The idigi_initiate_action() is called with the following arguments:
@@ -69,9 +69,9 @@
  *   status = idigi_initiate_action(handle, idigi_initiate_data_service, &header, NULL);
  * @endcode
  *
- * This example will invoke the IIK to initiate a data transfer to the iDigi Device 
+ * This example will invoke the IIK to initiate a data transfer to the iDigi Developer
  * Cloud, the result of this operation creates a file testfile.txt in the testdir directory
- * on the iDigi Device Cloud.  Once the iDigi Device Cloud is ready to receive data 
+ * on the iDigi Developer Cloud.  Once the iDigi Developer Cloud is ready to receive data
  * from the device the application callback is called requesting data.
  *
  * @subsection get_data Put Request Callback
@@ -176,7 +176,7 @@
  *    {
  *        switch (put_request->message_type)
  *        {
- *        case idigi_data_service_type_need_data: // iDigi Device Cloud requesting data
+ *        case idigi_data_service_type_need_data: // iDigi Developer Cloud requesting data
  *            {
  *                idigi_data_service_block_t * message = put_response->client_data;
  *                char * dptr = message->data;
@@ -194,7 +194,7 @@
  *            }
  *            break;
  *
- *        case idigi_data_service_type_have_data: // Response from the iDigi Device Cloud
+ *        case idigi_data_service_type_have_data: // Response from the iDigi Developer Cloud
  *            {
  *                idigi_data_service_block_t * message = put_request->server_data;
  *                uint8_t const * data = message->data;
@@ -208,7 +208,7 @@
  *            }
  *            break;
  *
- *        case idigi_data_service_type_error: // The iDigi Device Cloud sent back an error
+ *        case idigi_data_service_type_error: // The iDigi Developer Cloud sent back an error
  *            {
  *                idigi_data_service_block_t * message = put_request->server_data;
  *                idigi_msg_error_t const * const error_value = message->data;
@@ -334,7 +334,7 @@
  *     idigi_data_service_msg_request_t const * const service_device_request = request_data;
  *
  *     if (class_id == idigi_class_data_service && request_id.data_service_request == idigi_data_service_device_request) 
- *     {   // Device request from iDigi Device Cloud
+ *     {   // Device request from iDigi Developer Cloud
  *         switch (service_device_request->message_type)
  *         {
  *         case idigi_data_service_type_have_data:

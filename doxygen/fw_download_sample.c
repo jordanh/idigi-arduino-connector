@@ -11,37 +11,38 @@
  *
  * @section connect_description Code Flow
  *
- * The file application.c contains the application defined callback idigi_callback()
- * this callback in turn calls idigi_firmware_callback() when a firmware request
- * is received.  All interaction with the IIK is through the callback in this sample;
- * the FW download is initiated by the server.  The file firmware.c contains the
- * routines which process the firmware download requests.  
+ * The @ref AppStructure "Public Application Framework" @b Sample section file application.c contains
+ * @ref idigi_callback_t "application defined callback idigi_callback()", which traps the
+ * @ref fw_overview1 "Firmware Download" callbacks.  These callbacks are then processed in
+ * app_firmware_handler() when a firmware request callback is received.
+ *
+ * All interaction with the IIK is through the callback in this sample; Firmware download
+ * is initiated fully from the cloud.  The file firmware.c contains the routines which process
+ * the firmware download callbacks passed to app_firmware_handler().
  *
  * This sample defines all supported image files with .a and .bin file extensions.
- * The file extension is only validated when updataing firmware from iDigi Device Cloud.
+ * The file extension is only validated when updating firmware from iDigi Developer Cloud.
  *
  * @code
- *
- * /* list of all supported firmware target info */
+ * // list of all supported firmware target info
  * static firmware_list_t fimware_list[] = {
- *   /* version     code_size     name_spec          description */
- *   {0x01000000, (uint32_t)-1, ".*\\.a",            "Library Image"}, /* any .a image */
- *   {0x00000100, (uint32_t)-1, ".*\\.[bB][iI][nN]", "Binary Image" }  /* any .bin image */
+ *   // version     code_size     name_spec            description
+ *   {  0x01000000, (uint32_t)-1, ".*\\.a",            "Library Image"}, // any .a image
+ *   {  0x00000100, (uint32_t)-1, ".*\\.[bB][iI][nN]", "Binary Image" }  // any .bin image
  * };
- *
  * @endcode
  *
  * The routine firmware_download_request() is called when the download is first
  * initiated, it receives information about the download and retuns @ref idigi_fw_success
  * status indicating that is ready to accept the FW download.
  *
- * The routine firmware_image_data() is called repeatidly with the image data
+ * The firmware_image_data() routine is repeatedly called with the image data
  * until the download is complete, the routine firmware_download_complete()
- * is called when the download is complete.  At this point the FW can veirfy
+ * is called when the download is complete.  At this point the FW can verify
  * that the downloaded image is valid.
  *
  * When firmware_download_complete() returns @ref idigi_fw_download_success status,
- * it indicates the firmware image has been updated. iDigi Device Cloud will reset the unit,
+ * it indicates the firmware image has been updated. iDigi Developer Cloud will reset the unit,
  * the routine firmware_reset() is called for resetting.
  * 
  * The routine firmware_download_abort() is called when idigi server encounters error.
@@ -130,12 +131,12 @@
  * Once successfully built, run the executable, in Linux type ./idigi to run the
  * sample.
  *
- * Firmware downloads can be initiated by the server using the iDigi Device Cloud
+ * Firmware downloads can be initiated by the server using the iDigi Developer Cloud
  * GUI or by issuing a @ref services "SCI update_firmare operation".
  *
- * @subsection fw_gui Firmware Download using iDigi Device Cloud GUI
+ * @subsection fw_gui Firmware Download using iDigi Developer Cloud GUI
  *
- * Login to the iDigi Device cloud at http://www.idigi.com  and click on your device 
+ * Login to the iDigi Developer cloud at http://www.idigi.com  and click on your device
  * (described in the @ref idigi_login "Getting Started Section").
  * Once you are logged in and see your device Click the Refresh button. 
  * The device will reconnect to the iDigi Developer Cloud.

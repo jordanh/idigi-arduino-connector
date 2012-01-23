@@ -279,7 +279,7 @@
  *
  * @section server_url iDigi Server URL
  *
- * Return the iDigi Device Cloud FQDN.
+ * Return the iDigi Developer Cloud FQDN.
  *
  * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
  * and implemented in the @b Platform function app_get_server_url() in config.c.
@@ -653,7 +653,7 @@
  * @section tx_keepalive TX Keepalive Interval
  *
  * Return TX keepalive interval in seconds. This tells how 
- * often the iDigi Device Cloud sends keepalive messages to the device. 
+ * often the iDigi Developer Cloud sends keepalive messages to the device.
  *
  * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
  * and implemented in the @b Platform function app_get_tx_keepalive_interval() in config.c.
@@ -728,7 +728,7 @@
  * @section rx_keepalive RX Keepalive Interval
  *
  * Return RX keepalive interval in seconds. This tells how 
- * often the IIK sends keepalive messages to the iDigi Device Cloud (device to the iDigi Device Cloud). 
+ * often the IIK sends keepalive messages to the iDigi Developer Cloud (device to the iDigi Developer Cloud).
  *
  * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
  * and implemented in the @b Platform function app_get_rx_keepalive_interval() in config.c.
