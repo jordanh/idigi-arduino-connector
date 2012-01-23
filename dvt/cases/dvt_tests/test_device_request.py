@@ -10,7 +10,7 @@ from xml.dom.minidom import getDOMImplementation
 impl = getDOMImplementation()
 
 # from utils import clean_slate
-from utils import getText, determine_disconnect_reconnect, clean_slate
+from utils import getText, clean_slate
 
 impl = getDOMImplementation()
 class DeviceRequestDvtTestCase(iik_testcase.TestCase):
