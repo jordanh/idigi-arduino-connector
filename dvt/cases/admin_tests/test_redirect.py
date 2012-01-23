@@ -7,7 +7,8 @@ import xml.dom.minidom
 from xml.dom.minidom import getDOMImplementation
 impl = getDOMImplementation()
 
-from utils import determine_disconnect_reconnect
+from utils import DeviceConnectionMonitor
+
 nonidigi_host = 'google.com'
 
 DESTINATION = "<destination>%s</destination>"
@@ -23,26 +24,6 @@ REDIRECT_REQUEST = \
         </destinations>
     </redirect>
 </sci_request>"""
-
-DISCONNECT_REQUEST = \
-"""<sci_request version="1.0">
-    <disconnect>
-        <targets>
-            <device id="%s"/>
-        </targets>
-    </disconnect>
-</sci_request>"""
-
-REBOOT_REQUEST = \
-"""<sci_request version="1.0"> 
-  <reboot> 
-    <targets> 
-      <device id="%s"/> 
-    </targets> 
-  </reboot>
-</sci_request>"""
-
-target = 0
 
 FIRMWARE_QUERY_REQUEST = \
 """<sci_request version="1.0">
@@ -63,6 +44,8 @@ FIRMWARE_ZERO_DATA_REQUEST= \
     </update_firmware>
 </sci_request>"""
 
+target = 0
+
 class RedirectTestCase(iik_testcase.TestCase):
         
     def test_terminate_iik_by_firmware_upgrade(self):
@@ -70,9 +53,7 @@ class RedirectTestCase(iik_testcase.TestCase):
         """ Sends an asynchronous firmware update to teminate iik"""
     
         self.log.info("***** Updating Firmware to terminate IIK *****")
-        # Check time the device was last connected
-        last_connected = self.device_core.dpLastConnectTime
-        
+    
         # Send firmware target query
         self.log.info("Sending firmware target query to %s." % self.device_config.device_id)
                
@@ -103,21 +84,30 @@ class RedirectTestCase(iik_testcase.TestCase):
         """
         
         self.log.info("***** Beginning Redirect Test *****")
-        last_connected = self.device_core.dpLastConnectTime
+        monitor = DeviceConnectionMonitor(self.api, self.device_config.device_id)
+        try:
+            monitor.start()
         
-        self.log.info("Sending Connection Control Redirect to %s." % self.device_config.device_id)
-        # Create the request to redirect the device to the same server.
-        redirect_request = REDIRECT_REQUEST % \
-            (self.device_config.device_id, DESTINATION % self.api.hostname)
-        
-        # Send SCI redirect request (using admin credentials).
-        response = self.device_config.api.sci(redirect_request)
-        
-        # Print response to request.
-        self.log.info("response:\n%s" % response)
-        
-        # Determine if device disconnected and reconnected.
-        determine_disconnect_reconnect(self, self.device_config, self.api, last_connected)
+            self.log.info("Sending Connection Control Redirect to %s." % self.device_config.device_id)
+            # Create the request to redirect the device to the same server.
+            redirect_request = REDIRECT_REQUEST % \
+                (self.device_config.device_id, DESTINATION % self.api.hostname)
+            
+            # Send SCI redirect request (using admin credentials).
+            response = self.device_config.api.sci(redirect_request)
+            
+            # Print response to request.
+            self.log.info("response:\n%s" % response)
+            
+            self.log.info("Waiting for iDigi to disconnect device.")
+            monitor.wait_for_disconnect(30)
+            self.log.info("Device disconnected.")
+            
+            self.log.info("Waiting for Device to reconnect.")
+            monitor.wait_for_connect(60)
+            self.log.info("Device connected.") 
+        finally:
+            monitor.stop()
     
     def test_redirect_multi_urls_first_nonidigi(self):
     
@@ -127,21 +117,31 @@ class RedirectTestCase(iik_testcase.TestCase):
         """
         
         self.log.info("***** Beginning Redirect Test with multiple URLs (first non-iDigi) *****")
-        last_connected = self.device_core.dpLastConnectTime
+        monitor = DeviceConnectionMonitor(self.api, self.device_config.device_id)
+        try:
+            monitor.start()
 
-        self.log.info("Sending Connection Control Redirect to %s." % self.device_config.device_id)
-        # Create the request to redirect the device to a nonidigi server and
-        # then an iDigi server
-        destination = DESTINATION % nonidigi_host + DESTINATION % self.api.hostname
-        redirect_request = REDIRECT_REQUEST % \
-            (self.device_config.device_id, destination)
-        
-        # Send SCI redirect request. (using admin credentials).
-        response = self.device_config.api.sci(redirect_request)
-        self.log.info("response:\n%s" % response)
-        
-        # Determine if device disconnected and reconnected
-        determine_disconnect_reconnect(self, self.device_config, self.api, last_connected, 60)
+            self.log.info("Sending Connection Control Redirect to %s." % self.device_config.device_id)
+            # Create the request to redirect the device to a nonidigi server and
+            # then an iDigi server
+            destination = DESTINATION % nonidigi_host + DESTINATION % self.api.hostname
+            redirect_request = REDIRECT_REQUEST % \
+                (self.device_config.device_id, destination)
+            
+            # Send SCI redirect request. (using admin credentials).
+            response = self.device_config.api.sci(redirect_request)
+
+            self.log.info("response:\n%s" % response)
+
+            self.log.info("Waiting for iDigi to disconnect device.")
+            monitor.wait_for_disconnect(30)
+            self.log.info("Device disconnected.")
+            
+            self.log.info("Waiting for Device to reconnect.")
+            monitor.wait_for_connect(60)
+            self.log.info("Device connected.") 
+        finally:
+            monitor.stop()
         
     def test_redirect_singleurl_nondigi(self):
         
@@ -151,19 +151,28 @@ class RedirectTestCase(iik_testcase.TestCase):
         """
         
         self.log.info("***** Beginning Redirect Test with single non-iDigi URL *****")
-        last_connected = self.device_core.dpLastConnectTime
+        monitor = DeviceConnectionMonitor(self.api, self.device_config.device_id)
+        try:
+            monitor.start()
 
-        self.log.info("Sending Connection Control Redirect to %s." % self.device_config.device_id)
-        # Create the request to redirect the device to a nonidigi server.
-        redirect_request = REDIRECT_REQUEST % \
-            (self.device_config.device_id, DESTINATION % nonidigi_host)
+            self.log.info("Sending Connection Control Redirect to %s." % self.device_config.device_id)
+            # Create the request to redirect the device to a nonidigi server.
+            redirect_request = REDIRECT_REQUEST % \
+                (self.device_config.device_id, DESTINATION % nonidigi_host)
+                
+            # Send sci redirect request. (Using admin credentials).
+            response = self.device_config.api.sci(redirect_request)
+            self.log.info("response:\n%s" % response)
             
-        # Send sci redirect request. (Using admin credentials).
-        response = self.device_config.api.sci(redirect_request)
-        self.log.info("response:\n%s" % response)
-        
-        # Determine if device disconnected and reconnected
-        determine_disconnect_reconnect(self, self.device_config, self.api, last_connected, 60)
+            self.log.info("Waiting for iDigi to disconnect device.")
+            monitor.wait_for_disconnect(30)
+            self.log.info("Device disconnected.")
+            
+            self.log.info("Waiting for Device to reconnect.")
+            monitor.wait_for_connect(60)
+            self.log.info("Device connected.") 
+        finally:
+            monitor.stop()
     
     def test_redirect_zero_destinations(self):
     
