@@ -113,22 +113,21 @@ def generate_id(api):
 
 def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[], 
     update_config_header=False):
-    sandbox_dir = sandbox(base_dir)
-    device_location = None
-    try: 
-        for (f, s, r) in replace_list:
-            config.replace_string(os.path.join(sandbox_dir, f), s, r)
 
-        if update_config_header:
-            config.update_config_header(
-                os.path.join(sandbox_dir, 'public/include/idigi_config.h'), 
-                os.path.join(sandbox_dir, SAMPLE_SCRIPT_DIR+'config.ini'))
+    for test in test_table:
+        sandbox_dir = sandbox(base_dir)
+        try:
+            for (f, s, r) in replace_list:
+                config.replace_string(os.path.join(sandbox_dir, f), s, r)
 
-        (device_id, mac_addr, device_location) = generate_id(api)
-        setup_platform(os.path.join(sandbox_dir, SAMPLE_SCRIPT_DIR), 
-            os.path.join(sandbox_dir, SAMPLE_PLATFORM_DIR), mac_addr)
+            if update_config_header:
+                config.update_config_header(
+                    os.path.join(sandbox_dir, 'public/include/idigi_config.h'), 
+                    os.path.join(sandbox_dir, SAMPLE_SCRIPT_DIR+'config.ini'))
 
-        for test in test_table:
+            (device_id, mac_addr, device_location) = generate_id(api)
+            setup_platform(os.path.join(sandbox_dir, SAMPLE_SCRIPT_DIR), 
+                os.path.join(sandbox_dir, SAMPLE_PLATFORM_DIR), mac_addr)
             src_dir   = os.path.join(sandbox_dir, test[SRC_DIR])
             test_dir  = os.path.join(sandbox_dir, test[TEST_DIR])
             test_list = test[TEST_LIST]
@@ -217,13 +216,13 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
                             infile.close()
                 except IOError:
                     print ">>> [%s] Failed to get information from %s" % (description, errorfile)
-    except Exception, e:
-        print ">>> [%s] Error: %s" % (description, e)
-    finally:
-        # Delete the Device after we're done with it.
-        if device_location is not None:
-            api.delete_location(device_location)
-        shutil.rmtree(sandbox_dir)
+        except Exception, e:
+            print ">>> [%s] Error: %s" % (description, e)
+        finally:
+            # Delete the Device after we're done with it.
+            if device_location is not None:
+                api.delete_location(device_location)
+            shutil.rmtree(sandbox_dir)
 
 def clean_output(directory):
     for root, folders, files in os.walk(directory):

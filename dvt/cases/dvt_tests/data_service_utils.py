@@ -1,7 +1,7 @@
 import logging
 import time
 import datetime
-from base64 import b64encode
+from base64 import b64encode, b64decode
 import xml.dom.minidom
 from xml.dom.minidom import getDOMImplementation
 impl = getDOMImplementation()
@@ -123,22 +123,37 @@ def get_filedatahistory(api, file_history_location):
     log.info("Verifying data in %s" % file_history_location)
     fdh_response = api.get_raw(file_history_location, embed='true', 
         orderby='fdLastModifiedDate')
-    dom = xml.dom.minidom.parseString(fdh_response)
-    return dom.getElementsByTagName("FileDataHistory")   
+    
+    # iDigi unfortunately returns the FileData payload if there is only
+    # one matching historical entry, if more than one it returns XML.
+    # Vantive opened for this, but until then, parse XML if XML, otherwise
+    # return raw payload.
+    # This will create weakness in our validation if only 1 response is 
+    # returned as the modification/creation times cannot be inspected.
+    if fdh_response.startswith('<?xml'):
+        dom = xml.dom.minidom.parseString(fdh_response)
+        return dom.getElementsByTagName("FileDataHistory")
+    else:
+        return fdh_response
     
 def check_filedatahistory(instance, fdh, datetime_created, 
-                            encoded_content, files_pushed_after, dne=False):
+                            content, files_pushed_after, dne=False):
     
     """ takes a list of filedatahistory entries and verifies the content
     and metadata.
     """
     
-    # find correct filedatahistory entry    
-    file = len(fdh) - (files_pushed_after + 1)
-    modified_date = getText(fdh[file].getElementsByTagName("fdLastModifiedDate")[0])
-    data = getText(fdh[file].getElementsByTagName("fdData")[0])
+    if type(fdh) == str:
+        # Due to iDigi bug, if History only had one element, we can't get at 
+        # the metadata.  This is temporary until bug is fixed.
+        data = fdh
+    else:    
+        # find correct filedatahistory entry    
+        file = len(fdh) - (files_pushed_after + 1)
+        modified_date = getText(fdh[file].getElementsByTagName("fdLastModifiedDate")[0])
+        data = b64decode(getText(fdh[file].getElementsByTagName("fdData")[0]))
     
-    instance.assertEqual(data, encoded_content, 
+    instance.assertEqual(data, content, 
         "File's contents do not match what is expected.")
      
     # Verify that file's Last Modified Date/time is within 2 minutes of
@@ -148,7 +163,7 @@ def check_filedatahistory(instance, fdh, datetime_created,
     # instance.assertTrue(delta < 120, 
     #        "File's Last Modified Date/Time is incorrect (delta = %d)" % delta)
     
-    if dne:
+    if dne and type(fdh) != str:
         created_date = getText(fdh[file].getElementsByTagName("fdCreatedDate")[0])
         instance.assertEqual(created_date, modified_date, 
             "File's created date/time does not match file's last modified date/time.")

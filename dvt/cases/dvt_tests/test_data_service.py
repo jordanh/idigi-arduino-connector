@@ -43,7 +43,6 @@ class DataServiceArchiveTestCase(iik_testcase.TestCase):
         
         # Create content to be pushed.
         content = [os.urandom(8), os.urandom(8)]
-        encoded_content = [b64encode(content[0]), b64encode(content[1])]
         datetime_created = []
 
         # Create paths to files.
@@ -59,7 +58,7 @@ class DataServiceArchiveTestCase(iik_testcase.TestCase):
         
         # Verify filedatahistory contents and metadata.
         check_filedatahistory(self, get_filedatahistory(self.api, 
-            file_history_location), datetime_created[0], encoded_content[0], 
+            file_history_location), datetime_created[0], content[0], 
             0)
         
         # Send firmware update and verify correct content is pushed.
@@ -70,11 +69,11 @@ class DataServiceArchiveTestCase(iik_testcase.TestCase):
         
         # Verify filedatahistory contents and metadata for first file pushed.
         check_filedatahistory(self, fdh, datetime_created[0], 
-            encoded_content[0], 1)
+            content[0], 1)
         
         # Verify filedatahistory contents and metadata for second file pushed.
         check_filedatahistory(self, fdh, datetime_created[1], 
-            encoded_content[1], 0)
+            content[1], 0)
         
     def test_archive_true_file_dne(self):
         
@@ -97,7 +96,6 @@ class DataServiceArchiveTestCase(iik_testcase.TestCase):
         
         # Create content to be pushed
         content = os.urandom(8)
-        encoded_content = b64encode(content)
         datetime_created = []
         
         # Create paths to files.
@@ -116,7 +114,7 @@ class DataServiceArchiveTestCase(iik_testcase.TestCase):
         
         # Verify filedatahistory contents and metadata.
         check_filedatahistory(self, get_filedatahistory(self.api, 
-            file_history_location), datetime_created[0], encoded_content, 
+            file_history_location), datetime_created[0], content, 
             0, dne=True)      
 
     def test_archive_zero_data(self):
@@ -139,7 +137,6 @@ class DataServiceArchiveTestCase(iik_testcase.TestCase):
         
         # Create content to be pushed.
         content = ["", ""]
-        encoded_content = content
         datetime_created = []
 
         # Create paths to files.
@@ -155,7 +152,7 @@ class DataServiceArchiveTestCase(iik_testcase.TestCase):
         
         # Verify filedatahistory contents and metadata.
         check_filedatahistory(self, get_filedatahistory(self.api, 
-            file_history_location), datetime_created[0], encoded_content[0], 
+            file_history_location), datetime_created[0], content[0], 
             0)
         
         # Send firmware update and verify correct content is pushed.
@@ -166,11 +163,11 @@ class DataServiceArchiveTestCase(iik_testcase.TestCase):
         
         # Verify filedatahistory contents and metadata for first file pushed.
         check_filedatahistory(self, fdh, datetime_created[0], 
-            encoded_content[0], 1)
+            content[0], 1)
         
         # Verify filedatahistory contents and metadata for second file pushed.
         check_filedatahistory(self, fdh, datetime_created[1], 
-            encoded_content[1], 0)
+            content[1], 0)
 
     def tearDown(self):
         self.log.info("Performing cleanup.")
