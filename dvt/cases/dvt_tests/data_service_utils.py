@@ -93,7 +93,7 @@ def update_and_verify(instance, api, device_id, target, content,
         log.info("Waiting for File Content.")
         cb.event.wait(wait_time)
 
-        instance.assertIsNotNone(cb.data, "Data not received for %s within wait time %d." % (file_location, wait_time))
+        instance.assertNotEqual(None, cb.data, "Data not received for %s within wait time %d." % (file_location, wait_time))
 
         log.info("Verifying File Content.")
         file_data = cb.data['Document']['Msg']['FileData']
