@@ -7,7 +7,7 @@ from xml.dom.minidom import getDOMImplementation
 impl = getDOMImplementation()
 
 import idigi_ws_api
-from utils import getText, determine_disconnect_reconnect, update_firmware
+from utils import getText, DeviceConnectionMonitor, update_firmware
 
 target = 0
 
@@ -84,34 +84,44 @@ class FirmwareTestCase(iik_testcase.TestCase):
         """
         
         self.log.info("Beginning Test to Update Firmware by Target.")
-        last_connected = self.device_core.dpLastConnectTime
-        
-        self.log.info("Sending firmware target query to %s." % self.device_config.device_id)
-        
-        # Determine if device has firmware targets
-        firmware_targets_xml = self.api.sci(FIRMWARE_QUERY_REQUEST % 
-            self.device_config.device_id)
-        dom = xml.dom.minidom.parseString(firmware_targets_xml)
-        targets = dom.getElementsByTagName("target")
-        
-        self.log.info("Determining if the device has defined firmware targets.")
-        self.assertNotEqual(0, len(targets), 
-                "No targets exist on device %s" % self.device_config.device_id)
-        
-        # Send request to update firmware
-        self.log.info("Sending request to update firmware.")
-        response = update_firmware(self.api, self.device_config.device_id, 
-            self.device_config.firmware_target_file[target], "%d" % target)
-        
-        # Print response
-        self.log.info("response: \n%s" % response)
-       
-        # Determine if Firmware was submitted
-        submitted = response.find("submitted")
-        self.assertNotEqual(-1, submitted, "Firmware was not submitted.")        
+        monitor = DeviceConnectionMonitor(self.api, self.device_config.device_id)
 
-        # Check if the device disconnects and reconnects
-        determine_disconnect_reconnect(self, self.device_config, self.api, last_connected)
+        try:
+            monitor.start()
+        
+            self.log.info("Sending firmware target query to %s." % self.device_config.device_id)
+            
+            # Determine if device has firmware targets
+            firmware_targets_xml = self.api.sci(FIRMWARE_QUERY_REQUEST % 
+                self.device_config.device_id)
+            dom = xml.dom.minidom.parseString(firmware_targets_xml)
+            targets = dom.getElementsByTagName("target")
+            
+            self.log.info("Determining if the device has defined firmware targets.")
+            self.assertNotEqual(0, len(targets), 
+                    "No targets exist on device %s" % self.device_config.device_id)
+            
+            # Send request to update firmware
+            self.log.info("Sending request to update firmware.")
+            response = update_firmware(self.api, self.device_config.device_id, 
+                self.device_config.firmware_target_file[target], "%d" % target)
+            
+            # Print response
+            self.log.info("response: \n%s" % response)
+           
+            # Determine if Firmware was submitted
+            submitted = response.find("submitted")
+            self.assertNotEqual(-1, submitted, "Firmware was not submitted.")        
+
+            self.log.info("Waiting for iDigi to disconnect device.")
+            monitor.wait_for_disconnect(30)
+            self.log.info("Device disconnected.")
+            
+            self.log.info("Waiting for Device to reconnect.")
+            monitor.wait_for_connect(30)
+            self.log.info("Device connected.") 
+        finally:
+            monitor.stop()
         
     
     def test_update_firmware_nonexisting_target(self):
@@ -248,8 +258,6 @@ class FirmwareTestCase(iik_testcase.TestCase):
         self.log.info("complete message:\n%s" % response)
         self.assertNotEqual(-1, complete, 
                         "Asynchronous firmware upgrade did not complete.")
-        
-        #determine_disconnect_reconnect(self, self.device_config, last_connected)
         
 if __name__ == '__main__':
 

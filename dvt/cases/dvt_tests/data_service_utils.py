@@ -71,11 +71,11 @@ def update_and_verify(instance, api, device_id, target, content,
 
     client = push_client.PushClient(api.username, api.password, api.hostname, 
                 secure=False)
+    monitor = client.create_monitor([file_location], batch_size=1, batch_duration=0, 
+        format_type='json')
+
     
     try:
-        monitor = client.create_monitor([file_location], batch_size=1, batch_duration=0, 
-            format_type='json')
-
         cb = FileDataCallback(file_location)
 
         session = client.create_session(cb.callback, monitor)
@@ -139,6 +139,7 @@ def update_and_verify(instance, api, device_id, target, content,
         return file_content
     finally:
         client.stop_all()
+        client.delete_monitor(monitor)
 
 def get_filedatahistory(api, file_history_location):
     

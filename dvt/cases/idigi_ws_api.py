@@ -422,12 +422,6 @@ class Api:
         log.info("PUT of %s" % resource)
         return self.__update(resource, 'PUT')
 
-    def delete(self, resource):
-        if resource.location:
-            return delete_location(self, resource.location)
-        else:
-            raise Exception('Cannot DELETE as Resource has no location.')
-
     def delete_location(self, resource):
         log.info("DELETE to %s" % resource)
         connection = httplib.HTTPSConnection(self.hostname)
@@ -442,3 +436,9 @@ class Api:
             raise Exception(
                 'Returned Non 200 Status Code: %d : %s. Data= %s'
                 % (response.status, response.reason, response_str))
+
+    def delete(self, resource):
+        if resource.location:
+            return self.delete_location(resource.location)
+        else:
+            raise Exception('Cannot DELETE as Resource has no location.')

@@ -7,8 +7,7 @@ import xml.dom.minidom
 from xml.dom.minidom import getDOMImplementation
 impl = getDOMImplementation()
 
-# from utils import getText, determine_disconnect_reconnect, update_firmware
-from utils import determine_disconnect_reconnect
+from utils import DeviceConnectionMonitor
 
 nonidigi_host = 'google.com'
 
@@ -26,45 +25,6 @@ REDIRECT_REQUEST = \
     </redirect>
 </sci_request>"""
 
-DISCONNECT_REQUEST = \
-"""<sci_request version="1.0">
-    <disconnect>
-        <targets>
-            <device id="%s"/>
-        </targets>
-    </disconnect>
-</sci_request>"""
-
-REBOOT_REQUEST = \
-"""<sci_request version="1.0"> 
-  <reboot> 
-    <targets> 
-      <device id="%s"/> 
-    </targets> 
-  </reboot>
-</sci_request>"""
-
-target = 0
-
-FIRMWARE_QUERY_REQUEST = \
-"""<sci_request version="1.0">
-  <query_firmware_targets>
-    <targets>
-      <device id="%s"/>
-    </targets>
-  </query_firmware_targets>
-</sci_request>"""
-    
-FIRMWARE_ZERO_DATA_REQUEST= \
-"""<sci_request version="1.1">
-    <update_firmware firmware_target="%d">
-        <targets>
-            <device id="%s"/>
-        </targets>
-        <data></data>
-    </update_firmware>
-</sci_request>"""
-
 class Redirect3UrlsTestCase(iik_testcase.TestCase):
     
     def test_redirect_three_destinations(self):
@@ -76,23 +36,33 @@ class Redirect3UrlsTestCase(iik_testcase.TestCase):
         """
         
         self.log.info("***** Beginnning Redirect Test with three destination URLs *****")
-        last_connected = self.device_core.dpLastConnectTime
-        
-        # Send redirect with three destinations
-        self.log.info("Sending Connection Control Redirect to %s." % self.device_config.device_id)
-        destinations = DESTINATION % self.api.hostname + DESTINATION % self.api.hostname + DESTINATION % self.api.hostname
-        redirect_request = REDIRECT_REQUEST % \
-            (self.device_config.device_id, destinations)
-        
-        response = self.device_config.api.sci_expect_fail(redirect_request)
-        self.log.info("response:\n%s" % response)
-        
-        self.log.info("Determining if device was redirected.")
-        redirected = response.find("redirected")
-        self.assertNotEqual(-1, redirected, "Unexpected response: %s." % response)
-        
-        # Determine if device disconnects and reconnects
-        determine_disconnect_reconnect(self, self.device_config, self.api, last_connected, 30)
+        monitor = DeviceConnectionMonitor(self.api, self.device_config.device_id)
+
+        try:
+            monitor.start()
+            
+            # Send redirect with three destinations
+            self.log.info("Sending Connection Control Redirect to %s." % self.device_config.device_id)
+            destinations = DESTINATION % self.api.hostname + DESTINATION % self.api.hostname + DESTINATION % self.api.hostname
+            redirect_request = REDIRECT_REQUEST % \
+                (self.device_config.device_id, destinations)
+
+            response = self.device_config.api.sci_expect_fail(redirect_request)
+            self.log.info("response:\n%s" % response)
+            
+            self.log.info("Determining if device was redirected.")
+            redirected = response.find("redirected")
+            self.assertNotEqual(-1, redirected, "Unexpected response: %s." % response)
+            
+            self.log.info("Waiting for iDigi to disconnect device.")
+            monitor.wait_for_disconnect(30)
+            self.log.info("Device disconnected.")
+            
+            self.log.info("Waiting for Device to reconnect.")
+            monitor.wait_for_connect(30)
+            self.log.info("Device connected.") 
+        finally:
+            monitor.stop()
        
  
 if __name__ == '__main__':

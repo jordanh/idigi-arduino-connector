@@ -2,6 +2,9 @@ from __future__ import division
 import datetime
 import logging
 import time
+import push_client
+import json
+from threading import Event
 from xml.dom.minidom import getDOMImplementation
 impl = getDOMImplementation()
 from base64 import encodestring
@@ -14,6 +17,101 @@ handler.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 log.addHandler(handler)
+
+class DeviceConnectionMonitor(object):
+    """
+    Used to monitor a Device for Connection and Disconnection Events.  Utilizes 
+    iDigi Push Monitoring to monitor events.
+    """
+
+    def __init__(self, api, device_id):
+        """
+        Create instance.
+
+        Parameters:
+        api -- idigi_ws_api.Api to use for creating monitor.
+        device_id -- the devConnectwareId of the device.
+        """
+        self.api = api
+        self.device_id = device_id
+        self.client = push_client.PushClient(api.username, api.password, 
+                                             api.hostname, secure=False)
+        self.disconnect_event = Event()
+        self.disconnect_data = None
+        self.connect_event = Event()
+        self.connect_data = None
+        self.monitor = None
+        self.session = None
+
+    def __session_callback(self, data):
+        device_core = json.loads(data)['Document']['Msg']['DeviceCore']
+        status = device_core['dpConnectionStatus']
+        if status == 1:
+            # Device is connected.
+            self.connect_data = device_core
+            self.connect_event.set()
+        elif status == 0:
+            # Device is disconnected.
+            self.disconnect_data = device_core
+            self.disconnect_event.set()
+
+        return True
+
+    
+    def start(self):
+        """
+        Starts by registering a Monitor on the Device and creating a TCP 
+        session.
+        """
+        device_core = self.api.get_first(
+            'DeviceCore', condition="devConnectwareId='%s'" % self.device_id)
+
+        self.dev_id = device_core.id.devId
+        self.monitor = self.client.create_monitor(
+                                        ['DeviceCore/%s' % self.dev_id ], 
+                                        batch_size=1, batch_duration=0, 
+                                        format_type='json')
+
+        session = self.client.create_session(self.__session_callback, self.monitor)
+
+    def wait_for_connect(self, timeout):
+        """
+        Waits timeout seconds for device to connect.  If it connects within 
+        timeout, returns the DeviceCore payload, otherwise an Exception is 
+        raised.
+        """
+        self.connect_event.wait(timeout)
+        if self.connect_data is None:
+            raise Exception('Device %s did not connect within %d seconds.' % \
+                (self.device_id, timeout))
+        
+        connect_data = self.connect_data
+        self.connect_data = None
+        self.connect_event.clear()
+        return connect_data
+
+    def wait_for_disconnect(self, timeout):
+        """
+        Waits timeout seconds for device to disconnect.  If it disconnects within 
+        timeout, returns the DeviceCore payload, otherwise an Exception is 
+        raised.
+        """
+        self.disconnect_event.wait(timeout)
+        if self.disconnect_data is None:
+            raise Exception('Device %s did not disconnect within %d seconds.' % \
+                (self.device_id, timeout))
+        
+        disconnect_data = self.disconnect_data
+        self.disconnect_data = None
+        self.disconnect_event.clear()
+        return disconnect_data
+    
+    def stop(self):
+        """
+        Stop the push client and all sessions.
+        """
+        self.client.stop_all()
+        self.client.delete_monitor(self.monitor)
 
 def convert_to_datetime(fd_time):
 
@@ -55,47 +153,6 @@ def clean_slate(api, file_location):
         api.delete_location(file_location)
     except Exception:
         pass
-        
-def determine_disconnect_reconnect(instance, config, api, last_connected, wait_time=15):
-    log.info("Determining if Device %s disconnected." 
-            % config.device_id)
-    new_device_core = api.get_first('DeviceCore',
-        condition="devConnectwareid='%s'" % config.device_id)
-
-    # TODO: This logic is a bit broken as the logic triggers really fast,
-    # should use push instead to key off the disconnect and reconnect events.
-    if new_device_core.dpConnectionStatus == "1":
-        for i in range(int(wait_time/5)):
-            # it's possible device has not disconnected yet, poll for a bit till disconnected.
-            new_device_core = api.get_first('DeviceCore', 
-                                    condition="devConnectwareId='%s'" % config.device_id)
-            if new_device_core.dpConnectionStatus == "0":
-                break
-            time.sleep(1)
-
-    # Ensure device is disconnected as result of SCI request.
-    #instance.assertEqual('0', new_device_core.dpConnectionStatus, "Device %s did not disconnect." % config.device_id)
-
-    log.info("Waiting up to %i seconds for device to reconnect." % wait_time)
-    log.info("Determining if Device %s reconnected." \
-            % config.device_id)
-    
-    for i in range(int(wait_time/5)):
-        time.sleep(5)
-        new_device_core = api.get_first('DeviceCore', 
-                            condition="devConnectwareId='%s'" % config.device_id)
-        if new_device_core.dpConnectionStatus == "1":
-            break
-           
-    # Ensure device has reconnected.
-    instance.assertEqual('1', new_device_core.dpConnectionStatus,
-                    "Device %s did not reconnect." % config.device_id)
-    
-    log.info("Initial Last Connect Time: %s." % last_connected)
-    log.info("New Last Connect Time: %s." 
-            % new_device_core.dpLastConnectTime)
-    # Ensure that Last Connection Time has changed from initial Device State
-    # instance.assertNotEqual(last_connected, new_device_core.dpLastConnectTime)
     
 def update_firmware(api, device, input_firmware, target):
                     
