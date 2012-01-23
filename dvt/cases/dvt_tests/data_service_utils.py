@@ -61,7 +61,7 @@ class FileDataCallback(object):
 def update_and_verify(instance, api, device_id, target, content, 
                     datetime_created, file_location, 
                     file_name, expected_content=None, dne=False,
-                    original_created_time=None, wait_time=60):
+                    original_created_time=None, wait_time=15):
                     
     """Sends firmware update to trigger a data push, then performs
     a GET on the file_location to determine if the correct content 
