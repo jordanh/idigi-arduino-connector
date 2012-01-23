@@ -19,6 +19,11 @@
  * This callback is called to establish connection between IIK and the iDigi Device Cloud. 
  * Callback is responsible to setup any socket options.
  *
+ * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
+ * and implemented in the @b Platform function app_network_connect() in network.c.
+ *
+ * @see app_network_connect()
+ *
  * @htmlonly
  * <table class="apitable">
  * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
@@ -143,6 +148,11 @@
  * the timeout specified in the idigi_write_request_t. If it encounters EAGAIN or EWOULDBLOCK
  * error, 0 bytes must be returned and IIK will continue calling this function.
  *
+ * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
+ * and implemented in the @b Platform function app_network_send() in network.c.
+ *
+ * @see app_network_send()
+ *
  * @htmlonly
  * <table class="apitable">
  * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
@@ -229,8 +239,13 @@
  * Device Cloud.  This function may block up to the timeout specified in the
  * idigi_read_request_t.
  *
+ * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
+ * and implemented in the @b Platform function app_network_receive() in network.c.
+ *
  * @note In the multithreaded model (idigi_run()) this is the point where the IIK
  * will relinquish control of the CPU.
+ *
+ * @see app_network_receive()
  *
  * @htmlonly
  * <table class="apitable">
@@ -322,6 +337,11 @@
  * @section close Close
  *
  * Callback is called to close a connection between a device and the iDigi Device server
+ *
+ * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
+ * and implemented in the @b Platform function app_network_close() in network.c.
+ *
+ * @see app_network_close()
  *
  * @htmlonly
  * <table class="apitable">
