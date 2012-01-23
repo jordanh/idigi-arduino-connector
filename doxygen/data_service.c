@@ -194,7 +194,7 @@
  *            }
  *            break;
  *
- *        case idigi_data_service_type_have_data: // Response fromt the iDigi Device Cloud
+ *        case idigi_data_service_type_have_data: // Response from the iDigi Device Cloud
  *            {
  *                idigi_data_service_block_t * message = put_request->server_data;
  *                uint8_t const * data = message->data;
