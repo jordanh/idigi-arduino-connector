@@ -67,17 +67,6 @@ FIRMWARE_ZERO_DATA_REQUEST= \
 
 class Redirect3UrlsTestCase(iik_testcase.TestCase):
     
-    def setUp(self):
-        # Ensure device is connected.
-        self.log.info("Ensuring Device %s is connected." % self.device_config.device_id)
-        self.device_core = self.api.get_first('DeviceCore', 
-                        condition="devConnectwareId='%s'" % self.device_config.device_id)
-        
-        # If not connected, fail the TestCase.
-        if not self.device_core.dpConnectionStatus == '1':
-            self.assertEqual('1', self.device_core.dpConnectionStatus, 
-                "Device %s not connected." % self.device_config.device_id)
-
     def test_redirect_three_destinations(self):
     
         """ Sends redirect request to given device and verifies that
@@ -95,7 +84,7 @@ class Redirect3UrlsTestCase(iik_testcase.TestCase):
         redirect_request = REDIRECT_REQUEST % \
             (self.device_config.device_id, destinations)
         
-        response = self.api.sci_expect_fail(redirect_request)
+        response = self.device_config.api.sci_expect_fail(redirect_request)
         self.log.info("response:\n%s" % response)
         
         self.log.info("Determining if device was redirected.")
