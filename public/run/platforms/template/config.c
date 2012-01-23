@@ -90,7 +90,20 @@ static int app_get_mac_addr(uint8_t ** addr, size_t * size)
 /**
  * @brief   Get the iDigi device ID
  *
- * This routine is called to get a unique device ID which is used to identify the device. 
+ * This routine is called to get a unique device ID which is used to identify the device.
+ *
+ * Device IDs are a globally unique identifier for iDigi clients.  The Device ID is a
+ * 16-octet value derived from the MAC address of a network interface on the client.
+ * The mapping from MAC address to Device ID consist of inserting "FFFF" in the middle
+ * of the MAC and setting all other bytes of the Device ID to 0.
+ * For Example:
+ * MAC Address 12:34:56:78:9A:BC, would map to a Device ID: 00000000-123456FF-FF789ABC.
+ * If a client has more than one network interface, it does not matter to iDigi which
+ * network interface MAC is used for the basis of the Device ID.  If the MAC is read
+ * directly from the network interface to generate the client's Device ID, care must be
+ * taken to always use the same network interface's MAC since there is a unique mapping
+ * between a device and a Device ID.
+ *
  * The pointer ID is filled in with the address of the memory location which contains the 
  * device ID, size is filled in with the size of the device ID.
 . *
