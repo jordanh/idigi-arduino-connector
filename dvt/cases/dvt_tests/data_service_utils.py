@@ -91,7 +91,9 @@ def update_and_verify(instance, api, device_id, target, content,
                 
         # Check that file content is correct
         log.info("Waiting for File Content.")
-        cb.event.wait()
+        cb.event.wait(wait_time)
+
+        instace.assertIsNotNone(cb.data, "Data not received for %s within wait time %d." % (file_location, wait_time))
 
         log.info("Verifying File Content.")
         file_data = cb.data['Document']['Msg']['FileData']
@@ -101,9 +103,6 @@ def update_and_verify(instance, api, device_id, target, content,
             file_content = ''
         else:
             file_content = b64decode(file_data['fdData'])
-
-        if cb.data is None:
-            instance.fail("Data not received for %s within wait time %d." % (file_location, wait_time))
         
         # If provided, compare file's contents to expected content.
         if not expected_content:
