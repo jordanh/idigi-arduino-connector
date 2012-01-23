@@ -25,8 +25,21 @@
  *
  * @section device_id Device ID
  *
- * Return a unique device ID which is used to identify the device.
- * See the section: @ref step4
+ * Return a unique Device ID used to identify the device.
+ *
+ * Device IDs are a globally unique identifier for iDigi clients.  The Device ID is a
+ * 16-octet value derived from the MAC address of a network interface on the client.
+ * The mapping from MAC address to Device ID consist of inserting "FFFF" in the middle
+ * of the MAC and setting all other bytes of the Device ID to 0.
+ * For Example:
+ * MAC Address 12:34:56:78:9A:BC, would map to a Device ID: 00000000-123456FF-FF789ABC.
+ * If a client has more than one network interface, it does not matter to iDigi which
+ * network interface MAC is used for the basis of the Device ID.  If the MAC is read
+ * directly from the network interface to generate the client's Device ID, care must be
+ * taken to always use the same network interface's MAC since there is a unique mapping
+ * between a device and a Device ID.
+ *
+ * @see @ref add_your_device_to_the_cloud "Adding your Device to the iDigi Developer Cloud"
  *
  * @htmlonly
  * <table class="apitable">
@@ -107,7 +120,8 @@
  *
  * Return vendor ID which is a unique code identifying the manufacturer of a device. 
  * Vendor IDs are assigned to manufacturers by iDigi. 
- * See the section: @ref step4
+ *
+ * @see @ref idigi_vendor_id "Obtaining an iDigi Vendor ID"
  *
  * @note If @ref IDIGI_VENDOR_ID configuration is defined in @ref idigi_config.h, this callback 
  * will not be called. See @ref idigi_config_data_options
