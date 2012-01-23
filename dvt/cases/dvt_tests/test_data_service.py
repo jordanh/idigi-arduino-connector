@@ -12,6 +12,7 @@ from data_service_utils import update_firmware, update_and_verify, \
                                 get_filedatahistory, check_filedatahistory
 
 filedata = 'FileData/~/'
+filedatapush = 'FileData/~%2F'
 filedatahistory = 'FileDataHistory/~/'
 
 APPEND = 'Data Service PUT, Append'
@@ -46,6 +47,7 @@ class DataServiceArchiveTestCase(iik_testcase.TestCase):
         datetime_created = []
 
         # Create paths to files.
+        file_push_location = filedatapush + self.device_config.device_id + '/' + file_name
         file_location = filedata + self.device_config.device_id + '/' + file_name
         file_history_location = filedatahistory + self.device_config.device_id + '/' + file_name
         match = re.match(".*\/(.*)$", file_name)
@@ -54,7 +56,7 @@ class DataServiceArchiveTestCase(iik_testcase.TestCase):
         
         # Send firmware update and verify correct content is pushed.
         update_and_verify(self, self.api, self.device_config.device_id, target, 
-            content[0], datetime_created, file_location, file_name)
+            content[0], datetime_created, file_push_location, file_name)
         
         # Verify filedatahistory contents and metadata.
         check_filedatahistory(self, get_filedatahistory(self.api, 
@@ -63,7 +65,7 @@ class DataServiceArchiveTestCase(iik_testcase.TestCase):
         
         # Send firmware update and verify correct content is pushed.
         update_and_verify(self, self.api, self.device_config.device_id, target, 
-            content[1], datetime_created, file_location, file_name)
+            content[1], datetime_created, file_push_location, file_name)
         
         fdh = get_filedatahistory(self.api, file_history_location)
         
@@ -99,18 +101,19 @@ class DataServiceArchiveTestCase(iik_testcase.TestCase):
         datetime_created = []
         
         # Create paths to files.
+        file_push_location = filedatapush + self.device_config.device_id + '/' + file_name
         file_location = filedata + self.device_config.device_id + '/' + file_name
         file_history_location = filedatahistory + self.device_config.device_id + '/' + file_name
         match = re.match(".*\/(.*)$", file_name)
         if match:
             file_name = match.groups()[0]
-            
+
         # If the file exists, delete it.
         clean_slate(self.api, file_location)
         
         # Send firmware update and verify correct content is pushed.
         update_and_verify(self, self.api, self.device_config.device_id, target, 
-            content, datetime_created, file_location, file_name, dne=True)
+            content, datetime_created, file_push_location, file_name, dne=True)
         
         # Verify filedatahistory contents and metadata.
         check_filedatahistory(self, get_filedatahistory(self.api, 
@@ -140,6 +143,7 @@ class DataServiceArchiveTestCase(iik_testcase.TestCase):
         datetime_created = []
 
         # Create paths to files.
+        file_push_location = filedatapush + self.device_config.device_id + '/' + file_name
         file_location = filedata + self.device_config.device_id + '/' + file_name
         file_history_location = filedatahistory + self.device_config.device_id + '/' + file_name
         match = re.match(".*\/(.*)$", file_name)
@@ -148,7 +152,7 @@ class DataServiceArchiveTestCase(iik_testcase.TestCase):
         
         # Send firmware update and verify correct content is pushed.
         update_and_verify(self, self.api, self.device_config.device_id, target, 
-            content[0], datetime_created, file_location, file_name)
+            content[0], datetime_created, file_push_location, file_name)
         
         # Verify filedatahistory contents and metadata.
         check_filedatahistory(self, get_filedatahistory(self.api, 
@@ -157,7 +161,7 @@ class DataServiceArchiveTestCase(iik_testcase.TestCase):
         
         # Send firmware update and verify correct content is pushed.
         update_and_verify(self, self.api, self.device_config.device_id, target, 
-            content[1], datetime_created, file_location, file_name)
+            content[1], datetime_created, file_push_location, file_name)
         
         fdh = get_filedatahistory(self.api, file_history_location)
         
@@ -198,6 +202,7 @@ class DataServiceAppendTestCase(iik_testcase.TestCase):
         datetime_created = []
         
         # Create path to files.
+        file_push_location = filedatapush + self.device_config.device_id + '/' + file_name
         file_location = filedata + self.device_config.device_id + '/' + file_name
         match = re.match(".*\/(.*)$", file_name)
         if match:
@@ -213,13 +218,13 @@ class DataServiceAppendTestCase(iik_testcase.TestCase):
         # Send firmware update and verify correct content is pushed and
         # appended to origiinal content.
         first_content = update_and_verify(self, self.api, self.device_config.device_id, 
-            target, content[0], datetime_created, file_location, file_name, 
+            target, content[0], datetime_created, file_push_location, file_name, 
             expected_content=original_content+content[0])
         
         # Send firmware update and verify correct content is pushed and
         # appended to the contents found after the first firmware update.
         update_and_verify(self, self.api, self.device_config.device_id, target, 
-            content[1], datetime_created, file_location, file_name, 
+            content[1], datetime_created, file_push_location, file_name, 
             expected_content=first_content+content[1])
  
     def test_append_true_file_dne(self):
@@ -246,6 +251,7 @@ class DataServiceAppendTestCase(iik_testcase.TestCase):
         datetime_created = []
         
         # Create file paths.
+        file_push_location = filedatapush + self.device_config.device_id + '/' + file_name
         file_location = filedata + self.device_config.device_id + '/' + file_name
         match = re.match(".*\/(.*)$", file_name)
         if match:
@@ -256,14 +262,7 @@ class DataServiceAppendTestCase(iik_testcase.TestCase):
         
         # Send firmware update and verify that correct content is pushed.
         update_and_verify(self, self.api, self.device_config.device_id, target, 
-            content[0], datetime_created, file_location, file_name, dne=True)
-        
-        # Send firmware update and verify that correct content is pushed
-        # and appended to first content pushed.
-        update_and_verify(self, self.api, self.device_config.device_id, target, 
-            content[1], datetime_created, file_location, file_name, 
-            expected_content=content[0]+content[1], 
-            original_created_time=datetime_created[0])
+            content[0], datetime_created, file_push_location, file_name, dne=True)
           
     def test_append_zero_data(self):
 
@@ -288,6 +287,7 @@ class DataServiceAppendTestCase(iik_testcase.TestCase):
         datetime_created = []
         
         # Create path to files.
+        file_push_location = filedatapush + self.device_config.device_id + '/' + file_name
         file_location = filedata + self.device_config.device_id + '/' + file_name
         match = re.match(".*\/(.*)$", file_name)
         if match:
@@ -303,13 +303,13 @@ class DataServiceAppendTestCase(iik_testcase.TestCase):
         # Send firmware update and verify correct content is pushed and
         # appended to origiinal content.
         first_content = update_and_verify(self, self.api, self.device_config.device_id,
-            target, content[0], datetime_created, file_location, file_name, 
+            target, content[0], datetime_created, file_push_location, file_name, 
             expected_content=original_content+content[0])
         
         # Send firmware update and verify correct content is pushed and
         # appended to the contents found after the first firmware update.
         update_and_verify(self, self.api, self.device_config.device_id, target, 
-            content[1], datetime_created, file_location, file_name, 
+            content[1], datetime_created, file_push_location, file_name, 
             expected_content=first_content+content[1])
 
     def tearDown(self):
@@ -367,7 +367,6 @@ def send_and_receive_target_data(instance, target_str, wait_time, file_expected)
 
     # Create file path.
     file_location = filedata + instance.device_config.device_id + '/' + file_name
-
     # Check that file does not already exist.
     clean_slate(instance.api, file_location)
 
@@ -421,7 +420,7 @@ class DataServiceSpecialTestCase(iik_testcase.TestCase):
         self.log.info("Beginning Data Service Test - Cancel in middle")
         send_and_receive_target_data(self, CANCEL_IN_MIDDLE, 10, False)
 
-    def test_ds_timeout(self):
+    def no_ds_timeout(self):
 
        """ Sends a firmware update to a data service firmware target which
            pushes data and client app times out in the middle of the data
