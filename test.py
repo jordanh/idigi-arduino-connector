@@ -165,6 +165,8 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
                 else:
                     time.sleep(1)
 
+            # Sleep 5 seconds to allow device to do it's initialization (push data for example)
+            time.sleep(5)
             pid = commands.getoutput('pidof -s %s' % idigi_executable)
             if pid == '':
                 raise Exception(">>> [%s] idigi not running dir=[%s]" % (description, src_dir))
