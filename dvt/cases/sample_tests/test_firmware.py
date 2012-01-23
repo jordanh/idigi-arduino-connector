@@ -194,7 +194,9 @@ class FirmwareTestCase(iik_testcase.TestCase):
         
         # Encode firmware for transmittal
         f = open(self.device_config.firmware_target_file[target], 'rb')
-        data_value = encodestring(f.read())
+        data = f.read()
+        data_value = encodestring(data)
+        data_short = encodestring(data[0:8])
         f.close()
         
         # Create asynchronous update request
@@ -208,7 +210,10 @@ class FirmwareTestCase(iik_testcase.TestCase):
     </update_firmware>
 </sci_request>""" % ("%d" % target, self.device_config.device_id, data_value)
 
-        # Create synchronous update request
+        # Create synchronous update request.  Data payload should be much 
+        # smaller as it's possible that time spent sending to server could be 
+        # higher than that of the device consuming the firmware from the 
+        # async request.
         upgrade_firmware_request_synch= \
 """<sci_request version="1.1">
     <update_firmware firmware_target="%s">
@@ -217,7 +222,7 @@ class FirmwareTestCase(iik_testcase.TestCase):
         </targets>
         <data>%s</data>
     </update_firmware>
-</sci_request>""" % ("%d" % target, self.device_config.device_id, data_value)
+</sci_request>""" % ("%d" % target, self.device_config.device_id, data_short)
         
         # Send asynchronous update request
         self.log.info("Sending request to update firmware asynchronously.")
