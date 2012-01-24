@@ -631,6 +631,7 @@ enum cc_redirect_url {
          */
         cc_ptr->state = cc_state_redirect_report;
         set_idigi_state(idigi_ptr, edp_communication_layer);
+        idigi_ptr->error_code = idigi_success;
         status = idigi_callback_continue;
     }
 done:
