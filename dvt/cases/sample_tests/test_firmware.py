@@ -6,7 +6,6 @@ import xml.dom.minidom
 from xml.dom.minidom import getDOMImplementation
 impl = getDOMImplementation()
 
-import idigi_ws_api
 from utils import getText, DeviceConnectionMonitor, update_firmware
 
 target = 0

@@ -34,15 +34,14 @@ import uuid
 import subprocess
 import tempfile
 import shutil
-sys.path.append('./dvt/cases')
 import idigi_ws_api
-import argparse
-import nose
 import iik_plugin
 import build_plugin
+import nose
 from build_utils import get_template_dirs, setup_platform, build, sandbox
 sys.path.append('./dvt/scripts')
 import config
+import argparse
 
 from stat import * # ST_SIZE etc
 
@@ -197,8 +196,7 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
                                      '--iik_config=%s/config.ini' % test_dir]
                         
                         test_to_run = os.path.join(test_dir, test_script)
-                        nose.run(defaultTest=[test_to_run], argv=arguments,
-                            addplugins=[iik_plugin.IIKPlugin()])
+                        nose.run(defaultTest=[test_to_run], argv=arguments)
                         print '>>> [%s] Finished [%s]' % (description, test_script)
             finally:
                 print '>>> [%s] Killing Process with pid [%s]' % (description, pid)

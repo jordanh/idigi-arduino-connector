@@ -8,11 +8,11 @@ class IIKPlugin(Plugin):
 
     def options(self, parser, env=os.environ):
         Plugin.options(self, parser, env=env)
-        parser.add_option('--idigi_username', action='store', type="string", dest="username")
-        parser.add_option('--idigi_password', action='store', type="string", dest="password")
-        parser.add_option('--idigi_hostname', action='store', type="string", dest="hostname")
-        parser.add_option('--iik_device_id', action='store', type="string", dest="device_id")
-        parser.add_option('--iik_config', action='store', type='string', dest="config_file")
+        parser.add_option('--idigi_username', action='store', type="string", dest="username", default="iikdvt")
+        parser.add_option('--idigi_password', action='store', type="string", dest="password", default="iik1sfun")
+        parser.add_option('--idigi_hostname', action='store', type="string", dest="hostname", default="test.idigi.com")
+        parser.add_option('--iik_device_id', action='store', type="string", dest="device_id", default="00000000-00000000-00409DFF-FF432317")
+        parser.add_option('--iik_config', action='store', type='string', dest="config_file", default="config.ini")
     
     def configure(self, options, conf):
         Plugin.configure(self, options, conf)
