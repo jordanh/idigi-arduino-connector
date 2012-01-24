@@ -152,7 +152,7 @@
  *
  * @see @ref data_service_support
  * @see @ref zlib
- * @see @ref IDIGI_COMPRESSION
+ * @see @ref IDIGI_NO_COMPRESSION
  */
 #define IDIGI_DATA_SERVICE
 
@@ -202,7 +202,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref IDIGI_CLOUD_URL @htmlonly </td>
- * <td>iDigi Device Cloud FQDN.
+ * <td>iDigi Developer Cloud FQDN.
  * See @endhtmlonly @ref server_url @htmlonly</td>
  * </tr>
  * <tr>

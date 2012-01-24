@@ -972,9 +972,9 @@ idigi_handle_t idigi_init(idigi_callback_t const callback);
  * an error, idigi_step will try reconnecting to the iDigi
  * Device Cloud if it's called again. The idigi_step performs
  * the following operations:
- * @li Establish a connection with the iDigi Device Cloud.
+ * @li Establish a connection with the iDigi Developer Cloud.
  * 
- * @li Wait for incoming messages from the iDigi Device Cloud.
+ * @li Wait for incoming messages from the iDigi Developer Cloud.
  * 
  * @li Invoke and pass message to the appropriate process (such
  * as firmware access facility).
@@ -1040,7 +1040,7 @@ idigi_status_t idigi_run(idigi_handle_t const handle);
  *
  * This function is called to request IIK to perform an action. 
  * This is used to initiate the send data from the device to the
- * iDigi Device Cloud and to terminate the IIK library. 
+ * iDigi Developer Cloud and to terminate the IIK library.
  *  
  * @param [in] handle  Handle returned from idigi_init 
  *  

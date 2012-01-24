@@ -1,24 +1,12 @@
 import ConfigParser
-import logging
 import os
 import idigi_ws_api
-
-log = logging.getLogger('configuration')
-log.setLevel(logging.INFO)
-
-handler = logging.StreamHandler()
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-log.addHandler(handler)
-
 
 
 class DeviceConfiguration:
     
-    def __init__(self, config_file = "config.ini"):
+    def __init__(self, device_id, config_file = "config.ini"):
         # Retrieve configuration from file
-        log.info("Reading configuration file.")
         config = ConfigParser.SafeConfigParser()
         config.read(config_file)
     
@@ -29,8 +17,11 @@ class DeviceConfiguration:
  
         self.vendor_id = config.get("device", "vendor_id")
   
-        self.mac_addr = config.get("device", "mac_addr")
-        self.device_id = config.get("device", "device_id")
+        if len(device_id) != 35:
+            raise Exception("Device ID must be 35 characters.")
+
+        self.mac_addr = '%s:%s' % (device_id[18:24], device_id[:-6])
+        self.device_id = device_id
         self.device_type = config.get("device", "device_type")
     
         host = config.get("device", "server_url")
@@ -82,7 +73,7 @@ class DeviceConfiguration:
                         except ConfigParser.NoOptionError:
                             pass
                     except ConfigParser.NoOptionError:
-                        log.info("Data Service Firmware Target %d is improperly formatted" % i)
+                        print "Data Service Firmware Target %d is improperly formatted" % i
             except ConfigParser.NoOptionError:
                 pass
                     
@@ -92,9 +83,10 @@ class DeviceConfiguration:
         else:
             self.firmware_version = None
  
-        user_id = config.get("credentials", "user")
-        password = config.get("credentials", "password")
-        self.api = idigi_ws_api.Api(user_id, password, host)
+        if config.has_section('credentials'):
+            user_id = config.get("credentials", "user")
+            password = config.get("credentials", "password")
+            self.api = idigi_ws_api.Api(user_id, password, host)
         
 if __name__ == '__main__':
     config = DeviceConfiguration("configTest.ini")

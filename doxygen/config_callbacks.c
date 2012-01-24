@@ -24,9 +24,25 @@
  *  -# @ref max_msg_transactions
  *
  * @section device_id Device ID
+ * Returns a unique Device ID used to identify the device.
  *
- * Return a unique device ID which is used to identify the device.
- * See the section: @ref step4
+ * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
+ * and implemented in the @b Platform function app_get_device_id() in config.c.
+ *
+ * Device IDs are a globally unique identifier for iDigi clients.  The Device ID is a
+ * 16-octet value derived from the MAC address of a network interface on the client.
+ * The mapping from MAC address to Device ID consist of inserting "FFFF" in the middle
+ * of the MAC and setting all other bytes of the Device ID to 0.
+ * For Example:
+ * MAC Address 12:34:56:78:9A:BC, would map to a Device ID: 00000000-123456FF-FF789ABC.
+ * If a client has more than one network interface, it does not matter to iDigi which
+ * network interface MAC is used for the basis of the Device ID.  If the MAC is read
+ * directly from the network interface to generate the client's Device ID, care must be
+ * taken to always use the same network interface's MAC since there is a unique mapping
+ * between a device and a Device ID.
+ *
+ * @see @ref add_your_device_to_the_cloud "Adding your Device to the iDigi Developer Cloud"
+ * @see app_get_device_id()
  *
  * @htmlonly
  * <table class="apitable">
@@ -107,11 +123,16 @@
  *
  * Return vendor ID which is a unique code identifying the manufacturer of a device. 
  * Vendor IDs are assigned to manufacturers by iDigi. 
- * See the section: @ref step4
  *
- * @note If @ref IDIGI_VENDOR_ID configuration is defined in @ref idigi_config.h, this callback 
+ * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
+ * and implemented in the @b Platform function app_get_vendor_id() in config.c.
+ *
+ * @note If @ref IDIGI_VENDOR_ID configuration is defined in @ref idigi_config.h, this callback
  * will not be called. See @ref idigi_config_data_options
- * 
+ *
+ * @see @ref idigi_vendor_id "Obtaining an iDigi Vendor ID"
+ * @see app_get_vendor_id()
+ *
  * @htmlonly
  * <table class="apitable">
  * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
@@ -184,10 +205,14 @@
  * product scoped data may be shared among all devices with this device type.
  * A device's type cannot be an empty string, nor contain only whitespace.
  *
+ * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
+ * and implemented in the @b Platform function app_get_device_type() in config.c.
+ *
  * @note If @ref IDIGI_DEVICE_TYPE configuration is defined in @ref idigi_config.h, this callback 
  * will not be called.
  *
  * @see @ref idigi_config_data_options
+ * @see app_get_device_type()
  * 
  * @htmlonly
  * <table class="apitable">
@@ -254,11 +279,16 @@
  *
  * @section server_url iDigi Server URL
  *
- * Return the iDigi Device Cloud FQDN.
+ * Return the iDigi Developer Cloud FQDN.
+ *
+ * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
+ * and implemented in the @b Platform function app_get_server_url() in config.c.
  *
  * @note If @ref IDIGI_CLOUD_URL configuration is defined in @ref idigi_config.h, this callback 
  * will not be called. See @ref idigi_config_data_options
  * 
+ * @see app_get_server_url()
+ *
  * @htmlonly
  * <table class="apitable">
  * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
@@ -327,8 +357,13 @@
  *
  * Return LAN or WAN connection type. 
  *
+ * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
+ * and implemented in the @b Platform function app_get_connection_type() in config.c.
+ *
  * @note If @ref IDIGI_CONNECTION_TYPE configuration is defined in @ref idigi_config.h, this callback 
  * will not be called. See @ref idigi_config_data_options
+ *
+ * @see app_get_connection_type()
  *
  * @htmlonly
  * <table class="apitable">
@@ -394,6 +429,11 @@
  * @section mac_address MAC Address
  *
  * Return the device's MAC address. 
+ *
+ * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
+ * and implemented in the @b Platform function app_get_mac_addr() in config.c.
+ *
+ * @see app_get_mac_addr()
  *
  * @htmlonly
  * <table class="apitable">
@@ -463,8 +503,13 @@
  * Return link speed for a WAN connection type. If connection 
  * type is LAN, IIK will not request link speed configuration.. 
  *
+ * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
+ * and implemented in the @b Platform function app_get_link_speed() in config.c.
+ *
  * @note If @ref IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND configuration is defined in @ref idigi_config.h, 
  * this callback will not be called. See @ref idigi_config_data_options
+ *
+ * @see app_get_link_speed()
  *
  * @htmlonly
  * <table class="apitable">
@@ -534,8 +579,13 @@
  * The phone number is a variable length, non null-terminated string.
  * If connection type is LAN, IIK will not request phone number 
  *
+ * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
+ * and implemented in the @b Platform function app_get_phone_number() in config.c.
+ *
  * @note If @ref IDIGI_WAN_PHONE_NUMBER_DIALED configuration is defined in @ref idigi_config.h, 
  * this callback will not be called.  See @ref idigi_config_data_options
+ *
+ * @see app_get_phone_number()
  *
  * @htmlonly
  * <table class="apitable">
@@ -603,10 +653,15 @@
  * @section tx_keepalive TX Keepalive Interval
  *
  * Return TX keepalive interval in seconds. This tells how 
- * often the iDigi Device Cloud sends keepalive messages to the device. 
+ * often the iDigi Developer Cloud sends keepalive messages to the device.
+ *
+ * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
+ * and implemented in the @b Platform function app_get_tx_keepalive_interval() in config.c.
  *
  * @note If @ref IDIGI_TX_KEEPALIVE_IN_SECONDS is defined in @ref idigi_config.h, 
  * this callback will not be called.  See @ref idigi_config_data_options
+ *
+ * @see app_get_tx_keepalive_interval()
  *
  * @htmlonly
  * <table class="apitable">
@@ -673,10 +728,15 @@
  * @section rx_keepalive RX Keepalive Interval
  *
  * Return RX keepalive interval in seconds. This tells how 
- * often the IIK sends keepalive messages to the iDigi Device Cloud (device to the iDigi Device Cloud). 
+ * often the IIK sends keepalive messages to the iDigi Developer Cloud (device to the iDigi Developer Cloud).
+ *
+ * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
+ * and implemented in the @b Platform function app_get_rx_keepalive_interval() in config.c.
  *
  * @note If @ref IDIGI_RX_KEEPALIVE_IN_SECONDS configuration is defined in @ref idigi_config.h, 
  * this callback will not be called.  See @ref idigi_config_data_options
+ *
+ * @see app_get_rx_keepalive_interval()
  *
  * @htmlonly
  * <table class="apitable">
@@ -745,8 +805,13 @@
  * Return the number of times of not receiving a keepalive message which a connection 
  * should be considered lost. 
  *
+ * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
+ * and implemented in the @b Platform function app_get_wait_count() in config.c.
+ *
  * @note If @ref IDIGI_WAIT_COUNT configuration is defined in @ref idigi_config.h, 
  * this callback will not be called.  See @ref idigi_config_data_options
+ *
+ * @see app_get_wait_count()
  *
  * @htmlonly
  * <table class="apitable">
@@ -814,6 +879,11 @@
  *
  * Return a unique device IP address. The length of the IP 
  * address must be either 4-octet for an IPv4 or 16-octet for an IPv6 address. 
+ *
+ * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
+ * and implemented in the @b Platform function app_get_ip_address() in config.c.
+ *
+ * @see app_get_ip_address()
  *
  * @htmlonly
  * <table class="apitable">

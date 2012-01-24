@@ -5,7 +5,7 @@
  * @section table_of_contents_porting Getting Started
  *
  * The Getting Started process will walk you through the steps necessary to get the IIK integrated into your 
- * development environment and running applications which connect to the iDigi Device Cloud.  
+ * development environment and running applications which connect to the iDigi Developer Cloud.
  * 
  * These steps include:
  *   
@@ -20,7 +20,6 @@
  *          -# @ref step4
  *              -# @ref idigi_login
  *              -# @ref idigi_vendor_id
- *              -# @ref idigi_device_id
  *          -# @ref step5
  *              -# @ref os_routines
  *              -# @ref network_routines
@@ -38,8 +37,8 @@
  *          -# @ref step9
  * 
  * Two sample applications, @ref step3 "compile_and_link" and @ref step7 "connect_to_idigi", will be used to confirm your compilation tool chain
- * and integration, respectively.  When complete, your device will be connected to the iDigi Device Cloud and be displayed
- * in the iDigi Device Cloud Portal graphical user interface.
+ * and integration, respectively.  When complete, your device will be connected to the iDigi Developer Cloud and be displayed
+ * in the iDigi Developer Cloud Portal graphical user interface.
  *
  * @section step1 Step 1: Determine if your compiler is C89 or C99 compliant
  *
@@ -87,12 +86,8 @@
  * For the compile_and_link sample you can call idigi_init() as:
  *
  * @code
- * /* 
- *  * Call idigi_init() where you intend to initialize the IIK, a NULL callback 
- *  * is passed into idigi_init() for this sample, we want the IIK to be linked in 
- *  * to verify the build.
- *  */
- * (void)idigi_init((idigi_callback_t)0);
+ * // Call idigi_init() with a NULL callback to confirm your build environment only
+ * idigi_init((idigi_callback_t)0);
  * @endcode
  *
  * If you are not using main() you will need to add in the call to idigi_init()
@@ -147,68 +142,44 @@
  * @note Do not execute the compile_and_link sample, this only verifies that the
  * build environment is setup correctly, the application will ASSERT when run.
  *
- * @section step4 Step 4: Get a vendor and device ID
+ * @section step4 Step 4: Setup your iDigi Account
  *
  * @subsection idigi_account Create an iDigi Account
- * Before getting started you will need to create a new iDigi account.  To create an account navigate to
- * https://developer.idigi.com/user_registration.do and fill out the iDigi registration form. 
- * If you are a current iDigi developer account user, login with your existing user name and password and proceed to:
+ * Before getting started you will need to create a new iDigi account and obtain a unique iDigi Vendor ID (which is
+ * a unique identifier for your company).
+ *
+ * Later in this process, when you get the connect_to_idigi sample @ref good_results_output "running successfully", you will be @ref add_your_device_to_the_cloud "instructed to register"
+ * your Device ID with iDigi.
+ *
+ * To create an account, navigate to
+ * https://developer.idigi.com/user_registration.do and follow the instructions to create and register your
+ * iDigi account.
+ *
+ * @note If you have already created and registered an iDigi Account, navigate here
+ * https://developer.idigi.com/ and follow the instructions in the next step.
  *
  * @image html idigi1.jpg 
  *
  * @subsection idigi_login Login to the iDigi Server
- * 1. Navigate to http://www.idigi.com
- *
- * 2. Click the iDigi Login button in the upper right corner of the page.
- *
- * @image html idigi2.jpg 
- *
- * 3. Click the iDigi Developer Cloud Login button.
- *
- * @image html idigi3.jpg
- * 
- * You will be redirected to the iDigi Developer Cloud login page.
- *
- * 4. Login with the user credentials you created in section @ref idigi_account
+ * 1. Login with the user credentials you created in section @ref idigi_account
  * 
  * @image html idigi4.jpg
-
+ *
  * @subsection idigi_vendor_id Obtain an iDigi Vendor ID
+ * 2. If you are a first time iDigi developer, you will need to register for a Vendor ID.  This button is in the
+ * Vendor Information section on the bottom of the @b My @b Account tab after you successfully logging into
+ * https://developer.idigi.com/.
  *
- * @note You will need to contact Digi to request a vendor ID. You will need the vendor ID 
- * before your device can connect to iDigi.
+ * After selecting the register for a Vendor ID button, the page will refresh and your unique vendor ID number
+ * will be displayed in place of the button.  Record the Vendor ID, you will need it later.
  *
- * To request a vendor ID within iDigi:
+ * @note If you already have a vendor ID, it will be displayed instead of the button.
  *
- * 1. Click on My Account within the left navigation panel.
+ * @section step5 Step 5: Porting your platform for the connect_to_idigi sample
  *
- * 2. Click the Register for new vendor id button.
- *
- * @image html idigi5.jpg
- *
- * The page will refresh and your unique vendor ID number will be displayed in place of the
- * Register for new vendor id button.  Record the Vendor ID you will need it later.
- *
- * @image html idigi6.jpg
- *
- * @subsection idigi_device_id Obtain an iDigi Device ID
- *
- * Device IDs are a globally unique identifier for iDigi clients. The Device ID is a 
- * 16-octet value derived from the MAC address of a network interface on the client.
- * The mapping from MAC address to Device ID consist of inserting "FFFF" in the middle 
- * of the MAC and setting all other bytes of the Device ID to 0.
- * For Example:
- * MAC Address 00:04:2D:01:6A:53, would map to a Device ID: 00000000-00042DFF-FF016A53
- * If a client has more than one network interface, it does not matter to iDigi which 
- * network interface MAC is used for the basis of the Device ID. If the MAC is read 
- * directly from the network interface to generate the client's Device ID, care must be 
- * taken to always use the same network interface's MAC since there is a unique mapping 
- * between a device and a Device ID. 
- *  Use the above mapping with your MAC address to create the Device ID and record
- * it for later.
- *
- *
- * @section step5 Step 5: Setup your platform for the connect_to_idigi sample
+ * The @b connect_to_idigi sample validates the most fundamental IIK porting aspects.  If you can successfully connect and stay
+ * connected to the iDigi cloud, all other IIK functions (like @ref put_request "sending data" or @ref firmware_download "firmware download")
+ * should work without failure.
  *
  * Go into the platforms directory and select a platform which is the similar to your platform, 
  * if none of the available platforms are similar to yours you can use the 
@@ -253,13 +224,13 @@
  * @code
  *  static int app_get_server_url(char ** url, size_t * size)
  *  {
- *  #error "Specify iDigi Server URL" /* This #error must be removed to compile */
- *      /* Statically allocated string containing the sever URL */
+ *  #error "Specify iDigi Server URL" // This #error must be removed to compile
+ *      // Statically allocated string containing the sever URL
  *      static const char const *idigi_server_url = "developer.idigi.com";
  *  
- *      /* Fill in the pointer with the address of the URL in memory */
+ *      // Fill in the pointer with the address of the URL in memory
  *      *url = (char *)idigi_server_url;
- *      /* Fill in the size */
+ *      // Fill in the size
  *      *size = strlen(idigi_server_url);
  *  
  *      return 0;
@@ -303,7 +274,7 @@
  * The idigi_init() call, must now include a proper callback:
  *
  * @code
- * /* Initialize the IIK with the application callback */
+ * // Initialize the IIK with the application callback
  * idigi_handle = idigi_init((idigi_callback_t) idigi_callback);
  * @endcode
  *
@@ -321,7 +292,7 @@
  * 
  *     APP_DEBUG("idigi_run thread starts\n");
  * 
- *     /* Run the IIK, this will only return on an IIK abort */
+ *     // Run the IIK, this will only return on an IIK abort
  *     status = idigi_run((idigi_handle_t)arg);
  * 
  *     APP_DEBUG("idigi_run thread exits %d\n", status);
@@ -401,7 +372,7 @@
  * @note By default @ref IDIGI_DEBUG is defined in idigi_config.h, which prints helpful IIK Library debug
  * messages to the standard output.
  *
- * @subsection good_results_output Example output from a successful run of @ref step7 "connect_to_idigi"
+ * @subsection good_results_output Example output from a successful run of connect_to_idigi
  * Below is the standard output shown for a successful @ref step7 "connect_to_idigi" run:
  *
  * @code
@@ -500,7 +471,7 @@
  * is to integrate in one of the samples to add in more functionality to your
  * application.
  *
- * @note If you cannot connect to the iDigi Device cloud, the most likely problem
+ * @note If you cannot connect to the iDigi Developer cloud, the most likely problem
  * is in the iDigi Configuration, review the configuration routines in config.c;
  * The device ID and vendor ID must be valid to connect.
  *
@@ -508,7 +479,7 @@
  *
  * @section step9 Step 9: Next Steps
  *
- * Now that you have a basic sample up and running with the iDigi Device Cloud, you
+ * Now that you have a basic sample up and running with the iDigi Developer Cloud, you
  * can port in more functionality to your application.  We first suggest 
  * reading the @ref api1_overview "API" section of the documentation and then 
  * select a sample which has the functionality you need.

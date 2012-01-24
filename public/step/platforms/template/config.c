@@ -308,7 +308,7 @@ static int app_get_phone_number(uint8_t ** number, size_t * size)
  * @brief   Get the TX keepalive interval
  *
  * This routine assigns the TX keepalive interval in seconds. This indicates how 
- * often the iDigi Device Cloud sends a keepalive message to the device to verify the 
+ * often the iDigi Developer Cloud sends a keepalive message to the device to verify the
  * device is still operational. Keepalive messages are from the prospective of the cloud, 
  * this keepalive is sent from the cloud to the device. The value must be between 5 and 7200 seconds.
  *
@@ -340,7 +340,7 @@ static int app_get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
  * @brief   Get the RX keepalive interval
  *
  * This routine assigns the RX keepalive interval in seconds. This indicates how 
- * often the IIK device sends keepalive messages to the iDigi Device Cloud. Keepalive 
+ * often the IIK device sends keepalive messages to the iDigi Developer Cloud. Keepalive
  * messages are from the prospective of the cloud, this keepalive is sent from the 
  * device to the cloud. The value must be between 5 and 7200 seconds.
  *
@@ -371,7 +371,7 @@ static int app_get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
  * @brief   Get the wait count
  *
  * This routine assigns the number of times that not receiving a keepalive message 
- * from the iDigi Device Cloud will indicate that the connection is considered lost. 
+ * from the iDigi Developer Cloud will indicate that the connection is considered lost.
  * This must be a 2-octet integer value between 2 to 64 counts.
  *
  * @param [out] count  Pointer to memory containing the wait count

@@ -79,7 +79,7 @@ static int app_get_mac_addr(uint8_t ** addr, size_t * size)
     /* MAC address used in this sample */
     static uint8_t device_mac_addr[MAC_ADDR_LENGTH] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-#error "Specify device MAC address for LAN connection"
+//#error "Specify device MAC address for LAN connection"
 
     *addr = device_mac_addr;
     *size = sizeof device_mac_addr;
@@ -90,7 +90,20 @@ static int app_get_mac_addr(uint8_t ** addr, size_t * size)
 /**
  * @brief   Get the iDigi device ID
  *
- * This routine is called to get a unique device ID which is used to identify the device. 
+ * This routine is called to get a unique device ID which is used to identify the device.
+ *
+ * Device IDs are a globally unique identifier for iDigi clients.  The Device ID is a
+ * 16-octet value derived from the MAC address of a network interface on the client.
+ * The mapping from MAC address to Device ID consist of inserting "FFFF" in the middle
+ * of the MAC and setting all other bytes of the Device ID to 0.
+ * For Example:
+ * MAC Address 12:34:56:78:9A:BC, would map to a Device ID: 00000000-123456FF-FF789ABC.
+ * If a client has more than one network interface, it does not matter to iDigi which
+ * network interface MAC is used for the basis of the Device ID.  If the MAC is read
+ * directly from the network interface to generate the client's Device ID, care must be
+ * taken to always use the same network interface's MAC since there is a unique mapping
+ * between a device and a Device ID.
+ *
  * The pointer ID is filled in with the address of the memory location which contains the 
  * device ID, size is filled in with the size of the device ID.
 . *
@@ -108,7 +121,7 @@ static int app_get_device_id(uint8_t ** id, size_t * size)
     uint8_t * mac_addr;
     size_t mac_size;
 
-#error  "Specify device id"
+//#error  "Specify device id"
 
     /* This sample uses the MAC address to format the device ID */
     app_get_mac_addr(&mac_addr, &mac_size);
@@ -148,8 +161,8 @@ static int app_get_device_id(uint8_t ** id, size_t * size)
  */
 static int app_get_vendor_id(uint8_t ** id, size_t * size)
 {
-#error  "Specify vendor id"
-    static const uint8_t device_vendor_id[VENDOR_ID_LENGTH] = {0x00, 0x00, 0x00, 0x00};
+//#error  "Specify vendor id"
+    static const uint8_t device_vendor_id[VENDOR_ID_LENGTH] = {0x01, 0x00, 0x00, 0x1a};
 
     *id   = (uint8_t *)device_vendor_id;
     *size = sizeof device_vendor_id;
@@ -181,7 +194,7 @@ static int app_get_vendor_id(uint8_t ** id, size_t * size)
  */
 static int app_get_device_type(char ** type, size_t * size)
 {
-#error "Specify device type"
+//#error "Specify device type"
     static const char const *device_type = "IIK Linux Sample";
 
     /* Return pointer to device type. */
@@ -210,8 +223,8 @@ static int app_get_device_type(char ** type, size_t * size)
  */
 static int app_get_server_url(char ** url, size_t * size)
 {
-#error "Specify iDigi Server URL"
-    static const char const *idigi_server_url = "developer.idigi.com";
+//#error "Specify iDigi Server URL"
+    static const char const *idigi_server_url = "test.idigi.com";
 
     /* Return pointer to device type. */
     *url = (char *)idigi_server_url;
@@ -239,7 +252,7 @@ static int app_get_server_url(char ** url, size_t * size)
  */
 static int app_get_connection_type(idigi_connection_type_t ** type)
 {
-#error "Specify LAN or WAN connection type"
+//#error "Specify LAN or WAN connection type"
 
     /* Return pointer to connection type */
     static idigi_connection_type_t  device_connection_type = idigi_lan_connection_type;
@@ -268,7 +281,7 @@ static int app_get_connection_type(idigi_connection_type_t ** type)
  */
 static int app_get_link_speed(uint32_t ** speed, size_t * size)
 {
-#error "Specify link speed for WAN connection type"
+//#error "Specify link speed for WAN connection type"
 
     UNUSED_ARGUMENT(speed);
     UNUSED_ARGUMENT(size);
@@ -295,7 +308,7 @@ static int app_get_link_speed(uint32_t ** speed, size_t * size)
  */
 static int app_get_phone_number(uint8_t ** number, size_t * size)
 {
-#error "Specify phone number dialed for WAN connection type"
+//#error "Specify phone number dialed for WAN connection type"
     /* 
      * Return pointer to phone number for WAN connection type.
      */
@@ -308,7 +321,7 @@ static int app_get_phone_number(uint8_t ** number, size_t * size)
  * @brief   Get the TX keepalive interval
  *
  * This routine assigns the TX keepalive interval in seconds. This indicates how 
- * often the iDigi Device Cloud sends a keepalive message to the device to verify the 
+ * often the iDigi Developer Cloud sends a keepalive message to the device to verify the
  * device is still operational. Keepalive messages are from the prospective of the cloud, 
  * this keepalive is sent from the cloud to the device. The value must be between 5 and 7200 seconds.
  *
@@ -325,9 +338,9 @@ static int app_get_phone_number(uint8_t ** number, size_t * size)
  */
 static int app_get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
 {
-#error "Specify server to device TX keepalive interval in seconds"
+//#error "Specify server to device TX keepalive interval in seconds"
 
-#define DEVICE_TX_KEEPALIVE_INTERVAL_IN_SECONDS     90
+#define    DEVICE_TX_KEEPALIVE_INTERVAL_IN_SECONDS    45
     /* Return pointer to Tx keepalive interval in seconds */
     static uint16_t device_tx_keepalive_interval = DEVICE_TX_KEEPALIVE_INTERVAL_IN_SECONDS;
     *interval = (uint16_t *)&device_tx_keepalive_interval;
@@ -340,7 +353,7 @@ static int app_get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
  * @brief   Get the RX keepalive interval
  *
  * This routine assigns the RX keepalive interval in seconds. This indicates how 
- * often the IIK device sends keepalive messages to the iDigi Device Cloud. Keepalive 
+ * often the IIK device sends keepalive messages to the iDigi Developer Cloud. Keepalive
  * messages are from the prospective of the cloud, this keepalive is sent from the 
  * device to the cloud. The value must be between 5 and 7200 seconds.
  *
@@ -357,8 +370,8 @@ static int app_get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
  */
 static int app_get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
 {
-#error "Specify server to device RX keepalive interval in seconds"
-#define DEVICE_RX_KEEPALIVE_INTERVAL_IN_SECONDS     60
+//#error "Specify server to device RX keepalive interval in seconds"
+#define    DEVICE_RX_KEEPALIVE_INTERVAL_IN_SECONDS    45
     /* Return pointer to Rx keepalive interval in seconds */
     static uint16_t device_rx_keepalive_interval = DEVICE_RX_KEEPALIVE_INTERVAL_IN_SECONDS;
     *interval = (uint16_t *)&device_rx_keepalive_interval;
@@ -371,7 +384,7 @@ static int app_get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
  * @brief   Get the wait count
  *
  * This routine assigns the number of times that not receiving a keepalive message 
- * from the iDigi Device Cloud will indicate that the connection is considered lost. 
+ * from the iDigi Developer Cloud will indicate that the connection is considered lost.
  * This must be a 2-octet integer value between 2 to 64 counts.
  *
  * @param [out] count  Pointer to memory containing the wait count
@@ -387,8 +400,8 @@ static int app_get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
  */
 static int app_get_wait_count(uint16_t ** count, size_t * size)
 {
-#error "Specify the number of times that not receiving keepalive messages from server is allowed"
-#define DEVICE_WAIT_COUNT     5
+//#error "Specify the number of times that not receiving keepalive messages from server is allowed"
+#define    DEVICE_WAIT_COUNT    3
     /* 
      * Return pointer to wait count (number of times not receiving Tx keepalive 
      * from server is allowed).
@@ -460,7 +473,7 @@ static idigi_service_supported_status_t app_get_data_service_support(void)
  */
 static unsigned int app_get_max_message_transactions(void)
 {
-#define IDIGI_MAX_MSG_TRANSACTIONS   1
+#define    IDIGI_MAX_MSG_TRANSACTIONS    1
 
     return IDIGI_MAX_MSG_TRANSACTIONS;
 }

@@ -23,16 +23,16 @@
  * @section intro Introduction
  *
  * The iDigi Integration Kit (IIK) is a software development package used to
- * communicate and exchange information between a device and the iDigi Device
+ * communicate and exchange information between a device and the iDigi Developer
  * Cloud. iDigi supports application to device data interaction (messaging),
  * application & device data storage, and remote management of devices. Devices
- * are associated with the iDigi Device Cloud through the Internet or other wide
+ * are associated with the iDigi Developer Cloud through the Internet or other wide
  * area network connection, which allows for communication between the device, the
- * iDigi Device Cloud, and customer applications. An important part of this communication
- * is the transfer of data from a device to the iDigi Device Cloud.
+ * iDigi Developer Cloud, and customer applications. An important part of this communication
+ * is the transfer of data from a device to the iDigi Developer Cloud.
  * iDigi is based upon a cloud computing model that provides on-demand scalability so
  * you can rest assured that when you need additional computing and storage, iDigi will
- * scale to meet your needs. The iDigi Device Cloud is designed using a high-availability
+ * scale to meet your needs. The iDigi Developer Cloud is designed using a high-availability
  * architecture, with redundancy and failover characteristics in mind.
  * Using iDigi, customers can now easily develop cloud connected devices and
  * applications that quickly scale from dozens to hundreds, thousands or even
@@ -173,23 +173,23 @@
  * or a thread that accesses local configuration, or makes malloc/free OS calls, whichever is the worst case.
  * 
  * @section features IIK Features
- *     @li Send data to and from a device using the iDigi Device Cloud
+ *     @li Send data to and from a device using the iDigi Developer Cloud
  *     @li Update firmware on the device
  *     @li View the device configuration
  *     @li Reboot a device
  *
  * @section communicating Communicating with your device
  *
- * To manage your device you can use the iDigi Device Cloud Portal, this contains
- * the graphical user interface to the iDigi Device Cloud, this tool allows for
+ * To manage your device you can use the iDigi Developer Cloud Portal, this contains
+ * the graphical user interface to the iDigi Developer Cloud, this tool allows for
  * complete management of your device.
  *
  * To communicate with your device remotely without using the graphical interface
- * to the iDigi Device Cloud you can use @b iDigi @b Web @b Services.  Web service 
- * requests are sent from an application to the iDigi Device Cloud, the iDigi
+ * to the iDigi Developer Cloud you can use @b iDigi @b Web @b Services.  Web service
+ * requests are sent from an application to the iDigi Developer Cloud, the iDigi
  * Device Cloud then communicates with the device, this allows for bidirectional
  * machine to machine communication.  Python samples are provided to show how to
- * communicate to a device using the iDigi Device Cloud.
+ * communicate to a device using the iDigi Developer Cloud.
  *
  * @section threading Threading Model
  *

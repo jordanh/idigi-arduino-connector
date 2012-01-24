@@ -125,10 +125,10 @@ from base64 import encodestring
 from xml.dom.minidom import getDOMImplementation, parseString, Element
 
 log = logging.getLogger('idigi_ws_api')
-log.setLevel(logging.INFO)
+log.setLevel(logging.WARN)
 
 handler = logging.StreamHandler()
-handler.setLevel(logging.DEBUG)
+handler.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 log.addHandler(handler)
@@ -261,6 +261,8 @@ class Api:
     def __init__(self, username, password,
                  hostname='developer.idigi.com', ws_root='/ws'):
         self.hostname = hostname
+        self.username = username
+        self.password = password
         self.ws_root = ws_root
         self.headers = {
             'Content-Type' : 'text/xml',
@@ -397,7 +399,7 @@ class Api:
         if target == "User":
             target = "RawUser"
             
-        print request.toprettyxml()
+        log.debug(request.toprettyxml())
         connection.request(method, '%s/%s' % (self.ws_root, target),
                            request.toxml(), self.headers)
         response = connection.getresponse()
@@ -420,12 +422,6 @@ class Api:
         log.info("PUT of %s" % resource)
         return self.__update(resource, 'PUT')
 
-    def delete(self, resource):
-        if resource.location:
-            return delete_location(self, resource.location)
-        else:
-            raise Exception('Cannot DELETE as Resource has no location.')
-
     def delete_location(self, resource):
         log.info("DELETE to %s" % resource)
         connection = httplib.HTTPSConnection(self.hostname)
@@ -440,3 +436,9 @@ class Api:
             raise Exception(
                 'Returned Non 200 Status Code: %d : %s. Data= %s'
                 % (response.status, response.reason, response_str))
+
+    def delete(self, resource):
+        if resource.location:
+            return self.delete_location(resource.location)
+        else:
+            raise Exception('Cannot DELETE as Resource has no location.')

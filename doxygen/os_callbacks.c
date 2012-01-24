@@ -15,6 +15,11 @@
  * @section malloc malloc
  * Callback is used to dynamically allocate memory.
  *
+ * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
+ * and implemented in the @b Platform function app_os_malloc() in os.c.
+ *
+ * @see app_os_malloc()
+ *
  * @htmlonly
  * <table class="apitable">
  * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
@@ -88,6 +93,11 @@
  *
  * Callback is called to free previous allocated memory.
  *
+ * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
+ * and implemented in the @b Platform function app_os_free() in os.c.
+ *
+ * @see app_os_free()
+ *
  * @htmlonly
  * <table class="apitable">
  * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
@@ -146,6 +156,11 @@
  * @section uptime System Uptime
  * This callback is called to return system up time in seconds. It is the time 
  * that a device has been up and running.
+ *
+ * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
+ * and implemented in the @b Platform function app_os_get_system_time() in os.c.
+ *
+ * @see app_os_get_system_time()
  *
  * @htmlonly
  * <table class="apitable">
@@ -207,7 +222,13 @@
  * @endcode
  *
  * @section sleep Sleep
- * This callback is called relinquish control of the CPU (multithreaded model).
+ * This callback is called relinquish control in the @ref threading "multi-threaded" idigi_run() model.
+ *
+ * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
+ * and implemented in the @b Platform function app_os_sleep() in os.c.
+ *
+ * @see app_os_sleep()
+ * @see @ref threading "Multi-threading and the IIK Threading Model"
  *
  * @htmlonly
  * <table class="apitable">

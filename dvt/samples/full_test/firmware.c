@@ -49,13 +49,13 @@ static dvt_data_t dvt_data_list[dvt_case_last] =
     {dvt_case_fw_hardware_error,        0x22000000, dvt_state_init, "Hardware Error",   ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
     {dvt_case_put_request_no_flag,      0x00000011, dvt_state_init, "Data Service PUT, Plain Text No Flags", ".*\\.ds.p.p.n", "fromfirmware.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
     {dvt_case_put_request_defaults,     0x00000012, dvt_state_init, "Data Service PUT, Defaults", ".*\\.ds.p.d", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_put_request_append,       0x00000013, dvt_state_init, "Data Service PUT, Append", ".*\\.ds.p.ap", "main/appender.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_put_request_archive,      0x00000014, dvt_state_init, "Data Service PUT, Archive", ".*\\.ds.p.ar", "totally/archived.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_put_request_both,         0x00000015, dvt_state_init, "Data Service PUT, Both", ".*\\.ds.p.b", "not/uploaded.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_put_request_busy,         0x00000016, dvt_state_init, "Data Service PUT, Busy", ".*\\.[Tt][Xx][Tt]", "test/busy.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_put_request_cancel_at_start, 0x00000017, dvt_state_init, "Data Service PUT, Cancel at start", ".*\\.[Tt][Xx][Tt]", "test/cancel1.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_put_request_cancel_in_middle, 0x00000018, dvt_state_init, "Data Service PUT, Cancel in middle", ".*\\.[Tt][Xx][Tt]", "test/cancel2.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_put_request_timeout,      0x00000019, dvt_state_init, "Data Service PUT, Timeout", ".*\\.[Tt][Xx][Tt]", "test/timeout.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL}
+    {dvt_case_put_request_append,       0x00000013, dvt_state_init, "Data Service PUT, Append", ".*\\.ds.p.ap", "appender.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
+    {dvt_case_put_request_archive,      0x00000014, dvt_state_init, "Data Service PUT, Archive", ".*\\.ds.p.ar", "archived.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
+    {dvt_case_put_request_both,         0x00000015, dvt_state_init, "Data Service PUT, Both", ".*\\.ds.p.b", "uploaded.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
+    {dvt_case_put_request_busy,         0x00000016, dvt_state_init, "Data Service PUT, Busy", ".*\\.[Tt][Xx][Tt]", "busy.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
+    {dvt_case_put_request_cancel_at_start, 0x00000017, dvt_state_init, "Data Service PUT, Cancel at start", ".*\\.[Tt][Xx][Tt]", "cancel1.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
+    {dvt_case_put_request_cancel_in_middle, 0x00000018, dvt_state_init, "Data Service PUT, Cancel in middle", ".*\\.[Tt][Xx][Tt]", "cancel2.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
+    {dvt_case_put_request_timeout,      0x00000019, dvt_state_init, "Data Service PUT, Timeout", ".*\\.[Tt][Xx][Tt]", "timeout.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL}
 };
 
 dvt_data_t * dvt_current_ptr = NULL;
