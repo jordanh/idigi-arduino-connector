@@ -186,7 +186,8 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
                         # Argument list to call nose with.  Generate a nosetest xml file in 
                         # current directory, pass in idigi / iik connection settings.
                         arguments = ['nosetests',
-                                     '--with-xunit', 
+                                     '--with-xunit',
+                                     '-s', # Don't capture STDOUT (allow everything else to print)
                                      '--xunit-file=%s_%s.nxml' % (description, test_script),
                                      '--with-iik',
                                      '--idigi_username=%s'  % api.username,
@@ -242,6 +243,7 @@ def build_template(description, cflags):
     # Argument list to call nose with.  Generate a nosetest xml file in 
     # current directory, pass in idigi / iik connection settings.
     arguments = ['nosetests',
+                 '-s',
                  '--with-xunit', 
                  '--xunit-file=%s_%s.nxml' % (description, test_script),
                  '--with-build',
