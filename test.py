@@ -248,8 +248,7 @@ def build_template(description, cflags):
                  '--build_cflags=%s' % (cflags)]
     
     test_to_run = os.path.join(test_dir, test_script)
-    nose.run(defaultTest=[test_to_run], argv=arguments,
-        addplugins=[build_plugin.BuildPlugin()])
+    nose.run(defaultTest=[test_to_run], argv=arguments)
     print '>>> [%s] Finished [%s]' % (description, test_script)
 
 def main():
