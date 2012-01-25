@@ -4,7 +4,7 @@
  * @htmlinclude nav.html
  *
  * @section net Network Callbacks
- * The IIK interafaces to the platforms network interface through the callbacks listed below, these
+ * The IIK interfaces to the platform's network interface through the callbacks listed below.  These
  * are called through the application callback described in the @ref api1_overview.
  * 
  *  -# @ref connect
@@ -16,7 +16,7 @@
  *
  * @section connect Connect
  *
- * This callback is called to establish connection between IIK and the iDigi Developer Cloud.
+ * This callback is called to establish connection between IIK and the iDigi Cloud.
  * Callback is responsible to setup any socket options.
  *
  * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"

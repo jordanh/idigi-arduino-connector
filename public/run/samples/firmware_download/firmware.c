@@ -182,11 +182,11 @@ idigi_callback_status_t app_firmware_handler(idigi_firmware_request_t const requ
     case idigi_firmware_target_count:
         if (response_data != NULL)
         {
-            static uint16_t fimware_list_count = asizeof(fimware_list);
+            static uint16_t firmware_list_count = asizeof(fimware_list);
 
             uint16_t * count = response_data;
 
-            *count = fimware_list_count;
+            *count = firmware_list_count;
             break;
         }
     case idigi_firmware_version:

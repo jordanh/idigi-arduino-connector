@@ -29,7 +29,7 @@
  * </tr>
  * <tr>
  * <th>@endhtmlonly idigi_initiate_action() @htmlonly</th>
- * <td>Tell the IIK to perform some action such as start a data transfer</td>
+ * <td>Begin an IIK operation, like starting a data transfer</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -37,7 +37,7 @@
  * 
  * @subsection initialization Initialization: idigi_init() 
  * 
- * The API idigi_init() is called once at startup to  initialize the IIK. 
+ * The function idigi_init() is called once at startup to  initialize the IIK.
  * The application-defined callback function is passed as an argument; the @ref idigi_callback_t 
  * "application-defined callback" is used by the IIK to communicate with the application. 
  * The idigi_init() function must be called before all other IIK APIs.
@@ -46,7 +46,7 @@
  * 
  * The function idigi_step() is called to perform a sequence of operations or events 
  * and then returns control back to the caller.  This allows a caller to perform other tasks 
- * within single-thread or round robin based control loop.  A caller must call 
+ * within a single thread or round robin based control loop.  A caller must call
  * this API repeatedly to continue IIK operations.
  *
  * The idigi_step() performs the following operations:
@@ -57,18 +57,18 @@
  * @subsection multi_threaded Multi-threaded model: idigi_run() 
  *
  * The function idigi_run() is similar to idigi_step() except it blocks and doesn't return control back to 
- * caller unless the IIK encounters an error.  This function is typically executed as a separated thread.
+ * caller unless the IIK encounters an error.  This function is typically executed as a separate thread.
  * This is the recommended method of running the IIK within in a multithreaded
  * environment.
  *
  * @note To relinquish control of the CPU in a multithreaded environment the IIK
- * call the receive (@ref app_network_receive) callback with a timeout or will call
+ * calls the receive (@ref app_network_receive) callback with a timeout or will call
  * OS sleep (@ref app_os_sleep).
  *
  * @subsection initiate_action Initiate an action: idigi_initiate_action() 
  *
  * The function idigi_initiate_action() is used to indicate to the IIK to perform a 
- * device requested action.  The currently supported actions are:
+ * device-requested action.  The currently supported actions are:
  *
  *  @li Initiate a data transfer to the server, described in the data service API
  *  @li Terminate the IIK
@@ -77,8 +77,8 @@
  * 
  * The IIK uses a single application-defined @ref idigi_callback_t "callback" function to process network events, 
  * handle operating system (OS) calls, return device configuration data, and process firmware updates. 
- * The callback is also used to report error status and event notification.  The application defined 
- * callback is passed into idigi_init() upon startup.  When the IIK needs to allocate 
+ * The callback is also used to report error status and event notification.  The application-defined
+ * @ref idigi_callback_t "callback" is passed into idigi_init() upon startup.  When the IIK needs to allocate
  * memory, access the network or perform other actions the application defined callback
  * is called.
  *
@@ -91,20 +91,20 @@
  *   @li Handle a device request
  *   @li Request more data when sending data to the iDigi Developer Cloud
  *
- * @b Class @b ID and @b request @b ID
+ * @b Class @b ID and @b Request @b ID
  * enumeration values are used to identify the callback action. The application must perform and return
  * the appropriate action and return data, according to the class and request 
  * enumeration values. 
  *
- * Each callback is passed in a class ID which is defined by the enumerated type
- * @ref idigi_class_t.  For each class ID there is a set of request ID's, for example the
- * @ref idigi_class_operating_system the corresponding request id's are defined
+ * Each callback is passed in a Class ID which is defined by the enumerated type
+ * @ref idigi_class_t.  For each Class ID there is a set of Request ID's, for example the
+ * @ref idigi_class_operating_system the corresponding Request ID's are defined
  * by the enum @ref idigi_os_request_t.
  *
  * The parameters for the application-defined callback: request_data, request_length, 
  * response_data and response_length are defined by the corresponding class_id and 
- * the request_id. There is a section in the documentation for each class of callbacks,
- * for example the Operating System callbacks are described on the @ref os_callbacks 
+ * the request_id. There is a section in the documentation for each class of callbacks.
+ * For example, the Operating System callbacks are described on the @ref os_callbacks
  * "Operating System" page.
  *
  *

@@ -3,7 +3,7 @@
  * @htmlinclude nav.html
  *
  * @section os_callbacks OS Callbacks
- * The IIK interafaces to the platforms OS through the callbacks listed below, these
+ * The IIK interfaces to the platform's OS through the callbacks listed below.  These
  * are called through the application callback described in the @ref api1_overview.
  * The class id is @ref idigi_class_operating_system.
  * 
@@ -19,6 +19,8 @@
  * and implemented in the @b Platform function app_os_malloc() in os.c.
  *
  * @see app_os_malloc()
+ * @see app_os_free()
+ * @see @ref idigi_os_free
  *
  * @htmlonly
  * <table class="apitable">
@@ -91,12 +93,14 @@
  *
  * @section free free
  *
- * Callback is called to free previous allocated memory.
+ * Callback is called to free previously allocated memory.
  *
  * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
  * and implemented in the @b Platform function app_os_free() in os.c.
  *
  * @see app_os_free()
+ * @see app_os_malloc()
+ * @see @ref idigi_os_malloc
  *
  * @htmlonly
  * <table class="apitable">
@@ -222,7 +226,7 @@
  * @endcode
  *
  * @section sleep Sleep
- * This callback is called relinquish control in the @ref threading "multi-threaded" idigi_run() model.
+ * This callback is called to relinquish control in the @ref threading "multi-threaded" idigi_run() model.
  *
  * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
  * and implemented in the @b Platform function app_os_sleep() in os.c.

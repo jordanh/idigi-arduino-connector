@@ -27,7 +27,7 @@
  * Cloud. iDigi supports application to device data interaction (messaging),
  * application & device data storage, and remote management of devices. Devices
  * are associated with the iDigi Developer Cloud through the Internet or other wide
- * area network connection, which allows for communication between the device, the
+ * area network connections, which allows for communication between the device, the
  * iDigi Developer Cloud, and customer applications. An important part of this communication
  * is the transfer of data from a device to the iDigi Developer Cloud.
  * iDigi is based upon a cloud computing model that provides on-demand scalability so
@@ -102,14 +102,14 @@
  * </table>
  * @endhtmlonly
  *
- * References to Text, rodata, data, and bss refer to program instructions, Constant-Read-only data, Initialized global and 
- * static variables, and Uninitialized zero-ed data, respectively.  References to the @ref idigi_config_data_options refers to 
+ * References to Text, rodata, data, and bss refer to program instructions, constant-read-only data, initialized global and
+ * static variables, and uninitialized zero-ed data, respectively.  References to the @ref idigi_config_data_options refers to
  * the code reduction defines in idigi_config.h: @ref IDIGI_DEVICE_TYPE, @ref IDIGI_CLOUD_URL, @ref IDIGI_TX_KEEPALIVE_IN_SECONDS, 
  * @ref IDIGI_RX_KEEPALIVE_IN_SECONDS, @ref IDIGI_WAIT_COUNT, @ref IDIGI_VENDOR_ID, @ref IDIGI_MSG_MAX_TRANSACTION, @ref IDIGI_CONNECTION_TYPE, 
  * @ref IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND, @ref IDIGI_WAN_PHONE_NUMBER_DIALED, @ref IDIGI_FIRMWARE_SUPPORT, and @ref IDIGI_DATA_SERVICE_SUPPORT.
  * 
  * @subsection RAMRequirements Dynamic RAM Usage 
- * The following dynamic RAM usage was developed by monitoring the high water mark during the 
+ * The following dynamic RAM usage was developed by monitoring the high-water mark during the
  * @ref idigi_os_malloc @ref idigi_callback_t "application-defined callback".  
  * 
  * @htmlonly
@@ -180,16 +180,17 @@
  *
  * @section communicating Communicating with your device
  *
- * To manage your device you can use the iDigi Developer Cloud Portal, this contains
- * the graphical user interface to the iDigi Developer Cloud, this tool allows for
+ * To manage your device you can use the iDigi Developer Cloud Portal.  This contains
+ * the graphical user interface to the iDigi Developer Cloud, which allows for
  * complete management of your device.
  *
  * To communicate with your device remotely without using the graphical interface
  * to the iDigi Developer Cloud you can use @b iDigi @b Web @b Services.  Web service
  * requests are sent from an application to the iDigi Developer Cloud, the iDigi
- * Device Cloud then communicates with the device, this allows for bidirectional
- * machine to machine communication.  Python samples are provided to show how to
- * communicate to a device using the iDigi Developer Cloud.
+ * Device Cloud, which then communicates with the device, this allows for bidirectional
+ * machine to machine communication.  This allows for bidirectional machine to machine
+ * communication. Python samples are provided to show how to communicate to a device using
+ * the iDigi Developer Cloud.
  *
  * @section threading Threading Model
  *
@@ -310,8 +311,8 @@
  * compiled and linked (using the @ref step3 "compile_and_link" sample) and then your @ref step5 "platform ported".  Once your platform
  * is ported, you will verify and confirm your port using the @ref step7 "connect_to_idigi" sample.
  *
- * When porting, it is strongly recommended that you maintain the structure of the public Application Framework.  Once porting, compilation and test
- * are complete, the you can dismantle this framework and incorporate into your environment as you see fit.
+ * When porting, it is strongly recommended that you maintain the structure of the public Application Framework.  Once porting, compilation and testing
+ * are complete, the you can dismantle this framework and incorporate the IIK into your environment as you see fit.
  *
  * When reusing the Application Framework, the largest effort will be updating the lowest layer of the Platform code.  Specifically, the
  * static @ref os_routines "operating system" functions located in os.c, the @ref network_routines "networking" functions in network.c and
@@ -351,7 +352,7 @@
  *
  * @subsection DebugTips How to debug your Port
  * After porting and compiling, you will run the @ref step7 "connect_to_idigi" sample.  We recommend that you carefully
- * observe the standard output from the application.  In particular, the @ref idigi_config_error_status will display error
+ * observe the standard output from the application.  In particular, the @ref idigi_config_error_status callback will display error
  * data when porting errors are detected in the callbacks.
  *
  * Examples of @ref good_results_output "successful" and @ref bad_results_output "erroneous" output streams are available.

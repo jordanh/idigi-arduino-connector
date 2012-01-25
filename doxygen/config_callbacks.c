@@ -3,7 +3,7 @@
  * @htmlinclude nav.html
  *
  * @section config Configuration Callbacks
- * The IIK interfaces to the platforms configuration through the callbacks listed below, these
+ * The IIK interfaces to the platform's configuration through the callbacks listed below.  These
  * are called through the application callback described in the @ref api1_overview.
  * 
  *  -# @ref device_id
@@ -31,7 +31,7 @@
  *
  * Device IDs are a globally unique identifier for iDigi clients.  The Device ID is a
  * 16-octet value derived from the MAC address of a network interface on the client.
- * The mapping from MAC address to Device ID consist of inserting "FFFF" in the middle
+ * The mapping from MAC address to Device ID consists of inserting "FFFF" in the middle
  * of the MAC and setting all other bytes of the Device ID to 0.
  * For Example:
  * MAC Address 12:34:56:78:9A:BC, would map to a Device ID: 00000000-123456FF-FF789ABC.
@@ -199,10 +199,10 @@
  * @section device_type Device Type
  *
  * Returns a pointer to the device type which is an iso-8859-1 encoded string.
- * This string should be chosen by the device manufacture as a name that uniquely
+ * This string should be chosen by the device manufacturer as a name that uniquely
  * identifies this model of device  to the server. When the server finds two devices
  * with the same device type, it can infer that they are the same product and
- * product scoped data may be shared among all devices with this device type.
+ * product-scoped data may be shared among all devices with this device type.
  * A device's type cannot be an empty string, nor contain only whitespace.
  *
  * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
@@ -321,7 +321,7 @@
  * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
- * <td>Callback successfully returned device ID</td>
+ * <td>Callback successfully returned server URL</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
@@ -951,7 +951,7 @@
  *
  * @section error_status  Error Status Notification
  *
- * This callback is called to notify user that IIK encountered an error. When IIK finds an
+ * This callback is called to notify the user that IIK encountered an error. When IIK finds an
  * error, the IIK will call this callback indicating the error status
  *
  * @note If @ref IDIGI_DEBUG  is not defined in @ref idigi_config.h, this callback 

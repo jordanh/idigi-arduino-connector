@@ -21,8 +21,9 @@
  * The firmware access facility is an optional facility for applications to update their 
  * firmware. The IIK invokes the application-defined callback to query whether this 
  * firmware access facility is supported or not.  The firmware access facility uses a target 
- * number to distinguish application dependant firmware images. For example, if a 
- * standalone bootloader is separate from an application image, or a default file system image.
+ * number to distinguish application-dependent firmware images.  For example, a
+ * stand-alone bootloader may be loaded separate from an application image, or a default file system
+ * could be maintained as well.
  * Applications define an image to each target except target 0 (target 0 must be the firmware 
  * image that is running the IIK). Only one firmware upgrade can be in progress at any given 
  * time. The IIK will send a firmware target list to the iDigi server to identify the number 
@@ -47,12 +48,12 @@
  * Applications may choose to begin writing their downloaded image to Flash either 
  * during the Firmware Binary or Firmware Download Complete message. This is an application 
  * level decision with clear tradeoffs (memory needs versus power loss protection). 
- * If you write during the Firmware Binary data, you might lose communication or power 
- * at some later time. If protection is built in (i.e., back up images) this would not be 
+ * If you write to Flash while the Firmware Binary data is being received, you could lose communication
+ * or power at some later time.  If protection is built in (i.e., back up images) this would not be
  * problem. If protections are not built in, applications might choose to place the entire 
  * image contents into RAM before writing to Flash. Back up image protection would still 
  * protect against power loss after your write occurred, but the communication loss or corruption 
- * could be avoided by having a making a checksum test before starting your Flash write.
+ * could be avoided by having a checksum test before starting your Flash write.
  *
  * @note See @ref firmware_support under Configuration to enable or
  * disable firmware download.
@@ -114,7 +115,7 @@
  *     if (class_id = idigi_class_firmware && request_id.firmware_request == idigi_firmware_target_count)
  *     {
  *          /* return total number of firmware update targets */
- *          *((uint16_t *)response_data) = fimware_list_count;
+ *          *((uint16_t *)response_data) = firmware_list_count;
  *     }
  *     return idigi_callback_continue;
  * }
@@ -252,7 +253,7 @@
  *
  * @section  fw_description Description of Firmware Target
  *
- * return the description of the target.
+ * Return the description of the target.
  *
  * @htmlonly
  * <table class="apitable">
@@ -318,7 +319,7 @@
  *
  * @section fw_namespec File Name Spec of Firmware Target
  *
- * Return the file name spec in regular expression.  No file name spec can be returned 
+ * Return the file name spec as a regular expression.  No file name spec can be returned
  * if only a single target (target 0) is supported.  If an application wants to match the 
  * file name "image.bin", it must return "image\.bin" for regular expression. Regular 
  * expressions are case sensitive. If file names for the given target are to be case insensitive,

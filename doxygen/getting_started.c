@@ -73,8 +73,8 @@
  *
  * @section step3 Step 3: Build the compile_and_link sample
  *
- * In this step we are going to build the compile_and_link sample,
- * this sample will verify that your build environment is setup correctly.
+ * In this step we are going to build the compile_and_link sample.
+ * This sample will verify that your build environment is set up correctly.
  * You need to add the source files and include paths to your build system listed
  * below.
  *
@@ -82,7 +82,7 @@
  *
  * The routine idigi_init() is called to initialize the IIK, currently this is
  * called from the routine main() in main.c; you will need to call idigi_init()
- * at the initialization point for your application with an application's callback. 
+ * at the initialization point for your application with an application callback.
  * For the compile_and_link sample you can call idigi_init() as:
  *
  * @code
@@ -135,12 +135,12 @@
  * Now that you have the build environment setup, verify that you can compile and
  * link.  If you are using the Makefile provided, type make in the compile_and_link directory, 
  * otherwise execute the build for your system.
- * If you are experiencing a build problem double check the steps listed above.
- * There is only one include path and two C files to build this sample.  Once the
- * build is successful you can proceed to the next step.
+ * If you are experiencing a build problem, double check the steps listed above.  There is only
+ * one include path and two C files required to build this sample. Once the build is successful
+ * you can proceed to the next step.
  *
- * @note Do not execute the compile_and_link sample, this only verifies that the
- * build environment is setup correctly, the application will ASSERT when run.
+ * @note Do not execute the compile_and_link sample, as this only verifies that the build environment
+ * is set up correctly. The application will exit on a failed ASSERT when run.
  *
  * @section step4 Step 4: Setup your iDigi Account
  *
@@ -181,15 +181,14 @@
  * connected to the iDigi cloud, all other IIK functions (like @ref put_request "sending data" or @ref firmware_download "firmware download")
  * should work without failure.
  *
- * Go into the platforms directory and select a platform which is the similar to your platform, 
- * if none of the available platforms are similar to yours you can use the 
- * template platform. 
+ * Go into the platforms directory and select a platform which is similar to your platform.  If
+ * none of the available platforms are similar to yours, you can use the template platform.
  *
  * In this guide we use the public/run/platforms/linux as an example, but all platforms have the same structure.
  * So choose a platform (or copy an existing one) and go into that directory.
  *
  * @subsection os_routines OS Routines
- * Open the file os.c and implement the routines listed below, for the linux platform
+ * Open the file os.c and implement the routines listed below.  For the linux platform
  * the file is located at public/run/platforms/@a my_platform/os.c.  Click on the routine
  * to see a description, then modify to operate with your platform.  These routines
  * are callbacks which are described in the API section.
@@ -214,12 +213,12 @@
  *
  * @subsection configuration_routines Configuration Routines
  *
- * In this step we setup the configuration routines for your platform. Each configuration 
+ * In this step we set up the configuration routines for your platform. Each configuration
  * item has a corresponding get routine for retrieving its value. Open the file config.c 
  * for your platform and implement the configuration routines.
  * All configuration routines are passed in a pointer to a pointer, along with a pointer to the size. 
  * The address of the configuration item is stored in the pointer passed in, and the size is assigned to the pointer to the size variable.
- * For example app_get_server_url() is the routine used to retrieve the iDigi Developer Cloud URL
+ * For example, app_get_server_url() is the routine used to retrieve the iDigi Developer Cloud URL
  * and is shown below.
  * @code
  *  static int app_get_server_url(char ** url, size_t * size)
@@ -243,7 +242,7 @@
  * @note The memory assigned to configuration items must be @b statically @b allocated and is accessed by the IIK 
  * after the routine returns.
  *
- * The following is a list of configuration routines which needs to be implemented for
+ * The following is a list of configuration routines which need to be implemented for
  * your platform, please review each routine:
  *  @li app_get_ip_address()
  *  @li app_get_mac_addr()
@@ -278,11 +277,11 @@
  * idigi_handle = idigi_init((idigi_callback_t) idigi_callback);
  * @endcode
  *
- * And placed in location capable of starting network client code.
+ * and placed in location capable of starting a network client.
  *
  * Its recommended that you use the code inside main() and cut and paste, as is, into an appropriate spot.
  * In the Linux platform provided, the routine main() creates a thread which then calls idigi_run().  You
- * will need to setup a similar thread in your environment (or call idigi_step()) periodically.
+ * will need to set up a similar thread in your environment (or call idigi_step()) periodically.
  *
  * This thread is shown below:
  * @code
@@ -361,15 +360,15 @@
  * @li run/platforms/@a my_platform
  * 
  * @section step7 Step 7: Build the connect_to_idigi sample
- * Next build the sample, if you are running on Linux you can simply type make in
+ * Next, build the sample.  If you are running on Linux you can simply type make in
  * the directory public/run/samples/connect_to_idigi, if you are not using Linux then
  * you will have to build for your environment.
  *
  * @section step8 Step 8: Run the connect_to_idigi sample
- * The name of the executable generated by the linux Makefile is called idigi, in
- * linux type ./idigi from a console to execute the program.
+ * The name of the executable generated by the Linux Makefile is called idigi.
+ * In Linux, type ./idigi from a console to execute the program.
  *
- * @note By default @ref IDIGI_DEBUG is defined in idigi_config.h, which prints helpful IIK Library debug
+* @note By default @ref IDIGI_DEBUG is defined in idigi_config.h, which prints helpful IIK Library debug
  * messages to the standard output.
  *
  * @subsection good_results_output Example output from a successful run of connect_to_idigi
@@ -467,7 +466,7 @@
  *
  * Click the Refresh button. The device will reconnect to the iDigi Developer Cloud.
  * If successful your device Status will show connected.  You can now communicate 
- * with your device over the iDigi cloud, the next step 
+ * with your device over the iDigi cloud.  The next step
  * is to integrate in one of the samples to add in more functionality to your
  * application.
  *

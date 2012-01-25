@@ -48,7 +48,7 @@ static firmware_list_t fimware_list[] = {
     {0x01000000, (uint32_t)-1, ".*\\.a",            "Library Image"}, /* any *.a files */
     {0x00000100, (uint32_t)-1, ".*\\.[bB][iI][nN]", "Binary Image" }  /* any *.bin files */
 };
-static uint16_t fimware_list_count = asizeof(fimware_list);
+static uint16_t firmware_list_count = asizeof(fimware_list);
 
 static uint32_t dvt_timing_in_seconds = 0;
 
@@ -216,7 +216,7 @@ idigi_callback_status_t app_firmware_handler(idigi_firmware_request_t const requ
     {
         uint16_t * count = (uint16_t *)response_data;
         /* return total number of firmware update targets */
-        *count = fimware_list_count;
+        *count = firmware_list_count;
         break;
     }
     case idigi_firmware_version:

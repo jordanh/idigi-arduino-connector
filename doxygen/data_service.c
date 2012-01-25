@@ -70,7 +70,7 @@
  * @endcode
  *
  * This example will invoke the IIK to initiate a data transfer to the iDigi Developer
- * Cloud, the result of this operation creates a file testfile.txt in the testdir directory
+ * Cloud.  The result of this operation creates a file testfile.txt in the testdir directory
  * on the iDigi Developer Cloud.  Once the iDigi Developer Cloud is ready to receive data
  * from the device the application callback is called requesting data.
  *
@@ -235,7 +235,7 @@
  * @section device_request Device Request
  *
  * Device requests are data transfers initiated by the server. They are used to
- * send data from the server to the device, the device may send back a reply.
+ * send data from the server to the device, and the device may send back a reply.
  * The user will receive the application callback when a device request is received from the server.
  * The application callback is continually called with the data from the server
  * until the transfer is complete or an error is encountered.
@@ -317,9 +317,9 @@
  * </table>
  * @endhtmlonly
  *
- * User uses SCI request to send device request to the server and server sends it
- * to the device.
- * An example of an application callback for a device request is show below:
+ * A user uses the SCI web service to send a device request to the iDigi server, which
+ * in turn sends it to the device. An example of an application callback for a device
+ * request is show below:
  *
  * @code
  *

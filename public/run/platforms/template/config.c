@@ -94,7 +94,7 @@ static int app_get_mac_addr(uint8_t ** addr, size_t * size)
  *
  * Device IDs are a globally unique identifier for iDigi clients.  The Device ID is a
  * 16-octet value derived from the MAC address of a network interface on the client.
- * The mapping from MAC address to Device ID consist of inserting "FFFF" in the middle
+ * The mapping from MAC address to Device ID consists of inserting "FFFF" in the middle
  * of the MAC and setting all other bytes of the Device ID to 0.
  * For Example:
  * MAC Address 12:34:56:78:9A:BC, would map to a Device ID: 00000000-123456FF-FF789ABC.
