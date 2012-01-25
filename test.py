@@ -82,8 +82,8 @@ test_table = [
               [BASE_DVT_SRC+'full_test',            BASE_SCRIPT_DIR+'dvt_tests',    ['test_firmware_errors.py', 
                                                                                      'test_device_request.py',
                                                                                      'test_data_service.py']],
-              [BASE_DVT_SRC+'data_service',         BASE_SCRIPT_DIR+'admin_tests',  ['test_reboot.py', 
-                                                                                     'test_redirect.py']],
+              [BASE_DVT_SRC+'data_service',         BASE_SCRIPT_DIR+'admin_tests',  ['test_reboot.py']],
+              [BASE_DVT_SRC+'data_service',         BASE_SCRIPT_DIR+'admin_tests',  ['test_redirect.py']],
               [BASE_DVT_SRC+'data_service',         BASE_SCRIPT_DIR+'admin_tests',  ['test_nodebug_redirect.py']],
 ]
 
