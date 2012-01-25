@@ -799,10 +799,10 @@ static idigi_callback_status_t close_server(idigi_data_t * const idigi_ptr)
         case idigi_callback_continue:
             idigi_ptr->edp_connected = idigi_false;
             idigi_ptr->network_connected = idigi_false;
-            reset_initial_data(idigi_ptr);
 
             send_complete_callback(idigi_ptr);
             layer_cleanup_facilities(idigi_ptr);
+            reset_initial_data(idigi_ptr);
             break;
         default:
             break;
