@@ -35,6 +35,11 @@
 
 /**
  * IIK version number
+ *
+ * Note current version number denotes:  1.1.0.0
+ *                                       | | | |
+ *                                       v v v v
+ *                                    0x01010000UL
  */
 #define IDIGI_VERSION_1100   0x01010000UL
 
