@@ -1239,6 +1239,9 @@ static idigi_callback_status_t msg_process_start(idigi_data_t * const idigi_ptr,
            from application will result in duplicate session incorrectly */
         if (!request)
             MsgClearRequest(session->status_flag);
+
+        if (session->state == msg_state_send_error) 
+            goto done;
     }
 
     result = msg_initialize_data_block(session, msg_ptr->capabilities[msg_capability_client].window_size, request ? msg_block_state_recv_request : msg_block_state_recv_response);
