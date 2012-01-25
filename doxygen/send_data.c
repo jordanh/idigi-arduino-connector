@@ -11,17 +11,17 @@
  * @section connect_description Code Flow
  *
  * The routine main() in the platform directory initializes the IIK and
- * registers the application callback.  In the file application.c is the
- * application defined callback idigi_callback(), this routine calls idigi_data_service_callback()
+ * registers the application-defined callback.  In the file application.c is the
+ * application-defined callback idigi_callback(), this routine calls idigi_data_service_callback()
  * when a data service request is received.
  *
  * The routine application_run() (or application_step()) which is called after initialization calls the routine
  * send_put_request() to initiate the data transfer to the iDigi Cloud.  This routine
  * initiates the data transfer by calling idigi_initiate_action(); once the server is 
- * ready to receive data the idigi_data_service_callback() routine is called, the callback then returns
+ * ready to receive data the idigi_data_service_callback() routine is called.  The callback then returns
  * the string "Welcome to iDigi data service sample!\n" back to the iDigi Cloud.  This data is @b copied
- * @b into @b the @b callbacks @b buffer, the flags @ref IDIGI_MSG_LAST_DATA and @ref IDIGI_MSG_FIRST_DATA
- * indicate this is the only message in this data transfer, by modifying these flags
+ * @b into @b the @b callback's @b buffer, the flags @ref IDIGI_MSG_LAST_DATA and @ref IDIGI_MSG_FIRST_DATA
+ * indicate this is the only message in this data transfer.  By modifying these flags
  * you could modify this sample to send large amounts of data back to the server.
  *
  * If idigi_data_service_callback() is called with @ref idigi_data_service_type_have_data then this
@@ -31,7 +31,7 @@
  *
  * @section connect_build Building
  *
- * To build this example for a linux based platform you can go into the directory
+ * To build this example for a Linux-based platform you can go into the directory
  * public/run/samples/send_data and type make.  If you are not running Linux you
  * will need to setup your build system with the information described below
  * and then build the image for your platform.
@@ -49,7 +49,7 @@
  * </tr>
  * <tr>
  * <th>application.c</th>
- * <td>Contains applicat_start() and the application callback</td>
+ * <td>Contains application_run() and the application callback</td>
  * <td>samples/send_data</td>
  * </tr>
  * <tr>
@@ -108,7 +108,7 @@
  * in the @ref add_your_device_to_the_cloud "Getting Started" section. 
  *
  * Once logged in click on storage from within the left navigation panel as shown
- * below. Double clicks to the device folder.
+ * below. Double click to the device folder.
  *
  * @image html sample1.png
  *
@@ -122,10 +122,10 @@
  *
  * @image html sample2.png
  *
- * @section python_script Python script to retrive a file from iDigi Developer Cloud storage
+ * @section python_script Python script to retrieve a file from iDigi Developer Cloud storage
  *
  * This sample provides a simple python script to retrive the test.txt file from developer.idigi.com
- * after a device has put the test.txt into the server.
+ * after a device has sent test.txt into the server.
  *
  * Run the python script in the sample. 
  *

@@ -25,7 +25,7 @@
  *
  * @code
  * // list of all supported firmware target info
- * static firmware_list_t fimware_list[] = {
+ * static firmware_list_t firmware_list[] = {
  *   // version     code_size     name_spec            description
  *   {  0x01000000, (uint32_t)-1, ".*\\.a",            "Library Image"}, // any .a image
  *   {  0x00000100, (uint32_t)-1, ".*\\.[bB][iI][nN]", "Binary Image" }  // any .bin image
@@ -33,7 +33,7 @@
  * @endcode
  *
  * The routine firmware_download_request() is called when the download is first
- * initiated, it receives information about the download and retuns @ref idigi_fw_success
+ * initiated.  It receives information about the download and retuns @ref idigi_fw_success
  * status indicating that is ready to accept the FW download.
  *
  * The firmware_image_data() routine is repeatedly called with the image data
@@ -45,11 +45,11 @@
  * it indicates the firmware image has been updated. iDigi Developer Cloud will reset the unit,
  * the routine firmware_reset() is called for resetting.
  * 
- * The routine firmware_download_abort() is called when idigi server encounters error.
+ * The routine firmware_download_abort() is called when the iDigi Developer Cloud encounters error.
  * 
  * @section connect_build Building
  *
- * To build this example for a linux based platform you can go into the directory
+ * To build this example for a Linux-based platform you can go into the directory
  * public/run/samples/firmware_download and type make.  If you are not running Linux you
  * will need to setup your build system with the information described below
  * and then build the image for your platform.
@@ -67,7 +67,7 @@
  * </tr>
  * <tr>
  * <th>application.c</th>
- * <td>Contains applicat_start() and the application defined callback</td>
+ * <td>Contains application_run() and the application defined callback</td>
  * <td>samples/firmware_download</td>
  * </tr>
  * <tr>
@@ -132,20 +132,20 @@
  * sample.
  *
  * Firmware downloads can be initiated by the server using the iDigi Developer Cloud
- * GUI or by issuing a @ref services "SCI update_firmare operation".
+ * GUI or by issuing a @ref services "SCI update_firmware operation".
  *
  * @subsection fw_gui Firmware Download using iDigi Developer Cloud GUI
  *
  * Login to the iDigi Developer cloud at http://www.idigi.com  and click on your device
  * (described in the @ref idigi_login "Getting Started Section").
- * Once you are logged in and see your device Click the Refresh button. 
- * The device will reconnect to the iDigi Developer Cloud.
+ * Once you are logged to see your device, click the Refresh button.
+ * The device's status should show as 'Connected'.
  *
  * @image html sample3.png
  *
  * Then click the Firmware Update button to update your firmware, and then select 
- * the file that is your firmare image on your local machine.  The image will then
- * start to download to your machine, the GUI will indicate when it's complete.
+ * the file that is your firmware image on your local machine.  The image will then
+ * start to upload to your IIK application.  The GUI will indicate when it's complete.
  *
  * @note The firmware image name must match the regular expression given to 
  * filter names, see @ref fw_namespec.
@@ -153,13 +153,13 @@
  * @image html sample4.png
  * 
  * The results in this application are displayed in the output console of the
- * application, since this is only a sample the fiwmware is not updated on the
+ * application.  Since this is only a sample the fiwmware is not updated on the
  * device.  The application prints out the target, code size and checksum of the
  * downloaded image.
  *
  * @subsection fw_python Firmware Download using python script
  *
- * This samples provides two simple python scripts to update firmware image and query
+ * This sample provides two simple python scripts to update firmware image and query
  * a list of firmware target information using
  * @htmlonly <a href="web_services.html">iDigi Web Services.</a> @endhtmlonly
  * It sends a request to developer.idigi.com.
@@ -173,7 +173,7 @@
  * python update_firmware.py <username> <password> <device_id>
  * @endcode
  *
- * An output of update_firmware.py:
+ * Example output from update_firmware.py:
  *
  * @code
  *

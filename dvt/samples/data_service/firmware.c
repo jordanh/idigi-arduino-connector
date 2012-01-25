@@ -43,12 +43,12 @@ typedef struct {
 } firmware_list_t;
 
 /* list of all supported firmware target info */
-static firmware_list_t fimware_list[] = {
+static firmware_list_t firmware_list[] = {
     /* version     code_size     name_spec          description */
     {0x01000000, (uint32_t)-1, ".*\\.a",            "Library Image"}, /* any *.a files */
     {0x00000100, (uint32_t)-1, ".*\\.[bB][iI][nN]", "Binary Image" }  /* any *.bin files */
 };
-static uint16_t firmware_list_count = asizeof(fimware_list);
+static uint16_t firmware_list_count = asizeof(firmware_list);
 
 static uint32_t dvt_timing_in_seconds = 0;
 
@@ -223,30 +223,30 @@ idigi_callback_status_t app_firmware_handler(idigi_firmware_request_t const requ
     {
         uint32_t * version = (uint32_t *)response_data;
         /* return the target version number */
-        *version = fimware_list[config->target].version;
+        *version = firmware_list[config->target].version;
         break;
     }
     case idigi_firmware_code_size:
     {
         /* Return the target code size */
         uint32_t * code_size = (uint32_t *)response_data;
-        *code_size = fimware_list[config->target].code_size;
+        *code_size = firmware_list[config->target].code_size;
         break;
     }
     case idigi_firmware_description:
     {
         /* return pointer to firmware target description */
         char ** description = (char **)response_data;
-        *description = fimware_list[config->target].description;
-        *response_length = strlen(fimware_list[config->target].description);
+        *description = firmware_list[config->target].description;
+        *response_length = strlen(firmware_list[config->target].description);
        break;
     }
     case idigi_firmware_name_spec:
     {
         /* return pointer to firmware target description */
         char ** name_spec = (char **)response_data;
-        *name_spec = fimware_list[config->target].name_spec;
-        *response_length = strlen(fimware_list[config->target].name_spec);
+        *name_spec = firmware_list[config->target].name_spec;
+        *response_length = strlen(firmware_list[config->target].name_spec);
         break;
     }
     case idigi_firmware_download_request:

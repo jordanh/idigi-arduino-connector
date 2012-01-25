@@ -42,12 +42,12 @@ typedef struct {
 } firmware_list_t;
 
 /* list of all supported firmware target info */
-static firmware_list_t fimware_list[] = {
+static firmware_list_t firmware_list[] = {
     /* version     code_size     name_spec          description */
     {0x01000000, (uint32_t)-1, ".*\\.[tT][xX][tT]", "Text File"}, /* any *.a files */
     {0x00000100, (uint32_t)-1, ".*\\.[bB][iI][nN]", "Binary Image" }  /* any *.bin files */
 };
-static uint16_t fimware_list_count = asizeof(fimware_list);
+static uint16_t firmware_list_count = asizeof(firmware_list);
 
 static int firmware_download_started = 0;
 static size_t total_image_size = 0;
@@ -204,7 +204,7 @@ idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t const r
     {
         uint16_t * count = (uint16_t *)response_data;
         /* return total number of firmware update targets */
-        *count = fimware_list_count;
+        *count = firmware_list_count;
         APP_DEBUG("idigi_firmware_target_count %d\n", *count);
 
         break;
@@ -213,7 +213,7 @@ idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t const r
     {
         uint32_t * version = (uint32_t *)response_data;
         /* return the target version number */
-        *version = fimware_list[config->target].version;
+        *version = firmware_list[config->target].version;
         APP_DEBUG("idigi_firmware_version %x\n", *version);
 
         break;
@@ -222,7 +222,7 @@ idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t const r
     {
         /* Return the target code size */
         uint32_t * code_size = (uint32_t *)response_data;
-        *code_size = fimware_list[config->target].code_size;
+        *code_size = firmware_list[config->target].code_size;
 
         APP_DEBUG("idigi_firmware_code_size %d\n", *code_size);
         break;
@@ -231,8 +231,8 @@ idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t const r
     {
         /* return pointer to firmware target description */
         char ** description = (char **)response_data;
-        *description = fimware_list[config->target].description;
-        *response_length = strlen(fimware_list[config->target].description);
+        *description = firmware_list[config->target].description;
+        *response_length = strlen(firmware_list[config->target].description);
 
        APP_DEBUG("idigi_firmware_description %s\n", *description);
        break;
@@ -241,8 +241,8 @@ idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t const r
     {
         /* return pointer to firmware target description */
         char ** name_spec = (char **)response_data;
-        *name_spec = fimware_list[config->target].name_spec;
-        *response_length = strlen(fimware_list[config->target].name_spec);
+        *name_spec = firmware_list[config->target].name_spec;
+        *response_length = strlen(firmware_list[config->target].name_spec);
 
         APP_DEBUG("idigi_firmware_name_spec %s\n", *name_spec);
         break;

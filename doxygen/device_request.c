@@ -1,4 +1,4 @@
-/*! @page device_request_sample Data Service Device Request Sample
+/*! @page device_request_sample Device Request Sample
  *
  * @htmlinclude nav.html
  *
@@ -6,7 +6,7 @@
  *
  * This sample demonstrates how to process data sent from the iDigi Server.
  * Using the @ref data_service_overview "data service api" this application prints
- * out the data sent from idigi server.
+ * out the data sent from the iDigi Cloud.
  *
  * @section connect_description Code Flow
  *
@@ -15,12 +15,12 @@
  * application defined callback idigi_callback(), this routine calls idigi_data_service_callback()
  * when a device request is received.
  *
- * User can use python script to send device request to the device.
+ * A User can use the included python script to send a device request to the device.
  *
- * When server sends device request to the device, idigi_data_service_callback() is called 
+ * When the iDigi Cloud sends a device request to the device, idigi_data_service_callback() is called
  * with @ref idigi_data_service_type_have_data message type to process the data. This callback
  * is continually called with this message type until the last chunk of data is processed. This 
- * sample exmains the given target and prints out the device request data. It cancels 
+ * sample examines the given target and prints out the device request data. It cancels
  * the device request if the target name is not "myTarget". 
  *
  * After the callback is called with @ref idigi_data_service_type_have_data message type for the last chunk of data,
@@ -33,7 +33,7 @@
  *
  * @section connect_build Building
  *
- * To build this example for a linux based platform you can go into the directory
+ * To build this example for a Linux-based platform you can go into the directory
  * public/run/samples/device_request and type make.  If you are not running Linux you
  * will need to setup your build system with the information described below
  * and then build the image for your platform.
@@ -51,7 +51,7 @@
  * </tr>
  * <tr>
  * <td>application.c</td>
- * <td>Contains applicat_start() and the application callback</td>
+ * <td>Contains application_run() and the application callback</td>
  * <td>samples/device_request</td>
  * </tr>
  * <tr>

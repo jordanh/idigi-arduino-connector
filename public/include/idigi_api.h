@@ -95,7 +95,7 @@ typedef enum {
    idigi_invalid_packet,        /**< IIK received unrecognized or unexpected message. */
    idigi_exceed_timeout,        /**< Callback exceeded timeout value before it returned. */
    idigi_unsupported_security,  /**< IIK received a packet with unsupported security. */
-   idigi_invalid_data,          /**< Callback returned invalid data. Callback may return a NULL data.. */
+   idigi_invalid_data,          /**< Callback returned invalid data. Callback may return a NULL data. */
    idigi_server_disconnected,   /**< Server disconnected IIK. */
    idigi_connect_error,         /**< IIK was unable to connect to the iDigi server. The callback for connect failed. */
    idigi_receive_error,         /**< Unable to receive message from the iDigi server. The callback for receive failed. */
@@ -111,7 +111,7 @@ typedef enum {
 */
 
  /**
- * @defgroup idigi_class_t Class ID's
+ * @defgroup idigi_class_t Class IDs
  * @{
  */
 /**
@@ -181,15 +181,15 @@ typedef enum {
 
 
 /**
-* @defgroup idigi_network_request_t Network Requests
+* @defgroup idigi_network_request_t Network Request IDs
 * @{
 */
 /**
-* Network Request Id passed to the application's callback for network interface.
+* Network Request ID passed to the application's callback for network interface.
 * The class id for this idigi_network_request_t is idigi_class_network.
 */
 typedef enum {
-    idigi_network_connect,                  /**< Requesting callback to setup and make connection to iDigi server */
+    idigi_network_connect,                  /**< Requesting callback to set up and make connection to iDigi server */
     idigi_network_send,                     /**< Requesting callback to send data to iDigi server */
     idigi_network_receive,                  /**< Requesting callback to receive data from iDigi server */
     idigi_network_close,                    /**< Requesting callback to close iDigi server connection */
@@ -201,7 +201,7 @@ typedef enum {
 */
 
  /**
- * @defgroup idigi_os_request_t OS request ID's
+ * @defgroup idigi_os_request_t OS Request IDs
  * @{ 
  */
  /** 
@@ -243,7 +243,7 @@ typedef enum {
 */
 
 /**
-* @defgroup idigi_data_service_request_t Data service requests
+* @defgroup idigi_data_service_request_t Data Service Request IDs
 * @{
 */
 /**
@@ -269,7 +269,7 @@ typedef enum {
 * @{
 */
 /**
-* Request ID's used in idigi_initiate_action()
+* Request IDs used in idigi_initiate_action()
 */
 typedef enum {
     idigi_initiate_terminate,               /**< Terminates and stops IIK from running. */
@@ -356,18 +356,18 @@ typedef enum {
 */
 
 /**
-* @defgroup idigi_request_t Request ID's
+* @defgroup idigi_request_t Request IDs
 * @{
 */
 /**
-* Request ID's passed to callback identifying the type of request 
+* Request IDs passed to callback identifying the type of request
 * @see idigi_class_t
 */
 typedef union {
    idigi_config_request_t config_request;               /**< Configuration request ID for configuration class */
    idigi_network_request_t network_request;             /**< Network request ID for network class */
    idigi_os_request_t os_request;                       /**< Operating system request ID for operating system class */
-   idigi_firmware_request_t firmware_request;           /**< Firmware request ID for firmware facility class */
+   idigi_firmware_request_t firmware_request;           /**< Firmware Request ID for firmware facility class */
    idigi_data_service_request_t data_service_request;   /**< Data service request ID for data service class */
 } idigi_request_t;
 /**
@@ -868,10 +868,10 @@ typedef struct
 */
 typedef struct
 {
-    void * user_context;                        /**< It's used for idigi_data_service_device_request callback's context which will
+    void * user_context;                        /**< Used for idigi_data_service_device_request callback's context which will
                                                     be returned on subsequent callbacks for its reference.
                                                     For idigi_data_service_put_request callback, it's not used. */
-    idigi_msg_error_t message_status;           /**< Callback wrties error status when it encounters error and cancels the message */
+    idigi_msg_error_t message_status;           /**< Callback writes error status when it encounters error and cancels the message */
     idigi_data_service_block_t * client_data;   /**< Pointer to memory where callback writes data to for idigi_data_service_type_need_data message type */
 } idigi_data_service_msg_response_t;
 /**
@@ -902,9 +902,9 @@ typedef struct
 */
 
  /**
- * @defgroup idigi_callback_t Application defined callback
+ * @defgroup idigi_callback_t Application-defined callback
  *@{ 
- * idigi_callback_t: IIK application defined callback, this is the general purpose
+ * idigi_callback_t: IIK Application-defined callback, this is the general purpose
  * callback used throughout the IIK.
  *
  */
@@ -1015,7 +1015,7 @@ idigi_status_t idigi_step(idigi_handle_t const handle);
  *
  * This function is similar to idigi_step except it doesn't 
  * return control back to caller unless IIK encounters an error.
- * This function should be executed as a separated thread. 
+ * This function should be executed as a separate thread.
  * 
  * @param [in] handle  Handle returned from idigi_init
  *

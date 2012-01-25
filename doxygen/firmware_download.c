@@ -180,7 +180,7 @@
  *          idigi_fw_config_t * config = (idigi_fw_config_t *)request_data;
  *          uint32_t * version = (uint32_t *)response_data;
  *          /* return the target version number */
- *          *version = fimware_list[config->target].version;
+ *          *version = firmware_list[config->target].version;
  *     }
  *     return idigi_callback_continue;
  * }
@@ -245,7 +245,7 @@
  *          idigi_fw_config_t * config = (idigi_fw_config_t *)request_data;
  *          /* Return the target code size */
  *          uint32_t * code_size = (uint32_t *)response_data;
- *          *code_size = fimware_list[config->target].code_size;
+ *          *code_size = firmware_list[config->target].code_size;
  *     }
  *     return idigi_callback_continue;
  * }
@@ -310,8 +310,8 @@
  *     {
  *          /* return pointer to firmware target description */
  *          char ** description = (char **)response_data;
- *          *description = fimware_list[config->target].description;
- *          *response_length = strlen(fimware_list[config->target].description);
+ *          *description = firmware_list[config->target].description;
+ *          *response_length = strlen(firmware_list[config->target].description);
  *     }
  *     return idigi_callback_continue;
  * }
@@ -380,8 +380,8 @@
  *     {
  *           /* return pointer to firmware target description */
  *          char ** name_spec = (char **)response_data;
- *          *name_spec = fimware_list[config->target].name_spec;
- *          *response_length = strlen(fimware_list[config->target].name_spec);
+ *          *name_spec = firmware_list[config->target].name_spec;
+ *          *response_length = strlen(firmware_list[config->target].name_spec);
  *     }
  *     return idigi_callback_continue;
  * }
