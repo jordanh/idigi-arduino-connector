@@ -297,7 +297,8 @@ def main():
         print "============ Compression On ============="
         run_tests('%s_%s' % (args.descriptor, 'Compression'), '.', False, api, cflags,
         [('public/include/idigi_config.h', 'IDIGI_NO_COMPRESSION', 
-         'IDIGI_COMPRESSION')])
+         'IDIGI_COMPRESSION'), 
+         ('public/include/idigi_config.h', 'IDIGI_DEBUG', 'IDIGI_NO_DEBUG')])
 
     if args.configuration == 'debug' or args.configuration == 'all':
         print "============ Debug On ============="
