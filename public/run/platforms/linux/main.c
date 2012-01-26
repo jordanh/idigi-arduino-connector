@@ -33,7 +33,7 @@ extern idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, 
 
 static void * idigi_run_thread(void * arg)
 {
-    idigi_status_t status;
+    idigi_status_t status = idigi_success;
 
     APP_DEBUG("idigi_run thread starts\n");
 
