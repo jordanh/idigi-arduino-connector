@@ -55,8 +55,13 @@ int main (void)
          * a portion of the users application.
          */
         status = idigi_step(idigi_handle);
-        if (status != idigi_success)
+        if (status != idigi_success && status != idigi_receive_error &&
+            status != idigi_send_error && status != idigi_connect_error)
         {
+            /* We exclude idigi_receive_error, idigi_send_error, &
+             * idigi_connect_error. We want to reconnect iDigi
+             * even if idigi_step returns error in receive, send, or connect.
+             */
             APP_DEBUG("main: idigi_step() failed\n");
             break;
         }
