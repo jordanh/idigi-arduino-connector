@@ -37,11 +37,23 @@ static void * idigi_run_thread(void * arg)
 
     APP_DEBUG("idigi_run thread starts\n");
 
-    status = idigi_run((idigi_handle_t)arg);
+    while (status == idigi_success)
+    {
+        status = idigi_run((idigi_handle_t)arg);
 
-    /* if status is not idigi_success, calling idigi_run
-     * again will cause to re-connect to idigi.
-     */
+        if (status == idigi_receive_error ||
+            status == idigi_send_error ||
+            status == idigi_connect_error)
+        {
+            /* server may disconnect us, so
+             * let's try to reconnect.
+             */
+            status = idigi_success;
+        }
+        /* if status is not idigi_success, calling idigi_run
+         * again will cause to re-connect to idigi.
+         */
+    }
     APP_DEBUG("idigi_run thread exits %d\n", status);
 
     pthread_exit(arg);
@@ -88,7 +100,7 @@ int main (void)
 
         pthread_join(idigi_thread, NULL);
         pthread_join(application_thread, NULL);
-        APP_DEBUG("iDigi Stopped\n");
+        APP_DEBUG("iDigi terminated\n");
     }
     else
     {
