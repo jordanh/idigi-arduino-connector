@@ -491,17 +491,18 @@ static idigi_callback_status_t process_connection_control(idigi_data_t * const i
 
     /* server either disconnects or reboots us */
     idigi_debug("process_connection_control: Connection request %d\n", request);
-    idigi_ptr->network_busy = idigi_true;
 
-    status = close_server(idigi_ptr);
-
-    if (status == idigi_callback_continue)
     {
         idigi_request_t request_id;
         request_id.network_request = request;
         status = idigi_callback_no_response(idigi_ptr->callback, idigi_class_network, request_id, NULL, 0);
     }
 
+    if (status == idigi_callback_continue && request == idigi_network_disconnected)
+    {
+        idigi_ptr->network_busy = idigi_true;
+        status = close_server(idigi_ptr);
+    }
     return status;
 }
 
