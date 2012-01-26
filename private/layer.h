@@ -1153,19 +1153,7 @@ error:
 
             idigi_ptr->active_facility = fac_ptr->next;
 
-            if (status != idigi_callback_abort)
-            {
-                unsigned long rx_keepalive = 0;
-                unsigned long tx_keepalive = 0;
-                unsigned long current_system_time;
-                /* check rx_keepalive and tx_keepalive timing */
-                status =  get_keepalive_timeout(idigi_ptr, &rx_keepalive, &tx_keepalive, &current_system_time);
-                if (rx_keepalive == 0 || tx_keepalive == 0 || status != idigi_callback_continue)
-                {
-                    break;
-                }
-                ASSERT(status != idigi_callback_unrecognized);
-            }
+            break;
         }
     }
 
