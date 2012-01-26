@@ -150,7 +150,7 @@ fi
 if [[ "${PENDING}" == "true" ]]; then
     # If successfull push the tarball to pending, if PENDING environment variable is set to 1.
     echo ">> Copying the Tarball to Pending."
-    cp -v ${OUTPUT_DIR}/${PKG_NAME}.tgz /eng/store/pending/40000000
+    cp -v "${OUTPUT_DIR}/${PKG_NAME}.tgz" /eng/store/pending/40000000
 fi
 
 cleanup
