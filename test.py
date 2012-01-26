@@ -58,7 +58,6 @@ SRC_DIR  = 0
 TEST_DIR = 1
 TEST_LIST = 2
 
-STDERR_FILE = 'stderr.txt'
 MEMORY_USAGE_FILE = './dvt/memory_usage.txt'
 
 DEVICE_ID_PROTOTYPE = '00000000-00000000-%sFF-FF%s'
@@ -138,7 +137,6 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
             if rc != 0:
                 raise Exception("Failed to Build from %s." % src_dir)
         
-            stderr_path = os.path.join(base_dir, '%s_%s' % (description, STDERR_FILE))
             print '>>> [%s] Starting idigi' % description
 
             # Move idigi executable to a unique file name to allow us to isolate
@@ -148,8 +146,8 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
             idigi_path = os.path.join(src_dir, idigi_executable)
             shutil.move(old_idigi_path, idigi_path)
 
-            rc = os.system('cd %s;./%s 2>%s &' % (src_dir, 
-                idigi_executable, stderr_path))
+            rc = os.system('cd %s;./%s 2>&1 &' % (src_dir, 
+                idigi_executable))
             if rc != 0:
                 raise Exception("+++FAIL: Could not start idigi dir=[%s]" % src_dir)
 
@@ -202,21 +200,6 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
             finally:
                 print '>>> [%s] Killing Process with pid [%s]' % (description, pid)
                 os.kill(int(pid), signal.SIGKILL)
-                # open standard error file to see any Error message
-                try:
-                    if os.path.exists(stderr_path):
-                        st = os.stat(stderr_path)
-                        if st[ST_SIZE] != 0:
-                            previous_line = ""
-                            infile = open(stderr_path, "r")
-                            for current_line in infile:
-                                if 'Error:' in previous_line:
-                                    print "Error: %s" % current_line
-                                    rc = -1
-                                previous_line = current_line
-                            infile.close()
-                except IOError:
-                    print ">>> [%s] Failed to get information from %s" % (description, errorfile)
         except Exception, e:
             print ">>> [%s] Error: %s" % (description, e)
         finally:
@@ -227,8 +210,7 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
 
 def clean_output(directory):
     for root, folders, files in os.walk(directory):
-        for test_result in filter(lambda f: f.endswith('.nxml') \
-            or f.endswith(STDERR_FILE), files):
+        for test_result in filter(lambda f: f.endswith('.nxml'), files):
             file_path = os.path.join(root, test_result)
             print "Removing %s." % file_path
             os.remove(file_path)
