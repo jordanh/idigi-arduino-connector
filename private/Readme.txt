@@ -1,6 +1,6 @@
-                      Release Notes PN 40003007_C
-                        Idigi Integration Kit
-                          December 1, 2011
+                     Release Notes for 40003007_C
+                    iDigi Integration Kit v1.1.0.8
+                          January 26, 2012
 
 ENHANCEMENTS
 
@@ -13,6 +13,8 @@ ENHANCEMENTS
 
 KNOWN ISSUES
 
+    N/A 
+    
 BUG FIXES
 
 HISTORY
