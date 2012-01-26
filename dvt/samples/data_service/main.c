@@ -172,14 +172,12 @@ void * idigi_run_thread(void * arg)
     {
         idigi_run_thread_status = idigi_run((idigi_handle_t)arg);
         if (idigi_run_thread_status == idigi_receive_error ||
-            idigi_run_thread_status == idigi_send_error)
+            idigi_run_thread_status == idigi_send_error ||
+            idigi_run_thread_status == idigi_connect_error)
         {
-            if (errno == ECONNRESET)
-            {
-                APP_DEBUG("idigi_run_thread: idigi_run returns %d. Let's continue calling idigi_run since it's connection reset by peer\n",
-                        idigi_run_thread_status);
-                idigi_run_thread_status = idigi_success;
-            }
+            APP_DEBUG("idigi_run_thread: idigi_run returns %d. Let's continue calling idigi_run\n",
+                    idigi_run_thread_status);
+            idigi_run_thread_status = idigi_success;
         }
     }
     APP_DEBUG("idigi_run thread exits %d\n", idigi_run_thread_status);
@@ -255,10 +253,11 @@ int main (void)
             }
             rc = -1;
         }
+        APP_DEBUG("iDigi terminated\n");
     }
     else
     {
-        printf("unable to initialize iDigi\n");
+        APP_DEBUG("unable to initialize iDigi\n");
     }
 done:
     return rc;
