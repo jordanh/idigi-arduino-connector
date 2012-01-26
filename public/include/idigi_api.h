@@ -606,7 +606,7 @@ typedef enum
 
 #if (IDIGI_VERSION < IDIGI_VERSION_1100)
 
-/* Depricated data service API */
+/* Deprecated Data Service API */
 #define IDIGI_DATA_REQUEST_START        0x0001
 #define IDIGI_DATA_REQUEST_LAST         0x0002
 #define IDIGI_DATA_REQUEST_ARCHIVE      0x0004
