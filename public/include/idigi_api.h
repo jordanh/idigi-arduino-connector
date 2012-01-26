@@ -986,17 +986,35 @@ idigi_handle_t idigi_init(idigi_callback_t const callback);
  *
  * @param [in] handle  Handle returned from idigi_init
  *
- * @retval idigi_success  No error
- * 
- * @retval idigi_success  IIK was not initialized
+ * @retval idigi_success                No error. 
+ * @retval idigi_init_error             IIK was not initialized. 
+ * @retval idigi_configuration_error    IIK was aborted by callback function. 
+ * @retval idigi_invalid_data_size      Callback returned configuration with invalid size.
+ * @retval idigi_invalid_data_range     Callback returned configuration that is out of range.
+ * @retval idigi_invalid_payload_packet IIK received invalid payload message. 
+ * @retval idigi_keepalive_error        IIK did not receive keepalive messages. Server may be offline. 
+ * @retval idigi_server_overload        Server overload. 
+ * @retval idigi_bad_version            Server rejected version number. 
+ * @retval idigi_invalid_packet         IIK received unrecognized or unexpected message. 
+ * @retval idigi_exceed_timeout         Callback exceeded timeout value before it returned. 
+ * @retval idigi_unsupported_security   IIK received a packet with unsupported security. 
+ * @retval idigi_invalid_data           Callback returned invalid data. Callback may return a NULL data. 
+ * @retval idigi_server_disconnected    Server disconnected IIK. 
+ * @retval idigi_connect_error          IIK was unable to connect to the iDigi server. The callback for connect failed. 
+ * @retval idigi_receive_error          Unable to receive message from the iDigi server. The callback for receive failed. 
+ * @retval idigi_send_error             Unable to send message to the iDigi server. The callback for send failed. 
+ * @retval idigi_close_error            Unable to disconnect the connection. The callback for close failed. 
+ * @retval idigi_device_terminated      IIK was terminated by user via idigi_initiate_action call. 
  *
  * Example Usage:
  * @code
  *     status = idigi_step(idigi_handle);
  * @endcode 
  *  
+ * @see idigi_init
  * @see idigi_handle_t
  * @see idigi_callback_t
+ * @see idigi_status_t
  */
 idigi_status_t idigi_step(idigi_handle_t const handle);
 /**
@@ -1019,14 +1037,35 @@ idigi_status_t idigi_step(idigi_handle_t const handle);
  * 
  * @param [in] handle  Handle returned from idigi_init
  *
- * @retval idigi_success  Status code
- * 
+ * @retval idigi_success                No error. 
+ * @retval idigi_init_error             IIK was not initialized. 
+ * @retval idigi_configuration_error    IIK was aborted by callback function. 
+ * @retval idigi_invalid_data_size      Callback returned configuration with invalid size.
+ * @retval idigi_invalid_data_range     Callback returned configuration that is out of range.
+ * @retval idigi_invalid_payload_packet IIK received invalid payload message. 
+ * @retval idigi_keepalive_error        IIK did not receive keepalive messages. Server may be offline. 
+ * @retval idigi_server_overload        Server overload. 
+ * @retval idigi_bad_version            Server rejected version number. 
+ * @retval idigi_invalid_packet         IIK received unrecognized or unexpected message. 
+ * @retval idigi_exceed_timeout         Callback exceeded timeout value before it returned. 
+ * @retval idigi_unsupported_security   IIK received a packet with unsupported security. 
+ * @retval idigi_invalid_data           Callback returned invalid data. Callback may return a NULL data. 
+ * @retval idigi_server_disconnected    Server disconnected IIK. 
+ * @retval idigi_connect_error          IIK was unable to connect to the iDigi server. The callback for connect failed. 
+ * @retval idigi_receive_error          Unable to receive message from the iDigi server. The callback for receive failed. 
+ * @retval idigi_send_error             Unable to send message to the iDigi server. The callback for send failed. 
+ * @retval idigi_close_error            Unable to disconnect the connection. The callback for close failed. 
+ * @retval idigi_device_terminated      IIK was terminated by user via idigi_initiate_action call. 
  *
  * Example Usage:
  * @code
  *     status = idigi_run(idigi_handle);
  * @endcode 
  *  
+ * @see idigi_init
+ * @see idigi_step
+ * @see idigi_handle_t
+ * @see idigi_callback_t
  * @see idigi_status_t
  */
 idigi_status_t idigi_run(idigi_handle_t const handle);
