@@ -1,5 +1,5 @@
                       Release Notes for 40003007_C
-                     iDigi Integration Kit v1.1.0.9
+                     iDigi Integration Kit vVERSION
                            January 27, 2012
 
 ENHANCEMENTS
