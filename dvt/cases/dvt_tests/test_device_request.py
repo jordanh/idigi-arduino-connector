@@ -89,6 +89,9 @@ class DeviceRequestDvtTestCase(iik_testcase.TestCase):
         dom = xml.dom.minidom.parseString(device_request_response)
         device_response = dom.getElementsByTagName("device_request")
 
+        if len(device_response) == 0:
+            self.fail("Unexpected response from device: %s" % device_request_response)
+
         # Validate target name
         if error_expected:
             self.log.info("Determining if \"%s\" target is cancelled." %target)
