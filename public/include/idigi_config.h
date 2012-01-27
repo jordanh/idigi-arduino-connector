@@ -324,14 +324,15 @@
 #define IDIGI_WAIT_COUNT                              5
 
 /** 
- * When defined, this string hardcode for the @ref wait_count instead of the application framework 
- * function @ref app_get_wait_count() (called via the @ref idigi_config_wait_count @ref idigi_callback_t "callback" in config.c).   
+ * When defined, this 4 byte value is hardcode for the @ref vendor_id instead of the application framework
+ * function @ref app_get_vendor_id() (called via the @ref idigi_config_vendor_id @ref idigi_callback_t "callback" in config.c).
  * 
  * @note There is no need to implement or port @ref app_get_wait_count() when IDIGI_RX_KEEPALIVE_IN_SECONDS is defined. 
  *  
- * @see @ref wait_count
- * @see @ref idigi_config_wait_count
- * @see @ref app_get_wait_count() 
+ * @see @ref vendor_id
+ * @see @ref idigi_config_vendor_id
+ * @see @ref app_get_vendor_id()
+ * @see @ref idigi_vendor_id "Obtaining an iDigi Vendor ID"
  */
 #define IDIGI_VENDOR_ID                            0x00000000
 

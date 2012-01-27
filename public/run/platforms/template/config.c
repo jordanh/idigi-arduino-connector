@@ -155,6 +155,8 @@ static int app_get_device_id(uint8_t ** id, size_t * size)
  * @retval -1  Could not get the vendor ID
  * 
  * @see @ref vendor_id API Configuration Callback
+ * @see @ref idigi_config_vendor_id
+ * @see @ref idigi_vendor_id "Obtaining an iDigi Vendor ID"
  *
  * @note This routine is not needed if you define @b IDIGI_VENDOR_ID configuration in @ref idigi_config.h.
  * See @ref idigi_config_data_options
@@ -473,6 +475,8 @@ static idigi_service_supported_status_t app_get_data_service_support(void)
  */
 static unsigned int app_get_max_message_transactions(void)
 {
+	/**
+	 */
 #define    IDIGI_MAX_MSG_TRANSACTIONS    1
 
     return IDIGI_MAX_MSG_TRANSACTIONS;
