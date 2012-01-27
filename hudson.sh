@@ -62,6 +62,12 @@ if [ -f /eng/store/pending/90000000/${GETTING_STARTED} ]
     cp /eng/store/released/90000000/${GETTING_STARTED} "${BASE_DIR}/GettingStarted.pdf"
 fi
 
+# Replace the version number in Readme.txt to match the Tag used to build
+if [ $TAG != "" ]
+  then
+    sed -i 's/iDigi Integration Kit v\S*/iDigi Integration Kit v'"$TAG"'/g' "${BASE_DIR}/private/Readme.txt"
+fi
+
 # Create the tarball
 echo ">> Creating the release Tarball as ${OUTPUT_DIR}/${PKG_NAME}.tgz."
 tar --exclude=idigi/public/test --exclude=idigi/public/dvt  --exclude=idigi/public/sample  -czvf "${OUTPUT_DIR}/${PKG_NAME}.tgz" idigi/
