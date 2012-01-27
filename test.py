@@ -133,9 +133,10 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
             (device_id, mac_addr, device_location) = generate_id(api)
             setup_platform(os.path.join(sandbox_dir, SAMPLE_SCRIPT_DIR), 
                 os.path.join(sandbox_dir, SAMPLE_PLATFORM_DIR), mac_addr)
-            src_dir   = os.path.join(sandbox_dir, test[SRC_DIR])
-            test_dir  = os.path.join(sandbox_dir, test[TEST_DIR])
-            test_list = test[TEST_LIST]
+            src_dir     = os.path.join(sandbox_dir, test[SRC_DIR])
+            test_dir    = os.path.join(sandbox_dir, test[TEST_DIR])
+            src_dirname = os.path.basename(src_dir)
+            test_list   = test[TEST_LIST]
      
             print '>>> [%s] Testing [%s]' % (description, src_dir)
 
@@ -193,7 +194,7 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
                         arguments = ['nosetests',
                                      '--with-xunit',
                                      '-s', # Don't capture STDOUT (allow everything else to print)
-                                     '--xunit-file=%s_%s.nxml' % (description, test_script),
+                                     '--xunit-file=%s_%s_%s.nxml' % (description, src_dirname, test_script),
                                      '--with-iik',
                                      '--idigi_username=%s'  % api.username,
                                      '--idigi_password=%s'  % api.password,
