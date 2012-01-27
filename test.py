@@ -110,14 +110,17 @@ def generate_id(api):
     # If here, we couldn't provision a device, raise Exception.
     raise Exception("Failed to Provision Device using %s." % user_id)
 
-def start_iik(executable):
+def start_iik(executable, tty=False):
     """
     Starts an IIK session in given path with given executable name.
     """
-    os.system('/usr/bin/script -q -f -c "%s"' % (executable))
+    if tty:
+        os.system('/usr/bin/script -q -f -c "%s"' % (executable))
+    else:
+        os.system('%s 2>&1' % (executable))
 
 def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[], 
-    update_config_header=False):
+    update_config_header=False, tty=False):
 
     for test in test_table:
         sandbox_dir = sandbox(base_dir)
@@ -156,7 +159,7 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
 
             # Spawn in separate thread rather than shelling off in background.
             # Will allow capture of STDOUT/STDERR easier, save to separate file.
-            iik_thread = Thread(group=None, target=start_iik, args=(idigi_path,))
+            iik_thread = Thread(group=None, target=start_iik, args=(idigi_path,tty))
             iik_thread.start()
 
             connected = False
@@ -257,6 +260,7 @@ def main():
         default='all', choices=['default', 'nodebug', 'compression', 
                                     'debug', 'config_header', 'template', 
                                     'all'])
+    parser.add_argument('--tty', action='store_true',dest='tty', default=False)
 
     args = parser.parse_args()
 
@@ -277,29 +281,29 @@ def main():
 
     if args.configuration == 'default' or args.configuration == 'all':
         print "============ Default ============="
-        run_tests('%s_%s' % (args.descriptor, 'Default'), '.', True, api, cflags)
+        run_tests('%s_%s' % (args.descriptor, 'Default'), '.', True, api, cflags, tty=args.tty)
 
     if args.configuration == 'nodebug' or args.configuration == 'all':
         print "============ No Debug ============="
         run_tests('%s_%s' % (args.descriptor, 'Release'), '.', False, api, cflags, 
-        [('public/include/idigi_config.h', 'IDIGI_DEBUG', 'IDIGI_NO_DEBUG')])
+        [('public/include/idigi_config.h', 'IDIGI_DEBUG', 'IDIGI_NO_DEBUG')], tty=args.tty)
 
     if args.configuration == 'compression' or args.configuration == 'all':
         print "============ Compression On ============="
         run_tests('%s_%s' % (args.descriptor, 'Compression'), '.', False, api, cflags,
         [('public/include/idigi_config.h', 'IDIGI_NO_COMPRESSION', 
          'IDIGI_COMPRESSION'), 
-         ('public/include/idigi_config.h', 'IDIGI_DEBUG', 'IDIGI_NO_DEBUG')])
+         ('public/include/idigi_config.h', 'IDIGI_DEBUG', 'IDIGI_NO_DEBUG')], tty=args.tty)
 
     if args.configuration == 'debug' or args.configuration == 'all':
         print "============ Debug On ============="
         run_tests('%s_%s' % (args.descriptor, 'Debug'), '.', True, api, cflags, 
-        [('public/include/idigi_config.h', 'IDIGI_NO_DEBUG', 'IDIGI_DEBUG')])
+        [('public/include/idigi_config.h', 'IDIGI_NO_DEBUG', 'IDIGI_DEBUG')], tty=args.tty)
 
     if args.configuration == 'config_header' or args.configuration == 'all':
         print "============ Configurations in idigi_config.h ============="
         run_tests('%s_%s' % (args.descriptor, 'idigiconfig'), '.', True, api, cflags,
-            update_config_header=True)
+            update_config_header=True, tty=args.tty)
 
     if args.configuration == 'template' or args.configuration == 'all':
         print "============ Template platform ============="
