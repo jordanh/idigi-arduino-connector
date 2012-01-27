@@ -59,8 +59,6 @@ SRC_DIR  = 0
 TEST_DIR = 1
 TEST_LIST = 2
 
-LOG_FILE = "iik.log"
-
 MEMORY_USAGE_FILE = './dvt/memory_usage.txt'
 
 DEVICE_ID_PROTOTYPE = '00000000-00000000-%sFF-FF%s'
@@ -112,11 +110,11 @@ def generate_id(api):
     # If here, we couldn't provision a device, raise Exception.
     raise Exception("Failed to Provision Device using %s." % user_id)
 
-def start_iik(executable, log_file):
+def start_iik(executable):
     """
     Starts an IIK session in given path with given executable name.
     """
-    os.system('/usr/bin/script -q -f -c "%s" %s > /dev/null' % (executable, log_file))
+    os.system('/usr/bin/script -q -f -c "%s"' % (executable))
 
 def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[], 
     update_config_header=False):
@@ -157,8 +155,7 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
 
             # Spawn in separate thread rather than shelling off in background.
             # Will allow capture of STDOUT/STDERR easier, save to separate file.
-            log_file = os.path.join(base_dir,'%s_%s_%s' % (description, device_id, LOG_FILE))
-            iik_thread = Thread(group=None, target=start_iik, args=(idigi_path, log_file))
+            iik_thread = Thread(group=None, target=start_iik, args=(idigi_path,))
             iik_thread.start()
 
             connected = False
@@ -221,7 +218,7 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
 
 def clean_output(directory):
     for root, folders, files in os.walk(directory):
-        for test_result in filter(lambda f: f.endswith('.nxml') or f.endswith(LOG_FILE), files):
+        for test_result in filter(lambda f: f.endswith('.nxml'), files):
             file_path = os.path.join(root, test_result)
             print "Removing %s." % file_path
             os.remove(file_path)
