@@ -44,6 +44,7 @@ import config
 import argparse
 
 from stat import * # ST_SIZE etc
+from threading import Thread
 
 SAMPLE_DIR='public/run/samples/'
 SAMPLE_SCRIPT_DIR='dvt/cases/sample_tests/'
@@ -57,6 +58,8 @@ BASE_SCRIPT_DIR='dvt/cases/'
 SRC_DIR  = 0
 TEST_DIR = 1
 TEST_LIST = 2
+
+LOG_FILE = "iik.log"
 
 MEMORY_USAGE_FILE = './dvt/memory_usage.txt'
 
@@ -109,6 +112,12 @@ def generate_id(api):
     # If here, we couldn't provision a device, raise Exception.
     raise Exception("Failed to Provision Device using %s." % user_id)
 
+def start_iik(executable, log_file):
+    """
+    Starts an IIK session in given path with given executable name.
+    """
+    os.system('/usr/bin/script -q -f -c "%s" %s > /dev/null' % (executable, log_file))
+
 def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[], 
     update_config_header=False):
 
@@ -146,10 +155,11 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
             idigi_path = os.path.join(src_dir, idigi_executable)
             shutil.move(old_idigi_path, idigi_path)
 
-            rc = os.system('cd %s;./%s 2>&1 &' % (src_dir, 
-                idigi_executable))
-            if rc != 0:
-                raise Exception("+++FAIL: Could not start idigi dir=[%s]" % src_dir)
+            # Spawn in separate thread rather than shelling off in background.
+            # Will allow capture of STDOUT/STDERR easier, save to separate file.
+            log_file = os.path.join(base_dir,'%s_%s_%s' % (description, device_id, LOG_FILE))
+            iik_thread = Thread(group=None, target=start_iik, args=(idigi_path, log_file))
+            iik_thread.start()
 
             connected = False
             for _ in xrange(1,10):
@@ -164,7 +174,7 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
 
             # Sleep 5 seconds to allow device to do it's initialization (push data for example)
             time.sleep(5)
-            pid = commands.getoutput('pidof -s %s' % idigi_executable)
+            pid = commands.getoutput('pidof -s %s' % idigi_path)
             if pid == '':
                 raise Exception(">>> [%s] idigi not running dir=[%s]" % (description, src_dir))
 
@@ -198,6 +208,7 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
                         nose.run(defaultTest=[test_to_run], argv=arguments)
                         print '>>> [%s] Finished [%s]' % (description, test_script)
             finally:
+                # Killing the process should also cause the thread to complete.
                 print '>>> [%s] Killing Process with pid [%s]' % (description, pid)
                 os.kill(int(pid), signal.SIGKILL)
         except Exception, e:
@@ -210,7 +221,7 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
 
 def clean_output(directory):
     for root, folders, files in os.walk(directory):
-        for test_result in filter(lambda f: f.endswith('.nxml'), files):
+        for test_result in filter(lambda f: f.endswith('.nxml') or f.endswith(LOG_FILE), files):
             file_path = os.path.join(root, test_result)
             print "Removing %s." % file_path
             os.remove(file_path)
