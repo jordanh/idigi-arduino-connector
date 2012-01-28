@@ -84,6 +84,7 @@ test_table = [
                                                                                      'test_data_service.py']],
               [BASE_DVT_SRC+'data_service',         BASE_SCRIPT_DIR+'admin_tests',  ['test_reboot.py']],
               [BASE_DVT_SRC+'data_service',         BASE_SCRIPT_DIR+'admin_tests',  ['test_redirect.py']],
+              [BASE_DVT_SRC+'data_service',         BASE_SCRIPT_DIR+'admin_tests',  ['test_terminate.py']],
               [BASE_DVT_SRC+'data_service',         BASE_SCRIPT_DIR+'admin_tests',  ['test_nodebug_redirect.py']],
 ]
 
