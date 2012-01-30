@@ -585,7 +585,6 @@ enum fw_download_response {
             *string_id_items[i]= string_id_ptr;
 
             end_ptr = strchr(string_id_ptr, '\n');
-            idigi_debug("%d - %p\n", i, end_ptr);
 
             ASSERT(end_ptr != NULL);
             string_id_length -= (1 + end_ptr - string_id_ptr);
