@@ -65,8 +65,14 @@ fi
 # Replace the version number in Readme.txt to match the Tag used to build
 if [ $TAG != "" ]
   then
+    echo ">> Setting Version to ${TAG} in ${BASE_DIR}/private/Readme.txt"
     sed -i 's/iDigi Integration Kit v\S*/iDigi Integration Kit v'"$TAG"'/g' "${BASE_DIR}/private/Readme.txt"
 fi
+
+# Replace the date in Readme.txt to match today's date
+today=`date +"%B %d, %Y"`
+echo ">> Setting Release Date to Today (${today}) in ${BASE_DIR}/private/Readme.txt"
+sed -i 's/_RELEASE_DATE_/'"${today}"'/g' "${BASE_DIR}/private/Readme.txt"
 
 # Create the tarball
 echo ">> Creating the release Tarball as ${OUTPUT_DIR}/${PKG_NAME}.tgz."

@@ -58,6 +58,84 @@ class FileDataCallback(object):
         self.data = json.loads(data)
         self.event.set()
 
+def get_and_verify(instance, api, device_id,  
+                    datetime_created, file_location, 
+                    expected_content=None, dne=False,
+                    original_created_time=None, wait_time=90):
+                    
+    """Performs a GET on the file_location to determine if the correct content 
+    was pushed. A second GET is performed to verify the file's 
+    metadata is correct.
+    """
+
+    client = push_client.PushClient(api.username, api.password, api.hostname, 
+                secure=False)
+    monitor = client.create_monitor([file_location], batch_size=1, batch_duration=0, 
+        format_type='json')
+
+    
+    try:
+        cb = FileDataCallback(file_location)
+
+        session = client.create_session(cb.callback, monitor)
+
+        # Collect current datetime for later comparison
+        i = len(datetime_created)
+        datetime_created.append(datetime.datetime.utcnow())
+                       
+        # Check that file content is correct
+        log.info("Waiting for File...")
+        cb.event.wait(wait_time)
+
+        instance.assertNotEqual(None, cb.data, "Data not received for %s within wait time %d." % (file_location, wait_time))
+
+        log.info("Verifying File Content.")
+        file_data = cb.data['Document']['Msg']['FileData']
+        file_size = file_data['fdSize']
+
+        if file_size == 0:
+            file_content = ''
+        else:
+            file_content = b64decode(file_data['fdData'])
+        
+        # If provided, compare file's contents to expected content.
+        if expected_content:
+            log.info("Comparing file's content = %s" % file_content)
+            log.info("with expected file's content = %s" % expected_content)
+            # Verify file's contents
+            instance.assertEqual(expected_content, file_content)
+        
+        # Check that FileData is correct
+        log.info("Verifying file's metadata")
+        
+        # Verify that file's Modified Date/time is within 2 minutes of sampled
+        # date/time
+        fd_datetime_modified = convert_to_datetime(file_data['fdLastModifiedDate'])
+        delta = total_seconds(abs(fd_datetime_modified - datetime_created[i]))
+        # temporarily remove assertion, iDigi bug needs to be resolved
+        instance.assertTrue(delta < 120, 
+            "File's Last Modified Date/Time is not correct (delta=%d)." % delta)
+        
+        # If supplied, verify that file's Created Date/time is within 2 minutes
+        # of sampled date/time
+        if original_created_time:
+            fd_datetime_created = convert_to_datetime(file_data['fdCreatedDate'])
+            delta = total_seconds(abs(fd_datetime_created - original_created_time))
+            instance.assertTrue(delta < 120, "File's Create Date/Time is not correct.")
+        
+        # If the file did not previously exist (Does Not Exist), verify that
+        # the created date/time is the same as the last modified date/time    
+        if dne and not original_created_time:
+            instance.assertEqual(file_data['fdCreatedDate'], 
+                file_data['fdLastModifiedDate'], 
+                "File's created date/time does not match file's last modified date/time.")
+        
+        return file_content
+    finally:
+        client.stop_all()
+        client.delete_monitor(monitor)
+
+
 def update_and_verify(instance, api, device_id, target, content, 
                     datetime_created, file_location, 
                     file_name, expected_content=None, dne=False,
