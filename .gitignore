@@ -9,3 +9,7 @@
 
 # Ignore generate nosetests
 nosestest*.xml
+
+# Ignore generated archive and output dirs
+archive
+output

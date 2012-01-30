@@ -1,6 +1,6 @@
                       Release Notes for 40003007_C
                      iDigi Integration Kit vVERSION
-                           January 27, 2012
+                           _RELEASE_DATE_ 
 
 ENHANCEMENTS
 
