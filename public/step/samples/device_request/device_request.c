@@ -51,12 +51,21 @@ static idigi_callback_status_t app_process_device_request(idigi_data_service_msg
 
     device_request_handle_t * client_device_request = response_data->user_context;
 
-    ASSERT(server_data != NULL);
+    if (server_data == NULL)
+    {
+        APP_DEBUG("app_process_device_request: server_data is NULL\n");
+        goto done;
+    }
 
     if ((server_data->flags & IDIGI_MSG_FIRST_DATA) == IDIGI_MSG_FIRST_DATA)
     {
         /* target should not be null on 1st chunk of data */
-        ASSERT(server_device_request->target != NULL);
+        if (server_device_request->target == NULL)
+        {
+            APP_DEBUG("app_process_device_request: NULL target\n");
+            goto done;
+        }
+
         if (strcmp(server_device_request->target, device_request_target) != 0)
         {
             /* unsupported target so let's cancel it */
@@ -93,7 +102,11 @@ static idigi_callback_status_t app_process_device_request(idigi_data_service_msg
     else
     {
         /* device request should be our user_context */
-        ASSERT(client_device_request != NULL);
+        if (client_device_request == NULL)
+        {
+            APP_DEBUG("app_process_device_request: NULL client_device_request\n");
+            goto done;
+        }
     }
 
     {
@@ -131,9 +144,11 @@ static idigi_callback_status_t app_process_device_response(idigi_data_service_ms
 
     UNUSED_ARGUMENT(request_data);
 
-    ASSERT(response_data->client_data != NULL);
-    ASSERT(client_device_request != NULL); /* we use user_context for our client_device_request */
-    ASSERT(server_device_request->device_handle != client_device_request->device_handle);
+    if ((response_data->client_data == NULL) || (client_device_request == NULL))
+    {
+        APP_DEBUG("app_process_device_response: invalid input\n");
+        goto error;
+    }
 
     {
         idigi_data_service_block_t * const client_data = response_data->client_data;
@@ -162,6 +177,8 @@ static idigi_callback_status_t app_process_device_response(idigi_data_service_ms
         device_request_active_count--;
         app_os_free(client_device_request);
     }
+
+error:
     return idigi_callback_continue;
 }
 

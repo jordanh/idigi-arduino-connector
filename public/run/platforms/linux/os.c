@@ -34,10 +34,13 @@ int app_os_malloc(size_t const size, void ** ptr)
     int status=-1;
 
     *ptr = malloc(size);
-    ASSERT(*ptr != NULL);
     if (*ptr != NULL)
     {
         status = 0;
+    }
+    else
+    {
+        APP_DEBUG("app_os_malloc: Failed to malloc\n");
     }
 
     return status;
@@ -45,12 +48,15 @@ int app_os_malloc(size_t const size, void ** ptr)
 
 void app_os_free(void * const ptr)
 {
-    ASSERT(ptr != NULL);
-
     if (ptr != NULL)
     {
         free(ptr);
     }
+    else
+    {
+        APP_DEBUG("app_os_free: called with NULL\n");
+    }
+
     return;
 }
 
