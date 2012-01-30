@@ -268,7 +268,7 @@ static void start_put_request(device_request_handle_t * target_info, idigi_data_
 
     if (server_data->length_in_bytes > sizeof ds_info->file_path)
     {
-        APP_DEBUG("start_put_request: unexpected data length %d\n", server_data->length_in_bytes);
+        APP_DEBUG("start_put_request: unexpected data length %zu\n", server_data->length_in_bytes);
         goto done;
     }
 

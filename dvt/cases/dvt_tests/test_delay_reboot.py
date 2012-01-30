@@ -53,15 +53,15 @@ def send_device_request(self, target_name, target_content):
     
     # Validate target name
     my_target_name = device_response[0].getAttribute('target_name')
-    if my_target_name != target_name:
-        self.log.info("Response: %s" % device_request_response)
+#    if my_target_name != target_name:
+#        self.log.info("Response: %s" % device_request_response)
 
     self.assertEqual(my_target_name, target_name, 
                     "returned target (%s) is not (%s)" 
                     % (my_target_name, target_name))
 
     # Validate status 
-    self.log.info("Determining if status is success.")
+    self.log.info("Determining if status is success (0).")
     status = device_response[0].getAttribute("status")
     self.log.info("status = \"%s\" device request" % status)
     if status == '0':
@@ -151,7 +151,39 @@ class RebootTestCase(iik_testcase.TestCase):
             self.log.info("Device connected.")
 
         finally:
-            monitor.stop()        
+            monitor.stop() 
+            
+    def test_disconnect(self):
+    
+        """ Sends disconnect request to given device and verifies that
+        the device disconnects and reconnects to an iDigi server.
+        """
+        
+        self.log.info("***** Beginning Disconnect Test *****")
+        monitor = DeviceConnectionMonitor(self.api, self.device_config.device_id)
+
+        try:
+            monitor.start()
+            self.log.info("Sending Connection Control Disconnect to %s." % self.device_config.device_id)
+            
+            # Create disconnect request
+            disconnect_request = DISCONNECT_REQUEST % (self.device_config.device_id)
+            
+            # Send SCI disconnect request
+            self.api.sci(disconnect_request)
+        
+            
+            self.log.info("Waiting for iDigi to disconnect device.")
+            monitor.wait_for_disconnect(30)
+            self.log.info("Device disconnected.")
+            
+            self.log.info("Waiting for Device to reconnect.")
+            monitor.wait_for_connect(30)
+            self.log.info("Device connected.") 
+            time.sleep(10)
+        finally:
+            monitor.stop()
+                   
 
 if __name__ == '__main__':
     unittest.main() 
