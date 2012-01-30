@@ -117,7 +117,7 @@ def generate_id(api):
             print e
     
     # If here, we couldn't provision a device, raise Exception.
-    raise Exception("Failed to Provision Device using %s." % user_id)
+    raise Exception("Failed to Provision Device using %s." % api.username)
 
 def start_iik(executable, tty=False):
     """
