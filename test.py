@@ -153,7 +153,7 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
             src_dirname    = os.path.basename(src_dir)
             test_list      = test[TEST_LIST]
      
-            print '>>> [%s] Testing [%s]' % (description, src_dir)
+            print '>>> [%s] Testing [%s]-[%s]' % (description, execution_type, src_dir)
 
             build_args = ['nosetests',
                           '--with-xunit',
@@ -169,7 +169,7 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
             if rc == False:
                 raise Exception("Failed to Build from %s." % src_dir)
         
-            print '>>> [%s] Starting idigi' % description
+            print '>>> [%s] Starting idigi [%s]-[%s]' % (description, execution_type, src_dir)
 
             # Move idigi executable to a unique file name to allow us to isolate
             # the pid.
@@ -198,20 +198,20 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
             time.sleep(5)
             pid = commands.getoutput('pidof -s %s' % idigi_path)
             if pid == '':
-                raise Exception(">>> [%s] idigi not running dir=[%s]" % (description, src_dir))
+                raise Exception(">>> [%s] idigi [%s] not running dir=[%s]" % (description, execution_type, src_dir))
 
             if not connected:
                 raise Exception("Device %s was not connected after 10 seconds." % device_id)
 
-            print '>>> [%s] Started idigi' % description
+            print '>>> [%s] Started idigi [%s]-[%s]' % (description, execution_type, src_dir)
 
             try:
                 for test_script in test_list:
                     # skip the test if script filename starts with 'test_nodebug'
                     if debug_on and test_script.find('test_nodebug') == 0:
-                        print '>>> [%s] Skip [%s] since debug is on' % (description, test_script)
+                        print '>>> [%s] Skip [%s]-[%s] since debug is on' % (description, execution_type, test_script)
                     else:
-                        print '>>> [%s] Executing [%s]' % (description, test_script)
+                        print '>>> [%s] Executing [%s]-[%s]' % (description, execution_type, test_script)
                         
                         # Argument list to call nose with.  Generate a nosetest xml file in 
                         # current directory, pass in idigi / iik connection settings.
@@ -228,7 +228,7 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
                         
                         test_to_run = os.path.join(test_dir, test_script)
                         nose.run(defaultTest=[test_to_run], argv=arguments)
-                        print '>>> [%s] Finished [%s]' % (description, test_script)
+                        print '>>> [%s] Finished [%s]-[%s]' % (description, execution_type, test_script)
             finally:
                 # Killing the process should also cause the thread to complete.
                 print '>>> [%s] Killing Process with pid [%s]' % (description, pid)
