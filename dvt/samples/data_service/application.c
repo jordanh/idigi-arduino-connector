@@ -27,7 +27,6 @@
 #include "platform.h"
 
 
-extern void check_stack_size(void);
 extern void clear_stack_size(void);
 
 extern idigi_callback_status_t app_data_service_handler(idigi_data_service_request_t const request,
