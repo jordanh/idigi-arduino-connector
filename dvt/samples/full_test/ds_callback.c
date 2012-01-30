@@ -28,34 +28,26 @@
 #include "platform.h"
 #include "idigi_dvt.h"
 
-static dvt_ds_t  data_service_info;
-
-idigi_status_t send_put_request(idigi_handle_t handle)
+idigi_status_t send_put_request(idigi_handle_t handle, dvt_ds_t * const ds_info)
 {
     idigi_status_t status = idigi_success;
     static char file_type[] = "text/plain";
     idigi_data_service_put_request_t * header = NULL;
 
-    dvt_current_ptr->ds_info = &data_service_info;
-
-    data_service_info.bytes_sent = 0;
-    header = &data_service_info.header;
-    APP_DEBUG("Sending %s of length %zu\n", dvt_current_ptr->file_name, dvt_current_ptr->file_size);
-    switch (dvt_current_ptr->target)
+    ds_info->bytes_sent = 0;
+    header = &ds_info->header;
+    APP_DEBUG("Sending %s of length %zu\n", ds_info->file_path, (ds_info->test_case != dvt_case_put_request_ds_zero) ? ds_info->file_size : 0);
+    switch (ds_info->test_case)
     {
-    case dvt_case_put_request_no_flag:
-        header->flags = 0;
-        break;
-
-    case dvt_case_put_request_append:
+    case dvt_case_put_request_ds_append:
         header->flags = IDIGI_DATA_PUT_APPEND;
         break;
 
-    case dvt_case_put_request_archive:
+    case dvt_case_put_request_ds_archive:
         header->flags = IDIGI_DATA_PUT_ARCHIVE;
         break;
 
-    case dvt_case_put_request_both:
+    case dvt_case_put_request_ds_both:
         header->flags = IDIGI_DATA_PUT_APPEND | IDIGI_DATA_PUT_ARCHIVE;
         break;
 
@@ -64,16 +56,14 @@ idigi_status_t send_put_request(idigi_handle_t handle)
         break;
     }
 
-    header->path  = dvt_current_ptr->file_name;
+    header->path  = ds_info->file_path;
     header->content_type = file_type;
-    header->context = dvt_current_ptr->ds_info;
+    header->context = ds_info;
 
     status = idigi_initiate_action(handle, idigi_initiate_data_service, header, NULL);
-    APP_DEBUG("send_put_request: %s status  %d total file length = %zu\n", dvt_current_ptr->file_name, status, dvt_current_ptr->file_size);
-    if (status != idigi_success)
-        cleanup_dvt_data();
-    else
-        dvt_current_ptr->state = dvt_state_request_progress;
+    if (status == idigi_success)
+        ds_info->state = dvt_state_request_progress;
+    APP_DEBUG("send_put_request: %s status  %d\n", ds_info->file_path, status);
 
     return status;
 }
@@ -83,7 +73,8 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
 {
     idigi_data_service_msg_request_t const * const put_request = request_data;
     idigi_data_service_msg_response_t * const put_response = response_data;
-    dvt_ds_t * const ds_info = put_request->service_context;
+    idigi_data_service_put_request_t const * const header = put_request->service_context;
+    dvt_ds_t * const ds_info = (dvt_ds_t * const)header->context;
     idigi_callback_status_t status = idigi_callback_continue;
 
     UNUSED_ARGUMENT(request_length);
@@ -98,9 +89,9 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
     switch (put_request->message_type) 
     {
     case idigi_data_service_type_need_data:
-        switch (dvt_current_ptr->target)
+        switch (ds_info->test_case)
         {
-        case dvt_case_put_request_busy:
+        case dvt_case_put_request_ds_busy:
             {
                 static bool first_time = true;
 
@@ -115,7 +106,17 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
                 break;
             }
 
-        case dvt_case_put_request_cancel_at_start:
+        case dvt_case_put_request_ds_zero:
+            {
+                idigi_data_service_block_t * message = put_response->client_data;
+
+                message->flags = IDIGI_MSG_FIRST_DATA | IDIGI_MSG_LAST_DATA;
+                message->length_in_bytes = 0;
+                ds_info->state = dvt_state_request_complete;
+                goto done;
+            }
+
+        case dvt_case_put_request_ds_cancel_start:
             goto error;
 
         default:
@@ -126,10 +127,10 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
             idigi_data_service_block_t * message = put_response->client_data;
             char * dptr = message->data;
             size_t const bytes_available = message->length_in_bytes;
-            size_t const bytes_to_send = dvt_current_ptr->file_size - ds_info->bytes_sent;
+            size_t const bytes_to_send = ds_info->file_size - ds_info->bytes_sent;
             size_t bytes_copy = (bytes_to_send > bytes_available) ? bytes_available : bytes_to_send;
 
-            memcpy(dptr, &dvt_current_ptr->file_content[ds_info->bytes_sent], bytes_copy);
+            memcpy(dptr, &ds_info->file_buf[ds_info->bytes_sent], bytes_copy);
             message->length_in_bytes = bytes_copy;
             message->flags = 0;
             if (ds_info->bytes_sent == 0)
@@ -138,16 +139,15 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
             }
 
             ds_info->bytes_sent += bytes_copy;
-            if (ds_info->bytes_sent == dvt_current_ptr->file_size)
+            if (ds_info->bytes_sent >= ds_info->file_size)
             {
-
-                switch (dvt_current_ptr->target)
+                switch (ds_info->test_case)
                 {
-                case dvt_case_put_request_timeout:
+                case dvt_case_put_request_ds_timeout:
                     status = idigi_callback_busy;
                     goto done;
 
-                case dvt_case_put_request_cancel_in_middle:
+                case dvt_case_put_request_ds_cancel_middle:
                     goto error;
 
                 default:
@@ -155,7 +155,7 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
                 }
 
                 message->flags |= IDIGI_MSG_LAST_DATA;
-                dvt_current_ptr->state = dvt_state_fw_download_complete;
+                ds_info->state = dvt_state_request_complete;
             }
         }
         break;
@@ -165,7 +165,7 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
             idigi_data_service_block_t * message = put_request->server_data;
             uint8_t * const data = message->data;
 
-            if (dvt_current_ptr->state != dvt_state_fw_download_complete)
+            if (ds_info->state != dvt_state_request_complete)
             {
                 APP_DEBUG("idigi_put_request_callback: got response before complete\n");
                 goto error;
@@ -179,7 +179,8 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
                 APP_DEBUG("idigi_put_request_callback: server response %s\n", (char *)data);
             }
 
-            goto cleanup;
+            ds_info->state = ((message->flags & IDIGI_MSG_RESP_SUCCESS) == IDIGI_MSG_RESP_SUCCESS) ? dvt_state_response_complete : dvt_state_request_error;
+            goto done;
         }
 
     case idigi_data_service_type_error:
@@ -188,10 +189,11 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
             idigi_msg_error_t const * const error_value = message->data;
 
             if (error_value == NULL)
-                goto error;
+            {
+                APP_DEBUG("idigi_put_request_callback: Data service error %d\n", *error_value);
+            }
 
-            APP_DEBUG("idigi_put_request_callback: Data service error %d\n", *error_value);
-            goto cleanup;
+            goto error;
         }
     
     default:
@@ -201,19 +203,9 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
     goto done;
 
 error:
-    APP_DEBUG("idigi_put_request_callback error: target[%d] cancel this session\n", dvt_current_ptr->target);
+    APP_DEBUG("idigi_put_request_callback error: target[%s] cancel this session\n", ds_info->file_path);
     put_response->message_status = idigi_msg_error_cancel;
-
-cleanup:
-    if (dvt_current_ptr->target == dvt_case_last - 1)
-    {
-        dvt_current_ptr->state = dvt_state_stop;
-        status = idigi_callback_abort;
-    }
-    else
-    {
-        cleanup_dvt_data();
-    }
+    ds_info->state = dvt_state_request_error;
 
 done:
     return status;
@@ -232,6 +224,8 @@ typedef enum
     dvt_case_ds_not_handle,
     dvt_case_ds_zero_byte,
     dvt_case_ds_timeout_response,
+    dvt_case_ds_start_put_request,
+    dvt_case_ds_query_put_request,
     dvt_case_ds_last
 } dvt_case_ds_t;
 
@@ -255,10 +249,91 @@ static device_request_handle_t device_request_targets[] =
     {dvt_case_ds_busy_response, "busy response", 0, NULL, 0},
     {dvt_case_ds_not_handle, "not handle", 0, NULL, 0},
     {dvt_case_ds_zero_byte, "zero byte data", 0, NULL, 0},
-    {dvt_case_ds_timeout_response, "timeout response", 0, NULL, 0}
+    {dvt_case_ds_timeout_response, "timeout response", 0, NULL, 0},
+    {dvt_case_ds_start_put_request, "start put request", 0, NULL, 0},
+    {dvt_case_ds_query_put_request, "query put request", 0, NULL, 0}
 };
 
 #define DVT_DS_MAX_DATA_SIZE  0x8000
+
+static void start_put_request(device_request_handle_t * target_info, idigi_data_service_block_t * server_data)
+{
+    dvt_ds_t * const ds_info = &data_service_info;
+
+    if (ds_info->state != dvt_state_init)
+    {
+        APP_DEBUG("start_put_request: unexpected state %d for %s\n", ds_info->state, ds_info->file_path);
+        goto done;
+    }
+
+    if (server_data->length_in_bytes > sizeof ds_info->file_path)
+    {
+        APP_DEBUG("start_put_request: unexpected data length %d\n", server_data->length_in_bytes);
+        goto done;
+    }
+
+
+    memcpy(ds_info->file_path, server_data->data, server_data->length_in_bytes);
+    ds_info->file_path[server_data->length_in_bytes] = '\0';
+    ds_info->test_case = atoi(&ds_info->file_path[strlen("test/dvt_ds")]);
+    target_info->data = ds_info->file_path;
+
+done:
+    return;
+}
+
+static void prepare_put_request_response(device_request_handle_t * target_info, idigi_data_service_block_t * client_data)
+{
+    dvt_ds_t * const ds_info = &data_service_info;
+    static char const ds_error[] = "error";
+    char const * resp = ds_error;
+
+    switch (target_info->test_case)
+    {
+    case dvt_case_ds_start_put_request:
+        resp = ds_info->file_path;
+        ds_info->state = dvt_state_request_start;
+        break;
+
+    case dvt_case_ds_query_put_request:
+        {
+            switch (ds_info->state)
+            {
+            case dvt_state_request_start:
+            case dvt_state_request_progress:
+            case dvt_state_request_complete:
+                {
+                    static char const ds_wait[] = "wait";
+
+                    resp = ds_wait;
+                }
+                break;
+
+            case dvt_state_response_complete:
+                {
+                    static char const ds_done[] = "done";
+
+                    resp = ds_done;
+                    ds_info->state = dvt_state_init;
+                }
+                break;
+
+            default:
+                ds_info->state = dvt_state_init;
+                break;
+            }
+        }
+        break;
+
+    default:
+        ds_info->state = dvt_state_init;
+        break;
+    }
+
+    APP_DEBUG("Sending response [%s] state[%d]\n", resp, ds_info->state);
+    client_data->length_in_bytes = strlen(resp);
+    memcpy(client_data->data, resp, client_data->length_in_bytes);
+}
 
 static device_request_handle_t * get_test_case_record (char const * const target)
 {
@@ -301,14 +376,6 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
 
         target_info->bytes_sent = 0;
         target_info->length_in_bytes = 0;
-        target_info->data = malloc(DVT_DS_MAX_DATA_SIZE);
-        if (target_info->data == NULL) 
-        {
-            APP_DEBUG("process_device_request: malloc failed %s\n", request_info->target);
-            response_data->message_status = idigi_msg_error_memory;
-            goto clear;
-        }
-
         response_data->user_context = target_info;
     }
 
@@ -336,8 +403,44 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
         }
         break;
 
+    case dvt_case_ds_start_put_request:
+        {
+            dvt_ds_t * const ds_info = &data_service_info;
+
+            start_put_request(target_info, server_data);
+            APP_DEBUG("Received start %s\n", ds_info->file_path);
+            response_data->message_status = idigi_msg_error_none;
+        }
+        goto done;
+
+    case dvt_case_ds_query_put_request:
+        {
+            dvt_ds_t * const ds_info = &data_service_info;
+
+            APP_DEBUG("Received query %s\n", ds_info->file_path);
+            if (strncmp(server_data->data, ds_info->file_path, server_data->length_in_bytes))
+            {
+                APP_DEBUG("Received query %s, mismatch \n", ds_info->file_path);
+                ds_info->state = dvt_state_request_error;
+            }
+
+            response_data->message_status = idigi_msg_error_none;
+        }
+        goto done;
+
     default:
         break;
+    }
+
+    if ((server_data->flags & IDIGI_MSG_FIRST_DATA) == IDIGI_MSG_FIRST_DATA)
+    {
+        target_info->data = malloc(DVT_DS_MAX_DATA_SIZE);
+        if (target_info->data == NULL) 
+        {
+            APP_DEBUG("process_device_request: malloc failed %s\n", request_info->target);
+            response_data->message_status = idigi_msg_error_memory;
+            goto clear;
+        }
     }
 
     if ((server_data->length_in_bytes > 0) && ((target_info->length_in_bytes + server_data->length_in_bytes) < DVT_DS_MAX_DATA_SIZE))
@@ -410,6 +513,12 @@ static idigi_callback_status_t process_device_response(idigi_data_service_msg_re
         client_data->flags |= (IDIGI_MSG_LAST_DATA | IDIGI_MSG_DATA_NOT_PROCESSED);
         client_data->length_in_bytes = 0;
         goto clear;
+
+    case dvt_case_ds_start_put_request:        
+    case dvt_case_ds_query_put_request:
+        prepare_put_request_response(target_info, client_data);
+        client_data->flags |= IDIGI_MSG_LAST_DATA;
+        goto done;
 
     default:
         break;

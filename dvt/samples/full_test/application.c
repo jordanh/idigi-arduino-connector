@@ -22,12 +22,16 @@
  * =======================================================================
  *
  */
+#include "stdio.h"
+#include "stdlib.h"
 #include "idigi_api.h"
 #include "platform.h"
 #include "idigi_dvt.h"
 
 extern void check_stack_size(void);
 extern void clear_stack_size(void);
+
+dvt_ds_t  data_service_info;
 
 extern idigi_callback_status_t app_data_service_handler(idigi_data_service_request_t const request,
                                                   void const * request_data, size_t const request_length,
@@ -36,7 +40,7 @@ extern idigi_callback_status_t app_firmware_handler(idigi_firmware_request_t con
                                                   void * const request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length);
 
-extern idigi_status_t send_put_request(idigi_handle_t handle);
+extern idigi_status_t send_put_request(idigi_handle_t handle, dvt_ds_t * const ds_info);
 
 idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
                                     void * const request_data, size_t const request_length,
@@ -76,53 +80,78 @@ idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_r
     return status;
 }
 
+#define PATTERN_FILE_MAX_SIZE   (32 * 1024)
+
 int application_run(idigi_handle_t handle)
 {
     #define SLEEP_IN_SECONDS  1
     int stop_calling = 0;
+    dvt_ds_t * const ds_info = &data_service_info;
+    FILE * fp = fopen("../../cases/test_files/pattern.txt", "r");
+
+    if (fp == NULL)
+    {
+        APP_DEBUG("Failed to open pattern.txt\n");
+        goto done;
+    }
+
+    ds_info->state = dvt_state_init;
+    ds_info->file_size = 0;
+    ds_info->file_buf = malloc(PATTERN_FILE_MAX_SIZE);
+    if (ds_info->file_buf == NULL)
+    {
+        APP_DEBUG("Failed to malloc in full test application.c\n");
+        goto done;
+    }
+
+    /* hope it will read everything in one shot, if not modify accordingly */
+    ds_info->file_size = fread(ds_info->file_buf, 1, PATTERN_FILE_MAX_SIZE, fp);
+    if ((feof(fp) == 0) || (ferror(fp) != 0))
+    {        
+        APP_DEBUG("Failed to read pattern.txt\n");
+    }
+    else
+    {
+        APP_DEBUG("Read %zu bytes\n", ds_info->file_size);
+    }
+    fclose(fp);
+    fp = NULL;
 
     while (!stop_calling)
     {
-        if (dvt_current_ptr != NULL)
+        switch (ds_info->state)
         {
-            switch (dvt_current_ptr->state)
+            case dvt_state_request_start:
             {
-                case dvt_state_request_start:
-                {
-                    idigi_status_t const status = send_put_request(handle);
-        
-                    switch (status)
-                    {
-                        case idigi_success:
-                        case idigi_init_error:
-                            break;
-        
-                        default:
-                            APP_DEBUG("Exiting main loop because of error [%d]\n", status);
-                            stop_calling = 1;
-                            break;
-                    }
+                idigi_status_t const status = send_put_request(handle, ds_info);
 
-                    break;
+                 switch (status)
+                 {
+                    case idigi_success:
+                    case idigi_init_error:
+                        break;
+        
+                    default:
+                        APP_DEBUG("Exiting main loop because of error [%d]\n", status);
+                        stop_calling = 1;
+                        break;
                 }
-
-                case dvt_state_reset_called:
-                    dvt_current_ptr->state = dvt_state_request_start;
-                    app_os_sleep(SLEEP_IN_SECONDS); /* let reset complete */
-                    break;
-
-                case dvt_state_stop:
-                    cleanup_dvt_data();
-                    stop_calling = 1;
-                    break;
-
-                default:
-                    break;
+                break;
             }
+
+            default:
+                break;
         }
 
         app_os_sleep(SLEEP_IN_SECONDS);
     }
+
+done:
+    if (ds_info->file_buf != NULL)
+        free(ds_info->file_buf);
+
+    if (fp != NULL)
+        fclose(fp);
 
     return 0;
 }

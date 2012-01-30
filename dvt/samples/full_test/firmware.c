@@ -35,30 +35,21 @@
 
 static dvt_data_t dvt_data_list[dvt_case_last] =
 {
-    {dvt_case_fw_download_denied,       0x15000000, dvt_state_init, "Download Denied",  ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_fw_invalid_size,          0x16000000, dvt_state_init, "Download Invalid Size",     ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_fw_invalid_version,       0x17000000, dvt_state_init, "Download Invalid Version",  ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_fw_unauthenticated,       0x18000000, dvt_state_init, "Download Unauthenticated",  ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_fw_not_allowed,           0x19000000, dvt_state_init, "Download Not Allowed",      ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_fw_configured_to_reject,  0x1A000000, dvt_state_init, "Download Configured to Reject", ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_fw_encountered_error,     0x1B000000, dvt_state_init, "Encountered Error", ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_fw_user_abort,            0x1E000000, dvt_state_init, "User Abort",       ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_fw_device_error,          0x1F000000, dvt_state_init, "Device Error",     ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_fw_invalid_offset,        0x20000000, dvt_state_init, "Invalid Offset",   ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_fw_invalid_data,          0x21000000, dvt_state_init, "Invalid Data",     ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_fw_hardware_error,        0x22000000, dvt_state_init, "Hardware Error",   ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_put_request_no_flag,      0x00000011, dvt_state_init, "Data Service PUT, Plain Text No Flags", ".*\\.ds.p.p.n", "fromfirmware.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_put_request_defaults,     0x00000012, dvt_state_init, "Data Service PUT, Defaults", ".*\\.ds.p.d", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_put_request_append,       0x00000013, dvt_state_init, "Data Service PUT, Append", ".*\\.ds.p.ap", "appender.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_put_request_archive,      0x00000014, dvt_state_init, "Data Service PUT, Archive", ".*\\.ds.p.ar", "archived.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_put_request_both,         0x00000015, dvt_state_init, "Data Service PUT, Both", ".*\\.ds.p.b", "uploaded.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_put_request_busy,         0x00000016, dvt_state_init, "Data Service PUT, Busy", ".*\\.[Tt][Xx][Tt]", "busy.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_put_request_cancel_at_start, 0x00000017, dvt_state_init, "Data Service PUT, Cancel at start", ".*\\.[Tt][Xx][Tt]", "cancel1.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_put_request_cancel_in_middle, 0x00000018, dvt_state_init, "Data Service PUT, Cancel in middle", ".*\\.[Tt][Xx][Tt]", "cancel2.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL},
-    {dvt_case_put_request_timeout,      0x00000019, dvt_state_init, "Data Service PUT, Timeout", ".*\\.[Tt][Xx][Tt]", "timeout.txt", DVT_FW_UNKNOWN_FILE_SIZE, NULL, NULL}
+    {dvt_case_fw_download_denied,       0x15000000, dvt_state_init, "Download Denied",  ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE},
+    {dvt_case_fw_invalid_size,          0x16000000, dvt_state_init, "Download Invalid Size",     ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE},
+    {dvt_case_fw_invalid_version,       0x17000000, dvt_state_init, "Download Invalid Version",  ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE},
+    {dvt_case_fw_unauthenticated,       0x18000000, dvt_state_init, "Download Unauthenticated",  ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE},
+    {dvt_case_fw_not_allowed,           0x19000000, dvt_state_init, "Download Not Allowed",      ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE},
+    {dvt_case_fw_configured_to_reject,  0x1A000000, dvt_state_init, "Download Configured to Reject", ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE},
+    {dvt_case_fw_encountered_error,     0x1B000000, dvt_state_init, "Encountered Error", ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE},
+    {dvt_case_fw_user_abort,            0x1E000000, dvt_state_init, "User Abort",       ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE},
+    {dvt_case_fw_device_error,          0x1F000000, dvt_state_init, "Device Error",     ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE},
+    {dvt_case_fw_invalid_offset,        0x20000000, dvt_state_init, "Invalid Offset",   ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE},
+    {dvt_case_fw_invalid_data,          0x21000000, dvt_state_init, "Invalid Data",     ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE},
+    {dvt_case_fw_hardware_error,        0x22000000, dvt_state_init, "Hardware Error",   ".*\\.[Ee][Xx][Nn]", "firmware.bin", DVT_FW_UNKNOWN_FILE_SIZE}
 };
 
-dvt_data_t * dvt_current_ptr = NULL;
+static dvt_data_t * dvt_current_ptr = NULL;
 
 static void firmware_download_request(idigi_fw_download_request_t const * const download_info, idigi_fw_status_t * download_status)
 {
@@ -141,18 +132,6 @@ static void firmware_download_request(idigi_fw_download_request_t const * const 
     	break;
 
     default:
-        {
-            #define DEFAULT_FIRMWARE_SIZE  (32 * 1024)
-            size_t const file_size = (download_info->code_size != DVT_FW_UNKNOWN_FILE_SIZE) ? download_info->code_size : DEFAULT_FIRMWARE_SIZE;
-
-            dvt_current_ptr->file_content = malloc(file_size + 4);
-            if (dvt_current_ptr->file_content == NULL)
-            {
-                *download_status = idigi_fw_device_error;
-                goto error;
-            }
-        }
-
         dvt_current_ptr->state = dvt_state_fw_download_progress;
         *download_status = idigi_fw_success;
         break;
@@ -219,13 +198,11 @@ static void firmware_image_data(idigi_fw_image_data_t const * const image_data, 
 
     default:        
         *data_status = idigi_fw_success;
-        memcpy(&dvt_current_ptr->file_content[image_data->offset], image_data->data, image_data->length);
-        dvt_current_ptr->file_size += image_data->length;
         goto done;
     }
     
 error:
-    cleanup_dvt_data();
+    dvt_current_ptr = NULL;
 
 done:
     return;
@@ -238,27 +215,28 @@ static void firmware_download_complete(idigi_fw_download_complete_request_t cons
     {
         APP_DEBUG("firmware_download_complete Error: iDigi passes incorrect parameters\n");
         complete_response->status = idigi_fw_device_error;
-        goto error;
+        goto done;
     }
 
     if (dvt_current_ptr == NULL) 
     {
         complete_response->status = idigi_fw_device_error;
-        goto error;
+        goto done;
     }
 
     if (dvt_current_ptr->state != dvt_state_fw_download_progress) 
     {
         APP_DEBUG("firmware_download_complete: invalid DVT state [%d]\n", dvt_current_ptr->state);
         complete_response->status = idigi_fw_device_error;
-        goto error;
+    }
+    else
+    {
+        complete_response->status = idigi_fw_download_success;
     }
 
     APP_DEBUG("target    = %d\n",    complete_request->target);
     APP_DEBUG("code size = %u\n",    complete_request->code_size);
     APP_DEBUG("checksum  = 0x%x\n", (unsigned)complete_request->checksum);
-
-    complete_response->status = idigi_fw_download_success;
 
     if (complete_request->code_size != dvt_current_ptr->file_size)
     {
@@ -266,16 +244,8 @@ static void firmware_download_complete(idigi_fw_download_complete_request_t cons
                       complete_request->code_size, dvt_current_ptr->file_size);
     }
 
-    if (dvt_current_ptr->target >= dvt_case_put_request_no_flag) 
-    {
-        dvt_current_ptr->state = dvt_state_fw_download_complete;
-        goto done;
-    }
-
-error:
-    cleanup_dvt_data();
-
 done:
+    dvt_current_ptr = NULL;
     return;
 }
 
@@ -290,7 +260,7 @@ static idigi_callback_status_t firmware_download_abort(idigi_fw_download_abort_t
         APP_DEBUG("firmware_download_abort Error: iDigi passes incorrect parameters\n");
     }
 
-    cleanup_dvt_data();
+    dvt_current_ptr = NULL;
     return status;
 }
 
@@ -390,17 +360,4 @@ idigi_callback_status_t app_firmware_handler(idigi_firmware_request_t const requ
     return status;
 }
 
-void cleanup_dvt_data(void)
-{
-    if (dvt_current_ptr != NULL) 
-    {
-        if (dvt_current_ptr->file_content != NULL) 
-        {
-            free(dvt_current_ptr->file_content);
-            dvt_current_ptr->file_content = NULL;
-        }
-
-        dvt_current_ptr = NULL;
-    }
-}
 

@@ -15,15 +15,6 @@ typedef enum
     dvt_case_fw_invalid_offset,
     dvt_case_fw_invalid_data,
     dvt_case_fw_hardware_error,
-    dvt_case_put_request_no_flag,
-    dvt_case_put_request_defaults,
-    dvt_case_put_request_append,
-    dvt_case_put_request_archive,
-    dvt_case_put_request_both,
-    dvt_case_put_request_busy,
-    dvt_case_put_request_cancel_at_start,
-    dvt_case_put_request_cancel_in_middle,
-    dvt_case_put_request_timeout,
     dvt_case_last
 } dvt_cases_t;
 
@@ -35,12 +26,34 @@ typedef enum
     dvt_state_reset_called,
     dvt_state_request_start,
     dvt_state_request_progress,
-    dvt_state_stop
+    dvt_state_request_complete,
+    dvt_state_response_complete,
+    dvt_state_request_error
 } dvt_state_t;
+
+typedef enum
+{
+    dvt_case_put_request_ds_default,
+    dvt_case_put_request_ds_append,
+    dvt_case_put_request_ds_archive,
+    dvt_case_put_request_ds_both,
+    dvt_case_put_request_ds_zero,
+    dvt_case_put_request_ds_busy,
+    dvt_case_put_request_ds_cancel_start,
+    dvt_case_put_request_ds_cancel_middle,
+    dvt_case_put_request_ds_timeout
+} dvt_ds_test_cases_t;
+
+#define MAX_FILE_PATH_SIZE  32
 
 typedef struct
 {
+    dvt_ds_test_cases_t test_case;
+    dvt_state_t state;
+    char file_path[MAX_FILE_PATH_SIZE];
     idigi_data_service_put_request_t header;
+    char * file_buf;
+    size_t file_size;
     size_t bytes_sent;
 } dvt_ds_t;
 
@@ -53,12 +66,9 @@ typedef struct
     char * name_spec;
     char * file_name;
     size_t file_size;
-    uint8_t * file_content;
-    dvt_ds_t * ds_info;
 } dvt_data_t;
 
-extern dvt_data_t * dvt_current_ptr;
-extern void cleanup_dvt_data(void);
+extern dvt_ds_t  data_service_info;
 
 #endif
 
