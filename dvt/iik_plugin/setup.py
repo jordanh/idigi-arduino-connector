@@ -8,7 +8,7 @@ from setuptools import setup
 
 setup(
     name='nose-iik-plugin',
-    version='0.2',
+    version='0.3',
     author='Andrew Tolbert',
     author_email = 'atolber@digi.com',
     description = 'Plugin to pass in iDigi Credentials and Device ID to IIK Tests.',
