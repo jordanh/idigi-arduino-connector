@@ -133,6 +133,7 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
 
     for test in test_table:
         sandbox_dir = sandbox(base_dir)
+        device_location = None
         try:
             for (f, s, r) in replace_list:
                 config.replace_string(os.path.join(sandbox_dir, f), s, r)
