@@ -107,6 +107,7 @@ int application_run(idigi_handle_t handle)
             send_reboot_result = 1;
             break;
         default:
+            app_os_sleep(5);
             break;
         }
 
@@ -116,6 +117,10 @@ int application_run(idigi_handle_t handle)
             if (status != idigi_success)
             {
                 app_os_sleep(2);
+            }
+            else
+            {
+                APP_DEBUG("send_put_request for reboot_test.txt %d\n", status);
             }
         }
 
