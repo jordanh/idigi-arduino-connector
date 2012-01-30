@@ -218,7 +218,7 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
         else
         {
             /* testing to return unrecognized status */
-            APP_DEBUG("process_device_request: unrecognized target = %s\n", server_device_request->target);
+            APP_DEBUG("process_device_request: unrecognized target = \"%s\"\n", server_device_request->target);
             response_data->message_status = idigi_msg_error_cancel;
         }
     }
