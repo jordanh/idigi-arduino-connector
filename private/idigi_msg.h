@@ -1368,6 +1368,16 @@ static idigi_callback_status_t msg_discovery(idigi_data_t * const idigi_ptr, voi
     return msg_send_capabilities(idigi_ptr, facility_data, capability_flag);
 }
 
+static void msg_switch_session(idigi_msg_data_t * const msg_ptr, msg_session_t * const session)
+{
+    if (!msg_ptr->session_locked)
+    {
+        msg_ptr->session_locked = idigi_true;
+        msg_ptr->session.current = (session->prev != NULL) ? session->prev : msg_ptr->session.tail;
+        msg_ptr->session_locked = idigi_false;
+    }
+}
+
 static idigi_callback_status_t msg_process_pending(idigi_data_t * const idigi_ptr, idigi_msg_data_t * const msg_ptr, unsigned int * const receive_timeout)
 {
     idigi_callback_status_t status = idigi_callback_continue;
@@ -1390,15 +1400,14 @@ static idigi_callback_status_t msg_process_pending(idigi_data_t * const idigi_pt
         case msg_state_wait_ack:
         case msg_state_receive:
         case msg_state_wait_send_complete:
-            if (msg_ptr->session_locked) goto done;
-            msg_ptr->session_locked = idigi_true;
-            msg_ptr->session.current = (session->prev != NULL) ? session->prev : msg_ptr->session.tail;
-            msg_ptr->session_locked = idigi_false;
+            msg_switch_session(msg_ptr, session);
             *receive_timeout = MAX_RECEIVE_TIMEOUT_IN_SECONDS;
             break;
 
         case msg_state_get_data:
             status = msg_get_service_data(idigi_ptr, session);
+            if (status == idigi_callback_busy) 
+                msg_switch_session(msg_ptr, session);
             break;
 
         #if (defined IDIGI_COMPRESSION)

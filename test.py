@@ -88,7 +88,7 @@ test_table = [
               ['run',           BASE_RUN_SAMPLE_DIR+'device_request',     BASE_SCRIPT_DIR+'sample_tests', ['test_device_request.py']],
               ['dvt',           BASE_DVT_SRC+'full_test',                 BASE_SCRIPT_DIR+'dvt_tests',    ['test_firmware_errors.py', 
                                                                                      'test_device_request.py',
-                                                                                     'test_data_service.py']],
+                                                                                     'test_put_request.py']],
               ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'admin_tests',  ['test_reboot.py']],
               ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'admin_tests',  ['test_redirect.py']],
               ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'admin_tests',  ['test_terminate.py']],
