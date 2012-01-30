@@ -54,6 +54,7 @@ BASE_RUN_SAMPLE_DIR='public/run/samples/'
 BASE_STEP_SAMPLE_DIR='public/step/samples/'
 BASE_DVT_SRC='dvt/samples/'
 BASE_SCRIPT_DIR='dvt/cases/'
+BUILD_TEST='dvt/cases/build_tests/test_build.py'
 
 #indices of test_table
 EXECUTION = 0
@@ -153,9 +154,18 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
      
             print '>>> [%s] Testing [%s]' % (description, src_dir)
 
-            (rc,output) = build(src_dir, cflags)
+            build_args = ['nosetests',
+                          '--with-xunit',
+                          '-s', # Don't Capture STDOUT
+                          '--xunit-file=%s_%s_%s_build.nxml' % (description, execution_type, src_dirname),
+                          '--with-build',
+                          '--build_cflags=%s' % cflags,
+                          '--build_src=%s' % src_dir]
 
-            if rc != 0:
+            rc = nose.run(defaultTest=[BUILD_TEST], argv=build_args)
+
+            # If False is returned, Fail this build
+            if rc == False:
                 raise Exception("Failed to Build from %s." % src_dir)
         
             print '>>> [%s] Starting idigi' % description
