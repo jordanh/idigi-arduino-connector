@@ -53,15 +53,15 @@ def send_device_request(self, target_name, target_content):
     
     # Validate target name
     my_target_name = device_response[0].getAttribute('target_name')
-    if my_target_name != target_name:
-        self.log.info("Response: %s" % device_request_response)
+#    if my_target_name != target_name:
+#        self.log.info("Response: %s" % device_request_response)
 
     self.assertEqual(my_target_name, target_name, 
                     "returned target (%s) is not (%s)" 
                     % (my_target_name, target_name))
 
     # Validate status 
-    self.log.info("Determining if status is success.")
+    self.log.info("Determining if status is success (0).")
     status = device_response[0].getAttribute("status")
     self.log.info("status = \"%s\" device request" % status)
     if status == '0':
