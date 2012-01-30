@@ -46,18 +46,20 @@ import argparse
 from stat import * # ST_SIZE etc
 from threading import Thread
 
-SAMPLE_DIR='public/run/samples/'
 SAMPLE_SCRIPT_DIR='dvt/cases/sample_tests/'
-SAMPLE_PLATFORM_DIR = 'public/run/platforms/linux/'
+SAMPLE_PLATFORM_RUN_DIR = 'public/run/platforms/linux/'
+SAMPLE_PLATFORM_STEP_DIR = 'public/step/platforms/linux/'
 
-BASE_SAMPLE_DIR='public/run/samples/'
+BASE_RUN_SAMPLE_DIR='public/run/samples/'
+BASE_STEP_SAMPLE_DIR='public/step/samples/'
 BASE_DVT_SRC='dvt/samples/'
 BASE_SCRIPT_DIR='dvt/cases/'
 
 #indices of test_table
-SRC_DIR  = 0
-TEST_DIR = 1
-TEST_LIST = 2
+EXECUTION = 0
+SRC_DIR  = 1
+TEST_DIR = 2
+TEST_LIST = 3
 
 MEMORY_USAGE_FILE = './dvt/memory_usage.txt'
 
@@ -73,19 +75,23 @@ MAC_ADDR_PROTOTYPE = '%s:%s'
 # 2. Directory of the python test script
 # 3. List of python test scripts to run
 #
-#              Directory.                            Script directory                Test Scripts
+#              Execution type   Directory                                 Script directory                Test Scripts
 test_table = [
-              [BASE_SAMPLE_DIR+'connect_to_idigi',  BASE_SCRIPT_DIR+'sample_tests', ['test_discovery.py']],
-              [BASE_SAMPLE_DIR+'firmware_download', BASE_SCRIPT_DIR+'sample_tests', ['test_firmware.py']],
-              [BASE_SAMPLE_DIR+'send_data',         BASE_SCRIPT_DIR+'sample_tests', ['test_send_data.py']],
-              [BASE_SAMPLE_DIR+'device_request',    BASE_SCRIPT_DIR+'sample_tests', ['test_device_request.py']],
-              [BASE_DVT_SRC+'full_test',            BASE_SCRIPT_DIR+'dvt_tests',    ['test_firmware_errors.py', 
+              ['step',          BASE_STEP_SAMPLE_DIR+'connect_to_idigi',  BASE_SCRIPT_DIR+'sample_tests', ['test_discovery.py']],
+              ['step',          BASE_STEP_SAMPLE_DIR+'firmware_download', BASE_SCRIPT_DIR+'sample_tests', ['test_firmware.py']],
+              ['step',          BASE_STEP_SAMPLE_DIR+'send_data',         BASE_SCRIPT_DIR+'sample_tests', ['test_send_data.py']],
+              ['step',          BASE_STEP_SAMPLE_DIR+'device_request',    BASE_SCRIPT_DIR+'sample_tests', ['test_device_request.py']],
+              ['run',           BASE_RUN_SAMPLE_DIR+'connect_to_idigi',   BASE_SCRIPT_DIR+'sample_tests', ['test_discovery.py']],
+              ['run',           BASE_RUN_SAMPLE_DIR+'firmware_download',  BASE_SCRIPT_DIR+'sample_tests', ['test_firmware.py']],
+              ['run',           BASE_RUN_SAMPLE_DIR+'send_data',          BASE_SCRIPT_DIR+'sample_tests', ['test_send_data.py']],
+              ['run',           BASE_RUN_SAMPLE_DIR+'device_request',     BASE_SCRIPT_DIR+'sample_tests', ['test_device_request.py']],
+              ['dvt',           BASE_DVT_SRC+'full_test',                 BASE_SCRIPT_DIR+'dvt_tests',    ['test_firmware_errors.py', 
                                                                                      'test_device_request.py',
                                                                                      'test_data_service.py']],
-              [BASE_DVT_SRC+'data_service',         BASE_SCRIPT_DIR+'admin_tests',  ['test_reboot.py']],
-              [BASE_DVT_SRC+'data_service',         BASE_SCRIPT_DIR+'admin_tests',  ['test_redirect.py']],
-              [BASE_DVT_SRC+'data_service',         BASE_SCRIPT_DIR+'admin_tests',  ['test_terminate.py']],
-              [BASE_DVT_SRC+'data_service',         BASE_SCRIPT_DIR+'admin_tests',  ['test_nodebug_redirect.py']],
+              ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'admin_tests',  ['test_reboot.py']],
+              ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'admin_tests',  ['test_redirect.py']],
+              ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'admin_tests',  ['test_terminate.py']],
+              ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'admin_tests',  ['test_nodebug_redirect.py']],
 ]
 
 def generate_id(api):
@@ -136,11 +142,14 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
 
             (device_id, mac_addr, device_location) = generate_id(api)
             setup_platform(os.path.join(sandbox_dir, SAMPLE_SCRIPT_DIR), 
-                os.path.join(sandbox_dir, SAMPLE_PLATFORM_DIR), mac_addr)
-            src_dir     = os.path.join(sandbox_dir, test[SRC_DIR])
-            test_dir    = os.path.join(sandbox_dir, test[TEST_DIR])
-            src_dirname = os.path.basename(src_dir)
-            test_list   = test[TEST_LIST]
+                os.path.join(sandbox_dir, SAMPLE_PLATFORM_RUN_DIR), mac_addr)
+            setup_platform(os.path.join(sandbox_dir, SAMPLE_SCRIPT_DIR), 
+                os.path.join(sandbox_dir, SAMPLE_PLATFORM_STEP_DIR), mac_addr)
+            execution_type = test[EXECUTION]
+            src_dir        = os.path.join(sandbox_dir, test[SRC_DIR])
+            test_dir       = os.path.join(sandbox_dir, test[TEST_DIR])
+            src_dirname    = os.path.basename(src_dir)
+            test_list      = test[TEST_LIST]
      
             print '>>> [%s] Testing [%s]' % (description, src_dir)
 
@@ -198,7 +207,7 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
                         arguments = ['nosetests',
                                      '--with-xunit',
                                      '-s', # Don't capture STDOUT (allow everything else to print)
-                                     '--xunit-file=%s_%s_%s.nxml' % (description, src_dirname, test_script),
+                                     '--xunit-file=%s_%s_%s_%s.nxml' % (description, execution_type, src_dirname, test_script),
                                      '--with-iik',
                                      '--idigi_username=%s'  % api.username,
                                      '--idigi_password=%s'  % api.password,
