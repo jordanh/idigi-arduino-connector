@@ -29,6 +29,8 @@
 #include <unistd.h>
 #include <errno.h>
 
+/* #define THREAD_STACK_SIZE_DEBUG */
+
 extern idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
                                     void * const request_data, size_t const request_length,
                                     void * response_data, size_t * const response_length);
@@ -67,6 +69,7 @@ void * PrintThreadStackInit(size_t * StackSize, size_t * GuardSize)
 
     StackBottom = (void *)((size_t)StackTop + *StackSize);
 
+#ifdef THREAD_STACK_SIZE_DEBUG
     APP_DEBUG ("-------------------------------------\n");
     APP_DEBUG ("Thread Stack top:        %p\n", StackTop);
     APP_DEBUG ("Thread Stack size:       %zu bytes\n", *StackSize);
@@ -74,27 +77,8 @@ void * PrintThreadStackInit(size_t * StackSize, size_t * GuardSize)
     APP_DEBUG ("Thread Min Stack size:   %d bytes\n", PTHREAD_STACK_MIN);
     APP_DEBUG ("Thread Stack bottom:     %p\n", StackBottom);
     APP_DEBUG ("-------------------------------------\n");
-
+#endif
     return StackBottom;
-}
-
-
-void check_stack_size(void)
-{
-    if (pthread_self() == idigi_thread)
-    {
-        /* address of 'nowhere' approximates end of stack */
-        char nowhere;
-        void* stack_end = (void*)&nowhere;
-        /* may want to double check stack grows downward on your platform */
-        size_t size = (size_t)stack_bottom - (size_t)stack_end;
-        /* update max_stack_size for this thread */
-
-        if (size > stack_size_used)
-        {
-            stack_size_used = size;
-        }
-    }
 }
 
 void clear_stack_size(void)
@@ -134,10 +118,12 @@ size_t PrintSummaryStack(void)
         ptr++;
     }
     APP_DEBUG("======================================\n");
-    APP_DEBUG("idigi_run Stack End        = %p\n", stack_top);
-    APP_DEBUG("idigi_run Stack Ptr        = %p\n", ptr);
-    APP_DEBUG("idigi_run Stack Start      = %p\n", stack_bottom);
-    APP_DEBUG("idigi_run Stack Size Used  = %d bytes\n", (unsigned)((uint8_t *)stack_bottom-ptr));
+#ifdef THREAD_STACK_SIZE_DEBUG
+    APP_DEBUG("idigi_run thread Stack End        = %p\n", stack_top);
+    APP_DEBUG("idigi_run thread Stack Ptr        = %p\n", ptr);
+    APP_DEBUG("idigi_run thread Stack Start      = %p\n", stack_bottom);
+#endif
+    APP_DEBUG("idigi_run thread Stack Size Used  = %d bytes\n", (unsigned)((uint8_t *)stack_bottom-ptr));
     return (size_t)((uint8_t *)stack_bottom-ptr);
 }
 
@@ -183,7 +169,7 @@ void * idigi_run_thread(void * arg)
     APP_DEBUG("idigi_run thread exits %d\n", idigi_run_thread_status);
 
     PrintSummaryStack();
-    APP_DEBUG("idigi_run - callback: stack size = %zu\n", stack_size_used);
+    APP_DEBUG("stack size between idigi_run and callback = %zu\n", stack_size_used);
     APP_DEBUG("\nidigi_run_thread:\n");
     PrintThreadStackInit(&stack_size, &threadGuardSize);
 
