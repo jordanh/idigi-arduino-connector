@@ -25,6 +25,15 @@ REBOOT_REQUEST = \
   </reboot>
 </sci_request>"""
 
+DISCONNECT_REQUEST = \
+"""<sci_request version="1.0">
+    <disconnect>
+        <targets>
+            <device id="%s"/>
+        </targets>
+    </disconnect>
+</sci_request>"""
+
 def send_device_request(self, target_name, target_content):
 
     """ Verifies that the device request returned match the expected 
