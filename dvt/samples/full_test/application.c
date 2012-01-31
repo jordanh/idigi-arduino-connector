@@ -81,17 +81,19 @@ idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_r
 }
 
 #define PATTERN_FILE_MAX_SIZE   (32 * 1024)
+//#define SOURCE_PATH  "../../cases/test_files/pattern.txt"
+#define SOURCE_PATH  "dvt/cases/test_files/pattern.txt"
 
 int application_run(idigi_handle_t handle)
 {
     #define SLEEP_IN_SECONDS  1
     int stop_calling = 0;
     dvt_ds_t * const ds_info = &data_service_info;
-    FILE * fp = fopen("../../cases/test_files/pattern.txt", "r");
+    FILE * fp = fopen(SOURCE_PATH, "r");
 
     if (fp == NULL)
     {
-        APP_DEBUG("Failed to open pattern.txt\n");
+        APP_DEBUG("Failed to open %s\n", SOURCE_PATH);
         goto done;
     }
 
