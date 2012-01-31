@@ -52,8 +52,9 @@ static uint16_t firmware_list_count = asizeof(firmware_list);
 
 static unsigned long dvt_timing_in_seconds = 0;
 
-static int firmware_download_started = 0;
+int firmware_download_started = 0;
 static size_t total_image_size = 0;
+
 
 int firmware_timing_expired(unsigned long expired_timing_in_seconds)
 {
@@ -175,6 +176,7 @@ static idigi_callback_status_t app_firmware_download_abort(idigi_fw_download_abo
         APP_DEBUG("firmware_download_abort Error: iDigi passes incorrect parameters\n");
         goto done;
     }
+    firmware_download_started = 0;
 
 done:
     return status;
