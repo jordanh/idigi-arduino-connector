@@ -117,7 +117,7 @@ def generate_id(api):
             print e
     
     # If here, we couldn't provision a device, raise Exception.
-    raise Exception("Failed to Provision Device using %s." % user_id)
+    raise Exception("Failed to Provision Device using %s." % api.username)
 
 def start_iik(executable, tty=False):
     """
@@ -133,6 +133,7 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
 
     for test in test_table:
         sandbox_dir = sandbox(base_dir)
+        device_location = None
         try:
             for (f, s, r) in replace_list:
                 config.replace_string(os.path.join(sandbox_dir, f), s, r)
