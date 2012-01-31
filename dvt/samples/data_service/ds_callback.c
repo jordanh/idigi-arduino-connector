@@ -35,6 +35,7 @@ static int gWait = 0;
 
 extern int app_os_malloc(size_t const size, void ** ptr);
 extern void app_os_free(void * const ptr);
+extern int firmware_download_started;
 
 #define DS_MAX_USER   20
 #define DS_FILE_NAME_LEN  20
@@ -51,6 +52,7 @@ typedef struct
     char * file_data;
     int index;
 } ds_record_t;
+
 
 unsigned int put_file_active_count = 0;
 static bool first_time = true;
@@ -111,6 +113,12 @@ idigi_status_t send_put_request(idigi_handle_t handle, int index)
     if (put_file_active_count >= DS_MAX_USER)
     {
         status = idigi_invalid_data_range;
+        goto done;
+    }
+
+    if (firmware_download_started)
+    {
+        status = idigi_service_busy;
         goto done;
     }
 
@@ -196,7 +204,10 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
                 message->length_in_bytes = bytes_copy;
                 message->flags = 0;
                 if (user->bytes_sent == 0)
+                {
                     message->flags |= IDIGI_MSG_FIRST_DATA;
+                    APP_DEBUG("app_put_request_handler: (need data) %s %p\n", user->file_path, (void *)user);
+                }
 
                 user->bytes_sent += bytes_copy;
                 if (user->bytes_sent == user->file_length_in_bytes)
@@ -208,13 +219,16 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
         case idigi_data_service_type_have_data:
             {
                 idigi_data_service_block_t * message = put_request->server_data;
-                uint8_t const * data = message->data;
+                char * data = message->data;
 
                 if (message->length_in_bytes > 0)
                 {
-                    APP_DEBUG("app_put_request_handler: server response %s\n", (char *)data);
+                	data[message->length_in_bytes] = '\0';
+                    APP_DEBUG("app_put_request_handler: server response (%d) %s\n", message->length_in_bytes, data);
                 }
 
+                APP_DEBUG("app_put_request_handler (have_data): status = 0x%x %s done this session %p\n",
+                		   message->flags, user->file_path, (void *)user);
               /* should be done now */
                 ASSERT(user != NULL);
                 app_os_free(user);
@@ -226,6 +240,7 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
         case idigi_data_service_type_error:
             {
 
+                APP_DEBUG("app_put_request_handler (type_error): %s cancel this session %p\n", user->file_path, (void *)user);
                 ASSERT(user != NULL);
                 app_os_free(user);
                 put_file_active_count--;
@@ -239,7 +254,7 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
         goto done;
 
 error:
-        APP_DEBUG("app_put_request_handler (need_data): %p cancel this session\n", (void *)user);
+        APP_DEBUG("app_put_request_handler (need_data): %s cancel this session %p\n", user->file_path, (void *)user);
         put_response->message_status = idigi_msg_error_cancel;
         app_os_free(user);
         put_file_active_count--;
