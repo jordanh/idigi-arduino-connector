@@ -31,7 +31,7 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-extern int app_os_get_system_time(uint32_t * const uptime);
+extern int app_os_get_system_time(unsigned long * const uptime);
 
 #define asizeof(array) (sizeof(array)/sizeof(array[0]))
 
@@ -50,15 +50,15 @@ static firmware_list_t firmware_list[] = {
 };
 static uint16_t firmware_list_count = asizeof(firmware_list);
 
-static uint32_t dvt_timing_in_seconds = 0;
+static unsigned long dvt_timing_in_seconds = 0;
 
 static int firmware_download_started = 0;
 static size_t total_image_size = 0;
 
-int firmware_timing_expired(uint32_t expired_timing_in_seconds)
+int firmware_timing_expired(unsigned long expired_timing_in_seconds)
 {
     int timingExpired = 1;
-    uint32_t current_time;
+    unsigned long current_time;
 
     if (dvt_timing_in_seconds == 0)
     {
