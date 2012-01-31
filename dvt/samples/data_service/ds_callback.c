@@ -48,6 +48,7 @@ typedef struct
     char file_path[DS_FILE_NAME_LEN];
     size_t bytes_sent;
     size_t file_length_in_bytes;
+    char * file_data;
     int index;
 } ds_record_t;
 
@@ -56,12 +57,56 @@ static bool first_time = true;
 
 size_t put_request_size = 0;
 
-idigi_status_t send_put_request(idigi_handle_t handle, int index)
+idigi_status_t send_file(idigi_handle_t handle, int index, char * const filename, char * const content, size_t content_length)
 {
 
     idigi_status_t status = idigi_success;
     static char file_type[] = "text/plain";
     ds_record_t * user;
+
+    {
+        void * ptr;
+
+        int const is_ok = app_os_malloc(sizeof *user, &ptr);
+        if (is_ok < 0|| ptr == NULL)
+        {
+            /* no memeory stop IIK */
+            APP_DEBUG("send_put_request: malloc fails\n");
+            status = idigi_no_resource;
+            goto done;
+        }
+        user = ptr;
+    }
+
+    sprintf(user->file_path, "%s", filename);
+    user->header.flags = 0;
+    user->header.path  = user->file_path;
+    user->header.content_type = file_type;
+    user->header.context = user;
+    user->bytes_sent = 0;
+    user->file_data = content;
+    user->file_length_in_bytes = content_length;
+    user->index = index;
+
+    status = idigi_initiate_action(handle, idigi_initiate_data_service, &user->header, NULL);
+    if (status == idigi_success)
+    {
+        put_file_active_count++;
+    }
+    else
+    {
+        app_os_free(user);
+    }
+
+done:
+    return status;
+}
+
+idigi_status_t send_put_request(idigi_handle_t handle, int index)
+{
+
+    idigi_status_t status = idigi_success;
+    char filename[DS_FILE_NAME_LEN];
 
     if (put_file_active_count >= DS_MAX_USER)
     {
@@ -78,39 +123,8 @@ idigi_status_t send_put_request(idigi_handle_t handle, int index)
         first_time = false;
     }
 
-    {
-        void * ptr;
-
-        int const is_ok = app_os_malloc(sizeof *user, &ptr);
-        if (is_ok < 0|| ptr == NULL)
-        {
-            /* no memeory stop IIK */
-            APP_DEBUG("send_put_request: malloc fails\n");
-            status = idigi_invalid_data_range;
-            goto done;
-        }
-        user = ptr;
-        put_request_size += sizeof *user;
-    }
-
-    sprintf(user->file_path, "test/dvt%d.txt", index);
-    user->header.flags = 0;
-    user->header.path  = user->file_path;
-    user->header.content_type = file_type;
-    user->header.context = user;
-    user->index = index;
-    user->bytes_sent = 0;
-    user->file_length_in_bytes = (rand() % (DS_DATA_SIZE +1));
-
-    status = idigi_initiate_action(handle, idigi_initiate_data_service, &user->header, NULL);
-    if (status == idigi_success)
-    {
-        put_file_active_count++;
-    }
-    else
-    {
-        app_os_free(user);
-    }
+    sprintf(filename, "test/dvt%d.txt", index);
+    status = send_file(handle, index, filename, ds_buffer, (rand() % (DS_DATA_SIZE +1)));
 
 done:
     return status;
@@ -140,6 +154,7 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
         switch (put_request->message_type)
         {
         case idigi_data_service_type_need_data:
+
             if (gWait < INITIAL_WAIT_COUNT)
             {
                 APP_DEBUG("busy\n");
@@ -204,6 +219,7 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
                 ASSERT(user != NULL);
                 app_os_free(user);
                 put_file_active_count--;
+
             }
             break;
 
