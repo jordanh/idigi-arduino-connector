@@ -1343,7 +1343,7 @@ static idigi_callback_status_t msg_process_error(idigi_data_t * const idigi_ptr,
     uint16_t const session_id = message_load_be16(error_packet, transaction_id);
     msg_session_t * const session = msg_find_session(msg_fac, session_id, client_owned);
 
-    if (session != NULL)
+    if (session != NULL && session->state != msg_state_delete && session->state != msg_state_send_error)
     {
         idigi_msg_error_t error = message_load_u8(error_packet, error_code);
 
