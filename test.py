@@ -89,11 +89,13 @@ test_table = [
               ['dvt',           BASE_DVT_SRC+'full_test',                 BASE_SCRIPT_DIR+'dvt_tests',    ['test_firmware_errors.py', 
                                                                                      'test_device_request.py',
                                                                                      'test_put_request.py']],
-              ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'admin_tests',  ['test_reboot.py']],
               ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'admin_tests',  ['test_redirect.py']],
-              ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'admin_tests',  ['test_terminate.py']],
               ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'admin_tests',  ['test_nodebug_redirect.py']],
-              ['dvt',           BASE_DVT_SRC+'reboot_test',               BASE_SCRIPT_DIR+'dvt_tests',    ['test_delay_reboot.py']],
+              ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'dvt_tests',    ['test_terminate.py']],
+              ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'dvt_tests',    ['test_reboot.py',
+                                                                                                           'test_disconnect.py']],
+              ['dvt',           BASE_DVT_SRC+'reboot_test',               BASE_SCRIPT_DIR+'dvt_tests',    ['test_delay_reboot.py',
+                                                                                                           'test_disconnect.py']],
 ]
 
 def generate_id(api):

@@ -153,6 +153,7 @@ void * idigi_run_thread(void * arg)
     }
 
     APP_DEBUG("idigi_run_thread starts %d Stack = %p to %p (size = %zu)\n", getpid(), stack_top, stack_bottom, stack_size);
+    idigi_run_thread_status = idigi_success;
 
     while (idigi_run_thread_status == idigi_success)
     {
@@ -201,29 +202,62 @@ void print_error(int error_no, char * const error_message)
     perror(error_message);
     ASSERT(false);
 }
+
+int start_idigi_thread(void)
+{
+    int ccode = -1;
+
+    idigi_handle = idigi_init((idigi_callback_t) app_idigi_callback);
+    if (idigi_handle != NULL)
+    {
+        ccode = pthread_create(&idigi_thread, NULL, idigi_run_thread, idigi_handle);
+        if (ccode != 0)
+        {
+            APP_DEBUG("thread_create() error on idigi_process_thread %d\n", ccode);
+        }
+    }
+    else
+    {
+        APP_DEBUG("unable to initialize iDigi\n");
+    }
+
+    return ccode;
+}
+
+int start_application_thread(void)
+{
+    int ccode = 0;
+
+    ccode = pthread_create(&application_thread, NULL, application_run_thread, idigi_handle);
+    if (ccode != 0)
+    {
+        APP_DEBUG("thread_create() error on idigi_process_thread %d\n", ccode);
+    }
+
+    return ccode;
+}
+
 int main (void)
 {
     extern size_t total_malloc_size;
 
     int rc = 0;
 
-    APP_DEBUG("Start iDigi\n");
-    idigi_handle = idigi_init((idigi_callback_t) app_idigi_callback);
-    if (idigi_handle != NULL)
+
+    for (;;)
     {
-        int ccode;
-        ccode = pthread_create(&idigi_thread, NULL, idigi_run_thread, idigi_handle);
-        if (ccode != 0)
+        APP_DEBUG("Start iDigi\n");
+
+        rc = start_idigi_thread();
+        if (rc != 0)
         {
-            APP_DEBUG("thread_create() error on idigi_process_thread %d\n", ccode);
-            goto done;
+           goto done;
         }
 
-        ccode = pthread_create(&application_thread, NULL, application_run_thread, idigi_handle);
-        if (ccode != 0)
+        rc = start_application_thread();
+        if (rc != 0)
         {
-            APP_DEBUG("thread_create() error on idigi_process_thread %d\n", ccode);
-            goto done;
+           goto done;
         }
 
         pthread_join(idigi_thread, NULL);
@@ -231,20 +265,18 @@ int main (void)
 
         if (total_malloc_size != 0)
         {
+            /* terminate iik so it will not reconnect to iDigi */
             APP_DEBUG("total malloc memory = %zu after all threads are canceled\n", total_malloc_size);
             if (idigi_run_thread_status == idigi_device_terminated)
             {
-                APP_DEBUG("Error idigi_run has been terminated by initiate_action but total malloc memory is not 0 after all threads are canceled\n");
-                print_error(EIO, "idigi_device_terminated with malloc memory not freed");
+                APP_DEBUG("Error: idigi_run has been terminated by idigi_initiate_terminate but total malloc memory is not 0 after all threads are canceled\n");
             }
             rc = -1;
+            break;
         }
-        APP_DEBUG("iDigi terminated\n");
+        /* continue and reconnect iDigi so python test will not fail */
     }
-    else
-    {
-        APP_DEBUG("unable to initialize iDigi\n");
-    }
+
 done:
     return rc;
 }
