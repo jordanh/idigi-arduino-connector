@@ -87,6 +87,7 @@ int application_run(idigi_handle_t handle)
         switch (status)
         {
         case idigi_init_error:
+        case idigi_service_busy:
            #define SLEEP_ONE_SECOND  1
             app_os_sleep(SLEEP_ONE_SECOND);
             break;
