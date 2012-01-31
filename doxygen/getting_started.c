@@ -394,7 +394,7 @@
  *  initialization layer: receive protocol version
  *  Security layer: send security form
  *  security layer: send device ID =  00 00 00 00 00 00 00 00 00 40 9D FF FF 43 23 17
- *  security layer: send server url = test.idigi.com
+ *  security layer: send server url = developer.idigi.com
  *  discovery layer: send vendor id =  01 00 00 1A
  *  discovery layer: send device type = connect to idigi DVT
  *  fw_discovery: No target supported
