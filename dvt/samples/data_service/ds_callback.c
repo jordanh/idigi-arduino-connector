@@ -224,7 +224,7 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
                 if (message->length_in_bytes > 0)
                 {
                 	data[message->length_in_bytes] = '\0';
-                    APP_DEBUG("app_put_request_handler: server response (%d) %s\n", message->length_in_bytes, data);
+                    APP_DEBUG("app_put_request_handler: server response (%zu) %s\n", message->length_in_bytes, data);
                 }
 
                 APP_DEBUG("app_put_request_handler (have_data): status = 0x%x %s done this session %p\n",
