@@ -1047,7 +1047,9 @@ enum {
      */
     status = receive_packet(idigi_ptr, &packet);
 
-    if (status == idigi_callback_continue)
+    switch(status)
+    {
+    case idigi_callback_continue:
     {
         uint8_t * edp_header = packet;
         uint8_t * edp_protocol = packet + PACKET_EDP_HEADER_SIZE;
@@ -1114,6 +1116,12 @@ enum {
                 }
             }
         }
+        break;
+    }
+    case idigi_callback_abort:
+        goto done;
+    default:
+        break;
     }
 
 error:
@@ -1126,10 +1134,16 @@ error:
     }
 
 
-    /* invoke facility process */
-    for (fac_ptr = (idigi_ptr->active_facility != NULL) ? idigi_ptr->active_facility : idigi_ptr->facility_list;
-         fac_ptr != NULL && status != idigi_callback_abort; fac_ptr = fac_ptr->next)
+    /* Invoke facility process.
+     *
+     * Run all facilities. But each starting facility
+     * will be alternated.
+     */
+    fac_ptr = (idigi_ptr->active_facility != NULL) ? idigi_ptr->active_facility : idigi_ptr->facility_list;
+    idigi_ptr->active_facility = fac_ptr;
+    do
     {
+        /* We want to run all facilities processes */
         unsigned int const i = fac_ptr->facility_index;
 
         if (idigi_supported_facility_table[i].process_cb)
@@ -1139,10 +1153,6 @@ error:
             if (status != idigi_callback_busy && fac_ptr->packet != NULL)
             {   /* release the packet when it's done */
                 release_receive_packet(idigi_ptr, fac_ptr->packet);
-                if (idigi_ptr->active_facility == fac_ptr)
-                {
-                    idigi_ptr->active_facility = NULL;
-                }
                 fac_ptr->packet = NULL;
             }
 
@@ -1150,8 +1160,6 @@ error:
             {
                 break;
             }
-
-            idigi_ptr->active_facility = fac_ptr->next;
 
             if (status != idigi_callback_abort)
             {
@@ -1166,9 +1174,15 @@ error:
                 }
                 ASSERT(status != idigi_callback_unrecognized);
             }
-        }
-    }
+            fac_ptr = (fac_ptr->next != NULL) ? fac_ptr->next : idigi_ptr->facility_list;
 
+        }
+    } while (status != idigi_callback_abort && fac_ptr != idigi_ptr->active_facility);
+
+    /* setup next starting facility process */
+    idigi_ptr->active_facility = (idigi_ptr->active_facility != NULL) ? idigi_ptr->active_facility->next : idigi_ptr->facility_list;
+
+done:
     return status;
 }
 
