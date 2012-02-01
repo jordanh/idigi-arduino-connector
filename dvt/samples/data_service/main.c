@@ -174,6 +174,8 @@ void * idigi_run_thread(void * arg)
     APP_DEBUG("\nidigi_run_thread:\n");
     PrintThreadStackInit(&stack_size, &threadGuardSize);
 
+    pthread_cancel(application_thread);
+
     pthread_exit(arg);
 }
 
