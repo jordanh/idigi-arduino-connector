@@ -316,7 +316,6 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t * read_d
     {
         /* EOF on input: the connection was closed. */
         APP_DEBUG("network_receive: EOF on socket\r\n");
-        errno = ECONNRESET;
         rc = idigi_callback_abort;
     }
     else if (ccode < 0)
