@@ -199,6 +199,7 @@ static idigi_callback_status_t app_firmware_reset(idigi_fw_config_t const * cons
         /* let's terminate IIK and free all memory used in IIK.
          *
          */
+        APP_DEBUG("app_firmware_reset: calling idigi_initiate_terminate\n");
         idigi_initiate_action(idigi_handle, idigi_initiate_terminate, NULL, NULL);
         pthread_cancel(application_thread);
         status = idigi_callback_continue;
