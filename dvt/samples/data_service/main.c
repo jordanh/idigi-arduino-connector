@@ -239,6 +239,8 @@ int start_application_thread(void)
     return ccode;
 }
 
+extern unsigned int put_file_active_count;
+
 int main (void)
 {
     extern size_t total_malloc_size;
@@ -272,6 +274,10 @@ int main (void)
             if (idigi_run_thread_status == idigi_device_terminated)
             {
                 APP_DEBUG("Error: idigi_run has been terminated by idigi_initiate_terminate but total malloc memory is not 0 after all threads are canceled\n");
+            }
+            if (put_file_active_count > 0)
+            {
+                APP_DEBUG("Error: %d active put requests\n", put_file_active_count);
             }
             rc = -1;
             break;
