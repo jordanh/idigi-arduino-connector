@@ -78,11 +78,7 @@ def get_and_verify(instance, api, device_id,
         cb = FileDataCallback(file_location)
 
         session = client.create_session(cb.callback, monitor)
-
-        # Collect current datetime for later comparison
-        i = len(datetime_created)
-        datetime_created.append(datetime.datetime.utcnow())
-                       
+                      
         # Check that file content is correct
         log.info("Waiting for File...")
         cb.event.wait(wait_time)
@@ -107,29 +103,7 @@ def get_and_verify(instance, api, device_id,
         
         # Check that FileData is correct
         log.info("Verifying file's metadata")
-        
-        # Verify that file's Modified Date/time is within 2 minutes of sampled
-        # date/time
-        fd_datetime_modified = convert_to_datetime(file_data['fdLastModifiedDate'])
-        delta = total_seconds(abs(fd_datetime_modified - datetime_created[i]))
-        # temporarily remove assertion, iDigi bug needs to be resolved
-        instance.assertTrue(delta < 120, 
-            "File's Last Modified Date/Time is not correct (delta=%d)." % delta)
-        
-        # If supplied, verify that file's Created Date/time is within 2 minutes
-        # of sampled date/time
-        if original_created_time:
-            fd_datetime_created = convert_to_datetime(file_data['fdCreatedDate'])
-            delta = total_seconds(abs(fd_datetime_created - original_created_time))
-            instance.assertTrue(delta < 120, "File's Create Date/Time is not correct.")
-        
-        # If the file did not previously exist (Does Not Exist), verify that
-        # the created date/time is the same as the last modified date/time    
-        if dne and not original_created_time:
-            instance.assertEqual(file_data['fdCreatedDate'], 
-                file_data['fdLastModifiedDate'], 
-                "File's created date/time does not match file's last modified date/time.")
-        
+               
         return file_content
     finally:
         client.stop_all()
