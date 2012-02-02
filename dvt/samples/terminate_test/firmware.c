@@ -29,6 +29,7 @@
 
 #include "idigi_api.h"
 #include "platform.h"
+#include "application.h"
 
 extern int app_os_get_system_time(unsigned long * const uptime);
 
@@ -87,6 +88,30 @@ static void app_firmware_image_data(idigi_fw_image_data_t const * const image_da
     {
         APP_DEBUG("firmware_image_data: invalid parameter\n");
         goto done;
+    }
+
+    if (total_image_size > 0)
+    {
+        APP_DEBUG("app_firmware_image_data: Let's terminate iik (active put requests = %d) terminate_flag = %d\n",
+                            put_file_active_count, terminate_flag);
+
+        if (terminate_flag == device_request_idle)
+        {
+            idigi_status_t ccode;
+
+            ccode = idigi_initiate_action(idigi_handle, idigi_initiate_terminate, NULL, NULL);
+            if (ccode != idigi_success)
+            {
+                APP_DEBUG("process_device_request: idigi_initiate_terminate error %d\n", ccode);
+            }
+            else
+            {
+                /* triggle application to send terminate_test.txt */
+                terminate_flag = device_request_terminate_done;
+                firmware_download_started = 0;
+                goto done;
+            }
+        }
     }
 
     APP_DEBUG("target = %d\n", image_data->target);
@@ -150,10 +175,26 @@ static idigi_callback_status_t app_firmware_reset(idigi_fw_config_t const * cons
 {
 
     idigi_callback_status_t status = idigi_callback_continue;
-
+    idigi_status_t ccode;
 
     UNUSED_ARGUMENT(reset_data);
-    APP_DEBUG("firmware_reset\n");
+    APP_DEBUG("app_firmware_reset: got firmware_reset. Let's terminate iik (active put requests = %d) terminate_flag = %d\n",
+                        put_file_active_count, terminate_flag);
+
+    if (terminate_flag == device_request_idle)
+    {
+        ccode = idigi_initiate_action(idigi_handle, idigi_initiate_terminate, NULL, NULL);
+        if (ccode != idigi_success)
+        {
+            APP_DEBUG("process_device_request: idigi_initiate_terminate error %d\n", ccode);
+        }
+        else
+        {
+            /* triggle application to send terminate_test.txt */
+            terminate_flag = device_request_terminate_done;
+        }
+    }
+
     return status;
 }
 
