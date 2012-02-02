@@ -31,8 +31,6 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-extern int app_os_get_system_time(unsigned long * const uptime);
-
 #define asizeof(array) (sizeof(array)/sizeof(array[0]))
 
 typedef struct {
@@ -50,38 +48,9 @@ static firmware_list_t firmware_list[] = {
 };
 static uint16_t firmware_list_count = asizeof(firmware_list);
 
-static unsigned long dvt_timing_in_seconds = 0;
-
 int firmware_download_started = 0;
 static size_t total_image_size = 0;
 
-
-int firmware_timing_expired(unsigned long expired_timing_in_seconds)
-{
-    int timingExpired = 1;
-    unsigned long current_time;
-
-    if (dvt_timing_in_seconds == 0)
-    {
-        app_os_get_system_time(&dvt_timing_in_seconds);
-    }
-
-    app_os_get_system_time(&current_time);
-
-
-    if ((current_time - dvt_timing_in_seconds) < expired_timing_in_seconds)
-    {
-        /* not expired */
-        timingExpired = 0;
-    }
-    else
-    {
-        /* reset timing */
-        dvt_timing_in_seconds = 0;
-    }
-
-    return timingExpired;
-}
 
 static void app_firmware_download_request(idigi_fw_download_request_t const * const download_info, idigi_fw_status_t * download_status)
 {
@@ -140,13 +109,6 @@ static idigi_callback_status_t app_firmware_download_complete(idigi_fw_download_
         goto done;
     }
 
-    if (firmware_timing_expired(90) == 0)
-    {
-        status = idigi_callback_busy;
-        goto done;
-    }
-
-
     APP_DEBUG("target    = %d\n",    complete_request->target);
     APP_DEBUG("code size = %u\n",    complete_request->code_size);
     APP_DEBUG("checksum  = 0x%x\n", (unsigned)complete_request->checksum);
@@ -184,25 +146,11 @@ done:
 
 static idigi_callback_status_t app_firmware_reset(idigi_fw_config_t const * const reset_data)
 {
-    extern idigi_handle_t idigi_handle;
-    extern unsigned int put_file_active_count;
-
-    idigi_callback_status_t status = idigi_callback_busy;
+    idigi_callback_status_t status = idigi_callback_continue;
 
 
     UNUSED_ARGUMENT(reset_data);
     APP_DEBUG("firmware_reset\n");
-
-    if (put_file_active_count > 0)
-    {
-        /* let's terminate IIK and free all memory used in IIK.
-         *
-         */
-        APP_DEBUG("app_firmware_reset: calling idigi_initiate_terminate\n");
-        idigi_initiate_action(idigi_handle, idigi_initiate_terminate, NULL, NULL);
-        status = idigi_callback_continue;
-    }
-
     return status;
 }
 
