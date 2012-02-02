@@ -88,7 +88,7 @@ int application_run(idigi_handle_t handle)
 
      app_os_sleep(5);
 
-     while (device_request_flag == device_request_terminate_done  && file_length > 0)
+     while (terminate_flag == device_request_terminate_done  && file_length > 0)
      {
 
          status = send_file(handle, 255, (char * const)TERMINATE_TEST_FILE, (char * const)terminate_file_content, file_length);
