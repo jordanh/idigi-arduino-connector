@@ -25,7 +25,9 @@
 
 #include "idigi_api.h"
 #include "platform.h"
+#include "application.h"
 
+char terminate_file_content[32];
 
 extern void clear_stack_size(void);
 
@@ -37,6 +39,8 @@ extern idigi_callback_status_t app_firmware_handler(idigi_firmware_request_t con
                                                   void * response_data, size_t * const response_length);
 
 extern idigi_status_t send_put_request(idigi_handle_t handle, int index);
+extern idigi_status_t send_file(idigi_handle_t handle, int index, char * const filename,
+                                char * const content, size_t content_length);
 
 idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
                                     void * const request_data, size_t const request_length,
@@ -77,12 +81,33 @@ idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_r
 
 int application_run(idigi_handle_t handle)
 {
+    idigi_status_t status;
     int index = 0;
-    int stop_calling = 0;
 
-    while (!stop_calling)
+    size_t file_length = file_length = strlen(terminate_file_content);
+
+     app_os_sleep(5);
+
+     while (device_request_flag == device_request_terminate_done  && file_length > 0)
+     {
+
+         status = send_file(handle, 255, (char * const)TERMINATE_TEST_FILE, (char * const)terminate_file_content, file_length);
+         if (status != idigi_success)
+         {
+             APP_DEBUG("application_run: unable to send terminate_test.txt %d\n", status);
+             app_os_sleep(2);
+         }
+         else
+         {
+             /* assume it's done sending */
+             APP_DEBUG("application_run: sent terminate_test.txt\n");
+             break;
+         }
+     }
+
+    for (;;)
     {
-        idigi_status_t const status = send_put_request(handle, index);
+        status = send_put_request(handle, index);
 
         switch (status)
         {
@@ -102,13 +127,12 @@ int application_run(idigi_handle_t handle)
             #define SLEEP_BETWEEN_TESTS   5
             app_os_sleep(SLEEP_BETWEEN_TESTS);
             break;
-    
+
         default:
-            stop_calling = 1;
             break;
         }
     }
-
     return 0;
 }
+
 

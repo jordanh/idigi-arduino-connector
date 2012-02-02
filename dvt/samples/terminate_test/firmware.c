@@ -26,10 +26,11 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
-#include <pthread.h>
 
 #include "idigi_api.h"
 #include "platform.h"
+
+extern int app_os_get_system_time(unsigned long * const uptime);
 
 #define asizeof(array) (sizeof(array)/sizeof(array[0]))
 
@@ -50,6 +51,7 @@ static uint16_t firmware_list_count = asizeof(firmware_list);
 
 int firmware_download_started = 0;
 static size_t total_image_size = 0;
+
 
 
 static void app_firmware_download_request(idigi_fw_download_request_t const * const download_info, idigi_fw_status_t * download_status)
@@ -146,6 +148,7 @@ done:
 
 static idigi_callback_status_t app_firmware_reset(idigi_fw_config_t const * const reset_data)
 {
+
     idigi_callback_status_t status = idigi_callback_continue;
 
 

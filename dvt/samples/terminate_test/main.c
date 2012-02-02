@@ -41,6 +41,7 @@ idigi_handle_t idigi_handle;
 
 pthread_t idigi_thread;
 pthread_t application_thread;
+pthread_t send_terminate_thread;
 
 #define  STACK_INIT_VALUE   0xEF
 
@@ -50,6 +51,8 @@ __thread size_t stack_size_used = 0L;
 __thread size_t stack_size = 0L;
 
 idigi_status_t idigi_run_thread_status = idigi_success;
+
+extern char terminate_file_content[];
 
 void * PrintThreadStackInit(size_t * StackSize, size_t * GuardSize)
 {
@@ -146,7 +149,6 @@ void * idigi_run_thread(void * arg)
     }
 
     stack_top = (void *)((long)stack_bottom - stack_size);
-    //memset(stack_top , STACK_INIT_VALUE, stack_size);
     for (ptr = stack_top; ptr < (unsigned char *)stack_bottom; ptr++)
     {
         *ptr = STACK_INIT_VALUE;
@@ -197,6 +199,7 @@ void * application_run_thread(void * arg)
     pthread_exit(arg);
 }
 
+
 void print_error(int error_no, char * const error_message)
 {
     errno = error_no;
@@ -215,7 +218,7 @@ int start_idigi_thread(void)
         ccode = pthread_create(&idigi_thread, NULL, idigi_run_thread, idigi_handle);
         if (ccode != 0)
         {
-            APP_DEBUG("thread_create() error on idigi_process_thread %d\n", ccode);
+            APP_DEBUG("thread_create() error on idigi_run_thread %d\n", ccode);
         }
     }
     else
@@ -233,13 +236,11 @@ int start_application_thread(void)
     ccode = pthread_create(&application_thread, NULL, application_run_thread, idigi_handle);
     if (ccode != 0)
     {
-        APP_DEBUG("thread_create() error on idigi_process_thread %d\n", ccode);
+        APP_DEBUG("thread_create() error on application_run_thread %d\n", ccode);
     }
 
     return ccode;
 }
-
-extern unsigned int put_file_active_count;
 
 int main (void)
 {
@@ -267,20 +268,24 @@ int main (void)
         pthread_join(idigi_thread, NULL);
         pthread_join(application_thread, NULL);
 
+        if (idigi_run_thread_status == idigi_device_terminated)
+        {
+            strcpy(terminate_file_content, "terminate_ok");
+            APP_DEBUG("idigi_run has been terminated by idigi_initiate_terminate\n");
+        }
         if (total_malloc_size != 0)
         {
             /* terminate iik so it will not reconnect to iDigi */
             APP_DEBUG("total malloc memory = %zu after all threads are canceled\n", total_malloc_size);
             if (idigi_run_thread_status == idigi_device_terminated)
             {
+                strcpy(terminate_file_content, "terminate_memory_leak");
                 APP_DEBUG("Error: idigi_run has been terminated by idigi_initiate_terminate but total malloc memory is not 0 after all threads are canceled\n");
             }
             if (put_file_active_count > 0)
             {
                 APP_DEBUG("Error: %d active put requests\n", put_file_active_count);
             }
-            rc = -1;
-            break;
         }
         /* continue and reconnect iDigi so python test will not fail */
     }

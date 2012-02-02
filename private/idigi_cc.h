@@ -498,7 +498,7 @@ static idigi_callback_status_t process_connection_control(idigi_data_t * const i
         status = idigi_callback_no_response(idigi_ptr->callback, idigi_class_network, request_id, NULL, 0);
     }
 
-    if (status == idigi_callback_continue && request == idigi_network_disconnected)
+    if (status == idigi_callback_continue)
     {
         idigi_ptr->network_busy = idigi_true;
         status = close_server(idigi_ptr);

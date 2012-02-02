@@ -26,18 +26,19 @@
 #include <stdbool.h>
 #include "idigi_api.h"
 #include "platform.h"
-
-#define PUT_REQUEST_TEST_ERROR
+#include "application.h"
 
 #define INITIAL_WAIT_COUNT      4
 
-static int gWait = 0;
+device_request_flag_t device_request_flag = device_request_idle;
 
+extern int app_os_get_system_time(unsigned long * const uptime);
 extern int app_os_malloc(size_t const size, void ** ptr);
 extern void app_os_free(void * const ptr);
 extern int firmware_download_started;
+extern idigi_handle_t idigi_handle;
 
-#define DS_MAX_USER   20
+#define DS_MAX_USER   5
 #define DS_FILE_NAME_LEN  20
 #define DS_DATA_SIZE  (1024 * 16)
 
@@ -51,12 +52,15 @@ typedef struct
     size_t file_length_in_bytes;
     char * file_data;
     int index;
+    unsigned long initiate_time;
+    unsigned long first_data_time;
+    unsigned long last_data_time;
 } ds_record_t;
 
+extern int firmware_download_started;
 
 unsigned int put_file_active_count = 0;
 static bool first_time = true;
-
 size_t put_request_size = 0;
 
 idigi_status_t send_file(idigi_handle_t handle, int index, char * const filename, char * const content, size_t content_length)
@@ -89,10 +93,12 @@ idigi_status_t send_file(idigi_handle_t handle, int index, char * const filename
     user->file_data = content;
     user->file_length_in_bytes = content_length;
     user->index = index;
+    app_os_get_system_time(&user->initiate_time);
 
     status = idigi_initiate_action(handle, idigi_initiate_data_service, &user->header, NULL);
     if (status == idigi_success)
     {
+        APP_DEBUG("send_file: %p %s length %zu\n", (void *)user, user->file_path, user->file_length_in_bytes);
         put_file_active_count++;
     }
     else
@@ -109,6 +115,7 @@ idigi_status_t send_put_request(idigi_handle_t handle, int index)
 
     idigi_status_t status = idigi_success;
     char filename[DS_FILE_NAME_LEN];
+    static int fileindex = 0;
 
     if (put_file_active_count >= DS_MAX_USER)
     {
@@ -116,11 +123,31 @@ idigi_status_t send_put_request(idigi_handle_t handle, int index)
         goto done;
     }
 
-    if (firmware_download_started)
+    if (firmware_download_started != 0)
     {
         status = idigi_service_busy;
         goto done;
     }
+
+    if (device_request_flag == device_request_terminate_in_application_start &&
+        put_file_active_count > 0)
+    {
+        idigi_status_t ccode;
+
+        APP_DEBUG("send_put_request: terminate iik (active session = %d)\n", put_file_active_count);
+        ccode = idigi_initiate_action(idigi_handle, idigi_initiate_terminate, NULL, NULL);
+        if (ccode != idigi_success)
+        {
+            APP_DEBUG("process_device_request: idigi_initiate_terminate error %d\n", ccode);
+        }
+        else
+        {
+            device_request_flag = device_request_terminate_done;
+            status = idigi_callback_busy;
+            goto done;
+        }
+    }
+
 
     if (first_time)
     {
@@ -130,8 +157,8 @@ idigi_status_t send_put_request(idigi_handle_t handle, int index)
             ds_buffer[i] = 0x41 + (rand() % 0x3B);
         first_time = false;
     }
-
-    sprintf(filename, "test/dvt%d.txt", index);
+    fileindex = (fileindex > 9) ? 0 : fileindex +1;
+    sprintf(filename, "test/dvt%d.txt", fileindex);
     status = send_file(handle, index, filename, ds_buffer, (rand() % (DS_DATA_SIZE +1)));
 
 done:
@@ -163,20 +190,25 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
         {
         case idigi_data_service_type_need_data:
 
-            if (gWait < INITIAL_WAIT_COUNT)
+            if (device_request_flag == device_request_terminate_start &&
+                put_file_active_count > 0)
             {
-                APP_DEBUG("busy\n");
-                status = idigi_callback_busy;
-                gWait++;
-                goto done;
+                idigi_status_t ccode;
+
+                APP_DEBUG("app_put_request_handler: terminate iik (active session = %d)\n", put_file_active_count);
+                ccode = idigi_initiate_action(idigi_handle, idigi_initiate_terminate, NULL, NULL);
+                if (ccode != idigi_success)
+                {
+                    APP_DEBUG("process_device_request: idigi_initiate_terminate error %d\n", ccode);
+                }
+                else
+                {
+                    device_request_flag = device_request_terminate_done;
+                    status = idigi_callback_busy;
+                    goto done;
+                }
             }
-            if (user->bytes_sent > 0 && gWait < (INITIAL_WAIT_COUNT + 2))
-            {
-                APP_DEBUG("busy\n");
-                status = idigi_callback_busy;
-                gWait++;
-                goto done;
-            }
+
              {
                 idigi_data_service_block_t * message = put_response->client_data;
                 char * dptr = message->data;
@@ -184,34 +216,22 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
                 size_t const bytes_to_send = user->file_length_in_bytes - user->bytes_sent;
                 size_t bytes_copy = (bytes_to_send > bytes_available) ? bytes_available : bytes_to_send;
 
-#if defined(PUT_REQUEST_TEST_ERROR)
-                switch(user->index)
-                {
-                case 0:
-                    goto error;
-                case 1:
-                    if (message->length_in_bytes > bytes_copy)
-                    {
-                        goto error;
-                    }
-                    break;
-                default:
-                    break;
-                }
-#endif
-
-                memcpy(dptr, &ds_buffer[user->bytes_sent], bytes_copy);
+                memcpy(dptr, &user->file_data[user->bytes_sent], bytes_copy);
                 message->length_in_bytes = bytes_copy;
                 message->flags = 0;
                 if (user->bytes_sent == 0)
                 {
+                    app_os_get_system_time(&user->first_data_time);
                     message->flags |= IDIGI_MSG_FIRST_DATA;
                     APP_DEBUG("app_put_request_handler: (need data) %s %p\n", user->file_path, (void *)user);
                 }
 
                 user->bytes_sent += bytes_copy;
                 if (user->bytes_sent == user->file_length_in_bytes)
+                {
+                    app_os_get_system_time(&user->last_data_time);
                     message->flags |= IDIGI_MSG_LAST_DATA;
+                }
 
             }
             break;
@@ -220,6 +240,14 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
             {
                 idigi_data_service_block_t * message = put_request->server_data;
                 char * data = message->data;
+                unsigned long current_time;
+
+                app_os_get_system_time(&current_time);
+                APP_DEBUG("app_put_request_handler: (have data) %s %p\n", user->file_path, (void *)user);
+                APP_DEBUG("app_put_request_handler: (have data) time initiate = %lu\n", user->initiate_time);
+                APP_DEBUG("app_put_request_handler: (have data) time between initiate and 1st data  = %lu\n", (user->first_data_time - user->initiate_time));
+                APP_DEBUG("app_put_request_handler: (have data) time between 1st and last data = %lu\n", (user->last_data_time - user->first_data_time));
+                APP_DEBUG("app_put_request_handler: (have data) time between last data and response = %lu\n", (current_time - user->last_data_time));
 
                 if (message->length_in_bytes > 0)
                 {
@@ -227,11 +255,18 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
                     APP_DEBUG("app_put_request_handler: server response (%zu) %s\n", message->length_in_bytes, data);
                 }
 
-                APP_DEBUG("app_put_request_handler (have_data): status = 0x%x %s done this session %p\n",
-                		   message->flags, user->file_path, (void *)user);
-              /* should be done now */
-                ASSERT(user != NULL);
+                if (strcmp(user->file_path, TERMINATE_TEST_FILE) == 0)
+                {
+                    if (device_request_flag != device_request_terminate_done)
+                    {
+                        APP_DEBUG("app_put_request_handle: (have data) unexpected device_request_flag = 0x%x\n", (unsigned)device_request_flag);
+                    }
+                    device_request_flag = device_request_idle;
+                }
+                /* should be done now */
                 app_os_free(user);
+                APP_DEBUG("app_put_request_handler (have_data): status = 0x%x %s done this session %p\n",
+                        message->flags, user->file_path, (void *)user);
                 put_file_active_count--;
 
             }
@@ -251,160 +286,67 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
             APP_DEBUG("app_put_request_handler: Unexpected message type: %d\n", put_request->message_type);
             break;
         }
-        goto done;
-
-error:
-        APP_DEBUG("app_put_request_handler (need_data): %s cancel this session %p\n", user->file_path, (void *)user);
-        put_response->message_status = idigi_msg_error_cancel;
-        app_os_free(user);
-        put_file_active_count--;
-
     }
 
 done:
     return status;
 }
 
-/* supported targets */
-static char const device_request_target[] = "iik_target";
-static char const device_request_not_handle_target[] = "iik_not_handle_target";
-static char const device_request_cancel_target[] = "iik_cancel_target";
-static char const device_request_invalid_response_target[] = "iik_cancel_response_target";
-static char const device_request_invalid_response_target1[] = "iik_cancel_response_target1";
-
-#define DEVICE_REPONSE_COUNT    2
-
-typedef struct device_request_handle {
-    void * session;
-    char * response_data;
-    size_t length_in_bytes;
-    char * target;
-    unsigned count;
-} device_request_handle_t;
-
-static unsigned int device_request_active_count = 0;
+/* we only supported 1 target */
+static char const request_terminate_target[] = "request_terminate_in_callback";
+static char const request_terminate_application_target[] = "request_terminate_in_application";
 
 static idigi_callback_status_t process_device_request(idigi_data_service_msg_request_t const * const request_data,
                                                       idigi_data_service_msg_response_t * const response_data)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_data_service_device_request_t * const server_device_request = request_data->service_context;
-    device_request_handle_t * client_device_request = response_data->user_context;
     idigi_data_service_block_t * server_data = request_data->server_data;
 
     ASSERT(server_data != NULL);
     ASSERT(service_device_request != NULL);
 
-    if (gWait < INITIAL_WAIT_COUNT + 4)
-    {
-        APP_DEBUG("busy\n");
-        status = idigi_callback_busy;
-        gWait++;
-        goto done;
-    }
 
     if ((server_data->flags & IDIGI_MSG_FIRST_DATA) == IDIGI_MSG_FIRST_DATA)
     {
-        void * ptr;
+        unsigned long current_time;
+        device_request_flag_t request_flag = device_request_idle;
 
-        int const ccode = app_os_malloc(sizeof *client_device_request, &ptr);
-        if (ccode != 0 || ptr == NULL)
+        if (strcmp(server_device_request->target, request_terminate_target) == 0)
         {
-            /* no memeory stop IIK */
-            APP_DEBUG("process_device_request: malloc fails for device request on session %p\n", server_device_request->device_handle);
-            response_data->message_status = idigi_msg_error_memory;
-            goto done;
+            request_flag = device_request_terminate;
         }
-        put_request_size += sizeof *client_device_request;
-
-        client_device_request = ptr;
-        client_device_request->length_in_bytes = 0;
-        client_device_request->response_data = NULL;
-        client_device_request->count = 0;
-        device_request_active_count++;
-        response_data->user_context = client_device_request;
-
-        ASSERT(server_device_request->target != NULL);
-        if (strcmp(server_device_request->target, device_request_target) == 0)
+        else if (strcmp(server_device_request->target, request_terminate_application_target) == 0)
         {
-            /* testing regular process target */
-            client_device_request->target = (char *)device_request_target;
-        }
-        else if (strcmp(server_device_request->target, device_request_not_handle_target) == 0)
-        {
-            /* testing to return not processed message */
-            client_device_request->target = (char *)device_request_not_handle_target;
-        }
-        else if (strcmp(server_device_request->target, device_request_invalid_response_target) == 0)
-        {
-            /* testing to return error in response callback */
-            client_device_request->target = (char *)device_request_invalid_response_target;
-        }
-        else if (strcmp(server_device_request->target, device_request_invalid_response_target1) == 0)
-        {
-            /* testing to return error in response callback */
-            client_device_request->target = (char *)device_request_invalid_response_target1;
-        }
-        else if (strcmp(server_device_request->target, device_request_cancel_target) == 0)
-        {
-            /* testing to return cancel message status */
-            APP_DEBUG("process_device_request: handle %p cancel\n", server_device_request->device_handle);
-            response_data->message_status = idigi_msg_error_cancel;
-            app_os_free(ptr);
-            device_request_active_count--;
-            goto done;
-
+            request_flag = device_request_terminate_in_application;
         }
         else
         {
             /* testing to return unrecognized status */
-            APP_DEBUG("process_device_request: unrecognized target = %s\n", server_device_request->target);
-            app_os_free(ptr);
-            device_request_active_count--;
-            status = idigi_callback_unrecognized;
-            goto done;
+            APP_DEBUG("process_device_request: unrecognized target = \"%s\"\n", server_device_request->target);
+            response_data->message_status = idigi_msg_error_cancel;
         }
 
-    }
-    else
-    {
-        ASSERT(client_device_request != NULL);
-        if (gWait < (INITIAL_WAIT_COUNT+6))
+        if (request_flag != device_request_idle)
         {
-            printf("busy\n");
-            status = idigi_callback_busy;
-            gWait++;
-            goto done;
+            /* are we still processing previous in device_request */
+            if (device_request_flag != device_request_idle)
+            {
+                /* not done processing previous device request */
+                APP_DEBUG("process_device_response: already in process %d\n", device_request_flag);
+                status = idigi_callback_busy;
+            }
+            else
+            {
+                app_os_get_system_time(&current_time);
+                APP_DEBUG("process_device_request: request = %d time stamp = %lu (active session = %d)\n", request_flag, current_time, put_file_active_count);
+                response_data->user_context = &device_request_flag;
+                device_request_flag = request_flag;
+            }
         }
+
     }
-
-
-    client_device_request->length_in_bytes += server_data->length_in_bytes;
-    APP_DEBUG("process_device_request: handle %p target = \"%s\" data length = %lu total length = %lu\n",
-                                 server_device_request->device_handle,
-                                 client_device_request->target,
-                                 (unsigned long int)server_data->length_in_bytes,
-                                 (unsigned long int)client_device_request->length_in_bytes);
-
-    if ((server_data->flags & IDIGI_MSG_LAST_DATA) == IDIGI_MSG_LAST_DATA)
-    {   /* No more chunk. let's setup response data */
-        /* don't care about what target in here */
-        if (first_time)
-        {
-            int i;
-
-            for (i = 0; i < DS_DATA_SIZE; i++)
-                ds_buffer[i] = 0x41 + (rand() % 0x3B);
-            first_time = false;
-        }
-        client_device_request->response_data = ds_buffer;
-        client_device_request->length_in_bytes = (rand() % (DS_DATA_SIZE +1));
-        client_device_request->count = DEVICE_REPONSE_COUNT;
-    }
-
-    response_data->message_status = idigi_msg_error_none;
-
-done:
+    /* don't care any data in the request */
     return status;
 }
 
@@ -412,85 +354,37 @@ static idigi_callback_status_t process_device_response(idigi_data_service_msg_re
                                                        idigi_data_service_msg_response_t * const response_data)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    idigi_data_service_device_request_t * const server_device_request = request_data->service_context;
-    device_request_handle_t * const client_device_request = response_data->user_context;
+    idigi_data_service_block_t * const client_data = response_data->client_data;
+    /* user just lets us know that reboot request is about to start.
+     * just respond so he knows we are connected and ready.
+     */
+    UNUSED_ARGUMENT(request_data);
 
-    ASSERT(response_data->client_data != NULL);
-    ASSERT(client_device_request != NULL); /* we use user_context for our client_device_request */
-    ASSERT(server_device_request->device_handle != client_device_request->device_handle);
-
-    if (client_device_request->target == device_request_invalid_response_target)
+    ASSERT(client_data != NULL);
+    if (response_data->user_context == &device_request_flag)
     {
-        /* cancel before sending any response data */
-        APP_DEBUG("process_device_response: handle %p cancel\n", server_device_request->device_handle);
-        response_data->message_status = idigi_msg_error_cancel;
-        goto error;
-    }
+        unsigned long current_time;
 
-    if (gWait < (INITIAL_WAIT_COUNT + 8))
-    {
-        printf("busy\n");
-        status = idigi_callback_busy;
-        gWait++;
-        goto done;
-    }
+        app_os_get_system_time(&current_time);
+        APP_DEBUG("process_device_response: time stamp = %lu (active session = %d)\n", current_time, put_file_active_count);
 
-    {
-        idigi_data_service_block_t * const client_data = response_data->client_data;
-        size_t const bytes = (client_device_request->length_in_bytes < client_data->length_in_bytes) ? client_device_request->length_in_bytes : client_data->length_in_bytes;
-
-        if ((client_device_request->target == device_request_invalid_response_target1) &&
-            (client_device_request->count == 1))
+        switch (device_request_flag)
         {
-            /* cancel client response after sending some response data */
-            APP_DEBUG("process_device_response: handle %p cancel\n", server_device_request->device_handle);
-            response_data->message_status = idigi_msg_error_cancel;
-            goto error;
-        }
-
-        APP_DEBUG("process_device_response: handle %p total length = %lu send_byte %lu\n",
-                                    server_device_request->device_handle,
-                                    (unsigned long int)client_device_request->length_in_bytes,
-                                    (unsigned long int)bytes);
-
-        /* let's copy the response data to service_response buffer */
-        memcpy(client_data->data, client_device_request->response_data, bytes);
-        client_device_request->response_data += bytes;
-        client_device_request->length_in_bytes -= bytes;
-
-        client_data->length_in_bytes = bytes;
-        client_data->flags = (client_device_request->length_in_bytes == 0 && client_device_request->count == 1) ? IDIGI_MSG_LAST_DATA : 0;
-        if (client_device_request->target == device_request_not_handle_target)
-        {
-            client_data->flags |= IDIGI_MSG_DATA_NOT_PROCESSED;
+        case device_request_terminate_in_application:
+            device_request_flag = device_request_terminate_in_application_start;
+            APP_DEBUG("process_device_response: device_request_terminate_in_application_start\n");
+            break;
+        case device_request_terminate:
+            APP_DEBUG("process_device_response: device_request_terminate\n");
+            device_request_flag = device_request_terminate_start;
+            break;
+        default:
+            APP_DEBUG("process_device_request: unknown device_request_flag = %d\n", device_request_flag);
         }
     }
+    client_data->length_in_bytes = 0; /* no data */
+    client_data->flags = IDIGI_MSG_LAST_DATA;
 
-    response_data->message_status = idigi_msg_error_none;
-
-    if (client_device_request->length_in_bytes == 0)
-    {
-        client_device_request->count--;
-        if (client_device_request->count > 0)
-        {
-            /* setup more data to be sent */
-            client_device_request->response_data = ds_buffer;
-            client_device_request->length_in_bytes = (rand() % (DS_DATA_SIZE +1));
-        }
-        else
-        {
-            /* done. let free memory */
-            goto error;
-        }
-    }
-    goto done;
-
-error:
-    /* done */
-    device_request_active_count--;
-    app_os_free(client_device_request);
-
-done:
     return status;
 }
 
@@ -498,17 +392,12 @@ static idigi_callback_status_t process_device_error(idigi_data_service_msg_reque
                                                     idigi_data_service_msg_response_t * const response_data)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    device_request_handle_t * const client_device_request = response_data->user_context;
-    idigi_data_service_device_request_t * const server_device_request = request_data->service_context;
     idigi_data_service_block_t * error_data = request_data->server_data;
     idigi_msg_error_t const error_code = *((idigi_msg_error_t *)error_data->data);
 
+    UNUSED_ARGUMENT(response_data);
 
-    APP_DEBUG("process_device_error: handle %p error %d from server\n",
-                server_device_request->device_handle, error_code);
-
-    device_request_active_count--;
-    app_os_free(client_device_request);
+    APP_DEBUG("process_device_error: error %d from server\n", error_code);
 
     return status;
 }
