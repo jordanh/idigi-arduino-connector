@@ -35,6 +35,7 @@
 
 #include "idigi_api.h"
 #include "platform.h"
+#include "application.h"
 
 enum {
     no_delay_receive,
@@ -362,6 +363,7 @@ static idigi_callback_status_t app_network_close(idigi_network_handle_t * const 
     }
 
     *fd = -1;
+    firmware_download_started = 0;
 
     return status;
 }
