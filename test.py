@@ -91,11 +91,11 @@ test_table = [
                                                                                      'test_put_request.py']],
               ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'admin_tests',  ['test_redirect.py']],
               ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'admin_tests',  ['test_nodebug_redirect.py']],
-              ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'dvt_tests',    ['test_terminate.py']],
               ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'dvt_tests',    ['test_reboot.py',
                                                                                                            'test_disconnect.py']],
               ['dvt',           BASE_DVT_SRC+'reboot_test',               BASE_SCRIPT_DIR+'dvt_tests',    ['test_delay_reboot.py',
                                                                                                            'test_disconnect.py']],
+              ['dvt',           BASE_DVT_SRC+'terminate_test',             BASE_SCRIPT_DIR+'dvt_tests',    ['test_ds_terminate.py']],
 ]
 
 def generate_id(api):
