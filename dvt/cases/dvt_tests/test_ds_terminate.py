@@ -8,7 +8,7 @@ from xml.dom.minidom import getDOMImplementation
 impl = getDOMImplementation()
 
 import idigi_ws_api
-from utils import clean_slate, DeviceConnectionMonitor, getText
+from utils import clean_slate, getText
 from data_service_utils import update_firmware, get_and_verify
 
 filedata = 'FileData/~/'
@@ -100,124 +100,103 @@ class TerminateTestCase(iik_testcase.TestCase):
         """
         
         self.log.info("***** Terminate in application thread *****")
-        monitor = DeviceConnectionMonitor(self.api, self.device_config.device_id)
 
-        try:
-            monitor.start()
+        # delete the file that sample is going to send for
+        # the reboot result.
+        delete_file(self, TERMINATE_TEST_FILE)
 
-            # delete the file that sample is going to send for
-            # the reboot result.
-            delete_file(self, TERMINATE_TEST_FILE)
+        # Send device request to request terminate the sample
+        status = send_device_request(self, 'request_terminate_in_application', '')
+        self.assertTrue(status == 0, "Unable to send device request")
+                  
+        # Wait for terminate result file.
+        # Create content that are expected from the reboot result file.
+        expected_content = "terminate_ok"
+        datetime_created = []
 
-            # Send device request to request terminate the sample
-            status = send_device_request(self, 'request_terminate_in_application', '')
-            self.assertTrue(status == 0, "Unable to send device request")
-                      
-            # Wait for terminate result file.
-            # Create content that are expected from the reboot result file.
-            expected_content = "terminate_ok"
-            datetime_created = []
-
-            # Create path to file for push.
-            file_push_location = filedatapush + self.device_config.device_id + '/' + TERMINATE_TEST_FILE
-        
-            # get and verify correct content is pushed.
-            get_and_verify(self, self.api, self.device_config.device_id, 
-                           datetime_created, file_push_location, expected_content)
-        
-        finally:
-            monitor.stop()        
-        
+        # Create path to file for push.
+        file_push_location = filedatapush + self.device_config.device_id + '/' + TERMINATE_TEST_FILE
+    
+        # get and verify correct content is pushed.
+        get_and_verify(self, self.api, self.device_config.device_id, 
+                       datetime_created, file_push_location, expected_content)
+               
     def test_terminate_in_put_request(self):
     
         """ Sends device request to application to call idigi_initiate_terminate
         """
         
         self.log.info("***** Terminate in callback *****")
-        monitor = DeviceConnectionMonitor(self.api, self.device_config.device_id)
 
-        try:
-            monitor.start()
+        # delete the file that sample is going to send for
+        # the reboot result.
+        delete_file(self, TERMINATE_TEST_FILE)
 
-            # delete the file that sample is going to send for
-            # the reboot result.
-            delete_file(self, TERMINATE_TEST_FILE)
+        # Send device request to request terminate the sample
+        status = send_device_request(self, 'request_terminate_in_callback', '')
+        self.assertTrue(status == 0, "Unable to send device request")
+                   
+        # Wait for terminate result file.
+        # Create content that are expected from the reboot result file.
+        expected_content = "terminate_ok"
+        datetime_created = []
 
-            # Send device request to request terminate the sample
-            status = send_device_request(self, 'request_terminate_in_callback', '')
-            self.assertTrue(status == 0, "Unable to send device request")
-                       
-            # Wait for terminate result file.
-            # Create content that are expected from the reboot result file.
-            expected_content = "terminate_ok"
-            datetime_created = []
-
-            # Create path to file for push.
-            file_push_location = filedatapush + self.device_config.device_id + '/' + TERMINATE_TEST_FILE
+        # Create path to file for push.
+        file_push_location = filedatapush + self.device_config.device_id + '/' + TERMINATE_TEST_FILE
+    
+        # get and verify correct content is pushed.
+        get_and_verify(self, self.api, self.device_config.device_id, 
+                       datetime_created, file_push_location, expected_content)
         
-            # get and verify correct content is pushed.
-            get_and_verify(self, self.api, self.device_config.device_id, 
-                           datetime_created, file_push_location, expected_content)
-        
-        finally:
-            monitor.stop()        
 
     def test_terminate_in_firmware(self):
     
         """ Sends a firmware update to teminate iik """
     
         self.log.info("***** Updating Firmware to terminate IIK *****")
-        monitor = DeviceConnectionMonitor(self.api, self.device_config.device_id)
 
-        try:
-            monitor.start()
+        # delete the file that sample is going to send for
+        # the reboot result.
+        delete_file(self, TERMINATE_TEST_FILE)
 
-            # delete the file that sample is going to send for
-            # the reboot result.
-            delete_file(self, TERMINATE_TEST_FILE)
+        # Send firmware target query
+        self.log.info("Sending firmware target query to %s." % self.device_config.device_id)
+               
+        # Find firmware targets
+        firmware_targets_xml = self.api.sci(FIRMWARE_QUERY_REQUEST % 
+            self.device_config.device_id)
+    
+        dom = xml.dom.minidom.parseString(firmware_targets_xml)
+        targets = dom.getElementsByTagName("target")
+    
+        self.log.info("Determining if the device has defined firmware targets.")
+        self.assertNotEqual(0, len(targets), 
+                "No targets exist on device %s" % self.device_config.device_id)
 
-            # Send firmware target query
-            self.log.info("Sending firmware target query to %s." % self.device_config.device_id)
-                   
-            # Find firmware targets
-            firmware_targets_xml = self.api.sci(FIRMWARE_QUERY_REQUEST % 
-                self.device_config.device_id)
-        
-            dom = xml.dom.minidom.parseString(firmware_targets_xml)
-            targets = dom.getElementsByTagName("target")
-        
-            self.log.info("Determining if the device has defined firmware targets.")
-            self.assertNotEqual(0, len(targets), 
-                    "No targets exist on device %s" % self.device_config.device_id)
+        # Encode firmware for transmittal
+        f = open(self.device_config.firmware_target_file[target], 'rb')
+        data = f.read()
+        data_value = encodestring(data)
+        f.close()
 
-            # Encode firmware for transmittal
-            f = open(self.device_config.firmware_target_file[target], 'rb')
-            data = f.read()
-            data_value = encodestring(data)
-            f.close()
+        # Send update request
+        request = (FIRMWARE_DATA_REQUEST % (target, self.device_config.device_id, data_value))
 
-            # Send update request
-            request = (FIRMWARE_DATA_REQUEST % (target, self.device_config.device_id, data_value))
+        self.log.info("Sending request to update firmware.")
+        response = self.api.sci(request)
+        self.log.info("Response to:\n%s" % response)
+   
+        # Wait for terminate result file.
+        # Create content that are expected from the reboot result file.
+        expected_content = "terminate_ok"
+        datetime_created = []
 
-            self.log.info("Sending request to update firmware.")
-            response = self.api.sci(request)
-            self.log.info("Response to:\n%s" % response)
-       
-            # Wait for terminate result file.
-            # Create content that are expected from the reboot result file.
-            expected_content = "terminate_ok"
-            datetime_created = []
-
-            # Create path to file for push.
-            file_push_location = filedatapush + self.device_config.device_id + '/' + TERMINATE_TEST_FILE
-        
-            # get and verify correct content is pushed.
-            get_and_verify(self, self.api, self.device_config.device_id, 
-                           datetime_created, file_push_location, expected_content)
-
-        finally:
-            monitor.stop()        
-
+        # Create path to file for push.
+        file_push_location = filedatapush + self.device_config.device_id + '/' + TERMINATE_TEST_FILE
+    
+        # get and verify correct content is pushed.
+        get_and_verify(self, self.api, self.device_config.device_id, 
+                       datetime_created, file_push_location, expected_content)
 
  
 if __name__ == '__main__':
