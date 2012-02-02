@@ -30,7 +30,7 @@
 
 #define INITIAL_WAIT_COUNT      4
 
-device_request_flag_t device_request_flag = device_request_idle;
+terminate_flag_t terminate_flag = device_request_idle;
 
 extern int app_os_get_system_time(unsigned long * const uptime);
 extern int app_os_malloc(size_t const size, void ** ptr);
@@ -129,7 +129,7 @@ idigi_status_t send_put_request(idigi_handle_t handle, int index)
         goto done;
     }
 
-    if (device_request_flag == device_request_terminate_in_application_start &&
+    if (terminate_flag == device_request_terminate_in_application_start &&
         put_file_active_count > 0)
     {
         idigi_status_t ccode;
@@ -142,7 +142,7 @@ idigi_status_t send_put_request(idigi_handle_t handle, int index)
         }
         else
         {
-            device_request_flag = device_request_terminate_done;
+            terminate_flag = device_request_terminate_done;
             status = idigi_callback_busy;
             goto done;
         }
@@ -190,7 +190,7 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
         {
         case idigi_data_service_type_need_data:
 
-            if (device_request_flag == device_request_terminate_start &&
+            if (terminate_flag == device_request_terminate_start &&
                 put_file_active_count > 0)
             {
                 idigi_status_t ccode;
@@ -203,7 +203,7 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
                 }
                 else
                 {
-                    device_request_flag = device_request_terminate_done;
+                    terminate_flag = device_request_terminate_done;
                     status = idigi_callback_busy;
                     goto done;
                 }
@@ -257,11 +257,11 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
 
                 if (strcmp(user->file_path, TERMINATE_TEST_FILE) == 0)
                 {
-                    if (device_request_flag != device_request_terminate_done)
+                    if (terminate_flag != device_request_terminate_done)
                     {
-                        APP_DEBUG("app_put_request_handle: (have data) unexpected device_request_flag = 0x%x\n", (unsigned)device_request_flag);
+                        APP_DEBUG("app_put_request_handle: (have data) unexpected terminate_flag = 0x%x\n", (unsigned)terminate_flag);
                     }
-                    device_request_flag = device_request_idle;
+                    terminate_flag = device_request_idle;
                 }
                 /* should be done now */
                 app_os_free(user);
@@ -310,7 +310,7 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
     if ((server_data->flags & IDIGI_MSG_FIRST_DATA) == IDIGI_MSG_FIRST_DATA)
     {
         unsigned long current_time;
-        device_request_flag_t request_flag = device_request_idle;
+        terminate_flag_t request_flag = device_request_idle;
 
         if (strcmp(server_device_request->target, request_terminate_target) == 0)
         {
@@ -330,18 +330,18 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
         if (request_flag != device_request_idle)
         {
             /* are we still processing previous in device_request */
-            if (device_request_flag != device_request_idle)
+            if (terminate_flag != device_request_idle)
             {
                 /* not done processing previous device request */
-                APP_DEBUG("process_device_response: already in process %d\n", device_request_flag);
+                APP_DEBUG("process_device_response: already in process %d\n", terminate_flag);
                 status = idigi_callback_busy;
             }
             else
             {
                 app_os_get_system_time(&current_time);
                 APP_DEBUG("process_device_request: request = %d time stamp = %lu (active session = %d)\n", request_flag, current_time, put_file_active_count);
-                response_data->user_context = &device_request_flag;
-                device_request_flag = request_flag;
+                response_data->user_context = &terminate_flag;
+                terminate_flag = request_flag;
             }
         }
 
@@ -361,25 +361,25 @@ static idigi_callback_status_t process_device_response(idigi_data_service_msg_re
     UNUSED_ARGUMENT(request_data);
 
     ASSERT(client_data != NULL);
-    if (response_data->user_context == &device_request_flag)
+    if (response_data->user_context == &terminate_flag)
     {
         unsigned long current_time;
 
         app_os_get_system_time(&current_time);
         APP_DEBUG("process_device_response: time stamp = %lu (active session = %d)\n", current_time, put_file_active_count);
 
-        switch (device_request_flag)
+        switch (terminate_flag)
         {
         case device_request_terminate_in_application:
-            device_request_flag = device_request_terminate_in_application_start;
+            terminate_flag = device_request_terminate_in_application_start;
             APP_DEBUG("process_device_response: device_request_terminate_in_application_start\n");
             break;
         case device_request_terminate:
             APP_DEBUG("process_device_response: device_request_terminate\n");
-            device_request_flag = device_request_terminate_start;
+            terminate_flag = device_request_terminate_start;
             break;
         default:
-            APP_DEBUG("process_device_request: unknown device_request_flag = %d\n", device_request_flag);
+            APP_DEBUG("process_device_request: unknown terminate_flag = %d\n", terminate_flag);
         }
     }
     client_data->length_in_bytes = 0; /* no data */
