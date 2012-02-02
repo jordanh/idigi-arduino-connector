@@ -21,7 +21,7 @@ FIRMWARE_QUERY_REQUEST = \
     
 class FirmwareTestCase(iik_testcase.TestCase):    
 
-    def test_confirm_firmware_version_match(self):
+    def test_check_firmware_version_match(self):
     
         """ Verifies that firmware version returned from device matches
         firmware version in configuration.
@@ -39,7 +39,7 @@ class FirmwareTestCase(iik_testcase.TestCase):
                         (new_device_core.dpFirmwareLevelDesc, 
                         self.device_config.firmware_version))
     
-    def test_validate_firmware_targets(self):
+    def test_confirm_firmware_targets(self):
     
         """ Verifies that the firmware targets returned match the firmware
         targets in the configuration.
@@ -166,7 +166,7 @@ class FirmwareTestCase(iik_testcase.TestCase):
                 "Device returned incorrect response to invalid firmware update.")
 
         
-    def test_concurrent_firmware_upgrade(self):
+    def test_validate_concurrent_firmware_upgrade(self):
     
         """ Sends an asynchronous firmware update followed quickly by a
         synchronous firmware update. Also verifies the correct responses
