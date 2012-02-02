@@ -42,118 +42,16 @@ pthread_t idigi_thread;
 pthread_t application_thread;
 pthread_t send_terminate_thread;
 
-#define  STACK_INIT_VALUE   0xEF
-
-__thread void * stack_top;
-__thread void * stack_bottom;
-__thread size_t stack_size_used = 0L;
-__thread size_t stack_size = 0L;
-
 idigi_status_t idigi_run_thread_status = idigi_success;
 
 extern char terminate_file_content[];
 
-void * PrintThreadStackInit(size_t * StackSize, size_t * GuardSize)
-{
-    pthread_attr_t Attributes;
-    void *StackTop;
-    void *StackBottom;
-
-    /* Get the pthread attributes */
-    memset (&Attributes, 0, sizeof (Attributes));
-    pthread_getattr_np (pthread_self(), &Attributes);
-    /* From the attributes, get the stack info */
-    pthread_attr_getstack (&Attributes, &StackTop, StackSize);
-    pthread_attr_getguardsize(&Attributes, GuardSize);
-
-    /* Done with the attributes */
-    pthread_attr_destroy (&Attributes);
-
-    StackBottom = (void *)((size_t)StackTop + *StackSize);
-
-#ifdef THREAD_STACK_SIZE_DEBUG
-    APP_DEBUG ("-------------------------------------\n");
-    APP_DEBUG ("Thread Stack top:        %p\n", StackTop);
-    APP_DEBUG ("Thread Stack size:       %zu bytes\n", *StackSize);
-    APP_DEBUG ("Thread Stack guard size: %zu bytes\n", *GuardSize);
-    APP_DEBUG ("Thread Min Stack size:   %d bytes\n", PTHREAD_STACK_MIN);
-    APP_DEBUG ("Thread Stack bottom:     %p\n", StackBottom);
-    APP_DEBUG ("-------------------------------------\n");
-#endif
-    return StackBottom;
-}
-
-void clear_stack_size(void)
-{
-    if (pthread_self() == idigi_thread)
-    {
-        unsigned char * ptr;
-        size_t size;
-
-        char nowhere;
-
-        /* address of 'nowhere' approximates end of stack */
-        void* stack_end = (void*)((long)&nowhere & 0xFFFFFFF4);
-
-        /* may want to double check stack grows downward on your platform */
-        size = (size_t)stack_bottom - (size_t)stack_end;
-
-        if (size > stack_size_used)
-        {
-            stack_size_used = size;
-        }
-
-        for (ptr = stack_top; ptr < (unsigned char *)((size_t)stack_end-sizeof stack_end); ptr++)
-        {
-            *ptr = STACK_INIT_VALUE;
-        }
-
-    }
-}
-
-size_t PrintSummaryStack(void)
-{
-    uint8_t * ptr = (uint8_t *)stack_top;
-
-    while (*ptr == STACK_INIT_VALUE)
-    {
-        ptr++;
-    }
-    APP_DEBUG("======================================\n");
-#ifdef THREAD_STACK_SIZE_DEBUG
-    APP_DEBUG("idigi_run thread Stack End        = %p\n", stack_top);
-    APP_DEBUG("idigi_run thread Stack Ptr        = %p\n", ptr);
-    APP_DEBUG("idigi_run thread Stack Start      = %p\n", stack_bottom);
-#endif
-    APP_DEBUG("idigi_run thread Stack Size Used  = %d bytes\n", (unsigned)((uint8_t *)stack_bottom-ptr));
-    return (size_t)((uint8_t *)stack_bottom-ptr);
-}
 
 
 void * idigi_run_thread(void * arg)
 {
-    void * threadStackStart;
-    size_t threadGuardSize;
-    unsigned char * ptr;
 
-    char nowhere;
-    stack_bottom = (void*)&nowhere;
-
-    threadStackStart = PrintThreadStackInit(&stack_size, &threadGuardSize);
-
-    {
-        size_t stackused = (size_t)((long)threadStackStart - (long)stack_bottom);
-        stack_size -= stackused;
-        stack_size -= threadGuardSize;
-    }
-
-    stack_top = (void *)((long)stack_bottom - stack_size);
-    for (ptr = stack_top; ptr < (unsigned char *)stack_bottom; ptr++)
-    {
-        *ptr = STACK_INIT_VALUE;
-    }
-
-    APP_DEBUG("idigi_run_thread starts %d Stack = %p to %p (size = %zu)\n", getpid(), stack_top, stack_bottom, stack_size);
+    APP_DEBUG("idigi_run_thread starts pid = %d \n", getpid());
     idigi_run_thread_status = idigi_success;
 
     while (idigi_run_thread_status == idigi_success)
@@ -170,11 +68,6 @@ void * idigi_run_thread(void * arg)
     }
     APP_DEBUG("idigi_run thread exits %d\n", idigi_run_thread_status);
 
-    PrintSummaryStack();
-    APP_DEBUG("stack size between idigi_run and callback = %zu\n", stack_size_used);
-    APP_DEBUG("\nidigi_run_thread:\n");
-    PrintThreadStackInit(&stack_size, &threadGuardSize);
-
     pthread_cancel(application_thread);
 
     pthread_exit(arg);
@@ -183,17 +76,13 @@ void * idigi_run_thread(void * arg)
 
 void * application_run_thread(void * arg)
 {
-    idigi_status_t status;
-    size_t threadGuardSize;
-    size_t threadStackSize;
+    int status;
 
     APP_DEBUG("application_run_thread starts\n");
 
     status = application_run((idigi_handle_t)arg);
 
     APP_DEBUG("application_run thread exits %d\n", status);
-    APP_DEBUG("\napplication_run_thread:\n");
-    PrintThreadStackInit(&threadStackSize, &threadGuardSize);
 
     pthread_exit(arg);
 }
