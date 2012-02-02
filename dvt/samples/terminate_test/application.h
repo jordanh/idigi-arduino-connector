@@ -27,6 +27,8 @@
 #ifndef APPLICATION_H_
 #define APPLICATION_H_
 
+#include "idigi_api.h"
+
 #define TERMINATE_TEST_FILE "terminate_test.txt"
 
 typedef enum {
@@ -36,8 +38,12 @@ typedef enum {
     device_request_terminate_in_application,
     device_request_terminate_in_application_start,
     device_request_terminate_done
-} device_request_flag_t;
+} terminate_flag_t;
 
-extern device_request_flag_t device_request_flag;
+extern idigi_handle_t idigi_handle;
+extern terminate_flag_t terminate_flag;
+extern unsigned int put_file_active_count;
+extern int firmware_download_started;
+
 
 #endif /* APPLICATION_H_ */
