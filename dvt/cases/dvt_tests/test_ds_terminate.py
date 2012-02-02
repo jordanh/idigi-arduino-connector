@@ -16,6 +16,27 @@ filedatapush = 'FileData/~%2F'
 
 TERMINATE_TEST_FILE = "terminate_test.txt"
 
+FIRMWARE_QUERY_REQUEST = \
+"""<sci_request version="1.0">
+  <query_firmware_targets>
+    <targets>
+      <device id="%s"/>
+    </targets>
+  </query_firmware_targets>
+</sci_request>"""
+    
+FIRMWARE_DATA_REQUEST= \
+"""<sci_request version="1.1">
+    <update_firmware firmware_target="%d">
+        <targets>
+            <device id="%s"/>
+        </targets>
+        <data>%s</data>
+    </update_firmware>
+</sci_request>"""
+
+target = 0
+
 def send_device_request(self, target_name, target_content):
 
     """ Verifies that the device request returned match the expected 
@@ -140,6 +161,63 @@ class TerminateTestCase(iik_testcase.TestCase):
         
         finally:
             monitor.stop()        
+
+    def test_terminate_in_firmware(self):
+    
+        """ Sends a firmware update to teminate iik """
+    
+        self.log.info("***** Updating Firmware to terminate IIK *****")
+        monitor = DeviceConnectionMonitor(self.api, self.device_config.device_id)
+
+        try:
+            monitor.start()
+
+            # delete the file that sample is going to send for
+            # the reboot result.
+            delete_file(self, TERMINATE_TEST_FILE)
+
+            # Send firmware target query
+            self.log.info("Sending firmware target query to %s." % self.device_config.device_id)
+                   
+            # Find firmware targets
+            firmware_targets_xml = self.api.sci(FIRMWARE_QUERY_REQUEST % 
+                self.device_config.device_id)
+        
+            dom = xml.dom.minidom.parseString(firmware_targets_xml)
+            targets = dom.getElementsByTagName("target")
+        
+            self.log.info("Determining if the device has defined firmware targets.")
+            self.assertNotEqual(0, len(targets), 
+                    "No targets exist on device %s" % self.device_config.device_id)
+
+            # Encode firmware for transmittal
+            f = open(self.device_config.firmware_target_file[target], 'rb')
+            data = f.read()
+            data_value = encodestring(data)
+            f.close()
+
+            # Send update request
+            request = (FIRMWARE_DATA_REQUEST % (target, self.device_config.device_id, data_value))
+
+            self.log.info("Sending request to update firmware.")
+            response = self.api.sci(request)
+            self.log.info("Response to:\n%s" % response)
+       
+            # Wait for terminate result file.
+            # Create content that are expected from the reboot result file.
+            expected_content = "terminate_ok"
+            datetime_created = []
+
+            # Create path to file for push.
+            file_push_location = filedatapush + self.device_config.device_id + '/' + TERMINATE_TEST_FILE
+        
+            # get and verify correct content is pushed.
+            get_and_verify(self, self.api, self.device_config.device_id, 
+                           datetime_created, file_push_location, expected_content)
+
+        finally:
+            monitor.stop()        
+
 
  
 if __name__ == '__main__':
