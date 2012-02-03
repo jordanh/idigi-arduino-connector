@@ -5,7 +5,7 @@
  * @section table_of_contents_porting Getting Started
  *
  * The Getting Started process will walk you through the steps necessary to get the IIK integrated into your 
- * development environment and running applications which connect to the iDigi Developer Cloud.
+ * development environment and running applications which connect to the iDigi Device Cloud.
  * 
  * These steps include:
  *   
@@ -37,8 +37,8 @@
  *          -# @ref step9
  * 
  * Two sample applications, @ref step3 "compile_and_link" and @ref step7 "connect_to_idigi", will be used to confirm your compilation tool chain
- * and integration, respectively.  When complete, your device will be connected to the iDigi Developer Cloud and be displayed
- * in the iDigi Developer Cloud Portal graphical user interface.
+ * and integration, respectively.  When complete, your device will be connected to the iDigi Device Cloud and be displayed
+ * in <a href="http://www.idigi.com/idigimanagerpro">iDigi Manager Pro</a>.
  *
  * @section step1 Step 1: Determine if your compiler is C89 or C99 compliant
  *
@@ -218,7 +218,7 @@
  * for your platform and implement the configuration routines.
  * All configuration routines are passed in a pointer to a pointer, along with a pointer to the size. 
  * The address of the configuration item is stored in the pointer passed in, and the size is assigned to the pointer to the size variable.
- * For example, app_get_server_url() is the routine used to retrieve the iDigi Developer Cloud URL
+ * For example, app_get_server_url() is the routine used to retrieve the iDigi Device Cloud URL
  * and is shown below.
  * @code
  *  static int app_get_server_url(char ** url, size_t * size)
@@ -435,12 +435,12 @@
  *
  * Given this output, a thorough code review of the app_get_server_url() function should reveal a porting defect.
  *
- * @subsection add_your_device_to_the_cloud Add your Device to the iDigi Developer Cloud
+ * @subsection add_your_device_to_the_cloud Add your Device to the iDigi Device Cloud
  * 
  * The next several sections walk through the steps required to add your device to 
- * the iDigi Developer Cloud. 
+ * the iDigi Device Cloud.
  *
- *  -# Navigate to http://www.idigi.com and login to the iDigi Developer Cloud
+ *  -# Navigate to http://www.idigi.com and login to the iDigi Device Cloud
  *  -# Click on Devices from within the left navigation panel.
  *  -# Click the Add Devices button (the + button under Devices) to bring up the Add Devices dialog.
  *
@@ -458,19 +458,19 @@
  *
  * @image html add4.png
  *
- * Click the OK button to add your device to the iDigi Developer Cloud.
+ * Click the OK button to add your device to the iDigi Device Cloud.
  * 
  * @image html add5.png
  *
- * @subsection view_result_on_cloud Viewing Results on the iDigi Developer Cloud
+ * @subsection view_result_on_cloud Viewing Results on the iDigi Device Cloud
  *
- * Click the Refresh button. The device will reconnect to the iDigi Developer Cloud.
+ * Click the Refresh button. The device will reconnect to the iDigi Device Cloud.
  * If successful your device Status will show connected.  You can now communicate 
  * with your device over the iDigi cloud.  The next step
  * is to integrate in one of the samples to add in more functionality to your
  * application.
  *
- * @note If you cannot connect to the iDigi Developer cloud, the most likely problem
+ * @note If you cannot connect to the iDigi Device cloud, the most likely problem
  * is in the iDigi Configuration, review the configuration routines in config.c;
  * The device ID and vendor ID must be valid to connect.
  *
@@ -478,7 +478,7 @@
  *
  * @section step9 Step 9: Next Steps
  *
- * Now that you have a basic sample up and running with the iDigi Developer Cloud, you
+ * Now that you have a basic sample up and running with the iDigi Device Cloud, you
  * can port in more functionality to your application.  We first suggest 
  * reading the @ref api1_overview "API" section of the documentation and then 
  * select a sample which has the functionality you need.

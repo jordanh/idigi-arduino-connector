@@ -144,7 +144,7 @@
  *
  * @section send Send
  *
- * Callback is called to send data to the iDigi Developer Cloud. This function may block up to
+ * Callback is called to send data to the iDigi Device Cloud. This function may block up to
  * the timeout specified in the idigi_write_request_t. If it encounters EAGAIN or EWOULDBLOCK
  * error, 0 bytes must be returned and IIK will continue calling this function.
  *
@@ -336,7 +336,7 @@
  *
  * @section close Close
  *
- * Callback is called to close a connection between a device and the iDigi Developer server
+ * Callback is called to close a connection between a device and the iDigi Device Cloud
  *
  * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
  * and implemented in the @b Platform function app_network_close() in network.c.

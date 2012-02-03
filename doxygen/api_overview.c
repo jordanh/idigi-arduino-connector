@@ -50,9 +50,9 @@
  * this API repeatedly to continue IIK operations.
  *
  * The idigi_step() performs the following operations:
- *  -# Establish and maintain a connection with the iDigi Developer Cloud.
- *  -# Wait for incoming messages from the iDigi Developer Cloud.
- *  -# Send outstanding messages to the iDigi Developer Cloud.
+ *  -# Establish and maintain a connection with the iDigi Device Cloud.
+ *  -# Wait for incoming messages from the iDigi Device Cloud.
+ *  -# Send outstanding messages to the iDigi Device Cloud.
  *
  * @subsection multi_threaded Multi-threaded model: idigi_run() 
  *
@@ -89,7 +89,7 @@
  *   @li Notify the application of critical events and status
  *   @li Firmware download
  *   @li Handle a device request
- *   @li Request more data when sending data to the iDigi Developer Cloud
+ *   @li Request more data when sending data to the iDigi Device Cloud
  *
  * @b Class @b ID and @b Request @b ID
  * enumeration values are used to identify the callback action. The application must perform and return

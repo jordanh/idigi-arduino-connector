@@ -4,9 +4,9 @@
  *
  * @section connect_overview Overview
  *
- * In this example the device connects to the iDigi Developer clound and sends
+ * In this example the device connects to the iDigi Device cloud and sends
  * basic information about the device, this is intended to verify that the
- * device can communicate with the iDigi Developer cloud and the user
+ * device can communicate with the iDigi Device cloud and the user
  * can login and view the device configuration.
  *
  *

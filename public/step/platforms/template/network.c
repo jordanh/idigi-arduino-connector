@@ -32,7 +32,7 @@
 /**
  * @brief   Connect to the iDigi server
  *
- * This routine sets up a connection to the iDigi Developer Cloud specified in the
+ * This routine sets up a connection to the iDigi Device Cloud specified in the
  * host_name and fills in a network handle which is then passed to subsequent 
  * networking calls. This routine will take the given hostname and attempt to 
  * resolve the name, connect and wait for the connection to complete. The example 
@@ -64,7 +64,7 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
 /**
  * @brief   Send data to the iDigi server
  *
- * This routine sends data to the iDigi Developer Cloud. This function must not block.
+ * This routine sends data to the iDigi Device Cloud. This function must not block.
  * If it encounters EAGAIN or EWOULDBLOCK error, 0 bytes must be returned and the IIK 
  * will continue calling this function. If successful idigi_callback_continue is returned. 
  * If the data could not be sent idigi_callback_busy is returned, otherwise idigi_callback_abort is returned.
@@ -90,7 +90,7 @@ static idigi_callback_status_t app_network_send(idigi_write_request_t const * co
 /**
  * @brief   Receive data from the iDigi server
  *
- * This routine reads a specified number of bytes from the iDigi Developer Cloud.
+ * This routine reads a specified number of bytes from the iDigi Device Cloud.
  * This function blocks up to the timeout value specified. If no data is received
  * and the timeout has expired 0 bytes must be returned and IIK will continue 
  * calling this function.
@@ -118,7 +118,7 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t * read_d
 /**
  * @brief   Close the connection to the iDigi server
  *
- * This routine closes the connection to the iDigi Developer Cloud
+ * This routine closes the connection to the iDigi Device Cloud
  *
  * @param [in] fd  Pointer to a idigi_read_request_t structure
  *
