@@ -166,9 +166,9 @@
  * @image html idigi4.jpg
  *
  * @subsection idigi_vendor_id Obtain an iDigi Vendor ID
- * 2. If you are a first time iDigi developer, you will need to register for a Vendor ID.  This button is in the
- * Vendor Information section on the bottom of the @b My @b Account tab after you successfully logging into
- * https://developer.idigi.com/.
+ * 2. If you are a first time iDigi developer, you will need to obtain an iDigi Vendor ID.  To
+ * obtain an iDigi Vendor ID, select the register for Vendor ID button in the Vendor Information
+ * section on the bottom of the @b My @b Account tab after successfully logging into https://developer.idigi.com/.
  *
  * After selecting the register for a Vendor ID button, the page will refresh and your unique vendor ID number
  * will be displayed in place of the button.  Record the Vendor ID, you will need it later.

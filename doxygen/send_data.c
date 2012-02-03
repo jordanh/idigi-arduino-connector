@@ -112,7 +112,8 @@
  *
  * @image html sample1.png
  *
- * This samples creates test.txt under test directory. Double clicks to open the test directory.
+ * This sample creates a file test.txt in the test directory.  Double click on the test folder to
+ * open the test directory.
  *
  * @image html send_data_sample3.png
  *

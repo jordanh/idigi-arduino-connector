@@ -179,18 +179,18 @@
  *     @li Reboot a device
  *
  * @section communicating Communicating with your device
- *
  * To manage your device you can use the iDigi Developer Cloud Portal.  This contains
  * the graphical user interface to the iDigi Developer Cloud, which allows for
- * complete management of your device.
+ * complete management of your device.  Alternatively, you can communicate with
+ * your device without the iDigi Developer Cloud graphical interface using
+ * @ref web_services "iDigi Web Services".
  *
- * To communicate with your device remotely without using the graphical interface
- * to the iDigi Developer Cloud you can use @b iDigi @b Web @b Services.  Web service
- * requests are sent from an application to the iDigi Developer Cloud, the iDigi
- * Device Cloud, which then communicates with the device, this allows for bidirectional
- * machine to machine communication.  This allows for bidirectional machine to machine
- * communication. Python samples are provided to show how to communicate to a device using
- * the iDigi Developer Cloud.
+ * @ref web_services "iDigi Web Services" requests are sent from a remote application to
+ * the iDigi Developer Cloud, which then directly communicates to the device.  This
+ * allows for bidirectional machine to machine communication.
+ *
+ * Each IIK sample includes a Python application demonstrating how to communicate to
+ * a device using the @ref web_services "iDigi Web Services".
  *
  * @section threading Threading Model
  *
