@@ -13,12 +13,12 @@ ENHANCEMENTS
         HTML-based User Guide with more hot links and tighter integration with 
         software distribution.
 
-        Reduced the dynamic memory needed to run the IIK.  By adding support for 
-        the idigi_config_max_transaction callback (or the compile time 
-        IDIGI_MSG_MAX_TRANSACTION definition), a limited memory model is used 
-        instead of a unbounded model.  For minimal use, the 
-        idigi_config_max_transaction (or IDIGI_MSG_MAX_TRANSACTION) should be
-        set to 1.   
+        Reduced the amount of dynamic memory required to execute the IIK.  With 
+        added support for the idigi_config_max_transaction callback (or the 
+        compile time IDIGI_MSG_MAX_TRANSACTION definition), a limited memory 
+        approach is employed instead of an unbounded model.  For minimal memory 
+        usage, idigi_config_max_transaction (or IDIGI_MSG_MAX_TRANSACTION) 
+        should be set to 1.   
        
 DEPRECATED FUNCTIONS AND CHANGES
 
