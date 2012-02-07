@@ -154,7 +154,7 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
             if update_config_header:
                 config.update_config_header(
                     os.path.join(sandbox_dir, 'public/include/idigi_config.h'), 
-                    os.path.join(sandbox_dir, SAMPLE_SCRIPT_DIR+'config.ini'))
+                    os.path.join(test_dir, 'config.ini'))
      
             print '>>> [%s] Testing [%s]-[%s]' % (description, execution_type, src_dir)
 
