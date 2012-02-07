@@ -22,8 +22,8 @@ def build(dir, cflags):
     return (process.returncode, data)
 
 def setup_platform(config_dir, platform_dir, mac_addr):
-    config.remove_errors(platform_dir+'config.c')
-    config.update_config_source(platform_dir+'config.c', config_dir+'config.ini', mac_addr)
+    config.remove_errors(os.path.join(platform_dir, 'config.c'))
+    config.update_config_source(os.path.join(platform_dir, 'config.c'), os.path.join(config_dir, 'config.ini'), mac_addr)
 
 def sandbox(directory):
     """

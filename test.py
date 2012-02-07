@@ -78,24 +78,25 @@ MAC_ADDR_PROTOTYPE = '%s:%s'
 #
 #              Execution type   Directory                                 Script directory                Test Scripts
 test_table = [
-              ['step',          BASE_STEP_SAMPLE_DIR+'connect_to_idigi',  BASE_SCRIPT_DIR+'sample_tests', ['test_discovery.py']],
-              ['step',          BASE_STEP_SAMPLE_DIR+'firmware_download', BASE_SCRIPT_DIR+'sample_tests', ['test_firmware.py']],
-              ['step',          BASE_STEP_SAMPLE_DIR+'send_data',         BASE_SCRIPT_DIR+'sample_tests', ['test_send_data.py']],
-              ['step',          BASE_STEP_SAMPLE_DIR+'device_request',    BASE_SCRIPT_DIR+'sample_tests', ['test_device_request.py']],
-              ['run',           BASE_RUN_SAMPLE_DIR+'connect_to_idigi',   BASE_SCRIPT_DIR+'sample_tests', ['test_discovery.py']],
-              ['run',           BASE_RUN_SAMPLE_DIR+'firmware_download',  BASE_SCRIPT_DIR+'sample_tests', ['test_firmware.py']],
-              ['run',           BASE_RUN_SAMPLE_DIR+'send_data',          BASE_SCRIPT_DIR+'sample_tests', ['test_send_data.py']],
-              ['run',           BASE_RUN_SAMPLE_DIR+'device_request',     BASE_SCRIPT_DIR+'sample_tests', ['test_device_request.py']],
-              ['dvt',           BASE_DVT_SRC+'full_test',                 BASE_SCRIPT_DIR+'dvt_tests',    ['test_firmware_errors.py', 
+              ['step',          BASE_STEP_SAMPLE_DIR+'connect_to_idigi',  BASE_SCRIPT_DIR+'sample_tests/', ['test_discovery.py']],
+              ['step',          BASE_STEP_SAMPLE_DIR+'firmware_download', BASE_SCRIPT_DIR+'sample_tests/', ['test_firmware.py']],
+              ['step',          BASE_STEP_SAMPLE_DIR+'send_data',         BASE_SCRIPT_DIR+'sample_tests/', ['test_send_data.py']],
+              ['step',          BASE_STEP_SAMPLE_DIR+'device_request',    BASE_SCRIPT_DIR+'sample_tests/', ['test_device_request.py']],
+              ['run',           BASE_RUN_SAMPLE_DIR+'connect_to_idigi',   BASE_SCRIPT_DIR+'sample_tests/', ['test_discovery.py']],
+              ['run',           BASE_RUN_SAMPLE_DIR+'firmware_download',  BASE_SCRIPT_DIR+'sample_tests/', ['test_firmware.py']],
+              ['run',           BASE_RUN_SAMPLE_DIR+'send_data',          BASE_SCRIPT_DIR+'sample_tests/', ['test_send_data.py']],
+              ['run',           BASE_RUN_SAMPLE_DIR+'device_request',     BASE_SCRIPT_DIR+'sample_tests/', ['test_device_request.py']],
+              ['dvt',           BASE_DVT_SRC+'full_test',                 BASE_SCRIPT_DIR+'dvt_tests/',    ['test_firmware_errors.py', 
                                                                                      'test_device_request.py',
                                                                                      'test_put_request.py']],
-              ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'admin_tests',  ['test_redirect.py']],
-              ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'admin_tests',  ['test_nodebug_redirect.py']],
-              ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'dvt_tests',    ['test_reboot.py',
+              ['dvt',           BASE_DVT_SRC+'keep_alive_test',           BASE_SCRIPT_DIR+'keep_alive/',   ['test_keep_alive.py']],
+              ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'admin_tests/',  ['test_redirect.py']],
+              ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'admin_tests/',  ['test_nodebug_redirect.py']],
+              ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'dvt_tests/',    ['test_reboot.py',
                                                                                                            'test_disconnect.py']],
-              ['dvt',           BASE_DVT_SRC+'reboot_test',               BASE_SCRIPT_DIR+'dvt_tests',    ['test_delay_reboot.py',
+              ['dvt',           BASE_DVT_SRC+'reboot_test',               BASE_SCRIPT_DIR+'dvt_tests/',    ['test_delay_reboot.py',
                                                                                                            'test_disconnect.py']],
-              ['dvt',           BASE_DVT_SRC+'terminate_test',             BASE_SCRIPT_DIR+'dvt_tests',    ['test_ds_terminate.py']],
+              ['dvt',           BASE_DVT_SRC+'terminate_test',             BASE_SCRIPT_DIR+'dvt_tests/',    ['test_ds_terminate.py']],
 ]
 
 def generate_id(api):
@@ -140,21 +141,20 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
             for (f, s, r) in replace_list:
                 config.replace_string(os.path.join(sandbox_dir, f), s, r)
 
-            if update_config_header:
-                config.update_config_header(
-                    os.path.join(sandbox_dir, 'public/include/idigi_config.h'), 
-                    os.path.join(sandbox_dir, SAMPLE_SCRIPT_DIR+'config.ini'))
-
             (device_id, mac_addr, device_location) = generate_id(api)
-            setup_platform(os.path.join(sandbox_dir, SAMPLE_SCRIPT_DIR), 
-                os.path.join(sandbox_dir, SAMPLE_PLATFORM_RUN_DIR), mac_addr)
-            setup_platform(os.path.join(sandbox_dir, SAMPLE_SCRIPT_DIR), 
-                os.path.join(sandbox_dir, SAMPLE_PLATFORM_STEP_DIR), mac_addr)
-            execution_type = test[EXECUTION]
             src_dir        = os.path.join(sandbox_dir, test[SRC_DIR])
             test_dir       = os.path.join(sandbox_dir, test[TEST_DIR])
             src_dirname    = os.path.basename(src_dir)
             test_list      = test[TEST_LIST]
+
+            setup_platform(test_dir, os.path.join(sandbox_dir, SAMPLE_PLATFORM_RUN_DIR), mac_addr)
+            setup_platform(test_dir, os.path.join(sandbox_dir, SAMPLE_PLATFORM_STEP_DIR), mac_addr)
+            execution_type = test[EXECUTION]
+
+            if update_config_header:
+                config.update_config_header(
+                    os.path.join(sandbox_dir, 'public/include/idigi_config.h'), 
+                    os.path.join(sandbox_dir, SAMPLE_SCRIPT_DIR+'config.ini'))
      
             print '>>> [%s] Testing [%s]-[%s]' % (description, execution_type, src_dir)
 
