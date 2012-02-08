@@ -71,7 +71,7 @@ idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_r
 
 int application_run(idigi_handle_t handle)
 {
-    int ret_value = 0;
+    int return_status = 0;
 
     for (;;)
     {
@@ -92,12 +92,12 @@ int application_run(idigi_handle_t handle)
         
         default:
             APP_DEBUG("Send data failed [%d]\n", status);
-            ret_value = 1;
+            return_status = 1;
             goto done;
         }
     }
 
 done:
-    return ret_value;
+    return return_status;
 }
 

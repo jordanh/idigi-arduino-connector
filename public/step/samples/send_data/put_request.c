@@ -69,7 +69,7 @@ idigi_callback_status_t app_data_service_handler(idigi_data_service_request_t co
         {
         case idigi_data_service_type_need_data:
             {
-                idigi_data_service_block_t * message = put_response->client_data;
+                idigi_data_service_block_t * const message = put_response->client_data;
                 char const buffer[] = "iDigi data service sample\n";
                 size_t const bytes = strlen(buffer);
 
@@ -84,12 +84,12 @@ idigi_callback_status_t app_data_service_handler(idigi_data_service_request_t co
 
         case idigi_data_service_type_have_data:
             {
-                idigi_data_service_block_t * message = put_request->server_data;
+                idigi_data_service_block_t * const message = put_request->server_data;
 
                 APP_DEBUG("Received %s response from server\n", ((message->flags & IDIGI_MSG_RESP_SUCCESS) != 0) ? "success" : "error");
                 if (message->length_in_bytes > 0) 
                 {
-                    char * const data = (char *)message->data;
+                    char * const data = message->data;
 
                     data[message->length_in_bytes] = '\0';
                     APP_DEBUG("Server response %s\n", data);
@@ -99,7 +99,7 @@ idigi_callback_status_t app_data_service_handler(idigi_data_service_request_t co
 
         case idigi_data_service_type_error:
             {
-                idigi_data_service_block_t * message = put_request->server_data;
+                idigi_data_service_block_t * const message = put_request->server_data;
                 idigi_msg_error_t const * const error_value = message->data;
 
                 APP_DEBUG("Data service error: %d\n", *error_value);
