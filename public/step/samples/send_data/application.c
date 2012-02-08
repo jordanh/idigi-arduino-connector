@@ -70,20 +70,30 @@ idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_r
     return status;
 }
 
-
 int application_step(idigi_handle_t handle)
 {
-    static int sent_once=0;
-    idigi_status_t status;
-    int ret=0;
+    static int sent_once = 0;
 
     if (sent_once == 0) 
     {
-        status = app_send_put_request(handle);
-        if (status != idigi_init_error)
+        idigi_status_t const status = app_send_put_request(handle);
+
+        switch (status) 
+        {
+        case idigi_init_error:
+            break;
+
+        case idigi_success:
             sent_once = 1;
+            break;
+        
+        default:
+            APP_DEBUG("Send data failed [%d]\n", status);
+            sent_once = 1;
+            break;
+        }
     }
 
-    return ret;
+    return 0;
 }
 

@@ -71,21 +71,33 @@ idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_r
 
 int application_run(idigi_handle_t handle)
 {
-    int stop_calling = 0;
+    int ret_value = 0;
 
     for (;;)
     {
-        unsigned int const sleep_time_in_seconds = 1;
         idigi_status_t const status = app_send_put_request(handle);
-
-        app_os_sleep(sleep_time_in_seconds);
-        if (status != idigi_init_error)
+        
+        switch (status) 
         {
-            stop_calling = 1;
-            break;
-        }
-    };
+        case idigi_init_error:
+            {
+                unsigned int const sleep_time_in_seconds = 1;
 
-    return stop_calling;
+                app_os_sleep(sleep_time_in_seconds);
+            }
+            break;
+
+        case idigi_success:
+            goto done;
+        
+        default:
+            APP_DEBUG("Send data failed [%d]\n", status);
+            ret_value = 1;
+            goto done;
+        }
+    }
+
+done:
+    return ret_value;
 }
 

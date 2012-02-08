@@ -29,8 +29,6 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-static unsigned int sample_number;
-
 idigi_status_t app_send_put_request(idigi_handle_t handle)
 {
     idigi_status_t status = idigi_success;
@@ -47,7 +45,6 @@ idigi_status_t app_send_put_request(idigi_handle_t handle)
 
     return status;
 }
-#define BUFFER_SIZE 64
 
 idigi_callback_status_t app_data_service_handler(idigi_data_service_request_t const request,
                                                   void const * request_data, size_t const request_length,
@@ -73,29 +70,29 @@ idigi_callback_status_t app_data_service_handler(idigi_data_service_request_t co
         case idigi_data_service_type_need_data:
             {
                 idigi_data_service_block_t * message = put_response->client_data;
-                char * dptr = message->data;
-                char buffer[BUFFER_SIZE];
-
-                snprintf(buffer, BUFFER_SIZE, "iDigi data service sample [%d]\n", sample_number);
+                char const buffer[] = "iDigi data service sample\n";
                 size_t const bytes = strlen(buffer);
 
-                memcpy(dptr, buffer, bytes);
-                message->length_in_bytes = bytes;
+                if (message->length_in_bytes > bytes)
+                    message->length_in_bytes = bytes;
+
+                memcpy(message->data, buffer, message->length_in_bytes);
                 message->flags = IDIGI_MSG_LAST_DATA | IDIGI_MSG_FIRST_DATA;
                 put_response->message_status = idigi_msg_error_none;
-                sample_number++;
             }
             break;
 
         case idigi_data_service_type_have_data:
             {
                 idigi_data_service_block_t * message = put_request->server_data;
-                uint8_t const * data = message->data;
 
                 APP_DEBUG("Received %s response from server\n", ((message->flags & IDIGI_MSG_RESP_SUCCESS) != 0) ? "success" : "error");
                 if (message->length_in_bytes > 0) 
                 {
-                    APP_DEBUG("Server response %s\n", (char *)data);
+                    char * const data = (char *)message->data;
+
+                    data[message->length_in_bytes] = '\0';
+                    APP_DEBUG("Server response %s\n", data);
                 }
             }
             break;

@@ -11,7 +11,6 @@ from utils import clean_slate
 impl = getDOMImplementation()
 
 filedata = 'FileData/~/'
-expected_content = "iDigi data service sample [0]\n"
     
 class SendDataTestCase(iik_testcase.TestCase):
     
@@ -36,7 +35,8 @@ class SendDataTestCase(iik_testcase.TestCase):
         except Exception, e:
             self.fail('Failed to Get Device Contents.  Reason: %s' % e)
         
-        # Verify file's contents        
+        # Verify file's contents
+        expected_content = 'iDigi data service sample\n'
         self.assertEqual(expected_content, file_content, 
             "File's contents do not match Expected: %s, Got: %s" %(expected_content, file_content))
 

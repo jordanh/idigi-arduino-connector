@@ -332,6 +332,7 @@ static idigi_callback_status_t msg_call_service_layer(idigi_data_t * const idigi
     service_ptr->flags = status_flag;
 
     status = cb_fn(idigi_ptr, service_ptr);
+    ASSERT_GOTO(service_ptr->length_in_bytes <= bytes, error);
     if ((status == idigi_callback_continue) && (service_ptr->service_type != type))
     {
 
