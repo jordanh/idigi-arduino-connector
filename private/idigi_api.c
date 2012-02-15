@@ -54,7 +54,7 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
     idigi_data_t * idigi_handle = NULL;
     idigi_callback_status_t status = idigi_callback_abort;
     idigi_status_t error_status = idigi_success;
-    unsigned i;
+    unsigned int i;
 
 
     static const struct {
@@ -204,7 +204,7 @@ idigi_status_t idigi_step(idigi_handle_t const handle)
 {
     idigi_status_t result = idigi_init_error;
     idigi_callback_status_t status = idigi_callback_continue;
-    idigi_data_t * const idigi_handle = (idigi_data_t * const)handle;
+    idigi_data_t * const idigi_handle = handle;
 
     ASSERT_GOTO(handle != NULL, done);
 
