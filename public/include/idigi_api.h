@@ -418,7 +418,7 @@ typedef struct  {
     idigi_network_handle_t * network_handle;    /**< Pointer to network handle associated with a connection through the idigi_network_connect callback */
     uint8_t const * buffer;                     /**< Pointer to data to be sent */
     size_t length;                              /**< Number of bytes of data to be sent */
-    unsigned timeout;                           /**< Timeout value in seconds which callback must return. This allows IIK to maintenance keepalive process and send process. */
+    unsigned int timeout;                       /**< Timeout value in seconds which callback must return. This allows IIK to maintenance keepalive process and send process. */
 } idigi_write_request_t;
 /**
 * @}
@@ -436,7 +436,7 @@ typedef struct  {
     idigi_network_handle_t * network_handle;    /**< Pointer to network handle associated with a connection through the idigi_network_connect callback */
     uint8_t * buffer;                           /**< Pointer to memory where callback writes recieved data to */
     size_t length;                              /**< Number of bytes to be received */
-    unsigned timeout;                           /**< Timeout value in seconds which callback must return. This allows IIK to maintenance keepalive process and send process. */
+    unsigned int timeout;                       /**< Timeout value in seconds which callback must return. This allows IIK to maintenance keepalive process and send process. */
 } idigi_read_request_t;
 /**
 * @}
@@ -451,8 +451,8 @@ typedef struct  {
 * @ref idigi_firmware_description, @ref idigi_firmware_name_spec, and @ref idigi_firmware_target_reset callbacks.
 */
 typedef struct {
-    unsigned timeout;    /**< Timeout value which callback must return control back to IIK in seconds */
-    uint8_t target;      /**< Target number */
+    unsigned int timeout; /**< Timeout value which callback must return control back to IIK in seconds */
+    uint8_t target;       /**< Target number */
 } idigi_fw_config_t;
 /**
 * @}
@@ -467,7 +467,7 @@ typedef struct {
 * is called when server requests firmware download.
 */
 typedef struct {
-    unsigned timeout;           /**< Timeout value which callback must return control back to IIK in seconds */
+    unsigned int timeout;       /**< Timeout value which callback must return control back to IIK in seconds */
     uint8_t target;             /**< Target number of whcih firmware download request for */
     uint32_t version;           /**< Reserved */
     uint32_t code_size;         /**< size of the code that is ready to be sent to the target */
@@ -488,7 +488,7 @@ typedef struct {
 * is called when IIK receives a block of image data for firmware download.
 */
 typedef struct {
-    unsigned timeout;       /**< Timeout value which callback must return control back to IIK in seconds */
+    unsigned int timeout;   /**< Timeout value which callback must return control back to IIK in seconds */
     uint8_t target;         /**< Target number of which image data for */
     uint32_t offset;        /**< Offset value where this particular block of image data fits into the download */
     uint8_t * data;         /**< Pointer binary image data */
@@ -508,7 +508,7 @@ typedef struct {
 * sending all image data.
 */
 typedef struct {
-    unsigned timeout;       /**< Timeout value which callback must return control back to IIK in seconds */
+    unsigned int timeout;   /**< Timeout value which callback must return control back to IIK in seconds */
     uint8_t target;         /**< Target number of which firmware download complete for */
     uint32_t code_size;     /**< Code size of the entire image data sent */
     uint32_t checksum;      /**< CRC-32 value computed from offset 0 to code size. If it's 0, no checksum is required */
@@ -543,7 +543,7 @@ typedef struct {
 * is called when server aborts firmware download process.
 */
 typedef struct {
-    unsigned timeout;           /**< Timeout value which callback must return control back to IIK in seconds */
+    unsigned int timeout;       /**< Timeout value which callback must return control back to IIK in seconds */
     uint8_t target;             /**< Target number of which firmware download abort for */
     idigi_fw_status_t status;   /**< Abort reason or status */
 } idigi_fw_download_abort_t;
