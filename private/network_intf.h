@@ -81,7 +81,7 @@ static void set_idigi_state(idigi_data_t * const idigi_ptr, int const state)
 }
 
 static idigi_callback_status_t initiate_send_packet(idigi_data_t * const idigi_ptr, uint8_t * const edp_header,
-                                                    uint16_t const length, uint16_t const type,
+                                                    size_t const length, uint16_t const type,
                                                     send_complete_cb_t send_complete_cb, void * const user_data)
 {
     idigi_callback_status_t status = idigi_callback_continue;
@@ -91,6 +91,7 @@ static idigi_callback_status_t initiate_send_packet(idigi_data_t * const idigi_p
      */
 
     ASSERT_GOTO(edp_header != NULL, done);
+    ASSERT_GOTO(length <= UINT16_MAX, done);
 
     if (idigi_ptr->send_packet.total_length > 0)
     {
@@ -152,8 +153,9 @@ static idigi_callback_status_t initiate_send_facility_packet(idigi_data_t * cons
     message_store_u8(edp_protocol, payload, DISC_OP_PAYLOAD);
     message_store_be16(edp_protocol, facility, facility);
 
+
     return initiate_send_packet(idigi_ptr, edp_header,
-                                (uint16_t)(length + PACKET_EDP_PROTOCOL_SIZE),
+                                (length + PACKET_EDP_PROTOCOL_SIZE),
                                 E_MSG_MT2_TYPE_PAYLOAD,
                                 send_complete_cb,
                                 user_data);
@@ -290,7 +292,7 @@ static idigi_callback_status_t rx_keepalive_process(idigi_data_t * const idigi_p
 
     idigi_debug("rx_keepalive_process: time to send Rx keepalive\n");
 
-    status = initiate_send_packet(idigi_ptr, (uint8_t * const)&idigi_ptr->rx_keepalive_packet, 0, E_MSG_MT2_TYPE_KA_KEEPALIVE, NULL, NULL);
+    status = initiate_send_packet(idigi_ptr, idigi_ptr->rx_keepalive_packet, 0, E_MSG_MT2_TYPE_KA_KEEPALIVE, NULL, NULL);
 
 done:
     return status;
@@ -442,6 +444,7 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
         }
     }
 
+
     /* check Tx keepalive timing */
     if (GET_TX_KEEPALIVE_INTERVAL(idigi_ptr) > 0)
     {
@@ -466,6 +469,7 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
             idigi_debug("idigi_receive: keepalive fails\n");
         }
     }
+
 
 done:
     idigi_ptr->receive_packet.timeout = MAX_RECEIVE_TIMEOUT_IN_SECONDS;
