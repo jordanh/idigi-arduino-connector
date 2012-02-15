@@ -67,6 +67,7 @@
 /**
 * @}
 */
+#define UINT16_MAX  0xFFFF
 
 #endif
 
