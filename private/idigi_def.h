@@ -222,8 +222,8 @@ typedef struct idigi_data {
     idigi_edp_state_t edp_state;
     idigi_status_t error_code;
 
-    unsigned layer_state;
-    unsigned request_id;
+    unsigned int layer_state;
+    unsigned int request_id;
     uint16_t facilities;
     idigi_bool_t network_connected;
     idigi_bool_t network_busy;
