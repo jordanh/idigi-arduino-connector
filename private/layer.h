@@ -186,7 +186,7 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
             idigi_config_wait_count
 #endif
     };
-    unsigned i;
+    unsigned int i;
 
    /* Call callback to get server url, wait count, tx keepalive, rx keepalive, & password.
     * Call error status callback if error is encountered (NULL data, invalid range, invalid size).
@@ -325,7 +325,7 @@ static idigi_callback_status_t layer_get_supported_facilities(idigi_data_t * con
 {
 #define NUMBER_FACILITY_PER_BYTE CHAR_BIT
     idigi_callback_status_t status = idigi_callback_continue;
-    unsigned i;
+    unsigned int i;
 
     idigi_ptr->facilities = 0;
 
@@ -418,7 +418,7 @@ enum edp_version {
     field_define(edp_version, version, uint32_t),
     record_end(edp_version)
 };
-    uint16_t const version_message_size = record_bytes(edp_version);
+    size_t const version_message_size = record_bytes(edp_version);
 
     idigi_callback_status_t status = idigi_callback_busy;
     uint8_t * edp_version;
@@ -745,7 +745,7 @@ enum {
             field_define(edp_security, identity, uint8_t),
             record_end(edp_security)
         };
-        uint16_t const edp_security_size = record_bytes(edp_security);
+        size_t const edp_security_size = record_bytes(edp_security);
         uint8_t * edp_security = start_ptr;
 
         idigi_debug("Security layer: send security form\n");
@@ -776,7 +776,7 @@ enum {
             field_define_array(edp_device_id, id, DEVICE_ID_LENGTH),
             record_end(edp_device_id)
         };
-        uint16_t const device_id_message_size = record_bytes(edp_device_id);
+        size_t const device_id_message_size = record_bytes(edp_device_id);
         uint8_t * edp_device_id = start_ptr;
 
         idigi_debug_hexvalue("security layer: send device ID", idigi_ptr->device_id, DEVICE_ID_LENGTH);
@@ -838,7 +838,7 @@ enum {
         memcpy(edp_server_url, server_url, idigi_ptr->server_url_length);
         edp_server_url += idigi_ptr->server_url_length;
 
-        status = initiate_send_packet(idigi_ptr, edp_header, (uint16_t const)(edp_server_url-start_ptr),
+        status = initiate_send_packet(idigi_ptr, edp_header, (edp_server_url-start_ptr),
                                     E_MSG_MT2_TYPE_PAYLOAD,
                                     release_packet_buffer,
                                     NULL);
@@ -895,7 +895,7 @@ enum {
             field_define_array(edp_vendor_msg, vendor_id, VENDOR_ID_LENGTH),
             record_end(edp_vendor_msg)
         };
-        uint16_t const discovery_vendor_header_size = record_bytes(edp_vendor_msg);
+        size_t const discovery_vendor_header_size = record_bytes(edp_vendor_msg);
         uint8_t * edp_vendor_msg = start_ptr;
 
         message_store_u8(edp_vendor_msg, security_coding, SECURITY_PROTO_NONE);
@@ -965,7 +965,7 @@ enum {
         idigi_debug("discovery layer: send device type = %.*s\n", device_type_length, idigi_device_type);
 
         status = initiate_send_packet(idigi_ptr, edp_header,
-                                    (uint16_t)(device_type_header_size + device_type_length),
+                                    (device_type_header_size + device_type_length),
                                     E_MSG_MT2_TYPE_PAYLOAD,
                                     release_packet_buffer,
                                     NULL);
@@ -1001,7 +1001,7 @@ enum {
             field_define(edp_discovery_complete, opcode, uint8_t),
             record_end(edp_discovery_complete)
         };
-        uint16_t const discovery_complete_message_size = record_bytes(edp_discovery_complete);
+        size_t const discovery_complete_message_size = record_bytes(edp_discovery_complete);
         uint8_t * edp_discovery_complete = start_ptr;
 
         idigi_debug("discovery layer: send complete\n");
