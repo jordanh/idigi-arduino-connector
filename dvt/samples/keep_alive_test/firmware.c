@@ -161,6 +161,9 @@ static idigi_callback_status_t app_firmware_download_complete(idigi_fw_download_
         complete_response->status = idigi_fw_download_not_complete;
     }
 
+    /* use the same version since we are not really updating the code */
+    complete_response->version = firmware_list[complete_request->target].version;
+
     firmware_download_started = 0;
 
 done:

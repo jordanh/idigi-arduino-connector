@@ -233,6 +233,8 @@ static void firmware_download_complete(idigi_fw_download_complete_request_t cons
     {
         complete_response->status = idigi_fw_download_success;
     }
+    /* use the same version since we are not really updating the code */
+    complete_response->version = dvt_data_list[complete_request->target].version;
 
     APP_DEBUG("target    = %d\n",    complete_request->target);
     APP_DEBUG("code size = %u\n",    complete_request->code_size);
