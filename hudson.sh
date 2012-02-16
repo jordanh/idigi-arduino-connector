@@ -95,13 +95,11 @@ python ../dvt/scripts/replace_str.py public/run/samples/compile_and_link/Makefil
 echo ">> Building all samples."
 cd public/run/samples
 
-#SAMPLES="compile_and_link
-#         connect_to_idigi 
-#         device_request
-#         firmware_download
-#         send_data"
-
-SAMPLES="firmware_download"
+SAMPLES="compile_and_link
+         connect_to_idigi 
+         device_request
+         firmware_download
+         send_data"
 
 for sample in $SAMPLES
 do
