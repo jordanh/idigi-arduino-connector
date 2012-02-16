@@ -119,6 +119,9 @@ static void app_firmware_download_complete(idigi_fw_download_complete_request_t 
     APP_DEBUG("checksum  = 0x%x\n", (unsigned)complete_request->checksum);
 
     complete_response->status = idigi_fw_download_success;
+    /* use the same version since we are not really updating the code */
+    complete_response->version = firmware_list[complete_request->target].version;
+
 
     if (complete_request->code_size != total_image_size)
     {
