@@ -56,13 +56,14 @@ static char filename[256];
 static int handle = 0;
 static int is_fw_image = 0;
 
-static void firmware_download_request(idigi_fw_download_request_t const * const download_info, idigi_fw_status_t * download_status)
+static idigi_callback_status_t firmware_download_request(idigi_fw_download_request_t const * const download_info, idigi_fw_status_t * download_status)
 {
+    idigi_callback_status_t   status = idigi_callback_continue;
 
     if ((download_info == NULL) || (download_status == NULL))
     {
         APP_DEBUG("firmware_download_request ERROR: iDigi passes incorrect parameters\n");
-        *download_status = idigi_fw_download_denied;
+        status = idigi_callback_abort;
         goto done;
     }
     if (firmware_download_started)
@@ -88,14 +89,17 @@ static void firmware_download_request(idigi_fw_download_request_t const * const 
     *download_status = idigi_fw_success;
 
 done:
-    return;
+    return status;
 }
 
-static void firmware_image_data(idigi_fw_image_data_t const * const image_data, idigi_fw_status_t * data_status)
+static idigi_callback_status_t firmware_image_data(idigi_fw_image_data_t const * const image_data, idigi_fw_status_t * data_status)
 {
-    if (image_data == NULL)
+    idigi_callback_status_t   status = idigi_callback_continue;
+
+    if (image_data == NULL || data_status == NULL)
     {
         APP_DEBUG("firmware_image_data: invalid parameter\n");
+        status = idigi_callback_abort;
         goto done;
     }
 
@@ -117,15 +121,18 @@ static void firmware_image_data(idigi_fw_image_data_t const * const image_data, 
     }
     *data_status = idigi_fw_success;
 done:
-    return;
+    return status;
 }
 
-static void firmware_download_complete(idigi_fw_download_complete_request_t const * const complete_request, idigi_fw_download_complete_response_t * complete_response)
+static idigi_callback_status_t firmware_download_complete(idigi_fw_download_complete_request_t const * const complete_request, idigi_fw_download_complete_response_t * complete_response)
 {
+
+    idigi_callback_status_t   status = idigi_callback_continue;
 
     if ((complete_request == NULL) || (complete_response == NULL))
     {
         APP_DEBUG("firmware_download_complete Error: iDigi passes incorrect parameters\n");
+        status = idigi_callback_abort;
         goto done;
     }
 
@@ -138,6 +145,7 @@ static void firmware_download_complete(idigi_fw_download_complete_request_t cons
      * 0 means no error.
      */
     complete_response->calculated_checksum = 0;
+    complete_response->version = firmware_list[complete_request->target].version;
 
     if (complete_request->code_size == total_image_size)
     {
@@ -154,7 +162,7 @@ static void firmware_download_complete(idigi_fw_download_complete_request_t cons
     firmware_download_started = 0;
 
 done:
-    return;
+    return status;
 }
 
 static idigi_callback_status_t firmware_download_abort(idigi_fw_download_abort_t const * const abort_data)
@@ -166,6 +174,7 @@ static idigi_callback_status_t firmware_download_abort(idigi_fw_download_abort_t
     if (abort_data == NULL)
     {
         APP_DEBUG("firmware_download_abort Error: iDigi passes incorrect parameters\n");
+        status = idigi_callback_abort;
         goto done;
     }
 
@@ -248,15 +257,15 @@ idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t const r
         break;
     }
     case idigi_firmware_download_request:
-        firmware_download_request((idigi_fw_download_request_t *)request_data, (idigi_fw_status_t *)response_data);
+        status = firmware_download_request((idigi_fw_download_request_t *)request_data, (idigi_fw_status_t *)response_data);
         break;
 
     case idigi_firmware_binary_block:
-        firmware_image_data((idigi_fw_image_data_t *) request_data, (idigi_fw_status_t *)response_data);
+        status = firmware_image_data((idigi_fw_image_data_t *) request_data, (idigi_fw_status_t *)response_data);
         break;
 
     case idigi_firmware_download_complete:
-        firmware_download_complete((idigi_fw_download_complete_request_t *) request_data,
+        status = firmware_download_complete((idigi_fw_download_complete_request_t *) request_data,
                                   (idigi_fw_download_complete_response_t *) response_data);
         break;
 
