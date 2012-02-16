@@ -60,7 +60,7 @@
 
 static idigi_bool_t valid_timing_limit(idigi_data_t * const idigi_ptr, uint32_t const start, uint32_t const limit)
 {
-    unsigned long elapsed;
+    unsigned long elapsed = start;
     idigi_bool_t rc = idigi_false;
 
     if (get_system_time(idigi_ptr, &elapsed) == idigi_callback_continue)
@@ -168,7 +168,7 @@ static int send_buffer(idigi_data_t * const idigi_ptr, uint8_t * const buffer, s
     idigi_callback_status_t status;
     idigi_write_request_t write_data;
     idigi_request_t const request_id = {idigi_network_send};
-    size_t length_written;
+    size_t length_written = 0;
     size_t size;
 
     write_data.timeout = 0;
@@ -405,7 +405,7 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
     {
         idigi_read_request_t read_data;
         idigi_callback_status_t status;
-        size_t  length_read;
+        size_t  length_read = 0;
         size_t size;
 
         read_data.timeout = idigi_ptr->receive_packet.timeout;
@@ -747,7 +747,7 @@ done:
 static idigi_callback_status_t connect_server(idigi_data_t * const idigi_ptr, char const * server_url, size_t const server_url_length)
 {
     idigi_callback_status_t status;
-    size_t length;
+    size_t length = sizeof *idigi_ptr->network_handle;
     idigi_request_t const request_id = {idigi_network_connect};
 
 
