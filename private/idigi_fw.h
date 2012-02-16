@@ -116,8 +116,8 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_pt
     idigi_data_t * const idigi_ptr = fw_ptr->idigi_ptr;
     idigi_callback_status_t status;
     unsigned long timeout;
-    unsigned long start_time_stamp;
-    unsigned long end_time_stamp;
+    unsigned long start_time_stamp = 0;
+    unsigned long end_time_stamp = 0;
     unsigned long time_to_send_rx_keepalive = 0;
     unsigned long time_to_receive_tx_keepalive;
     size_t  length = 0;
@@ -858,7 +858,7 @@ enum fw_complete_response {
 
     /* call callback */
     status = get_fw_config(fw_ptr, idigi_firmware_download_complete, &request_data, sizeof request_data, &response_data, NULL, fw_equal);
-    if (status != idigi_callback_busy)
+    if (status == idigi_callback_continue)
     {
         uint8_t * fw_complete_response = GET_PACKET_DATA_POINTER(fw_ptr->response_buffer, PACKET_EDP_FACILITY_SIZE);
 
@@ -869,15 +869,7 @@ enum fw_complete_response {
         message_store_u8(fw_complete_response, target, request_data.target);
         message_store_be32(fw_complete_response, version, response_data.version);
         message_store_be32(fw_complete_response, checksum, response_data.calculated_checksum);
-        if (status == idigi_callback_continue)
-        {
-            message_store_u8(fw_complete_response, status, response_data.status);
-        }
-        else
-        {
-            message_store_u8(fw_complete_response, status, idigi_fw_download_not_complete);
-
-        }
+        message_store_u8(fw_complete_response, status, response_data.status);
 
         fw_ptr->last_fw_keepalive_sent_time = 0;
         fw_ptr->fw_keepalive_start = idigi_false;
@@ -886,6 +878,14 @@ enum fw_complete_response {
         status = send_fw_message(fw_ptr);
         fw_ptr->update_started = idigi_false;
     }
+    else if (status != idigi_callback_busy)
+    {
+        fw_abort_status_t fw_status;
+
+        fw_status.user_status = idigi_fw_user_abort;
+        status = send_fw_abort(fw_ptr, request_data.target, fw_download_abort_opcode, fw_status);
+    }
+
 
 done:
     return status;
