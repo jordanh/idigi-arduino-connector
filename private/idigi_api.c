@@ -100,7 +100,7 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
     /* get device id, vendor id, & device type */
     for (i=0; i < asizeof(idigi_config_request_ids); i++)
     {
-        size_t length;
+        size_t length = 0;
         void * data;
         idigi_request_t request_id;
         void * * store_at = NULL;
