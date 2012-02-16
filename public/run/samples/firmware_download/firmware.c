@@ -114,10 +114,12 @@ static idigi_callback_status_t app_firmware_download_complete(idigi_fw_download_
         goto done;
     }
 
+    /* use the same version since we are not really updating the code */
+    complete_response->version = firmware_list[complete_request->target].version;
+
     if (!firmware_download_started)
     {
         APP_DEBUG("app_firmware_download_complete:no firmware download request started\n");
-        complete_response->version = firmware_list[complete_request->target].version;
         complete_response->status = idigi_fw_download_not_complete;
         goto done;
     }
@@ -127,9 +129,6 @@ static idigi_callback_status_t app_firmware_download_complete(idigi_fw_download_
     APP_DEBUG("checksum  = 0x%x\n", (unsigned)complete_request->checksum);
 
     complete_response->status = idigi_fw_download_success;
-    /* use the same version since we are not really updating the code */
-    complete_response->version = firmware_list[complete_request->target].version;
-
 
     if (complete_request->code_size != total_image_size)
     {
