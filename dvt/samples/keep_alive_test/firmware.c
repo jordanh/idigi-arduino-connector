@@ -114,6 +114,7 @@ static idigi_callback_status_t app_firmware_download_complete(idigi_fw_download_
     if ((complete_request == NULL) || (complete_response == NULL))
     {
         APP_DEBUG("app_firmware_download_complete Error: iDigi passes incorrect parameters\n");
+        status = idigi_callback_abort;
         goto done;
     }
 
