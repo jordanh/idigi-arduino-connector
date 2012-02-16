@@ -114,7 +114,8 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_pt
                                            fw_compare_type_t const compare_type)
 {
     idigi_data_t * const idigi_ptr = fw_ptr->idigi_ptr;
-    idigi_callback_status_t status;
+    idigi_callback_status_t status = idigi_callback_abort;
+    idigi_callback_status_t ccode;
     unsigned long timeout;
     unsigned long start_time_stamp = 0;
     unsigned long end_time_stamp = 0;
@@ -129,8 +130,8 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_pt
      * If callback exceeds the timeout value, error status callback
      * will be called. 
      */
-    status =  get_keepalive_timeout(idigi_ptr, &time_to_send_rx_keepalive, &time_to_receive_tx_keepalive, &start_time_stamp);
-    if (status != idigi_callback_continue)
+    ccode =  get_keepalive_timeout(idigi_ptr, &time_to_send_rx_keepalive, &time_to_receive_tx_keepalive, &start_time_stamp);
+    if (ccode != idigi_callback_continue)
     {
         if (time_to_send_rx_keepalive == 0)
         {
@@ -169,15 +170,15 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_pt
     }
 
     request_id.firmware_request = fw_request_id;
-    status = idigi_callback(idigi_ptr->callback, idigi_class_firmware, request_id, request, request_size, response, &length);
+    ccode = idigi_callback(idigi_ptr->callback, idigi_class_firmware, request_id, request, request_size, response, &length);
 
     if (get_system_time(idigi_ptr, &end_time_stamp) != idigi_callback_continue)
     {
-        status = idigi_callback_abort;
+/*        status = idigi_callback_abort; */
         goto done;
     }
 
-    switch (status)
+    switch (ccode)
     {
     case idigi_callback_continue:
         if (response_size != NULL)
@@ -190,19 +191,21 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_pt
                 idigi_debug("get_fw_config: returned invalid size %lu (length %lu)\n", (unsigned long int)length, (unsigned long int)*response_size);
                 idigi_ptr->error_code = idigi_invalid_data_size;
                 notify_error_status(idigi_ptr->callback, idigi_class_firmware, request_id, idigi_invalid_data_size);
-                status = idigi_callback_abort;
+/*                 status = idigi_callback_abort; */
                 goto done;
             }
 
             *response_size = length;
         }
+        status = idigi_callback_continue;
         break;
     case idigi_callback_busy:
+        status = idigi_callback_busy;
         break;
     case idigi_callback_abort:
     case idigi_callback_unrecognized:
         idigi_ptr->error_code = idigi_configuration_error;
-        status = idigi_callback_abort;
+/*        status = idigi_callback_abort; */
         goto done;
     }
 
