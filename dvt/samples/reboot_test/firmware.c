@@ -82,13 +82,14 @@ int firmware_timing_expired(unsigned long expired_timing_in_seconds)
     return timingExpired;
 }
 
-static void app_firmware_download_request(idigi_fw_download_request_t const * const download_info, idigi_fw_status_t * download_status)
+static idigi_callback_status_t app_firmware_download_request(idigi_fw_download_request_t const * const download_info, idigi_fw_status_t * download_status)
 {
+    idigi_callback_status_t status = idigi_callback_continue;
 
     if ((download_info == NULL) || (download_status == NULL))
     {
         APP_DEBUG("firmware_download_request ERROR: iDigi passes incorrect parameters\n");
-        *download_status = idigi_fw_download_denied;
+        status = idigi_callback_abort;
         goto done;
     }
     if (firmware_download_started)
@@ -106,14 +107,17 @@ static void app_firmware_download_request(idigi_fw_download_request_t const * co
     *download_status = idigi_fw_success;
 
 done:
-    return;
+    return status;
 }
 
-static void app_firmware_image_data(idigi_fw_image_data_t const * const image_data, idigi_fw_status_t * data_status)
+static idigi_callback_status_t app_firmware_image_data(idigi_fw_image_data_t const * const image_data, idigi_fw_status_t * data_status)
 {
+    idigi_callback_status_t status = idigi_callback_continue;
+
     if (image_data == NULL)
     {
         APP_DEBUG("firmware_image_data: invalid parameter\n");
+        status = idigi_callback_abort;
         goto done;
     }
 
@@ -126,7 +130,7 @@ static void app_firmware_image_data(idigi_fw_image_data_t const * const image_da
 
     *data_status = idigi_fw_success;
 done:
-    return;
+    return status;
 }
 
 static idigi_callback_status_t app_firmware_download_complete(idigi_fw_download_complete_request_t const * const complete_request, idigi_fw_download_complete_response_t * complete_response)
@@ -136,6 +140,7 @@ static idigi_callback_status_t app_firmware_download_complete(idigi_fw_download_
     if ((complete_request == NULL) || (complete_response == NULL))
     {
         APP_DEBUG("firmware_download_complete Error: iDigi passes incorrect parameters\n");
+        status = idigi_callback_abort;
         goto done;
     }
 
@@ -175,6 +180,7 @@ static idigi_callback_status_t app_firmware_download_abort(idigi_fw_download_abo
     if (abort_data == NULL)
     {
         APP_DEBUG("firmware_download_abort Error: iDigi passes incorrect parameters\n");
+        status = idigi_callback_abort;
         goto done;
     }
 
@@ -256,11 +262,11 @@ idigi_callback_status_t app_firmware_handler(idigi_firmware_request_t const requ
         break;
     }
     case idigi_firmware_download_request:
-        app_firmware_download_request((idigi_fw_download_request_t *)request_data, (idigi_fw_status_t *)response_data);
+        status = app_firmware_download_request((idigi_fw_download_request_t *)request_data, (idigi_fw_status_t *)response_data);
         break;
 
     case idigi_firmware_binary_block:
-        app_firmware_image_data((idigi_fw_image_data_t *) request_data, (idigi_fw_status_t *)response_data);
+        status = app_firmware_image_data((idigi_fw_image_data_t *) request_data, (idigi_fw_status_t *)response_data);
         break;
 
     case idigi_firmware_download_complete:
