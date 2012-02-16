@@ -279,7 +279,7 @@ static idigi_callback_status_t get_mac_addr(idigi_data_t * const idigi_ptr, uint
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_request_t const request_id = {idigi_config_mac_addr};
-    size_t length;
+    size_t length = 0;
     uint8_t * mac;
 
     /* callback for MAC addr for LAN connection type */
