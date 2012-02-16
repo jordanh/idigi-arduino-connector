@@ -857,6 +857,7 @@ enum fw_complete_response {
     request_data.checksum = message_load_be32(fw_complete_request, checksum);
 
     /* call callback */
+    response_data.calculated_checksum = 0; /* set to 0 since it's reserved */
     status = get_fw_config(fw_ptr, idigi_firmware_download_complete, &request_data, sizeof request_data, &response_data, NULL, fw_equal);
     if (status == idigi_callback_continue)
     {
