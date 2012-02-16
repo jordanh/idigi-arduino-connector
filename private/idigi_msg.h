@@ -320,9 +320,11 @@ static idigi_callback_status_t msg_call_service_layer(idigi_data_t * const idigi
 {
     idigi_callback_status_t status = idigi_callback_abort;
     idigi_msg_data_t * msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
-    idigi_msg_callback_t * cb_fn = msg_ptr->service_cb[session->service_id];
+    idigi_msg_callback_t * cb_fn;
 
     ASSERT_GOTO(msg_ptr != NULL, error);
+    cb_fn = msg_ptr->service_cb[session->service_id];
+
     ASSERT_GOTO(cb_fn != NULL, error);
 
     service_ptr->session = session;
@@ -1020,7 +1022,11 @@ static idigi_callback_status_t msg_pass_service_data(idigi_data_t * const idigi_
             if (MsgIsRequest(session->status_flag))
             {
                 idigi_msg_data_t * const msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
-                idigi_msg_error_t const result = msg_initialize_data_block(session, msg_ptr->capabilities[msg_capability_server].window_size, msg_block_state_send_response);
+                idigi_msg_error_t result;
+
+                ASSERT_GOTO(msg_ptr != NULL, error);
+
+                result = msg_initialize_data_block(session, msg_ptr->capabilities[msg_capability_server].window_size, msg_block_state_send_response);
 
                 MsgClearRequest(session->status_flag);
 
@@ -1505,7 +1511,10 @@ static idigi_callback_status_t msg_cleanup_all_sessions(idigi_data_t * const idi
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_msg_data_t * const msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
-    msg_session_t * session = msg_ptr->session.head;
+    msg_session_t * session;
+
+    ASSERT_GOTO(msg_ptr != NULL, error);
+    session= msg_ptr->session.head;
 
     while(session != NULL)
     {
@@ -1525,7 +1534,7 @@ static idigi_callback_status_t msg_cleanup_all_sessions(idigi_data_t * const idi
 
         session = next_session;
     }
-
+error:
     return status;
 }
 
