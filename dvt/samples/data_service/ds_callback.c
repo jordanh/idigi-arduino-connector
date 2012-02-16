@@ -279,7 +279,7 @@ typedef struct device_request_handle {
     char * response_data;
     size_t length_in_bytes;
     char * target;
-    unsigned count;
+    unsigned int count;
 } device_request_handle_t;
 
 static unsigned int device_request_active_count = 0;
