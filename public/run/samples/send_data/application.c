@@ -59,7 +59,7 @@ idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_r
         break;
 
     case idigi_class_data_service:
-        status = app_data_service_handler(request_id.firmware_request, request_data, request_length, response_data, response_length);
+        status = app_data_service_handler(request_id.data_service_request, request_data, request_length, response_data, response_length);
         break;
 
     default:
