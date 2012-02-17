@@ -113,7 +113,7 @@ static idigi_callback_status_t get_system_time(idigi_data_t * const idigi_ptr, u
 {
     size_t  length;
     idigi_callback_status_t status;
-    idigi_request_t request_id = {idigi_os_system_up_time};
+    idigi_request_t const request_id = {idigi_os_system_up_time};
 
     /* Call callback to get system up time in second */
     status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_operating_system, request_id, uptime, &length);
@@ -160,7 +160,7 @@ static idigi_callback_status_t malloc_data(idigi_data_t * const idigi_ptr, size_
 
 static void free_data(idigi_data_t * const idigi_ptr, void * const ptr)
 {
-    idigi_request_t request_id = {idigi_os_free};
+    idigi_request_t const request_id = {idigi_os_free};
 
     idigi_callback_no_response(idigi_ptr->callback, idigi_class_operating_system, request_id, ptr, 0);
     del_malloc_stats(ptr);
