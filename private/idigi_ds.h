@@ -53,7 +53,7 @@ static idigi_callback_status_t process_device_request(idigi_data_t * const idigi
     uint8_t const * ds_device_request = service_data->data_ptr;
     char * target_string = NULL;
     idigi_msg_error_t error_status = idigi_msg_error_cancel;
-    idigi_bool_t isFirstRequest = MsgIsStart(service_data->flags);
+    idigi_bool_t isFirstRequest = MsgIsStart(service_data->flags) ? idigi_true : idigi_false;
 
 
     if (isFirstRequest)
@@ -240,7 +240,7 @@ static idigi_callback_status_t process_device_response(idigi_data_t * const idig
 
     idigi_callback_status_t status;
     data_service_context_t * const device_request_service = service_data->session->service_context;
-    idigi_bool_t const isFirstResponse = MsgIsStart(service_data->flags);
+    idigi_bool_t const isFirstResponse = MsgIsStart(service_data->flags) ? idigi_true : idigi_false;
 
     /* save some room for response header on 1st response data */
     size_t const header_length = isFirstResponse ? record_bytes(ds_device_response_header) : 0;
@@ -403,9 +403,9 @@ static size_t fill_put_request_header(idigi_data_service_put_request_t const * c
 
     /* fill parameters */
     {
-        idigi_bool_t const have_type = (request->content_type != NULL);
-        idigi_bool_t const have_archive = (request->flags & IDIGI_DATA_PUT_ARCHIVE) == IDIGI_DATA_PUT_ARCHIVE;
-        idigi_bool_t const have_append = (request->flags & IDIGI_DATA_PUT_APPEND) == IDIGI_DATA_PUT_APPEND;
+        idigi_bool_t const have_type = (request->content_type != NULL) ? idigi_true : idigi_false;
+        idigi_bool_t const have_archive = ((request->flags & IDIGI_DATA_PUT_ARCHIVE) == IDIGI_DATA_PUT_ARCHIVE) ? idigi_true : idigi_false;
+        idigi_bool_t const have_append = ((request->flags & IDIGI_DATA_PUT_APPEND) == IDIGI_DATA_PUT_APPEND) ? idigi_true : idigi_false;
         static uint8_t const parameter_requested = 1;
         uint8_t params = 0;
 
