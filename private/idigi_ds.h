@@ -53,7 +53,7 @@ static idigi_callback_status_t process_device_request(idigi_data_t * const idigi
     uint8_t const * ds_device_request = service_data->data_ptr;
     char * target_string = NULL;
     idigi_msg_error_t error_status = idigi_msg_error_cancel;
-    idigi_bool_t isFirstRequest = MsgIsStart(service_data->flags) ? idigi_true : idigi_false;
+    idigi_bool_t isFirstRequest = MsgIsStart(service_data->flags);
 
 
     if (isFirstRequest)
@@ -240,7 +240,7 @@ static idigi_callback_status_t process_device_response(idigi_data_t * const idig
 
     idigi_callback_status_t status;
     data_service_context_t * const device_request_service = service_data->session->service_context;
-    idigi_bool_t const isFirstResponse = MsgIsStart(service_data->flags) ? idigi_true : idigi_false;
+    idigi_bool_t const isFirstResponse = MsgIsStart(service_data->flags);
 
     /* save some room for response header on 1st response data */
     size_t const header_length = isFirstResponse ? record_bytes(ds_device_response_header) : 0;
