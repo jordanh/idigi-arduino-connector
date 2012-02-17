@@ -225,7 +225,7 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_pt
          * Check whether we need to send target list message
          * to keep server alive.
          */
-        fw_ptr->fw_keepalive_start = ((end_time_stamp - fw_ptr->last_fw_keepalive_sent_time) >= FW_TARGET_LIST_MSG_INTERVAL_IN_SECONDS);
+        fw_ptr->fw_keepalive_start = ((end_time_stamp - fw_ptr->last_fw_keepalive_sent_time) >= FW_TARGET_LIST_MSG_INTERVAL_IN_SECONDS) ? idigi_true : idigi_false;
     }
     else
     {
@@ -299,7 +299,7 @@ static idigi_callback_status_t send_fw_message(idigi_firmware_data_t * const fw_
     idigi_callback_status_t status;
 
     status = initiate_send_facility_packet(fw_ptr->idigi_ptr, fw_ptr->response_buffer, fw_ptr->response_size, E_MSG_FAC_FW_NUM, NULL, NULL);
-    fw_ptr->send_busy = (status == idigi_callback_busy);
+    fw_ptr->send_busy = (status == idigi_callback_busy) ? idigi_true : idigi_false;
     return status;
 
 }
@@ -774,9 +774,31 @@ static idigi_callback_status_t process_fw_abort(idigi_firmware_data_t * const fw
     else if (fw_ptr->update_started)
     {
         idigi_fw_download_abort_t request_data;
+        uint8_t abort_status = message_load_u8(fw_abort, status);
 
         request_data.target = message_load_u8(fw_abort, target);
-        request_data.status = message_load_u8(fw_abort, status);
+        switch (abort_status)
+        {
+        case fw_user_abort:
+            request_data.status = idigi_fw_user_abort;
+            break;
+        case fw_device_error:
+            request_data.status = idigi_fw_device_error;
+            break;
+        case fw_invalid_offset:
+            request_data.status = idigi_fw_invalid_offset;
+            break;
+        case fw_invalid_data:
+            request_data.status = idigi_fw_invalid_data;
+            break;
+        case fw_hardware_error:
+            request_data.status = idigi_fw_hardware_error;
+            break;
+        default:
+            ASSERT(idigi_false);
+            break;
+        }
+
         /* call callback */
         if (fw_ptr->target == request_data.target)
         {
