@@ -403,9 +403,9 @@ static size_t fill_put_request_header(idigi_data_service_put_request_t const * c
 
     /* fill parameters */
     {
-        idigi_bool_t const have_type = (request->content_type != NULL);
-        idigi_bool_t const have_archive = (request->flags & IDIGI_DATA_PUT_ARCHIVE) == IDIGI_DATA_PUT_ARCHIVE;
-        idigi_bool_t const have_append = (request->flags & IDIGI_DATA_PUT_APPEND) == IDIGI_DATA_PUT_APPEND;
+        idigi_bool_t const have_type = (request->content_type != NULL) ? idigi_true : idigi_false;
+        idigi_bool_t const have_archive = ((request->flags & IDIGI_DATA_PUT_ARCHIVE) == IDIGI_DATA_PUT_ARCHIVE) ? idigi_true : idigi_false;
+        idigi_bool_t const have_append = ((request->flags & IDIGI_DATA_PUT_APPEND) == IDIGI_DATA_PUT_APPEND) ? idigi_true : idigi_false;
         static uint8_t const parameter_requested = 1;
         uint8_t params = 0;
 
