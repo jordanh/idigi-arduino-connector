@@ -58,7 +58,7 @@
 #define E_MSG_FAC_CC_NUM           0xffff
 
 
-static idigi_bool_t valid_timing_limit(idigi_data_t * const idigi_ptr, uint32_t const start, uint32_t const limit)
+static idigi_bool_t valid_timing_limit(idigi_data_t * const idigi_ptr, unsigned long const start, unsigned long const limit)
 {
     unsigned long elapsed = start;
     idigi_bool_t rc = idigi_false;
@@ -72,7 +72,7 @@ static idigi_bool_t valid_timing_limit(idigi_data_t * const idigi_ptr, uint32_t 
     return rc;
 }
 
-static void set_idigi_state(idigi_data_t * const idigi_ptr, int const state)
+static void set_idigi_state(idigi_data_t * const idigi_ptr, idigi_edp_state_t const state)
 {
     /* set to new edp state */
     idigi_ptr->edp_state = state;
@@ -337,7 +337,11 @@ static idigi_callback_status_t send_packet_process(idigi_data_t * const idigi_pt
         bytes_sent = send_buffer(idigi_ptr, buf, length);
         if (bytes_sent < 0)
         {
-            idigi_ptr->error_code = -bytes_sent;
+            /* make it a position number for enum error */
+            int error_code = -bytes_sent;
+            ASSERT(error_code > idigi_success && error_code <= idigi_no_resource);
+
+            idigi_ptr->error_code = (idigi_status_t)error_code;
             status = idigi_callback_abort;
             goto done;
         }
@@ -448,7 +452,7 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
     /* check Tx keepalive timing */
     if (GET_TX_KEEPALIVE_INTERVAL(idigi_ptr) > 0)
     {
-        uint32_t const max_timeout = GET_TX_KEEPALIVE_INTERVAL(idigi_ptr) * GET_WAIT_COUNT(idigi_ptr);
+        unsigned long const max_timeout = GET_TX_KEEPALIVE_INTERVAL(idigi_ptr) * GET_WAIT_COUNT(idigi_ptr);
 
         if (!valid_timing_limit(idigi_ptr, idigi_ptr->last_tx_keepalive_received_time, max_timeout))
         {
@@ -490,7 +494,11 @@ static idigi_callback_status_t receive_data_status(idigi_data_t * const idigi_pt
 
         if (read_length < 0)
         {
-            idigi_ptr->error_code = -read_length;
+            /* make it a position number for enum error */
+            int error_code = -read_length;
+            ASSERT(error_code > idigi_success && error_code <= idigi_no_resource);
+
+            idigi_ptr->error_code = (idigi_status_t)error_code;
             status = idigi_callback_abort;
             goto done;
         }
