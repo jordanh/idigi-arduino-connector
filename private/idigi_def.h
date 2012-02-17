@@ -161,8 +161,34 @@ typedef enum {
         }\
     } while (0)
 
-#define add_node(head, node)   add_list_node(head, (void **)NULL, node)
-#define remove_node(head, node)   remove_list_node(head, (void **)NULL, node) 
+#define add_node(head, node) \
+    do { \
+        ASSERT(node != NULL); \
+        if (*head != NULL) \
+        {\
+            *head->prev = node;\
+        }\
+        node->next = *head;\
+        node->prev = NULL;\
+        *head = node;\
+    } while (0)
+
+#define remove_node(head, node) \
+    do { \
+        ASSERT(node != NULL); \
+        if (node->next != NULL) \
+        {\
+            node->next->prev = node->prev;\
+        }\
+        if (node->prev != NULL) \
+        {\
+            node->prev->next = node->next;\
+        }\
+        if (node == *head)\
+        {\
+            *head = node->next;\
+        }\
+    } while (0)
 
 struct idigi_data;
 struct idigi_facility;
