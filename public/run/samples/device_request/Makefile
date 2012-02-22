@@ -32,8 +32,15 @@ vpath $(PLATFORM_DIR)/%.c
 CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL 
 CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR)  -g -Os
 
-OBJS = application.o device_request.o $(IDIGI_DIR)/idigi_api.o $(PLATFORM_DIR)/os.o $(PLATFORM_DIR)/network.o  $(PLATFORM_DIR)/config.o $(PLATFORM_DIR)/main.o 
+OBJS = application.o device_request.o $(IDIGI_DIR)/idigi_api.o $(PLATFORM_DIR)/os.o $(PLATFORM_DIR)/config.o $(PLATFORM_DIR)/main.o 
 LIBS = -lc -lz -lpthread
+
+ifeq ($(SSL), true)
+OBJS += $(PLATFORM_DIR)/network_ssl.o
+LIBS += -lssl
+else
+OBJS += $(PLATFORM_DIR)/network.o
+endif
 
 SAMPLE = idigi
 all: $(SAMPLE)
