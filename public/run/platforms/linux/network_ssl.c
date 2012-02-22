@@ -469,6 +469,10 @@ static idigi_callback_status_t app_network_close(idigi_network_handle_t * const 
     idigi_callback_status_t status = idigi_callback_continue;
     app_ssl_t * const ssl_ptr = (app_ssl_t *)handle;
 
+    /* send close notify to peer */
+    if (SSL_shutdown(ssl_ptr->ssl) == 0) 
+        SSL_shutdown(ssl_ptr->ssl);  /* wait for peer's close notify */
+
     app_free_ssl_info(ssl_ptr);
     return status;
 }
