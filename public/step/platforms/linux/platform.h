@@ -33,6 +33,8 @@
 
 #define UNUSED_ARGUMENT(x)     ((void)x)
 
+#define APP_SSL_CA_CERT   "/home/digi/irl/idigi/public/include/digi2048ca.crt"
+
 /* Callbacks for this platform */
 idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
                            void * const request_data, size_t const request_length,
