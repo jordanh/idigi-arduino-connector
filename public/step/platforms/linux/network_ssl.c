@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
+ *  Copyright (c) 2011-2012 Digi International Inc., All Rights Reserved
  *
  *  This software contains proprietary and confidential information of Digi
  *  International Inc.  By accepting transfer of this copy, Recipient agrees
@@ -47,17 +47,17 @@ typedef struct
 
 static int app_dns_resolve_name(char const * const domain_name, in_addr_t * ip_addr)
 {
-    int rc = -1;
-    struct addrinfo *res_list, *res;
-    int error;
+    int ret = -1;
+    struct addrinfo *res_list;
+    struct addrinfo *res;
 
     if ((domain_name == NULL) || (ip_addr == NULL))
         goto done;
 
     {
-        struct addrinfo hint;
-         
-        memset(&hint, 0, sizeof(hint));
+        struct addrinfo hint = {0};
+        int error;
+
         hint.ai_socktype = SOCK_STREAM;
         hint.ai_family   = AF_INET;
         error = getaddrinfo(domain_name, NULL, &hint, &res_list);
@@ -73,9 +73,11 @@ static int app_dns_resolve_name(char const * const domain_name, in_addr_t * ip_a
     {
         if (res->ai_family == PF_INET)
         {
-            *ip_addr = ((struct sockaddr_in*)res->ai_addr)->sin_addr.s_addr;
-            APP_DEBUG("dns_resolve_name: ip address = [%s]\n", inet_ntoa(((struct sockaddr_in*)res->ai_addr)->sin_addr));
-            rc = 0;
+            struct in_addr const ipv4_addr = ((struct sockaddr_in*)res->ai_addr)->sin_addr;
+
+            *ip_addr = ipv4_addr.s_addr;
+            APP_DEBUG("dns_resolve_name: ip address = [%s]\n", inet_ntoa(ipv4_addr));
+            ret = 0;
             break;
         }
     }
@@ -83,12 +85,13 @@ static int app_dns_resolve_name(char const * const domain_name, in_addr_t * ip_a
     freeaddrinfo(res_list);
 
 done:
-    return rc;
+    return ret;
 }
 
 static int app_setup_server_socket(void)
 {
-    int sd = socket(AF_INET, SOCK_STREAM, 0);
+    int const protocol = 0;
+    int sd = socket(AF_INET, SOCK_STREAM, protocol);
 
     if (sd < 0)
         goto done;
@@ -126,16 +129,16 @@ static int app_connect_to_server(int fd, char const * const host_name, size_t le
     in_addr_t ip_addr;
 
     {
-        #define SERVER_NAME_LENGTH    64
-        char server_name[SERVER_NAME_LENGTH];
+        size_t const max_bytes_in_server_name = 64;
+        char server_name[max_bytes_in_server_name];
 
-        if (length >= SERVER_NAME_LENGTH)
+        if (length >= max_bytes_in_server_name)
         {
             APP_DEBUG("app_connect_to_server: server name length [%d]\n", length);
             goto error;
         }
 
-        strncpy(server_name, host_name, length);
+        memcpy(server_name, host_name, length);
         server_name[length] = '\0';
 
         /*
@@ -154,22 +157,25 @@ static int app_connect_to_server(int fd, char const * const host_name, size_t le
     }
 
     {
-        struct sockaddr_in sin;
+        struct sockaddr_in sin = {0};
 
-        memset(&sin, 0, sizeof sin);
         memcpy(&sin.sin_addr, &ip_addr, sizeof sin.sin_addr);
         sin.sin_port   = htons(IDIGI_SSL_PORT);
         sin.sin_family = AF_INET;
         ret = connect(fd, (struct sockaddr *)&sin, sizeof sin);
         if (ret < 0)
         {
-            if (errno != EAGAIN && errno != EINPROGRESS && errno != EWOULDBLOCK)
+            switch (errno) 
             {
-                perror("network_connect: connect() failed");
-                goto error;
-            }
+            case EAGAIN:
+            case EINPROGRESS:
+                ret = 0;
+                break;
 
-            ret = 0;
+            default:
+                perror("network_connect: connect() failed");
+                break;
+            }
         }
     }
 
@@ -210,26 +216,26 @@ error:
 #if (defined APP_SSL_CLNT_CERT)
 static int get_user_passwd(char *buf, int size, int rwflag, void *password)
 {
-  char const * const passwd = "digi";
-  int const passwd_size = strlen(passwd);
+  char const passwd[] = APP_SSL_CLNT_CERT_PASSWORD;
+  int const passwd_size = asizeof(passwd) - 1;
 
   UNUSED_ARGUMENT(rwflag);
   UNUSED_ARGUMENT(password);
 
   if (passwd_size < size)
-      strcpy(buf, passwd);
+      memcpy(buf, passwd, passwd_size);
 
   return passwd_size;
 }
 #endif
 
-static int app_load_certificate_and_key(SSL_CTX * ctx)
+static int app_load_certificate_and_key(SSL_CTX * const ctx)
 {
     int ret = -1;
 
     {
         ret = SSL_CTX_load_verify_locations(ctx, APP_SSL_CA_CERT, NULL);
-        if (ret == 0) 
+        if (ret != 1) 
         {
             APP_DEBUG("Failed to load CA cert %d\n", ret);
             ERR_print_errors_fp(stderr);
@@ -253,8 +259,6 @@ static int app_load_certificate_and_key(SSL_CTX * ctx)
         goto error;
     }
     #endif
-
-    ret = 0;
 
 error:
     return ret;
@@ -292,7 +296,8 @@ static int app_verify_server_certificate(SSL * const ssl)
         goto done;
     }
 
-    if ((ret = SSL_get_verify_result(ssl)) !=  X509_V_OK)
+    ret = SSL_get_verify_result(ssl);
+    if (ret !=  X509_V_OK)
     {
         APP_DEBUG("Server certificate is invalid %d\n", ret);
         goto done;
@@ -302,7 +307,7 @@ done:
     return ret;
 }
 
-static int app_ssl_connct(app_ssl_t * const ssl_ptr)
+static int app_ssl_connect(app_ssl_t * const ssl_ptr)
 {
     int ret = -1;
 
@@ -324,7 +329,7 @@ static int app_ssl_connct(app_ssl_t * const ssl_ptr)
     }
 
     SSL_set_fd(ssl_ptr->ssl, ssl_ptr->sfd);
-    if (app_load_certificate_and_key(ssl_ptr->ctx) != 0)
+    if (app_load_certificate_and_key(ssl_ptr->ctx) != 1)
         goto error;
 
     SSL_set_options(ssl_ptr->ssl, SSL_OP_ALL);
@@ -347,32 +352,31 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
 {
     idigi_callback_status_t status = idigi_callback_abort;
     static app_ssl_t ssl_info = {-1, NULL, NULL};
-    app_ssl_t * const ssl_ptr = &ssl_info;
 
-    ssl_ptr->sfd = app_setup_server_socket();
-    if (ssl_ptr->sfd < 0)
+    ssl_info.sfd = app_setup_server_socket();
+    if (ssl_info.sfd < 0)
     {
         perror("Could not open socket");
         goto done;
     }
 
-    if (app_connect_to_server(ssl_ptr->sfd, host_name, length) < 0)
+    if (app_connect_to_server(ssl_info.sfd, host_name, length) < 0)
     {
         APP_DEBUG("Failed to connect to %s\n", host_name);
         goto error;
     }
     
-    if (app_is_connect_complete(ssl_ptr->sfd) < 0)
+    if (app_is_connect_complete(ssl_info.sfd) < 0)
         goto error;
 
-    if (app_ssl_connct(ssl_ptr) < 0)
+    if (app_ssl_connect(&ssl_info) < 0)
         goto error;
 
     /* make it non-blocking now */
     {
         int enabled = 1;
 
-        if (ioctl(ssl_ptr->sfd, FIONBIO, &enabled) < 0)
+        if (ioctl(ssl_info.sfd, FIONBIO, &enabled) < 0)
         {
             perror("ioctl: FIONBIO failed");
             goto error;
@@ -380,13 +384,13 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
     }
 
     APP_DEBUG("network_connect: connected to [%.*s] server\n", (int)length, host_name);
-    *network_handle = (idigi_network_handle_t *)ssl_ptr;
+    *network_handle = (idigi_network_handle_t *)&ssl_info;
     status = idigi_callback_continue;
     goto done;
 
 error:
     APP_DEBUG("network_connect: error to connect to %.*s server\n", (int)length, host_name);
-    app_free_ssl_info(ssl_ptr);
+    app_free_ssl_info(&ssl_info);
 
 done:
     return status;
