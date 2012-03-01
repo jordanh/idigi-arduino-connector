@@ -23,6 +23,22 @@
  *
  */
 
-#include "rci_parser.h"
+typedef enum
+{
+    rci_parser_complete,      /* all done */
+    rci_parser_busy,          /* user callback returned busy */
+    rci_parser_more_input,    /* have output buffer space to process more input */
+    rci_parser_flush_output,  /* need more output space, so send out the current buffer */
+    rci_parser_error          /* error occured, RCI servrice should inform messaging layer to cancel the session */
+} rci_parser_status_t;
 
-/* TODO: Service implementation goes here -ASK */
+typedef struct
+{
+    char * input_buf;
+    size_t input_bytes;
+    char * output_buf;
+    size_t * output_bytes_ptr;
+} rci_parser_data_t;
+
+static rci_parser_status_t rci_parser(rci_parser_data_t * const rci_data);
+
