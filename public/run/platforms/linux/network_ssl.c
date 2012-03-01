@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
+ *  Copyright (c) 1996-2012 Digi International Inc., All Rights Reserved
  *
  *  This software contains proprietary and confidential information of Digi
  *  International Inc.  By accepting transfer of this copy, Recipient agrees
@@ -49,13 +49,13 @@ static int app_dns_resolve_name(char const * const domain_name, in_addr_t * ip_a
 {
     int rc = -1;
     struct addrinfo *res_list, *res;
-    int error;
 
     if ((domain_name == NULL) || (ip_addr == NULL))
         goto done;
 
     {
         struct addrinfo hint;
+        int error;
          
         memset(&hint, 0, sizeof(hint));
         hint.ai_socktype = SOCK_STREAM;
@@ -210,7 +210,7 @@ error:
 #if (defined APP_SSL_CLNT_CERT)
 static int get_user_passwd(char *buf, int size, int rwflag, void *password)
 {
-  char const * const passwd = "digi";
+  char const * const passwd = APP_SSL_CLNT_CERT_PASSWORD;
   int const passwd_size = strlen(passwd);
 
   UNUSED_ARGUMENT(rwflag);
@@ -229,7 +229,7 @@ static int app_load_certificate_and_key(SSL_CTX * ctx)
 
     {
         ret = SSL_CTX_load_verify_locations(ctx, APP_SSL_CA_CERT, NULL);
-        if (ret == 0) 
+        if (ret != 1) 
         {
             APP_DEBUG("Failed to load CA cert %d\n", ret);
             ERR_print_errors_fp(stderr);
@@ -253,8 +253,6 @@ static int app_load_certificate_and_key(SSL_CTX * ctx)
         goto error;
     }
     #endif
-
-    ret = 0;
 
 error:
     return ret;
@@ -324,7 +322,7 @@ static int app_ssl_connct(app_ssl_t * const ssl_ptr)
     }
 
     SSL_set_fd(ssl_ptr->ssl, ssl_ptr->sfd);
-    if (app_load_certificate_and_key(ssl_ptr->ctx) != 0)
+    if (app_load_certificate_and_key(ssl_ptr->ctx) != 1)
         goto error;
 
     SSL_set_options(ssl_ptr->ssl, SSL_OP_ALL);
