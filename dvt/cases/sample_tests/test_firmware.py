@@ -122,7 +122,6 @@ class FirmwareTestCase(iik_testcase.TestCase):
         finally:
             monitor.stop()
         
-    
     def test_update_firmware_nonexisting_target(self):
     
         """ Sends a firmware upgrade to a non-existing target and verifies
@@ -165,104 +164,6 @@ class FirmwareTestCase(iik_testcase.TestCase):
         self.assertNotEqual(-1, invalid_response, 
                 "Device returned incorrect response to invalid firmware update.")
 
-        
-    def test_validate_concurrent_firmware_upgrade(self):
-    
-        """ Sends an asynchronous firmware update followed quickly by a
-        synchronous firmware update. Also verifies the correct responses
-        for each request and verifies that the device disconnects and 
-        reconnects
-        """
-    
-        self.log.info("Beginning Test to Update Firmware While Update in Progress.")
-        # Check time the device was last connected
-        last_connected = self.device_core.dpLastConnectTime
-        
-        # Send firmware target query
-        self.log.info("Sending firmware target query to %s." % self.device_config.device_id)
-               
-        # Find firmware targets
-        firmware_targets_xml = self.api.sci(FIRMWARE_QUERY_REQUEST % 
-            self.device_config.device_id)
-        dom = xml.dom.minidom.parseString(firmware_targets_xml)
-        targets = dom.getElementsByTagName("target")
-        
-        self.log.info("Determining if the device has defined firmware targets.")
-        self.assertNotEqual(0, len(targets), 
-                "No targets exist on device %s" % self.device_config.device_id)
-        
-        # Encode firmware for transmittal
-        f = open(self.device_config.firmware_target_file[target], 'rb')
-        data = f.read()
-        data_value = encodestring(data)
-        data_short = encodestring(data[0:8])
-        f.close()
-        
-        # Create asynchronous update request
-        upgrade_firmware_request_asynch= \
-"""<sci_request version="1.1">
-    <update_firmware firmware_target="%s" synchronous="false">
-        <targets>
-            <device id="%s"/>
-        </targets>
-        <data>%s</data>
-    </update_firmware>
-</sci_request>""" % ("%d" % target, self.device_config.device_id, data_value)
-
-        # Create synchronous update request.  Data payload should be much 
-        # smaller as it's possible that time spent sending to server could be 
-        # higher than that of the device consuming the firmware from the 
-        # async request.
-        upgrade_firmware_request_synch= \
-"""<sci_request version="1.1">
-    <update_firmware firmware_target="%s">
-        <targets>
-            <device id="%s"/>
-        </targets>
-        <data>%s</data>
-    </update_firmware>
-</sci_request>""" % ("%d" % target, self.device_config.device_id, data_short)
-        
-        # Send asynchronous update request
-        self.log.info("Sending request to update firmware asynchronously.")
-        response_asynch = self.api.sci(upgrade_firmware_request_asynch)
-        self.log.info("Response to Asynchronous Update:\n%s" % response_asynch)
-        
-        # Send synchronous update request
-        self.log.info("Sending request to update firmware synchronously.")
-        response_synch = self.api.sci(upgrade_firmware_request_synch)
-        self.log.info("Response to Synchronous Update:\n%s" % response_synch)
-        
-        # search for jobId in response to determine if asynchronous firmware
-        # upgrade was queued
-        jobid = response_asynch.find("jobId")
-        self.assertNotEqual(-1, jobid, "Firmware upgrade was not queued.")
-        
-        # check to make sure synchronous upgrade request returns a busy message
-        busy = response_synch.find("Firmware Upgrade Already In Progress")
-        self.assertNotEqual(-1, busy, 
-                        "Synchronous upgrade returned unexpected response.")
-        
-        # send GET with jobId to determine if the asynchronous upgrade completed
-        dom = xml.dom.minidom.parseString(response_asynch)
-        jobid_number = getText(dom.getElementsByTagName("jobId")[0])
-        
-        self.log.info("Waiting up to 60 seconds for asynchronous firmware update to complete.")
-        # Poll every 5 seconds to determine if firmware update has completed
-        complete = None
-        for i in range(10):
-            time.sleep(5)
-            response = self.api.sci_status(jobid_number)
-            self.log.info(response)
-            complete = response.find("complete")
-            if complete != -1:
-                break
-        
-        # Do final check to determine if firmware update has completed
-        self.log.info("complete message:\n%s" % response)
-        self.assertNotEqual(-1, complete, 
-                        "Asynchronous firmware upgrade did not complete.")
-        
 if __name__ == '__main__':
 
     unittest.main()

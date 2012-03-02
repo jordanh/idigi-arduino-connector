@@ -25,8 +25,6 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-#define asizeof(array) (sizeof(array)/sizeof(array[0]))
-
 typedef struct {
     uint32_t    version;
     uint32_t    code_size;

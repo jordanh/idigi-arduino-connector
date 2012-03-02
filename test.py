@@ -190,7 +190,8 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
             for _ in xrange(1,10):
                 device_core = api.get_first('DeviceCore', 
                         condition="devConnectwareId='%s'" % device_id)
-                if device_core.dpConnectionStatus == '1':
+                if hasattr(device_core, 'dpConnectionStatus') \
+                    and device_core.dpConnectionStatus == '1':
                     print ">>> [%s] Device %s Connected." % (description, device_id)
                     connected = True
                     break
@@ -241,7 +242,12 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
         finally:
             # Delete the Device after we're done with it.
             if device_location is not None:
-                api.delete_location(device_location)
+                try:
+                    api.delete_location(device_location)
+                except:
+                    # If we get a failure deleting the device, proceed
+                    # as the device was already removed.
+                    pass
             shutil.rmtree(sandbox_dir)
 
 def clean_output(directory):

@@ -33,8 +33,6 @@
 
 extern int app_os_get_system_time(unsigned long * const uptime);
 
-#define asizeof(array) (sizeof(array)/sizeof(array[0]))
-
 typedef struct {
     uint32_t    version;
     uint32_t    code_size;
