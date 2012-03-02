@@ -170,10 +170,12 @@ static size_t fill_data_service_header(idigi_data_request_t const * const reques
     return (size_t)(ptr - data);
 }
 
-static idigi_callback_status_t data_service_get_data(idigi_data_t * const idigi_ptr, msg_service_request_t * const service_data)
+static idigi_callback_status_t data_service_get_data(idigi_data_t * const idigi_ptr, msg_service_request_t * const service_request)
 {
     idigi_callback_status_t status = idigi_callback_abort;
-    data_service_context_t * const context = service_data->session->service_context;
+    msg_session_t * const session = service_request->session;
+    msg_service_data_t * const service_data = service_request->need_data;
+    data_service_context_t * const context = session->service_context;
     idigi_data_request_t const * const request = context->user_request;
     uint8_t * dptr = service_data->data_ptr;
     size_t data_bytes = 0;
@@ -212,7 +214,7 @@ static idigi_callback_status_t data_service_get_data(idigi_data_t * const idigi_
             context->have_data = idigi_false;
             if (last_chunk)
                 MsgSetLastData(service_data->flags);
-            status = data_service_call_user(idigi_ptr, idigi_data_service_send_complete, service_data->session, pblock->data, context->bytes_sent);
+            status = data_service_call_user(idigi_ptr, idigi_data_service_send_complete, session, pblock->data, context->bytes_sent);
         }
         else
             status = idigi_callback_continue;
@@ -222,31 +224,31 @@ done:
     return status;
 }
 
-static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_ptr, msg_service_request_t * const service_data)
+static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_ptr, msg_service_request_t * const service_request)
 {
     idigi_callback_status_t status = idigi_callback_abort;
 
-    switch (service_data->service_type)
+    switch (service_request->service_type)
     {
     case msg_service_type_need_data:
-        status = data_service_get_data(idigi_ptr, service_data);
+        status = data_service_get_data(idigi_ptr, service_request);
         break;
 
     case msg_service_type_have_data:
         {
+            msg_service_data_t * const service_data = service_request->have_data;
             uint8_t const opcode = *(uint8_t *)service_data->data_ptr;
 
             if (opcode == data_service_opcode_put_response)
             {
-                status = data_service_call_user(idigi_ptr, idigi_data_service_response, service_data->session, service_data->data_ptr, service_data->length_in_bytes);
+                status = data_service_call_user(idigi_ptr, idigi_data_service_response, service_request->session, service_data->data_ptr, service_data->length_in_bytes);
             }
             else
             {
                 idigi_msg_error_t const error_code = idigi_msg_error_no_service;
 
-                service_data->error_value = error_code;
-                service_data->length_in_bytes = sizeof error_code;
-                service_data->service_type = msg_service_type_error;
+                service_request->error_value = error_code;
+                service_request->service_type = msg_service_type_error;
                 status = idigi_callback_continue;
                 idigi_debug("Data service request/response with opcode %d is not supported\n", opcode);
             }
@@ -254,13 +256,17 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_
         break;
 
     case msg_service_type_error:
-        status = data_service_call_user(idigi_ptr, idigi_data_service_error, service_data->session, service_data->data_ptr, service_data->length_in_bytes);
+        status = data_service_call_user(idigi_ptr, idigi_data_service_error, service_request->session, service_request->error_value, sizeof service_request->error_value);
         break;
             
     case msg_service_type_free:
-        if (service_data->session->service_context != NULL) 
         {
-            free_data(idigi_ptr, service_data->session->service_context);
+            msg_session_t * const session = service_request->session;
+
+            if (session->service_context != NULL) 
+            {
+                free_data(idigi_ptr, session->service_context);
+            }
         }
         status = idigi_callback_continue;
         break;
