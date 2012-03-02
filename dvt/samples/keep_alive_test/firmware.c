@@ -25,8 +25,6 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-#define asizeof(array) (sizeof(array)/sizeof(array[0]))
-
 extern int dvt_send_keepalive_count;
 extern int dvt_fw_keepalive_count;
 extern int dvt_fw_complete_called;

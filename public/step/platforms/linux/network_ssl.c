@@ -129,10 +129,9 @@ static int app_connect_to_server(int fd, char const * const host_name, size_t le
     in_addr_t ip_addr;
 
     {
-        size_t const max_bytes_in_server_name = 64;
-        char server_name[max_bytes_in_server_name];
+        char server_name[64];
 
-        if (length >= max_bytes_in_server_name)
+        if (length >= asizeof(server_name))
         {
             APP_DEBUG("app_connect_to_server: server name length [%d]\n", length);
             goto error;
@@ -214,18 +213,21 @@ error:
 }
 
 #if (defined APP_SSL_CLNT_CERT)
-static int get_user_passwd(char *buf, int size, int rwflag, void *password)
+static int get_user_passwd(char * buf, int size, int rwflag, void * password)
 {
   char const passwd[] = APP_SSL_CLNT_CERT_PASSWORD;
-  int const passwd_size = asizeof(passwd) - 1;
+  int const pwd_bytes = asizeof(passwd) - 1;
+  int const copy_bytes = (pwd_bytes < size) ? pwd_bytes : size-1;
 
   UNUSED_ARGUMENT(rwflag);
   UNUSED_ARGUMENT(password);
 
-  if (passwd_size < size)
-      memcpy(buf, passwd, passwd_size);
+  ASSERT_GOTO(size > 0, error);
+  memcpy(buf, passwd, copy_bytes);
+  buf[copy_bytes] = '\0';
 
-  return passwd_size;
+error:
+  return copy_bytes;
 }
 #endif
 
