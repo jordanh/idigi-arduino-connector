@@ -69,14 +69,14 @@ int main (void)
 
     for (i = 0; i < idigi_group_count; i++)
     {
-        idigi_group_t * const group_ptr = &idigi_groups[i];
+        idigi_group_t const * const group_ptr = &idigi_groups[i];
         size_t j;
 
         print_name("\n\ngroup", group_ptr->name);
 
         for (j=0; j < group_ptr->elements.count; j++)
         {
-            idigi_group_element_t * const element_ptr = &group_ptr->elements.data[j];
+            idigi_group_element_t const * const element_ptr = &group_ptr->elements.data[j];
             print_name("\n\telement", element_ptr->name);
             printf("type= \"%s\" ", element_type_strings[element_ptr->type]);
             printf("access = \"%s\" ", element_access_strings[element_ptr->access]);
@@ -88,7 +88,7 @@ int main (void)
                 {
                 case idigi_element_type_enum:
                 {
-                    idigi_element_value_enum_t * const enum_ptr = &element_ptr->value_limit->enum_value;
+                    idigi_element_value_enum_t const * const enum_ptr = &element_ptr->value_limit->enum_value;
                     size_t n;
 
                     for (n=0; n < enum_ptr->count; n++)
@@ -99,7 +99,7 @@ int main (void)
                 }
                 case idigi_element_type_int32:
                 {
-                    idigi_element_value_signed_integer_t * const value_limit = &element_ptr->value_limit->integer_signed_value;
+                    idigi_element_value_signed_integer_t const * const value_limit = &element_ptr->value_limit->integer_signed_value;
                     if (value_limit->min_value != 0 || value_limit->max_value != 0)
                     {
                         printf(" min = \"%d\" max = \"%d\" ", value_limit->min_value, value_limit->max_value);
@@ -108,7 +108,7 @@ int main (void)
                 }
                 case idigi_element_type_uint32:
                 {
-                    idigi_element_value_unsigned_integer_t * const value_limit = &element_ptr->value_limit->integer_unsigned_value;
+                    idigi_element_value_unsigned_integer_t const * const value_limit = &element_ptr->value_limit->integer_unsigned_value;
                     if (value_limit->min_value != 0 || value_limit->max_value != 0)
                     {
                         printf(" min = \"%ul\" max = \"%ul\" ", value_limit->min_value, value_limit->max_value);
@@ -117,7 +117,7 @@ int main (void)
                 }
                 case idigi_element_type_hex32:
                 {
-                    idigi_element_value_unsigned_integer_t * const value_limit = &element_ptr->value_limit->integer_unsigned_value;
+                    idigi_element_value_unsigned_integer_t const * const value_limit = &element_ptr->value_limit->integer_unsigned_value;
                     if (value_limit->min_value != 0 || value_limit->max_value != 0)
                     {
                         printf(" min = \"%X\" max = \"%X\" ", (unsigned)value_limit->min_value, (unsigned)value_limit->max_value);
@@ -126,7 +126,7 @@ int main (void)
                 }
                 case idigi_element_type_0xhex:
                 {
-                    idigi_element_value_unsigned_integer_t * const value_limit = &element_ptr->value_limit->integer_unsigned_value;
+                    idigi_element_value_unsigned_integer_t const * const value_limit = &element_ptr->value_limit->integer_unsigned_value;
                     if (value_limit->min_value != 0 &&  value_limit->max_value != 0)
                     {
                         printf(" min = \"0x%X\" max = \"ox%X\" ", (unsigned)value_limit->min_value, (unsigned)value_limit->max_value);
@@ -135,7 +135,7 @@ int main (void)
                 }
                 case idigi_element_type_float:
                 {
-                    idigi_element_value_float_t * const value_limit = &element_ptr->value_limit->float_value;
+                    idigi_element_value_float_t const * const value_limit = &element_ptr->value_limit->float_value;
                     if (value_limit->min_value != 0 || value_limit->max_value != 0)
                     {
                       printf(" min = \"%f\" max = \"%f\" ", value_limit->min_value, value_limit->max_value);
@@ -145,7 +145,7 @@ int main (void)
                 case idigi_element_type_string:
                 case idigi_element_type_multiline_string:
                 {
-                    idigi_element_value_string_t * const value_limit = &element_ptr->value_limit->string_value;
+                    idigi_element_value_string_t const * const value_limit = &element_ptr->value_limit->string_value;
                     if (value_limit->min_length_in_bytes != 0 || value_limit->max_length_in_bytes != 0)
                     {
                         printf(" min = \"%d\" max = \"%d\" ", value_limit->min_length_in_bytes, value_limit->max_length_in_bytes);
