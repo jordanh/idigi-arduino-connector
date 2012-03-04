@@ -35,6 +35,7 @@
 #include <string.h>
 #include <limits.h>
 #include <assert.h>
+#include <stdlib.h>
 
 #if __STDC_VERSION__ >= 199901L /* Test used for C89/C99 Compiler */
   /* 
