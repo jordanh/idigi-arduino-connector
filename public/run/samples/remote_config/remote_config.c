@@ -25,77 +25,198 @@
 #include "idigi_remote.h"
 #include "remote_config.h"
 
-static char idigi_remote_all_strings[] = {
-    6, 's', 'e', 'r', 'i', 'a', 'l',
-    4, 'b', 'a', 'u', 'd',
-    6, 'p', 'a', 'r', 'i', 't', 'y',
-    8, 'd', 'a', 't', 'a','b', 'i', 't', 's',
-    6, 'x', 'b','r','e','a','k',
-    7, 't','x','b','y','t', 'e', 's',
+#define SERIAL_LENGTH           6
+#define SERIAL_BAUD_LENGTH      4
+#define SERIAL_PARITY_LENGTH    6
+#define SERIAL_DATABITS_LENGTH  8
+#define SERIAL_XBREAK_LENGTH    6
+#define SERIAL_TXBYTES_LENGTH   7
 
-    4, '2', '4', '0', '0',
+#define SERIAL_BAUD_2400_LENGTH 4
+#define SERIAL_BAUD_4800_LENGTH 4
+#define SERIAL_BAUD_9600_LENGTH 4
+#define SERIAL_BAUD_19200_LENGTH 5
+#define SERIAL_BAUD_38400_LENGTH 5
+#define SERIAL_BAUD_57600_LENGTH 5
+#define SERIAL_BAUD_115200_LENGTH 6
+#define SERIAL_BAUD_230400_LENGTH 6
 
-    4, '4', '8', '0', '0',
-    4, '9', '6', '0', '0',
-    5, '1', '9', '2', '0', '0',
-    5, '3', '8', '4', '0', '0',
-    5, '5', '7', '6', '0', '0',
+#define SERIAL_PARITY_NONE_LENGTH   4
+#define SERIAL_PARITY_ODD_LENGTH    3
+#define SERIAL_PARITY_EVEN_LENGTH   4
 
-    6, '1', '1', '5', '2', '0', '0',
-    6, '2', '3', '0', '4', '0', '0',
-    4, 'n', 'o', 'n', 'e',
-    3, 'o', 'd', 'd',
-    4, 'e', 'v', 'e', 'n',
+#define ERROR_FIELD_NOT_EXIT_LENGTH 30
+#define ERROR_LOAD_FAILED_LENGTH    11
+#define ERROR_SAVE_FAILED_LENGTH    11
 
-    11, 'L', 'o', 'a', 'd', ' ', 'f', 'a', 'i', 'l', 'e', 'd',
-    11, 'S', 'a', 'v', 'e', ' ', 'f', 'a', 'i', 'l', 'e', 'd',
-    30, 'F', 'i', 'e', 'l', 'd', ' ', 's', 'p', 'e', 'c', 'i', 'f', 'i', 'e', 'd', ' ', 'd', 'o', 'e', 's', ' ', 'n', 'o', 't', ' ', 'e', 'x', 'i', 's', 't',
-    17, 'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'b', 'a', 'u', 'd', ' ', 'r', 'a', 't', 'e',
-    17, 'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'd', 'a', 't', 'a', ' ', 'b', 'i', 't', 's',
-    14, 'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'p', 'a', 'r', 'i', 't', 'y',
-    22, 'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'x', 'b', 'r', 'e', 'a', 'k', ' ', 's', 'e', 't', 't', 'i', 'n', 'g',
-    43, 'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'c', 'o', 'm', 'b', 'i', 'n', 'a', 't', 'i', 'o', 'n', ' ', 'o', 'f', ' ', 'd', 'a', 't', 'a', ' ', 'b', 'i', 't', 's', ' ', 'a', 'n', 'd', ' ', 'p', 'a', 'r', 'i', 't', 'y',
+#define SERIAL_ERROR_BAUD_LENGTH        17
+#define SERIAL_ERROR_DATABITS_LENGTH    17
+#define SERIAL_ERROR_PARITY_LENGTH      14
+#define SERIAL_ERROR_XBREAK_LENGTH      22
+#define SERIAL_ERROR_DATABITS_PARITY_LENGTH    43
 
-    8, 'e', 't', 'h', 'e', 'r', 'n', 'e', 't',
-    2, 'i', 'p',
-    6, 's', 'u', 'b', 'n', 'e', 't',
-    7, 'g', 'a', 't', 'e', 'w', 'a', 'y',
-    4, 'd', 'h', 'c', 'p',
-    3, 'd', 'n', 's',
-    6, 'd', 'u', 'p', 'l', 'e', 'x',
+#define SERIAL_BAUD_STRING_INDEX        SERIAL_LENGTH + 1
+#define SERIAL_PARITY_STRING_INDEX      SERIAL_BAUD_STRING_INDEX + SERIAL_BAUD_LENGTH + 1
+#define SERIAL_DATABITS_STRING_INDEX    SERIAL_PARITY_STRING_INDEX + SERIAL_PARITY_LENGTH + 1
+#define SERIAL_XBREAK_STRING_INDEX      SERIAL_DATABITS_STRING_INDEX + SERIAL_DATABITS_LENGTH + 1
+#define SERIAL_TXBYTES_STRING_INDEX     SERIAL_XBREAK_STRING_INDEX + SERIAL_XBREAK_LENGTH + 1
 
-    4, 'a', 'u', 't', 'o',
-    4, 'h', 'a', 'l', 'f',
-    4, 'f', 'u', 'l', 'l',
+#define SERIAL_BAUD_2400_STRING_INDEX   SERIAL_TXBYTES_STRING_INDEX + SERIAL_TXBYTES_LENGTH + 1
+#define SERIAL_BAUD_4800_STRING_INDEX   SERIAL_BAUD_2400_STRING_INDEX + SERIAL_BAUD_2400_LENGTH + 1
+#define SERIAL_BAUD_9600_STRING_INDEX   SERIAL_BAUD_4800_STRING_INDEX + SERIAL_BAUD_4800_LENGTH + 1
+#define SERIAL_BAUD_19200_STRING_INDEX  SERIAL_BAUD_9600_STRING_INDEX + SERIAL_BAUD_9600_LENGTH + 1
+#define SERIAL_BAUD_38400_STRING_INDEX  SERIAL_BAUD_19200_STRING_INDEX + SERIAL_BAUD_19200_LENGTH + 1
+#define SERIAL_BAUD_57600_STRING_INDEX  SERIAL_BAUD_38400_STRING_INDEX + SERIAL_BAUD_38400_LENGTH + 1
+#define SERIAL_BAUD_115200_STRING_INDEX SERIAL_BAUD_57600_STRING_INDEX + SERIAL_BAUD_57600_LENGTH + 1
+#define SERIAL_BAUD_230400_STRING_INDEX SERIAL_BAUD_115200_STRING_INDEX + SERIAL_BAUD_115200_LENGTH + 1
 
-    31, 'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'e', 't', 'h', 'e', 'r', 'n', 'e', 't', ' ', 'd', 'u', 'p', 'l', 'e', 'x', ' ', 's', 'e', 't', 't', 'i', 'n', 'g',
-    18, 'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'I', 'P', ' ', 'a', 'd', 'd', 'r', 'e', 's', 's',
-    19, 'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 's', 'u', 'b', 'n', 'e', 't', ' ', 'm', 'a', 's', 'k',
-    23, 'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'g', 'a', 't', 'e', 'w', 'a', 'y', ' ', 'a', 'd', 'd', 'r', 'e', 's', 's',
-    19, 'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'D', 'N', 'S', ' ', 'a', 'd', 'd', 'r', 'e', 's', 's',
+#define SERIAL_PARITY_NONE_STRING_INDEX SERIAL_BAUD_230400_STRING_INDEX + SERIAL_BAUD_230400_LENGTH + 1
+#define SERIAL_PARITY_ODD_STRING_INDEX  SERIAL_PARITY_NONE_STRING_INDEX + SERIAL_PARITY_NONE_LENGTH + 1
+#define SERIAL_PARITY_EVEN_STRING_INDEX SERIAL_PARITY_ODD_STRING_INDEX + SERIAL_PARITY_ODD_LENGTH + 1
 
-    12, 'd', 'e', 'v', 'i', 'c', 'e', '_', 's', 't', 'a', 't', 's',
-    7, 'c', 'u', 'r', 't', 'i', 'm', 'e',
-    7, 'u', 's', 'e', 'd', 'm', 'e', 'm',
-    8, 'h', 'e', 'x', 'v', 'a', 'l', 'u', 'e',
-    10, '0', 'x', 'h', 'e', 'x', 'v', 'a', 'l', 'u', 'e',
+#define ERROR_FIELD_NOT_EXIT_STRING_INDEX   SERIAL_PARITY_EVEN_STRING_INDEX + SERIAL_PARITY_EVEN_LENGTH + 1
+#define ERROR_LOAD_FAILED_STRING_INDEX      ERROR_FIELD_NOT_EXIT_STRING_INDEX + ERROR_FIELD_NOT_EXIT_LENGTH + 1
+#define ERROR_SAVE_FAILED_STRING_INDEX      ERROR_LOAD_FAILED_STRING_INDEX + ERROR_LOAD_FAILED_LENGTH + 1
 
-    11, 'd', 'e', 'v', 'i', 'c', 'e', '_', 'i', 'n', 'f', 'o',
-    7, 'p', 'r', 'o', 'd', 'u', 'c', 't',
-    5, 'm', 'o', 'd', 'e', 'l',
-    7, 'c', 'o', 'm', 'p', 'a', 'n', 'y',
-    4, 'd', 'e', 's', 'c',
+#define SERIAL_ERROR_BAUD_STRING_INDEX              ERROR_SAVE_FAILED_STRING_INDEX + ERROR_SAVE_FAILED_LENGTH + 1
+#define SERIAL_ERROR_DATABITS_STRING_INDEX          SERIAL_ERROR_BAUD_STRING_INDEX + SERIAL_ERROR_BAUD_LENGTH + 1
+#define SERIAL_ERROR_PARITY_STRING_INDEX            SERIAL_ERROR_DATABITS_STRING_INDEX + SERIAL_ERROR_DATABITS_LENGTH + 1
+#define SERIAL_ERROR_XBREAK_STRING_INDEX            SERIAL_ERROR_PARITY_STRING_INDEX + SERIAL_ERROR_PARITY_LENGTH + 1
+#define SERIAL_ERROR_DATABITS_PARITY_STRING_INDEX   SERIAL_ERROR_XBREAK_STRING_INDEX + SERIAL_ERROR_XBREAK_LENGTH + 1
+
+#define ETHERNET_LENGTH         8
+#define ETHERNET_IP_LENGTH      2
+#define ETHERNET_SUBNET_LENGTH  6
+#define ETHERNET_GATEWAY_LENGTH 7
+#define ETHERNET_DHCP_LENGTH    4
+#define ETHERNET_DNS_LENGTH     3
+#define ETHERNET_DUPLEX_LENGTH  6
+
+#define ETHERNET_DUPLEX_AUTO_LENGTH  4
+#define ETHERNET_DUPLEX_HALF_LENGTH  4
+#define ETHERNET_DUPLEX_FULL_LENGTH  4
+
+#define ETHERNET_ERROR_DUPLEX_LENGTH    31
+#define ETHERNET_ERROR_IP_LENGTH        18
+#define ETHERNET_ERROR_SUBNET_LENGTH    19
+#define ETHERNET_ERROR_GATEWAY_LENGTH   23
+#define ETHERNET_ERROR_DNS_LENGTH       19
+
+
+#define ETHERNET_STRING_INDEX         SERIAL_ERROR_DATABITS_PARITY_STRING_INDEX + SERIAL_ERROR_DATABITS_PARITY_LENGTH + 1
+#define ETHERNET_IP_STRING_INDEX      ETHERNET_STRING_INDEX + ETHERNET_LENGTH + 1
+#define ETHERNET_SUBNET_STRING_INDEX  ETHERNET_IP_STRING_INDEX + ETHERNET_IP_LENGTH + 1
+#define ETHERNET_GATEWAY_STRING_INDEX ETHERNET_SUBNET_STRING_INDEX + ETHERNET_SUBNET_LENGTH + 1
+#define ETHERNET_DHCP_STRING_INDEX    ETHERNET_GATEWAY_STRING_INDEX + ETHERNET_GATEWAY_LENGTH + 1
+#define ETHERNET_DNS_STRING_INDEX     ETHERNET_DHCP_STRING_INDEX + ETHERNET_DHCP_LENGTH + 1
+#define ETHERNET_DUPLEX_STRING_INDEX  ETHERNET_DNS_STRING_INDEX + ETHERNET_DNS_LENGTH + 1
+
+#define ETHERNET_DUPLEX_AUTO_STRING_INDEX  ETHERNET_DUPLEX_STRING_INDEX + ETHERNET_DUPLEX_LENGTH + 1
+#define ETHERNET_DUPLEX_HALF_STRING_INDEX  ETHERNET_DUPLEX_AUTO_STRING_INDEX + ETHERNET_DUPLEX_AUTO_LENGTH + 1
+#define ETHERNET_DUPLEX_FULL_STRING_INDEX  ETHERNET_DUPLEX_HALF_STRING_INDEX + ETHERNET_DUPLEX_HALF_LENGTH + 1
+
+#define ETHERNET_ERROR_DUPLEX_STRING_INDEX    ETHERNET_DUPLEX_FULL_STRING_INDEX + ETHERNET_DUPLEX_FULL_LENGTH + 1
+#define ETHERNET_ERROR_IP_STRING_INDEX        ETHERNET_ERROR_DUPLEX_STRING_INDEX + ETHERNET_ERROR_DUPLEX_LENGTH + 1
+#define ETHERNET_ERROR_SUBNET_STRING_INDEX    ETHERNET_ERROR_IP_STRING_INDEX + ETHERNET_ERROR_IP_LENGTH + 1
+#define ETHERNET_ERROR_GATEWAY_STRING_INDEX   ETHERNET_ERROR_SUBNET_STRING_INDEX + ETHERNET_ERROR_SUBNET_LENGTH + 1
+#define ETHERNET_ERROR_DNS_STRING_INDEX       ETHERNET_ERROR_GATEWAY_STRING_INDEX + ETHERNET_ERROR_GATEWAY_LENGTH + 1
+
+#define DEVICE_STATS_LENGTH 12
+#define DEVICE_STATS_CURTIME_LENGTH 7
+#define DEVICE_STATS_USEDMEM_LENGTH 7
+#define DEVICE_STATS_HEAPSTART_LENGTH 9
+#define DEVICE_STATS_HEAPEND_LENGTH 7
+
+#define DEVICE_STATS_STRING_INDEX       ETHERNET_ERROR_DNS_STRING_INDEX + ETHERNET_ERROR_DNS_LENGTH + 1
+#define DEVICE_STATS_CURTIME_STRING_INDEX     DEVICE_STATS_STRING_INDEX + DEVICE_STATS_LENGTH + 1
+#define DEVICE_STATS_USEDMEM_STRING_INDEX     DEVICE_STATS_CURTIME_STRING_INDEX + DEVICE_STATS_CURTIME_LENGTH + 1
+#define DEVICE_STATS_HEAPSTART_STRING_INDEX   DEVICE_STATS_USEDMEM_STRING_INDEX + DEVICE_STATS_USEDMEM_LENGTH + 1
+#define DEVICE_STATS_HEAPEND_STRING_INDEX     DEVICE_STATS_HEAPSTART_STRING_INDEX + DEVICE_STATS_HEAPSTART_LENGTH + 1
+
+#define DEVICE_INFO_LENGTH          11
+#define DEVICE_INFO_PRODUCT_LENGTH  7
+#define DEVICE_INFO_MODEL_LENGTH    5
+#define DEVICE_INFO_COMPANY_LENGTH  7
+#define DEVICE_INFO_DESC_LENGTH     4
+
+#define DEVICE_INFO_STRING_INDEX            DEVICE_STATS_HEAPEND_STRING_INDEX + DEVICE_STATS_HEAPEND_LENGTH + 1
+#define DEVICE_INFO_PRODUCT_STRING_INDEX    DEVICE_INFO_STRING_INDEX + DEVICE_INFO_LENGTH + 1
+#define DEVICE_INFO_MODEL_STRING_INDEX      DEVICE_INFO_PRODUCT_STRING_INDEX + DEVICE_INFO_PRODUCT_LENGTH + 1
+#define DEVICE_INFO_COMPANY_STRING_INDEX    DEVICE_INFO_MODEL_STRING_INDEX + DEVICE_INFO_MODEL_LENGTH + 1
+#define DEVICE_INFO_DESC_STRING_INDEX       DEVICE_INFO_COMPANY_STRING_INDEX + DEVICE_INFO_COMPANY_LENGTH + 1
+
+
+static char const idigi_remote_all_strings[] = {
+    SERIAL_LENGTH, 's', 'e', 'r', 'i', 'a', 'l',
+    SERIAL_BAUD_LENGTH, 'b', 'a', 'u', 'd',
+    SERIAL_PARITY_LENGTH, 'p', 'a', 'r', 'i', 't', 'y',
+    SERIAL_DATABITS_LENGTH, 'd', 'a', 't', 'a','b', 'i', 't', 's',
+    SERIAL_XBREAK_LENGTH, 'x', 'b','r','e','a','k',
+    SERIAL_TXBYTES_LENGTH, 't','x','b','y','t', 'e', 's',
+
+    SERIAL_BAUD_2400_LENGTH, '2', '4', '0', '0',
+
+    SERIAL_BAUD_4800_LENGTH, '4', '8', '0', '0',
+    SERIAL_BAUD_9600_LENGTH, '9', '6', '0', '0',
+    SERIAL_BAUD_19200_LENGTH, '1', '9', '2', '0', '0',
+    SERIAL_BAUD_38400_LENGTH, '3', '8', '4', '0', '0',
+    SERIAL_BAUD_57600_LENGTH, '5', '7', '6', '0', '0',
+
+    SERIAL_BAUD_115200_LENGTH, '1', '1', '5', '2', '0', '0',
+    SERIAL_BAUD_230400_LENGTH, '2', '3', '0', '4', '0', '0',
+    SERIAL_PARITY_NONE_LENGTH, 'n', 'o', 'n', 'e',
+    SERIAL_PARITY_ODD_LENGTH, 'o', 'd', 'd',
+    SERIAL_PARITY_EVEN_LENGTH, 'e', 'v', 'e', 'n',
+
+    ERROR_FIELD_NOT_EXIT_LENGTH, 'F', 'i', 'e', 'l', 'd', ' ', 's', 'p', 'e', 'c', 'i', 'f', 'i', 'e', 'd', ' ', 'd', 'o', 'e', 's', ' ', 'n', 'o', 't', ' ', 'e', 'x', 'i', 's', 't',
+    ERROR_LOAD_FAILED_LENGTH, 'L', 'o', 'a', 'd', ' ', 'f', 'a', 'i', 'l', 'e', 'd',
+    ERROR_SAVE_FAILED_LENGTH, 'S', 'a', 'v', 'e', ' ', 'f', 'a', 'i', 'l', 'e', 'd',
+    SERIAL_ERROR_BAUD_LENGTH, 'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'b', 'a', 'u', 'd', ' ', 'r', 'a', 't', 'e',
+    SERIAL_ERROR_DATABITS_LENGTH, 'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'd', 'a', 't', 'a', ' ', 'b', 'i', 't', 's',
+    SERIAL_ERROR_PARITY_LENGTH, 'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'p', 'a', 'r', 'i', 't', 'y',
+    SERIAL_ERROR_XBREAK_LENGTH, 'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'x', 'b', 'r', 'e', 'a', 'k', ' ', 's', 'e', 't', 't', 'i', 'n', 'g',
+    SERIAL_ERROR_DATABITS_PARITY_LENGTH, 'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'c', 'o', 'm', 'b', 'i', 'n', 'a', 't', 'i', 'o', 'n', ' ', 'o', 'f', ' ', 'd', 'a', 't', 'a', ' ', 'b', 'i', 't', 's', ' ', 'a', 'n', 'd', ' ', 'p', 'a', 'r', 'i', 't', 'y',
+
+    ETHERNET_LENGTH, 'e', 't', 'h', 'e', 'r', 'n', 'e', 't',
+    ETHERNET_IP_LENGTH, 'i', 'p',
+    ETHERNET_SUBNET_LENGTH, 's', 'u', 'b', 'n', 'e', 't',
+    ETHERNET_GATEWAY_LENGTH, 'g', 'a', 't', 'e', 'w', 'a', 'y',
+    ETHERNET_DHCP_LENGTH, 'd', 'h', 'c', 'p',
+    ETHERNET_DNS_LENGTH, 'd', 'n', 's',
+    ETHERNET_DUPLEX_LENGTH, 'd', 'u', 'p', 'l', 'e', 'x',
+
+    ETHERNET_DUPLEX_AUTO_LENGTH, 'a', 'u', 't', 'o',
+    ETHERNET_DUPLEX_HALF_LENGTH, 'h', 'a', 'l', 'f',
+    ETHERNET_DUPLEX_FULL_LENGTH, 'f', 'u', 'l', 'l',
+
+    ETHERNET_ERROR_DUPLEX_LENGTH, 'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'e', 't', 'h', 'e', 'r', 'n', 'e', 't', ' ', 'd', 'u', 'p', 'l', 'e', 'x', ' ', 's', 'e', 't', 't', 'i', 'n', 'g',
+    ETHERNET_ERROR_IP_LENGTH, 'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'I', 'P', ' ', 'a', 'd', 'd', 'r', 'e', 's', 's',
+    ETHERNET_ERROR_SUBNET_LENGTH, 'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 's', 'u', 'b', 'n', 'e', 't', ' ', 'm', 'a', 's', 'k',
+    ETHERNET_ERROR_GATEWAY_LENGTH, 'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'g', 'a', 't', 'e', 'w', 'a', 'y', ' ', 'a', 'd', 'd', 'r', 'e', 's', 's',
+    ETHERNET_ERROR_DNS_LENGTH, 'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'D', 'N', 'S', ' ', 'a', 'd', 'd', 'r', 'e', 's', 's',
+
+    DEVICE_STATS_LENGTH, 'd', 'e', 'v', 'i', 'c', 'e', '_', 's', 't', 'a', 't', 's',
+    DEVICE_STATS_CURTIME_LENGTH, 'c', 'u', 'r', 't', 'i', 'm', 'e',
+    DEVICE_STATS_USEDMEM_LENGTH, 'u', 's', 'e', 'd', 'm', 'e', 'm',
+    DEVICE_STATS_HEAPSTART_LENGTH, 'h', 'e', 'a', 'p', 's', 't', 'a', 'r', 't',
+    DEVICE_STATS_HEAPEND_LENGTH, 'h', 'e', 'a', 'p', 'e', 'n', 'd',
+
+    DEVICE_INFO_LENGTH, 'd', 'e', 'v', 'i', 'c', 'e', '_', 'i', 'n', 'f', 'o',
+    DEVICE_INFO_PRODUCT_LENGTH, 'p', 'r', 'o', 'd', 'u', 'c', 't',
+    DEVICE_INFO_MODEL_LENGTH, 'm', 'o', 'd', 'e', 'l',
+    DEVICE_INFO_COMPANY_LENGTH, 'c', 'o', 'm', 'p', 'a', 'n', 'y',
+    DEVICE_INFO_DESC_LENGTH, 'd', 'e', 's', 'c',
 
 };
 static char const * const serial_baud_enum[] = {
-    &idigi_remote_all_strings[43],  /* 2400 */
-    &idigi_remote_all_strings[43 + 4 + 1],  /* 4800 */
-    &idigi_remote_all_strings[48 + 4 + 1],  /* 9600 */
-    &idigi_remote_all_strings[53 + 4 + 1],  /* 19200 */
-    &idigi_remote_all_strings[58 + 5 + 1],  /* 38400 */
-    &idigi_remote_all_strings[64 + 5 + 1],  /* 57600 */
-    &idigi_remote_all_strings[70 + 5 + 1],  /* 115200 */
-    &idigi_remote_all_strings[76 + 6 + 1],  /* 230400 */
+    &idigi_remote_all_strings[SERIAL_BAUD_2400_STRING_INDEX],  /* 2400 */
+    &idigi_remote_all_strings[SERIAL_BAUD_4800_STRING_INDEX],  /* 4800 */
+    &idigi_remote_all_strings[SERIAL_BAUD_9600_STRING_INDEX],  /* 9600 */
+    &idigi_remote_all_strings[SERIAL_BAUD_19200_STRING_INDEX],  /* 19200 */
+    &idigi_remote_all_strings[SERIAL_BAUD_38400_STRING_INDEX],  /* 38400 */
+    &idigi_remote_all_strings[SERIAL_BAUD_57600_STRING_INDEX],  /* 57600 */
+    &idigi_remote_all_strings[SERIAL_BAUD_115200_STRING_INDEX],  /* 115200 */
+    &idigi_remote_all_strings[SERIAL_BAUD_230400_STRING_INDEX],  /* 230400 */
 };
 
 static idigi_element_value_enum_t const serial_baud_limit = {
@@ -105,9 +226,9 @@ static idigi_element_value_enum_t const serial_baud_limit = {
 
 
 static char const * const serial_parity_enum[] = {
-    &idigi_remote_all_strings[90], /* none */
-    &idigi_remote_all_strings[90 + 4 + 1], /* odd */
-    &idigi_remote_all_strings[95 + 3 + 1], /* even */
+    &idigi_remote_all_strings[SERIAL_PARITY_NONE_STRING_INDEX], /* none */
+    &idigi_remote_all_strings[SERIAL_PARITY_ODD_STRING_INDEX], /* odd */
+    &idigi_remote_all_strings[SERIAL_PARITY_EVEN_STRING_INDEX], /* even */
 };
 
 static idigi_element_value_enum_t const serial_parity_limit = {
@@ -120,44 +241,44 @@ static idigi_element_value_unsigned_integer_t const serial_databits_limit = {
     8
 };
 
-static idigi_group_element_t serial_elements[] =
+static idigi_group_element_t const serial_elements[] =
 {
-    { &idigi_remote_all_strings[6 + 1], /* "baud" */
+    { &idigi_remote_all_strings[SERIAL_BAUD_STRING_INDEX], /* "baud" */
     idigi_element_access_read_write,
     idigi_element_type_enum,
     (idigi_element_value_limit_t *)&serial_baud_limit
     },
 
-    { &idigi_remote_all_strings[7 + 4 + 1], /* "parity" */
+    { &idigi_remote_all_strings[SERIAL_PARITY_STRING_INDEX], /* "parity" */
     idigi_element_access_read_write,
     idigi_element_type_enum,
     (idigi_element_value_limit_t *)&serial_parity_limit},
 
-    { &idigi_remote_all_strings[12 + 6 + 1], /* "databits" */
+    { &idigi_remote_all_strings[SERIAL_DATABITS_STRING_INDEX], /* "databits" */
     idigi_element_access_read_write,
     idigi_element_type_uint32,
     (idigi_element_value_limit_t *)&serial_databits_limit},
 
-    { &idigi_remote_all_strings[19 + 8 + 1], /* "xbreak" */
+    { &idigi_remote_all_strings[SERIAL_XBREAK_STRING_INDEX], /* "xbreak" */
     idigi_element_access_read_write,
     idigi_element_type_on_off,
     NULL},
 
-    { &idigi_remote_all_strings[28 + 6 + 1], /* "txbytes" */
+    { &idigi_remote_all_strings[SERIAL_TXBYTES_STRING_INDEX], /* "txbytes" */
     idigi_element_access_read_only,
     idigi_element_type_uint32,
     NULL}
 };
 
 static char const * const serial_errors[] = {
-    &idigi_remote_all_strings[104], /* Load failed */
-    &idigi_remote_all_strings[104 + 11 + 1], /* Save failed */
-    &idigi_remote_all_strings[116 + 11 + 1], /* Field specified does not exist */
-    &idigi_remote_all_strings[128 + 30 + 1], /* Invalid baud rate */
-    &idigi_remote_all_strings[159 + 17 + 1], /* Invalid data bits */
-    &idigi_remote_all_strings[177 + 17 + 1], /* Invalid parity */
-    &idigi_remote_all_strings[195 + 14 + 1], /* Invalid xbreak setting */
-    &idigi_remote_all_strings[210 + 22 + 1], /* Invalid combination of data bits and parity */
+    &idigi_remote_all_strings[ERROR_FIELD_NOT_EXIT_STRING_INDEX], /* Field specified does not exist */
+    &idigi_remote_all_strings[ERROR_LOAD_FAILED_STRING_INDEX], /* Load failed */
+    &idigi_remote_all_strings[ERROR_SAVE_FAILED_STRING_INDEX], /* Save failed */
+    &idigi_remote_all_strings[SERIAL_ERROR_BAUD_STRING_INDEX], /* Invalid baud rate */
+    &idigi_remote_all_strings[SERIAL_ERROR_DATABITS_STRING_INDEX], /* Invalid data bits */
+    &idigi_remote_all_strings[SERIAL_ERROR_PARITY_STRING_INDEX], /* Invalid parity */
+    &idigi_remote_all_strings[SERIAL_ERROR_XBREAK_STRING_INDEX], /* Invalid xbreak setting */
+    &idigi_remote_all_strings[SERIAL_ERROR_DATABITS_PARITY_STRING_INDEX], /* Invalid combination of data bits and parity */
 };
 
 
@@ -168,9 +289,9 @@ static idigi_element_value_string_t const ethernet_dns_limit = {
 
 
 static char const * const ethernet_duplex_enum[] = {
-    &idigi_remote_all_strings[313 + 6 + 1], /* "auto" */
-    &idigi_remote_all_strings[320 + 4 + 1], /* "half" */
-    &idigi_remote_all_strings[325 + 4 + 1]  /* "full" */
+    &idigi_remote_all_strings[ETHERNET_DUPLEX_AUTO_STRING_INDEX], /* "auto" */
+    &idigi_remote_all_strings[ETHERNET_DUPLEX_HALF_STRING_INDEX], /* "half" */
+    &idigi_remote_all_strings[ETHERNET_DUPLEX_FULL_STRING_INDEX]  /* "full" */
 };
 
 static idigi_element_value_enum_t const ethernet_duplex_limit = {
@@ -178,33 +299,33 @@ static idigi_element_value_enum_t const ethernet_duplex_limit = {
         ethernet_duplex_enum
 };
 
-static idigi_group_element_t ethernet_elements[] = {
-    { &idigi_remote_all_strings[277 + 8 + 1], /* ip */
+static idigi_group_element_t const ethernet_elements[] = {
+    { &idigi_remote_all_strings[ETHERNET_IP_STRING_INDEX], /* ip */
     idigi_element_access_read_write,
     idigi_element_type_ipv4,
     NULL},
 
-    { &idigi_remote_all_strings[286 + 2 + 1 ], /* subnet */
+    { &idigi_remote_all_strings[ETHERNET_SUBNET_STRING_INDEX], /* subnet */
     idigi_element_access_read_write,
     idigi_element_type_ipv4,
     NULL},
 
-    { &idigi_remote_all_strings[289 + 6 + 1], /* gateway */
+    { &idigi_remote_all_strings[ETHERNET_GATEWAY_STRING_INDEX], /* gateway */
     idigi_element_access_read_write,
     idigi_element_type_ipv4,
     NULL},
 
-    { &idigi_remote_all_strings[296 + 7 + 1], /* dhcp */
+    { &idigi_remote_all_strings[ETHERNET_DHCP_STRING_INDEX], /* dhcp */
     idigi_element_access_read_write,
     idigi_element_type_boolean,
     NULL},
 
-    { &idigi_remote_all_strings[304 + 4 + 1], /* dns */
+    { &idigi_remote_all_strings[ETHERNET_DNS_STRING_INDEX], /* dns */
     idigi_element_access_read_write,
     idigi_element_type_fqdnv4,
     NULL},
 
-    { &idigi_remote_all_strings[309 + 3 + 1], /* duplex */
+    { &idigi_remote_all_strings[ETHERNET_DUPLEX_STRING_INDEX], /* duplex */
     idigi_element_access_read_write,
     idigi_element_type_enum,
     (idigi_element_value_limit_t *)&ethernet_duplex_limit},
@@ -212,42 +333,42 @@ static idigi_group_element_t ethernet_elements[] = {
 };
 
 static char const * const ethernet_errors[] = {
-        &idigi_remote_all_strings[104], /* Load failed */
-        &idigi_remote_all_strings[104 + 11 + 1], /* Save failed */
-        &idigi_remote_all_strings[116 + 11 + 1], /* Field specified does not exist */
-        &idigi_remote_all_strings[330 + 4 + 1], /* Invalid ethernet duplex setting */
-        &idigi_remote_all_strings[335 + 31 + 1], /* Invalid ip address */
-        &idigi_remote_all_strings[367 + 18 + 1], /* Invalid subnet mask */
-        &idigi_remote_all_strings[386 + 19 + 1], /* Invalid gateway address */
-        &idigi_remote_all_strings[406 + 23 + 1], /* Invalid DNS address */
+        &idigi_remote_all_strings[ERROR_FIELD_NOT_EXIT_STRING_INDEX], /* Field specified does not exist */
+        &idigi_remote_all_strings[ERROR_LOAD_FAILED_STRING_INDEX], /* Load failed */
+        &idigi_remote_all_strings[ERROR_SAVE_FAILED_STRING_INDEX], /* Save failed */
+        &idigi_remote_all_strings[ETHERNET_ERROR_DUPLEX_STRING_INDEX], /* Invalid ethernet duplex setting */
+        &idigi_remote_all_strings[ETHERNET_ERROR_IP_STRING_INDEX], /* Invalid ip address */
+        &idigi_remote_all_strings[ETHERNET_ERROR_SUBNET_STRING_INDEX], /* Invalid subnet mask */
+        &idigi_remote_all_strings[ETHERNET_ERROR_GATEWAY_STRING_INDEX], /* Invalid gateway address */
+        &idigi_remote_all_strings[ETHERNET_ERROR_DNS_STRING_INDEX], /* Invalid DNS address */
 };
 
-static idigi_group_element_t device_stats_elements[] = {
-    { &idigi_remote_all_strings[450 + 12 + 1], /* curtime */
+static idigi_group_element_t const device_stats_elements[] = {
+    { &idigi_remote_all_strings[DEVICE_STATS_CURTIME_STRING_INDEX], /* curtime */
     idigi_element_access_read_write,
     idigi_element_type_datetime,
     NULL},
 
-    { &idigi_remote_all_strings[463+ 7 + 1], /* usedmem */
+    { &idigi_remote_all_strings[DEVICE_STATS_USEDMEM_STRING_INDEX], /* usedmem */
     idigi_element_access_read_only,
     idigi_element_type_uint32,
     NULL},
 
-    { &idigi_remote_all_strings[471 + 7 + 1], /* hexvalue */
+    { &idigi_remote_all_strings[DEVICE_STATS_HEAPSTART_STRING_INDEX], /* heapstart */
     idigi_element_access_read_write,
     idigi_element_type_hex32,
     NULL},
 
-    { &idigi_remote_all_strings[479 + 8 + 1], /* 0xhexvalue */
+    { &idigi_remote_all_strings[DEVICE_STATS_HEAPEND_STRING_INDEX], /* heapend */
     idigi_element_access_read_write,
     idigi_element_type_0xhex,
     NULL},
 };
 
 static char const * const device_stats_errors[] = {
-        &idigi_remote_all_strings[104], /* Load failed */
-        &idigi_remote_all_strings[104 + 11 + 1], /* Save failed */
-        &idigi_remote_all_strings[116 + 11 + 1], /* Field specified does not exist */
+        &idigi_remote_all_strings[ERROR_FIELD_NOT_EXIT_STRING_INDEX], /* Field specified does not exist */
+        &idigi_remote_all_strings[ERROR_LOAD_FAILED_STRING_INDEX], /* Load failed */
+        &idigi_remote_all_strings[ERROR_SAVE_FAILED_STRING_INDEX], /* Save failed */
 };
 
 
@@ -261,35 +382,35 @@ static idigi_element_value_string_t const device_info_model_limit = {
         32
 };
 
-static idigi_group_element_t device_info_elements[] = {
-    { &idigi_remote_all_strings[498 + 12 + 1], /* product */
+static idigi_group_element_t const device_info_elements[] = {
+    { &idigi_remote_all_strings[DEVICE_INFO_PRODUCT_STRING_INDEX], /* product */
     idigi_element_access_read_write,
     idigi_element_type_string,
     (idigi_element_value_limit_t *)&device_info_product_limit},
 
-    { &idigi_remote_all_strings[511 + 7 + 1], /* model */
+    { &idigi_remote_all_strings[DEVICE_INFO_MODEL_STRING_INDEX], /* model */
     idigi_element_access_read_write,
     idigi_element_type_string,
     (idigi_element_value_limit_t *)&device_info_model_limit},
 
-    { &idigi_remote_all_strings[519 + 5 + 1], /* company */
+    { &idigi_remote_all_strings[DEVICE_INFO_COMPANY_STRING_INDEX], /* company */
     idigi_element_access_read_write,
     idigi_element_type_string,
     NULL},
 
-    { &idigi_remote_all_strings[525 + 7 + 1], /* desc */
+    { &idigi_remote_all_strings[DEVICE_INFO_DESC_STRING_INDEX], /* desc */
     idigi_element_access_read_write,
     idigi_element_type_multiline_string,
     NULL},
 };
 
 static char const * const device_info_errors[] = {
-        &idigi_remote_all_strings[104], /* Load failed */
-        &idigi_remote_all_strings[104 + 11 + 1], /* Save failed */
-        &idigi_remote_all_strings[116 + 11 + 1], /* Field specified does not exist */
+        &idigi_remote_all_strings[ERROR_FIELD_NOT_EXIT_STRING_INDEX], /* Field specified does not exist */
+        &idigi_remote_all_strings[ERROR_LOAD_FAILED_STRING_INDEX], /* Load failed */
+        &idigi_remote_all_strings[ERROR_SAVE_FAILED_STRING_INDEX], /* Save failed */
 };
 
-idigi_group_t idigi_groups[] = {
+idigi_group_t const idigi_groups[] = {
     {
         &idigi_remote_all_strings[0], /* "serial" */
         1,
@@ -305,7 +426,7 @@ idigi_group_t idigi_groups[] = {
     },
 
     {
-        &idigi_remote_all_strings[233 + 43 + 1], /* "Ethernet" */
+        &idigi_remote_all_strings[ETHERNET_STRING_INDEX], /* "Ethernet" */
         1,
         1,
         {
@@ -319,7 +440,7 @@ idigi_group_t idigi_groups[] = {
     },
 
     {
-        &idigi_remote_all_strings[430 + 19 + 1], /* "device_stats" */
+        &idigi_remote_all_strings[DEVICE_STATS_STRING_INDEX], /* "device_stats" */
         1,
         1,
         {
@@ -333,7 +454,7 @@ idigi_group_t idigi_groups[] = {
     },
 
     {
-        &idigi_remote_all_strings[488 + 10 + 1], /* "device_info" */
+        &idigi_remote_all_strings[DEVICE_INFO_STRING_INDEX], /* "device_info" */
         1,
         1,
         {
