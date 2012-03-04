@@ -123,20 +123,20 @@ typedef union {
 } idigi_element_value_limit_t;
 
 typedef struct {
-    char * name;
+    char const * name;
     idigi_element_access_t access;
     idigi_element_value_type_t type;
-    idigi_element_value_limit_t * const value_limit;
+    idigi_element_value_limit_t const * const value_limit;
 } idigi_group_element_t;
 
 /* group structure */
 typedef struct {
-    char * name;
+    char const * name;
     size_t start_index;
     size_t end_index;
     struct {
         size_t count;
-        idigi_group_element_t * const data;
+        idigi_group_element_t const * const data;
     } elements;
 
     struct {
