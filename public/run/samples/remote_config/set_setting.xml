@@ -8,6 +8,7 @@
             <xbreak>off</xbreak>
         </serial>
         <serial index="2">
+            <baud> 9600 </baud>
             <xbreak>on</xbreak>
         </serial>
         <ethernet>
