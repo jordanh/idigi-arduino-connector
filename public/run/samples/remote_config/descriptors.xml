@@ -19,9 +19,9 @@
   <element name="databits" desc="Data bits" type="int32" min="5" max="8" />
   <element name="xbreak" desc="Xbreak enabled" type="on_off" default="off" />
   <element name="txbytes" desc="Number bytes transferred" type="uint32" access="read_only"/>
-  <error_descriptor id="1" desc="Load failed" />
-  <error_descriptor id="2" desc="Save failed" />
-  <error_descriptor id="3" desc="Field specified does not exist"/>
+  <error_descriptor id="1" desc="Field specified does not exist"/>
+  <error_descriptor id="2" desc="load failed"/>
+  <error_descriptor id="3" desc="save failed"/>
   <error_descriptor id="4" desc="Invalid baud rate" />
   <error_descriptor id="5" desc="Invalid data bits" />
   <error_descriptor id="6" desc="Invalid parity" />
@@ -36,13 +36,13 @@
     <element name="dhcp" desc="DHCP enabled" type="boolean"/>
     <element name="dns" desc="DNS" type="fqdnv4"/>
     <element name="duplex" desc="Ethernet duplex" type="enum">
-      <value value="auto" />
-      <value value="half" />
-      <value value="full" />
+    <value value="auto" />
+    <value value="half" />
+    <value value="full" />
     </element>
-    <error_descriptor id="1" desc="load failed"/>
-    <error_descriptor id="2" desc="save failed"/>
-    <error_descriptor id="3" desc="Field specified does not exist"/>
+    <error_descriptor id="1" desc="Field specified does not exist"/>
+    <error_descriptor id="2" desc="load failed"/>
+    <error_descriptor id="3" desc="save failed"/>
     <error_descriptor id="4" desc="Invalid ethernet duplex setting"/>
     <error_descriptor id="5" desc="Invalid IP address"/>
     <error_descriptor id="6" desc="Invalid subnet mask"/>
@@ -53,11 +53,11 @@
 <descriptor element="device_stats" desc="Device Statistics">
     <element name="curtime" desc="Time" type="datetime"/>
     <element name="usedmem" desc="Used memory" type="uint32" units="bytes" access="read_only"/>
-    <element name="hexvalue" desc="HEX number" type="hex32" units="HEX"/>
-    <element name="0xhexvalue" desc="HEX number" type="0xhex"/>
-    <error_descriptor id="1" desc="load failed"/>
-    <error_descriptor id="2" desc="save failed"/>
-    <error_descriptor id="3" desc="Field specified does not exist"/>
+    <element name="heapstart" desc="HEX number" type="hex32" units="HEX"/>
+    <element name="heapend" desc="HEX number" type="0xhex"/>
+    <error_descriptor id="1" desc="Field specified does not exist"/>
+    <error_descriptor id="2" desc="load failed"/>
+    <error_descriptor id="3" desc="save failed"/>
 </descriptor>
 
 <descriptor element="device_info" desc="Device info">
@@ -65,8 +65,8 @@
     <element name="model" desc="Model" type="string" max="32"/>
     <element name="company" desc="Company" type="string"/>
     <element name="desc" desc="description" type="multiline_string"/>
-    <error_descriptor id="1" desc="load failed"/>
-    <error_descriptor id="2" desc="save failed"/>
-    <error_descriptor id="3" desc="Field specified does not exist"/>
+    <error_descriptor id="1" desc="Field specified does not exist"/>
+    <error_descriptor id="2" desc="load failed"/>
+    <error_descriptor id="3" desc="save failed"/>
 </descriptor>
 
