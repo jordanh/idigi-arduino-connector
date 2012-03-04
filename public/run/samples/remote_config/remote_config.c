@@ -25,6 +25,8 @@
 #include "idigi_remote.h"
 #include "remote_config.h"
 
+#define asizeof(array) (sizeof(array)/sizeof(array[0]))
+
 #define SERIAL_LENGTH           6
 #define SERIAL_BAUD_LENGTH      4
 #define SERIAL_PARITY_LENGTH    6
