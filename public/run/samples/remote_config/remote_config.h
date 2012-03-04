@@ -79,7 +79,7 @@ enum {
 
 };
 
-extern idigi_group_t idigi_groups[];
+extern idigi_group_t const idigi_groups[];
 extern size_t const idigi_group_count;
 
 #endif /* _REMOTE_CONFIG_H_ */
