@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
+ *  Copyright (c) 2012 Digi International Inc., All Rights Reserved
  *
  *  This software contains proprietary and confidential information of Digi
  *  International Inc.  By accepting transfer of this copy, Recipient agrees
@@ -27,7 +27,6 @@
 #ifndef _IDIGI_REMOTE_H
 #define _IDIGI_REMOTE_H
 
-#define asizeof(array)  (sizeof array/sizeof array[0])
 /**
 * @defgroup idigi_remote_request_t Remote Configuration Requests
 * @{
