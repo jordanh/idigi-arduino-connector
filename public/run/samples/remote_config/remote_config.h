@@ -30,7 +30,9 @@
 
 enum {
     idigi_group_serial,
-    idigi_group_ethernet
+    idigi_group_ethernet,
+    idigi_group_device_stats,
+    idigi_group_device_info
 };
 
 /* serial group */
@@ -52,9 +54,9 @@ enum {
 };
 
 enum {
-    idigi_group_serial_error_load_failed = 1,
+    idigi_group_serial_error_unsupport_field = 1,
+    idigi_group_serial_error_load_failed,
     idigi_group_serial_error_save_failed,
-    idigi_group_serial_error_unsupport_field,
     idigi_group_serial_error_invalid_baud,
     idigi_group_serial_error_invalid_databits,
     idigi_group_serial_error_invalid_parity,
@@ -86,15 +88,42 @@ enum {
 };
 
 enum {
-    idigi_group_ethernet_error_load_failed = 1,
+    idigi_group_ethernet_error_unsupport_field = 1,
+    idigi_group_ethernet_error_load_failed,
     idigi_group_ethernet_error_save_failed,
-    idigi_group_ethernet_error_unsupport_field,
     idigi_group_ethernet_error_invalid_ethernet_duplex,
     idigi_group_ethernet_error_invalid_ip_address,
     idigi_group_ethernet_error_invalid_subnet,
     idigi_group_ethernet_error_invalid_gateway,
     idigi_group_ethernet_error_invalid_dns
 
+};
+
+enum {
+    idigi_group_device_stats_curtime,
+    idigi_group_device_stats_usedmem,
+    idigi_group_device_stats_heapstart,
+    idigi_group_device_stats_heapend,
+};
+
+enum {
+    idigi_group_device_stats_error_unsupport_field = 1,
+    idigi_group_device_stats_error_load_failed,
+    idigi_group_device_stats_error_save_failed,
+};
+
+enum {
+    idigi_group_device_info_product,
+    idigi_group_device_info_model,
+    idigi_group_device_info_company,
+    idigi_group_device_info_desc,
+
+};
+
+enum {
+    idigi_group_device_info_error_unsupport_field = 1,
+    idigi_group_device_info_error_load_failed,
+    idigi_group_device_info_error_save_failed,
 };
 
 extern idigi_group_t const idigi_groups[];
