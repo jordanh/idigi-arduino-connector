@@ -222,7 +222,7 @@ static int get_user_passwd(char * buf, int size, int rwflag, void * password)
   UNUSED_ARGUMENT(rwflag);
   UNUSED_ARGUMENT(password);
 
-  ASSERT_GOTO(size > 0, error);
+  ASSERT_GOTO(copy_bytes >= 0, error);
   memcpy(buf, passwd, copy_bytes);
   buf[copy_bytes] = '\0';
 

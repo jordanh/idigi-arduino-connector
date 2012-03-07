@@ -517,7 +517,6 @@ error:
 static void msg_default_data_block(msg_data_block_t * dblock, uint32_t const window_size)
 {
     #if (defined IDIGI_COMPRESSION)
-    memset(&dblock->zlib, 0, sizeof dblock->zlib);
     dblock->bytes_out = 0;
     dblock->z_flag = Z_NO_FLUSH;
     #endif
@@ -548,6 +547,7 @@ static idigi_msg_error_t msg_initialize_data_block(msg_session_t * const session
             session->out_dblock = session->in_dblock;
             ASSERT_GOTO(session->service_layer_data.have_data != NULL, error);
             session->service_layer_data.need_data = session->service_layer_data.have_data;
+            session->in_dblock = NULL;
         }
         /* intentinal fall through */
 
@@ -556,8 +556,12 @@ static idigi_msg_error_t msg_initialize_data_block(msg_session_t * const session
         MsgClearReceiving(session->status_flag);
         session->state = msg_state_get_data;
         #if (defined IDIGI_COMPRESSION)
-        ASSERT_GOTO(deflateInit(&session->out_dblock->zlib, Z_DEFAULT_COMPRESSION) == Z_OK, compression_error);
-        MsgSetDeflated(session->status_flag);
+        if (MsgIsDeflated(session->status_flag) == idigi_false)
+        {
+            memset(&session->out_dblock->zlib, 0, sizeof session->out_dblock->zlib);
+            ASSERT_GOTO(deflateInit(&session->out_dblock->zlib, Z_DEFAULT_COMPRESSION) == Z_OK, compression_error);
+            MsgSetDeflated(session->status_flag);
+        }
         #endif
         break;
 
@@ -572,6 +576,7 @@ static idigi_msg_error_t msg_initialize_data_block(msg_session_t * const session
             session->in_dblock = session->out_dblock;
             ASSERT_GOTO(session->service_layer_data.need_data != NULL, error);
             session->service_layer_data.have_data = session->service_layer_data.need_data;
+            session->out_dblock = NULL;
         }
         /* intentinal fall through */
 
@@ -580,8 +585,12 @@ static idigi_msg_error_t msg_initialize_data_block(msg_session_t * const session
         MsgSetReceiving(session->status_flag);
         session->state = msg_state_receive;
         #if (defined IDIGI_COMPRESSION)
-        ASSERT_GOTO(inflateInit(&session->in_dblock->zlib) == Z_OK, compression_error);
-        MsgSetInflated(session->status_flag);
+        if (MsgIsInflated(session->status_flag) == idigi_false)
+        {
+            memset(&session->in_dblock->zlib, 0, sizeof session->in_dblock->zlib);
+            ASSERT_GOTO(inflateInit(&session->in_dblock->zlib) == Z_OK, compression_error);
+            MsgSetInflated(session->status_flag);
+        }
         #endif
         break;
 
