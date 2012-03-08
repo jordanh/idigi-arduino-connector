@@ -1,0 +1,29 @@
+
+<rci_request version="1.1">
+    <set_setting>
+        <serial>
+            <baud>19200</baud>
+            <parity>even</parity>
+            <databits>6</databits>
+            <xbreak>off</xbreak>
+        </serial>
+        <serial index="2">
+            <baud> 9600 </baud>
+            <xbreak>on</xbreak>
+        </serial>
+        <ethernet>
+            <ip>10.10.10.10</ip>
+            <dhcp>on</dhcp>
+            <dns>idigi.com</dns>
+            <duplex>on</duplex>
+        <device_stats/>
+        <device_info>
+            <product>iDigi Connector Linux sample</product>
+            <model></model>
+            <company/>
+            <desc>Sample for Remote Configuration
+            in iDigi Connector software</desc>
+        </device_info>
+    </set_setting>
+</rci_request>
+

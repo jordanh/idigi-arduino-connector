@@ -1,0 +1,72 @@
+
+<descriptor element="serial" desc="Serial port">
+  <attr name="index" desc="Serial port number" type="int32" min="1" max="2" />
+  <element name="baud" desc="Baud" type="enum">
+  <value value="2400" />
+  <value value="4800" />
+  <value value="9600" />
+  <value value="19200" />
+  <value value="38400" />
+  <value value="57600" />
+  <value value="115200" />
+  <value value="230400" />
+  </element>
+ <element name="parity" desc="Parity" type="enum">
+  <value value="none" />
+  <value value="odd" />
+  <value value="even"/>
+  </element>
+  <element name="databits" desc="Data bits" type="int32" min="5" max="8" />
+  <element name="xbreak" desc="Xbreak enabled" type="on_off" default="off" />
+  <element name="txbytes" desc="Number bytes transferred" type="uint32" access="read_only"/>
+  <error_descriptor id="1" desc="Field specified does not exist"/>
+  <error_descriptor id="2" desc="load failed"/>
+  <error_descriptor id="3" desc="save failed"/>
+  <error_descriptor id="4" desc="Invalid baud rate" />
+  <error_descriptor id="5" desc="Invalid data bits" />
+  <error_descriptor id="6" desc="Invalid parity" />
+  <error_descriptor id="7" desc="Invalid xbreak setting" />
+  <error_descriptor id="8" desc="Invalid combination of data bits and parity" />
+</descriptor>
+
+<descriptor element="ethernet" desc="Ethernet interface">
+    <element name="ip" desc="IP address" type="ipv4"/>
+    <element name="subnet" desc="Subnet address" type="ipv4"/>
+    <element name="gateway" desc="Gateway address" type="ipv4"/>
+    <element name="dhcp" desc="DHCP enabled" type="boolean"/>
+    <element name="dns" desc="DNS" type="fqdnv4"/>
+    <element name="duplex" desc="Ethernet duplex" type="enum">
+    <value value="auto" />
+    <value value="half" />
+    <value value="full" />
+    </element>
+    <error_descriptor id="1" desc="Field specified does not exist"/>
+    <error_descriptor id="2" desc="load failed"/>
+    <error_descriptor id="3" desc="save failed"/>
+    <error_descriptor id="4" desc="Invalid ethernet duplex setting"/>
+    <error_descriptor id="5" desc="Invalid IP address"/>
+    <error_descriptor id="6" desc="Invalid subnet mask"/>
+    <error_descriptor id="7" desc="Invalid gateway address"/>
+    <error_descriptor id="8" desc="Invalid DNS address"/>
+</descriptor>
+
+<descriptor element="device_stats" desc="Device Statistics">
+    <element name="curtime" desc="Time" type="datetime"/>
+    <element name="usedmem" desc="Used memory" type="uint32" units="bytes" access="read_only"/>
+    <element name="heapstart" desc="HEX number" type="hex32" units="HEX"/>
+    <element name="heapend" desc="HEX number" type="0xhex"/>
+    <error_descriptor id="1" desc="Field specified does not exist"/>
+    <error_descriptor id="2" desc="load failed"/>
+    <error_descriptor id="3" desc="save failed"/>
+</descriptor>
+
+<descriptor element="device_info" desc="Device info">
+    <element name="product" desc="Product name" type="string" min="1" max="64"/>
+    <element name="model" desc="Model" type="string" max="32"/>
+    <element name="company" desc="Company" type="string"/>
+    <element name="desc" desc="description" type="multiline_string"/>
+    <error_descriptor id="1" desc="Field specified does not exist"/>
+    <error_descriptor id="2" desc="load failed"/>
+    <error_descriptor id="3" desc="save failed"/>
+</descriptor>
+
