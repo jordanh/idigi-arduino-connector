@@ -123,7 +123,8 @@ typedef enum {
     idigi_class_network,            /**< Network Class Id */
     idigi_class_operating_system,   /**< Operating System Class Id */
     idigi_class_firmware,           /**< Firmware Facility Class Id */
-    idigi_class_data_service        /**< Data Service Class Id */
+    idigi_class_data_service,       /**< Data Service Class Id */
+    idigi_class_remote_config_service      /**< Remote Configuration Class ID */
 } idigi_class_t;
 /**
 * @}
@@ -241,6 +242,29 @@ typedef enum {
 /**
 * @}
 */
+
+/**
+* @defgroup idigi_remote_config_request_t Remote Configuration Requests
+* @{
+*/
+/**
+* Remote Configuration Request Id passed to the application's callback to query or set remote configuration data.
+* The class id for this idigi_remote_config_request_t is idigi_class_remote_config_service.
+*/
+
+typedef enum {
+    idigi_remote_config_session_start,  /**< inform callback to start remote configuration request */
+    idigi_remote_config_session_end,    /**< inform callback to end remote configuration request
+                                            Callback may start writing data into NVRAM for set remote configuration request.
+                                            Callback should end and release any resources used when it's done. */
+    idigi_remote_config_action_start,   /**< requesting callback to start query or set remote configuration data */
+    idigi_remote_config_action_end,     /**< requesting callback to end query or set remote configuration data */
+    idigi_remote_config_group_start,    /**< requesting callback to start query or set an individual configuration group */
+    idigi_remote_config_group_end,      /**< requesting callback to end query or set an individual configuration group */
+    idigi_remote_config_group_process,  /**< requesting callback to query or set an element or field of a configuration group */
+    idigi_remote_config_session_cancel     /**< Requesting callback to abort and cancel any query or set remote configuration request.
+                                            Callback should stop and release any resources used */
+} idigi_remote_config_request_t;
 
 /**
 * @defgroup idigi_data_service_request_t Data Service Request IDs
@@ -367,8 +391,9 @@ typedef union {
    idigi_config_request_t config_request;               /**< Configuration request ID for configuration class */
    idigi_network_request_t network_request;             /**< Network request ID for network class */
    idigi_os_request_t os_request;                       /**< Operating system request ID for operating system class */
-   idigi_firmware_request_t firmware_request;           /**< Firmware Request ID for firmware facility class */
+   idigi_firmware_request_t firmware_request;           /**< Firmware request ID for firmware facility class */
    idigi_data_service_request_t data_service_request;   /**< Data service request ID for data service class */
+   idigi_remote_config_request_t remote_config_request; /**< Remote configuration request ID for remote configuration service class */
 } idigi_request_t;
 /**
 * @}
