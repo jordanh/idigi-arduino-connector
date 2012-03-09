@@ -124,7 +124,7 @@ typedef enum {
     idigi_class_operating_system,   /**< Operating System Class Id */
     idigi_class_firmware,           /**< Firmware Facility Class Id */
     idigi_class_data_service,       /**< Data Service Class Id */
-    idigi_class_remote_config_service      /**< Remote Configuration Class ID */
+    idigi_class_remote_config_service /**< Remote Configuration Class ID */
 } idigi_class_t;
 /**
 * @}
@@ -265,6 +265,9 @@ typedef enum {
     idigi_remote_config_session_cancel     /**< Requesting callback to abort and cancel any query or set remote configuration request.
                                             Callback should stop and release any resources used */
 } idigi_remote_config_request_t;
+/**
+* @}
+*/
 
 /**
 * @defgroup idigi_data_service_request_t Data Service Request IDs
