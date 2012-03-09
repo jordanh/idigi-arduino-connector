@@ -48,6 +48,10 @@
 #endif
 #include "layer.h"
 
+#if defined(IDIGI_REMOTE_CONFIGURATION_SERVICE)
+#include "idigi_strings.h"
+#endif
+
 idigi_handle_t idigi_init(idigi_callback_t const callback)
 {
 
