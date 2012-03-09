@@ -265,7 +265,7 @@ extern idigi_callback_status_t idigi_remote_set_handler(idigi_remote_data_t * re
 
                     request_id.remote_config_request = idigi_remote_config_group_process;
                     status = app_idigi_callback(idigi_class_remote_config_service, request_id,
-                            request_data, sizeof *request_data, response_data, &length);
+                            request_data, (sizeof *request_data + sizeof element_value), response_data, &length);
                     if (status != idigi_callback_continue)
                     {
                         goto done;
