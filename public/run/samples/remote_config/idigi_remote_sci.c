@@ -161,8 +161,11 @@ idigi_callback_status_t remote_sci_request(char * rci_command, size_t length)
     size_t i;
 
     response_data->user_context = NULL;
+    response_data->element_data.error_hint = NULL;
+
     idigi_remote_data.request_id = idigi_remote_config_session_start;
     request_id.remote_config_request = idigi_remote_data.request_id;
+
     status = app_idigi_callback(idigi_class_remote_config_service, request_id,
                                 NULL, 0, response_data, &response_length);
     if (status != idigi_callback_continue)
