@@ -215,7 +215,7 @@ idigi_callback_status_t idigi_remote_query_handler(idigi_remote_data_t * remote_
 
                 response_data->error_id = idigi_success;
                 response_data->element_data.element_value = &element_value;
-
+                length += sizeof element_value;
                 request_id.remote_config_request = idigi_remote_config_group_process;
                 status = app_idigi_callback(idigi_class_remote_config_service, request_id,
                         request_data, sizeof *request_data, response_data, &length);
