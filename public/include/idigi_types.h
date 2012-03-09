@@ -38,15 +38,15 @@
 
 #if __STDC_VERSION__ >= 199901L /* Test used for C89/C99 Compiler */
   /* 
-   * If the compilier is C99/C89 compliant, then stdint.h will have the defines
+   * If the compilier is C99 compliant, then stdint.h will have the defines
    * we need.
    */
   #include <stdint.h>
 #else
 /**
 * @defgroup user_types User Defined C types
-* If your compiler is not C89/C99 compliant these defines are used: you will need 
-* to define them approprialtly for your system.  If your compiler is C89/C99 compliant 
+* If your compiler is C89 compliant these defines are used: you will need
+* to define them approprialtly for your system.  If your compiler is C99 compliant
 * then the types from stdint.h are used.
 * @{
 */
@@ -63,10 +63,17 @@
 /**
  *  Unsigned 32 bit value. 
  */
-  typedef unsigned long uint32_t;
+  typedef unsigned int uint32_t;
+
+/**
+*  Signed 32 bit value.
+*/
+   typedef int int32_t;
+
 /**
 * @}
 */
+
 #define UINT16_MAX  0xFFFF
 
 #endif
