@@ -22,10 +22,9 @@
  * =======================================================================
  *
  */
+/* #include <float.h> */
 #include "idigi_remote.h"
 #include "remote_config.h"
-
-#define asizeof(array) (sizeof(array)/sizeof(array[0]))
 
 #define SERIAL_LENGTH           6
 #define SERIAL_BAUD_LENGTH      4
@@ -47,17 +46,14 @@
 #define SERIAL_PARITY_ODD_LENGTH    3
 #define SERIAL_PARITY_EVEN_LENGTH   4
 
-#define ERROR_FIELD_NOT_EXIT_LENGTH 30
-#define ERROR_LOAD_FAILED_LENGTH    11
-#define ERROR_SAVE_FAILED_LENGTH    11
-
 #define SERIAL_ERROR_BAUD_LENGTH        17
 #define SERIAL_ERROR_DATABITS_LENGTH    17
 #define SERIAL_ERROR_PARITY_LENGTH      14
 #define SERIAL_ERROR_XBREAK_LENGTH      22
 #define SERIAL_ERROR_DATABITS_PARITY_LENGTH    43
 
-#define SERIAL_BAUD_STRING_INDEX        SERIAL_LENGTH + 1
+#define SERIAL_STRING_INDEX             0
+#define SERIAL_BAUD_STRING_INDEX        SERIAL_STRING_INDEX + SERIAL_LENGTH + 1
 #define SERIAL_PARITY_STRING_INDEX      SERIAL_BAUD_STRING_INDEX + SERIAL_BAUD_LENGTH + 1
 #define SERIAL_DATABITS_STRING_INDEX    SERIAL_PARITY_STRING_INDEX + SERIAL_PARITY_LENGTH + 1
 #define SERIAL_XBREAK_STRING_INDEX      SERIAL_DATABITS_STRING_INDEX + SERIAL_DATABITS_LENGTH + 1
@@ -76,11 +72,7 @@
 #define SERIAL_PARITY_ODD_STRING_INDEX  SERIAL_PARITY_NONE_STRING_INDEX + SERIAL_PARITY_NONE_LENGTH + 1
 #define SERIAL_PARITY_EVEN_STRING_INDEX SERIAL_PARITY_ODD_STRING_INDEX + SERIAL_PARITY_ODD_LENGTH + 1
 
-#define ERROR_FIELD_NOT_EXIT_STRING_INDEX   SERIAL_PARITY_EVEN_STRING_INDEX + SERIAL_PARITY_EVEN_LENGTH + 1
-#define ERROR_LOAD_FAILED_STRING_INDEX      ERROR_FIELD_NOT_EXIT_STRING_INDEX + ERROR_FIELD_NOT_EXIT_LENGTH + 1
-#define ERROR_SAVE_FAILED_STRING_INDEX      ERROR_LOAD_FAILED_STRING_INDEX + ERROR_LOAD_FAILED_LENGTH + 1
-
-#define SERIAL_ERROR_BAUD_STRING_INDEX              ERROR_SAVE_FAILED_STRING_INDEX + ERROR_SAVE_FAILED_LENGTH + 1
+#define SERIAL_ERROR_BAUD_STRING_INDEX              SERIAL_PARITY_EVEN_STRING_INDEX + SERIAL_PARITY_EVEN_LENGTH + 1
 #define SERIAL_ERROR_DATABITS_STRING_INDEX          SERIAL_ERROR_BAUD_STRING_INDEX + SERIAL_ERROR_BAUD_LENGTH + 1
 #define SERIAL_ERROR_PARITY_STRING_INDEX            SERIAL_ERROR_DATABITS_STRING_INDEX + SERIAL_ERROR_DATABITS_LENGTH + 1
 #define SERIAL_ERROR_XBREAK_STRING_INDEX            SERIAL_ERROR_PARITY_STRING_INDEX + SERIAL_ERROR_PARITY_LENGTH + 1
@@ -123,32 +115,50 @@
 #define ETHERNET_ERROR_GATEWAY_STRING_INDEX   ETHERNET_ERROR_SUBNET_STRING_INDEX + ETHERNET_ERROR_SUBNET_LENGTH + 1
 #define ETHERNET_ERROR_DNS_STRING_INDEX       ETHERNET_ERROR_GATEWAY_STRING_INDEX + ETHERNET_ERROR_GATEWAY_LENGTH + 1
 
-#define DEVICE_STATS_LENGTH 12
+#define DEVICE_STATS_LENGTH         12
 #define DEVICE_STATS_CURTIME_LENGTH 7
-#define DEVICE_STATS_USEDMEM_LENGTH 7
-#define DEVICE_STATS_HEAPSTART_LENGTH 9
-#define DEVICE_STATS_HEAPEND_LENGTH 7
+#define DEVICE_STATS_CTEMP_LENGTH 5
+#define DEVICE_STATS_FTEMP_LENGTH 5
 
-#define DEVICE_STATS_STRING_INDEX       ETHERNET_ERROR_DNS_STRING_INDEX + ETHERNET_ERROR_DNS_LENGTH + 1
-#define DEVICE_STATS_CURTIME_STRING_INDEX     DEVICE_STATS_STRING_INDEX + DEVICE_STATS_LENGTH + 1
-#define DEVICE_STATS_USEDMEM_STRING_INDEX     DEVICE_STATS_CURTIME_STRING_INDEX + DEVICE_STATS_CURTIME_LENGTH + 1
-#define DEVICE_STATS_HEAPSTART_STRING_INDEX   DEVICE_STATS_USEDMEM_STRING_INDEX + DEVICE_STATS_USEDMEM_LENGTH + 1
-#define DEVICE_STATS_HEAPEND_STRING_INDEX     DEVICE_STATS_HEAPSTART_STRING_INDEX + DEVICE_STATS_HEAPSTART_LENGTH + 1
+#define DEVICE_STATS_STRING_INDEX           ETHERNET_ERROR_DNS_STRING_INDEX + ETHERNET_ERROR_DNS_LENGTH + 1
+#define DEVICE_STATS_CURTIME_STRING_INDEX   DEVICE_STATS_STRING_INDEX + DEVICE_STATS_LENGTH + 1
+#define DEVICE_STATS_CTEMP_STRING_INDEX     DEVICE_STATS_CURTIME_STRING_INDEX + DEVICE_STATS_CURTIME_LENGTH + 1
+#define DEVICE_STATS_FTEMP_STRING_INDEX     DEVICE_STATS_CTEMP_STRING_INDEX + DEVICE_STATS_CTEMP_LENGTH + 1
 
 #define DEVICE_INFO_LENGTH          11
 #define DEVICE_INFO_PRODUCT_LENGTH  7
 #define DEVICE_INFO_MODEL_LENGTH    5
 #define DEVICE_INFO_COMPANY_LENGTH  7
 #define DEVICE_INFO_DESC_LENGTH     4
+#define DEVICE_INFO_SYSPWD_LENGTH   6
 
-#define DEVICE_INFO_STRING_INDEX            DEVICE_STATS_HEAPEND_STRING_INDEX + DEVICE_STATS_HEAPEND_LENGTH + 1
+#define DEVICE_INFO_ERROR_INVALID_LENGTH 14
+
+#define DEVICE_INFO_STRING_INDEX            DEVICE_STATS_FTEMP_STRING_INDEX + DEVICE_STATS_FTEMP_LENGTH + 1
 #define DEVICE_INFO_PRODUCT_STRING_INDEX    DEVICE_INFO_STRING_INDEX + DEVICE_INFO_LENGTH + 1
 #define DEVICE_INFO_MODEL_STRING_INDEX      DEVICE_INFO_PRODUCT_STRING_INDEX + DEVICE_INFO_PRODUCT_LENGTH + 1
 #define DEVICE_INFO_COMPANY_STRING_INDEX    DEVICE_INFO_MODEL_STRING_INDEX + DEVICE_INFO_MODEL_LENGTH + 1
 #define DEVICE_INFO_DESC_STRING_INDEX       DEVICE_INFO_COMPANY_STRING_INDEX + DEVICE_INFO_COMPANY_LENGTH + 1
+#define DEVICE_INFO_SYSPWD_STRING_INDEX     DEVICE_INFO_DESC_STRING_INDEX + DEVICE_INFO_DESC_LENGTH + 1
+
+#define DEVICE_INFO_ERROR_INVALID_LENGTH_STRING_INDEX    DEVICE_INFO_SYSPWD_STRING_INDEX + DEVICE_INFO_SYSPWD_LENGTH + 1
+
+#define DEBUG_INFO_LENGTH               10
+#define DEBUG_INFO_VERSION_LENGTH        7
+#define DEBUG_INFO_STACKTOP_LENGTH       8
+#define DEBUG_INFO_STACKSIZE_LENGTH      9
+#define DEBUG_INFO_STACKBOTTOM_LENGTH    11
+#define DEBUG_INFO_USEDMEM_LENGTH        7
+
+#define DEBUG_INFO_STRING_INDEX              DEVICE_INFO_ERROR_INVALID_LENGTH_STRING_INDEX + DEVICE_INFO_ERROR_INVALID_LENGTH + 1
+#define DEBUG_INFO_VERSION_STRING_INDEX      DEBUG_INFO_STRING_INDEX + DEBUG_INFO_LENGTH + 1
+#define DEBUG_INFO_STACKTOP_STRING_INDEX     DEBUG_INFO_VERSION_STRING_INDEX + DEBUG_INFO_VERSION_LENGTH + 1
+#define DEBUG_INFO_STACKSIZE_STRING_INDEX    DEBUG_INFO_STACKTOP_STRING_INDEX + DEBUG_INFO_STACKTOP_LENGTH + 1
+#define DEBUG_INFO_STACKBOTTOM_STRING_INDEX  DEBUG_INFO_STACKSIZE_STRING_INDEX + DEBUG_INFO_STACKSIZE_LENGTH + 1
+#define DEBUG_INFO_USEDMEM_STRING_INDEX      DEBUG_INFO_STACKBOTTOM_STRING_INDEX + DEBUG_INFO_STACKBOTTOM_LENGTH + 1
 
 
-static char const idigi_remote_all_strings[] = {
+char const idigi_remote_all_strings[] = {
     SERIAL_LENGTH, 's', 'e', 'r', 'i', 'a', 'l',
     SERIAL_BAUD_LENGTH, 'b', 'a', 'u', 'd',
     SERIAL_PARITY_LENGTH, 'p', 'a', 'r', 'i', 't', 'y',
@@ -170,9 +180,6 @@ static char const idigi_remote_all_strings[] = {
     SERIAL_PARITY_ODD_LENGTH, 'o', 'd', 'd',
     SERIAL_PARITY_EVEN_LENGTH, 'e', 'v', 'e', 'n',
 
-    ERROR_FIELD_NOT_EXIT_LENGTH, 'F', 'i', 'e', 'l', 'd', ' ', 's', 'p', 'e', 'c', 'i', 'f', 'i', 'e', 'd', ' ', 'd', 'o', 'e', 's', ' ', 'n', 'o', 't', ' ', 'e', 'x', 'i', 's', 't',
-    ERROR_LOAD_FAILED_LENGTH, 'L', 'o', 'a', 'd', ' ', 'f', 'a', 'i', 'l', 'e', 'd',
-    ERROR_SAVE_FAILED_LENGTH, 'S', 'a', 'v', 'e', ' ', 'f', 'a', 'i', 'l', 'e', 'd',
     SERIAL_ERROR_BAUD_LENGTH, 'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'b', 'a', 'u', 'd', ' ', 'r', 'a', 't', 'e',
     SERIAL_ERROR_DATABITS_LENGTH, 'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'd', 'a', 't', 'a', ' ', 'b', 'i', 't', 's',
     SERIAL_ERROR_PARITY_LENGTH, 'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'p', 'a', 'r', 'i', 't', 'y',
@@ -199,17 +206,27 @@ static char const idigi_remote_all_strings[] = {
 
     DEVICE_STATS_LENGTH, 'd', 'e', 'v', 'i', 'c', 'e', '_', 's', 't', 'a', 't', 's',
     DEVICE_STATS_CURTIME_LENGTH, 'c', 'u', 'r', 't', 'i', 'm', 'e',
-    DEVICE_STATS_USEDMEM_LENGTH, 'u', 's', 'e', 'd', 'm', 'e', 'm',
-    DEVICE_STATS_HEAPSTART_LENGTH, 'h', 'e', 'a', 'p', 's', 't', 'a', 'r', 't',
-    DEVICE_STATS_HEAPEND_LENGTH, 'h', 'e', 'a', 'p', 'e', 'n', 'd',
+    DEVICE_STATS_CTEMP_LENGTH, 'c', 't', 'e', 'm', 'p',
+    DEVICE_STATS_FTEMP_LENGTH, 'f', 't', 'e', 'm', 'p',
 
     DEVICE_INFO_LENGTH, 'd', 'e', 'v', 'i', 'c', 'e', '_', 'i', 'n', 'f', 'o',
     DEVICE_INFO_PRODUCT_LENGTH, 'p', 'r', 'o', 'd', 'u', 'c', 't',
     DEVICE_INFO_MODEL_LENGTH, 'm', 'o', 'd', 'e', 'l',
     DEVICE_INFO_COMPANY_LENGTH, 'c', 'o', 'm', 'p', 'a', 'n', 'y',
     DEVICE_INFO_DESC_LENGTH, 'd', 'e', 's', 'c',
+    DEVICE_INFO_SYSPWD_LENGTH, 's', 'y', 's', 'p', 'w', 'd',
+    DEVICE_INFO_ERROR_INVALID_LENGTH, 'i', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'l', 'e', 'n', 'g', 't', 'h',
+
+    DEBUG_INFO_LENGTH, 'd', 'e', 'b', 'u', 'g', '_', 'i', 'n', 'f', 'o',
+    DEBUG_INFO_VERSION_LENGTH, 'v', 'e', 'r', 's', 'i', 'o', 'n',
+    DEBUG_INFO_STACKTOP_LENGTH, 's', 't', 'a', 'c', 'k', 't', 'o', 'p',
+    DEBUG_INFO_STACKSIZE_LENGTH, 's', 't', 'a', 'c', 'k', 's', 'i', 'z', 'e',
+    DEBUG_INFO_STACKBOTTOM_LENGTH, 's', 't', 'a', 'c', 'k', 'b', 'o', 't', 't', 'o', 'm',
+    DEBUG_INFO_USEDMEM_LENGTH, 'u', 's', 'e', 'd', 'm', 'e', 'm'
 
 };
+
+/* group serial */
 static char const * const serial_baud_enum[] = {
     &idigi_remote_all_strings[SERIAL_BAUD_2400_STRING_INDEX],  /* 2400 */
     &idigi_remote_all_strings[SERIAL_BAUD_4800_STRING_INDEX],  /* 4800 */
@@ -273,16 +290,13 @@ static idigi_group_element_t const serial_elements[] =
 };
 
 static char const * const serial_errors[] = {
-    &idigi_remote_all_strings[ERROR_FIELD_NOT_EXIT_STRING_INDEX], /* Field specified does not exist */
-    &idigi_remote_all_strings[ERROR_LOAD_FAILED_STRING_INDEX], /* Load failed */
-    &idigi_remote_all_strings[ERROR_SAVE_FAILED_STRING_INDEX], /* Save failed */
-    &idigi_remote_all_strings[SERIAL_ERROR_BAUD_STRING_INDEX], /* Invalid baud rate */
     &idigi_remote_all_strings[SERIAL_ERROR_DATABITS_STRING_INDEX], /* Invalid data bits */
     &idigi_remote_all_strings[SERIAL_ERROR_PARITY_STRING_INDEX], /* Invalid parity */
     &idigi_remote_all_strings[SERIAL_ERROR_XBREAK_STRING_INDEX], /* Invalid xbreak setting */
     &idigi_remote_all_strings[SERIAL_ERROR_DATABITS_PARITY_STRING_INDEX], /* Invalid combination of data bits and parity */
 };
 
+/* group ethernet */
 
 static idigi_element_value_string_t const ethernet_dns_limit = {
     0,
@@ -335,9 +349,6 @@ static idigi_group_element_t const ethernet_elements[] = {
 };
 
 static char const * const ethernet_errors[] = {
-        &idigi_remote_all_strings[ERROR_FIELD_NOT_EXIT_STRING_INDEX], /* Field specified does not exist */
-        &idigi_remote_all_strings[ERROR_LOAD_FAILED_STRING_INDEX], /* Load failed */
-        &idigi_remote_all_strings[ERROR_SAVE_FAILED_STRING_INDEX], /* Save failed */
         &idigi_remote_all_strings[ETHERNET_ERROR_DUPLEX_STRING_INDEX], /* Invalid ethernet duplex setting */
         &idigi_remote_all_strings[ETHERNET_ERROR_IP_STRING_INDEX], /* Invalid ip address */
         &idigi_remote_all_strings[ETHERNET_ERROR_SUBNET_STRING_INDEX], /* Invalid subnet mask */
@@ -345,34 +356,27 @@ static char const * const ethernet_errors[] = {
         &idigi_remote_all_strings[ETHERNET_ERROR_DNS_STRING_INDEX], /* Invalid DNS address */
 };
 
+/* group device_stats */
+
 static idigi_group_element_t const device_stats_elements[] = {
     { &idigi_remote_all_strings[DEVICE_STATS_CURTIME_STRING_INDEX], /* curtime */
     idigi_element_access_read_write,
     idigi_element_type_datetime,
     NULL},
 
-    { &idigi_remote_all_strings[DEVICE_STATS_USEDMEM_STRING_INDEX], /* usedmem */
+    { &idigi_remote_all_strings[DEVICE_STATS_CTEMP_STRING_INDEX], /* ctemp */
+    idigi_element_access_read_write,
+    idigi_element_type_float,
+    NULL},
+
+    { &idigi_remote_all_strings[DEVICE_STATS_FTEMP_STRING_INDEX], /* ftemp */
     idigi_element_access_read_only,
-    idigi_element_type_uint32,
-    NULL},
-
-    { &idigi_remote_all_strings[DEVICE_STATS_HEAPSTART_STRING_INDEX], /* heapstart */
-    idigi_element_access_read_write,
-    idigi_element_type_hex32,
-    NULL},
-
-    { &idigi_remote_all_strings[DEVICE_STATS_HEAPEND_STRING_INDEX], /* heapend */
-    idigi_element_access_read_write,
-    idigi_element_type_0xhex,
+    idigi_element_type_float,
     NULL},
 };
 
-static char const * const device_stats_errors[] = {
-        &idigi_remote_all_strings[ERROR_FIELD_NOT_EXIT_STRING_INDEX], /* Field specified does not exist */
-        &idigi_remote_all_strings[ERROR_LOAD_FAILED_STRING_INDEX], /* Load failed */
-        &idigi_remote_all_strings[ERROR_SAVE_FAILED_STRING_INDEX], /* Save failed */
-};
 
+/* group device_info */
 
 static idigi_element_value_string_t const device_info_product_limit = {
         1,
@@ -382,6 +386,11 @@ static idigi_element_value_string_t const device_info_product_limit = {
 static idigi_element_value_string_t const device_info_model_limit = {
         0,
         32
+};
+
+static idigi_element_value_string_t const device_info_syspwd_limit = {
+        0,
+        64
 };
 
 static idigi_group_element_t const device_info_elements[] = {
@@ -404,17 +413,50 @@ static idigi_group_element_t const device_info_elements[] = {
     idigi_element_access_read_write,
     idigi_element_type_multiline_string,
     NULL},
+
+    { &idigi_remote_all_strings[DEVICE_INFO_SYSPWD_STRING_INDEX], /* syspwd */
+    idigi_element_access_read_write,
+    idigi_element_type_password,
+    (idigi_element_value_limit_t *)&device_info_syspwd_limit},
 };
 
 static char const * const device_info_errors[] = {
-        &idigi_remote_all_strings[ERROR_FIELD_NOT_EXIT_STRING_INDEX], /* Field specified does not exist */
-        &idigi_remote_all_strings[ERROR_LOAD_FAILED_STRING_INDEX], /* Load failed */
-        &idigi_remote_all_strings[ERROR_SAVE_FAILED_STRING_INDEX], /* Save failed */
+        &idigi_remote_all_strings[DEVICE_INFO_ERROR_INVALID_LENGTH_STRING_INDEX], /* Invalid length */
 };
 
-idigi_group_t const idigi_groups[] = {
+/* group ic_thread */
+
+static idigi_group_element_t const ic_thread_elements[] = {
+    { &idigi_remote_all_strings[DEBUG_INFO_VERSION_STRING_INDEX], /* version */
+    idigi_element_access_read_only,
+    idigi_element_type_string,
+    NULL},
+
+    { &idigi_remote_all_strings[DEBUG_INFO_STACKTOP_STRING_INDEX], /* stacktop */
+    idigi_element_access_read_only,
+    idigi_element_type_0xhex,
+    NULL},
+
+    { &idigi_remote_all_strings[DEBUG_INFO_STACKSIZE_STRING_INDEX], /* stacksize */
+    idigi_element_access_read_only,
+    idigi_element_type_hex32,
+    NULL},
+
+    { &idigi_remote_all_strings[DEBUG_INFO_STACKBOTTOM_STRING_INDEX], /* stackbottom */
+    idigi_element_access_read_only,
+    idigi_element_type_0xhex,
+    NULL},
+
+    { &idigi_remote_all_strings[DEBUG_INFO_USEDMEM_STRING_INDEX], /* usedmem */
+    idigi_element_access_read_only,
+    idigi_element_type_uint32,
+    NULL},
+
+};
+
+idigi_group_t const idigi_config_groups[] = {
     {
-        &idigi_remote_all_strings[0], /* "serial" */
+        &idigi_remote_all_strings[SERIAL_STRING_INDEX], /* "serial" */
         1,
         2,
         {
@@ -450,8 +492,8 @@ idigi_group_t const idigi_groups[] = {
             device_stats_elements
         },
         {
-            asizeof(device_stats_errors),
-            device_stats_errors
+            0,
+            NULL
         }
     },
 
@@ -467,8 +509,26 @@ idigi_group_t const idigi_groups[] = {
             asizeof(device_info_errors),
             device_info_errors
         }
+    },
+
+    {
+        &idigi_remote_all_strings[DEBUG_INFO_STRING_INDEX], /* "debug_info" */
+        1,
+        1,
+        {
+            asizeof(ic_thread_elements),
+            ic_thread_elements
+        },
+        {
+            0,
+            NULL
+        }
     }
+
 };
 
-size_t const idigi_group_count = asizeof(idigi_groups);
+idigi_group_t const * idigi_sysinfo_groups = NULL;
+
+size_t const idigi_config_group_count = asizeof(idigi_config_groups);
+size_t const idigi_sysinfo_group_count = 0;
 
