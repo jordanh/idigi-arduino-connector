@@ -414,12 +414,12 @@
  */
 #define IDIGI_DATA_SERVICE_SUPPORT
 
-/* #define IDIGI_REMOTE_CONFIGURATION_SERVICE */
-
 #endif
 
 /**
 * @}
 */
+
+/* #define IDIGI_REMOTE_CONFIGURATION_SERVICE */
 
 #endif
