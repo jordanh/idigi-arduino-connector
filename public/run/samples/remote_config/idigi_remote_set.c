@@ -27,14 +27,6 @@
 #include "remote_config.h"
 #include "idigi_remote_sci.h"
 
-
-extern void print_xml_open_index(char const * const tag, unsigned int index);
-extern void print_xml_open(char const * const tag);
-extern void print_xml_close(char const * const tag);
-extern void print_xml_open_close(char const * const tag);
-extern void print_xml_value(char const * const name);
-extern void print_xml_error(char const * const * errors, unsigned int count, unsigned int error_id, char const * const hint);
-
 extern idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
                                     void * const request_data, size_t const request_length,
                                     void * response_data, size_t * const response_length);
@@ -309,8 +301,7 @@ extern idigi_callback_status_t idigi_remote_set_handler(idigi_remote_data_t * re
     goto done;
 
 error:
-    print_xml_error(group_ptr->errors.description, group_ptr->errors.count, response_data->error_id,
-                    response_data->element_data.error_hint);
+    print_xml_error(group_ptr->errors.description, group_ptr->errors.count, response_data);
 
     if (element_name != NULL)
     {

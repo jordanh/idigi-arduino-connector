@@ -115,13 +115,13 @@ void print_xml_open_close(char const * const tag)
     printf("<%.*s/>", length, ptr);
 }
 
-void print_xml_error(char const * const * errors, unsigned int count, unsigned int error_id, char const * const hint)
+void print_xml_error(char const * const * errors, unsigned int count, idigi_remote_group_response_t * const error_response)
 {
 
     ASSERT(hint != NULL);
 
-    printf("<error id=\"%d\">", error_id);
-    if (error_id <= idigi_group_error_count)
+    printf("<error id=\"%d\">", error_response->error_id);
+    if (error_response->error_id <= idigi_group_error_count)
     {
         static unsigned int const idigi_errors_index[] = {
                 ERROR_FIELD_NOT_EXIT_STRING_INDEX,
@@ -130,25 +130,26 @@ void print_xml_error(char const * const * errors, unsigned int count, unsigned i
                 ERROR_UNKNOWN_VALUE_STRING_INDEX
         };
 
-        unsigned char length = idigi_all_strings[idigi_errors_index[error_id -1]];
-        char * ptr = (char *)&idigi_all_strings[idigi_errors_index[error_id -1]]+1;
+        unsigned char length = idigi_all_strings[idigi_errors_index[error_response->error_id -1]];
+        char * ptr = (char *)&idigi_all_strings[idigi_errors_index[error_response->error_id -1]]+1;
 
         printf("<desc>%.*s</desc>", length, ptr);
 
     }
-    else if ((error_id- idigi_group_error_count) <= count)
+    else if ((error_response->error_id- idigi_group_error_count) <= count)
     {
-        unsigned int index = error_id - idigi_group_error_count;
+        unsigned int index = error_response->error_id - idigi_group_error_count;
         unsigned char length = *errors[index];
         char * ptr = (char *)errors[index]+1;
 
         printf("<desc>%.*s</desc>", length, ptr);
     }
-    if (hint != NULL)
+    if (error_response->element_data.error_hint != NULL)
     {
-        printf("<hint>%s</hint>", hint);
-
+        printf("<hint>%s</hint>", error_response->element_data.error_hint);
+        error_response->element_data.error_hint = NULL;
     }
+    error_response->error_id = idigi_success;
     printf("</error>\n");
 }
 
@@ -161,6 +162,7 @@ idigi_callback_status_t remote_sci_request(char * rci_command, size_t length)
     size_t i;
 
     response_data->user_context = NULL;
+    response_data->error_id = idigi_success;
     response_data->element_data.error_hint = NULL;
 
     idigi_remote_data.request_id = idigi_remote_config_session_start;
@@ -242,7 +244,7 @@ idigi_callback_status_t remote_sci_request(char * rci_command, size_t length)
 error:
     if (response_data->error_id != idigi_success)
     {
-        print_xml_error(NULL, 0, response_data->error_id, response_data->element_data.error_hint);
+        print_xml_error(NULL, 0, response_data);
     }
 
     switch (idigi_remote_data.request_id)
@@ -263,6 +265,11 @@ error:
     if (status != idigi_callback_continue)
     {
         goto done;
+    }
+
+    if (response_data->error_id != idigi_success)
+    {
+        print_xml_error(NULL, 0, response_data);
     }
 
     printf("\n");

@@ -84,13 +84,12 @@ remote_group_table_t remote_group_table[] = {
 static idigi_callback_status_t app_process_session_start(idigi_remote_group_response_t * const response)
 {
     UNUSED_ARGUMENT(response);
-
     return idigi_callback_continue;
 }
 
-static idigi_callback_status_t app_process_session_end(idigi_remote_group_request_t * const request)
+static idigi_callback_status_t app_process_session_end(idigi_remote_group_response_t * const response)
 {
-    UNUSED_ARGUMENT(request);
+    UNUSED_ARGUMENT(response);
     return idigi_callback_continue;
 }
 

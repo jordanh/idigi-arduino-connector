@@ -42,7 +42,7 @@ extern void print_xml_open_index(char const * const tag, unsigned int index);
 extern void print_xml_open(char const * const tag);
 extern void print_xml_close(char const * const tag);
 extern void print_xml_open_close(char const * const tag);
-extern void print_xml_error(char const * const * errors, unsigned int count, unsigned int error_id, char const * const hint);
+extern void print_xml_error(char const * const * errors, unsigned int count,idigi_remote_group_response_t * const error_response);
 extern void print_xml_value(char const * const name);
 
 extern idigi_callback_status_t remote_sci_request(char * rci_command, size_t length);

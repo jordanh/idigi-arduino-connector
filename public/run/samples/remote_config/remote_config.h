@@ -141,6 +141,4 @@ extern size_t const idigi_config_group_count;
 extern idigi_group_t const * idigi_sysinfo_groups;
 extern size_t const idigi_sysinfo_group_count;
 
-extern char const idigi_remote_all_strings[];
-
 #endif /* _REMOTE_CONFIG_H_ */

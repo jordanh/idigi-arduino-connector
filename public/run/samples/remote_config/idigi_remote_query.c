@@ -268,8 +268,7 @@ idigi_callback_status_t idigi_remote_query_handler(idigi_remote_data_t * remote_
     goto done;
 
 error:
-    print_xml_error(group_ptr->errors.description, group_ptr->errors.count, response_data->error_id,
-                    response_data->element_data.error_hint);
+    print_xml_error(group_ptr->errors.description, group_ptr->errors.count, response_data);
     if (element_name != NULL)
     {
         print_xml_close(element_name);
