@@ -24,10 +24,12 @@
  */
 #include <time.h>
 #include <stdlib.h>
+#include "idigi_config.h"
 #include "idigi_api.h"
 #include "platform.h"
 #include "idigi_remote.h"
 #include "remote_config.h"
+#include "remote_config_cb.h"
 
 #define DEVICE_STATS_TIME_STRING_LENGTH 22
 
@@ -45,7 +47,11 @@ device_stats_config_data_t device_stats_config_data = {0, 0, "\0"};
 idigi_callback_status_t app_device_stats_group_init(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
 {
 
+    remote_group_session_t * const session_ptr = response->user_context;
+
     UNUSED_ARGUMENT(request);
+
+    ASSERT(session_ptr != NULL);
 
     if (device_stats_config_data.curtime == 0)
     {
@@ -53,7 +59,7 @@ idigi_callback_status_t app_device_stats_group_init(idigi_remote_group_request_t
         app_os_get_system_time((unsigned long *)&device_stats_config_data.curtime);
     }
 
-    response->user_context = &device_stats_config_data;
+    session_ptr->group_context = &device_stats_config_data;
 
     return idigi_callback_continue;
 }
@@ -61,12 +67,14 @@ idigi_callback_status_t app_device_stats_group_init(idigi_remote_group_request_t
 idigi_callback_status_t app_device_stats_group_get(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
+    remote_group_session_t * const session_ptr = response->user_context;
 
     device_stats_config_data_t * device_stats_ptr;
 
-    ASSERT(reqeust->user_context);
+    ASSERT(session_ptr != NULL);
+    ASSERT(session_ptr->group_context != NULL);
 
-    device_stats_ptr = response->user_context;
+    device_stats_ptr = session_ptr->group_context;
 
     switch (request->element_id)
     {
@@ -110,11 +118,13 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
+    remote_group_session_t * const session_ptr = response->user_context;
     device_stats_config_data_t * device_stats_ptr;
 
-    ASSERT(reqeust->user_context);
+    ASSERT(session_ptr != NULL);
+    ASSERT(session_ptr->group_context != NULL);
 
-    device_stats_ptr = response->user_context;
+    device_stats_ptr = session_ptr->group_context;
 
     switch (request->element_id)
     {
@@ -126,7 +136,8 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
         size_t len;
 
         ASSERT(request->element_type == idigi_element_type_datetime);
-        ASSERT(request->element_value->string_value.buffer != NULL)
+        ASSERT(request->element_value != NULL);
+        ASSERT(request->element_value->string_value.buffer != NULL);
         ASSERT(request->element_value->string_value.length_in_bytes != DEVICE_STATS_TIME_STRING_LENGTH);
 
         lt = localtime(&device_stats_ptr->curtime);
