@@ -1,0 +1,6 @@
+<descriptor element="set_setting" desc="Set device configuration" format="all_settings_groups">
+    <error_descriptor id="1" desc="Setting group unknown"/>
+    <error_descriptor id="2" desc="Element not allowed under field element"/>
+    <error_descriptor id="3" desc="Invalid setting group, index combination"/>
+    <error_descriptor id="4" desc="Invalid parameter"/>
+</descriptor>
