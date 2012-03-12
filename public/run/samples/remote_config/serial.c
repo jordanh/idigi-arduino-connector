@@ -22,13 +22,12 @@
  * =======================================================================
  *
  */
+#include "idigi_config.h"
 #include "idigi_api.h"
 #include "platform.h"
 #include "idigi_remote.h"
 #include "remote_config.h"
-
-extern int app_os_malloc(size_t const size, void ** ptr);
-extern void app_os_free(void * const ptr);
+#include "remote_config_cb.h"
 
 enum {
     parity_none,
@@ -42,7 +41,7 @@ enum {
 };
 #define SERIAL_COUNT    2
 
-#define SERIAL_INVALID_STORED_VALUE_HINT "Invalid stored value"
+#define SERIAL_INVALID_STORED_VALUE_HINT "Invalid value"
 #define SERIAL_NO_MEMORY_HINT            "Memory"
 
 typedef struct {
@@ -62,8 +61,11 @@ serial_config_data_t serial_config_data[SERIAL_COUNT] = {
 idigi_callback_status_t app_serial_group_init(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
 {
     void * ptr;
+    remote_group_session_t * const session_ptr = response->user_context;
     serial_config_data_t * serial_ptr = NULL;
     int group_index = request->group_index -1;
+
+    ASSERT(session_ptr != NULL);
 
     if (app_os_malloc(sizeof *serial_ptr, &ptr) != 0)
     {
@@ -76,7 +78,7 @@ idigi_callback_status_t app_serial_group_init(idigi_remote_group_request_t * req
 
     *serial_ptr = serial_config_data[group_index];
 done:
-    response->user_context = serial_ptr;
+    session_ptr->group_context = serial_ptr;
     return idigi_callback_continue;
 }
 
@@ -84,11 +86,13 @@ idigi_callback_status_t app_serial_group_get(idigi_remote_group_request_t * requ
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
+    remote_group_session_t * const session_ptr = response->user_context;
     serial_config_data_t * serial_ptr;
 
-    ASSERT(reqeust->user_context != NULL);
+    ASSERT(session_ptr != NULL);
+    ASSERT(session_ptr->group_context != NULL);
 
-    serial_ptr = response->user_context;
+    serial_ptr = session_ptr->group_context;
 
     switch (request->element_id)
     {
@@ -164,12 +168,14 @@ idigi_callback_status_t app_serial_group_set(idigi_remote_group_request_t * requ
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
+    remote_group_session_t * const session_ptr = response->user_context;
     serial_config_data_t * serial_ptr;
 
 
-    ASSERT(reqeust->user_context != NULL);
+    ASSERT(session_ptr != NULL);
+    ASSERT(session_ptr->group_context != NULL);
 
-    serial_ptr = response->user_context;
+    serial_ptr = session_ptr->group_context;
 
     switch (request->element_id)
     {
@@ -234,12 +240,13 @@ idigi_callback_status_t app_serial_group_set(idigi_remote_group_request_t * requ
 idigi_callback_status_t app_serial_group_end(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
 {
 
+    remote_group_session_t * const session_ptr = response->user_context;
     serial_config_data_t * serial_ptr;
 
-    UNUSED_ARGUMENT(response);
-    ASSERT(response->user_context != NULL);
+    ASSERT(session_ptr != NULL);
+    ASSERT(session_ptr->group_context != NULL);
 
-    serial_ptr = response->user_context;
+    serial_ptr = session_ptr->group_context;
 
     if (request->action == idigi_remote_action_set)
     {
@@ -255,9 +262,11 @@ idigi_callback_status_t app_serial_group_end(idigi_remote_group_request_t * requ
 
 void app_serial_group_cancel(void * context)
 {
-    if (context != NULL)
+    remote_group_session_t * const session_ptr = context;
+
+    if (session_ptr != NULL)
     {
-        app_os_free(context);
+        app_os_free(session_ptr->group_context);
     }
 
 }
