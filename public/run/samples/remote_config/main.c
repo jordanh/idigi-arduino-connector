@@ -117,7 +117,7 @@ int main (void)
             goto done;
         }
 
-         app_os_sleep(5);
+         app_os_sleep(3);
 
         printf("\n------- query_setting -------------------------------\n");
         remote_sci_request(QUERY_SETTING_CMD, strlen(QUERY_SETTING_CMD));
