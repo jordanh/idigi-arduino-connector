@@ -68,7 +68,7 @@ void * idigi_run_thread(void * arg)
     }
     APP_DEBUG("idigi_run thread exits %d\n", idigi_run_thread_status);
 
-    pthread_cancel(application_thread);
+    idigi_run_thread_status = idigi_device_terminated;
 
     pthread_exit(arg);
 }
@@ -107,6 +107,7 @@ int start_idigi_thread(void)
         if (ccode != 0)
         {
             APP_DEBUG("thread_create() error on idigi_run_thread %d\n", ccode);
+            idigi_run_thread_status = idigi_device_terminated;
         }
     }
     else
@@ -121,10 +122,13 @@ int start_application_thread(void)
 {
     int ccode = 0;
 
-    ccode = pthread_create(&application_thread, NULL, application_run_thread, idigi_handle);
-    if (ccode != 0)
+    if (idigi_handle != NULL)
     {
-        APP_DEBUG("thread_create() error on application_run_thread %d\n", ccode);
+        ccode = pthread_create(&application_thread, NULL, application_run_thread, idigi_handle);
+        if (ccode != 0)
+        {
+            APP_DEBUG("thread_create() error on application_run_thread %d\n", ccode);
+        }
     }
 
     return ccode;
