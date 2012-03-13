@@ -130,8 +130,9 @@ static void format_file_error_msg(idigi_data_t * const idigi_ptr,
         size_t response_length = sizeof response;
 
         size_t buffer_size = MIN_VALUE(service_data->length_in_bytes - header_bytes, UCHAR_MAX);
-        idigi_request_t const request_id = {idigi_file_system_strerror};
+        idigi_request_t const request_id;
 
+        request_id.file_system_request = idigi_file_system_strerror;
         request.errnum = context->errnum;
 
         response.data.data_ptr = fs_error_response + header_bytes;
@@ -1179,7 +1180,7 @@ static idigi_callback_status_t file_system_request_callback(idigi_data_t * const
                 goto done;
         }
         session->service_context = context;
-        context->opcode = * ((uint8_t *)service_data->data_ptr);
+        context->opcode = (file_system_opcode_t ) *((uint8_t *)service_data->data_ptr);
     }
     else 
     if (context == NULL) 
