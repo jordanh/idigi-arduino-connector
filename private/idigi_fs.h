@@ -130,7 +130,7 @@ static void format_file_error_msg(idigi_data_t * const idigi_ptr,
         size_t response_length = sizeof response;
 
         size_t buffer_size = MIN_VALUE(service_data->length_in_bytes - header_bytes, UCHAR_MAX);
-        idigi_request_t const request_id;
+        idigi_request_t request_id;
 
         request_id.file_system_request = idigi_file_system_strerror;
         request.errnum = context->errnum;
