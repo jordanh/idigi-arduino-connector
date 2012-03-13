@@ -74,9 +74,16 @@ static idigi_facility_init_t const idigi_supported_facility_table[] = {
 #endif
 #if defined(IDIGI_DATA_SERVICE)
     #if defined(IDIGI_DATA_SERVICE_SUPPORT)
-        {{MANDATORY_FACILITY}, idigi_facility_data_service_init, idigi_facility_data_service_delete, idigi_facility_data_service_cleanup, msg_discovery, msg_process}
+        {{MANDATORY_FACILITY}, idigi_facility_data_service_init, idigi_facility_data_service_delete, idigi_facility_data_service_cleanup, msg_discovery, msg_process},
     #else
-        {{idigi_config_data_service}, idigi_facility_data_service_init, idigi_facility_data_service_delete, idigi_facility_data_service_cleanup, msg_discovery, msg_process}
+        {{idigi_config_data_service}, idigi_facility_data_service_init, idigi_facility_data_service_delete, idigi_facility_data_service_cleanup, msg_discovery, msg_process},
+    #endif
+#endif
+#if defined(IDIGI_FILE_SYSTEM)
+    #if defined(IDIGI_FILE_SYSTEM_SUPPORT)
+        {{MANDATORY_FACILITY}, idigi_facility_file_system_init, idigi_facility_file_system_delete, idigi_facility_file_system_cleanup, msg_discovery, msg_process}
+    #else
+        {{idigi_config_file_system}, idigi_facility_file_system_init, idigi_facility_file_system_delete, idigi_facility_file_system_cleanup, msg_discovery, msg_process}
     #endif
 #endif
 };
