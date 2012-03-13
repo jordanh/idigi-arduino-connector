@@ -25,7 +25,19 @@
 
 #include "idigi_remote.h"
 
+#define ERROR_INVALID_VERSION_LENGTH    15
+#define ERROR_UNKNOWN_COMMAND_LENGTH     15
+#define ERROR_SETTING_GROUP_UNKNOWN_LENGTH  21
+#define ERROR_ELEMENT_NOT_ALLOWED_LENGTH    39
+#define ERROR_INVALID_INDEX_GROUP_LENGTH    40
+#define ERROR_INVALID_PARAMETER_LENGTH      17
 
+#define ERROR_INVALID_VERSION_STRING_INDEX    IDIGI_SET_STATE_STRING_INDEX + IDIGI_SET_STATE_LENGTH + 1
+#define ERROR_UNKNOWN_COMMAND_STRING_INDEX    ERROR_INVALID_VERSION_STRING_INDEX + ERROR_INVALID_VERSION_LENGTH + 1
+#define ERROR_SETTING_GROUP_UNKNOWN_STRING_INDEX  ERROR_UNKNOWN_COMMAND_STRING_INDEX + ERROR_UNKNOWN_COMMAND_LENGTH + 1
+#define ERROR_ELEMENT_NOT_ALLOWED_STRING_INDEX    ERROR_SETTING_GROUP_UNKNOWN_STRING_INDEX + ERROR_SETTING_GROUP_UNKNOWN_LENGTH + 1
+#define ERROR_INVALID_INDEX_GROUP_STRING_INDEX    ERROR_ELEMENT_NOT_ALLOWED_STRING_INDEX + ERROR_ELEMENT_NOT_ALLOWED_LENGTH + 1
+#define ERROR_INVALID_PARAMETER_STRING_INDEX      ERROR_INVALID_INDEX_GROUP_STRING_INDEX + ERROR_INVALID_INDEX_GROUP_LENGTH + 1
 
 char const idigi_all_strings[] = {
     ON_STRING_LENGTH, 'o', 'n',
@@ -43,6 +55,14 @@ char const idigi_all_strings[] = {
     IDIGI_QUERY_SETTING_LENGTH, 'q', 'u', 'e', 'r', 'y','_', 's', 'e', 't', 't', 'i', 'n', 'g',
     IDIGI_QUERY_STATE_LENGTH, 'q', 'u', 'e', 'r', 'y', '_', 's', 't', 'a', 't', 'e',
     IDIGI_SET_SETTING_LENGTH, 's', 'e', 't', '_', 's', 'e', 't', 't', 'i', 'n', 'g',
-    IDIGI_SET_STATE_LENGTH, 's', 'e', 't', '_', 's', 't', 'a', 't', 'e'
+    IDIGI_SET_STATE_LENGTH, 's', 'e', 't', '_', 's', 't', 'a', 't', 'e',
+
+    ERROR_INVALID_VERSION_LENGTH, 'i', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'v', 'e', 'r', 's', 'i', 'o', 'n',
+    ERROR_UNKNOWN_COMMAND_LENGTH, 'U', 'n', 'k', 'n', 'o', 'w', 'n', ' ', 'c', 'o', 'm', 'm', 'a', 'n', 'd',
+    ERROR_SETTING_GROUP_UNKNOWN_LENGTH, 'S', 'e', 't', 't', 'i', 'n', 'g', ' ', 'g', 'r', 'o', 'u', 'p', 'u', 'n', 'k', 'n', 'o', 'w', 'n',
+    ERROR_ELEMENT_NOT_ALLOWED_LENGTH,   'E', 'l', 'e', 'm', 'e', 'n', 't', ' ', 'n', 'o', 't', ' ', 'a', 'l', 'l', 'o', 'w', 'e', 'd', ' ', 'u', 'n', 'd', 'e', 'r', ' ', 'f', 'i', 'e', 'l', 'd', ' ', 'e', 'l', 'e', 'm', 'e', 'n', 't',
+    ERROR_INVALID_INDEX_GROUP_LENGTH,   'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 's', 'e', 't', 't', 'i', 'n', 'g', ' ', 'g', 'r', 'o', 'u', 'p', ',', ' ', 'i', 'n', 'd', 'e', 'x', ' ', 'c', 'o', 'm', 'b', 'i', 'n', 'a', 't', 'i', 'o', 'n',
+    ERROR_INVALID_PARAMETER_LENGTH,     'I', 'n', 'v', 'a', 'l', 'i', 'd', 'p', 'a', 'r', 'a', 'm', 'e', 't', 'e', 'r'
+
 };
 

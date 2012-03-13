@@ -27,10 +27,6 @@
 #ifndef _IDIGI_REMOTE_H
 #define _IDIGI_REMOTE_H
 
-/**
-* @}
-*/
-
 #define ON_STRING_LENGTH    2
 #define OFF_STRING_LENGTH   3
 #define TRUE_STRING_LENGTH  4

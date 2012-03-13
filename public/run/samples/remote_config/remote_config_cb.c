@@ -22,11 +22,12 @@
  * =======================================================================
  *
  */
-
+#include "idigi_config.h"
 #include "idigi_api.h"
 #include "platform.h"
 #include "idigi_remote.h"
 #include "remote_config.h"
+#include "remote_config_cb.h"
 
 
 typedef enum  {
@@ -80,16 +81,36 @@ remote_group_table_t remote_group_table[] = {
     {NULL, NULL, app_debug_info_group_get, NULL, NULL}
 };
 
+#define remote_group_no_resource_error  10
 
 static idigi_callback_status_t app_process_session_start(idigi_remote_group_response_t * const response)
 {
-    UNUSED_ARGUMENT(response);
+    void * ptr;
+    remote_group_session_t * session_ptr;
+
+    printf("process_session_start\n");
+
+    if (app_os_malloc(sizeof *session_ptr, &ptr) != 0)
+    {
+        response->error_id = remote_group_no_resource_error;
+        goto done;
+    }
+
+    session_ptr = ptr;
+    session_ptr->group_context = NULL;
+
+done:
+    response->user_context = ptr;
     return idigi_callback_continue;
 }
 
 static idigi_callback_status_t app_process_session_end(idigi_remote_group_response_t * const response)
 {
-    UNUSED_ARGUMENT(response);
+    printf("process_session_end\n");
+    if (response->user_context != NULL)
+    {
+        app_os_free(response->user_context);
+    }
     return idigi_callback_continue;
 }
 
@@ -98,6 +119,7 @@ static idigi_callback_status_t app_process_action_start(idigi_remote_group_reque
 {
     UNUSED_ARGUMENT(request);
     UNUSED_ARGUMENT(response);
+    printf("process_action_start\n");
     return idigi_callback_continue;
 }
 
@@ -106,6 +128,7 @@ static idigi_callback_status_t app_process_action_end(idigi_remote_group_request
 {
     UNUSED_ARGUMENT(request);
     UNUSED_ARGUMENT(response);
+    printf("process_action_end\n");
     return idigi_callback_continue;
 }
 
@@ -116,8 +139,9 @@ static idigi_callback_status_t app_process_group(remote_group_cb_index_t cb_inde
     idigi_callback_status_t status = idigi_callback_continue;
     remote_group_table_t * group_ptr;
     remote_group_cb_t callback;
+    remote_group_session_t * session_ptr = response->user_context;
 
-    ASSERT(group_ptr != NULL);
+    ASSERT(session_ptr != NULL);
 
     switch (request->group_id)
     {
@@ -127,6 +151,7 @@ static idigi_callback_status_t app_process_group(remote_group_cb_index_t cb_inde
     case idigi_group_device_info:
     case idigi_group_ic_thread:
         group_ptr = &remote_group_table[request->group_id];
+        session_ptr->group_table_id = request->group_id;
         break;
     default:
         ASSERT(0);
@@ -154,6 +179,9 @@ static idigi_callback_status_t app_process_group(remote_group_cb_index_t cb_inde
 
     if (callback)
     {
+        static char  * const group_strings[] = { "init", "set", "get", "end"};
+        printf("process_group_%s\n", group_strings[cb_index]);
+
         status = callback(request, response);
     }
     goto done;
@@ -165,8 +193,18 @@ done:
 
 static idigi_callback_status_t app_process_session_cancel(void * context)
 {
-    UNUSED_ARGUMENT(context);
-    return idigi_callback_continue;
+    idigi_callback_status_t status = idigi_callback_continue;
+    remote_group_session_t * session_ptr = context;
+
+    printf("process_session_cancel\n");
+    if (session_ptr != NULL)
+    {
+        remote_group_table_t * const group_ptr = &remote_group_table[session_ptr->group_table_id];
+        remote_group_cancel_cb_t callback = group_ptr->cancel_cb;
+
+        callback(context);
+    }
+    return status;
 }
 
 idigi_callback_status_t app_remote_config_handler(idigi_remote_config_request_t const request,

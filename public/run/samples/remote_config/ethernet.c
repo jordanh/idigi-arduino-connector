@@ -30,13 +30,12 @@
 #include <net/if.h>
 #include <net/if_arp.h>
 
+#include "idigi_config.h"
 #include "idigi_api.h"
 #include "platform.h"
 #include "idigi_remote.h"
 #include "remote_config.h"
-
-extern int app_os_malloc(size_t const size, void ** ptr);
-extern void app_os_free(void * const ptr);
+#include "remote_config_cb.h"
 
 #define MAX_INTERFACES      5
 
@@ -177,11 +176,13 @@ void ethernet_get_ip_address(unsigned char ** addr, size_t * size)
 
 idigi_callback_status_t app_ethernet_group_init(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
 {
+    remote_group_session_t * const session_ptr = response->user_context;
     void * ptr;
     ethernet_idigi_data_t * ethernet_ptr = NULL;
     struct in_addr * addr;
 
     UNUSED_ARGUMENT(request);
+    ASSERT(session_ptr != NULL);
 
     if (app_os_malloc(sizeof *ethernet_ptr, &ptr) != 0)
     {
@@ -217,7 +218,7 @@ idigi_callback_status_t app_ethernet_group_init(idigi_remote_group_request_t * r
     }
 
 done:
-    response->user_context = ethernet_ptr;
+    session_ptr->group_context = ethernet_ptr;
     return idigi_callback_continue;
 }
 
@@ -225,11 +226,13 @@ idigi_callback_status_t app_ethernet_group_get(idigi_remote_group_request_t * re
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
+    remote_group_session_t * const session_ptr = response->user_context;
     ethernet_idigi_data_t * ethernet_ptr;
 
-    ASSERT(reqeust->user_context != NULL);
+    ASSERT(session_ptr != NULL);
+    ASSERT(session_ptr->group_context != NULL);
 
-    ethernet_ptr = response->user_context;
+    ethernet_ptr = session_ptr->group_context;
 
     switch (request->element_id)
     {
@@ -238,7 +241,7 @@ idigi_callback_status_t app_ethernet_group_get(idigi_remote_group_request_t * re
         response->element_data.element_value->boolean_value = ethernet_ptr->dhcp_enabled;
         break;
     case idigi_group_ethernet_dns:
-        ASSERT(request->element_type == idigi_element_type_string);
+        ASSERT(request->element_type == idigi_element_type_fqdnv4);
         response->element_data.element_value->string_value.buffer = ethernet_ptr->dns;
         response->element_data.element_value->string_value.length_in_bytes = strlen(ethernet_ptr->dns);
         break;
@@ -271,12 +274,14 @@ idigi_callback_status_t app_ethernet_group_set(idigi_remote_group_request_t * re
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
+    remote_group_session_t * const session_ptr = response->user_context;
     ethernet_idigi_data_t * ethernet_ptr;
 
-    ASSERT(response->user_context != NULL);
+    ASSERT(session_ptr != NULL);
+    ASSERT(session_ptr->group_context != NULL);
     ASSERT(request->element_value != NULL);
 
-    ethernet_ptr = response->user_context;
+    ethernet_ptr = session_ptr->group_context;
     switch (request->element_id)
     {
     case idigi_group_ethernet_dhcp:
@@ -284,8 +289,8 @@ idigi_callback_status_t app_ethernet_group_set(idigi_remote_group_request_t * re
         ethernet_ptr->dhcp_enabled = request->element_value->boolean_value;
         break;
     case idigi_group_ethernet_dns:
-        ASSERT(request->element_type == idigi_element_type_string);
-        ASSERT(reqeust->element_value->length_in_bytes <= sizeof ethernet_ptr->dns);
+        ASSERT(request->element_type == idigi_element_type_fqdnv4);
+        ASSERT(request->element_value->string_value.length_in_bytes <= sizeof ethernet_ptr->dns);
         memcpy(ethernet_ptr->dns, request->element_value->string_value.buffer, request->element_value->string_value.length_in_bytes);
         ethernet_ptr->dns[request->element_value->string_value.length_in_bytes] = '\0';
         break;
@@ -307,7 +312,7 @@ idigi_callback_status_t app_ethernet_group_set(idigi_remote_group_request_t * re
         };
 
         ASSERT(request->element_type == idigi_element_type_ipv4);
-        ASSERT(request->element_value->string_value.length_in_bytes <= sizeof config_data[request->element_id].max_length);
+        ASSERT(request->element_value->string_value.length_in_bytes <= config_data[request->element_id].max_length);
         memcpy(config_data[request->element_id].data, request->element_value->string_value.buffer, request->element_value->string_value.length_in_bytes);
         config_data[request->element_id].data[request->element_value->string_value.length_in_bytes] = '\0';
         break;
@@ -325,13 +330,15 @@ idigi_callback_status_t app_ethernet_group_set(idigi_remote_group_request_t * re
 idigi_callback_status_t app_ethernet_group_end(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
 {
 
+    remote_group_session_t * const session_ptr = response->user_context;
     ethernet_idigi_data_t * ethernet_ptr;
 
     /* save the data */
 
-    ASSERT(response->user_context != NULL);
+    ASSERT(session_ptr != NULL);
+    ASSERT(session_ptr->group_context != NULL);
 
-    ethernet_ptr = response->user_context;
+    ethernet_ptr = session_ptr->group_context;
 
     if (request->action == idigi_remote_action_set)
     {
@@ -387,9 +394,12 @@ done:
 
 void app_ethernet_group_cancel(void * context)
 {
-    if (context != NULL)
+    remote_group_session_t * const session_ptr = context;
+
+    if (session_ptr != NULL)
     {
-        app_os_free(context);
+
+        app_os_free(session_ptr->group_context);
     }
 
 }

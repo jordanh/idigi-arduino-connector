@@ -23,6 +23,7 @@
  *
  */
 #include <stdio.h>
+#include "idigi_config.h"
 #include "idigi_api.h"
 #include "remote_config.h"
 #include "idigi_remote_sci.h"
@@ -103,7 +104,7 @@ unsigned int print_group_element_value(idigi_group_element_t const * const eleme
         printf("%f", value_ptr->float_value);
         break;
     case idigi_element_type_enum:
-        ASSERT(element_ptr->value_limit != NULL)
+        ASSERT(element_ptr->value_limit != NULL);
         if (value_ptr->enum_value > element_ptr->value_limit->enum_value.count)
         {
             goto error;
@@ -144,10 +145,10 @@ idigi_callback_status_t idigi_remote_query_handler(idigi_remote_data_t * remote_
 
     idigi_group_t const * group_ptr = NULL;
     unsigned int group_id;
-    char * element_name = NULL;
 
     size_t group_count;
     idigi_group_t const * group_table;
+    idigi_boolean_t group_done = idigi_boolean_false;
 
     switch(request_data->group_type)
     {
@@ -163,13 +164,13 @@ idigi_callback_status_t idigi_remote_query_handler(idigi_remote_data_t * remote_
 
     request_data->action = idigi_remote_action_query;
 
-    for (group_id = 0; group_id < group_count; group_id++)
+    for (group_id = 0; group_id < group_count && !group_done; group_id++)
     {
         unsigned int index;
 
         group_ptr = &group_table[group_id];
 
-        for (index = group_ptr->start_index; index <= group_ptr->end_index; index++)
+        for (index = group_ptr->start_index; index <= group_ptr->end_index && !group_done; index++)
         {
             idigi_request_t request_id;
             unsigned int element_index;
@@ -205,7 +206,7 @@ idigi_callback_status_t idigi_remote_query_handler(idigi_remote_data_t * remote_
                     goto error;
             }
 
-            for (element_index=0; element_index < group_ptr->elements.count; element_index++)
+            for (element_index=0; element_index < group_ptr->elements.count && !group_done; element_index++)
             {
                 idigi_element_value_t element_value;
 
@@ -229,15 +230,18 @@ idigi_callback_status_t idigi_remote_query_handler(idigi_remote_data_t * remote_
 
                 if (response_data->error_id != idigi_success)
                 {
-                    element_name = (char *) element_ptr->name;
-                    goto error;
+                    print_xml_error(group_ptr->errors.description, group_ptr->errors.count, response_data);
+                    group_done = idigi_boolean_true;
                 }
-
-                response_data->error_id = print_group_element_value(element_ptr, &element_value);
-                if (response_data->error_id != idigi_success)
+                else
                 {
-                    response_data->element_data.error_hint = NULL;
-                    goto error;
+
+                    response_data->error_id = print_group_element_value(element_ptr, &element_value);
+                    if (response_data->error_id != idigi_success)
+                    {
+                        response_data->element_data.error_hint = NULL;
+                        goto error;
+                    }
                 }
                 printf("\n\t");
                 print_xml_close(element_ptr->name);
@@ -269,11 +273,6 @@ idigi_callback_status_t idigi_remote_query_handler(idigi_remote_data_t * remote_
 
 error:
     print_xml_error(group_ptr->errors.description, group_ptr->errors.count, response_data);
-    if (element_name != NULL)
-    {
-        print_xml_close(element_name);
-
-    }
     print_xml_close(group_ptr->name);
 
 done:

@@ -23,6 +23,7 @@
  *
  */
 
+#include "idigi_config.h"
 #include "idigi_api.h"
 #include "idigi_remote.h"
 #include "remote_config.h"
@@ -118,12 +119,10 @@ void print_xml_open_close(char const * const tag)
 void print_xml_error(char const * const * errors, unsigned int count, idigi_remote_group_response_t * const error_response)
 {
 
-    ASSERT(hint != NULL);
-
     printf("<error id=\"%d\">", error_response->error_id);
-    if (error_response->error_id <= idigi_group_error_count)
+    if (error_response->error_id < idigi_group_error_count)
     {
-        static unsigned int const idigi_errors_index[] = {
+        static unsigned int const idigi_errors_index[idigi_group_error_count] = {
                 ERROR_FIELD_NOT_EXIT_STRING_INDEX,
                 ERROR_LOAD_FAILED_STRING_INDEX,
                 ERROR_SAVE_FAILED_STRING_INDEX,
@@ -136,7 +135,7 @@ void print_xml_error(char const * const * errors, unsigned int count, idigi_remo
         printf("<desc>%.*s</desc>", length, ptr);
 
     }
-    else if ((error_response->error_id- idigi_group_error_count) <= count)
+    else if ((error_response->error_id- idigi_group_error_count) < count)
     {
         unsigned int index = error_response->error_id - idigi_group_error_count;
         unsigned char length = *errors[index];

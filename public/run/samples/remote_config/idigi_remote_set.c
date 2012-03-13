@@ -22,6 +22,7 @@
  * =======================================================================
  *
  */
+#include "idigi_config.h"
 #include "idigi_api.h"
 #include "platform.h"
 #include "remote_config.h"
@@ -44,19 +45,19 @@ static void set_group_element_value(unsigned int group_id, unsigned int group_in
         switch (element_id)
         {
         case idigi_group_serial_baud:
-            ASSERT(element_ptr->type != idigi_element_type_enum);
+            ASSERT(element_ptr->type == idigi_element_type_enum);
             element_value->enum_value = idigi_group_serial_baud_19200;
             break;
         case idigi_group_serial_parity:
-            ASSERT(element_ptr->type != idigi_element_type_enum);
+            ASSERT(element_ptr->type == idigi_element_type_enum);
             element_value->enum_value = idigi_group_serial_parity_even;
             break;
         case idigi_group_serial_databits:
-            ASSERT(element_ptr->type != idigi_element_type_uint32);
+            ASSERT(element_ptr->type == idigi_element_type_uint32);
             element_value->integer_unsigned_value = element_ptr->value_limit->integer_unsigned_value.max_value -1;
             break;
         case idigi_group_serial_xbreak:
-            ASSERT(element_ptr->type != idigi_element_type_on_off);
+            ASSERT(element_ptr->type == idigi_element_type_on_off);
             element_value->on_off_value = idigi_on;
             break;
         default:
@@ -67,38 +68,38 @@ static void set_group_element_value(unsigned int group_id, unsigned int group_in
         switch (element_id)
         {
         case idigi_group_ethernet_ip:
-            ASSERT(element_ptr->type != idigi_element_type_ipv4);
+            ASSERT(element_ptr->type == idigi_element_type_ipv4);
             static char set_ip_address[] = "10.52.18.75";
             element_value->string_value.buffer = (char *)set_ip_address;
             element_value->string_value.length_in_bytes = sizeof set_ip_address -1;
             break;
 
         case idigi_group_ethernet_subnet:
-            ASSERT(element_ptr->type != idigi_element_type_ipv4);
+            ASSERT(element_ptr->type == idigi_element_type_ipv4);
             static char set_subnet_address[] = "255.255.255.0";
             element_value->string_value.buffer = (char *)set_subnet_address;
             element_value->string_value.length_in_bytes = sizeof set_subnet_address -1;
             break;
 
         case idigi_group_ethernet_gateway:
-            ASSERT(element_ptr->type != idigi_element_type_ipv4);
+            ASSERT(element_ptr->type == idigi_element_type_ipv4);
             static char set_gateway_address[] = "10.52.18.1";
             element_value->string_value.buffer = (char *)set_gateway_address;
             element_value->string_value.length_in_bytes = sizeof set_gateway_address -1;
             break;
         case idigi_group_ethernet_dhcp:
-            ASSERT(element_ptr->type != idigi_element_type_boolean);
+            ASSERT(element_ptr->type == idigi_element_type_boolean);
             element_value->boolean_value = idigi_boolean_false;
             break;
 
         case idigi_group_ethernet_dns:
-            ASSERT(element_ptr->type != idigi_element_type_fqdnv4);
+            ASSERT(element_ptr->type == idigi_element_type_fqdnv4);
             static char set_dns_address[] = "digi.com";
             element_value->string_value.buffer = (char *)set_dns_address;
             element_value->string_value.length_in_bytes = sizeof set_dns_address -1;
             break;
         case idigi_group_ethernet_duplex:
-            ASSERT(element_ptr->type != idigi_element_type_enum);
+            ASSERT(element_ptr->type == idigi_element_type_enum);
             element_value->enum_value = idigi_group_ethernet_duplex_full;
             break;
         default:
@@ -111,13 +112,13 @@ static void set_group_element_value(unsigned int group_id, unsigned int group_in
         switch (element_id)
         {
         case idigi_group_device_stats_curtime:
-            ASSERT(element_ptr->type != idigi_element_type_datetime);
+            ASSERT(element_ptr->type == idigi_element_type_datetime);
             static char set_time_string[] = "2012-03-08T04:58:05-5000";
             element_value->string_value.buffer = (char *)set_time_string;
             element_value->string_value.length_in_bytes = sizeof set_time_string -1;
             break;
         case idigi_group_device_stats_ctemp:
-            ASSERT(element_ptr->type != idigi_element_type_float);
+            ASSERT(element_ptr->type == idigi_element_type_float);
             element_value->float_value = 35.7;
             break;
         default:
@@ -129,31 +130,31 @@ static void set_group_element_value(unsigned int group_id, unsigned int group_in
         switch (element_id)
         {
         case idigi_group_device_info_product:
-            ASSERT(element_ptr->type != idigi_element_type_string);
+            ASSERT(element_ptr->type == idigi_element_type_string);
             static char set_product[] = "ICC Testing Product";
             element_value->string_value.buffer = (char *)set_product;
             element_value->string_value.length_in_bytes = sizeof set_product -1;
             break;
         case idigi_group_device_info_model:
-            ASSERT(element_ptr->type != idigi_element_type_string);
+            ASSERT(element_ptr->type == idigi_element_type_string);
             static char set_model[] = "ICC Testing Model";
             element_value->string_value.buffer = (char *)set_model;
             element_value->string_value.length_in_bytes = sizeof set_model -1;
             break;
         case idigi_group_device_info_company:
-            ASSERT(element_ptr->type != idigi_element_type_string);
+            ASSERT(element_ptr->type == idigi_element_type_string);
             static char const set_company[] = "My Company";
             element_value->string_value.buffer = (char *)set_company;
             element_value->string_value.length_in_bytes = sizeof set_company -1;
             break;
         case idigi_group_device_info_desc:
-            ASSERT(element_ptr->type != idigi_element_type_string);
+            ASSERT(element_ptr->type == idigi_element_type_multiline_string);
             static char set_desc[] = "ICC Testing\nTesting Remote Configurations";
             element_value->string_value.buffer = (char *)set_desc;
             element_value->string_value.length_in_bytes = sizeof set_desc -1;
             break;
         case idigi_group_device_info_syspwd:
-            ASSERT(element_ptr->type != idigi_element_type_string);
+            ASSERT(element_ptr->type == idigi_element_type_password);
             static char set_syspwd[] = "password";
             element_value->string_value.buffer = (char *)set_syspwd;
             element_value->string_value.length_in_bytes = sizeof set_syspwd -1;
@@ -176,10 +177,10 @@ extern idigi_callback_status_t idigi_remote_set_handler(idigi_remote_data_t * re
     idigi_remote_group_request_t * const request_data = &remote_ptr->request_data;
 
     idigi_group_t const * group_ptr = NULL;
-    char * element_name = NULL;
 
     size_t group_count;
     idigi_group_t const * group_table;
+    idigi_boolean_t group_done = idigi_boolean_false;
 
     switch(request_data->group_type)
     {
@@ -195,14 +196,14 @@ extern idigi_callback_status_t idigi_remote_set_handler(idigi_remote_data_t * re
 
     request_data->action = idigi_remote_action_set;
 
-    for (group_id = 0; group_id < group_count; group_id++)
+    for (group_id = 0; group_id < group_count && !group_done; group_id++)
     {
         idigi_request_t request_id;
         unsigned int index;
 
         group_ptr = &group_table[group_id];
 
-        for (index = group_ptr->start_index; index <= group_ptr->end_index; index++)
+        for (index = group_ptr->start_index; index <= group_ptr->end_index && !group_done; index++)
         {
             unsigned int element_index;
             size_t length = sizeof *response_data;
@@ -237,7 +238,7 @@ extern idigi_callback_status_t idigi_remote_set_handler(idigi_remote_data_t * re
                     goto error;
             }
 
-            for (element_index=0; element_index < group_ptr->elements.count; element_index++)
+            for (element_index=0; element_index < group_ptr->elements.count && !group_done; element_index++)
             {
                 size_t length = sizeof *response_data;
                 idigi_element_value_t element_value;
@@ -258,6 +259,7 @@ extern idigi_callback_status_t idigi_remote_set_handler(idigi_remote_data_t * re
                     request_id.remote_config_request = idigi_remote_config_group_process;
                     status = app_idigi_callback(idigi_class_remote_config_service, request_id,
                             request_data, (sizeof *request_data + sizeof element_value), response_data, &length);
+
                     if (status != idigi_callback_continue)
                     {
                         goto done;
@@ -268,9 +270,10 @@ extern idigi_callback_status_t idigi_remote_set_handler(idigi_remote_data_t * re
 
                     if (response_data->error_id != idigi_success)
                     {
-                        element_name = (char *)element_ptr->name;
                         print_xml_open(element_ptr->name);
-                        goto error;
+                        print_xml_error(group_ptr->errors.description, group_ptr->errors.count, response_data);
+                        print_xml_close(element_ptr->name);
+                        group_done = idigi_boolean_true;
                     }
                     else
                     {
@@ -302,13 +305,6 @@ extern idigi_callback_status_t idigi_remote_set_handler(idigi_remote_data_t * re
 
 error:
     print_xml_error(group_ptr->errors.description, group_ptr->errors.count, response_data);
-
-    if (element_name != NULL)
-    {
-        print_xml_close(element_name);
-
-    }
-
     print_xml_close(group_ptr->name);
 
 done:

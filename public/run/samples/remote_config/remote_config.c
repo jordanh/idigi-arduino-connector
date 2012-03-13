@@ -23,7 +23,6 @@
  *
  */
 /* #include <float.h> */
-#include "idigi_remote.h"
 #include "remote_config.h"
 
 #define SERIAL_LENGTH           6
@@ -290,6 +289,7 @@ static idigi_group_element_t const serial_elements[] =
 };
 
 static char const * const serial_errors[] = {
+    &idigi_remote_all_strings[SERIAL_ERROR_BAUD_STRING_INDEX], /* Invalid baud rate */
     &idigi_remote_all_strings[SERIAL_ERROR_DATABITS_STRING_INDEX], /* Invalid data bits */
     &idigi_remote_all_strings[SERIAL_ERROR_PARITY_STRING_INDEX], /* Invalid parity */
     &idigi_remote_all_strings[SERIAL_ERROR_XBREAK_STRING_INDEX], /* Invalid xbreak setting */

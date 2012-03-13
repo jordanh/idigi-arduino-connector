@@ -24,6 +24,7 @@
  */
 #include <pthread.h>
 #include <stdio.h>
+#include "idigi_config.h"
 #include "idigi_api.h"
 /* #include "platform.h" */
 #include "idigi_remote.h"
@@ -69,7 +70,7 @@ void idigiThreadStackInit(void)
 idigi_callback_status_t app_debug_info_group_get(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
 {
 
-    ASSERT(response->response_value.element_value != NULL);
+    ASSERT(response->element_data.element_value != NULL);
 
     switch (request->element_id)
     {

@@ -22,10 +22,12 @@
  * =======================================================================
  *
  */
+#include "idigi_config.h"
 #include "idigi_api.h"
 #include "platform.h"
 #include "idigi_remote.h"
 #include "remote_config.h"
+#include "remote_config_cb.h"
 
 #define DEVICE_INFO_NO_MEMORY_HINT            "Memory"
 
@@ -34,10 +36,6 @@
 #define DEVICE_INFO_COMPANY_LENGTH  64
 #define DEVICE_INFO_DESC_LENGTH  128
 #define DEVICE_INFO_SYSPWD_LENGTH  32
-
-extern int app_os_malloc(size_t const size, void ** ptr);
-extern void app_os_free(void * const ptr);
-
 
 typedef struct {
     char product[DEVICE_INFO_PRODUCT_LENGTH];
@@ -55,9 +53,12 @@ idigi_callback_status_t app_device_info_group_init(idigi_remote_group_request_t 
 {
 
     void * ptr;
+    remote_group_session_t * const session_ptr = response->user_context;
     device_info_config_data_t * device_info_ptr = NULL;
 
     UNUSED_ARGUMENT(request);
+
+    ASSERT(session_ptr != NULL);
 
     if (app_os_malloc(sizeof *device_info_ptr, &ptr) != 0)
     {
@@ -69,7 +70,7 @@ idigi_callback_status_t app_device_info_group_init(idigi_remote_group_request_t 
     device_info_ptr = ptr;
     *device_info_ptr = device_info_config_data;
 
-    response->user_context = device_info_ptr;
+    session_ptr->group_context = device_info_ptr;
 done:
     return idigi_callback_continue;
 }
@@ -77,32 +78,40 @@ done:
 idigi_callback_status_t app_device_info_group_get(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
+    remote_group_session_t * const session_ptr = response->user_context;
 
 
-    ASSERT(reqeust->user_context);
+    ASSERT(session_ptr != NULL);
+    ASSERT(session_ptr->group_context != NULL);
 
     switch (request->element_id)
     {
+    case idigi_group_device_info_syspwd:
+        ASSERT(request->element_type == idigi_element_type_password);
+
     case idigi_group_device_info_product:
     case idigi_group_device_info_model:
     case idigi_group_device_info_company:
     case idigi_group_device_info_desc:
-    case idigi_group_device_info_syspwd:
     {
-        device_info_config_data_t * const device_info_ptr = response->user_context;
+        device_info_config_data_t * const device_info_ptr = session_ptr->group_context;
 
         char * config_data[] = {device_info_ptr->product, device_info_ptr->model,
                                 device_info_ptr->company, device_info_ptr->desc,
                                 device_info_ptr->syspwd};
 
-        ASSERT(request->element_type == idigi_element_type_string);
         response->element_data.element_value->string_value.buffer = config_data[request->element_id];
         if (request->element_id == idigi_group_device_info_desc)
         {
+            ASSERT(request->element_type == idigi_element_type_multiline_string);
             response->element_data.element_value->string_value.length_in_bytes = device_info_ptr->desc_length;
         }
         else
         {
+            if (request->element_id != idigi_group_device_info_syspwd)
+            {
+                ASSERT(request->element_type == idigi_element_type_string);
+            }
             response->element_data.element_value->string_value.length_in_bytes = strlen(config_data[request->element_id]);
         }
         break;
@@ -120,9 +129,11 @@ idigi_callback_status_t app_device_info_group_get(idigi_remote_group_request_t *
 idigi_callback_status_t app_device_info_group_set(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
+    remote_group_session_t * const session_ptr = response->user_context;
 
 
-    ASSERT(reqeust->user_context);
+    ASSERT(session_ptr != NULL);
+    ASSERT(session_ptr->group_context != NULL);
 
     switch (request->element_id)
     {
@@ -132,7 +143,7 @@ idigi_callback_status_t app_device_info_group_set(idigi_remote_group_request_t *
     case idigi_group_device_info_desc:
     case idigi_group_device_info_syspwd:
     {
-        device_info_config_data_t * const device_info_ptr = response->user_context;
+        device_info_config_data_t * const device_info_ptr = session_ptr->group_context;
 
         struct {
             char * store_data;
@@ -176,14 +187,14 @@ idigi_callback_status_t app_device_info_group_end(idigi_remote_group_request_t *
 {
 
     device_info_config_data_t * device_info_ptr;
+    remote_group_session_t * const session_ptr = response->user_context;
 
     /* save the data */
 
-    UNUSED_ARGUMENT(response);
+    ASSERT(session_ptr != NULL);
+    ASSERT(session_ptr->group_context != NULL);
 
-    ASSERT(reqeust->user_context);
-
-    device_info_ptr = response->user_context;
+    device_info_ptr = session_ptr->group_context;
 
     if (request->action == idigi_remote_action_set)
     {
@@ -199,9 +210,11 @@ idigi_callback_status_t app_device_info_group_end(idigi_remote_group_request_t *
 
 void app_device_info_group_cancel(void * context)
 {
-    if (context != NULL)
+    remote_group_session_t * const session_ptr = context;
+
+    if (session_ptr != NULL)
     {
-        app_os_free(context);
+        app_os_free(session_ptr->group_context);
     }
 
 }
