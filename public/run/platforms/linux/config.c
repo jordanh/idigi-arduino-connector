@@ -274,6 +274,11 @@ static idigi_service_supported_status_t app_get_data_service_support(void)
     return idigi_service_supported;
 }
 
+static idigi_service_supported_status_t app_get_file_system_support(void)
+{
+    return idigi_service_supported;
+}
+
 static unsigned int app_get_max_message_transactions(void)
 {
 #define IDIGI_MAX_MSG_TRANSACTIONS   1
@@ -326,6 +331,7 @@ void app_config_error(idigi_error_status_t * const error_data)
                                              "idigi_config_error_status",
                                              "idigi_config_firmware_facility",
                                              "idigi_config_data_service",
+                                             "idigi_config_file_system",
                                               "idigi_config_max_transaction"};
 
     char const * network_request_string[] = { "idigi_network_connect",
@@ -353,6 +359,20 @@ void app_config_error(idigi_error_status_t * const error_data)
 
     char const * data_service_string[] = {"idigi_data_service_put_request",
                                           "idigi_data_service_device_request"};
+    char const * file_system_string[] = {"idigi_file_system_open",    
+                                       "idigi_file_system_read",    
+                                       "idigi_file_system_write",   
+                                       "idigi_file_system_lseek",   
+                                       "idigi_file_system_ftruncate",
+                                       "idigi_file_system_close",   
+                                       "idigi_file_system_rm",      
+                                       "idigi_file_system_stat",
+                                       "idigi_file_system_opendir", 
+                                       "idigi_file_system_readdir", 
+                                       "idigi_file_system_closedir",
+                                       "idigi_file_system_strerror",
+                                       "idigi_file_system_error"};    
+
     switch (error_data->class_id)
     {
     case idigi_class_config:
@@ -379,6 +399,12 @@ void app_config_error(idigi_error_status_t * const error_data)
                      error_data->request_id.data_service_request,
                      error_status_string[error_data->status],error_data->status);
         break;
+    case idigi_class_file_system:
+           APP_DEBUG("idigi_error_status: File system - %s (%d)  status = %s (%d)\n",
+                        file_system_string[error_data->request_id.file_system_request],
+                        error_data->request_id.file_system_request,
+                        error_status_string[error_data->status],error_data->status);
+           break;
     default:
         APP_DEBUG("idigi_error_status: unsupport class_id = %d status = %d\n", error_data->class_id, error_data->status);
         break;
@@ -461,6 +487,11 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
 
     case idigi_config_data_service:
         *((idigi_service_supported_status_t *)response_data) = app_get_data_service_support();
+        ret = 0;
+        break;
+
+    case idigi_config_file_system:
+        *((idigi_service_supported_status_t *)response_data) = app_get_file_system_support();
         ret = 0;
         break;
 
