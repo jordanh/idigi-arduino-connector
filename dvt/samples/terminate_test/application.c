@@ -29,6 +29,9 @@
 
 char terminate_file_content[32];
 
+extern idigi_status_t idigi_run_thread_status;
+
+
 extern idigi_callback_status_t app_data_service_handler(idigi_data_service_request_t const request,
                                                   void const * request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length);
@@ -102,7 +105,7 @@ int application_run(idigi_handle_t handle)
          }
      }
 
-    for (;;)
+    for (;idigi_run_thread_status != idigi_device_terminated;)
     {
         status = send_put_request(handle, index);
 
@@ -124,11 +127,14 @@ int application_run(idigi_handle_t handle)
             #define SLEEP_BETWEEN_TESTS   5
             app_os_sleep(SLEEP_BETWEEN_TESTS);
             break;
-
+        case idigi_device_terminated:
+            goto done;
         default:
             break;
         }
     }
+
+done:
     return 0;
 }
 

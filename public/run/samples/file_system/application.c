@@ -24,16 +24,10 @@
  */
 #include "idigi_api.h"
 #include "platform.h"
-#include "remote_config.h"
 
-
-extern idigi_callback_status_t app_firmware_handler(idigi_firmware_request_t const request,
-                                                  void * const request_data, size_t const request_length,
+extern idigi_callback_status_t app_file_system_handler(idigi_data_service_request_t const request,
+                                                  void const * request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length);
-extern idigi_callback_status_t app_remote_config_handler(idigi_remote_config_request_t const request,
-                                                      void * const request_data, size_t const request_length,
-                                                      void * response_data, size_t * const response_length);
-
 
 idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
                                     void * const request_data, size_t const request_length,
@@ -52,11 +46,8 @@ idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_r
     case idigi_class_network:
         status = app_network_handler(request_id.network_request, request_data, request_length, response_data, response_length);
         break;
-    case idigi_class_firmware:
-        status = app_firmware_handler(request_id.firmware_request, request_data, request_length, response_data, response_length);
-        break;
-    case idigi_class_remote_config_service:
-        status = app_remote_config_handler(request_id.remote_config_request, request_data, request_length, response_data, response_length);
+    case idigi_class_file_system:
+        status = app_file_system_handler(request_id.file_system_request, request_data, request_length, response_data, response_length);
         break;
     default:
         /* not supported */
@@ -65,14 +56,13 @@ idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_r
     return status;
 }
 
-extern void remote_config_set(void);
-
 int application_run(idigi_handle_t handle)
 {
     UNUSED_ARGUMENT(handle);
+    /* No application's thread here.
+     * Application has no other process.
+     * main() will start idigi_run() as a separate thread.
+     */
 
-//    remote_config_set();
-
-    return 0;
+   return 0;
 }
-

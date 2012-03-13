@@ -38,15 +38,24 @@
 #if defined(IDIGI_FIRMWARE_SERVICE)
 #include "idigi_fw.h"
 #endif
-#if defined(IDIGI_DATA_SERVICE)
+#if defined(IDIGI_DATA_SERVICE) || defined(IDIGI_FILE_SYSTEM)
 #include "idigi_msg.h"
+#endif
+#if defined(IDIGI_DATA_SERVICE)
 #if (IDIGI_VERSION < IDIGI_VERSION_1100)
 #include "idigi_ds_legacy.h"
 #else
 #include "idigi_ds.h"
 #endif
 #endif
+#if defined(IDIGI_FILE_SYSTEM)
+#include "idigi_fs.h"
+#endif
 #include "layer.h"
+
+#if defined(IDIGI_REMOTE_CONFIGURATION_SERVICE)
+#include "idigi_strings.h"
+#endif
 
 idigi_handle_t idigi_init(idigi_callback_t const callback)
 {

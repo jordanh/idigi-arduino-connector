@@ -1,4 +1,11 @@
 
+<descriptor element="query_setting" desc="Retrieve device configuration" format="all_settings_groups">
+<error_descriptor id="1" desc="Setting group unknown"/>
+<error_descriptor id="2" desc="Element not allowed under field element"/>
+<error_descriptor id="3" desc="Invalid setting group, index combination"/>
+<error_descriptor id="4" desc="Invalid parameter"/>
+
+<format_define name="all_settings_groups">
 <descriptor element="serial" desc="Serial port">
   <attr name="index" desc="Serial port number" type="int32" min="1" max="2" />
   <element name="baud" desc="Baud" type="enum">
@@ -86,3 +93,4 @@
     <error_descriptor id="4" desc="Unknown value"/>
 </descriptor>
 
+</format_define>

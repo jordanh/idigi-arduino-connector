@@ -30,12 +30,9 @@ vpath $(IDIGI_DIR)/%.c
 vpath $(PLATFORM_DIR)/%.c
 
 CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL 
-CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR) -I. -g
+CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR)  -g -O0
 
-OBJS = idigi_remote_sci.o idigi_remote_set.o idigi_remote_query.o remote_config_prn.o device_info.o \
-       device_stats.o ethernet.o debug_info.o serial.o remote_config_cb.o remote_config.o application.o \
-       main.o os.o config.o firmware.o \
-       $(IDIGI_DIR)/idigi_api.o $(PLATFORM_DIR)/network.o 
+OBJS = application.o file_system.o $(IDIGI_DIR)/idigi_api.o $(PLATFORM_DIR)/os.o $(PLATFORM_DIR)/network.o  $(PLATFORM_DIR)/config.o $(PLATFORM_DIR)/main.o 
 LIBS = -lc -lz -lpthread
 
 SAMPLE = idigi
@@ -43,37 +40,25 @@ all: $(SAMPLE)
 
 CFLAGS += -Wl,-Map,$(SAMPLE).map
 
-firmware.o:
-config.o:
-os.o:
-main.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PLATFORM_DIR)/platform.h
-remote_config_prn.o:
-idigi_remote_sci.o:
-idigi_remote_query.o:
-idigi_remote_set.o:
-device_stats.o:
-device_info.o:
-ethernet.o:
-serial.o:
-debug_info.o: $(PUBLIC_HEADER_DIR)/idigi_config.h $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h \
-              ./remote_config.h ./remote_config_cb.h $(PLATFORM_DIR)/platform.h
-remote_config.o:
-remote_config_cb.o:
-application.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h ./remote_config.h $(PLATFORM_DIR)/platform.h
+application.o:
+file_system.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h
 $(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PUBLIC_HEADER_DIR)/idigi_config.h \
                         $(IDIGI_DIR)/chk_config.h $(IDIGI_DIR)/debug.h $(IDIGI_DIR)/ei_packet.h \
                         $(IDIGI_DIR)/idigi_cc.h $(IDIGI_DIR)/idigi_ds.h $(IDIGI_DIR)/idigi_fw.h \
                         $(IDIGI_DIR)/idigi_msg.h $(IDIGI_DIR)/layer.h $(IDIGI_DIR)/network_intf.h \
                         $(IDIGI_DIR)/options.h $(IDIGI_DIR)/os_intf.h $(IDIGI_DIR)/bele.h \
-                        $(IDIGI_DIR)/idigi_def.h
+                        $(IDIGI_DIR)/idigi_fs.h $(IDIGI_DIR)/idigi_def.h
+$(PLATFORM_DIR)/main.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PLATFORM_DIR)/platform.h
 
-$(OBJS): *.c $(IDIGI_DIR)/*.c
+$(OBJS): *.c $(IDIGI_DIR)/*.c $(PLATFORM_DIR)/*.c
 
 $(SAMPLE): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(SAMPLE)
+	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(SAMPLE) 
 
 .PHONY: clean
 clean:
 	-rm -f $(OBJS)
+	-rm -f $(SAMPLE).map 
+	-rm -f $(SAMPLE)
 
 

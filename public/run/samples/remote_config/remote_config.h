@@ -28,15 +28,20 @@
 
 #include "idigi_remote.h"
 
-enum {
+#define asizeof(array) (sizeof(array)/sizeof(array[0]))
+
+
+typedef enum {
     idigi_group_serial,
     idigi_group_ethernet,
     idigi_group_device_stats,
-    idigi_group_device_info
-};
+    idigi_group_device_info,
+    idigi_group_ic_thread,
+    idigi_group_width = INT_MAX
+} idigi_group_id_t;
 
 /* serial group */
-enum {
+typedef enum {
     idigi_group_serial_baud_2400,
     idigi_group_serial_baud_4800,
     idigi_group_serial_baud_9600,
@@ -44,89 +49,96 @@ enum {
     idigi_group_serial_baud_38400,
     idigi_group_serial_baud_57600,
     idigi_group_serial_baud_115200,
-    idigi_group_serial_baud_230400
-};
+    idigi_group_serial_baud_230400,
+    idigi_group_serial_baud_width = INT_MAX
+} idigi_group_serial_bauld_id_t;
 
-enum {
+typedef enum {
     idigi_group_serial_parity_none,
     idigi_group_serial_parity_odd,
-    idigi_group_serial_parity_even
-};
+    idigi_group_serial_parity_even,
+    idigi_group_serial_parity_width = INT_MAX
+} idigi_group_serial_parity_id_t;
 
-enum {
-    idigi_group_serial_error_unsupport_field = 1,
-    idigi_group_serial_error_load_failed,
-    idigi_group_serial_error_save_failed,
-    idigi_group_serial_error_invalid_baud,
+typedef enum {
+    idigi_group_serial_error_invalid_baud = idigi_group_error_count,
     idigi_group_serial_error_invalid_databits,
     idigi_group_serial_error_invalid_parity,
     idigi_group_serial_error_invalid_xbreak,
-    idigi_group_serial_error_invalid_databits_and_parity
-};
+    idigi_group_serial_error_invalid_databits_and_parity,
+    idigi_group_serial_error_width = INT_MAX
+} idigi_group_serial_error_id;
 
-enum {
+typedef enum {
     idigi_group_serial_baud,
     idigi_group_serial_parity,
     idigi_group_serial_databits,
     idigi_group_serial_xbreak,
-    idigi_group_serial_txbytes
-};
+    idigi_group_serial_txbytes,
+    idigi_group_serial_width = INT_MAX
+} idigi_group_serial_id;
 
 /* ethernet group */
-enum {
+typedef enum {
     idigi_group_ethernet_duplex_auto,
     idigi_group_ethernet_duplex_half,
-    idigi_group_ethernet_duplex_full
-};
+    idigi_group_ethernet_duplex_full,
+    idigi_group_ethernet_duplex_width = INT_MAX
+} idigi_group_ethernet_duplex_id_t;
 
-enum {
+typedef enum {
     idigi_group_ethernet_ip,
+    idigi_group_ethernet_subnet,
     idigi_group_ethernet_gateway,
     idigi_group_ethernet_dhcp,
+    idigi_group_ethernet_dns,
     idigi_group_ethernet_duplex,
-    idigi_group_rxbytes
-};
+    idigi_group_ethernet_width = INT_MAX
+} idigi_group_ethernet_id_t;
 
-enum {
-    idigi_group_ethernet_error_unsupport_field = 1,
-    idigi_group_ethernet_error_load_failed,
-    idigi_group_ethernet_error_save_failed,
-    idigi_group_ethernet_error_invalid_ethernet_duplex,
+typedef enum {
+    idigi_group_ethernet_error_invalid_ethernet_duplex = idigi_group_error_count,
     idigi_group_ethernet_error_invalid_ip_address,
     idigi_group_ethernet_error_invalid_subnet,
     idigi_group_ethernet_error_invalid_gateway,
-    idigi_group_ethernet_error_invalid_dns
+    idigi_group_ethernet_error_invalid_dns,
+    idigi_group_ethernet_error_width = INT_MAX
+} idigi_group_ethernet_error_id_t;
 
-};
-
-enum {
+typedef enum {
     idigi_group_device_stats_curtime,
-    idigi_group_device_stats_usedmem,
-    idigi_group_device_stats_heapstart,
-    idigi_group_device_stats_heapend,
-};
+    idigi_group_device_stats_ctemp,
+    idigi_group_device_stats_ftemp,
+    idigi_group_device_stats_width = INT_MAX
+} idigi_group_device_stats_id_t;
 
-enum {
-    idigi_group_device_stats_error_unsupport_field = 1,
-    idigi_group_device_stats_error_load_failed,
-    idigi_group_device_stats_error_save_failed,
-};
-
-enum {
+typedef enum {
     idigi_group_device_info_product,
     idigi_group_device_info_model,
     idigi_group_device_info_company,
     idigi_group_device_info_desc,
+    idigi_group_device_info_syspwd,
+    idigi_group_device_info_width = INT_MAX
+} idigi_group_device_info_id_t;
 
-};
+typedef enum {
+    idigi_group_device_info_error_invalid_length = idigi_group_error_count,
+    idigi_group_device_info_error_width = INT_MAX
+} idigi_group_device_info_error_id_t;
 
-enum {
-    idigi_group_device_info_error_unsupport_field = 1,
-    idigi_group_device_info_error_load_failed,
-    idigi_group_device_info_error_save_failed,
-};
+typedef enum {
+    idigi_group_debug_info_version,
+    idigi_group_debug_info_stacktop,
+    idigi_group_debug_info_stacksize,
+    idigi_group_debug_info_stackbottom,
+    idigi_group_debug_info_usedmem,
+    idigi_group_debug_info_width = INT_MAX
+} idigi_group_debug_info_id_t;
 
-extern idigi_group_t const idigi_groups[];
-extern size_t const idigi_group_count;
+extern idigi_group_t const idigi_config_groups[];
+extern size_t const idigi_config_group_count;
+
+extern idigi_group_t const * idigi_sysinfo_groups;
+extern size_t const idigi_sysinfo_group_count;
 
 #endif /* _REMOTE_CONFIG_H_ */

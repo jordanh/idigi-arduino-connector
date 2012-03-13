@@ -27,39 +27,63 @@
 #ifndef _IDIGI_REMOTE_H
 #define _IDIGI_REMOTE_H
 
-/**
-* @defgroup idigi_remote_request_t Remote Configuration Requests
-* @{
-*/
-/**
-* Remote Configuration Request Id passed to the application's callback to query or set remote configuration data.
-* The class id for this idigi_remote_request_t is idigi_class_remote_config.
-*/
+#define ON_STRING_LENGTH    2
+#define OFF_STRING_LENGTH   3
+#define TRUE_STRING_LENGTH  4
+#define FALSE_STRING_LENGTH 5
+
+#define ON_STRING_INDEX     0
+#define OFF_STRING_INDEX    ON_STRING_INDEX + ON_STRING_LENGTH + 1
+#define TRUE_STRING_INDEX   OFF_STRING_INDEX + OFF_STRING_LENGTH + 1
+#define FALSE_STRING_INDEX  TRUE_STRING_INDEX + TRUE_STRING_LENGTH + 1
+
+#define ERROR_FIELD_NOT_EXIT_LENGTH 30
+#define ERROR_LOAD_FAILED_LENGTH    11
+#define ERROR_SAVE_FAILED_LENGTH    11
+#define ERROR_UNKNOWN_VALUE_LENGTH  13
+
+#define ERROR_FIELD_NOT_EXIT_STRING_INDEX   FALSE_STRING_INDEX + FALSE_STRING_LENGTH + 1
+#define ERROR_LOAD_FAILED_STRING_INDEX      ERROR_FIELD_NOT_EXIT_STRING_INDEX + ERROR_FIELD_NOT_EXIT_LENGTH + 1
+#define ERROR_SAVE_FAILED_STRING_INDEX      ERROR_LOAD_FAILED_STRING_INDEX + ERROR_LOAD_FAILED_LENGTH + 1
+#define ERROR_UNKNOWN_VALUE_STRING_INDEX    ERROR_SAVE_FAILED_STRING_INDEX + ERROR_SAVE_FAILED_LENGTH + 1
+
+#define IDIGI_RCI_REPLY_LENGTH      9
+#define IDIGI_VERSION_LENGTH        7
+#define IDIGI_RCI_VERSION_LENGTH    3
+#define IDIGI_QUERY_SETTING_LENGTH  13
+#define IDIGI_QUERY_STATE_LENGTH    11
+#define IDIGI_SET_SETTING_LENGTH    11
+#define IDIGI_SET_STATE_LENGTH      9
+
+#define IDIGI_RCI_REPLY_STRING_INDEX        ERROR_UNKNOWN_VALUE_STRING_INDEX + ERROR_UNKNOWN_VALUE_LENGTH + 1
+#define IDIGI_VERSION_STRING_INDEX          IDIGI_RCI_REPLY_STRING_INDEX + IDIGI_RCI_REPLY_LENGTH + 1
+#define IDIGI_RCI_VERSION_STRING_INDEX      IDIGI_VERSION_STRING_INDEX + IDIGI_VERSION_LENGTH + 1
+#define IDIGI_QUERY_SETTING_STRING_INDEX    IDIGI_RCI_VERSION_STRING_INDEX + IDIGI_RCI_VERSION_LENGTH + 1
+#define IDIGI_QUERY_STATE_STRING_INDEX      IDIGI_QUERY_SETTING_STRING_INDEX + IDIGI_QUERY_SETTING_LENGTH + 1
+#define IDIGI_SET_SETTING_STRING_INDEX      IDIGI_QUERY_STATE_STRING_INDEX + IDIGI_QUERY_STATE_LENGTH + 1
+#define IDIGI_SET_STATE_STRING_INDEX        IDIGI_SET_SETTING_STRING_INDEX + IDIGI_SET_SETTING_LENGTH + 1
 
 typedef enum {
-    idigi_remote_session_start,
-    idigi_remote_session_end,
-    idigi_remote_action_start,
-    idigi_remote_action_end,
-    idigi_remote_group_start,
-    idigi_remote_group_end,
-    idigi_remote_group_process,
-    idigi_remote_session_cancel     /**< Requesting callback to abort and cancel any query or set remote configuration request.
-                                     Callback should stop and release any resources used for this remote configuration request */
-} idigi_remote_request_t;
-/**
-* @}
-*/
+    idigi_group_error_unsupport_field = 1,
+    idigi_group_error_load_failed,
+    idigi_group_error_save_failed,
+    idigi_group_error_unknown_value,
+    idigi_group_error_count,
+    idigi_group_error_width = INT_MAX
+} idigi_group_error_id_t;
+
 
 typedef enum {
     idigi_remote_action_set,
     idigi_remote_action_query
 } idigi_remote_action_t;
 
+
 typedef enum {
     idigi_remote_group_config,
     idigi_remote_group_sysinfo
 } idigi_remote_group_type_t;
+
 
 typedef enum {
     idigi_element_type_string,
@@ -80,11 +104,21 @@ typedef enum {
 } idigi_element_value_type_t;
 
 typedef enum {
+    idigi_off,
+    idigi_on
+} idigi_on_off_t;
+
+typedef enum {
+    idigi_boolean_false,
+    idigi_boolean_true,
+    idigi_boolean_integer_width = INT_MAX
+} idigi_boolean_t;
+
+typedef enum {
     idigi_element_access_read_only,
     idigi_element_access_write_only,
     idigi_element_access_read_write
 } idigi_element_access_t;
-
 
 typedef struct {
     int32_t min_value;
@@ -131,8 +165,8 @@ typedef struct {
 /* group structure */
 typedef struct {
     char const * name;
-    size_t start_index;
-    size_t end_index;
+    unsigned int start_index;
+    unsigned int end_index;
     struct {
         size_t count;
         idigi_group_element_t const * const data;
@@ -144,6 +178,7 @@ typedef struct {
     } errors;
 } idigi_group_t;
 
+
 typedef union {
     struct {
         char * buffer;
@@ -153,26 +188,29 @@ typedef union {
     uint32_t integer_unsigned_value;
     float float_value;
     unsigned int enum_value;
+    idigi_on_off_t  on_off_value;
+    idigi_boolean_t boolean_value;
 } idigi_element_value_t;
 
 typedef struct {
-    void * user_context;
     idigi_remote_action_t action;
-    idigi_remote_group_type_t config_type;
+    idigi_remote_group_type_t group_type;
     unsigned int group_id;
     unsigned int group_index;
-    idigi_remote_request_t * request;
     unsigned int element_id;
     idigi_element_value_type_t element_type;
-    idigi_element_value_t element_value;
+    idigi_element_value_t * element_value;
 } idigi_remote_group_request_t;
 
 typedef struct {
+    void * user_context;
     unsigned int error_id;
     union {
         char * error_hint;
-        idigi_element_value_t element_value;
-    } result;
+        idigi_element_value_t * element_value;
+    } element_data;
 } idigi_remote_group_response_t;
+
+extern char const idigi_all_strings[];
 
 #endif /* idigi_element_H_ */

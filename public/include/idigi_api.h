@@ -123,7 +123,9 @@ typedef enum {
     idigi_class_network,            /**< Network Class Id */
     idigi_class_operating_system,   /**< Operating System Class Id */
     idigi_class_firmware,           /**< Firmware Facility Class Id */
-    idigi_class_data_service        /**< Data Service Class Id */
+    idigi_class_data_service,       /**< Data Service Class Id */
+    idigi_class_remote_config_service, /**< Remote Configuration Class ID */
+    idigi_class_file_system         /**< File System Class Id */
 } idigi_class_t;
 /**
 * @}
@@ -171,6 +173,7 @@ typedef enum {
     idigi_config_error_status,      /**< Error status notification which tells callback that error is encountered. */
     idigi_config_firmware_facility, /**< Requesting callback to return whether firmware facility is supported or not. */
     idigi_config_data_service,      /**< Requesting callback to return whether data service is supported or not. */
+    idigi_config_file_system,       /**< Requesting callback to return whether file system is supported or not. */
 #if (IDIGI_VERSION >= IDIGI_VERSION_1100)
     idigi_config_max_transaction    /**< Requesting callback to obtain maximum messaging sessions supported by client. */
 #endif
@@ -238,6 +241,60 @@ typedef enum {
     idigi_firmware_download_abort,          /**< Requesting callback to abort firmware update */
     idigi_firmware_target_reset             /**< Requesting callback to reset the target */
 } idigi_firmware_request_t;
+/**
+* @}
+*/
+
+/**
+* @defgroup idigi_remote_config_request_t Remote Configuration Requests
+* @{
+*/
+/**
+* Remote Configuration Request Id passed to the application's callback to query or set remote configuration data.
+* The class id for this idigi_remote_config_request_t is idigi_class_remote_config_service.
+*/
+
+typedef enum {
+    idigi_remote_config_session_start,  /**< inform callback to start remote configuration request */
+    idigi_remote_config_session_end,    /**< inform callback to end remote configuration request
+                                            Callback may start writing data into NVRAM for set remote configuration request.
+                                            Callback should end and release any resources used when it's done. */
+    idigi_remote_config_action_start,   /**< requesting callback to start query or set remote configuration data */
+    idigi_remote_config_action_end,     /**< requesting callback to end query or set remote configuration data */
+    idigi_remote_config_group_start,    /**< requesting callback to start query or set an individual configuration group */
+    idigi_remote_config_group_end,      /**< requesting callback to end query or set an individual configuration group */
+    idigi_remote_config_group_process,  /**< requesting callback to query or set an element or field of a configuration group */
+    idigi_remote_config_session_cancel     /**< Requesting callback to abort and cancel any query or set remote configuration request.
+                                            Callback should stop and release any resources used */
+} idigi_remote_config_request_t;
+/**
+* @}
+*/
+
+/**
+* @defgroup idigi_file_system_request_t File System Requests
+* @{
+*/
+/**
+* File System Request Id passed to the application's callback to use file system.
+* The class id for this idigi_file_system_request_t is idigi_class_file_system.
+*/
+
+typedef enum {
+    idigi_file_system_open,             /**< inform callback to open a file */
+    idigi_file_system_read,             /**< inform callback to read a file */
+    idigi_file_system_write,            /**< inform callback to write a file */
+    idigi_file_system_lseek,            /**< inform callback to seek file position */
+    idigi_file_system_ftruncate,        /**< inform callback to truncate a file */
+    idigi_file_system_close,            /**< inform callback to close a file */
+    idigi_file_system_rm,               /**< inform callback to remove a file */
+    idigi_file_system_stat,             /**< inform callback to geten file status */
+    idigi_file_system_opendir,          /**< inform callback to start processing a directory */
+    idigi_file_system_readdir,          /**< inform callback to read next directory entry */
+    idigi_file_system_closedir,         /**< inform callback to end processing a directory */
+    idigi_file_system_strerror,         /**< inform callback to get an error code description  */
+    idigi_file_system_error             /**< inform callback of an error from the server */
+} idigi_file_system_request_t;
 /**
 * @}
 */
@@ -367,8 +424,10 @@ typedef union {
    idigi_config_request_t config_request;               /**< Configuration request ID for configuration class */
    idigi_network_request_t network_request;             /**< Network request ID for network class */
    idigi_os_request_t os_request;                       /**< Operating system request ID for operating system class */
-   idigi_firmware_request_t firmware_request;           /**< Firmware Request ID for firmware facility class */
+   idigi_firmware_request_t firmware_request;           /**< Firmware request ID for firmware facility class */
    idigi_data_service_request_t data_service_request;   /**< Data service request ID for data service class */
+   idigi_remote_config_request_t remote_config_request; /**< Remote configuration request ID for remote configuration service class */
+   idigi_file_system_request_t   file_system_request;   /**< File system request ID for file system class */
 } idigi_request_t;
 /**
 * @}
@@ -900,6 +959,118 @@ typedef struct
 /**
 * @}
 */
+
+
+#define IDIGI_SEEK_SET	0
+#define IDIGI_SEEK_CUR	1
+#define IDIGI_SEEK_END	2
+
+#define	IDIGI_O_RDONLY	0		
+#define	IDIGI_O_WRONLY	1		
+#define	IDIGI_O_RDWR	2		
+
+#define	IDIGI_O_APPEND	0x0008
+#define	IDIGI_O_CREAT	0x0200
+#define	IDIGI_O_TRUNC	0x0400
+
+#define IDIGI_FILE_IS_DIR   0x01
+#define IDIGI_FILE_IS_REG   0x02
+
+typedef enum
+{
+    idigi_file_system_noerror,
+    idigi_file_system_fatal_error,
+    idigi_file_system_path_not_found,
+    idigi_file_system_insufficient_storage_space,
+    idigi_file_system_request_format_error,
+    idigi_file_system_invalid_parameter,
+    idigi_file_system_out_of_memory,
+    idigi_file_system_permision_denied
+} idigi_file_error_code_t;
+
+typedef enum
+{
+    idigi_file_hash_none,
+    idigi_file_hash_best,
+    idigi_file_hash_crc32,
+    idigi_file_hash_md5
+} idigi_file_hash_algorithm_t;
+
+typedef struct
+{
+  uint32_t     last_modified;
+  size_t       file_size;
+  unsigned int flags;
+
+} idigi_file_stat_t;
+
+
+typedef union
+{
+    int         fd;
+    long int    offset;
+    void *      dir_handle;
+    void *      data_ptr;
+    idigi_file_stat_t  stat;
+
+} idigi_file_response_data_t;
+
+
+typedef struct
+{
+    size_t   size_in_bytes;
+    void   * context;
+    int      errnum;
+    idigi_file_error_code_t error;
+    idigi_file_response_data_t data;
+
+} idigi_file_response_t;
+
+
+typedef struct
+{
+    int  fd;
+
+} idigi_file_request_t;
+
+typedef struct
+{
+    void * dir_handle;
+ 
+} idigi_file_dir_request_t;
+
+typedef struct 
+{
+    int errnum;
+
+} idigi_file_error_hint_request_t;
+
+
+typedef struct
+{
+    char const * path;
+    int          mode;
+
+} idigi_file_path_request_t;
+
+
+typedef struct
+{
+    int      fd;
+    long int offset;
+    int      origin;
+
+} idigi_file_offset_request_t;
+
+
+typedef struct
+{
+    int          fd;
+    size_t       size_in_bytes;
+    void const * data_ptr;
+
+} idigi_file_write_request_t;
+
 
  /**
  * @defgroup idigi_callback_t Application-defined callback
