@@ -553,7 +553,7 @@ static idigi_callback_status_t process_put_response(idigi_data_t * const idigi_p
         ds_data_server_error
     };
 
-    msg_service_data_t * const service_data = service_request->need_data;
+    msg_service_data_t * const service_data = service_request->have_data;
     uint8_t * const put_response = service_data->data_ptr;
     uint8_t const opcode = message_load_u8(put_response, opcode);
     uint8_t const result = message_load_u8(put_response, status);
