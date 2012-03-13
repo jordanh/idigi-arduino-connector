@@ -156,6 +156,8 @@
  */
 #define IDIGI_DATA_SERVICE
 
+#define IDIGI_FILE_SYSTEM
+
 /**
  * @}*/
 
@@ -184,6 +186,7 @@
  *     #define IDIGI_WAN_PHONE_NUMBER_DIALED              "617-731-1018"
  *     #define IDIGI_FIRMWARE_SUPPORT
  *     #define IDIGI_DATA_SERVICE_SUPPORT
+ *     #define IDIGI_FILE_SYSTEM_SUPPORT
  * @endcode
  *
  * This option is useful for reducing the IIK code space for those applications that are sensitive to memory usage.  The following
@@ -413,6 +416,16 @@
  * @see @ref IDIGI_DATA_SERVICE  
  */
 #define IDIGI_DATA_SERVICE_SUPPORT
+
+/** 
+ * When defined, this string hardcode for the 
+ * file_system_support instead of the application framework 
+ * function app_get_file_system_support() (called via the
+ * @ref idigi_config_file_system idigi_callback_t "callback" in
+ *      config.c).
+ * 
+ */
+#define IDIGI_FILE_SYSTEM_SUPPORT
 
 #endif
 
