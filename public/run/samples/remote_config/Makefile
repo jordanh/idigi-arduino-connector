@@ -46,7 +46,7 @@ CFLAGS += -Wl,-Map,$(SAMPLE).map
 firmware.o:
 config.o:
 os.o:
-main.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PLATFORM_DIR)/platform.h
+main.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PLATFORM_DIR)/platform.h $(IDIGI_DIR)/rci_parser.h
 remote_config_prn.o:
 idigi_remote_sci.o:
 idigi_remote_query.o:
