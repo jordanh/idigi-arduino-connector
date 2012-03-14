@@ -744,12 +744,12 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
         *((idigi_service_supported_status_t *)response_data) = app_get_file_system_support();
         ret = 0;
         break;
-    }
 
     case idigi_config_remote_configuration:
         *((idigi_service_supported_status_t *)response_data) = app_get_remote_configuration_support();
         ret = 0;
         break;
+    }
 
     status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
     return status;
