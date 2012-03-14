@@ -106,7 +106,7 @@ static int app_get_vendor_id(uint8_t ** id, size_t * size)
 static int app_get_device_type(char ** type, size_t * size)
 {
 //#error "Specify device type"
-    static const char const *device_type = "Linux Application";
+    static const char const *device_type = "ICC Linux Application";
 
     /* Return pointer to device type. */
     *type = (char *)device_type;
@@ -118,7 +118,7 @@ static int app_get_device_type(char ** type, size_t * size)
 static int app_get_server_url(char ** url, size_t * size)
 {
 //#error "Specify iDigi Server URL"
-    static const char const *idigi_server_url = "developer.idigi.com";
+    static const char const *idigi_server_url = "test.idigi.com";
 
     /* Return pointer to device type. */
     *url = (char *)idigi_server_url;
@@ -210,6 +210,11 @@ static idigi_service_supported_status_t app_get_firmware_support(void)
 }
 
 static idigi_service_supported_status_t app_get_data_service_support(void)
+{
+    return idigi_service_supported;
+}
+
+static idigi_service_supported_status_t app_get_remote_configuration_support(void)
 {
     return idigi_service_supported;
 }
@@ -408,6 +413,12 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
         *((unsigned int *)response_data) = app_get_max_message_transactions();
         ret = 0;
         break;
+
+    case idigi_config_remote_configuration:
+        *((idigi_service_supported_status_t *)response_data) = app_get_remote_configuration_support();
+        ret = 0;
+        break;
+
     default:
         APP_DEBUG("idigi_config_callback: unknown configuration request= %d\n", request);
         break;
