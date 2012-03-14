@@ -90,43 +90,33 @@ static idigi_facility_init_t const idigi_supported_facility_table[] = {
 
 static size_t const idigi_facility_count = asizeof(idigi_supported_facility_table);
 
-static idigi_callback_status_t layer_remove_facilities(idigi_data_t * const idigi_ptr)
+static idigi_callback_status_t layer_remove_facilities(idigi_data_t * const idigi_ptr, idigi_supported_facility_cb_index_t cb_index)
 {
     idigi_callback_status_t result = idigi_callback_continue;
-    idigi_facility_t * fac_ptr;
+    size_t i;
 
-    /* remove all facilities. delete_cb should not return busy. */
-    for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL && result == idigi_callback_continue; fac_ptr = fac_ptr->next)
+    for (i=0; (i < idigi_facility_count) && (result == idigi_callback_continue); i++)
     {
-        unsigned int const i = fac_ptr->facility_index;
-
-        if (idigi_supported_facility_table[i].delete_cb != NULL)
+        if (IS_FACILITY_SUPPORTED(idigi_ptr,i))
         {
-            result = idigi_supported_facility_table[i].delete_cb(idigi_ptr);
+            switch (cb_index)
+            {
+            case facility_callback_delete:
+                if (idigi_supported_facility_table[i].delete_cb != NULL)
+                {
+                    result = idigi_supported_facility_table[i].delete_cb(idigi_ptr);
+                }
+                break;
+            case facility_callback_cleanup:
+                if (idigi_supported_facility_table[i].cleanup_cb != NULL)
+                {
+                    result = idigi_supported_facility_table[i].cleanup_cb(idigi_ptr);
+                }
+                break;
+            }
+            ASSERT(result != idigi_callback_busy);
         }
-        ASSERT(result != idigi_callback_busy);
     }
-
-    return result;
-}
-
-static idigi_callback_status_t layer_cleanup_facilities(idigi_data_t * const idigi_ptr)
-{
-    idigi_callback_status_t result = idigi_callback_continue;
-    idigi_facility_t * fac_ptr;
-
-    /* cleanup all facilities. cleanup_cb should not return busy. */
-    for (fac_ptr = idigi_ptr->facility_list; fac_ptr != NULL && result == idigi_callback_continue; fac_ptr = fac_ptr->next)
-    {
-        unsigned int const i = fac_ptr->facility_index;
-
-        if (idigi_supported_facility_table[i].cleanup_cb != NULL)
-        {
-            result = idigi_supported_facility_table[i].cleanup_cb(idigi_ptr);
-        }
-        ASSERT(result != idigi_callback_busy);
-    }
-
     return result;
 }
 
