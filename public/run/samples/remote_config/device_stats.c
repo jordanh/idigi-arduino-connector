@@ -31,7 +31,7 @@
 #include "remote_config.h"
 #include "remote_config_cb.h"
 
-#define DEVICE_STATS_TIME_STRING_LENGTH 22
+#define DEVICE_STATS_TIME_STRING_LENGTH 25
 
 extern int app_os_get_system_time(unsigned long * const uptime);
 
@@ -55,8 +55,18 @@ idigi_callback_status_t app_device_stats_group_init(idigi_remote_group_request_t
 
     if (device_stats_config_data.curtime == 0)
     {
+        struct tm * gmt;
         /* get initial time */
         app_os_get_system_time((unsigned long *)&device_stats_config_data.curtime);
+        gmt = gmtime(&device_stats_config_data.curtime);
+        sprintf(device_stats_config_data.timestring,
+                                     "%04d-%02d-%02dT%02d:%02d:%02dZ",
+                                     gmt->tm_year + 1900,
+                                     gmt->tm_mon + 1,
+                                     gmt->tm_mday,
+                                     gmt->tm_hour,
+                                     gmt->tm_min,
+                                     gmt->tm_sec);
     }
 
     session_ptr->group_context = &device_stats_config_data;
@@ -80,18 +90,8 @@ idigi_callback_status_t app_device_stats_group_get(idigi_remote_group_request_t 
     {
     case idigi_group_device_stats_curtime:
     {
-        struct tm * gmt;
-
         ASSERT(request->element_type == idigi_element_type_datetime);
-        gmt = gmtime(&device_stats_ptr->curtime);
-        response->element_data.element_value->string_value.length_in_bytes = sprintf(device_stats_ptr->timestring,
-                                    "%04d-%02d-%02dT%02d:%02d:%02dtz",
-                                    gmt->tm_year + 1900,
-                                    gmt->tm_mon + 1,
-                                    gmt->tm_mday,
-                                    gmt->tm_hour,
-                                    gmt->tm_min,
-                                    gmt->tm_sec);
+        response->element_data.element_value->string_value.length_in_bytes = strlen(device_stats_ptr->timestring);
         response->element_data.element_value->string_value.buffer = device_stats_ptr->timestring;
         break;
     }
@@ -130,6 +130,9 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
     {
     case idigi_group_device_stats_curtime:
     {
+
+
+#if 0
         struct tm * lt;
         int t;
         char * ptr;
@@ -223,13 +226,20 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
         ptr += (len +1);
         len = 2;
 
-#if 0
         if (mktime(lt) == -1)
         {
             response->error_id = idigi_group_error_save_failed;
             response->element_data.error_hint = "Cannot set time";
             goto done;
         }
+#else
+        ASSERT(request->element_type == idigi_element_type_datetime);
+        ASSERT(request->element_value != NULL);
+        ASSERT(request->element_value->string_value.buffer != NULL);
+        ASSERT(request->element_value->string_value.length_in_bytes != DEVICE_STATS_TIME_STRING_LENGTH);
+
+        ASSERT(request->element_value->string_value.length_in_bytes < sizeof device_stats_ptr->timestring);
+        memcpy(device_stats_ptr->timestring, request->element_value->string_value.buffer, request->element_value->string_value.length_in_bytes);
 #endif
 
         break;
@@ -246,7 +256,7 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
         response->element_data.error_hint = NULL;
         break;
     }
-done:
+
     return status;
 }
 

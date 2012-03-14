@@ -87,7 +87,7 @@ void * application_run_thread(void * arg)
     pthread_exit(arg);
 }
 
-#if 1
+#if 0
 int main (void)
 {
     pthread_t idigi_thread;
@@ -140,19 +140,73 @@ done:
 
 #else
 
-int main (void)
+#include "../../../../private/rci_parser.h"
+
+#define PARSER_BUFFER_LENGTH    64
+
+char parser_input_buffer[PARSER_BUFFER_LENGTH];
+char parser_output_buffer[PARSER_BUFFER_LENGTH];
+
+rci_parser_data_t parser_data = {parser_input_buffer, sizeof parser_input_buffer, parser_output_buffer, sizeof parser_output_buffer};
+
+int main (int argc, char * argv[])
 {
+    rci_parser_status_t status = rci_parser_more_input;
+    FILE * fp;
+    int i;
+
     print_remote_configurations();
     ethernet_configuration_init();
 
+    for (i=0; i < argc; i++)
+    {
+        printf("%s ", argv[i]);
+    }
+    printf("\n");
 
-    printf("\n------- query_setting -------------------------------\n");
-    remote_sci_request(QUERY_SETTING_CMD, strlen(QUERY_SETTING_CMD));
-    printf("\n-------- set_setting --------------------------------\n");
-    remote_sci_request(SET_SETTING_CMD, strlen(SET_SETTING_CMD));
-    printf("\n------- query_setting -------------------------------\n");
-    remote_sci_request(QUERY_SETTING_CMD, strlen(QUERY_SETTING_CMD));
+    fp = fopen(argv[1], "r");
+    if (fp == NULL)
+    {
+        printf("Unable to open %s file\n", argv[1]);
+        goto done;
+    }
 
+    while (!feof(fp) && status != rci_parser_complete)
+    {
+
+        if (status == rci_parser_more_input)
+        {
+            parser_data.input_bytes = fread(parser_data.input_buf, sizeof(char), PARSER_BUFFER_LENGTH, fp);
+        }
+
+        status = rci_parser(&parser_data);
+
+        switch (status)
+        {
+
+        case rci_parser_busy:
+            break;
+
+        case rci_parser_more_input:
+            parser_data.input_buf = parser_input_buffer;
+            parser_data.input_bytes = sizeof parser_input_buffer;
+            break;
+
+        case rci_parser_complete:
+        case rci_parser_flush_output:
+            printf("\"%.*s\"\n", parser_data.output_bytes, parser_data.output_buf);
+            parser_data.output_buf = parser_output_buffer;
+            parser_data.output_bytes = sizeof parser_output_buffer;
+            break;
+
+        case rci_parser_error:
+            printf("Cancel Message\n");
+            goto done;
+        }
+
+    }
+
+done:
     return 0;
 }
 #endif

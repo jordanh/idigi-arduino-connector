@@ -4,7 +4,8 @@
         <serial/>
         <ethernet/>
         <device_stats/>
-        <device_info> <product/><model/><company/><desc/></device_info>
+        <device_info/> 
+        <debug_info/>
     </query_setting>
 </rci_request>
 
