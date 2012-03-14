@@ -177,7 +177,7 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
         status = layer_get_supported_facilities(idigi_handle);
         if (status != idigi_callback_continue)
         {
-            status = layer_remove_facilities(idigi_handle);
+            status = layer_remove_facilities(idigi_handle, facility_callback_delete);
             ASSERT(status != idigi_callback_continue);
             goto error;
         }
@@ -299,7 +299,7 @@ error:
                  */
                 result = idigi_device_terminated;
 
-                status = layer_remove_facilities(idigi_handle);
+                status = layer_remove_facilities(idigi_handle, facility_callback_delete);
                 if (status == idigi_callback_abort)
                 {
                     result = idigi_handle->error_code;
