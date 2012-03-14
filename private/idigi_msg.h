@@ -396,7 +396,7 @@ static msg_session_t * msg_create_session(idigi_data_t * const idigi_ptr, idigi_
     unsigned int session_id = MSG_INVALID_CLIENT_SESSION;
     msg_capability_type_t const capability_id = client_owned ? msg_capability_server : msg_capability_client;
     msg_session_t * session = NULL;
-    unsigned int status = 0;
+    unsigned int flags = 0;
 
     ASSERT_GOTO(result != NULL, done);
     *result = idigi_msg_error_memory;
@@ -419,18 +419,18 @@ static msg_session_t * msg_create_session(idigi_data_t * const idigi_ptr, idigi_
     {
         session_id = msg_find_next_available_id(msg_ptr);
         if (session_id == MSG_INVALID_CLIENT_SESSION) goto done;
-        MsgSetClientOwned(status);
+        MsgSetClientOwned(flags);
     }
 
-    MsgSetRequest(status);
+    MsgSetRequest(flags);
     #if (defined IDIGI_COMPRESSION)
-    MsgSetCompression(status);
+    MsgSetCompression(flags);
     #endif
 
     switch (service_id)
     {
     case msg_service_id_rci:
-        MsgSetDoubleBuf(status);
+        MsgSetDoubleBuf(flags);
         break;
 
     default:
@@ -443,8 +443,8 @@ static msg_session_t * msg_create_session(idigi_data_t * const idigi_ptr, idigi_
         size_t const bytes_in_service_data = sizeof(msg_service_data_t);
         size_t const bytes_in_session = sizeof *session;
         size_t const single_buffer_bytes = bytes_in_block + bytes_in_service_data;
-        size_t const double_buffer_bytes = MsgIsCompressed(status) ? 2 * single_buffer_bytes : (2 * single_buffer_bytes) + MSG_MAX_SEND_PACKET_SIZE;
-        size_t const total_bytes = bytes_in_session + (MsgIsDoubleBuf(status) ? double_buffer_bytes : single_buffer_bytes);
+        size_t const double_buffer_bytes = MsgIsCompressed(flags) ? 2 * single_buffer_bytes : (2 * single_buffer_bytes) + MSG_MAX_SEND_PACKET_SIZE;
+        size_t const total_bytes = bytes_in_session + (MsgIsDoubleBuf(flags) ? double_buffer_bytes : single_buffer_bytes);
         idigi_callback_status_t const status = malloc_data(idigi_ptr, total_bytes, &ptr);
         uint8_t * data_ptr = ptr;
 
@@ -452,7 +452,7 @@ static msg_session_t * msg_create_session(idigi_data_t * const idigi_ptr, idigi_
         session = ptr;
         data_ptr += bytes_in_session;
 
-        if (MsgIsDoubleBuf(status))
+        if (MsgIsDoubleBuf(flags))
         {
             session->out_dblock = (msg_data_block_t *)data_ptr;
             session->in_dblock = session->out_dblock + 1;
@@ -460,7 +460,7 @@ static msg_session_t * msg_create_session(idigi_data_t * const idigi_ptr, idigi_
             session->service_layer_data.have_data = (msg_service_data_t *)data_ptr;
             session->service_layer_data.need_data = session->service_layer_data.have_data + 1;
             data_ptr += (2 * bytes_in_service_data);
-            session->send_data_ptr = MsgIsCompressed(status) ? NULL : data_ptr;
+            session->send_data_ptr = MsgIsCompressed(flags) ? NULL : data_ptr;
         }
         else
         {
@@ -486,10 +486,10 @@ static msg_session_t * msg_create_session(idigi_data_t * const idigi_ptr, idigi_
     session->saved_state = msg_state_init;
 
     if (session->out_dblock != NULL) 
-        session->out_dblock->status_flag = status;
+        session->out_dblock->status_flag = flags;
 
     if (session->in_dblock != NULL) 
-        session->in_dblock->status_flag = status;
+        session->in_dblock->status_flag = flags;
 
     if (msg_ptr->session_locked) goto error;
     msg_ptr->session_locked = idigi_true;
