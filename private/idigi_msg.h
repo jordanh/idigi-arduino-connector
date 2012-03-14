@@ -1866,4 +1866,7 @@ done:
     return status;
 }
 
+#if defined(IDIGI_REMOTE_CONFIGURATION)
+#include "rci_service.h"
+#endif
 

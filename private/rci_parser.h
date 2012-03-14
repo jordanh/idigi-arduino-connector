@@ -22,6 +22,8 @@
  * =======================================================================
  *
  */
+#include "idigi_strings.h"
+
 
 typedef enum
 {
@@ -37,8 +39,15 @@ typedef struct
     char * input_buf;
     size_t input_bytes;
     char * output_buf;
-    size_t * output_bytes_ptr;
+    size_t output_bytes;
 } rci_parser_data_t;
 
-static rci_parser_status_t rci_parser(rci_parser_data_t * const rci_data);
+static rci_parser_status_t rci_parser(rci_parser_data_t * const rci_data)
+{
+
+    (void)rci_data;
+    printf("%.*s", rci_data->input_bytes, rci_data->input_buf);
+    return rci_parser_more_input;
+}
+
 

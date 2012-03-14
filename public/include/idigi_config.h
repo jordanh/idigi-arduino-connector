@@ -159,6 +159,21 @@
 #define IDIGI_FILE_SYSTEM
 
 /**
+ * If defined, IIK includes the remote_configuration_service.
+ * To disable the remote_configuration feature, change this line in idigi_config.h:
+ *
+ * @code
+ * #define IDIGI_REMOTE_CONFIGURATION
+ * @endcode
+ *
+ * To this:
+ * @code
+ * //#define IDIGI_REMOTE_CONFIGURATION
+ * @endcode
+ *
+ */
+/* #define IDIGI_REMOTE_CONFIGURATION */
+/**
  * @}*/
 
 #if ENABLE_COMPILE_TIME_DATA_PASSING
@@ -427,12 +442,24 @@
  */
 #define IDIGI_FILE_SYSTEM_SUPPORT
 
+/**
+ * When defined, this string hardcode for the remote_configuration_support instead of the application framework
+ * function @ref app_get_remote_configuration_support() (called via the @ref idigi_config_remote_configuration @ref idigi_callback_t "callback" in config.c).
+ *
+ * @note There is no need to implement or port @ref app_get_remote_configuration_support() when IDIGI_REMOTE_CONFIGURATION_SUPPORT is defined.
+ * @note This define is only used when @ref IDIGI_REMOTE_CONFIURATION is defined in @ref idigi_config.h.
+ *
+ * @see @ref idigi_config_remote_configuration
+ * @see @ref app_get_remote_configuration_support()
+ * @see @ref IDIGI_REMOTE_CONFIGURATION
+ */
+#define IDIGI_REMOTE_CONFIGURATION_SUPPORT
+
 #endif
 
 /**
 * @}
 */
 
-/* #define IDIGI_REMOTE_CONFIGURATION_SERVICE */
 
 #endif

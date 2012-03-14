@@ -175,8 +175,9 @@ typedef enum {
     idigi_config_data_service,      /**< Requesting callback to return whether data service is supported or not. */
     idigi_config_file_system,       /**< Requesting callback to return whether file system is supported or not. */
 #if (IDIGI_VERSION >= IDIGI_VERSION_1100)
-    idigi_config_max_transaction    /**< Requesting callback to obtain maximum messaging sessions supported by client. */
+    idigi_config_max_transaction,   /**< Requesting callback to obtain maximum messaging sessions supported by client. */
 #endif
+    idigi_config_remote_configuration /**< Requesting callback to return whether remote configuration is supported or not. */
 } idigi_config_request_t;
 /**
 * @}

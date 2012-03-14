@@ -81,9 +81,17 @@ static idigi_facility_init_t const idigi_supported_facility_table[] = {
 #endif
 #if defined(IDIGI_FILE_SYSTEM)
     #if defined(IDIGI_FILE_SYSTEM_SUPPORT)
-        {{MANDATORY_FACILITY}, idigi_facility_file_system_init, idigi_facility_file_system_delete, idigi_facility_file_system_cleanup, msg_discovery, msg_process}
+        {{MANDATORY_FACILITY}, idigi_facility_file_system_init, idigi_facility_file_system_delete, idigi_facility_file_system_cleanup, msg_discovery, msg_process},
     #else
-        {{idigi_config_file_system}, idigi_facility_file_system_init, idigi_facility_file_system_delete, idigi_facility_file_system_cleanup, msg_discovery, msg_process}
+        {{idigi_config_file_system}, idigi_facility_file_system_init, idigi_facility_file_system_delete, idigi_facility_file_system_cleanup, msg_discovery, msg_process},
+    #endif
+#endif
+
+#if defined(IDIGI_REMOTE_CONFIGURATION)
+    #if defined(IDIGI_REMOTE_CONFIGURATION_SUPPORT)
+        {{MANDATORY_FACILITY}, idigi_facility_rci_service_init, idigi_facility_rci_service_delete, idigi_facility_rci_service_cleanup, msg_discovery, msg_process}
+    #else
+        {{idigi_config_remote_configuration}, idigi_facility_rci_service_init, idigi_facility_rci_service_delete, idigi_facility_rci_service_cleanup, msg_discovery, msg_process}
     #endif
 #endif
 };
