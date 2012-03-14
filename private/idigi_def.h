@@ -124,6 +124,12 @@ typedef enum {
     idigi_bool_integer_width = INT_MAX
 } idigi_bool_t;
 
+typedef enum {
+    facility_callback_delete,
+    facility_callback_cleanup
+} idigi_supported_facility_cb_index_t;
+
+
 #define add_list_node(head, tail, node) \
     do { \
         ASSERT(node != NULL); \
