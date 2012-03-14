@@ -20,9 +20,11 @@
             <dhcp>off</dhcp>
             <dns>idigi.com</dns>
             <duplex>full</duplex>
+        </ethernet>
         <device_stats>
             <curtime>2012-03-14T13:05-0500</curtime>
             <ctemp>38.9</ctemp>
+        </device_stats>
         <device_info>
             <product>iDigi Connector Linux sample</product>
             <model>RCI</model>
