@@ -112,7 +112,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_firmware && request_id.firmware_request == idigi_firmware_target_count)
+ *     if (class_id == idigi_class_firmware && request_id.firmware_request == idigi_firmware_target_count)
  *     {
  *          /* return total number of firmware update targets */
  *          *((uint16_t *)response_data) = firmware_list_count;
@@ -175,7 +175,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_firmware && request_id.firmware_request == idigi_firmware_version)
+ *     if (class_id == idigi_class_firmware && request_id.firmware_request == idigi_firmware_version)
  *     {
  *          idigi_fw_config_t * config = (idigi_fw_config_t *)request_data;
  *          uint32_t * version = (uint32_t *)response_data;
@@ -240,7 +240,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_firmware && request_id.firmware_request == idigi_firmware_code_size)
+ *     if (class_id == idigi_class_firmware && request_id.firmware_request == idigi_firmware_code_size)
  *     {
  *          idigi_fw_config_t * config = (idigi_fw_config_t *)request_data;
  *          /* Return the target code size */
@@ -306,7 +306,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_firmware && request_id.firmware_request == idigi_firmware_description)
+ *     if (class_id == idigi_class_firmware && request_id.firmware_request == idigi_firmware_description)
  *     {
  *          /* return pointer to firmware target description */
  *          char ** description = (char **)response_data;
@@ -376,7 +376,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_firmware && request_id.firmware_request == idigi_firmware_name_spec)
+ *     if (class_id == idigi_class_firmware && request_id.firmware_request == idigi_firmware_name_spec)
  *     {
  *           /* return pointer to firmware target description */
  *          char ** name_spec = (char **)response_data;
@@ -444,7 +444,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_firmware && request_id.firmware_request == idigi_firmware_download_request)
+ *     if (class_id == idigi_class_firmware && request_id.firmware_request == idigi_firmware_download_request)
  *     {
  *          idigi_fw_download_request_t  * const download_info = request_data;
  *          idigi_fw_status_t * download_status = response_data;
@@ -529,7 +529,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_firmware && request_id.firmware_request == idigi_firmware_binary_block)
+ *     if (class_id == idigi_class_firmware && request_id.firmware_request == idigi_firmware_binary_block)
  *     {
  *          idigi_fw_image_data_t * const image_data = request_data;
  *          idigi_fw_status_t * data_status = response_data;
@@ -606,7 +606,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_firmware && request_id.firmware_request == idigi_firmware_download_complete)
+ *     if (class_id == idigi_class_firmware && request_id.firmware_request == idigi_firmware_download_complete)
  *     {
  *         idigi_fw_download_complete_request_t * const complete_request = request_data;
  *         idigi_fw_download_complete_response_t * complete_response = response_data;
@@ -681,7 +681,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_firmware && request_id.firmware_request == digi_firmware_abort)
+ *     if (class_id == idigi_class_firmware && request_id.firmware_request == digi_firmware_abort)
  *     {
  *         idigi_fw_download_abort_t * const abort_data = request_data;
  *         fwCloseImage(abort_data->target, abort_data->status);
@@ -746,7 +746,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_firmware && request_id.firmware_request == idigi_firmware_target_reset)
+ *     if (class_id == idigi_class_firmware && request_id.firmware_request == idigi_firmware_target_reset)
  *     {
  *         idigi_fw_config_t * config = (idigi_fw_config_t *)request_data;
  *         fwResetImage(config->target);

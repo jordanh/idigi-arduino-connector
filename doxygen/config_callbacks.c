@@ -94,7 +94,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_device_id)
+ *     if (class_id == idigi_class_config && request_id.config_request == idigi_config_device_id)
  *     {
  *         static uint8_t my_device_id[DEVICE_ID_LENGTH];
  *         uint8_t ** response_device_id = (uint8_t **)response_data;
@@ -183,7 +183,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_vendor_id)
+ *     if (class_id == idigi_class_config && request_id.config_request == idigi_config_vendor_id)
  *     {
  *         extern const uint8_t my_device_vendor_id[VENDOR_ID_LENGTH];
  *         uint8_t **id = (uint8_t **)response_data;
@@ -264,7 +264,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_device_type)
+ *     if (class_id == idigi_class_config && request_id.config_request == idigi_config_device_type)
  *     {
  *         /* Return pointer to device type. */
  *         extern const char device_type[];
@@ -339,7 +339,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_server_url)
+ *     if (class_id == idigi_class_config && request_id.config_request == idigi_config_server_url)
  *     {
  *         /* Return pointer to server url. */
  *         static const char idigi_server_url[] = "developer.idigi.com";
@@ -415,7 +415,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_connection_type)
+ *     if (class_id == idigi_class_config && request_id.config_request == idigi_config_connection_type)
  *     {
  *         static idigi_connection_type_t  device_connection_type = idigi_lan_connection_type;
  *         idigi_connection_type_t ** type = (idigi_connection_type_t **)response_data;
@@ -485,7 +485,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_mac_addr)
+ *     if (class_id == idigi_class_config && request_id.config_request == idigi_config_mac_addr)
  *     {
  *         extern uint8_t device_mac_addr[];
  *         uint8_t ** mac_addr = (uint8_t **)response_data;
@@ -561,7 +561,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_link_speed)
+ *     if (class_id == idigi_class_config && request_id.config_request == idigi_config_link_speed)
  *     {
  *         static uint32_t wan_speed = 19200;
  *         uint32_t **speed = (uint32_t **)response_data;
@@ -638,7 +638,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_phone_number)
+ *     if (class_id == idigi_class_config && request_id.config_request == idigi_config_phone_number)
  *     {
  *         static char wan_phone_number[] = "0000000000";
  *         char **phone = (char **)response_data;
@@ -713,7 +713,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_tx_keepalive)
+ *     if (class_id == idigi_class_config && request_id.config_request == idigi_config_tx_keepalive)
  *     {
  *         static uint16_t my_device_tx_keepalive_interval = 60;
  *         uint16_t ** interval = (uint16_t **)response_data;
@@ -788,7 +788,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_rx_keepalive)
+ *     if (class_id == idigi_class_config && request_id.config_request == idigi_config_rx_keepalive)
  *     {
  *         static uint16_t my_device_rx_keepalive_interval = 60;
  *         uint16_t ** interval = (uint16_t **)response_data;
@@ -863,7 +863,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_wait_count)
+ *     if (class_id == idigi_class_config && request_id.config_request == idigi_config_wait_count)
  *     {
  *         static uint16_t my_wait_count = 10;
  *         uint16_t ** count = (uint16_t **)response_data;
@@ -936,7 +936,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_ip_addr)
+ *     if (class_id == idigi_class_config && request_id.config_request == idigi_config_ip_addr)
  *     {
  *         extern uint8_t my_ip_address[];
  *         uint8_t ** ip_address = (uint8_t **)response_data;
@@ -1004,7 +1004,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_error_status)
+ *     if (class_id == idigi_class_config && request_id.config_request == idigi_config_error_status)
  *     {
  *         idigi_error_status_t * error_data = request_data;
  *         printf("idigi_error_status: unsupport class_id = %d request_id = %d status = %d\n",
@@ -1078,7 +1078,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_firmware_facility)
+ *     if (class_id == idigi_class_config && request_id.config_request == idigi_config_firmware_facility)
  *     {
  *         *((idigi_service_supported_status_t *)response_data) = idigi_service_supported;
  *     }
@@ -1153,7 +1153,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_data_service)
+ *     if (class_id == idigi_class_config && request_id.config_request == idigi_config_data_service)
  *     {
  *         *((idigi_service_supported_status_t *)response_data) = idigi_service_supported;
  *     }
@@ -1223,7 +1223,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_config && request_id.config_request == idigi_config_max_transaction)
+ *     if (class_id == idigi_class_config && request_id.config_request == idigi_config_max_transaction)
  *     {
  *          *((unsigned int *)response_data) = IDIGI_MAX_MSG_TRANSACTIONS;
  *     }

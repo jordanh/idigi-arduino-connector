@@ -78,7 +78,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_network && request_id.network_request == idigi_network_connect)
+ *     if (class_id == idigi_class_network && request_id.network_request == idigi_network_connect)
  *     {
  *         static idigi_network_handle_t idigi_fd = -1;
  *         struct sockaddr_in sin;
@@ -207,7 +207,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_network && request_id.network_request == idigi_network_send)
+ *     if (class_id == idigi_class_network && request_id.network_request == idigi_network_send)
  *     {
  *          idigi_write_request_t const * const write_data = (idigi_write_request_t *)request_data;
  *          size_t * return_bytes_written = (size_t *)response_data;
@@ -301,7 +301,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_network && request_id.network_request == idigi_network_receive)
+ *     if (class_id == idigi_class_network && request_id.network_request == idigi_network_receive)
  *     {
  *           idigi_read_request_t * read_data = (idigi_read_request_t *)request_data;
  *           size_t * return_bytes_read = (size_t *)response_data;
@@ -393,7 +393,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_network && request_id.network_request == idigi_network_close)
+ *     if (class_id == idigi_class_network && request_id.network_request == idigi_network_close)
  *     {
  *          idigi_network_handle_t * const fd = (idigi_network_handle_t *)request_data;
  *          if (close(*fd) < 0)
@@ -462,7 +462,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_network && request_id.network_request == idigi_network_disconnected)
+ *     if (class_id == idigi_class_network && request_id.network_request == idigi_network_disconnected)
  *     {
  *          /* we've been disconnected. Just return continue to reconnect */
  *          return idigi_callback_continue;
@@ -522,7 +522,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_network && request_id.network_request == idigi_network_reboot)
+ *     if (class_id == idigi_class_network && request_id.network_request == idigi_network_reboot)
  *     {
  *          server_reboot();
  *          return idigi_callback_continue;

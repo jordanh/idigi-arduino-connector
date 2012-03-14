@@ -75,7 +75,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_operating_system && request_id.os_request == idigi_os_malloc)
+ *     if (class_id == idigi_class_operating_system && request_id.os_request == idigi_os_malloc)
  *     {
  *         size_t size = *(size_t *)request_data;
  *         void ** ptr = (void **)response_data;
@@ -148,7 +148,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_operating_system && request_id.os_request == idigi_os_free)
+ *     if (class_id == idigi_class_operating_system && request_id.os_request == idigi_os_free)
  *     {
  *         free((void *)request_data);
  *     }
@@ -216,7 +216,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_operating_system && request_id.os_request == idigi_os_system_up_time)
+ *     if (class_id == idigi_class_operating_system && request_id.os_request == idigi_os_system_up_time)
  *     {
  *         time((time_t *)response_data);
  *     }
@@ -284,7 +284,7 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     if (class_id = idigi_class_operating_system && request_id.os_request == idigi_os_sleep)
+ *     if (class_id == idigi_class_operating_system && request_id.os_request == idigi_os_sleep)
  *     {
  *         unsigned int *timeout_seconds = request_data;
  *         usleep(*timeout_seconds * MICROSECONDS_PER_SECOND);
