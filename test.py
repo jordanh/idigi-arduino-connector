@@ -63,6 +63,8 @@ TEST_DIR = 2
 TEST_LIST = 3
 
 MEMORY_USAGE_FILE = './dvt/memory_usage.txt'
+SSL_CA_CERT_SRC = './dvt/cases/test_files/idigi-ca-cert-public.crt'
+SSL_CA_CERT_DST = './public/include/idigi-ca-cert-public.crt'
 
 DEVICE_ID_PROTOTYPE = '00000000-00000000-%sFF-FF%s'
 MAC_ADDR_PROTOTYPE = '%s:%s'
@@ -80,11 +82,13 @@ MAC_ADDR_PROTOTYPE = '%s:%s'
 test_table = [
               ['step',          BASE_STEP_SAMPLE_DIR+'compile_and_link',  BASE_SCRIPT_DIR+'sample_tests/', ['test_discovery.py']],
               ['step',          BASE_STEP_SAMPLE_DIR+'connect_to_idigi',  BASE_SCRIPT_DIR+'sample_tests/', ['test_discovery.py']],
+              ['step',          BASE_STEP_SAMPLE_DIR+'connect_on_ssl',    BASE_SCRIPT_DIR+'sample_tests/', ['test_ssl.py']],
               ['step',          BASE_STEP_SAMPLE_DIR+'firmware_download', BASE_SCRIPT_DIR+'sample_tests/', ['test_firmware.py']],
               ['step',          BASE_STEP_SAMPLE_DIR+'send_data',         BASE_SCRIPT_DIR+'sample_tests/', ['test_send_data.py']],
               ['step',          BASE_STEP_SAMPLE_DIR+'device_request',    BASE_SCRIPT_DIR+'sample_tests/', ['test_device_request.py']],
               ['run',           BASE_RUN_SAMPLE_DIR+'compile_and_link',   BASE_SCRIPT_DIR+'sample_tests/', ['test_discovery.py']],
               ['run',           BASE_RUN_SAMPLE_DIR+'connect_to_idigi',   BASE_SCRIPT_DIR+'sample_tests/', ['test_discovery.py']],
+              ['run',           BASE_RUN_SAMPLE_DIR+'connect_on_ssl',     BASE_SCRIPT_DIR+'sample_tests/', ['test_ssl.py']],
               ['run',           BASE_RUN_SAMPLE_DIR+'firmware_download',  BASE_SCRIPT_DIR+'sample_tests/', ['test_firmware.py']],
               ['run',           BASE_RUN_SAMPLE_DIR+'send_data',          BASE_SCRIPT_DIR+'sample_tests/', ['test_send_data.py']],
               ['run',           BASE_RUN_SAMPLE_DIR+'device_request',     BASE_SCRIPT_DIR+'sample_tests/', ['test_device_request.py']],
@@ -317,6 +321,7 @@ def main():
     # create empty memory usage file
     mem_usage_file = open(MEMORY_USAGE_FILE, 'w')
     mem_usage_file.close()
+    shutil.copy(SSL_CA_CERT_SRC, SSL_CA_CERT_DST)
 
     if args.configuration == 'default' or args.configuration == 'all':
         print "============ Default ============="
