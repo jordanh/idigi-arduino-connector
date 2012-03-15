@@ -78,17 +78,19 @@ MAC_ADDR_PROTOTYPE = '%s:%s'
 #
 #              Execution type   Directory                                 Script directory                Test Scripts
 test_table = [
+              ['step',          BASE_STEP_SAMPLE_DIR+'compile_and_link',  BASE_SCRIPT_DIR+'sample_tests/', ['test_discovery.py']],
               ['step',          BASE_STEP_SAMPLE_DIR+'connect_to_idigi',  BASE_SCRIPT_DIR+'sample_tests/', ['test_discovery.py']],
               ['step',          BASE_STEP_SAMPLE_DIR+'firmware_download', BASE_SCRIPT_DIR+'sample_tests/', ['test_firmware.py']],
               ['step',          BASE_STEP_SAMPLE_DIR+'send_data',         BASE_SCRIPT_DIR+'sample_tests/', ['test_send_data.py']],
               ['step',          BASE_STEP_SAMPLE_DIR+'device_request',    BASE_SCRIPT_DIR+'sample_tests/', ['test_device_request.py']],
+              ['run',           BASE_RUN_SAMPLE_DIR+'compile_and_link',   BASE_SCRIPT_DIR+'sample_tests/', ['test_discovery.py']],
               ['run',           BASE_RUN_SAMPLE_DIR+'connect_to_idigi',   BASE_SCRIPT_DIR+'sample_tests/', ['test_discovery.py']],
               ['run',           BASE_RUN_SAMPLE_DIR+'firmware_download',  BASE_SCRIPT_DIR+'sample_tests/', ['test_firmware.py']],
               ['run',           BASE_RUN_SAMPLE_DIR+'send_data',          BASE_SCRIPT_DIR+'sample_tests/', ['test_send_data.py']],
               ['run',           BASE_RUN_SAMPLE_DIR+'device_request',     BASE_SCRIPT_DIR+'sample_tests/', ['test_device_request.py']],
               ['dvt',           BASE_DVT_SRC+'full_test',                 BASE_SCRIPT_DIR+'dvt_tests/',    ['test_firmware_errors.py', 
-                                                                                     'test_device_request.py',
-                                                                                     'test_put_request.py']],
+                                                                                                            'test_device_request.py',
+                                                                                                            'test_put_request.py']],
               ['dvt',           BASE_DVT_SRC+'keep_alive_test',           BASE_SCRIPT_DIR+'keep_alive/',   ['test_keep_alive.py']],
               ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'admin_tests/',  ['test_redirect.py']],
               ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'admin_tests/',  ['test_nodebug_redirect.py']],
@@ -147,6 +149,9 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
             src_dirname    = os.path.basename(src_dir)
             test_list      = test[TEST_LIST]
 
+            if not (src_dir.find('compile_and_link') == -1):
+                config.replace_string(os.path.join(src_dir, 'Makefile'), 'c99', 'c89')
+
             setup_platform(test_dir, os.path.join(sandbox_dir, SAMPLE_PLATFORM_RUN_DIR), mac_addr)
             setup_platform(test_dir, os.path.join(sandbox_dir, SAMPLE_PLATFORM_STEP_DIR), mac_addr)
             execution_type = test[EXECUTION]
@@ -172,6 +177,10 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
             if rc == False:
                 raise Exception("Failed to Build from %s." % src_dir)
         
+            if not (src_dir.find('compile_and_link') == -1):
+                print '>>> [%s] Finished [%s]-[%s]' % (description, src_dir, 'c89')
+                continue
+
             print '>>> [%s] Starting idigi [%s]-[%s]' % (description, execution_type, src_dir)
 
             # Move idigi executable to a unique file name to allow us to isolate
