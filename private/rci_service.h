@@ -68,6 +68,8 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
     ASSERT(service_request->have_data != NULL);
     ASSERT(service_request->need_data != NULL);
 
+    idigi_debug("rci_service: service type: %d\n", service_request->service_type);
+
     switch (service_request->service_type)
     {
     case msg_service_type_need_data:
@@ -87,6 +89,8 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
         case rci_parser_complete:
             MsgSetLastData(service_request->need_data->flags);
             MsgSetSendNow(service_request->need_data->flags);
+            idigi_debug("response: %d %.*s\n", parser_data->output_bytes, parser_data->output_bytes, parser_data->output_buf);
+            service_request->need_data->length_in_bytes = parser_data->output_bytes;
             break;
 
         case rci_parser_busy:
@@ -98,6 +102,7 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
 
         case rci_parser_flush_output:
             MsgSetSendNow(service_request->need_data->flags);
+            service_request->need_data->length_in_bytes = parser_data->output_bytes;
             status = idigi_callback_busy;
             break;
 
