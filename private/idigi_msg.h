@@ -488,7 +488,7 @@ static msg_session_t * msg_create_session(idigi_data_t * const idigi_ptr, idigi_
     if (session->out_dblock != NULL) 
         session->out_dblock->status_flag = flags;
 
-    if (session->in_dblock != NULL) 
+    if (session->in_dblock != NULL)
         session->in_dblock->status_flag = flags;
 
     if (msg_ptr->session_locked) goto error;
@@ -1231,11 +1231,16 @@ static idigi_callback_status_t msg_pass_service_data(idigi_data_t * const idigi_
                 idigi_msg_error_t result;
 
                 ASSERT_GOTO(msg_ptr != NULL, error);
-                if (session->out_dblock == NULL) 
+                if (MsgIsDoubleBuf(dblock->status_flag) == idigi_false) 
                 {
                     result = msg_initialize_data_block(session, msg_ptr->capabilities[msg_capability_server].window_size, msg_block_state_send_response);
                     if (result != idigi_msg_error_none)
                         status = msg_inform_error(idigi_ptr, session, result);
+                }
+                else
+                {
+                    MsgClearRequest(dblock->status_flag);
+                    MsgClearRequest(session->out_dblock->status_flag);
                 }
             }
             else
