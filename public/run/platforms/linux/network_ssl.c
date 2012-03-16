@@ -133,7 +133,7 @@ static int app_connect_to_server(int fd, char const * const host_name, size_t le
 
         if (length >= asizeof(server_name))
         {
-            APP_DEBUG("app_connect_to_server: server name length [%d]\n", length);
+            APP_DEBUG("app_connect_to_server: server name length [%zu]\n", length);
             goto error;
         }
 
@@ -411,7 +411,7 @@ static idigi_callback_status_t app_network_send(idigi_write_request_t const * co
     bytes_sent = SSL_write(ssl_ptr->ssl, write_data->buffer, write_data->length);
     if (bytes_sent <= 0)
     {
-        APP_DEBUG("SSL_write failed %zu\n", bytes_sent);
+        APP_DEBUG("SSL_write failed %d\n", bytes_sent);
         status = idigi_callback_abort;
     }
 
