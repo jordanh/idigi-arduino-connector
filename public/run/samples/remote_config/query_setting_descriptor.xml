@@ -80,7 +80,6 @@
     <error_descriptor id="3" desc="save failed"/>
     <error_descriptor id="4" desc="Unknown value"/>
 </descriptor>
-
 <descriptor element="debug_info" desc="iDigi Connector Debug Info">
     <element name="version" desc="Version" type="string" access="read_only"/>
     <element name="stacktop" desc="Stack begin" type="0xhex" access="read_only"/>
@@ -92,6 +91,5 @@
     <error_descriptor id="3" desc="save failed"/>
     <error_descriptor id="4" desc="Unknown value"/>
 </descriptor>
-
 </format_define>
 </descriptor>
