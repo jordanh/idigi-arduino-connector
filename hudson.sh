@@ -96,7 +96,8 @@ echo ">> Building all samples."
 cd public/run/samples
 
 SAMPLES="compile_and_link
-         connect_to_idigi 
+         connect_to_idigi
+         connect_on_ssl
          device_request
          firmware_download
          send_data"
