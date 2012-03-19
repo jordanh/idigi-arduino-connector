@@ -26,10 +26,6 @@
 #include <pthread.h>
 #include "idigi_api.h"
 #include "platform.h"
-#include "idigi_remote_sci.h"
-
-#define QUERY_SETTING_CMD       "query_setting"
-#define SET_SETTING_CMD         "set_setting"
 
 extern void idigiThreadStackInit(void);
 
@@ -116,15 +112,6 @@ int main (void)
             APP_DEBUG("thread_create() error on idigi_process_thread %d\n", ccode);
             goto done;
         }
-
-         app_os_sleep(3);
-
-        printf("\n------- query_setting -------------------------------\n");
-        remote_sci_request(QUERY_SETTING_CMD, strlen(QUERY_SETTING_CMD));
-        printf("\n-------- set_setting --------------------------------\n");
-        remote_sci_request(SET_SETTING_CMD, strlen(SET_SETTING_CMD));
-        printf("\n------- query_setting -------------------------------\n");
-        remote_sci_request(QUERY_SETTING_CMD, strlen(QUERY_SETTING_CMD));
 
         pthread_join(idigi_thread, NULL);
         pthread_join(application_thread, NULL);
