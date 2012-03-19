@@ -49,6 +49,7 @@ char const idigi_all_strings[] = {
     ERROR_LOAD_FAILED_LENGTH, 'L', 'o', 'a', 'd', ' ', 'f', 'a', 'i', 'l', 'e', 'd',
     ERROR_SAVE_FAILED_LENGTH, 'S', 'a', 'v', 'e', ' ', 'f', 'a', 'i', 'l', 'e', 'd',
     ERROR_UNKNOWN_VALUE_LENGTH, 'U', 'n', 'k', 'n', 'o', 'w', 'n', ' ', 'v', 'a', 'l', 'u', 'e',
+    IDIGI_RCI_REQUEST_LENGTH, 'r', 'c', 'i', '_', 'r', 'e', 'q', 'u', 'e', 's', 't',
     IDIGI_RCI_REPLY_LENGTH, 'r', 'c', 'i', '_', 'r', 'e', 'p', 'l', 'y',
     IDIGI_VERSION_LENGTH, 'v', 'e', 'r', 's', 'i', 'o', 'n',
     IDIGI_RCI_VERSION_LENGTH, '1', '.', '1',
@@ -66,3 +67,26 @@ char const idigi_all_strings[] = {
 
 };
 
+#define CSTR_LEN(p)     *(p)
+#define CSTR_DATA(p)    ((p) + 1)
+#define INDEXED_CSTR(offset)    (&idigi_all_strings[offset])
+
+static idigi_bool_t buffer_equals_buffer(char const * const str1, int len1, char const * const str2, int const len2)
+{
+    assert(len1 >= 1);
+    assert(len2 >= 1);
+    
+    return ((len1 == len2) && (memcmp(str1, str2, len1) == 0)) ? idigi_true : idigi_false;
+}
+
+static idigi_bool_t cstr_equals_buffer(char const * const cstr, char const * const str2, unsigned int const len2)
+{
+    return buffer_equals_buffer(CSTR_DATA(cstr), CSTR_LEN(cstr), str2, len2);
+}
+
+#if 0 /* currently unused - remove before shipping */
+static idigi_bool_t cstr_equals_cstr(char const * const cstr1, char const * const cstr2)
+{
+    return buffer_equals_buffer(CSTR_DATA(cstr1), CSTR_LEN(cstr1), CSTR_DATA(cstr2), CSTR_LEN(cstr2));
+}
+#endif
