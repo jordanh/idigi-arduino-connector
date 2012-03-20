@@ -32,9 +32,8 @@ vpath $(PLATFORM_DIR)/%.c
 CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL 
 CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR) -I. -g
 
-OBJS = idigi_remote_sci.o idigi_remote_set.o idigi_remote_query.o remote_config_prn.o device_info.o \
-       device_stats.o ethernet.o debug_info.o serial.o remote_config_cb.o remote_config.o application.o \
-       main.o os.o config.o firmware.o \
+OBJS = device_info.o device_stats.o ethernet.o debug_info.o serial.o remote_config_cb.o remote_config.o \
+       application.o main.o os.o config.o firmware.o \
        $(IDIGI_DIR)/idigi_api.o $(PLATFORM_DIR)/network.o 
 LIBS = -lc -lz -lpthread
 
@@ -46,11 +45,7 @@ CFLAGS += -Wl,-Map,$(SAMPLE).map
 firmware.o:
 config.o:
 os.o:
-main.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PLATFORM_DIR)/platform.h $(IDIGI_DIR)/rci_parser.h
-remote_config_prn.o:
-idigi_remote_sci.o:
-idigi_remote_query.o:
-idigi_remote_set.o:
+main.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PLATFORM_DIR)/platform.h $(IDIGI_DIR)/rci_parser.h $(IDIGI_DIR)/idigi_strings.h
 device_stats.o:
 device_info.o:
 ethernet.o:

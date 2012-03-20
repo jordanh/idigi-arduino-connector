@@ -24,6 +24,7 @@
  */
 
 #include <pthread.h>
+#include "idigi_config.h"
 #include "idigi_api.h"
 #include "platform.h"
 
@@ -91,7 +92,6 @@ int main (void)
 
     idigi_handle_t idigi_handle;
 
-    print_remote_configurations();
     ethernet_configuration_init();
 
     APP_DEBUG("Start iDigi\n");
@@ -126,7 +126,7 @@ done:
 }
 
 #else
-
+#include "../../../../private/idigi_def.h"
 #include "../../../../private/rci_parser.h"
 
 #define PARSER_BUFFER_LENGTH    64
@@ -136,20 +136,20 @@ char parser_output_buffer[PARSER_BUFFER_LENGTH];
 
 rci_parser_data_t parser_data = {parser_input_buffer, sizeof parser_input_buffer, parser_output_buffer, sizeof parser_output_buffer};
 
+char const off_string[] = "off";
+
 int main (int argc, char * argv[])
 {
     rci_parser_status_t status = rci_parser_more_input;
     FILE * fp;
-    int i;
 
-    print_remote_configurations();
-    ethernet_configuration_init();
-
-    for (i=0; i < argc; i++)
+    if (argc != 2)
     {
-        printf("%s ", argv[i]);
+        printf("Syntax: ./idigi <xml file>\n");
+        goto done;
     }
-    printf("\n");
+
+    ethernet_configuration_init();
 
     fp = fopen(argv[1], "r");
     if (fp == NULL)
@@ -189,6 +189,11 @@ int main (int argc, char * argv[])
         case rci_parser_error:
             printf("Cancel Message\n");
             goto done;
+        default:
+            assert(0);
+            cstr_equals_buffer(NULL, NULL, 0);
+            break;
+
         }
 
     }

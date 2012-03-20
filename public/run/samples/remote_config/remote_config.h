@@ -28,9 +28,6 @@
 
 #include "idigi_remote.h"
 
-#define asizeof(array) (sizeof(array)/sizeof(array[0]))
-
-
 typedef enum {
     idigi_group_serial,
     idigi_group_ethernet,

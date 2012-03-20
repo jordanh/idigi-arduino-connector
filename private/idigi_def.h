@@ -75,8 +75,6 @@
 #define GET_PACKET_DATA_POINTER(p, s)   (uint8_t *)(((uint8_t *)p) + (s))
 #define IS_SEND_PENDING(idigi_ptr)      (idigi_ptr->network_connected && idigi_ptr->send_packet.total_length > 0)
 
-#define asizeof(array)  (sizeof array/sizeof array[0])
-
 #define idigi_callback_no_response(callback, class_id, request_id, request_data, request_length) idigi_callback((callback), (class_id), (request_id), (request_data), (request_length), NULL, NULL)
 #define idigi_callback_no_request_data(callback, class_id, request_id, response_data, response_length) idigi_callback((callback), (class_id), (request_id), NULL, 0, (response_data), (response_length))
 

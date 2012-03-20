@@ -25,6 +25,45 @@
 
 #include "idigi_remote.h"
 
+#define ON_STRING_LENGTH    2
+#define OFF_STRING_LENGTH   3
+#define TRUE_STRING_LENGTH  4
+#define FALSE_STRING_LENGTH 5
+
+#define ON_STRING_INDEX     0
+#define OFF_STRING_INDEX    ON_STRING_INDEX + ON_STRING_LENGTH + 1
+#define TRUE_STRING_INDEX   OFF_STRING_INDEX + OFF_STRING_LENGTH + 1
+#define FALSE_STRING_INDEX  TRUE_STRING_INDEX + TRUE_STRING_LENGTH + 1
+
+#define ERROR_FIELD_NOT_EXIT_LENGTH 30
+#define ERROR_LOAD_FAILED_LENGTH    11
+#define ERROR_SAVE_FAILED_LENGTH    11
+#define ERROR_UNKNOWN_VALUE_LENGTH  13
+
+#define ERROR_FIELD_NOT_EXIT_STRING_INDEX   FALSE_STRING_INDEX + FALSE_STRING_LENGTH + 1
+#define ERROR_LOAD_FAILED_STRING_INDEX      ERROR_FIELD_NOT_EXIT_STRING_INDEX + ERROR_FIELD_NOT_EXIT_LENGTH + 1
+#define ERROR_SAVE_FAILED_STRING_INDEX      ERROR_LOAD_FAILED_STRING_INDEX + ERROR_LOAD_FAILED_LENGTH + 1
+#define ERROR_UNKNOWN_VALUE_STRING_INDEX    ERROR_SAVE_FAILED_STRING_INDEX + ERROR_SAVE_FAILED_LENGTH + 1
+
+#define IDIGI_RCI_REQUEST_LENGTH    11
+#define IDIGI_RCI_REPLY_LENGTH      9
+#define IDIGI_VERSION_LENGTH        7
+#define IDIGI_RCI_VERSION_LENGTH    3
+#define IDIGI_QUERY_SETTING_LENGTH  13
+#define IDIGI_QUERY_STATE_LENGTH    11
+#define IDIGI_SET_SETTING_LENGTH    11
+#define IDIGI_SET_STATE_LENGTH      9
+
+#define IDIGI_RCI_REQUEST_STRING_INDEX      ERROR_UNKNOWN_VALUE_STRING_INDEX + ERROR_UNKNOWN_VALUE_LENGTH + 1
+#define IDIGI_RCI_REPLY_STRING_INDEX        IDIGI_RCI_REQUEST_STRING_INDEX + IDIGI_RCI_REQUEST_LENGTH + 1
+#define IDIGI_VERSION_STRING_INDEX          IDIGI_RCI_REPLY_STRING_INDEX + IDIGI_RCI_REPLY_LENGTH + 1
+#define IDIGI_RCI_VERSION_STRING_INDEX      IDIGI_VERSION_STRING_INDEX + IDIGI_VERSION_LENGTH + 1
+#define IDIGI_QUERY_SETTING_STRING_INDEX    IDIGI_RCI_VERSION_STRING_INDEX + IDIGI_RCI_VERSION_LENGTH + 1
+#define IDIGI_QUERY_STATE_STRING_INDEX      IDIGI_QUERY_SETTING_STRING_INDEX + IDIGI_QUERY_SETTING_LENGTH + 1
+#define IDIGI_SET_SETTING_STRING_INDEX      IDIGI_QUERY_STATE_STRING_INDEX + IDIGI_QUERY_STATE_LENGTH + 1
+#define IDIGI_SET_STATE_STRING_INDEX        IDIGI_SET_SETTING_STRING_INDEX + IDIGI_SET_SETTING_LENGTH + 1
+
+
 #define ERROR_INVALID_VERSION_LENGTH    15
 #define ERROR_UNKNOWN_COMMAND_LENGTH     15
 #define ERROR_SETTING_GROUP_UNKNOWN_LENGTH  21
@@ -60,10 +99,10 @@ char const idigi_all_strings[] = {
 
     ERROR_INVALID_VERSION_LENGTH, 'i', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'v', 'e', 'r', 's', 'i', 'o', 'n',
     ERROR_UNKNOWN_COMMAND_LENGTH, 'U', 'n', 'k', 'n', 'o', 'w', 'n', ' ', 'c', 'o', 'm', 'm', 'a', 'n', 'd',
-    ERROR_SETTING_GROUP_UNKNOWN_LENGTH, 'S', 'e', 't', 't', 'i', 'n', 'g', ' ', 'g', 'r', 'o', 'u', 'p', 'u', 'n', 'k', 'n', 'o', 'w', 'n',
+    ERROR_SETTING_GROUP_UNKNOWN_LENGTH, 'S', 'e', 't', 't', 'i', 'n', 'g', ' ', 'g', 'r', 'o', 'u', 'p', ' ', 'u', 'n', 'k', 'n', 'o', 'w', 'n',
     ERROR_ELEMENT_NOT_ALLOWED_LENGTH,   'E', 'l', 'e', 'm', 'e', 'n', 't', ' ', 'n', 'o', 't', ' ', 'a', 'l', 'l', 'o', 'w', 'e', 'd', ' ', 'u', 'n', 'd', 'e', 'r', ' ', 'f', 'i', 'e', 'l', 'd', ' ', 'e', 'l', 'e', 'm', 'e', 'n', 't',
     ERROR_INVALID_INDEX_GROUP_LENGTH,   'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 's', 'e', 't', 't', 'i', 'n', 'g', ' ', 'g', 'r', 'o', 'u', 'p', ',', ' ', 'i', 'n', 'd', 'e', 'x', ' ', 'c', 'o', 'm', 'b', 'i', 'n', 'a', 't', 'i', 'o', 'n',
-    ERROR_INVALID_PARAMETER_LENGTH,     'I', 'n', 'v', 'a', 'l', 'i', 'd', 'p', 'a', 'r', 'a', 'm', 'e', 't', 'e', 'r'
+    ERROR_INVALID_PARAMETER_LENGTH,     'I', 'n', 'v', 'a', 'l', 'i', 'd', ' ', 'p', 'a', 'r', 'a', 'm', 'e', 't', 'e', 'r'
 
 };
 
@@ -73,8 +112,8 @@ char const idigi_all_strings[] = {
 
 static idigi_bool_t buffer_equals_buffer(char const * const str1, int len1, char const * const str2, int const len2)
 {
-    assert(len1 >= 1);
-    assert(len2 >= 1);
+    ASSERT(len1 >= 1);
+    ASSERT(len2 >= 1);
     
     return ((len1 == len2) && (memcmp(str1, str2, len1) == 0)) ? idigi_true : idigi_false;
 }

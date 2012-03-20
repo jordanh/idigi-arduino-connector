@@ -124,4 +124,7 @@ typedef int idigi_network_handle_t;
 * @}
 */
 
+#define asizeof(array)  (sizeof array/sizeof array[0])
+
+
 #endif /* IDIGI_TYPES_H_ */
