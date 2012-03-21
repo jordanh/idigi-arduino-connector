@@ -38,6 +38,9 @@
 #include "idigi_api.h"
 #include "platform.h"
 
+#define APP_SSL_CA_CERT   "./public/include/idigi-ca-cert-public.crt"
+//#define APP_SSL_CA_CERT   "../../../include/idigi-ca-cert-public.crt"
+
 typedef struct
 {
     int sfd;

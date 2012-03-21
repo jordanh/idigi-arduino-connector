@@ -645,6 +645,8 @@ INPUT                  = ./mainpage.c \
                          ./config_callbacks.c \
                          ./firmware_download.c \
                          ./network_callbacks.c \
+                         ./network_ssl_callbacks.c \
+			 ./connect_on_ssl.c \
                          ./config_callbacks.c \
                          ./web_services.c \
                          ./data_service.c \
