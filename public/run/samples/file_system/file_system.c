@@ -37,57 +37,56 @@
 #include "idigi_api.h"
 #include "platform.h"
 
+#ifndef APP_MIN_VALUE
+#define APP_MIN_VALUE(a,b) (((a)<(b))?(a):(b))
+#endif
+
 extern int app_os_malloc(size_t const size, void ** ptr);
 extern void app_os_free(void * const ptr);
 
-typedef struct 
-{
-    char dirname[256];
-    char direntry_name[256];
-
-} app_dir_data_t;
-
-
-static idigi_callback_status_t app_process_file_error(void * response)
+static idigi_callback_status_t app_process_file_error(idigi_file_error_data_t * error_data)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    idigi_file_response_t * response_data = response;
 
-    response_data->errnum = errno;
+    error_data->errnum = errno;
 
-    switch(response_data->errnum)
+    switch(error_data->errnum)
     {
         case EACCES:
         case EPERM:
         case EROFS:
-        case ELOOP:
-            response_data->error = idigi_file_system_permision_denied;
+            error_data->error_code = idigi_file_system_permision_denied;
             break;
 
         case ENOMEM:
-        case EMFILE:
-        case ENFILE:
-            response_data->error = idigi_file_system_out_of_memory;
+        case ENAMETOOLONG:
+            error_data->error_code = idigi_file_system_out_of_memory;
             break;
 
-        case ENOENT:
-        case EBADF:
-        case EPIPE:
-        case EISDIR:
-            response_data->error = idigi_file_system_path_not_found;
+		case ENOENT:
+		case ENODEV:
+		case ENOSYS:
+		case ENOTDIR:
+		case EISDIR:
+		case EBADF:
+            error_data->error_code = idigi_file_system_path_not_found;
             break;
 
         case EINVAL:
-        case ENAMETOOLONG:
-            response_data->error = idigi_file_system_invalid_parameter;
+            error_data->error_code = idigi_file_system_invalid_parameter;
             break;
 
         case EAGAIN:
+            error_data->errnum = 0;
             status = idigi_callback_busy;
             break;
 
+		case ENOSPC:
+			error_data->error_code = idigi_file_system_insufficient_storage_space;
+            break;
+
         default:
-            response_data->error = idigi_file_system_fatal_error;
+            error_data->errnum = idigi_file_system_unspec_error;
             break;
     }
     return status;
@@ -138,29 +137,55 @@ static int app_convert_lseek_origin(int origin)
 #endif
 }
 
-idigi_callback_status_t app_process_file_strerror(idigi_file_error_hint_request_t const * const request_data, idigi_file_response_t * response_data)
+idigi_callback_status_t app_process_file_strerror(idigi_file_request_t const * const request_data, idigi_file_response_t * response_data)
 {
-    size_t hint_size = 0;
-     
-    if (request_data->errnum != 0)
+    size_t strerr_size = 0;
+
+    UNUSED_ARGUMENT(request_data);
+
+    idigi_file_error_data_t * error_data = response_data->error;
+
+    if (error_data->errnum != 0)
     {
-        char *err_str = strerror(request_data->errnum);
-        char *data_ptr = response_data->data.data_ptr;
-    
-        hint_size = strnlen(err_str, response_data->size_in_bytes - 1) + 1;
-        memcpy(data_ptr, err_str, hint_size);
-        data_ptr[hint_size] = '\0';
+        char * err_str = strerror(error_data->errnum);
+        char * ptr = response_data->data_ptr;
+     
+        strerr_size = strnlen(err_str, response_data->size_in_bytes - 1) + 1;
+        memcpy(ptr, err_str, strerr_size);
+        ptr[strerr_size] = '\0';
     }
 
-    response_data->size_in_bytes = hint_size;
+    response_data->size_in_bytes = strerr_size;
 
     return idigi_callback_continue;
 }
 
-idigi_callback_status_t app_process_file_stat(idigi_file_path_request_t const * const request_data, idigi_file_response_t * response_data)
+idigi_callback_status_t app_process_msg_error(idigi_file_error_request_t const * const request_data, idigi_file_response_t * response_data)
+{
+    APP_DEBUG("Message Error %d\n", (int) request_data->message_status);
+
+    if (response_data->context != NULL)
+    {
+        APP_DEBUG("The user %p context should be freed here!\n", response_data->context);
+    }
+
+    return idigi_callback_continue;
+}
+
+idigi_callback_status_t app_process_file_hash(idigi_file_path_request_t const * const request_data, idigi_file_response_t * response_data)
+{
+    UNUSED_ARGUMENT(request_data);
+
+    if (response_data->size_in_bytes > 0)
+        memset(response_data->data_ptr, 0, response_data->size_in_bytes);
+
+    return idigi_callback_continue;
+}
+
+idigi_callback_status_t app_process_file_stat(idigi_file_path_request_t const * const request_data, idigi_file_stat_response_t * response_data)
 {
     struct stat statbuf;
-    idigi_file_stat_t * pstat = &response_data->data.stat;
+    idigi_file_stat_t * pstat = response_data->stat_ptr;
     idigi_callback_status_t status = idigi_callback_continue;
 
     int result = stat(request_data->path, &statbuf);
@@ -169,13 +194,14 @@ idigi_callback_status_t app_process_file_stat(idigi_file_path_request_t const * 
 
     if (result < 0)
     {
-        status = app_process_file_error(response_data);
+        status = app_process_file_error(response_data->error);
         goto done;
     }
         
     pstat->flags         = 0;
     pstat->file_size     = statbuf.st_size;
     pstat->last_modified = statbuf.st_mtime;
+    pstat->hash_alg      = idigi_file_hash_none;
 
     if (S_ISDIR(statbuf.st_mode))
        pstat->flags |= IDIGI_FILE_IS_DIR;
@@ -187,11 +213,11 @@ done:
     return status;
 }
 
-idigi_callback_status_t app_process_file_opendir(idigi_file_path_request_t const * const request_data, idigi_file_response_t * response_data)
+idigi_callback_status_t app_process_file_opendir(idigi_file_path_request_t const * const request_data, idigi_file_dir_response_t * response_data)
 {
 
     idigi_callback_status_t status = idigi_callback_continue;
-    app_dir_data_t *app_dir_data;
+    idigi_file_error_data_t * error_data = response_data->error;
     DIR * dirp;
 
     errno = 0;
@@ -201,133 +227,126 @@ idigi_callback_status_t app_process_file_opendir(idigi_file_path_request_t const
 
     if (dirp == NULL)
     {
-        status = app_process_file_error(response_data);
-        if (response_data->error == idigi_file_system_noerror)
-             response_data->error = idigi_file_system_path_not_found;
+        status = app_process_file_error(response_data->error);
+
+        if (error_data->error_code == idigi_file_system_noerror)
+            error_data->error_code = idigi_file_system_path_not_found;
         goto done;
     }
     
     {
         void * ptr;
-        int result  = app_os_malloc(sizeof *app_dir_data, &ptr);
+        int result  = app_os_malloc(sizeof(struct dirent), &ptr);
 
         if (result == 0 && ptr != NULL)
         {
-            app_dir_data = ptr;
-            strcpy(app_dir_data->dirname, request_data->path);
-            app_dir_data->direntry_name[0] = '\0';
-        
-            response_data->context = app_dir_data;
-            response_data->data.dir_handle = app_dir_data->dirname;
+            idigi_file_dir_data_t *dir_data = response_data->dir_data;
+
+            dir_data->dir_handle = dirp;
+            dir_data->dir_entry  = ptr;
         }
         else
         {
             APP_DEBUG("app_process_file_opendir: malloc fails %s\n", request_data->path);
-            response_data->error = idigi_file_system_out_of_memory;
+
+            error_data->error_code = idigi_file_system_out_of_memory;
+            error_data->errnum     = ENOMEM; 
+            closedir(dirp);
+            APP_DEBUG("closedir for %s\n", request_data->path);
         }
     }
-    closedir(dirp);
-    APP_DEBUG("closedir for %s\n", request_data->path);
 
 done:
     return status;
 }
 
-idigi_callback_status_t app_process_file_closedir(idigi_file_dir_request_t const * const request_data, idigi_file_response_t * response_data)
+idigi_callback_status_t app_process_file_closedir(idigi_file_dir_data_t const * const request_data, idigi_file_response_t * response_data)
 {
-    UNUSED_ARGUMENT(request_data);
+    UNUSED_ARGUMENT(response_data);
+
+    APP_DEBUG("closedir for %p\n", request_data->dir_handle);
+    closedir((DIR *) request_data->dir_handle);
+    
+    if (request_data->dir_entry != NULL)
+        app_os_free(request_data->dir_entry);
 
     if (response_data->context != NULL)
     {
-        app_os_free(response_data->context);
+        APP_DEBUG("The user %p context should be freed here!\n", response_data->context);
     }
     return idigi_callback_continue;
 }
 
-idigi_callback_status_t app_process_file_readdir(idigi_file_dir_request_t const * const request_data, idigi_file_response_t * response_data)
+idigi_callback_status_t app_process_file_readdir(idigi_file_dir_data_t const * const request_data, idigi_file_response_t * response_data)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    app_dir_data_t *app_dir_data = response_data->context;
-    struct dirent * direntp;
-    DIR *dirp;
+    struct dirent * direntp = request_data->dir_entry;
+    DIR           * dirp    = request_data->dir_handle;
+    struct dirent * result;
+    int read_again = 0;
+    int rc;
 
-    if ((app_dir_data == NULL) || (request_data->dir_handle != app_dir_data->dirname))
-    {
-        status = idigi_callback_abort;
-        goto done;
-    }
     errno = 0;
-    dirp = opendir((char const *)request_data->dir_handle);
 
-    APP_DEBUG("opendir for %s returned %p\n",(char const *) request_data->dir_handle, (void *) dirp);
-
-    if (dirp == NULL)
-    {
-        status = app_process_file_error(response_data);
-        if (response_data->error == idigi_file_system_noerror)
-             response_data->error = idigi_file_system_path_not_found;
-
-        app_dir_data->direntry_name[0] = '\0';
-        goto done;
-    }
-    
     do
     {
-       errno = 0;
-       direntp = readdir(dirp);
+       read_again = 0; 
 
-       if (direntp != NULL)
+       rc = readdir_r(dirp, direntp, &result);
+
+       if (rc == 0 && result != NULL)
        {
            /* skip "." & ".." */
-           if (strcmp(direntp->d_name, ".") == 0)
-               continue;
+           if (strcmp(result->d_name, ".") == 0)
+              read_again = 1;
+           else
+           if (strcmp(result->d_name, "..") == 0)
+              read_again = 1;
 
-           if (strcmp(direntp->d_name, "..") == 0)
-               continue;
-
-           /* 1st entry */
-           if (app_dir_data->direntry_name[0] == '\0')
-               break;
-
-           /* if skip all entries, returned in prev. calls */
-           if (strcmp(app_dir_data->direntry_name, direntp->d_name) == 0)
-           {
-               errno = 0;
-               direntp = readdir(dirp);
-               break;
-           }
        }
-    } while (direntp != NULL);
+    } while (read_again != 0);
 
-    if (direntp == NULL)
+
+    if (result == NULL)
         APP_DEBUG("readdir returned NULL\n");
     else
-         APP_DEBUG("readdir returned %s\n",  direntp->d_name);
+        APP_DEBUG("readdir returned %s\n",  result->d_name);
 
+    if (rc != 0)
+       status = app_process_file_error(response_data->error);
 
-    if (direntp == NULL)
+    if (result == NULL || rc != 0)
     {
-        app_dir_data->direntry_name[0] = '\0';
-
-        if (errno != 0)
-        {
-            status = app_process_file_error(response_data);
-        }
+        char *entry_name = response_data->data_ptr;
+        *entry_name = '\0';
+         response_data->size_in_bytes = 1;
         goto done;
     }
-    strcpy(app_dir_data->direntry_name,   direntp->d_name);
-    strcpy(response_data->data.data_ptr, direntp->d_name);
-    response_data->size_in_bytes = strlen(direntp->d_name) + 1;
 
-    closedir(dirp);
-    APP_DEBUG("closedir\n");
+    {
+        size_t name_len = strlen(result->d_name) + 1;
+        size_t buffer_size = response_data->size_in_bytes;
+
+        if(name_len <= buffer_size)
+        {
+
+            strcpy((char *) response_data->data_ptr, result->d_name);
+            response_data->size_in_bytes = name_len;
+        }
+        else
+        {
+            ASSERT(0);
+            errno = ENAMETOOLONG;
+            status = app_process_file_error(response_data->error);
+        }
+    }
 
 done:
     return status;
 }
 
 
-idigi_callback_status_t app_process_file_open(idigi_file_path_request_t const * const request_data, idigi_file_response_t * response_data)
+idigi_callback_status_t app_process_file_open(idigi_file_path_request_t const * const request_data, idigi_file_open_response_t * response_data)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     int mode = app_convert_file_open_mode(request_data->mode);
@@ -348,16 +367,16 @@ idigi_callback_status_t app_process_file_open(idigi_file_path_request_t const * 
 
     if (fd < 0)
     {
-        status = app_process_file_error(response_data);
+        status = app_process_file_error(response_data->error);
     }
 
-    response_data->data.fd = fd;
+    *response_data->fd_ptr = fd;
 
     return status;
 }
 
 
-idigi_callback_status_t app_process_file_lseek(idigi_file_offset_request_t const * const request_data, idigi_file_response_t * response_data)
+idigi_callback_status_t app_process_file_lseek(idigi_file_offset_request_t const * const request_data, idigi_file_lseek_response_t * response_data)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     int origin = app_convert_lseek_origin(request_data->origin);
@@ -366,11 +385,11 @@ idigi_callback_status_t app_process_file_lseek(idigi_file_offset_request_t const
 
     APP_DEBUG("lseek fd %d, offset %ld, origin %d returned %ld\n", request_data->fd, request_data->offset, 
                                                 request_data->origin, offset);
-    response_data->data.offset = offset;
+    *response_data->offset_ptr = offset;
 
     if (offset < 0)
     {
-        status = app_process_file_error(response_data);
+        status = app_process_file_error(response_data->error);
     }
 
     return status;
@@ -386,7 +405,7 @@ idigi_callback_status_t app_process_file_ftruncate(idigi_file_offset_request_t c
 
     if (result < 0)
     {
-        status = app_process_file_error(response_data);
+        status = app_process_file_error(response_data->error);
     }
 
     return status;
@@ -402,7 +421,7 @@ idigi_callback_status_t app_process_file_rm(idigi_file_path_request_t const * co
 
     if (result < 0)
     {
-        status = app_process_file_error(response_data);
+        status = app_process_file_error(response_data->error);
     }
 
     return status;
@@ -411,14 +430,14 @@ idigi_callback_status_t app_process_file_rm(idigi_file_path_request_t const * co
 idigi_callback_status_t app_process_file_read(idigi_file_request_t const * const request_data, idigi_file_response_t * response_data)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-
-    int result = read(request_data->fd, response_data->data.data_ptr, response_data->size_in_bytes);
+ 
+    int result = read(request_data->fd, response_data->data_ptr, response_data->size_in_bytes);
 
     APP_DEBUG("read %d, %u, returned %d\n", request_data->fd, response_data->size_in_bytes, result);
  
     if (result < 0)
     {
-        status = app_process_file_error(response_data);
+        status = app_process_file_error(response_data->error);
         goto done;
     }
 
@@ -438,7 +457,7 @@ idigi_callback_status_t app_process_file_write(idigi_file_write_request_t const 
  
     if (result < 0)
     {
-        status = app_process_file_error(response_data);
+        status = app_process_file_error(response_data->error);
         goto done;
     }
 
@@ -457,7 +476,11 @@ idigi_callback_status_t app_process_file_close(idigi_file_request_t const * cons
 
     if (result < 0)
     {
-        status = app_process_file_error(response_data);
+        status = app_process_file_error(response_data->error);
+    }
+    if (response_data->context != NULL)
+    {
+        APP_DEBUG("The user %p context should be freed here!\n", response_data->context);
     }
 
     return status;
@@ -522,8 +545,12 @@ idigi_callback_status_t app_file_system_handler(idigi_data_service_request_t con
             app_process_file_strerror(request_data, response_data);
             break;
 
+        case idigi_file_system_hash:
+            app_process_file_hash(request_data, response_data);
+            break;
+
         case idigi_file_system_error:
-            APP_DEBUG("Received file system error from the server\n");
+            app_process_msg_error(request_data, response_data);
             break;
 
         default:

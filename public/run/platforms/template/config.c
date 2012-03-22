@@ -472,26 +472,6 @@ static idigi_service_supported_status_t app_get_file_system_support(void)
 }
 
 /**
- * @brief   Return true if the remote configuration is supported
- *
- * This routine tells IIK whether the remote configuration service is supported or not.
- * If you plan on accessing device configuration from the iDigi server set this to idigi_service_supported.
- *
- * @retval idigi_service_supported  Remote configuration is supported
- * @retval idigi_service_unsupported  Remote configuration is not supported
- *
- * see ref remote_configuration_support API Configuration Callback
- *
- * @note This routine is not called if you define @b IDIGI_REMOTE_CONFIGURATION_SUPPORT configuration in @ref idigi_config.h.
- * @note This IDIGI_REMOTE_CONFIGURATION_SUPPORT indicates application supports remote configuration.
- *
- */
-static idigi_service_supported_status_t app_get_remote_configuration_support(void)
-{
-    return idigi_service_supported;
-}
-
-/**
  * @brief   Return maximum transactions
  *
  * This routine tells IIK the maximum simultaneous transactions for data service
@@ -611,7 +591,8 @@ static void app_config_error(idigi_error_status_t * const error_data)
                                          "idigi_file_system_readdir", 
                                          "idigi_file_system_closedir",
                                          "idigi_file_system_strerror",
-                                         "idigi_file_system_error"};    
+                                         "idigi_file_system_error",
+                                         "idigi_file_system_hash"};    
 
     switch (error_data->class_id)
     {
@@ -742,11 +723,6 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
 
     case idigi_config_file_system:
         *((idigi_service_supported_status_t *)response_data) = app_get_file_system_support();
-        ret = 0;
-        break;
-
-    case idigi_config_remote_configuration:
-        *((idigi_service_supported_status_t *)response_data) = app_get_remote_configuration_support();
         ret = 0;
         break;
     }

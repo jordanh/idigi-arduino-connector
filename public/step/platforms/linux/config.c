@@ -371,7 +371,8 @@ void app_config_error(idigi_error_status_t * const error_data)
                                        "idigi_file_system_readdir", 
                                        "idigi_file_system_closedir",
                                        "idigi_file_system_strerror",
-                                       "idigi_file_system_error"};    
+                                       "idigi_file_system_error",
+                                       "idigi_file_system_hash"};    
 
     switch (error_data->class_id)
     {

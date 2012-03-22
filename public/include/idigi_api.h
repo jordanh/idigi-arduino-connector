@@ -175,9 +175,8 @@ typedef enum {
     idigi_config_data_service,      /**< Requesting callback to return whether data service is supported or not. */
     idigi_config_file_system,       /**< Requesting callback to return whether file system is supported or not. */
 #if (IDIGI_VERSION >= IDIGI_VERSION_1100)
-    idigi_config_max_transaction,   /**< Requesting callback to obtain maximum messaging sessions supported by client. */
+    idigi_config_max_transaction    /**< Requesting callback to obtain maximum messaging sessions supported by client. */
 #endif
-    idigi_config_remote_configuration /**< Requesting callback to return whether remote configuration is supported or not. */
 } idigi_config_request_t;
 /**
 * @}
@@ -294,7 +293,8 @@ typedef enum {
     idigi_file_system_readdir,          /**< inform callback to read next directory entry */
     idigi_file_system_closedir,         /**< inform callback to end processing a directory */
     idigi_file_system_strerror,         /**< inform callback to get an error code description  */
-    idigi_file_system_error             /**< inform callback of an error from the server */
+    idigi_file_system_error,            /**< inform callback of an error from the server */
+    idigi_file_system_hash              /**< inform callback to return file hash value */
 } idigi_file_system_request_t;
 /**
 * @}
@@ -961,7 +961,6 @@ typedef struct
 * @}
 */
 
-
 #define IDIGI_SEEK_SET	0
 #define IDIGI_SEEK_CUR	1
 #define IDIGI_SEEK_END	2
@@ -977,10 +976,14 @@ typedef struct
 #define IDIGI_FILE_IS_DIR   0x01
 #define IDIGI_FILE_IS_REG   0x02
 
+#define IDIGI_MAX_PATH_LENGTH   256
+
+
 typedef enum
 {
     idigi_file_system_noerror,
-    idigi_file_system_fatal_error,
+    idigi_file_system_user_cancel,
+    idigi_file_system_unspec_error,
     idigi_file_system_path_not_found,
     idigi_file_system_insufficient_storage_space,
     idigi_file_system_request_format_error,
@@ -1001,32 +1004,17 @@ typedef struct
 {
   uint32_t     last_modified;
   size_t       file_size;
-  unsigned int flags;
+  idigi_file_hash_algorithm_t hash_alg;
+  uint8_t      flags;
 
 } idigi_file_stat_t;
 
-
-typedef union
-{
-    int         fd;
-    long int    offset;
-    void *      dir_handle;
-    void *      data_ptr;
-    idigi_file_stat_t  stat;
-
-} idigi_file_response_data_t;
-
-
 typedef struct
 {
-    size_t   size_in_bytes;
-    void   * context;
-    int      errnum;
-    idigi_file_error_code_t error;
-    idigi_file_response_data_t data;
+    void * dir_handle;
+    void * dir_entry;
 
-} idigi_file_response_t;
-
+} idigi_file_dir_data_t;
 
 typedef struct
 {
@@ -1036,41 +1024,90 @@ typedef struct
 
 typedef struct
 {
-    void * dir_handle;
- 
-} idigi_file_dir_request_t;
-
-typedef struct 
-{
-    int errnum;
-
-} idigi_file_error_hint_request_t;
-
-
-typedef struct
-{
-    char const * path;
-    int          mode;
-
-} idigi_file_path_request_t;
-
-
-typedef struct
-{
     int      fd;
     long int offset;
     int      origin;
 
 } idigi_file_offset_request_t;
 
-
 typedef struct
 {
     int          fd;
-    size_t       size_in_bytes;
     void const * data_ptr;
+    size_t       size_in_bytes;
 
 } idigi_file_write_request_t;
+
+typedef struct
+{
+    char const * path;
+    int          mode;
+    idigi_file_hash_algorithm_t hash_alg;
+
+} idigi_file_path_request_t;
+
+typedef struct 
+{
+    int errnum;
+    idigi_file_error_code_t error_code;
+
+} idigi_file_error_data_t;
+
+typedef struct 
+{
+    idigi_msg_error_t message_status;
+
+} idigi_file_error_request_t;
+
+typedef struct
+{
+    void   * context;
+    size_t   size_in_bytes;
+    idigi_file_error_data_t * error;
+
+    void   * data_ptr;
+
+} idigi_file_response_t;
+
+typedef struct
+{
+    void   * context;
+    size_t   size_in_bytes;
+    idigi_file_error_data_t * error;
+
+    int    * fd_ptr;
+
+} idigi_file_open_response_t;
+
+typedef struct
+{
+    void        * context;
+    size_t      size_in_bytes;
+    idigi_file_error_data_t * error;
+
+    long int    * offset_ptr;
+
+} idigi_file_lseek_response_t;
+
+typedef struct
+{
+    void                  * context;
+    size_t                size_in_bytes;
+    idigi_file_error_data_t * error;
+
+    idigi_file_dir_data_t * dir_data;
+
+} idigi_file_dir_response_t;
+
+typedef struct
+{
+    void                * context;
+    size_t              size_in_bytes;
+    idigi_file_error_data_t * error;
+
+    idigi_file_stat_t   * stat_ptr;
+
+} idigi_file_stat_response_t;
 
 
  /**

@@ -279,11 +279,6 @@ static idigi_service_supported_status_t app_get_file_system_support(void)
     return idigi_service_supported;
 }
 
-static idigi_service_supported_status_t app_get_remote_configuration_support(void)
-{
-    return idigi_service_supported;
-}
-
 static unsigned int app_get_max_message_transactions(void)
 {
 #define IDIGI_MAX_MSG_TRANSACTIONS   1
@@ -376,7 +371,8 @@ void app_config_error(idigi_error_status_t * const error_data)
                                        "idigi_file_system_readdir", 
                                        "idigi_file_system_closedir",
                                        "idigi_file_system_strerror",
-                                       "idigi_file_system_error"};    
+                                       "idigi_file_system_error",
+                                       "idigi_file_system_hash"};    
 
     switch (error_data->class_id)
     {
@@ -504,12 +500,6 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
         *((unsigned int *)response_data) = app_get_max_message_transactions();
         ret = 0;
         break;
-
-    case idigi_config_remote_configuration:
-        *((idigi_service_supported_status_t *)response_data) = app_get_remote_configuration_support();
-        ret = 0;
-        break;
-
     default:
         APP_DEBUG("idigi_config_callback: unknown configuration request= %d\n", request);
         break;
