@@ -279,7 +279,7 @@ static idigi_callback_status_t call_file_stat_user(idigi_data_t * const idigi_pt
     idigi_file_stat_t     stat;
 
     stat.flags    = 0;
-    stat.hash_alg = 0;
+    stat.hash_alg = idigi_file_hash_none;
 
     request.path     = path;
     request.hash_alg = hash_alg;
@@ -1151,7 +1151,7 @@ static idigi_callback_status_t file_store_path(idigi_data_t * const idigi_ptr, f
         goto done;
 
     context->path = ptr;
-    strcpy(context->path, path);
+    memcpy(context->path, path, path_len + 1);
 
     if (FileIsDir(context) && (path[path_len - 1] != '/'))
     {
@@ -1539,15 +1539,14 @@ static idigi_callback_status_t file_system_error_callback(idigi_data_t * const i
     request.message_status = session->error;
     response.data_ptr = NULL;
     response.size_in_bytes = 0;
-    response.context = context->user_context;
+    response.context = context == NULL ? NULL : context->user_context;
 
     idigi_callback(idigi_ptr->callback, idigi_class_file_system, request_id,
                    &request, sizeof request, &response, &response_length);
 
-    context->user_context = response.context;
-    
     if (context != NULL)
     {
+        context->user_context = response.context;
         if (context->fd >= 0)
             call_file_close_user(idigi_ptr, service_request);
 
