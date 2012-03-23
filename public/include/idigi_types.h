@@ -58,7 +58,7 @@
 /**
  *  Unsigned 16 bit value. 
  */
-  typedef unsigned short uint16_t;
+  typedef unsigned int uint16_t;
 
 /**
  *  Unsigned 32 bit value. 
