@@ -31,6 +31,8 @@
 #include "idigi_api.h"
 #include "platform.h"
 
+#include "stdlib.h"
+
 /**
  * @brief   Dynamically allocate memory
  *

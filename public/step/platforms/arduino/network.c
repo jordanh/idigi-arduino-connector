@@ -86,10 +86,10 @@ static idigi_callback_status_t app_network_send(idigi_write_request_t const * co
     idigi_callback_status_t rc = idigi_callback_continue;
 
     *sent_length = ar_network_send(write_data->network_handle,
-                    write_data->buffer,
+                    (char *) write_data->buffer,
                     write_data->length);
   
-    if (!ar_network_connected(read_data->nework_handle))
+    if (!ar_network_connected(write_data->network_handle))
       rc = idigi_callback_abort;
 
     return rc;
@@ -118,17 +118,18 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t * read_d
 {
     idigi_callback_status_t rc = idigi_callback_continue;
 
-    if (!ar_network_connected(read_data->nework_handle))
+    if (!ar_network_connected(read_data->network_handle))
       return idigi_callback_abort;
   
     *read_length = ar_network_recv(read_data->network_handle,
                     read_data->timeout,
-                    read_data->length);
+                    (char *) read_data->buffer,
+                    (int) read_data->length);
   
     if (*read_length == 0)
       rc = idigi_callback_busy;
   
-    if (!ar_network_connected(read_data->nework_handle))
+    if (!ar_network_connected(read_data->network_handle))
       rc = idigi_callback_abort;
 
     return rc;

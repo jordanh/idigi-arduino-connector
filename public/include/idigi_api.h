@@ -42,6 +42,10 @@
  *                                    0x01010000UL
  */
 #define IDIGI_VERSION_1100   0x01010000UL
+#ifndef IDIGI_VERSION
+/* Private modification to facilitate Arduino build environment */
+#define IDIGI_VERSION IDIGI_VERSION_1100
+#endif
 
 #include "idigi_types.h"
 

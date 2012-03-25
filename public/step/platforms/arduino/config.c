@@ -28,13 +28,12 @@
   *  @brief Configuration routines for the IIK.
   *
   */
-#include <stdio.h>
+#include <string.h>
 #include "idigi_api.h"
 #include "platform.h"
 
-#define DEVICE_ID_LENGTH    16
-#define VENDOR_ID_LENGTH    4
-#define MAC_ADDR_LENGTH     6
+#include "ArduinoiDigiInterface.h"
+
 
 /**
  * @brief   Get the IP address of the device
@@ -54,8 +53,7 @@
  */
 static int app_get_ip_address(uint8_t ** ip_address, size_t * size)
 {
-    UNUSED_ARGUMENT(ip_address);
-    UNUSED_ARGUMENT(size);
+    ar_get_ip(ip_address, size);
 
     return 0;
 }
@@ -76,14 +74,8 @@ static int app_get_ip_address(uint8_t ** ip_address, size_t * size)
  */
 static int app_get_mac_addr(uint8_t ** addr, size_t * size)
 {
-    /* MAC address used in this sample */
-    static uint8_t device_mac_addr[MAC_ADDR_LENGTH] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
-#error "Specify device MAC address for LAN connection"
-
-    *addr = device_mac_addr;
-    *size = sizeof device_mac_addr;
-
+    ar_get_mac(addr, size);
+  
     return 0;
 }
 
@@ -104,27 +96,8 @@ static int app_get_mac_addr(uint8_t ** addr, size_t * size)
  */
 static int app_get_device_id(uint8_t ** id, size_t * size)
 {
-    static uint8_t device_id[DEVICE_ID_LENGTH] = {0};
-    uint8_t * mac_addr;
-    size_t mac_size;
-
-#error  "Specify device id"
-
-    /* This sample uses the MAC address to format the device ID */
-    app_get_mac_addr(&mac_addr, &mac_size);
-
-    device_id[8] = mac_addr[0];
-    device_id[9] = mac_addr[1];
-    device_id[10] = mac_addr[2];
-    device_id[11] = 0xFF;
-    device_id[12] = 0xFF;
-    device_id[13] = mac_addr[3];
-    device_id[14] = mac_addr[4];
-    device_id[15] = mac_addr[5];
-
-    *id   = device_id;
-    *size = sizeof device_id;
-
+    ar_get_device_id(id, size);
+  
     return 0;
 }
 
@@ -148,12 +121,8 @@ static int app_get_device_id(uint8_t ** id, size_t * size)
  */
 static int app_get_vendor_id(uint8_t ** id, size_t * size)
 {
-#error  "Specify vendor id"
-    static const uint8_t device_vendor_id[VENDOR_ID_LENGTH] = {0x00, 0x00, 0x00, 0x00};
-
-    *id   = (uint8_t *)device_vendor_id;
-    *size = sizeof device_vendor_id;
-
+    ar_get_vendor_id(id, size);
+  
     return 0;
 }
 
@@ -181,13 +150,9 @@ static int app_get_vendor_id(uint8_t ** id, size_t * size)
  */
 static int app_get_device_type(char ** type, size_t * size)
 {
-#error "Specify device type"
-    static const char const *device_type = "IIK Linux Sample";
-
-    /* Return pointer to device type. */
-    *type = (char *)device_type;
-    *size = strlen(device_type);
-
+    *type = ar_get_device_type();
+    *size = strnlen(*type, IDIGI_DEVICETYPE_LENGTH);
+  
     return 0;
 }
 
@@ -210,12 +175,8 @@ static int app_get_device_type(char ** type, size_t * size)
  */
 static int app_get_server_url(char ** url, size_t * size)
 {
-#error "Specify iDigi Server URL"
-    static const char const *idigi_server_url = "developer.idigi.com";
-
-    /* Return pointer to device type. */
-    *url = (char *)idigi_server_url;
-    *size = strlen(idigi_server_url);
+    *url = ar_get_server_host();
+    *size = strnlen(*url, IDIGI_SERVERHOST_LENGTH);
 
     return 0;
 }
@@ -239,11 +200,9 @@ static int app_get_server_url(char ** url, size_t * size)
  */
 static int app_get_connection_type(idigi_connection_type_t ** type)
 {
-#error "Specify LAN or WAN connection type"
-
-    /* Return pointer to connection type */
-    static idigi_connection_type_t  device_connection_type = idigi_lan_connection_type;
-
+    static idigi_connection_type_t device_connection_type = idigi_lan_connection_type;
+  
+    device_connection_type = ar_get_connection_type();
     *type = &device_connection_type;
 
     return 0;
@@ -268,10 +227,11 @@ static int app_get_connection_type(idigi_connection_type_t ** type)
  */
 static int app_get_link_speed(uint32_t ** speed, size_t * size)
 {
-#error "Specify link speed for WAN connection type"
+    static uint32_t link_speed = 0;
+    link_speed = ar_get_link_speed();
+    *speed = &link_speed;
+    *size = sizeof(link_speed);
 
-    UNUSED_ARGUMENT(speed);
-    UNUSED_ARGUMENT(size);
     return 0;
 }
 
@@ -295,12 +255,9 @@ static int app_get_link_speed(uint32_t ** speed, size_t * size)
  */
 static int app_get_phone_number(uint8_t ** number, size_t * size)
 {
-#error "Specify phone number dialed for WAN connection type"
-    /* 
-     * Return pointer to phone number for WAN connection type.
-     */
-    UNUSED_ARGUMENT(number);
-    UNUSED_ARGUMENT(size);
+    *number = (uint8_t *) ar_get_phone_number();
+    *size = strnlen((char *) *number, IDIGI_PHONENUMBER_LENGTH);
+  
     return 0;
 }
 
@@ -325,8 +282,6 @@ static int app_get_phone_number(uint8_t ** number, size_t * size)
  */
 static int app_get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
 {
-#error "Specify server to device TX keepalive interval in seconds"
-
 #define DEVICE_TX_KEEPALIVE_INTERVAL_IN_SECONDS     90
     /* Return pointer to Tx keepalive interval in seconds */
     static uint16_t device_tx_keepalive_interval = DEVICE_TX_KEEPALIVE_INTERVAL_IN_SECONDS;
@@ -357,7 +312,6 @@ static int app_get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
  */
 static int app_get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
 {
-#error "Specify server to device RX keepalive interval in seconds"
 #define DEVICE_RX_KEEPALIVE_INTERVAL_IN_SECONDS     60
     /* Return pointer to Rx keepalive interval in seconds */
     static uint16_t device_rx_keepalive_interval = DEVICE_RX_KEEPALIVE_INTERVAL_IN_SECONDS;
@@ -387,7 +341,6 @@ static int app_get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
  */
 static int app_get_wait_count(uint16_t ** count, size_t * size)
 {
-#error "Specify the number of times that not receiving keepalive messages from server is allowed"
 #define DEVICE_WAIT_COUNT     5
     /* 
      * Return pointer to wait count (number of times not receiving Tx keepalive 

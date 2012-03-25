@@ -12,4 +12,8 @@ extern "C" {
 }
 #endif
 
+#ifdef __cplusplus
+#include <utility/ArduinoiDigiInterface.h>
+#endif
+
 #endif

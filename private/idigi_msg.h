@@ -23,6 +23,11 @@
  *
  */
 
+#ifndef IDIGI_VERSION
+/* Private modification to facilitate Arduino build environment */
+#define IDIGI_VERSION 0x1010000UL
+#endif
+
 #if (defined IDIGI_COMPRESSION)
 #include "zlib.h"
 #endif
