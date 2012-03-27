@@ -28,6 +28,10 @@ extern "C" {
 #define IDIGI_DEVICETYPE_LENGTH     32
 #define IDIGI_PHONENUMBER_LENGTH    32
 
+#define IDIGI_PRINTF_LENGTH         128
+
+#define AR_IDIGI_DEBUG
+
 #ifdef __cplusplus
 /* C++ Interface */
 
@@ -36,10 +40,10 @@ public:
   ArduinoiDigiInterfaceClass();
   
   /* important interface functions */
-  void setup(uint8_t *mac, uint8_t *ip, uint32_t vendorId);
-  void setup(uint8_t *mac, uint8_t *ip, uint32_t vendorId,
+  void setup(uint8_t *mac, IPAddress ip, uint32_t vendorId);
+  void setup(uint8_t *mac, IPAddress ip, uint32_t vendorId,
         char *serverHost);
-  void setup(uint8_t *mac, uint8_t *ip, uint32_t vendorId,
+  void setup(uint8_t *mac, IPAddress ip, uint32_t vendorId,
         char *serverHost, char *deviceType);
   idigi_status_t step();
   
@@ -52,7 +56,7 @@ public:
   
   /* config functions */
   void setMac(uint8_t *mac);
-  void setIp(uint8_t *ip);
+  void setIp(IPAddress ip);
   void setVendorId(uint32_t vendorId);
   void setDeviceType(const char *deviceType);
   void setServerHost(const char *serverHost);
@@ -62,6 +66,7 @@ public:
   void getMac(uint8_t **mac, size_t *length);
   void getIp(uint8_t **ip, size_t *length);
   void getDeviceId(uint8_t **deviceId, size_t *length);
+  void getDeviceIdString(String *dest);
   void getVendorId(uint8_t **vendorId, size_t *length);
   char *getDeviceType();
   char *getServerHost();
@@ -101,6 +106,12 @@ extern ArduinoiDigiInterfaceClass iDigi;
 #ifdef __cplusplus
 extern "C" {
 #endif
+  /* debug functions */
+#include <stdio.h>
+#include <stdarg.h>
+  int ar_vprintf(const char *format, va_list ap);
+  int ar_printf(const char *format, ...);
+  
   /* network functions */
   int ar_network_connect(char const * const host_name, idigi_network_handle_t **network_handle);
   size_t ar_network_send(idigi_network_handle_t *handle, char *buffer, size_t length);
@@ -121,6 +132,20 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+static void AR_DEBUG_PRINTF(char const * const format, ...)
+{
+#if defined(AR_IDIGI_DEBUG)
+  va_list args;
+  
+  va_start(args, format);
+  ar_printf(format, args);
+  va_end(args);
+#else
+  (void) format;
+#endif
+}
+
 
 #endif /* __ARDUINO_IDIGI_INTERFACE_H__ */
 

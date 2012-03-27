@@ -86,6 +86,7 @@ typedef int idigi_network_handle_t;
 */
 
 #if defined(IDIGI_DEBUG)
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>

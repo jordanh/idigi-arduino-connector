@@ -22,6 +22,11 @@
  * =======================================================================
  *
  */
+/* JRH change for Arduino environment */
+#ifndef IDIGI_VERSION
+/* Private modification to facilitate Arduino build environment */
+#define IDIGI_VERSION 0x1010000UL
+#endif
 #if (IDIGI_VERSION >= 0x1010000UL)
   #include "idigi_config.h"
 #else
@@ -207,7 +212,7 @@ idigi_status_t idigi_step(idigi_handle_t const handle)
     idigi_data_t * const idigi_handle = (idigi_data_t * const)handle;
 
     ASSERT_GOTO(handle != NULL, done);
-
+  
     if (idigi_handle->active_state != idigi_device_started)
     {
         goto error;
@@ -251,7 +256,7 @@ idigi_status_t idigi_step(idigi_handle_t const handle)
         case edp_security_layer:
             status = security_layer(idigi_handle);
             break;
-        case edp_discovery_layer:
+        case edp_discovery_layer:          
             status = discovery_layer(idigi_handle);
             break;
         case edp_facility_layer:
