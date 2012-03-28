@@ -1,17 +1,17 @@
 
 #include "ArduinoiDigiInterface.h"
+
 extern "C" {
 #include "idigi_api.h"
+#include <stdlib.h>
 }
 
 #include <SPI.h>
 #include <Ethernet.h>
 
-#include <stdlib.h>
-
 /* C++ */
 ArduinoiDigiInterfaceClass::ArduinoiDigiInterfaceClass()
-{
+{  
   memset(&_mac, 0, sizeof(_mac));
   memset(&_ip, 0, sizeof(_ip));
   memset(&_deviceId, 0, sizeof(_deviceId));
@@ -62,8 +62,6 @@ idigi_callback_status_t ArduinoiDigiInterfaceClass::appCallback(
                             size_t * const response_length)
 {
   idigi_callback_status_t   status = idigi_callback_continue;
-  
-  AR_DEBUG_PRINTF("appCallback(): entered\r\n");
   
   switch (class_id)
   {
@@ -132,7 +130,7 @@ void ArduinoiDigiInterfaceClass::network_close(idigi_network_handle_t *handle)
 /* config functions */
 void ArduinoiDigiInterfaceClass::setMac(uint8_t *mac)
 {
-  AR_DEBUG_PRINTF("setMac()\r\n");
+//  AR_DEBUG_PRINTF("setMac()\r\n");
   memcpy(&_mac, mac, sizeof(_mac));
   _deviceId[8] = mac[0];
   _deviceId[9] = mac[1];
@@ -146,7 +144,7 @@ void ArduinoiDigiInterfaceClass::setMac(uint8_t *mac)
 
 void ArduinoiDigiInterfaceClass::setIp(IPAddress ip)
 {
-  AR_DEBUG_PRINTF("setIp()\r\n");
+//  AR_DEBUG_PRINTF("setIp()\r\n");
   _ip[0] = ip[0];
   _ip[1] = ip[1];
   _ip[2] = ip[2];
@@ -155,64 +153,61 @@ void ArduinoiDigiInterfaceClass::setIp(IPAddress ip)
 
 void ArduinoiDigiInterfaceClass::setVendorId(uint32_t vendorId)
 {
-  AR_DEBUG_PRINTF("setVendorId()\r\n");
-  _vendorId[0] = (vendorId & 0x000000ff);   
-  _vendorId[1] = (vendorId & 0x0000ff00) >> 8;
-  _vendorId[2] = (vendorId & 0x00ff0000) >> 16;
-  _vendorId[3] = (vendorId & 0xff000000) >> 24;
+//  AR_DEBUG_PRINTF("setVendorId()\r\n");
+  _vendorId[3] = (vendorId & 0x000000ff);   
+  _vendorId[2] = (vendorId & 0x0000ff00) >> 8;
+  _vendorId[1] = (vendorId & 0x00ff0000) >> 16;
+  _vendorId[0] = (vendorId & 0xff000000) >> 24;
 }
 
 void ArduinoiDigiInterfaceClass::setDeviceType(const char *deviceType)
 {
-  AR_DEBUG_PRINTF("deviceType(): %s\r\n", deviceType);
-  strncpy(_deviceType, deviceType, sizeof(_deviceType));
-  _deviceType[sizeof(_deviceType)-1] = '\0';
+//  AR_DEBUG_PRINTF("deviceType(): %s\r\n", deviceType);
+  strlcpy(_deviceType, deviceType, sizeof(_deviceType));
 }
 
 void ArduinoiDigiInterfaceClass::setServerHost(const char *serverHost)
 {
   AR_DEBUG_PRINTF("setServerHost(): %s\r\n", serverHost);
-  strncpy(_serverHost, serverHost, sizeof(_serverHost));
-  _serverHost[sizeof(_serverHost)-1] = '\0';
+  strlcpy(_serverHost, serverHost, sizeof(_serverHost));
 }
 
 void ArduinoiDigiInterfaceClass::setLinkSpeed(uint32_t linkSpeed)
 {
-  AR_DEBUG_PRINTF("setLinkSpeed(): %d\r\n", linkSpeed);
+//  AR_DEBUG_PRINTF("setLinkSpeed(): %d\r\n", linkSpeed);
   _linkSpeed = linkSpeed;
 }
 
 void ArduinoiDigiInterfaceClass::setPhoneNumber(const char *phoneNumber)
 {
-  AR_DEBUG_PRINTF("setPhoneNumber(): %d\r\n", phoneNumber);
-  strncpy(_phoneNumber, phoneNumber, sizeof(_phoneNumber));
-  _phoneNumber[sizeof(_phoneNumber)-1] = '\0';
+//  AR_DEBUG_PRINTF("setPhoneNumber(): %d\r\n", phoneNumber);
+  strlcpy(_phoneNumber, phoneNumber, sizeof(_phoneNumber));
 }
 
 void ArduinoiDigiInterfaceClass::getMac(uint8_t **mac, size_t *length)
 {
-  AR_DEBUG_PRINTF("getMac()\r\n");
+//  AR_DEBUG_PRINTF("getMac()\r\n");
   *mac = _mac;
   *length = sizeof(_mac);
 }
 
 void ArduinoiDigiInterfaceClass::getIp(uint8_t **ip, size_t *length)
 {
-  AR_DEBUG_PRINTF("getIp()\r\n");
+//  AR_DEBUG_PRINTF("getIp()\r\n");
   *ip = _ip;
   *length = sizeof(_ip);
 }
 
 void ArduinoiDigiInterfaceClass::getDeviceId(uint8_t **deviceId, size_t *length)
 {
-  AR_DEBUG_PRINTF("getDeviceId()\r\n");
+//  AR_DEBUG_PRINTF("getDeviceId()\r\n");
   *deviceId = _deviceId;
   *length = sizeof(_deviceId);
 }
 
 void ArduinoiDigiInterfaceClass::getDeviceIdString(String *dest)
 {
-  AR_DEBUG_PRINTF("getDeviceIdString()\r\n");
+//  AR_DEBUG_PRINTF("getDeviceIdString()\r\n");
   for (uint8_t i = 0; i < sizeof(_deviceId); i++)
   {
     char formatBuf[3];
@@ -225,43 +220,44 @@ void ArduinoiDigiInterfaceClass::getDeviceIdString(String *dest)
 
 void ArduinoiDigiInterfaceClass::getVendorId(uint8_t **vendorId, size_t *length)
 {
-  AR_DEBUG_PRINTF("getVendorId()\r\n");
+//  AR_DEBUG_PRINTF("getVendorId()\r\n");
   *vendorId = _vendorId;
   *length = sizeof(_vendorId);
 }
 
 char *ArduinoiDigiInterfaceClass::getDeviceType()
 {
-  AR_DEBUG_PRINTF("getDeviceType()\r\n");
+//  AR_DEBUG_PRINTF("getDeviceType()\r\n");
   return _deviceType;
 }
 
 char *ArduinoiDigiInterfaceClass::getServerHost()
 {
-  AR_DEBUG_PRINTF("getServerHost()\r\n");
+  AR_DEBUG_PRINTF("getServerHost(): %s\r\n", _serverHost);
   return _serverHost;
 }
 
 idigi_connection_type_t ArduinoiDigiInterfaceClass::getConnectionType()
 {
-  AR_DEBUG_PRINTF("getConnectionType()\r\n");
+//  AR_DEBUG_PRINTF("getConnectionType()\r\n");
   return _connectionType;
 }
 
 uint32_t ArduinoiDigiInterfaceClass::getLinkSpeed()
 {
-  AR_DEBUG_PRINTF("getLinkSpeed()\r\n");
+//  AR_DEBUG_PRINTF("getLinkSpeed()\r\n");
   return _linkSpeed;
 }
 
 char *ArduinoiDigiInterfaceClass::getPhoneNumber()
 {
-  AR_DEBUG_PRINTF("getPhoneNumber()\r\n");
+//  AR_DEBUG_PRINTF("getPhoneNumber()\r\n");
   return _phoneNumber;
 }
 
 ArduinoiDigiInterfaceClass iDigi;
 
+extern "C" {
 /* C Interface */
 static char printf_buf[IDIGI_PRINTF_LENGTH];
 
@@ -361,3 +357,4 @@ char *ar_get_phone_number()
 {
   return iDigi.getPhoneNumber();
 }
+} /* extern "C" */

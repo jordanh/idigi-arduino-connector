@@ -139,7 +139,7 @@ static void AR_DEBUG_PRINTF(char const * const format, ...)
   va_list args;
   
   va_start(args, format);
-  ar_printf(format, args);
+  ar_vprintf(format, args);
   va_end(args);
 #else
   (void) format;
