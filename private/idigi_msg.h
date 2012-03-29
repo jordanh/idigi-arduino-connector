@@ -1778,7 +1778,12 @@ static idigi_callback_status_t msg_delete_facility(idigi_data_t * const idigi_pt
     idigi_callback_status_t status = idigi_callback_abort;
     idigi_msg_data_t * const msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
 
-    ASSERT_GOTO(msg_ptr != NULL, error);
+    if (msg_ptr == NULL)
+	{
+	   status = idigi_callback_continue;
+	   goto error;
+	}
+
     ASSERT_GOTO(service_id < msg_service_id_count, error);
     ASSERT_GOTO(msg_ptr->service_cb[service_id] != NULL, error);
 
