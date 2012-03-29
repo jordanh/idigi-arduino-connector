@@ -42,7 +42,7 @@ public class Descriptors {
         device_type
         fw_version
         */
-        /* TODO: parse arguments. ignore last 2 argument for parser */
+        /* TODO: parse arguments. ignore last 2 arguments for parser */
         
    }
 
@@ -69,9 +69,9 @@ public class Descriptors {
             for (ElementStruct element: theGroup.elements)
             {
                 query_descriptors += "\t<element name=\"" + element.name + "\" desc=" + element.description + " type=\"" + element.type + "\"";
-                if (element.min != null)
+                if (element.access != null)
                 {
-                    query_descriptors += " min=\"" + element.min + "\"";
+                    query_descriptors += " access=\"" + element.access + "\"";
                 }
                 if (element.is_min_max_needed())
                 {
@@ -153,78 +153,6 @@ public class Descriptors {
         /* TODO: upload descriptors */
     }
     
-    public void debug_print(LinkedList<GroupStruct> groups, LinkedList<NameStruct> global_error) 
-    {
-        for (GroupStruct theGroup: groups)
-        {
-            System.out.printf("<descriptor element=\"%s\" desc=%s>\n", theGroup.name, theGroup.description);
-            if (theGroup.instances > 0)
-            {
-                System.out.printf("\t<attr name=\"index\" desc=%s type=\"int32\" min=\"1\" max=\"%d\" />\n", theGroup.description, theGroup.instances);
-            }
-            
-            for (ElementStruct element: theGroup.elements)
-            {
-                System.out.printf("\t<element name=\"%s\" desc=%s type=\"%s\"", element.name, element.description, element.type);
-                if (element.min != null)
-                {
-                    System.out.printf(" min=\"%s\"", element.min);
-                }
-                if (element.is_min_max_needed())
-                {
-                    if (element.max != null)
-                    {
-                        System.out.printf(" max=\"%s\"", element.max);
-                    }
-                    if (element.min != null)
-                    {
-                        System.out.printf(" min=\"%s\"", element.min);
-                    }
-                }
-                
-                if (element.unit != null)
-                {
-                    System.out.printf(" unit=\"%s\"", element.unit);
-                }
-                
-                if (element.is_enum_type())
-                {
-                    System.out.printf(">\n");
-
-                    for (NameStruct value: element.values)
-                    {
-                        System.out.printf("\t\t<value value=\"%s\"", value.name);
-                        if (value.description != null)
-                        {
-                            System.out.printf(" desc=%s", value.description);
-                        }
-                        System.out.printf(" />\n");
-                    }
-                    
-                    System.out.printf("\t</element>\n");
-
-                }
-                else
-                {
-                    System.out.printf(" />\n");
-                }
-            }
-            int eid = 0;
-            for (NameStruct error: global_error)
-            {
-                eid++;
-                System.out.printf("\t<error_descriptor id=\"%d\" desc=%s />\n", eid, error.description);
-            }
-            
-            for (NameStruct error: theGroup.errors)
-            {
-                eid++;
-                System.out.printf("\t<error_descriptor id=\"%d\" desc=%s />\n", eid, error.description);
-            }
-            System.out.println("</descriptor>");
-        }
-        
-    }
     
     private String username;
     private String password;
