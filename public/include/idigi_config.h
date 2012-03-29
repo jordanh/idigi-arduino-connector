@@ -84,7 +84,7 @@
  * 
  * @see @ref firmware_support
  */
-#define IDIGI_FIRMWARE_SERVICE
+// #define IDIGI_FIRMWARE_SERVICE
 
 
 /**
