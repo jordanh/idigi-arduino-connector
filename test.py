@@ -103,7 +103,7 @@ test_table = [
               ['dvt',           BASE_DVT_SRC+'reboot_test',               BASE_SCRIPT_DIR+'dvt_tests/',    ['test_delay_reboot.py',
                                                                                                            'test_disconnect.py']],
               ['dvt',           BASE_DVT_SRC+'terminate_test',             BASE_SCRIPT_DIR+'dvt_tests/',    ['test_ds_terminate.py']],
-              ['dvt',           BASE_DVT_SRC+'response_to_bad_values_test', BASE_SCRIPT_DIR+'dvt_tests/',   ['test_debug_response_to_bad_values.py']],
+#              ['dvt',           BASE_DVT_SRC+'response_to_bad_values_test', BASE_SCRIPT_DIR+'dvt_tests/',   ['test_debug_response_to_bad_values.py']],
 ]
 
 def generate_id(api):
