@@ -1,5 +1,7 @@
-
-import java.util.LinkedList;
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import sun.misc.BASE64Encoder;
 
 public class Descriptors {
 
@@ -22,35 +24,47 @@ public class Descriptors {
 
     public Descriptors(String[] args)
     {
-        /*
-        log("Syntax: java -jar icConfigTool <username[:password]> <vendor_id> <device_type> <fw_version> [-sysinfo:<filename>] <config_filename>");
-        log("Where:");
-        log("      username          = username to log in iDigi Cloud. You will be prompted to enter the password");
-        log("      username:password = optional for username and password to log in iDigi Cloud");
-        log("      vendor_id       = Vendor ID obtained from iDigi Cloud registration");
-        log("      device_type     = Device type string with quotes(i.e. \"device type\")");
-        log("      fw_version      = firmware version number");
-        log("      -sysinfo        = option for specifying iDigi Connector Configuration file which is given in <filename> for System Information");
-        log("      config_filename = iDigi Connector Configration file for data configurations");
-        */
-        
-        /* username
-        password
-            ie, if (args[4].split("(.*):(.*)"))
+         /*
+         log("Syntax: java -jar icConfigTool <username[:password]> <vendor_id> <device_type> <fw_version> [-sysinfo:<filename>] <config_filename>");
+         log("Where:");
+         log("      username          = username to log in iDigi Cloud. You will be prompted to enter the password");
+         log("      username:password = optional for username and password to log in iDigi Cloud");
+         log("      vendor_id       = Vendor ID obtained from iDigi Cloud registration");
+         log("      device_type     = Device type string with quotes(i.e. \"device type\")");
+         log("      fw_version      = firmware version number");
+         log("      -sysinfo        = option for specifying iDigi Connector Configuration file which is given in <filename> for System Information");
+         log("      config_filename = iDigi Connector Configration file for data configurations");
+         */
 
-        vendor_id
-        device_type
-        fw_version
-        */
-        /* TODO: parse arguments. ignore last 2 arguments for parser */
-        
-   }
+        String credential = args[0];
+	if (credential.indexOf(':') == -1)
+	{
+	    BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
+	    
+	    username = credential;
+	    System.out.print("Enter password: ");
+	    try {
+	      password = userInput.readLine();
+	    } catch (IOException ioe) {
+	      System.out.println("IO error!");
+	      System.exit(1);
+	    }
+	}
+	else
+	{
+	    username = credential.split(":")[0];
+	    password = credential.split(":")[1];
+	}
+
+	vendor_id = args[1];
+        device_type = args[2];
+        fw_version = args[3];
+        call_delete = true;
+    }
 
     public void processDescriptors(String config_type, LinkedList<GroupStruct> groups, LinkedList<NameStruct> global_error) 
-    {
-        
-        
-        String query_descriptors = "<descriptor element=\"query_" + config_type + "\" desc=\"Retrieve device configuration\" format=\"all_" + config_type +"s_groups\">" +
+    {        
+        String query_descriptors = "<descriptor element=\"query_" + config_type + "\" desc=\"Retrieve device configuration\">" +
                                    descriptor_error_string +
                                    "<format_define name=\"all_settings_groups\">";
         
@@ -126,11 +140,13 @@ public class Descriptors {
             }
             query_descriptors += "</descriptor>";
         }
+        query_descriptors += "</format_define>\n</descriptor>\n";
         
         System.out.println(query_descriptors);
         System.out.println(set_descriptors);
         
-        /* TODO: upload query_descriptors and set descriptors */
+        uploadDescriptor("descriptor/query_" + config_type, query_descriptors);
+	uploadDescriptor("descriptor/set_" + config_type, set_descriptors);
     }
 
     public void processRciDescriptors(boolean systemInfoSupport)
@@ -143,6 +159,7 @@ public class Descriptors {
         
         if (systemInfoSupport)
         {
+            descriptors += "<descriptor element=\"query_" + system_info_config_string + "\" dscr_avail=\"true\"/>\n";
             descriptors += "<descriptor element=\"set_" + system_info_config_string + "\" dscr_avail=\"true\"/>\n";
         }
         
@@ -150,15 +167,75 @@ public class Descriptors {
         
         System.out.println(descriptors);
         
-        /* TODO: upload descriptors */
+	uploadDescriptor("descriptor", descriptors);
     }
     
-    
+    public void sendCloudData(String target, String method, String message)
+    {
+	String cloud = "http://test.idigi.com" + target;
+	BASE64Encoder encoder = new BASE64Encoder();
+	String encodedCredential = encoder.encode((username + ":" + password).getBytes());
+
+	try
+	{
+	    URL url = new URL(cloud);
+	    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+	    connection.setRequestMethod(method);
+	    connection.setRequestProperty("Content-Type", "text/xml");
+	    connection.setRequestProperty ("Authorization", "Basic " + encodedCredential);
+
+	    if (message != null)
+	    {
+		connection.setDoOutput(true);
+	    
+		OutputStreamWriter request = new OutputStreamWriter(connection.getOutputStream());
+		request.write(message);
+		request.close();
+	    }
+
+	    connection.connect();
+	    BufferedReader response = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+	    String resp_line;
+	    while ((resp_line = response.readLine()) != null) 
+	    {
+		System.out.println(resp_line);
+	    }        
+	    response.close();
+	    connection.disconnect();
+	}
+        catch (Exception x)
+        {
+            System.err.println(x);
+            System.exit(1);
+        }
+    }
+
+    public void uploadDescriptor(String desc_name, String buffer)
+    {
+	if (call_delete)
+	{
+	   String target = "/ws/DeviceMetaData?condition=dvVendorId=" + vendor_id + " and dmDeviceType=\'" + device_type + "\' and dmVersion=" + fw_version;
+
+	   sendCloudData(target.replace(" ", "%20"), "DELETE", null);
+	   call_delete = false;
+	}
+
+	String message = "<DeviceMetaData>";
+	message += "<dvVendorId>" + vendor_id + "</dvVendorId>";
+	message += "<dmDeviceType>" + device_type + "</dmDeviceType>";
+	message += "<dmVersion>" + fw_version + "</dmVersion>";
+	message += "<dmName>" + desc_name + "</dmName>";
+	message += "<dmData>" + buffer.replace("<", "&lt;").replace(">", "&gt;") + "</dmData>";
+	message += "</DeviceMetaData>";
+	
+	sendCloudData("/ws/DeviceMetaData", "POST", message);
+    }
+
     private String username;
     private String password;
     private String device_type;
-    private long vendor_id;
-    private long fw_version;
-    
+    private String vendor_id;
+    private String fw_version;
+    private Boolean call_delete;
 
 }
