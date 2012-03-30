@@ -1,7 +1,9 @@
 
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
 
 import javax.management.BadStringOperationException;
+import javax.naming.NamingException;
 
 public class GroupStruct {
 
@@ -11,8 +13,12 @@ public class GroupStruct {
     public LinkedList<ElementStruct> elements;
     public LinkedList<NameStruct> errors;
     
-    public GroupStruct(String theName)
+    public GroupStruct(String theName) throws BadStringOperationException
     {
+        if (theName == null)
+        {
+            throw new BadStringOperationException("No name specified for a group");
+        }
         name = theName;
         instances= 0;
         description=null;
@@ -31,30 +37,29 @@ public class GroupStruct {
         description = theDescription;
     }
     
-    public void addConfigElement(ElementStruct theElement) throws BadStringOperationException
+    public void addConfigElement(ElementStruct theElement) throws NamingException
     {
-//        icConfigTool.log("add " + theElement.name + " element for group " + name);
-        if (!elements.equals(theElement.name))
+        
+        for (ElementStruct element : elements)
         {
-            elements.add(theElement);
+            if (element.name.equals(theElement.name))
+            {
+                throw new NamingException("Duplicate <element>: " + theElement.name);
+            }
         }
-        else
-        {
-            throw new BadStringOperationException("Duplicate <element>: " + theElement.name);
-        }
+        elements.add(theElement);
     }
 
     public void addConfigError(NameStruct theError) throws BadStringOperationException
     {
-        if (!errors.equals(theError.name))
+        for (NameStruct error : errors)
         {
-            errors.add(theError);
+            if (error.name.equals(theError.name))
+            {
+                throw new BadStringOperationException("Duplicate <error>: " + theError.name);
+            }
         }
-        else
-        {
-            throw new BadStringOperationException("Duplicate <error>: " + theError.name + "for group: " + name);
-        }
-        
+        errors.add(theError);
     }
 
     public boolean validate()

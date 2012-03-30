@@ -13,8 +13,12 @@ public class ElementStruct {
     public String unit;
     public LinkedList<NameStruct> values;
     
-    public ElementStruct(String parseName) 
+    public ElementStruct(String parseName) throws BadStringOperationException
     {
+        if (parseName == null)
+        {
+            throw new BadStringOperationException("No name specified for an element");
+        }
         name = parseName;
         description = null;
         type=null;
@@ -61,14 +65,14 @@ public class ElementStruct {
     {
         if (is_enum_type())
         {
-            if (!values.equals(theValue))
+            for (NameStruct value : values)
             {
-                values.add(theValue);
+                if (value.name.equals(theValue.name))
+                {
+                    throw new BadStringOperationException("Duplicate <value>: " + theValue.name);
+                }
             }
-            else
-            {
-                throw new BadStringOperationException("Duplicate <value>: " + theValue.name);
-            }
+            values.add(theValue);
         }
         else
         {
@@ -98,31 +102,83 @@ public class ElementStruct {
         return Constants.isType(type, Constants.ETYPE_FLOAT);
     }
 
+    public boolean is_signed_integer_type()
+    {
+        return Constants.isType(type, Constants.ETYPE_INT32);
+    }
+
     public boolean validate()
     {
         boolean valid = true;
-        
+       
         if (description == null)
         {
-            generate_config.log("Missing <description> for element: " + name);
+            log("Missing <description> for element: " + name);
             valid = false;
         }
         else if (!Constants.isMinMaxOption(type) && (min != null || max != null))
         {
-            generate_config.log("Invalid <min/max> for type: " + type + " on element: " + name);
+            log("Type: " + type + " should not have <min/max> on element: " + name);
             valid = false;
         }
         else if (is_enum_type() && values.isEmpty())
         {
-            generate_config.log("Missing <value> for element: " + name);
+            log("Missing <value> for element: " + name);
             valid = false;
         }
         else if (!is_enum_type() && !values.isEmpty())
         {
-            generate_config.log("Invalid <value> for type: " + type);
+            generate_config.log("No <value> for element: " + name);
             valid = false;
+        }
+        if (min != null)
+        {
+            try {
+                if (is_float_type())
+                {
+                    float fvalue = Float.parseFloat(min);
+                }
+                else
+                {
+                    int ivalue = Integer.parseInt(min);
+                    if (ivalue < 0 && is_signed_integer_type())
+                    {
+                        throw new NumberFormatException(null);
+                    }
+                }
+            } 
+            catch (NumberFormatException e){
+                log("Invalid <min> value : " + min + " for type: " + type);
+            }
+        }
+        
+        if (max != null)
+        {
+            try {
+                if (is_float_type())
+                {
+                    float fvalue = Float.parseFloat(max);
+                }
+                else
+                {
+                    int ivalue = Integer.parseInt(max);
+                    if (ivalue < 0 && is_signed_integer_type())
+                    {
+                        throw new NumberFormatException(null);
+                    }
+                }
+            } 
+            catch (NumberFormatException e){
+                log("Invalid <max> value : " + max + " for type: " + type);
+            }
         }
         
         return valid;
     }
+    
+    public static void log(Object aObject)
+    {
+        System.out.println(String.valueOf(aObject));
+    }
+
 }
