@@ -62,15 +62,28 @@ public class Descriptors {
         call_delete = true;
     }
 
+    private final String data_config_descriptor_desc = "device configuration";
+    private final String sysinfo_config_descriptor_desc = "device state";
+    
     public void processDescriptors(String config_type, LinkedList<GroupStruct> groups, LinkedList<NameStruct> global_error) 
     {        
-        String query_descriptors = "<descriptor element=\"query_" + config_type + "\" desc=\"Retrieve device configuration\">" +
-                                   descriptor_error_string +
-                                   "<format_define name=\"all_settings_groups\">";
+        String query_descriptors = "<descriptor element=\"query_" + config_type + "\" desc=\"Retrieve ";
+        if (config_type.equalsIgnoreCase(data_config_string))
+            query_descriptors += data_config_descriptor_desc;
+        else
+            query_descriptors += sysinfo_config_descriptor_desc;
+        query_descriptors += "\" format=\"all_" + config_type + "s_groups\">" +  descriptor_error_string +
+                             "<format_define name=\"all_" + config_type + "s_groups\">";
         
-        String set_descriptors = "<descriptor element=\"set_" + config_type + "\" desc=\"Set device configuration\" format=\"all_" + config_type + "s_groups\">" +
-                                 descriptor_error_string +
-                                 "</descriptor>";
+        
+        String set_descriptors = "<descriptor element=\"set_" + config_type + "\" desc=\"Set ";
+        
+        if (config_type.equalsIgnoreCase(data_config_string))
+            set_descriptors += data_config_descriptor_desc;
+        else
+            set_descriptors += sysinfo_config_descriptor_desc;
+         set_descriptors += "\" format=\"all_" + config_type + "s_groups\">" +
+                           descriptor_error_string + "</descriptor>";
 
         for (GroupStruct theGroup: groups)
         {
@@ -169,7 +182,7 @@ public class Descriptors {
         
         uploadDescriptor("descriptor", descriptors);
     }
-    
+
     public void sendCloudData(String target, String method, String message)
     {
         String cloud = "http://test.idigi.com" + target;

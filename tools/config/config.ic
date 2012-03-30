@@ -3,15 +3,15 @@ globalerror save_fail "Save fail"
 globalerror memory_fail "Insufficient memory"
 
 group serial 2 "Serial Port"
-    element baud "Baud rate" type enum access read_write 
+    element baud "Baud rate" type enum access read_write
         value 2400
         value 4800
-    value 9600
-    value 19200
-    value 38400
-    value 57600
-    value 115200
-    value 230400  
+        value 9600
+        value 19200
+        value 38400
+        value 57600
+        value 115200
+        value 230400  
     element parity "Parity" type enum access  read_write 
         value none
         value odd

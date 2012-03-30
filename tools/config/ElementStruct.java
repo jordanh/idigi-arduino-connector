@@ -136,7 +136,7 @@ public class ElementStruct {
             try {
                 if (is_float_type())
                 {
-                    float fvalue = Float.parseFloat(min);
+                    Float.parseFloat(min);
                 }
                 else
                 {
@@ -157,7 +157,7 @@ public class ElementStruct {
             try {
                 if (is_float_type())
                 {
-                    float fvalue = Float.parseFloat(max);
+                    Float.parseFloat(max);
                 }
                 else
                 {
