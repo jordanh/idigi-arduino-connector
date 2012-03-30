@@ -115,8 +115,6 @@ int app_os_malloc(size_t const size, void ** ptr)
 #endif
         status = 0;
         add_malloc_ptr(*ptr, size);
-
-        APP_DEBUG("app_os_malloc: size [%d] ptr [%x]\n", size, (int)*ptr);
     }
 
     return status;
@@ -125,8 +123,6 @@ int app_os_malloc(size_t const size, void ** ptr)
 void app_os_free(void * const ptr)
 {
     ASSERT(ptr != NULL);
-
-    APP_DEBUG("app_os_free: ptr [%x]\n", (int)ptr);
 
     if (ptr != NULL)
     {

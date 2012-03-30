@@ -14,7 +14,7 @@ test_table = [
 
 class ResponseToBadValuesDvtTestCase(iik_testcase.TestCase):
     
-    def test_response_to_bad_values(self):
+    def test_debug_response_to_bad_values(self):
     
         self.log.info("***** Beginning Response to Bad Values Test *****")
 
