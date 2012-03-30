@@ -37,26 +37,26 @@ public class Descriptors {
          */
 
         String credential = args[0];
-	if (credential.indexOf(':') == -1)
-	{
-	    BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
-	    
-	    username = credential;
-	    System.out.print("Enter password: ");
-	    try {
-	      password = userInput.readLine();
-	    } catch (IOException ioe) {
-	      System.out.println("IO error!");
-	      System.exit(1);
-	    }
-	}
-	else
-	{
-	    username = credential.split(":")[0];
-	    password = credential.split(":")[1];
-	}
+        if (credential.indexOf(':') == -1)
+        {
+            BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
+    
+            username = credential;
+            System.out.print("Enter password: ");
+            try {
+                password = userInput.readLine();
+            } catch (IOException ioe) {
+                System.out.println("IO error!");
+                System.exit(1);
+            }
+        }
+        else
+        {
+            username = credential.split(":")[0];
+            password = credential.split(":")[1];
+        }
 
-	vendor_id = args[1];
+        vendor_id = args[1];
         device_type = args[2];
         fw_version = args[3];
         call_delete = true;
@@ -146,7 +146,7 @@ public class Descriptors {
         System.out.println(set_descriptors);
         
         uploadDescriptor("descriptor/query_" + config_type, query_descriptors);
-	uploadDescriptor("descriptor/set_" + config_type, set_descriptors);
+        uploadDescriptor("descriptor/set_" + config_type, set_descriptors);
     }
 
     public void processRciDescriptors(boolean systemInfoSupport)
@@ -167,42 +167,42 @@ public class Descriptors {
         
         System.out.println(descriptors);
         
-	uploadDescriptor("descriptor", descriptors);
+        uploadDescriptor("descriptor", descriptors);
     }
     
     public void sendCloudData(String target, String method, String message)
     {
-	String cloud = "http://test.idigi.com" + target;
-	BASE64Encoder encoder = new BASE64Encoder();
-	String encodedCredential = encoder.encode((username + ":" + password).getBytes());
+        String cloud = "http://test.idigi.com" + target;
+        BASE64Encoder encoder = new BASE64Encoder();
+        String encodedCredential = encoder.encode((username + ":" + password).getBytes());
 
-	try
-	{
-	    URL url = new URL(cloud);
-	    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-	    connection.setRequestMethod(method);
-	    connection.setRequestProperty("Content-Type", "text/xml");
-	    connection.setRequestProperty ("Authorization", "Basic " + encodedCredential);
+        try
+        {
+            URL url = new URL(cloud);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod(method);
+            connection.setRequestProperty("Content-Type", "text/xml");
+            connection.setRequestProperty ("Authorization", "Basic " + encodedCredential);
 
-	    if (message != null)
-	    {
-		connection.setDoOutput(true);
-	    
-		OutputStreamWriter request = new OutputStreamWriter(connection.getOutputStream());
-		request.write(message);
-		request.close();
-	    }
+            if (message != null)
+            {
+                connection.setDoOutput(true);
+    
+                OutputStreamWriter request = new OutputStreamWriter(connection.getOutputStream());
+                request.write(message);
+                request.close();
+            }
 
-	    connection.connect();
-	    BufferedReader response = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-	    String resp_line;
-	    while ((resp_line = response.readLine()) != null) 
-	    {
-		System.out.println(resp_line);
-	    }        
-	    response.close();
-	    connection.disconnect();
-	}
+            connection.connect();
+            BufferedReader response = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String resp_line;
+            while ((resp_line = response.readLine()) != null)
+            {
+                System.out.println(resp_line);
+            }
+            response.close();
+            connection.disconnect();
+        }
         catch (Exception x)
         {
             System.err.println(x);
@@ -212,23 +212,23 @@ public class Descriptors {
 
     public void uploadDescriptor(String desc_name, String buffer)
     {
-	if (call_delete)
-	{
-	   String target = "/ws/DeviceMetaData?condition=dvVendorId=" + vendor_id + " and dmDeviceType=\'" + device_type + "\' and dmVersion=" + fw_version;
+        if (call_delete)
+        {
+            String target = "/ws/DeviceMetaData?condition=dvVendorId=" + vendor_id + " and dmDeviceType=\'" + device_type + "\' and dmVersion=" + fw_version;
 
-	   sendCloudData(target.replace(" ", "%20"), "DELETE", null);
-	   call_delete = false;
-	}
+            sendCloudData(target.replace(" ", "%20"), "DELETE", null);
+            call_delete = false;
+        }
 
-	String message = "<DeviceMetaData>";
-	message += "<dvVendorId>" + vendor_id + "</dvVendorId>";
-	message += "<dmDeviceType>" + device_type + "</dmDeviceType>";
-	message += "<dmVersion>" + fw_version + "</dmVersion>";
-	message += "<dmName>" + desc_name + "</dmName>";
-	message += "<dmData>" + buffer.replace("<", "&lt;").replace(">", "&gt;") + "</dmData>";
-	message += "</DeviceMetaData>";
-	
-	sendCloudData("/ws/DeviceMetaData", "POST", message);
+        String message = "<DeviceMetaData>";
+        message += "<dvVendorId>" + vendor_id + "</dvVendorId>";
+        message += "<dmDeviceType>" + device_type + "</dmDeviceType>";
+        message += "<dmVersion>" + fw_version + "</dmVersion>";
+        message += "<dmName>" + desc_name + "</dmName>";
+        message += "<dmData>" + buffer.replace("<", "&lt;").replace(">", "&gt;") + "</dmData>";
+        message += "</DeviceMetaData>";
+
+        sendCloudData("/ws/DeviceMetaData", "POST", message);
     }
 
     private String username;
@@ -237,5 +237,4 @@ public class Descriptors {
     private String vendor_id;
     private String fw_version;
     private Boolean call_delete;
-
 }
