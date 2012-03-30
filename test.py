@@ -103,7 +103,7 @@ test_table = [
               ['dvt',           BASE_DVT_SRC+'reboot_test',               BASE_SCRIPT_DIR+'dvt_tests/',    ['test_delay_reboot.py',
                                                                                                            'test_disconnect.py']],
               ['dvt',           BASE_DVT_SRC+'terminate_test',             BASE_SCRIPT_DIR+'dvt_tests/',    ['test_ds_terminate.py']],
-#              ['dvt',           BASE_DVT_SRC+'response_to_bad_values_test', BASE_SCRIPT_DIR+'dvt_tests/',   ['test_debug_response_to_bad_values.py']],
+              ['dvt',           BASE_DVT_SRC+'response_to_bad_values_test', BASE_SCRIPT_DIR+'dvt_tests/',   ['test_debug_response_to_bad_values.py']],
 ]
 
 def generate_id(api):
@@ -159,10 +159,10 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
 
             # Use config.c in the local directory if it exists
             try:
-                filename = "%s/config.c" % test[SRC_DIR]
+                filename = os.path.join(src_dir, "config.c")
                 f = open(filename, 'r')
                 f.close()
-                setup_platform(test_dir, os.path.join(sandbox_dir, test[SRC_DIR]), mac_addr)
+                setup_platform(test_dir, src_dir, mac_addr)
             except IOError:
                 setup_platform(test_dir, os.path.join(sandbox_dir, SAMPLE_PLATFORM_RUN_DIR), mac_addr)
                 setup_platform(test_dir, os.path.join(sandbox_dir, SAMPLE_PLATFORM_STEP_DIR), mac_addr)
