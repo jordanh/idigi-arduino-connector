@@ -103,6 +103,7 @@ test_table = [
               ['dvt',           BASE_DVT_SRC+'reboot_test',               BASE_SCRIPT_DIR+'dvt_tests/',    ['test_delay_reboot.py',
                                                                                                            'test_disconnect.py']],
               ['dvt',           BASE_DVT_SRC+'terminate_test',             BASE_SCRIPT_DIR+'dvt_tests/',    ['test_ds_terminate.py']],
+              ['dvt',           BASE_DVT_SRC+'response_to_bad_values_test', BASE_SCRIPT_DIR+'dvt_tests/',   ['test_debug_response_to_bad_values.py']],
 ]
 
 def generate_id(api):
@@ -156,8 +157,16 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
             if not (src_dir.find('compile_and_link') == -1):
                 config.replace_string(os.path.join(src_dir, 'Makefile'), 'c99', 'c89')
 
-            setup_platform(test_dir, os.path.join(sandbox_dir, SAMPLE_PLATFORM_RUN_DIR), mac_addr)
-            setup_platform(test_dir, os.path.join(sandbox_dir, SAMPLE_PLATFORM_STEP_DIR), mac_addr)
+            # Use config.c in the local directory if it exists
+            try:
+                filename = "%s/config.c" % test[SRC_DIR]
+                f = open(filename, 'r')
+                f.close()
+                setup_platform(test_dir, os.path.join(sandbox_dir, test[SRC_DIR]), mac_addr)
+            except IOError:
+                setup_platform(test_dir, os.path.join(sandbox_dir, SAMPLE_PLATFORM_RUN_DIR), mac_addr)
+                setup_platform(test_dir, os.path.join(sandbox_dir, SAMPLE_PLATFORM_STEP_DIR), mac_addr)
+
             execution_type = test[EXECUTION]
 
             if update_config_header:
@@ -228,24 +237,31 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
                     if debug_on and test_script.find('test_nodebug') == 0:
                         print '>>> [%s] Skip [%s]-[%s] since debug is on' % (description, execution_type, test_script)
                     else:
-                        print '>>> [%s] Executing [%s]-[%s]' % (description, execution_type, test_script)
+                        # skip the test if script filename starts with 'test_debug'
+                        if (not debug_on and test_script.find('test_debug') == 0) or (update_config_header and test_script.find('test_debug') == 0):
+                            print '>>> [%s] Skip [%s]-[%s] since debug is off or update_config_header' % (description, execution_type, test_script)
+                            filename1 = "%s.txt" % device_id
+                            print '>>> deleting file [%s]' % filename1
+                            os.unlink(filename1)
+                        else:
+                            print '>>> [%s] Executing [%s]-[%s]' % (description, execution_type, test_script)
                         
-                        # Argument list to call nose with.  Generate a nosetest xml file in 
-                        # current directory, pass in idigi / iik connection settings.
-                        arguments = ['nosetests',
-                                     '--with-xunit',
-                                     '-s', # Don't capture STDOUT (allow everything else to print)
-                                     '--xunit-file=%s_%s_%s_%s.nxml' % (description, execution_type, src_dirname, test_script),
-                                     '--with-iik',
-                                     '--idigi_username=%s'  % api.username,
-                                     '--idigi_password=%s'  % api.password,
-                                     '--idigi_hostname=%s'  % api.hostname,
-                                     '--iik_device_id=%s' % device_id,
-                                     '--iik_config=%s/config.ini' % test_dir]
+                            # Argument list to call nose with.  Generate a nosetest xml file in 
+                            # current directory, pass in idigi / iik connection settings.
+                            arguments = ['nosetests',
+                                         '--with-xunit',
+                                         '-s', # Don't capture STDOUT (allow everything else to print)
+                                         '--xunit-file=%s_%s_%s_%s.nxml' % (description, execution_type, src_dirname, test_script),
+                                         '--with-iik',
+                                         '--idigi_username=%s'  % api.username,
+                                         '--idigi_password=%s'  % api.password,
+                                         '--idigi_hostname=%s'  % api.hostname,
+                                         '--iik_device_id=%s' % device_id,
+                                         '--iik_config=%s/config.ini' % test_dir]
                         
-                        test_to_run = os.path.join(test_dir, test_script)
-                        nose.run(defaultTest=[test_to_run], argv=arguments)
-                        print '>>> [%s] Finished [%s]-[%s]' % (description, execution_type, test_script)
+                            test_to_run = os.path.join(test_dir, test_script)
+                            nose.run(defaultTest=[test_to_run], argv=arguments)
+                            print '>>> [%s] Finished [%s]-[%s]' % (description, execution_type, test_script)
             finally:
                 # Killing the process should also cause the thread to complete.
                 print '>>> [%s] Killing Process with pid [%s]' % (description, pid)
