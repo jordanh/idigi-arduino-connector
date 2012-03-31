@@ -29,9 +29,9 @@ PLATFORM_DIR=../../platforms/linux
 vpath $(IDIGI_DIR)/%.c
 vpath $(PLATFORM_DIR)/%.c
 
-CFLAGS += -Winit-self -Wbad-function-cast -Wpointer-arith -Wlogical-op -Wmissing-parameter-type -Wstrict-prototypes -Wformat-security 
-CFLAGS += -Wformat-y2k -Wold-style-definition -Wcast-align -Wformat-nonliteral -Wpadded -Wredundant-decls -Wvariadic-macros
-# CFLAGS += -Wjump-misses-init -Wtrampolines 
+#CFLAGS += -Winit-self -Wbad-function-cast -Wpointer-arith -Wlogical-op -Wmissing-parameter-type -Wstrict-prototypes -Wformat-security 
+#CFLAGS += -Wformat-y2k -Wold-style-definition -Wcast-align -Wformat-nonliteral -Wpadded -Wredundant-decls -Wvariadic-macros
+## CFLAGS += -Wjump-misses-init -Wtrampolines 
 CFLAGS += -Wno-error=padded -Wno-error=format-nonliteral -Wno-unused-function
 
 #CFLAGS += $(DFLAGS) -MD -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL 
