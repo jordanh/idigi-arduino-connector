@@ -180,6 +180,7 @@ typedef struct
             rci_string_t tag;
             rci_string_t content;
         } string;
+        rci_string_t entity;
         rci_attribute_list_t attribute;
     } input;
     struct {

@@ -374,10 +374,14 @@ static idigi_bool_t rci_parse_input_ampersand(rci_t * const rci)
     {
     case rci_input_state_element_param_value:
         rci->input.state = rci_input_state_element_param_value_escaping;
+        rci->input.value = nul;
+        assert(rci->input.entity.data == NULL);
         break;
 
     case rci_input_state_content:
         rci->input.state = rci_input_state_content_escaping;
+        rci->input.value = nul;
+        assert(rci->input.entity.data == NULL);
         break;
         
     default:
@@ -398,8 +402,10 @@ static idigi_bool_t rci_parse_input_semicolon(rci_t * const rci)
     {
     case rci_input_state_element_param_value_escaping:
     case rci_input_state_content_escaping:
-        /* find entity */
-        /* use write pointer - tricky stuff here */
+        assert(rci->input.entity.data != NULL);
+        rci->input.entity.length = (rci->input.position - rci->input.entity.data);
+        rci->input.value = rci_entity_value(rci->input.entity.data, rci->input.entity.length);
+        assert(rci->input.value != nul);
         break;
 
     case rci_input_state_element_param_value:
@@ -429,7 +435,14 @@ static idigi_bool_t rci_parse_input_other(rci_t * const rci)
         if (rci->input.string.tag.data == NULL)
             rci->input.string.tag.data = rci->input.position;
         break;
-                
+
+    case rci_input_state_element_param_value_escaping:
+    case rci_input_state_content_escaping:
+        if (rci->input.entity.data == NULL)
+            rci->input.entity.data = rci->input.position;
+        rci->input.value = nul;
+        break;
+               
     case rci_input_state_element_param_quote:
     default:
         rci->status = rci_status_internal_error;
@@ -501,13 +514,15 @@ static void rci_parse_input(rci_t * const rci)
         if (!continue_parsing)
             goto done;
         
-        /* find out if we are compressing entities */
-        if (rci->input.position != rci_buffer_position(&rci->buffer.input))
+        if (rci->input.value != nul)
         {
-            *(rci->input.position) = rci->input.value;
-            rci->input.position++;
-        }
-        
+            /* find out if we are compressing entities */
+            if (rci->input.position != rci_buffer_position(&rci->buffer.input))
+            {
+                *(rci->input.position) = rci->input.value;
+                rci->input.position++;
+            }
+        }    
         rci_buffer_advance(input, 1);
     }
     
