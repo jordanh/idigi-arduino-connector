@@ -215,8 +215,9 @@ static idigi_bool_t rci_parse_input_less_than_sign(rci_t * const rci)
         if (rci->traversal.id.element == -1)
         {
             /* NUL-terminate and validate content contains only whitespace */
-            /* TODO: need debug specific code here - can't call str*() methods as the contant is not NUL-terminated */
-            //assert((rci_buffer_write(&rci->buffer.input, nul), (strspn(rci->input.string.content, " \t\n\r\f") == strlen(rci->input.string.content))));
+#if 0 /* TODO: need debug specific code here - can't call str*() methods as the contant is not NUL-terminated */
+            assert((rci_buffer_write(&rci->buffer.input, nul), (strspn(rci->input.string.content, " \t\n\r\f") == strlen(rci->input.string.content))));
+#endif
         }
         else
         {
@@ -442,7 +443,10 @@ static idigi_bool_t rci_parse_input_other(rci_t * const rci)
 
 static void rci_parse_input(rci_t * const rci)
 {
-//    static char internal_buffer_storage[IDIGI_RCI_MAXIMUM_CONTENT_LENGTH + sizeof nul];
+#if 0 /* TODO: Still not sure the best place for this yet -ASK */
+    static char internal_buffer_storage[IDIGI_RCI_MAXIMUM_CONTENT_LENGTH + sizeof nul];
+#endif
+
     rci_buffer_t * const input = &rci->buffer.input;
         
     while ((rci_buffer_remaining(input) != 0) && (rci->parser.state.current == rci_parser_state_input))

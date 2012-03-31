@@ -67,7 +67,7 @@ typedef enum
     rci_parser_state_input,
     rci_parser_state_traversal,
     rci_parser_state_output,
-    rci_parser_state_error,
+    rci_parser_state_error
 } rci_parser_state_t;
 
 typedef enum
@@ -82,14 +82,14 @@ typedef enum
 	rci_input_state_element_param_value,
 	rci_input_state_element_param_value_escaping,
 	rci_input_state_content,
-	rci_input_state_content_escaping,
+	rci_input_state_content_escaping
 } rci_input_state_t;
 
 typedef enum
 {
     rci_traversal_state_all_groups_start,
     rci_traversal_state_all_groups_group_start,
-    rci_traversal_state_one_group,
+    rci_traversal_state_one_group
 } rci_traversal_state_t;
 
 typedef enum
@@ -111,13 +111,13 @@ typedef enum
 	rci_output_state_content,
 	rci_output_state_content_scan,
 	rci_output_state_content_entity,
-	rci_output_state_content_semicolon,
+	rci_output_state_content_semicolon
 } rci_output_state_t;
 
 typedef enum
 {
     rci_error_state_none,
-    rci_error_state_complete,
+    rci_error_state_complete
 } rci_error_state_t;
 
 typedef enum
@@ -126,7 +126,7 @@ typedef enum
     rci_output_type_content,
     rci_output_type_end_tag,
     rci_output_type_unary,
-    rci_output_type_three_tuple,
+    rci_output_type_three_tuple
 } rci_output_type_t;    
 
 typedef enum
