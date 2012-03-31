@@ -33,10 +33,13 @@ extern void idigiThreadStackInit(void);
 extern void print_remote_configurations(void);
 extern int ethernet_configuration_init(void);
 
+#if 0 /* already in header? */
 extern idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
                                     void * const request_data, size_t const request_length,
                                     void * response_data, size_t * const response_length);
+#endif
 
+#if 0
 void * idigi_run_thread(void * arg)
 {
     idigi_status_t status = idigi_success;
@@ -84,7 +87,6 @@ void * application_run_thread(void * arg)
     pthread_exit(arg);
 }
 
-#if 0
 int main (void)
 {
     pthread_t idigi_thread;
@@ -126,22 +128,23 @@ done:
 }
 
 #else
+
 #include "../../../../private/idigi_def.h"
 #include "../../../../private/rci_parser.h"
 
-#define PARSER_BUFFER_LENGTH    64
+static char parser_input_buffer[64];
+static char parser_output_buffer[64];
 
-char parser_input_buffer[PARSER_BUFFER_LENGTH];
-char parser_output_buffer[PARSER_BUFFER_LENGTH];
-
-rci_parser_data_t parser_data = {parser_input_buffer, sizeof parser_input_buffer, parser_output_buffer, sizeof parser_output_buffer};
-
-char const off_string[] = "off";
+static rci_service_data_t parser_data = {
+    { parser_input_buffer, sizeof parser_input_buffer},
+    { parser_output_buffer, sizeof parser_output_buffer}
+};
 
 int main (int argc, char * argv[])
 {
-    rci_parser_status_t status = rci_parser_more_input;
+    rci_status_t status = rci_status_more_input;
     FILE * fp;
+    rci_session_t session = rci_session_start;
 
     if (argc != 2)
     {
@@ -158,35 +161,45 @@ int main (int argc, char * argv[])
         goto done;
     }
 
-    while (!feof(fp) && status != rci_parser_complete)
+    while (!feof(fp) && status != rci_status_complete)
     {
-
-        if (status == rci_parser_more_input)
+        if (status == rci_status_more_input)
         {
-            parser_data.input_bytes = fread(parser_data.input_buf, sizeof(char), PARSER_BUFFER_LENGTH, fp);
+            parser_data.input.bytes = fread(parser_input_buffer, sizeof parser_input_buffer[0], asizeof(parser_input_buffer), fp);
         }
 
-        status = rci_parser(&parser_data);
-
+        if (session == rci_session_start)
+        {
+            status = rci_parser(session, &parser_data);
+        }
+        else
+        {
+            session = rci_session_active;
+            status = rci_parser(session);
+        }
+            
         switch (status)
         {
 
-        case rci_parser_busy:
+        case rci_status_busy:
             break;
 
-        case rci_parser_more_input:
-            parser_data.input_buf = parser_input_buffer;
-            parser_data.input_bytes = sizeof parser_input_buffer;
+        case rci_status_more_input:
+            parser_data.input.data = parser_input_buffer;
+            parser_data.input.bytes = sizeof parser_input_buffer;
             break;
 
-        case rci_parser_complete:
-        case rci_parser_flush_output:
-            printf("\"%.*s\"\n", parser_data.output_bytes, parser_data.output_buf);
-            parser_data.output_buf = parser_output_buffer;
-            parser_data.output_bytes = sizeof parser_output_buffer;
+        case rci_status_complete:
+        case rci_status_flush_output:
+            printf("\"%.*s\"\n", parser_data.output.bytes, parser_data.output.data);
+            parser_data.output.data = parser_output_buffer;
+            parser_data.output.bytes = sizeof parser_output_buffer;
             break;
 
-        case rci_parser_error:
+        case rci_status_internal_error:
+            printf("Broken\n");
+            goto done;
+        case rci_status_error:
             printf("Cancel Message\n");
             goto done;
         default:

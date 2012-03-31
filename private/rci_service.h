@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 Digi International Inc., All Rights Reserved
+ *  Copyright (c) 2012 Digi International Inc., All Rights Reserved
  *
  *  This software contains proprietary and confidential information of Digi
  *  International Inc.  By accepting transfer of this copy, Recipient agrees
@@ -35,21 +35,22 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_msg_error_t error_status = idigi_msg_error_none;
-    rci_parser_data_t * parser_data;
     msg_session_t * session;
+    rci_service_data_t * service_data;
 
     ASSERT_GOTO(idigi_ptr != NULL, done);
     ASSERT_GOTO(service_request != NULL, done);
-    ASSERT_GOTO(service_request->session != NULL, done);
 
     session = service_request->session;
+    ASSERT_GOTO(session != NULL, done);
 
-    if (session->service_context == NULL)
+    service_data = session->service_context;
+    if (service_data == NULL)
     {
         /* 1st time here so let's allocate service context memory for rci parser */
         void * ptr;
 
-        status = malloc_data(idigi_ptr, sizeof *parser_data, &ptr);
+        status = malloc_data(idigi_ptr, sizeof *service_data, &ptr);
         if (status != idigi_callback_continue)
         {
             if (status != idigi_callback_busy)
@@ -59,12 +60,11 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
             goto done;
         }
 
-        session->service_context = ptr;
+        service_data = ptr;
         MsgSetStart(service_request->need_data->flags);
     }
-    parser_data = session->service_context;
 
-    ASSERT(parser_data != NULL);
+    ASSERT(service_data != NULL);
     ASSERT(service_request->have_data != NULL);
     ASSERT(service_request->need_data != NULL);
 
@@ -75,45 +75,57 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
     case msg_service_type_need_data:
     case msg_service_type_have_data:
     {
-        rci_parser_status_t ccode;
-        parser_data->input_buf = service_request->have_data->data_ptr;
-        parser_data->input_bytes = service_request->have_data->length_in_bytes;
+        rci_status_t ccode;
 
-        parser_data->output_buf = service_request->need_data->data_ptr;
-        parser_data->output_bytes = service_request->need_data->length_in_bytes;
+        if (session->service_context == NULL)
+        {
+            session->service_context = service_data;
+ 
+            service_data->input.data = service_request->have_data->data_ptr;
+            service_data->input.bytes = service_request->have_data->length_in_bytes;
 
-        ccode = rci_parser(parser_data);
+            service_data->output.data = service_request->need_data->data_ptr;
+            service_data->output.bytes = service_request->need_data->length_in_bytes;
+            
+            ccode = rci_parser(rci_session_start, service_data);
+        }
+        else
+        {
+            ccode = rci_parser(rci_session_active);
+        }
 
         switch (ccode)
         {
-        case rci_parser_complete:
+        case rci_status_complete:
             MsgSetLastData(service_request->need_data->flags);
             MsgSetSendNow(service_request->need_data->flags);
-            idigi_debug("response: %d %.*s\n", parser_data->output_bytes, parser_data->output_bytes, parser_data->output_buf);
-            service_request->need_data->length_in_bytes = parser_data->output_bytes;
+            idigi_debug("response: %d %.*s\n", service_data->output.bytes, service_data->output.bytes, service_data->output.data);
+            service_request->need_data->length_in_bytes = service_data->output.bytes;
             break;
 
-        case rci_parser_busy:
+        case rci_status_busy:
             status = idigi_callback_busy;
             break;
 
-        case rci_parser_more_input:
+        case rci_status_more_input:
             break;
 
-        case rci_parser_flush_output:
+        case rci_status_flush_output:
             MsgSetSendNow(service_request->need_data->flags);
-            service_request->need_data->length_in_bytes = parser_data->output_bytes;
+            service_request->need_data->length_in_bytes = service_data->output.bytes;
             status = idigi_callback_busy;
             break;
 
-        case rci_parser_error:
+        case rci_status_internal_error:
+            /* no break; */
+        case rci_status_error:
             error_status = idigi_msg_error_cancel;
             break;
         }
         break;
     }
     case msg_service_type_error:
-        status = rci_parser(NULL);
+        status = rci_parser(rci_status_error);
         break;
 
     case msg_service_type_free:

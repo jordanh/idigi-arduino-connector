@@ -27,8 +27,14 @@ PUBLIC_HEADER_DIR=../../../include
 
 vpath $(IDIGI_DIR)/%.c
 
+CFLAGS += -Winit-self -Wbad-function-cast -Wpointer-arith -Wlogical-op -Wmissing-parameter-type -Wstrict-prototypes -Wformat-security 
+CFLAGS += -Wformat-y2k -Wold-style-definition -Wcast-align -Wformat-nonliteral -Wpadded -Wredundant-decls -Wvariadic-macros
+# CFLAGS += -Wjump-misses-init -Wtrampolines 
+CFLAGS += -Wno-error=padded -Wno-error=format-nonliteral
+
 CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL 
 CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -Os
+CFLAGS += -DIDIGI_RCI_MAXIMUM_CONTENT_LENGTH=256
 
 OBJS = main.o $(IDIGI_DIR)/idigi_api.o
 LIBS = -lc -lz
@@ -36,7 +42,7 @@ LIBS = -lc -lz
 SAMPLE = idigi
 all: $(SAMPLE)
 
-CFLAGS += -Wl,-Map,$(SAMPLE).map
+LDFLAGS += -Wl,-Map,$(SAMPLE).map
 
 main.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h
 $(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PUBLIC_HEADER_DIR)/idigi_config.h \
@@ -44,12 +50,12 @@ $(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/
                         $(IDIGI_DIR)/idigi_cc.h $(IDIGI_DIR)/idigi_ds.h $(IDIGI_DIR)/idigi_fw.h \
                         $(IDIGI_DIR)/idigi_msg.h $(IDIGI_DIR)/layer.h $(IDIGI_DIR)/network_intf.h \
                         $(IDIGI_DIR)/options.h $(IDIGI_DIR)/os_intf.h $(IDIGI_DIR)/bele.h \
-                        $(IDIGI_DIR)/idigi_def.h
+                        $(IDIGI_DIR)/idigi_def.h $(IDIGI_DIR)/rci_service.h $(IDIGI_DIR)/rci_parser.h
 
 $(OBJS): *.c $(IDIGI_DIR)/*.c
 
 $(SAMPLE): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(SAMPLE)
+	$(CC) $(LDFLAGS) $(OBJS) $(LIBS) -o $(SAMPLE)
 
 .PHONY: clean
 clean:

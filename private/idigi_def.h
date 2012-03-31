@@ -42,6 +42,7 @@
 #endif
 
 #define ASSERT_GOTO(cond, label)    ON_ASSERT_DO_((cond), {goto label;}, {})
+#define CONFIRM(cond)               do { switch(0) {case 0: case (cond):;} } while (0)
 
 #define UNUSED_PARAMETER(x)     ((void)x)
 

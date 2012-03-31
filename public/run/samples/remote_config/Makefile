@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
+#  Copyright (c) 2011-2012 Digi International Inc., All Rights Reserved
 #
 #  This software contains proprietary and confidential information of Digi
 #  International Inc.  By accepting transfer of this copy, Recipient agrees
@@ -29,46 +29,41 @@ PLATFORM_DIR=../../platforms/linux
 vpath $(IDIGI_DIR)/%.c
 vpath $(PLATFORM_DIR)/%.c
 
-CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL 
-CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR) -I. -g
+CFLAGS += -Winit-self -Wbad-function-cast -Wpointer-arith -Wlogical-op -Wmissing-parameter-type -Wstrict-prototypes -Wformat-security 
+CFLAGS += -Wformat-y2k -Wold-style-definition -Wcast-align -Wformat-nonliteral -Wpadded -Wredundant-decls -Wvariadic-macros
+# CFLAGS += -Wjump-misses-init -Wtrampolines 
+CFLAGS += -Wno-error=padded -Wno-error=format-nonliteral -Wno-unused-function
 
-OBJS = device_info.o device_stats.o ethernet.o debug_info.o serial.o remote_config_cb.o remote_config.o \
-       application.o main.o os.o config.o firmware.o \
-       $(IDIGI_DIR)/idigi_api.o $(PLATFORM_DIR)/network.o 
+CFLAGS += $(DFLAGS) -MD -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL 
+CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR) -I. -g
+CFLAGS += -DIDIGI_RCI_MAXIMUM_CONTENT_LENGTH=256
+
 LIBS = -lc -lz -lpthread
 
 SAMPLE = idigi
+.PHONY:all
 all: $(SAMPLE)
 
-CFLAGS += -Wl,-Map,$(SAMPLE).map
+LDFLAGS += -Wl,-Map,$(SAMPLE).map
 
-firmware.o:
-config.o:
-os.o:
-main.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PLATFORM_DIR)/platform.h $(IDIGI_DIR)/rci_parser.h $(IDIGI_DIR)/idigi_strings.h
-device_stats.o:
-device_info.o:
-ethernet.o:
-serial.o:
-debug_info.o: $(PUBLIC_HEADER_DIR)/idigi_config.h $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h \
-              ./remote_config.h ./remote_config_cb.h $(PLATFORM_DIR)/platform.h
-remote_config.o:
-remote_config_cb.o:
-application.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h ./remote_config.h $(PLATFORM_DIR)/platform.h
-$(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PUBLIC_HEADER_DIR)/idigi_config.h \
-                        $(IDIGI_DIR)/chk_config.h $(IDIGI_DIR)/debug.h $(IDIGI_DIR)/ei_packet.h \
-                        $(IDIGI_DIR)/idigi_cc.h $(IDIGI_DIR)/idigi_ds.h $(IDIGI_DIR)/idigi_fw.h \
-                        $(IDIGI_DIR)/idigi_msg.h $(IDIGI_DIR)/layer.h $(IDIGI_DIR)/network_intf.h \
-                        $(IDIGI_DIR)/options.h $(IDIGI_DIR)/os_intf.h $(IDIGI_DIR)/bele.h \
-                        $(IDIGI_DIR)/idigi_def.h
+SRCS = device_info.c \
+       device_stats.c ethernet.c debug_info.c serial.c remote_config_cb.c remote_config.c application.c \
+       main.c os.c config.c firmware.c \
+       $(PLATFORM_DIR)/network.c
 
-$(OBJS): *.c $(IDIGI_DIR)/*.c
+# removed for testing - ASK
+# $(IDIGI_DIR)/idigi_api.c $(PLATFORM_DIR)/network.c
+
+OBJS = $(SRCS:.c=.o)
+DEPS = $(OBJS:.o=.d)
+
+-include $(DEPS)
 
 $(SAMPLE): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(SAMPLE)
+	$(CC) $(LDFLAGS) $^ $(LIBS) -o $@
 
 .PHONY: clean
 clean:
-	-rm -f $(OBJS)
+	-rm -f $(OBJS) $(DEPS)
 
 
