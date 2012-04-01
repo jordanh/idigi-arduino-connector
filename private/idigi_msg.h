@@ -1869,6 +1869,10 @@ done:
 }
 
 #if defined(IDIGI_REMOTE_CONFIGURATION)
+
+#if defined IDIGI_RCI_MAXIMUM_CONTENT_LENGTH
 #include "rci_service.h"
+#endif
+
 #endif
 

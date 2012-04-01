@@ -38,7 +38,7 @@
 #if defined(IDIGI_FIRMWARE_SERVICE)
 #include "idigi_fw.h"
 #endif
-#if defined(IDIGI_DATA_SERVICE) || defined(IDIGI_FILE_SYSTEM)
+#if defined(IDIGI_DATA_SERVICE) || defined(IDIGI_FILE_SYSTEM) || defined(IDIGI_REMOTE_CONFIGURATION)
 #include "idigi_msg.h"
 #endif
 #if defined(IDIGI_DATA_SERVICE)
@@ -47,18 +47,11 @@
 #else
 #include "idigi_ds.h"
 #endif
-#if defined IDIGI_RCI_MAXIMUM_CONTENT_LENGTH
-#include "rci_service.h"
-#endif
 #endif
 #if defined(IDIGI_FILE_SYSTEM)
 #include "idigi_fs.h"
 #endif
 #include "layer.h"
-
-#if defined(IDIGI_REMOTE_CONFIGURATION_SERVICE)
-#include "idigi_strings.h"
-#endif
 
 idigi_handle_t idigi_init(idigi_callback_t const callback)
 {
