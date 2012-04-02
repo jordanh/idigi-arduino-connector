@@ -162,6 +162,13 @@ forcedErrorInfo_t forcedErrorTable[] =
         0,
         0
     },
+    {
+        idigi_config_remote_configuration,
+        false,
+        0,
+        0,
+        0
+    },
 #if (IDIGI_VERSION >= IDIGI_VERSION_1100)
     {
         idigi_config_max_transaction,
