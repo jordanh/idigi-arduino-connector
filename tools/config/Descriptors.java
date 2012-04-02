@@ -1,7 +1,6 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import sun.misc.BASE64Encoder;
 
 public class Descriptors {
 
@@ -181,13 +180,46 @@ public class Descriptors {
         System.out.println(descriptors);
         
         uploadDescriptor("descriptor", descriptors);
+    }    
+
+    
+    public static String encode(String rawData)
+    {
+        final String base64Table = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "abcdefghijklmnopqrstuvwxyz" + "0123456789" + "+/";
+        int bytesToPad = (3 - (rawData.length() % 3)) % 3;
+        byte[] byteArray;
+
+        switch (bytesToPad)
+        {
+            case 0:
+	    default:
+                byteArray = rawData.getBytes();
+                break;
+
+            case 1:
+                byteArray = (rawData + '\000').getBytes();
+                break;
+
+            case 2:
+                byteArray = (rawData + '\000' + '\000').getBytes();
+                break;
+        }
+
+        String encodedData = "";
+        for (int i = 0; i < byteArray.length; i += 3)
+        {
+            int j = ((byteArray[i] & 0xff) << 16) + ((byteArray[i + 1] & 0xff) << 8) + (byteArray[i + 2] & 0xff);
+
+            encodedData = encodedData + base64Table.charAt((j >> 18) & 0x3f) + base64Table.charAt((j >> 12) & 0x3f) + base64Table.charAt((j >> 6) & 0x3f) + base64Table.charAt(j & 0x3f);
+        }
+
+        return encodedData.substring(0, encodedData.length() - bytesToPad) + "==".substring(0, bytesToPad);
     }
 
     public void sendCloudData(String target, String method, String message)
     {
         String cloud = "http://test.idigi.com" + target;
-        BASE64Encoder encoder = new BASE64Encoder();
-        String encodedCredential = encoder.encode((username + ":" + password).getBytes());
+        String encodedCredential = encode(username + ":" + password);
 
         try
         {
