@@ -46,6 +46,7 @@ public:
         char *serverHost);
   void setup(uint8_t *mac, IPAddress ip, uint32_t vendorId,
         char *serverHost, char *deviceType);
+  bool isConnected();
   idigi_status_t step();
   
   /* iDigi Connector callback */
@@ -92,6 +93,7 @@ public:
 private:
   /* iDigi state */
   idigi_handle_t idigi_handle;
+  bool connected;
 
   /* network state */
   EthernetClient client;

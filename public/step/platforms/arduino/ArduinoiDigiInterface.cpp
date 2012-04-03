@@ -23,6 +23,7 @@ ArduinoiDigiInterfaceClass::ArduinoiDigiInterfaceClass()
   setPhoneNumber((const char *) IDIGI_DEFAULT_PHONENUMBER);
   
   idigi_handle = NULL;
+  connected = false;
 }
 
 /* important interface functions */
@@ -50,6 +51,11 @@ void ArduinoiDigiInterfaceClass::setup(uint8_t *mac, IPAddress ip, uint32_t vend
   setup(mac, ip, vendorId, serverHost);
 }
 
+bool ArduinoiDigiInterfaceClass::isConnected()
+{
+  return connected;
+}
+
 idigi_status_t ArduinoiDigiInterfaceClass::step()
 {
   return idigi_step(idigi_handle);
@@ -63,10 +69,15 @@ idigi_callback_status_t ArduinoiDigiInterfaceClass::appCallback(
                             size_t * const response_length)
 {
   idigi_callback_status_t   status = idigi_callback_continue;
-  
+  //AR_DEBUG_PRINTF("iDigi.appCallback(): %d %d\n", class_id, request_id);
   switch (class_id)
   {
     case idigi_class_config:
+      if (request_id.config_request == idigi_config_ip_addr)
+      {
+        // HACK: from testing we know this callback is called if we are connected:
+        iDigi.connected = true;
+      }      
       status = app_config_handler(request_id.config_request, request_data, request_length, response_data, response_length);
       break;
     case idigi_class_operating_system:
@@ -115,7 +126,12 @@ size_t ArduinoiDigiInterfaceClass::network_recv(idigi_network_handle_t *handle, 
 int ArduinoiDigiInterfaceClass::network_connected(idigi_network_handle_t *handle)
 {
 //  AR_DEBUG_PRINTF("network_connected: %d\r\n", ((EthernetClient *) handle)->connected());
-  return ((EthernetClient *) handle)->connected();
+  int socket_connected = ((EthernetClient *) handle)->connected();
+  if (connected && socket_connected == 0)
+  {
+    connected = false;
+  } 
+  return socket_connected;
 }
 
 void ArduinoiDigiInterfaceClass::network_close(idigi_network_handle_t *handle)
