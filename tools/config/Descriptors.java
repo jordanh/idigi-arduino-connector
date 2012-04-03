@@ -58,6 +58,16 @@ public class Descriptors {
         vendor_id = args[1];
         device_type = args[2];
         fw_version = args[3];
+        try
+        {
+            Integer.parseInt(fw_version);
+        }
+        catch (Exception x)
+        {
+            System.out.println("Invalid f/w version!");
+            System.exit(1);
+        }
+
         call_delete = true;
     }
 
