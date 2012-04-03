@@ -3,6 +3,7 @@
 #define __ARDUINO_IDIGI_INTERFACE_H__
 
 #ifdef __cplusplus
+#include "ArduinoiDigiDataService.h"
 #include <Ethernet.h>
 #endif
 
@@ -47,6 +48,16 @@ public:
         char *serverHost, char *deviceType);
   idigi_status_t step();
   
+  /* iDigi Connector callback */
+  static idigi_callback_status_t appCallback(idigi_class_t const class_id,
+                                      idigi_request_t const request_id,
+                                      void * const request_data,
+                                      size_t const request_length, void * response_data,
+                                      size_t * const response_length);
+
+  /* cloud file interface */
+  static ArduinoiDigiDataService dataService;
+  
   /* network functions */
   int network_connect(char const * const host_name, idigi_network_handle_t **network_handle);
   size_t network_send(idigi_network_handle_t *handle, char *buffer, size_t length);
@@ -74,11 +85,14 @@ public:
   uint32_t getLinkSpeed();
   char *getPhoneNumber();
   
+  /* misc accessor functions */
+  idigi_handle_t getHandle();
+  
   
 private:
   /* iDigi state */
   idigi_handle_t idigi_handle;
-  
+
   /* network state */
   EthernetClient client;
   
@@ -92,11 +106,6 @@ private:
   idigi_connection_type_t _connectionType;
   uint32_t _linkSpeed;
   char _phoneNumber[IDIGI_PHONENUMBER_LENGTH];
-  
-  /* iDigi connector application callback */
-  static idigi_callback_status_t appCallback(idigi_class_t const class_id, idigi_request_t const request_id, void * const request_data,
-      size_t const request_length, void * response_data,
-      size_t * const response_length);
 };
 
 extern ArduinoiDigiInterfaceClass iDigi;

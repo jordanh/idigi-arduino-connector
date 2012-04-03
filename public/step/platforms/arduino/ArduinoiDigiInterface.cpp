@@ -21,6 +21,7 @@ ArduinoiDigiInterfaceClass::ArduinoiDigiInterfaceClass()
   _connectionType = idigi_lan_connection_type;
   _linkSpeed = IDIGI_DEFAULT_LINKSPEED;
   setPhoneNumber((const char *) IDIGI_DEFAULT_PHONENUMBER);
+  
   idigi_handle = NULL;
 }
 
@@ -31,7 +32,7 @@ void ArduinoiDigiInterfaceClass::setup(uint8_t *mac, IPAddress ip, uint32_t vend
   setIp(ip);
   setVendorId(vendorId);
   
-  idigi_handle = idigi_init((idigi_callback_t) appCallback);
+  idigi_handle = idigi_init((idigi_callback_t) &ArduinoiDigiInterfaceClass::appCallback);
   AR_DEBUG_PRINTF("idigi_init complete.\r\n");  
 }
 
@@ -54,7 +55,7 @@ idigi_status_t ArduinoiDigiInterfaceClass::step()
   return idigi_step(idigi_handle);
 }
 
-/* iDigi connector application callback */
+/* iDigi Connector callback */
 idigi_callback_status_t ArduinoiDigiInterfaceClass::appCallback(
                             idigi_class_t const class_id,
                             idigi_request_t const request_id, void * const request_data,
@@ -74,6 +75,8 @@ idigi_callback_status_t ArduinoiDigiInterfaceClass::appCallback(
     case idigi_class_network:
       status = app_network_handler(request_id.network_request, request_data, request_length, response_data, response_length);
       break;
+    case idigi_class_data_service:
+      status = dataService.appReqHandler(request_id.data_service_request, request_data, request_length, response_data, response_length);
     default:
       /* not supported */
       break;
@@ -86,7 +89,7 @@ idigi_callback_status_t ArduinoiDigiInterfaceClass::appCallback(
 int ArduinoiDigiInterfaceClass::network_connect(char const * const host_name, idigi_network_handle_t **network_handle)
 {
   int rc = client.connect(host_name, IDIGI_PORT);
-  AR_DEBUG_PRINTF("network_connect: %s\r\n", host_name);
+//  AR_DEBUG_PRINTF("network_connect: %s\r\n", host_name);
   *network_handle = (idigi_network_handle_t *) &client;
   return rc;
 }
@@ -102,13 +105,7 @@ size_t ArduinoiDigiInterfaceClass::network_send(idigi_network_handle_t *handle, 
 size_t ArduinoiDigiInterfaceClass::network_recv(idigi_network_handle_t *handle, int timeout_sec, char *buffer, size_t length)
 {
   EthernetClient *client = (EthernetClient *) handle;
-  unsigned int time_stop = millis() + timeout_sec * 1000;
-  AR_DEBUG_PRINTF("network_recv: timeout_sec = %d\r\n");
-  while (time_stop > millis()) {
-    if (!client->available())
-      delay(100); /* wait for data */
-  }
-  
+//  AR_DEBUG_PRINTF("network_recv: timeout_sec = %d\r\n", timeout_sec);
   if (!client->available())
     return 0;
   
@@ -117,13 +114,13 @@ size_t ArduinoiDigiInterfaceClass::network_recv(idigi_network_handle_t *handle, 
 
 int ArduinoiDigiInterfaceClass::network_connected(idigi_network_handle_t *handle)
 {
-  AR_DEBUG_PRINTF("network_connected: %d\r\n", ((EthernetClient *) handle)->connected());
+//  AR_DEBUG_PRINTF("network_connected: %d\r\n", ((EthernetClient *) handle)->connected());
   return ((EthernetClient *) handle)->connected();
 }
 
 void ArduinoiDigiInterfaceClass::network_close(idigi_network_handle_t *handle)
 {
-  AR_DEBUG_PRINTF("network_close\r\n");
+//  AR_DEBUG_PRINTF("network_close\r\n");
   ((EthernetClient *) handle)->stop();
 }
 
@@ -168,7 +165,7 @@ void ArduinoiDigiInterfaceClass::setDeviceType(const char *deviceType)
 
 void ArduinoiDigiInterfaceClass::setServerHost(const char *serverHost)
 {
-  AR_DEBUG_PRINTF("setServerHost(): %s\r\n", serverHost);
+//  AR_DEBUG_PRINTF("setServerHost(): %s\r\n", serverHost);
   strlcpy(_serverHost, serverHost, sizeof(_serverHost));
 }
 
@@ -233,7 +230,7 @@ char *ArduinoiDigiInterfaceClass::getDeviceType()
 
 char *ArduinoiDigiInterfaceClass::getServerHost()
 {
-  AR_DEBUG_PRINTF("getServerHost(): %s\r\n", _serverHost);
+//  AR_DEBUG_PRINTF("getServerHost(): %s\r\n", _serverHost);
   return _serverHost;
 }
 
@@ -255,7 +252,15 @@ char *ArduinoiDigiInterfaceClass::getPhoneNumber()
   return _phoneNumber;
 }
 
+/* misc accessor functions */
+idigi_handle_t ArduinoiDigiInterfaceClass::getHandle()
+{
+  return idigi_handle;
+}
+
+/* global and static member initialization */
 ArduinoiDigiInterfaceClass iDigi;
+ArduinoiDigiDataService ArduinoiDigiInterfaceClass::dataService = ArduinoiDigiDataService();
 
 extern "C" {
 /* C Interface */
