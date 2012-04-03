@@ -183,7 +183,7 @@ public class Descriptors {
     }    
 
     
-    public static String encode(String rawData)
+    private static String encode(String rawData)
     {
         final String base64Table = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "abcdefghijklmnopqrstuvwxyz" + "0123456789" + "+/";
         int bytesToPad = (3 - (rawData.length() % 3)) % 3;
@@ -191,17 +191,16 @@ public class Descriptors {
 
         switch (bytesToPad)
         {
-            case 0:
-	    default:
-                byteArray = rawData.getBytes();
-                break;
-
             case 1:
                 byteArray = (rawData + '\000').getBytes();
                 break;
 
             case 2:
                 byteArray = (rawData + '\000' + '\000').getBytes();
+                break;
+
+            default:
+                byteArray = rawData.getBytes();
                 break;
         }
 
@@ -216,7 +215,7 @@ public class Descriptors {
         return encodedData.substring(0, encodedData.length() - bytesToPad) + "==".substring(0, bytesToPad);
     }
 
-    public void sendCloudData(String target, String method, String message)
+    private void sendCloudData(String target, String method, String message)
     {
         String cloud = "http://test.idigi.com" + target;
         String encodedCredential = encode(username + ":" + password);
@@ -240,28 +239,25 @@ public class Descriptors {
 
             connection.connect();
             BufferedReader response = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String resp_line;
-            while ((resp_line = response.readLine()) != null)
-            {
-                System.out.println(resp_line);
-            }
             response.close();
             connection.disconnect();
         }
         catch (Exception x)
         {
+            System.out.println("Failed to " + method + " " + target);
             System.err.println(x);
             System.exit(1);
         }
     }
 
-    public void uploadDescriptor(String desc_name, String buffer)
+    private void uploadDescriptor(String desc_name, String buffer)
     {
         if (call_delete)
         {
             String target = "/ws/DeviceMetaData?condition=dvVendorId=" + vendor_id + " and dmDeviceType=\'" + device_type + "\' and dmVersion=" + fw_version;
 
             sendCloudData(target.replace(" ", "%20"), "DELETE", null);
+            System.out.println("Deleted: " + vendor_id + "/" + device_type);
             call_delete = false;
         }
 
@@ -274,6 +270,7 @@ public class Descriptors {
         message += "</DeviceMetaData>";
 
         sendCloudData("/ws/DeviceMetaData", "POST", message);
+        System.out.println("Created: " + vendor_id + "/" + device_type + "/" + desc_name);
     }
 
     private String username;
