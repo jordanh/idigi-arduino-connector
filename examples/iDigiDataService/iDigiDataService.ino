@@ -87,14 +87,14 @@ void iDigiRequestHandler(iDigiDataServiceRequest *request)
     
     if (String(request->getTarget()) == String("millis"))
     {
-      response_len = snprintf(response_buffer, sizeof(response_buffer), "%d", millis());
+      response_len = snprintf(response_buffer, sizeof(response_buffer), "%u", millis());
       iDigi.dataService.sendResponse(request, response_buffer, response_len-1);
     }
     else
     {
       response_len = snprintf(response_buffer, sizeof(response_buffer),
                "\r\n\t\tThat's perfectly lovely, thank you.\r\n"
-               "\t\tDid you know I've been awake for %d milliseconds?\r\n", millis());
+               "\t\tDid you know I've been awake for %u milliseconds?\r\n", millis());
       iDigi.dataService.sendResponse(request, response_buffer, response_len-1);
     }
   }
