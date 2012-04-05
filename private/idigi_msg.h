@@ -1099,8 +1099,10 @@ static msg_session_t * msg_start_session(idigi_data_t * const idigi_ptr, uint16_
 {
     static idigi_bool_t const client_owned = idigi_true;
     idigi_msg_data_t * const msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
-    msg_session_t * session = msg_create_session(idigi_ptr, msg_ptr, service_id, client_owned, result);
+    msg_session_t * session = NULL;
 
+    ASSERT_GOTO(msg_ptr != NULL, error);
+    session = msg_create_session(idigi_ptr, msg_ptr, service_id, client_owned, result);
     if (session != NULL)
     {
         *result = msg_initialize_data_block(session, msg_ptr->capabilities[msg_capability_server].window_size, msg_block_state_send_request);
@@ -1111,6 +1113,7 @@ static msg_session_t * msg_start_session(idigi_data_t * const idigi_ptr, uint16_
         }
     }
 
+error:
     return session;
 }
 
