@@ -51,9 +51,9 @@ typedef struct {
     unsigned char xbreak_enable;
 } serial_config_data_t;
 
-uint32_t serial_txbytes[SERIAL_COUNT];
+static uint32_t serial_txbytes[SERIAL_COUNT];
 
-serial_config_data_t serial_config_data[SERIAL_COUNT] = {
+static serial_config_data_t serial_config_data[SERIAL_COUNT] = {
     {9600, parity_none, 8, xbreak_off},
     {115200, parity_none, 8, xbreak_off},
 };
