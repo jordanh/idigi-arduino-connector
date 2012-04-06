@@ -52,15 +52,15 @@ forcedErrorInfo_t forcedErrorTable[] =
 {
     {                                       
         idigi_config_device_id,
-        false,
-        0,
+        true,
+        app_get_forced_error_device_id,
         0,
         0
     },
     {
         idigi_config_vendor_id,
-        false,
-        0,
+        true,
+        app_get_forced_error_vendor_id,
         0,
         0
     },
@@ -73,8 +73,8 @@ forcedErrorInfo_t forcedErrorTable[] =
     },
     {
         idigi_config_server_url,
-        false,
-        0,
+        true,
+        app_get_forced_error_server_url,
         0,
         0
     },

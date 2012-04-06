@@ -59,6 +59,9 @@ extern forcedErrorInfo_t forcedErrorTable[];
 extern int app_get_forced_error_ip_address(void **, size_t, void **, size_t *);
 extern int app_get_forced_error_rx_keepalive_interval(void **, size_t, void **, size_t *);
 extern int app_get_forced_error_device_type(void **, size_t, void **, size_t *);
+extern int app_get_forced_error_server_url(void **, size_t, void  **, size_t *);
+extern int app_get_forced_error_vendor_id(void **, size_t, void  **, size_t *);
+extern int app_get_forced_error_device_id(void **, size_t, void  **, size_t *);
 
 extern delay_receive_state_t delay_receive_state;
 extern reboot_state_t reboot_state;

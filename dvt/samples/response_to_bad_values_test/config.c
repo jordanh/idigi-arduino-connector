@@ -247,6 +247,20 @@ static int app_get_device_id(uint8_t ** id, size_t * size)
     return 0;
 }
 
+int app_get_forced_error_device_id(void ** request_data, size_t request_length, void ** id, size_t * size)
+{
+    UNUSED_ARGUMENT(request_data);
+    UNUSED_ARGUMENT(request_length);
+    
+    APP_DEBUG("Entering app_get_forced_error_device_id - returning [%d]\n", forcedErrorTable[idigi_config_device_id].status);
+
+    app_get_device_id((uint8_t **)id, size);
+    
+    *size = forcedErrorTable[idigi_config_device_id].size;
+    
+    return forcedErrorTable[idigi_config_device_id].status;
+}
+
 static int app_get_vendor_id(uint8_t ** id, size_t * size)
 {
 #error  "Specify vendor id"
@@ -257,6 +271,20 @@ static int app_get_vendor_id(uint8_t ** id, size_t * size)
     *size = sizeof device_vendor_id;
 
     return 0;
+}
+
+int app_get_forced_error_vendor_id(void ** request_data, size_t request_length, void ** id, size_t * size)
+{
+    UNUSED_ARGUMENT(request_data);
+    UNUSED_ARGUMENT(request_length);
+    
+    APP_DEBUG("Entering app_get_forced_error_vendor_id - returning [%d]\n", forcedErrorTable[idigi_config_vendor_id].status);
+    
+    app_get_vendor_id((uint8_t **)id, size);
+    
+    *size = forcedErrorTable[idigi_config_vendor_id].size;
+    
+    return forcedErrorTable[idigi_config_vendor_id].status;
 }
 
 static int app_get_device_type(char ** type, size_t * size)
@@ -297,6 +325,20 @@ static int app_get_server_url(char ** url, size_t * size)
     *size = strlen(idigi_server_url);
 
     return 0;
+}
+
+int app_get_forced_error_server_url(void ** request_data, size_t request_length, void **  url, size_t * size)
+{
+    UNUSED_ARGUMENT(request_data);
+    UNUSED_ARGUMENT(request_length);
+    
+    APP_DEBUG("Entering app_get_forced_error_server_url - returning [%d]\n", forcedErrorTable[idigi_config_server_url].status);
+    
+    app_get_server_url((char **)url, size);
+    
+    *size = forcedErrorTable[idigi_config_server_url].size;
+    
+    return forcedErrorTable[idigi_config_server_url].status;
 }
 
 static int app_get_connection_type(idigi_connection_type_t ** type)
