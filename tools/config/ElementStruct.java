@@ -33,10 +33,6 @@ public class ElementStruct {
         DATETIME (false),
         INVALID_TYPE (false);
 
-/*        private final static boolean[] ElementTypeMinMaxSupport = { true, true, true, true, true, 
-                                                             true, true, true, false, false, 
-                                                             false, false, true, true, false}; 
-*/
         private final static String STRING_0XHEX = "0xhex";
         
         private final boolean minMaxSupport;
@@ -85,7 +81,6 @@ public class ElementStruct {
         }
     }
     
-/*    final static List<String> element_access_list = Arrays.asList("read_only", "write_only", "read_write"); */
  
     public ElementStruct(String theName, String theDesc) throws BadStringOperationException
     {
@@ -103,21 +98,6 @@ public class ElementStruct {
         values = new LinkedList<NameStruct>();
         
     }
-/*
-    public static boolean listContainsString(List<String> list, String checkStr) 
-    {     
-        Iterator<String> iter = list.iterator();
-        while(iter.hasNext())     
-        {         
-            String s = iter.next();         
-            if (s.contains(checkStr))
-            {             
-                return true;
-            }     
-        }
-        return false;
-    } 
-*/
 
     public void addConfigType(String theType) throws BadStringOperationException
     {
@@ -172,27 +152,6 @@ public class ElementStruct {
          else throw new BadStringOperationException("Duplicate unit: " + theUnit);
     }
     
-/*
-    public boolean is_min_max_needed()
-    {
-        return isMinMaxOption(type);
-    }
-
-    public boolean is_enum_type()
-    {
-        return isType(type, ETYPE_ENUM);
-    }
-
-    public boolean is_float_type()
-    {
-        return isType(type, ETYPE_FLOAT);
-    }
-
-    public boolean is_signed_integer_type()
-    {
-        return isType(type, ETYPE_INT32);
-    }
-*/
     public boolean validate()
     {
         boolean valid = true;
@@ -267,34 +226,5 @@ public class ElementStruct {
     {
         System.out.println(String.valueOf(aObject));
     }
-
-    /*
-    public static boolean isElementType(String theType)
-    {
-        return listContainsString(element_type_list, theType);
-    }
-*/
-    /*
-    private static boolean isType(String theType)
-    {
-        if (type.equalsIgnoreCase(element_type_list.get(etype)))
-        {
-            return true;
-        }
-    }
-*/
-    
-/*    
-    private static boolean isMinMaxOption(String type)
-    {
-        int i = element_type_list.indexOf(type);
-        
-        if (i != -1)
-        {
-            return element_type_is_min_max_option[i];
-        }
-        return false;
-    }
-    */
 
 }

@@ -23,7 +23,6 @@ public class GroupStruct {
         description=null;
         elements = new LinkedList<ElementStruct>();
         errors = new LinkedList<NameStruct>();
-//        icConfigTool.log("Group: " + name);
     }
 
     public void addConfig(int theInstances)

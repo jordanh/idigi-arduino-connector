@@ -17,19 +17,33 @@ public class FileGenerator {
     final static String UNDERSCORE = "_";
     final static String ADD = " + ";
     
-    final static String INCLUDE_HEADER_STRING = "#include \"" + HEADER_FILENAME + "\"\n\n";
+    final static String IDIGI = "idigi";
+    final static String DEFINE = "#define ";
+    final static String ERROR = "error";
     
-    final static String TYPEDEF_ENUM_STRING = "typedef enum {\n";
+    final static String INCLUDE_HEADER = "#include \"idigi_remote.h\"\n\n";
     
-    final static String IDIGI_STRING = "idigi";
+    final static String TYPEDEF_ENUM = "typedef enum {\n";
     
-    final static String DEFINE_STRING = "#define ";
-    final static String LENGTH_STRING = "LENGTH";
-    final static String INDEX_STRING = "STRING_INDEX";
-    final static String ERROR_STRING = "error";
+    final static String NO_GROUP_STRUCTURE ="{\n" + 
+                                            SPACES + "{\n" + 
+                                            SPACES + SPACES + "NULL,\n" +
+                                            SPACES + SPACES + "0,\n" +
+                                            SPACES + SPACES + "0,\n" +
+                                            SPACES + SPACES + "{\n" +
+                                            SPACES + SPACES + SPACES + "0,\n" +
+                                            SPACES + SPACES + SPACES + "NULL\n" +
+                                            SPACES + SPACES + "},\n" +
+                                            SPACES + SPACES + "{\n" +
+                                            SPACES + SPACES + SPACES + "0,\n" +
+                                            SPACES + SPACES + SPACES + "NULL\n" +
+                                            SPACES + SPACES + "},\n" +
+                                            SPACES + "}\n" +
+                                            "};\n";
+
     
-    private final static String GLOBAL_ERROR_STRING = "idigi_global_error";
-    private final static String GROUP_ERROR_STRING = "idigi_group_error";
+    private final static String GLOBAL_RCI_ERROR = "idigi_rci_error";
+    private final static String GLOBAL_ERROR = "idigi_global_error";
 
     final static String IDIGI_REMOTE_ALL_STRING = "idigi_remote_all_strings";
     
@@ -55,8 +69,6 @@ public class FileGenerator {
         headerWriter.write(note_string);
         sourceWriter.write(note_string);
         
-        previousName = null;
-        
     }
     
     final static String[] ConfigTypes= { Descriptors.STATE_STRING, Descriptors.SETTING_STRING};
@@ -67,14 +79,13 @@ public class FileGenerator {
 
             headerWriter.write("#ifndef REMOTE_CONFIG_H\n" + 
                                 "#define REMOTE_CONFIG_H\n\n" + 
-                                INCLUDE_HEADER_STRING); // H file header
+                                INCLUDE_HEADER); // H file header
             
-            sourceWriter.write(INCLUDE_HEADER_STRING); //  C file include
+            sourceWriter.write(INCLUDE_HEADER); //  C file include
             
-            // Write all global error enum in H file
+            /* Write all global error enum in H file */
             writeGlobalErrorHeader(configData.getErrorGroups());
              
-//            for (ConfigData theConfig: configList)
             for (String type: ConfigTypes)
             {
                 LinkedList<GroupStruct> theConfig = configData.getConfigGroup(type);
@@ -83,21 +94,21 @@ public class FileGenerator {
                 {
                     configType = type;
                 
-                    // Write all enum in H file
+                    /* Write all enum in H file */
                     writeConfigHeader(theConfig, configData.getErrorGroups());
                 
-                    // Write all string length and index defines in C file
+                    /* Write all string length and index defines in C file */
                     writeDefineStrings(theConfig);
                 }
             }
             headerWriter.write("\n#endif /* REMOTE_CONFIG_H */\n"); // end of H file
 
-            // Start writing C file
+            /* Start writing C file */
             
-            // Write all string length and index defines in C file
+            /* Write all string length and index defines in C file */
             writeDefineGlobalErrors(configData.getErrorGroups());
             
-            // write idigi remote all strings in source file
+            /* write idigi remote all strings in source file */
             sourceWriter.write("\nchar const " + IDIGI_REMOTE_ALL_STRING + "[] = {\n");
             
             for (String type: ConfigTypes)
@@ -114,7 +125,7 @@ public class FileGenerator {
             writeErrorsRemoteAllStrings(configData.getErrorGroups());
             sourceWriter.write(SPACES + "\'\\0\'\n};\n"); // end of IDIGI_REMOTE_ALL_STRING
 
-            // write structures in source file
+            /* write structures in source file */
             for (String type: ConfigTypes)
             {
                 LinkedList<GroupStruct> theConfig = configData.getConfigGroup(type);
@@ -132,8 +143,8 @@ public class FileGenerator {
                 
                 if (configData.getConfigGroup(type).isEmpty())
                 {
-                    count_string += "0\n";
-                    count_string += "idigi_group_t const * idigi_" + type + "_groups = NULL;\n";
+                    count_string += "0;\n";
+                    count_string += "idigi_group_t const idigi_" + type + "_groups[] = " + NO_GROUP_STRUCTURE;
                 }
                 else
                 {
@@ -149,40 +160,27 @@ public class FileGenerator {
     private void writeDefineStrings(LinkedList<GroupStruct> groups) throws IOException
     {
         String defineName = null;
+
         
         for (GroupStruct group: groups)
         {
-            /* define name length */
             defineName = getDefineString(group.name);
-            sourceWriter.write(getDefineLength(defineName, group.name));
-
-            /* define name string inex */
-            sourceWriter.write(getDefineIndex(defineName, previousName));
-            
-            previousName = defineName;
+            /* define name string index */
+            sourceWriter.write(getDefineIndex(defineName, group.name));
             
             for (ElementStruct element: group.elements)
             {
-                /* define name length */
                 defineName = getDefineString(group.name, element.name);
-                sourceWriter.write(getDefineLength(defineName, element.name));
-                
-                /* define name string inex */
-                sourceWriter.write(getDefineIndex(defineName, previousName));
-
-                previousName = defineName;
+                /* define name string index */
+                sourceWriter.write(getDefineIndex(defineName, element.name));
 
                 if (ElementStruct.ElementType.toElementType(element.type) == ElementStruct.ElementType.ENUM)
                 {
                     for (NameStruct value: element.values)
                     {
-                        /* define name length */
                         defineName = getDefineString(group.name, element.name, value.name);
-                        sourceWriter.write(getDefineLength(defineName, value.name));
-                        
-                        /* define name string inex */
-                        sourceWriter.write(getDefineIndex(defineName, previousName));
-                        previousName = defineName;
+                        /* define name string index */
+                        sourceWriter.write(getDefineIndex(defineName, value.name));
                     }
                  }
             }
@@ -192,26 +190,12 @@ public class FileGenerator {
                 
                 for (NameStruct error: group.errors)
                 {
-                    /* define name length */
-                    defineName = getDefineString(group.name, ERROR_STRING, error.name);
-                    sourceWriter.write(getDefineLength(defineName, error.name));
-                    
-                    /* define name string inex */
-                    sourceWriter.write(getDefineIndex(defineName, previousName));
-                    previousName = defineName;
+                    defineName = getDefineString(group.name, ERROR, error.name);
+                    /* define name string index */
+                    sourceWriter.write(getDefineIndex(defineName, error.name));
                 }
             }
         }
-/*        
-        for (NameStruct error: errors)
-        {
-            defineName = getDefineString(ERROR_STRING, error.name);
-            sourceWriter.write(getDefineLength(defineName, error.name));
-            
-            sourceWriter.write(getDefineIndex(defineName, previousName));
-            previousName = defineName;
-        }
-*/        
     }
 
     private void writeRemoteAllStrings(LinkedList<GroupStruct> groups) throws IOException
@@ -244,71 +228,44 @@ public class FileGenerator {
             {
                 for (NameStruct error: group.errors)
                 {
-                    define_name = getDefineString(group.name, ERROR_STRING, error.name);
+                    define_name = getDefineString(group.name, ERROR, error.name);
                     sourceWriter.write(getCharString(define_name, error.name));
                 }
             }
         }
-/*        
-        for (NameStruct error: errors)
-        {
-            define_name = getDefineString(ERROR_STRING, error.name);
-            sourceWriter.write(getCharString(define_name, error.name));
-        }
-*/
     }
 
     private void writeDefineGlobalErrors(LinkedList<NameStruct> globalerrors) throws IOException
     {
         for (NameStruct error: ConfigGenerator.allErrorList)
         {
-            /* define name length */
-            String defineName = GLOBAL_ERROR_STRING.toUpperCase() + UNDERSCORE + error.name.toUpperCase();
-            sourceWriter.write(getDefineLength(defineName, error.name));
-            
-            /* define name string inex */
-            sourceWriter.write(getDefineIndex(defineName, previousName));
-            previousName = defineName;
+            String defineName = GLOBAL_RCI_ERROR.toUpperCase() + UNDERSCORE + error.name.toUpperCase();
+            /* define name string index */
+            sourceWriter.write(getDefineIndex(defineName, error.name));
         }
         for (NameStruct error: ConfigGenerator.globalErrorList)
         {
-            /* define name length */
-            String defineName = GLOBAL_ERROR_STRING.toUpperCase() + UNDERSCORE + error.name.toUpperCase();
-            sourceWriter.write(getDefineLength(defineName, error.name));
-            
-            /* define name string inex */
-            sourceWriter.write(getDefineIndex(defineName, previousName));
-            previousName = defineName;
+            String defineName = GLOBAL_RCI_ERROR.toUpperCase() + UNDERSCORE + error.name.toUpperCase();
+            /* define name string index */
+            sourceWriter.write(getDefineIndex(defineName, error.name));
         }
         for (NameStruct error: ConfigGenerator.commandErrorList)
         {
-            /* define name length */
-            String defineName = GLOBAL_ERROR_STRING.toUpperCase() + UNDERSCORE + error.name.toUpperCase();
-            sourceWriter.write(getDefineLength(defineName, error.name));
-            
-            /* define name string inex */
-            sourceWriter.write(getDefineIndex(defineName, previousName));
-            previousName = defineName;
+            String defineName = GLOBAL_RCI_ERROR.toUpperCase() + UNDERSCORE + error.name.toUpperCase();
+            /* define name string index */
+            sourceWriter.write(getDefineIndex(defineName, error.name));
         }
         for (NameStruct error: ConfigGenerator.groupErrorList)
         {
-            /* define name length */
-            String defineName = GLOBAL_ERROR_STRING.toUpperCase() + UNDERSCORE + error.name.toUpperCase();
-            sourceWriter.write(getDefineLength(defineName, error.name));
-            
-            /* define name string inex */
-            sourceWriter.write(getDefineIndex(defineName, previousName));
-            previousName = defineName;
+            String defineName = GLOBAL_RCI_ERROR.toUpperCase() + UNDERSCORE + error.name.toUpperCase();
+            /* define name string index */
+            sourceWriter.write(getDefineIndex(defineName, error.name));
         }
         for (NameStruct error: globalerrors)
         {
-            /* define name length */
-            String defineName = GROUP_ERROR_STRING.toUpperCase() + UNDERSCORE + error.name.toUpperCase();
-            sourceWriter.write(getDefineLength(defineName, error.name));
-            
-            /* define name string inex */
-            sourceWriter.write(getDefineIndex(defineName, previousName));
-            previousName = defineName;
+            String defineName = GLOBAL_ERROR.toUpperCase() + UNDERSCORE + error.name.toUpperCase();
+            /* define name string index */
+            sourceWriter.write(getDefineIndex(defineName, error.name));
         }
     }
 
@@ -316,27 +273,27 @@ public class FileGenerator {
     {
         for (NameStruct error: ConfigGenerator.allErrorList)
         {
-            String define_name = GLOBAL_ERROR_STRING.toUpperCase() + UNDERSCORE + error.name.toUpperCase();
+            String define_name = GLOBAL_RCI_ERROR.toUpperCase() + UNDERSCORE + error.name.toUpperCase();
             sourceWriter.write(getCharString(define_name, error.name));
         }
         for (NameStruct error: ConfigGenerator.globalErrorList)
         {
-            String define_name = GLOBAL_ERROR_STRING.toUpperCase() + UNDERSCORE + error.name.toUpperCase();
+            String define_name = GLOBAL_RCI_ERROR.toUpperCase() + UNDERSCORE + error.name.toUpperCase();
             sourceWriter.write(getCharString(define_name, error.name));
         }
         for (NameStruct error: ConfigGenerator.commandErrorList)
         {
-            String define_name = GLOBAL_ERROR_STRING.toUpperCase() + UNDERSCORE + error.name.toUpperCase();
+            String define_name = GLOBAL_RCI_ERROR.toUpperCase() + UNDERSCORE + error.name.toUpperCase();
             sourceWriter.write(getCharString(define_name, error.name));
         }
         for (NameStruct error: ConfigGenerator.groupErrorList)
         {
-            String define_name = GLOBAL_ERROR_STRING.toUpperCase() + UNDERSCORE + error.name.toUpperCase();
+            String define_name = GLOBAL_RCI_ERROR.toUpperCase() + UNDERSCORE + error.name.toUpperCase();
             sourceWriter.write(getCharString(define_name, error.name));
         }
         for (NameStruct error: globalerrors)
         {
-            String define_name = GROUP_ERROR_STRING.toUpperCase() + UNDERSCORE + error.name.toUpperCase();
+            String define_name = GLOBAL_ERROR.toUpperCase() + UNDERSCORE + error.name.toUpperCase();
             sourceWriter.write(getCharString(define_name, error.name));
         }
     }
@@ -424,7 +381,7 @@ public class FileGenerator {
             
             String element_string = "\n" + 
                                     SPACES + "{" + getRemoteAllString(element_name) + ", " + COMMENTED(element.name) + "\n" +
-                                    SPACES + getElementDefine("access", element.access) + 
+                                    SPACES + getElementDefine("access", getAccess(element.access)) + 
                                     SPACES + getElementDefine("type", element.type);
             
             if (ElementStruct.ElementType.toElementType(element.type) == ElementStruct.ElementType.ENUM ||
@@ -456,15 +413,16 @@ public class FileGenerator {
         
         if (!ConfigGenerator.allErrorList.isEmpty() || !ConfigGenerator.groupErrorList.isEmpty() || !localErrors.isEmpty() || !globalErrors.isEmpty())
         {
-            define_name = getDefineString(error_name, ERROR_STRING);
+            define_name = getDefineString(error_name, ERROR);
             sourceWriter.write((CHAR_CONST_STRING + define_name.toLowerCase() + "s[] = {\n"));
 
             /* top-level global errors */
             for (int error_index = 0; error_index < ConfigGenerator.allErrorList.size(); error_index++)
             {
                 NameStruct error = ConfigGenerator.allErrorList.get(error_index);
-                sourceWriter.write(getRemoteAllString(GLOBAL_ERROR_STRING.toUpperCase(), error.name));
-                if (error_index < (localErrors.size() -1) || !ConfigGenerator.groupErrorList.isEmpty() ||
+                sourceWriter.write(getRemoteAllString(GLOBAL_RCI_ERROR.toUpperCase(), error.name));
+                if (error_index < (ConfigGenerator.allErrorList.size() -1) || 
+                   !ConfigGenerator.groupErrorList.isEmpty() ||
                    !localErrors.isEmpty() || !globalErrors.isEmpty())
                 {
                     sourceWriter.write(",");
@@ -475,8 +433,9 @@ public class FileGenerator {
             for (int error_index = 0; error_index < ConfigGenerator.groupErrorList.size(); error_index++)
             {
                 NameStruct error = ConfigGenerator.groupErrorList.get(error_index);
-                sourceWriter.write(getRemoteAllString(GLOBAL_ERROR_STRING.toUpperCase(), error.name));
-                if (error_index < (localErrors.size() -1) || !localErrors.isEmpty() || !globalErrors.isEmpty())
+                sourceWriter.write(getRemoteAllString(GLOBAL_RCI_ERROR.toUpperCase(), error.name));
+                if (error_index < (ConfigGenerator.groupErrorList.size() -1) || 
+                    !localErrors.isEmpty() || !globalErrors.isEmpty())
                 {
                     sourceWriter.write(",");
                 }
@@ -488,8 +447,9 @@ public class FileGenerator {
             {
                 NameStruct error = globalErrors.get(error_index);
                 
-                sourceWriter.write(getRemoteAllString(GROUP_ERROR_STRING.toUpperCase(), error.name));
-                if (error_index < (localErrors.size() -1) && !localErrors.isEmpty())
+                sourceWriter.write(getRemoteAllString(GLOBAL_ERROR.toUpperCase(), error.name));
+                if (error_index < (globalErrors.size() -1) ||
+                    !localErrors.isEmpty())
                 {
                     sourceWriter.write(",");
                 }
@@ -497,7 +457,7 @@ public class FileGenerator {
             }
             
             /* local local errors */
-            define_name = getDefineString(error_name, ERROR_STRING);
+            define_name = getDefineString(error_name, ERROR);
             for (int error_index = 0; error_index < localErrors.size(); error_index++)
             {
                 NameStruct error = localErrors.get(error_index);
@@ -559,7 +519,7 @@ public class FileGenerator {
                                     SPACES + SPACES + SPACES + "&" + define_name.toLowerCase() + "[0]\n" +
                                     SPACES + SPACES + "},\n";
             
-            define_name = getDefineString(group.name, ERROR_STRING);
+            define_name = getDefineString(group.name, "errors");
 
             group_string +=   SPACES + SPACES + "{" + SPACES + "asizeof(" + define_name.toLowerCase() + "),\n" +
                               SPACES + SPACES + SPACES + "&" + define_name.toLowerCase() + "[0]\n" +
@@ -578,15 +538,15 @@ public class FileGenerator {
 
     private void writeGlobalErrorHeader(LinkedList<NameStruct> globalerrors) throws IOException
     {
-        if (!ConfigGenerator.allErrorList.isEmpty() || !ConfigGenerator.groupErrorList.isEmpty())
+        if (!ConfigGenerator.allErrorList.isEmpty() || !ConfigGenerator.groupErrorList.isEmpty() || !globalerrors.isEmpty())
         {
             /* write typedef enum for error */
-            headerWriter.write(TYPEDEF_ENUM_STRING);
+            headerWriter.write(TYPEDEF_ENUM);
             
             for (int i = 0; i < ConfigGenerator.allErrorList.size(); i++)
             {
                 NameStruct error = ConfigGenerator.allErrorList.get(i);
-                String error_string = SPACES + GLOBAL_ERROR_STRING + UNDERSCORE + error.name;
+                String error_string = SPACES + GLOBAL_RCI_ERROR + UNDERSCORE + error.name;
                 
                 if (i == 0)
                 {
@@ -600,7 +560,7 @@ public class FileGenerator {
             for (int i = 0; i < ConfigGenerator.groupErrorList.size(); i++)
             {
                 NameStruct error = ConfigGenerator.groupErrorList.get(i);
-                String error_string = SPACES + GLOBAL_ERROR_STRING + UNDERSCORE + error.name;
+                String error_string = SPACES + GLOBAL_RCI_ERROR + UNDERSCORE + error.name;
                 
                 if (i == 0 && ConfigGenerator.allErrorList.size() == 0)
                 {
@@ -610,95 +570,59 @@ public class FileGenerator {
                 
                 headerWriter.write(error_string);
             }
-
-            headerWriter.write(SPACES + GLOBAL_ERROR_STRING + UNDERSCORE + COUNT_STRING + ",\n");
-            headerWriter.write(SPACES + GLOBAL_ERROR_STRING + INT_MAX_WIDTH_STRING + GLOBAL_ERROR_STRING + ID_T_STRING);
-        }
         
-        if (!globalerrors.isEmpty())
-        {
-            /* write typedef enum for error */
-            headerWriter.write(TYPEDEF_ENUM_STRING);
-            
             for (int i = 0; i < globalerrors.size(); i++)
             {
                 NameStruct error = globalerrors.get(i);
-                String error_string = SPACES + GROUP_ERROR_STRING + UNDERSCORE + error.name;
+                String error_string = SPACES + GLOBAL_ERROR + UNDERSCORE + error.name;
                 
                 if (i == 0 && ConfigGenerator.allErrorList.size() == 0 && ConfigGenerator.groupErrorList.size() == 0)
                 {
                     error_string += " = 1";
                 }
-                else if (i==0)
-                {
-                    error_string += "=" + GLOBAL_ERROR_STRING + UNDERSCORE + COUNT_STRING;
-                }
                     
                 error_string += ",\n";
                 
                 headerWriter.write(error_string);
             }
 
-            headerWriter.write(SPACES + GROUP_ERROR_STRING + UNDERSCORE + COUNT_STRING + ",\n");
-            headerWriter.write(SPACES + GROUP_ERROR_STRING + INT_MAX_WIDTH_STRING + GROUP_ERROR_STRING + ID_T_STRING);
+            headerWriter.write(SPACES + GLOBAL_ERROR + UNDERSCORE + COUNT_STRING + ",\n");
+            headerWriter.write(SPACES + GLOBAL_ERROR + INT_MAX_WIDTH_STRING + GLOBAL_ERROR + ID_T_STRING);
             
         }
     }
     private void writeConfigHeader(LinkedList<GroupStruct> groups, LinkedList<NameStruct> globalerrors) throws IOException
     {
-/*
-        if (!errors.isEmpty())
-        {
-            headerWriter.write(TYPEDEF_ENUM_STRING);
-            
-            for (int i=0; i < errors.size(); i++)
-            {
-                NameStruct error = errors.get(i);
-                String error_string = getEnumString(ERROR_STRING, error.name);
-                
-                if (i == 0)
-                {
-                    error_string += " = " + GLOBAL_ERROR_STRING + UNDERSCORE + COUNT_STRING;
-                }
-                error_string += ",\n";
-                
-                headerWriter.write(error_string);
-            }
-
-            headerWriter.write(getEnumString(ERROR_STRING, COUNT_STRING) + ",\n");
-            headerWriter.write(endEnumString(ERROR_STRING));
-        }
-*/ 
-        // build group enum string for group enum
-        String group_enum_string = TYPEDEF_ENUM_STRING;
+        /* build group enum string for group enum */
+        String group_enum_string = TYPEDEF_ENUM;
 
         for (GroupStruct group: groups)
         {
-            // build element enum string for element enum
-            String element_enum_string = TYPEDEF_ENUM_STRING;
+            /* build element enum string for element enum */
+            String element_enum_string = TYPEDEF_ENUM;
             
-            // add each group enum 
+            /* add each group enum */ 
             group_enum_string += getEnumString(group.name) + ",\n";
             
             for (ElementStruct element: group.elements)
             {
-                // add element name
+                /* add element name */
                 element_enum_string += getEnumString(group.name, element.name) + ",\n";
                 
                 if (ElementStruct.ElementType.toElementType(element.type) == ElementStruct.ElementType.ENUM)
                 {
-                    // write typedef enum for value
-                    headerWriter.write(TYPEDEF_ENUM_STRING);
+                    /* write typedef enum for value */
+                    headerWriter.write(TYPEDEF_ENUM);
                     
                     for (NameStruct value: element.values)
                     {
                         headerWriter.write(getEnumString(group.name, element.name, value.name) + ",\n");
                     }
-                    // done typedef enum for value 
+                    /* done typedef enum for value */ 
                     headerWriter.write(endEnumString(group.name, element.name)); 
                 }
             }
-            // done typedef enum for element
+            /* done typedef enum for element */
             
             element_enum_string += endEnumString(group.name);
             
@@ -706,22 +630,22 @@ public class FileGenerator {
             
             if (!group.errors.isEmpty())
             {
-                headerWriter.write(TYPEDEF_ENUM_STRING);
+                headerWriter.write(TYPEDEF_ENUM);
                 
                 for (int i=0; i < group.errors.size(); i++)
                 {
                     NameStruct error = group.errors.get(i);
                     
-                    String enumString = getEnumString(group.name, ERROR_STRING, error.name);
+                    String enumString = getEnumString(group.name, ERROR, error.name);
                     if (i == 0)
                     {
                         if (!globalerrors.isEmpty())
                         {
-                            enumString += " = " +  GROUP_ERROR_STRING + UNDERSCORE + COUNT_STRING;
+                            enumString += " = " +  GLOBAL_ERROR + UNDERSCORE + COUNT_STRING;
                         }
                         else if (!ConfigGenerator.allErrorList.isEmpty() || !ConfigGenerator.groupErrorList.isEmpty())
                         {
-                            enumString += " = " +  GLOBAL_ERROR_STRING + UNDERSCORE + COUNT_STRING;
+                            enumString += " = " +  GLOBAL_RCI_ERROR + UNDERSCORE + COUNT_STRING;
                         }
                         else
                         {
@@ -733,7 +657,7 @@ public class FileGenerator {
                     
                     headerWriter.write(enumString);
                 }
-                headerWriter.write(endEnumString(group.name, ERROR_STRING));
+                headerWriter.write(endEnumString(group.name, ERROR));
             }
             
         }
@@ -759,7 +683,7 @@ public class FileGenerator {
     
     private String getEnumString(String group_name)
     {
-        String str = SPACES + IDIGI_STRING + UNDERSCORE + configType;
+        String str = SPACES + IDIGI + UNDERSCORE + configType;
 
         if (group_name != null)
         {
@@ -807,34 +731,18 @@ public class FileGenerator {
         return (getDefineString(name, name1) + UNDERSCORE + name2.toUpperCase());
     }
 
-    private String getDefineLength(String name, String vname)
+    private String getDefineIndex(String define_name, String name)
     {
-        return (DEFINE_STRING + name + UNDERSCORE + LENGTH_STRING.toUpperCase()  +  SPACES + vname.length() + "\n");
+        String str = DEFINE + define_name + SPACES + "(" + IDIGI_REMOTE_ALL_STRING + ADD + prevRemoteStringLength + ")\n";
+        prevRemoteStringLength += name.length() + 1;
+        return str;
     }
-    
-    
-    private String getDefineIndex(String name, String prev_name)
-    {
-        String indexValueString;
-        
-        if (prev_name == null)
-        {
-            indexValueString = "0";
-        }
-        else
-        {
-            indexValueString = prev_name + UNDERSCORE + LENGTH_STRING.toUpperCase() +  
-                               ADD +(prev_name + UNDERSCORE + INDEX_STRING.toUpperCase()) + " +1\n";
-        }
-        
-        return (DEFINE_STRING + name + UNDERSCORE + INDEX_STRING.toUpperCase()  +  SPACES + indexValueString + "\n");
-    }
-    
+
     private String getCharString(String define_name, String name)
     {
         char[] characters = name.toCharArray();
         
-        String quote_char = SPACES + define_name + UNDERSCORE + LENGTH_STRING + ",";
+        String quote_char = SPACES + name.length() + ",";
         
         for (int i=0; i < characters.length; i++)
         {
@@ -847,24 +755,31 @@ public class FileGenerator {
     
     private String getRemoteAllString(String define_name)
     {
-        return ( SPACES + "&" + IDIGI_REMOTE_ALL_STRING + "[" + define_name + UNDERSCORE + INDEX_STRING.toUpperCase() + "]");
+      return (SPACES + define_name.toUpperCase());
 
     }
 
     private String getRemoteAllString(String define_name, String name)
     {
-        return ( SPACES + "&" + IDIGI_REMOTE_ALL_STRING + "[" + define_name + UNDERSCORE + name.toUpperCase() + UNDERSCORE + INDEX_STRING.toUpperCase() + "]");
+        return (SPACES + define_name.toUpperCase() + UNDERSCORE + name.toUpperCase());
 
     }
     private String getElementDefine(String type_name, String name)
     {
-        return (SPACES + IDIGI_STRING + UNDERSCORE + "element" + UNDERSCORE + type_name + UNDERSCORE + name + ",\n");
+        return (SPACES + IDIGI + UNDERSCORE + "element" + UNDERSCORE + type_name + UNDERSCORE + name + ",\n");
     }
-    
+    private String getAccess(String access)
+    {
+        if (access == null)
+        {
+            return "read_write";
+        }
+        return access;
+    }
     private BufferedWriter sourceWriter;
     private BufferedWriter headerWriter;
     private String configType;
-    private String previousName;
+    private int prevRemoteStringLength;
 
     
 }

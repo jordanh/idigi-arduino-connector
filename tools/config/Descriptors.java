@@ -7,36 +7,14 @@ public class Descriptors {
     final static String SETTING_STRING = "setting";
     final static String STATE_STRING = "state";
 
-    /*
-    private final String DESCRIPTOR_ERROR_STRING = "\n<error_descriptor id=\"1\" desc=\"Setting group unknown\"/>\n" +
-                                                   "<error_descriptor id=\"2\" desc=\"Element not allowed under field element\"/>\n" +
-                                                   "<error_descriptor id=\"3\" desc=\"Invalid setting group, index combination\"/>\n" +
-                                                   "<error_descriptor id=\"4\" desc=\"Invalid parameter\"/>\n";
-*/                                                   
     private final String RCI_VERSION = "1.1";
     
     private final String RCI_DESCRIPTORS = "<descriptor element=\"rci_request\" desc=\"Remote Command Interface request\">\n" +
                             "<attr name=\"version\" desc=\"RCI version of request.  Response will be returned in this versions response format\" default=\"" + RCI_VERSION +"\">\n" +
                             "<value value=\"" + RCI_VERSION + "\" desc=\"Version " + RCI_VERSION + "\"/></attr>\n";
     
-/*    private final String rci_descriptors_errors = "<error_descriptor id=\"1\" desc=\"Invalid version\"/>\n" +
-                                                  "<error_descriptor id=\"2\" desc=\"Unknown command\"/>\n" +
-                                                  "</descriptor>\n";
-*/
     public Descriptors(String[] args) throws IOException
     {
-         /*
-         log("Syntax: java -jar icConfigTool <username[:password]> <vendor_id> <device_type> <fw_version> [-sysinfo:<filename>] <config_filename>");
-         log("Where:");
-         log("      username          = username to log in iDigi Cloud. You will be prompted to enter the password");
-         log("      username:password = optional for username and password to log in iDigi Cloud");
-         log("      vendor_id       = Vendor ID obtained from iDigi Cloud registration");
-         log("      device_type     = Device type string with quotes(i.e. \"device type\")");
-         log("      fw_version      = firmware version number");
-         log("      -sysinfo        = option for specifying iDigi Connector Configuration file which is given in <filename> for System Information");
-         log("      config_filename = iDigi Connector Configration file for data configurations");
-         */
-
         int argIndex = 0;
         String credential = args[argIndex++];
 

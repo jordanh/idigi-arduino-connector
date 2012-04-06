@@ -16,14 +16,14 @@ public class Parser {
     /**
     Constructor.
     @param aFileName full name of an existing, readable file.
-    * @throws IOException 
+    * @throws FileNotFoundException 
     */
-    public Parser(String aFileName) throws FileNotFoundException
+    public Parser(String fileName) throws FileNotFoundException
     {
-        configFile = new File(aFileName);
+        configFile = new File(fileName);
         if (!configFile.exists()) 
         {
-            throw new FileNotFoundException(aFileName + " not found.");
+            throw new FileNotFoundException(fileName + " not found.");
         }
 /*        
         if (!(configFile.isFile() && configFile.canRead())) 
@@ -51,7 +51,7 @@ public class Parser {
         {
             token = null;
             
-            //first use a Scanner to get each word
+            /* first use a Scanner to get each word */
             while (hasToken())
             {
                 if (isReadToken)
