@@ -37,10 +37,11 @@ public class Descriptors {
             password = credential.split(":")[1];
         }
 
-        Scanner vendorIdScan = new Scanner(args[argIndex].substring(2)); /* skip 0x if provided */
+        vendorId = args[argIndex];
+        Scanner vendorIdScan = new Scanner(vendorId.regionMatches(true, 0, "0x", 0, 2) ? vendorId.substring(2) : vendorId); /* skip 0x if provided */
         if (vendorIdScan.hasNextInt(16))
         {
-            vendorId = args[argIndex++];
+            argIndex++;
         }
         else
         {

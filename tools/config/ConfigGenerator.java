@@ -99,7 +99,7 @@ public class ConfigGenerator {
             ConfigGenerator.setArguments(args);
             ConfigGenerator.initErrors();
             
-            if (args.length != 1 && args.length != 5)
+            if (args.length != 4 && args.length != 5)
             {
                 /* testing on <config_filename> for args.length == 1 */
                 throw new DataFormatException("");
@@ -156,19 +156,19 @@ public class ConfigGenerator {
             
             System.err.println(e.getMessage());
             
-            log("Syntax: java -jar " + generator.getClass().getName() + ".jar" + " <username[:password]> <vendor_id> <device_type> <fw_version> <config_filename>\n");
+            log("Syntax: java -jar " + generator.getClass().getName() + ".jar" + " <username[:password]> [vendor_id] <device_type> <fw_version> <config_filename>\n");
             log("Where:");
             log("      username        = username to log in iDigi Cloud. If no password is given you will be prompted to enter the password");
             log("      password        = optional for password to log in iDigi Cloud");
-            log("      vendor_id       = Vendor ID obtained from iDigi Cloud registration");
+            log("      vendor_id       = optional Vendor ID obtained from iDigi Cloud registration. If not given, tool tries to retrieve it from the Cloud");
             log("      device_type     = Device type string with quotes(i.e. \"device type\")");
             log("      fw_version      = firmware version number in decimal");
             log("      config_filename = iDigi Connector Configration file");
 
         } catch (IOException e) {
-//            if (e.getCause() != null)
-//                System.err.println(e.getMessage());
             e.printStackTrace();
+            if (e.getCause() != null)
+                System.err.println(e.getMessage());
         }
     }
 
