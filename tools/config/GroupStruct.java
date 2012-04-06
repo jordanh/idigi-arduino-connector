@@ -67,16 +67,22 @@ public class GroupStruct {
         
         if (description == null)
         {
-            generate_config.log("Missing description");
+            log("Missing description");
             valid = false;
         }
         else if (elements.isEmpty())
         {
-            generate_config.log("No element specified");
+            log("No element specified");
             valid = false;
         }
         return valid;
         
     }
+
+    private static void log(Object aObject)
+    {
+        System.out.println(String.valueOf(aObject));
+    }
+
 
 }

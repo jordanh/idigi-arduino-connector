@@ -4,24 +4,26 @@ import java.util.*;
 
 public class Descriptors {
 
-    final static String data_config_string = "setting";
-    final static String system_info_config_string = "state";
-    
-    private final String descriptor_error_string = "\n<error_descriptor id=\"1\" desc=\"Setting group unknown\"/>\n" +
+    final static String SETTING_STRING = "setting";
+    final static String STATE_STRING = "state";
+
+    /*
+    private final String DESCRIPTOR_ERROR_STRING = "\n<error_descriptor id=\"1\" desc=\"Setting group unknown\"/>\n" +
                                                    "<error_descriptor id=\"2\" desc=\"Element not allowed under field element\"/>\n" +
                                                    "<error_descriptor id=\"3\" desc=\"Invalid setting group, index combination\"/>\n" +
                                                    "<error_descriptor id=\"4\" desc=\"Invalid parameter\"/>\n";
-    private final String rci_version = "1.1";
+*/                                                   
+    private final String RCI_VERSION = "1.1";
     
-    private final String rci_descriptors = "<descriptor element=\"rci_request\" desc=\"Remote Command Interface request\">\n" +
-                            "<attr name=\"version\" desc=\"RCI version of request.  Response will be returned in this versions response format\" default=\"" + rci_version +"\">\n" +
-                            "<value value=\"" + rci_version + "\" desc=\"Version " + rci_version + "\"/></attr>\n";
+    private final String RCI_DESCRIPTORS = "<descriptor element=\"rci_request\" desc=\"Remote Command Interface request\">\n" +
+                            "<attr name=\"version\" desc=\"RCI version of request.  Response will be returned in this versions response format\" default=\"" + RCI_VERSION +"\">\n" +
+                            "<value value=\"" + RCI_VERSION + "\" desc=\"Version " + RCI_VERSION + "\"/></attr>\n";
     
-    private final String rci_descriptors_errors = "<error_descriptor id=\"1\" desc=\"Invalid version\"/>\n" +
+/*    private final String rci_descriptors_errors = "<error_descriptor id=\"1\" desc=\"Invalid version\"/>\n" +
                                                   "<error_descriptor id=\"2\" desc=\"Unknown command\"/>\n" +
                                                   "</descriptor>\n";
-
-    public Descriptors(String[] args)
+*/
+    public Descriptors(String[] args) throws IOException
     {
          /*
          log("Syntax: java -jar icConfigTool <username[:password]> <vendor_id> <device_type> <fw_version> [-sysinfo:<filename>] <config_filename>");
@@ -79,28 +81,69 @@ public class Descriptors {
         callDeleteFlag = true;
     }
 
-    private final String data_config_descriptor_desc = "device configuration";
-    private final String sysinfo_config_descriptor_desc = "device state";
+    private final String SETTING_DESCRIPTOR_DESC = "device configuration";
+    private final String STATE_DESCRIPTOR_DESC = "device state";
+
+    public void processDescriptors(ConfigData configData) throws IOException
+    {
+        LinkedList<GroupStruct> settingGroups = configData.getConfigGroup(SETTING_STRING);
+        if (!settingGroups.isEmpty())
+        {
+            sendDescriptors(SETTING_STRING, settingGroups, configData.getErrorGroups());
+        }
+        
+        LinkedList<GroupStruct> stateGroups = configData.getConfigGroup(STATE_STRING);
+        if (!stateGroups.isEmpty())
+        {
+            sendDescriptors(STATE_STRING, stateGroups, configData.getErrorGroups());
+        }
+        if (!settingGroups.isEmpty() || !stateGroups.isEmpty())
+        {
+            sendRciDescriptors(!settingGroups.isEmpty(), !stateGroups.isEmpty());
+        }
+    }
+
+    private String getErrorDescriptors(int id, LinkedList<NameStruct> errors)
+    {
+        String descriptor = "";
+        for (NameStruct error: ConfigGenerator.allErrorList)
+        {
+            descriptor += "<error_descriptor id=\"" + id + "\" desc=\"" + error.description + "\" />\n";
+            id++;
+        }
+        for (NameStruct error: errors)
+        {
+            descriptor += "<error_descriptor id=\"" + id + "\" desc=\"" + error.description + "\" />\n";
+            id++;
+        }
+        return descriptor;
+    }
     
-    public void processDescriptors(String config_type, LinkedList<GroupStruct> groups, LinkedList<NameStruct> global_error) 
+    private void sendDescriptors(String config_type, LinkedList<GroupStruct> groups, LinkedList<NameStruct> global_error) throws IOException 
     {        
-        String query_descriptors = "<descriptor element=\"query_" + config_type + "\" desc=\"Retrieve ";
-        if (config_type.equalsIgnoreCase(data_config_string))
-            query_descriptors += data_config_descriptor_desc;
-        else
-            query_descriptors += sysinfo_config_descriptor_desc;
-        query_descriptors += "\" format=\"all_" + config_type + "s_groups\">" +  descriptor_error_string +
-                             "<format_define name=\"all_" + config_type + "s_groups\">";
+        int error_id = 1;
+        String desc = SETTING_DESCRIPTOR_DESC;
+        
+        if (config_type.equalsIgnoreCase(STATE_STRING))
+            desc = STATE_DESCRIPTOR_DESC;
+        
+        String query_descriptors = "<descriptor element=\"query_" + config_type + "\" desc=\"Retrieve " + desc;
+        
+        query_descriptors += "\" format=\"all_" + config_type + "s_groups\">\n";
+        
+
+        query_descriptors += "<format_define name=\"all_" + config_type + "s_groups\">\n";
+        
+        query_descriptors += getErrorDescriptors(error_id, ConfigGenerator.commandErrorList);
         
         
-        String set_descriptors = "<descriptor element=\"set_" + config_type + "\" desc=\"Set ";
+        String set_descriptors = "<descriptor element=\"set_" + config_type + "\" desc=\"Set " + desc;
         
-        if (config_type.equalsIgnoreCase(data_config_string))
-            set_descriptors += data_config_descriptor_desc;
-        else
-            set_descriptors += sysinfo_config_descriptor_desc;
-         set_descriptors += "\" format=\"all_" + config_type + "s_groups\">" +
-                           descriptor_error_string + "</descriptor>";
+        set_descriptors += "\" format=\"all_" + config_type + "s_groups\">";
+         
+        set_descriptors += getErrorDescriptors(error_id, ConfigGenerator.commandErrorList);
+
+        set_descriptors += "</descriptor>";
 
         for (GroupStruct theGroup: groups)
         {
@@ -112,35 +155,32 @@ public class Descriptors {
             
             for (ElementStruct element: theGroup.elements)
             {
-                query_descriptors += "\t<element name=\"" + element.name + "\" desc=" + element.description + " type=\"" + element.type + "\"";
+                query_descriptors += "<element name=\"" + element.name + "\" desc=" + element.description + " type=\"" + element.type + "\"";
                 if (element.access != null)
                 {
                     query_descriptors += " access=\"" + element.access + "\"";
                 }
-                if (element.is_min_max_needed())
+                if (element.max != null)
                 {
-                    if (element.max != null)
-                    {
-                        query_descriptors += " max=\"" + element.max + "\"";
-                    }
-                    if (element.min != null)
-                    {
-                        query_descriptors += " min=\"" + element.min + "\"";
-                    }
+                    query_descriptors += " max=\"" + element.max + "\"";
+                }
+                if (element.min != null)
+                {
+                    query_descriptors += " min=\"" + element.min + "\"";
                 }
                 
                 if (element.unit != null)
                 {
-                    query_descriptors += " unit=\"" + element.unit + "%s\"";
+                    query_descriptors += " unit=" + element.unit + "";
                 }
                 
-                if (element.is_enum_type())
+                if (ElementStruct.ElementType.toElementType(element.type) == ElementStruct.ElementType.ENUM)
                 {
                     query_descriptors += ">\n";
 
                     for (NameStruct value: element.values)
                     {
-                        query_descriptors += "\t\t<value value=\"" + value.name + "\"";
+                        query_descriptors += "<value value=\"" + value.name + "\"";
                         if (value.description != null)
                         {
                             query_descriptors += " desc=" + value.description;
@@ -148,7 +188,7 @@ public class Descriptors {
                         query_descriptors += " />\n";
                     }
                     
-                    query_descriptors += "\t</element>\n";
+                    query_descriptors += "</element>\n";
 
                 }
                 else
@@ -156,46 +196,47 @@ public class Descriptors {
                     query_descriptors += " />\n";
                 }
             }
-            int eid = 0;
-            for (NameStruct error: global_error)
-            {
-                eid++;
-                query_descriptors += "\t<error_descriptor id=\"" + eid + "\" desc=" + error.description + " />\n";
-            }
             
+            error_id = 1;
+            query_descriptors += getErrorDescriptors(error_id, ConfigGenerator.groupErrorList);
+             
             for (NameStruct error: theGroup.errors)
             {
-                eid++;
-                query_descriptors += "\t<error_descriptor id=\"" + eid + "\" desc=" + error.description + " />\n";
+                error_id++;
+                query_descriptors += "<error_descriptor id=\"" + error_id + "\" desc=" + error.description + " />\n";
             }
             query_descriptors += "</descriptor>";
         }
         query_descriptors += "</format_define>\n</descriptor>\n";
         
-        System.out.println(query_descriptors);
-        System.out.println(set_descriptors);
+        debug_log(query_descriptors);
+        debug_log(set_descriptors);
         
         uploadDescriptor("descriptor/query_" + config_type, query_descriptors);
         uploadDescriptor("descriptor/set_" + config_type, set_descriptors);
     }
 
-    public void processRciDescriptors(boolean systemInfoSupport)
+    private void sendRciDescriptors(boolean settingSupport, boolean stateSupport) throws IOException
     {
-        String descriptors = rci_descriptors;
-
-        descriptors += "<descriptor element=\"query_" + data_config_string + "\" dscr_avail=\"true\"/>\n";
-        descriptors += "<descriptor element=\"set_" + data_config_string + "\" dscr_avail=\"true\"/>\n";
-      
+        String descriptors = RCI_DESCRIPTORS;
         
-        if (systemInfoSupport)
+        if (settingSupport)
         {
-            descriptors += "<descriptor element=\"query_" + system_info_config_string + "\" dscr_avail=\"true\"/>\n";
-            descriptors += "<descriptor element=\"set_" + system_info_config_string + "\" dscr_avail=\"true\"/>\n";
+            descriptors += "<descriptor element=\"query_" + SETTING_STRING + "\" dscr_avail=\"true\"/>\n";
+            descriptors += "<descriptor element=\"set_" + SETTING_STRING + "\" dscr_avail=\"true\"/>\n";
         }
         
-        descriptors += rci_descriptors_errors;
+        if (stateSupport)
+        {
+            descriptors += "<descriptor element=\"query_" + STATE_STRING + "\" dscr_avail=\"true\"/>\n";
+            descriptors += "<descriptor element=\"set_" + STATE_STRING + "\" dscr_avail=\"true\"/>\n";
+        }
         
-        System.out.println(descriptors);
+        int error_id = 1;
+        descriptors += getErrorDescriptors(error_id, ConfigGenerator.globalErrorList);
+        descriptors += "</descriptor>";
+        
+        debug_log(descriptors);
         
         uploadDescriptor("descriptor", descriptors);
     }    
@@ -300,6 +341,7 @@ public class Descriptors {
 
     private void uploadDescriptor(String descName, String buffer)
     {
+        
         if (callDeleteFlag)
         {
             String target = "/ws/DeviceMetaData?condition=dvVendorId=" + vendorId + " and dmDeviceType=\'" + deviceType + "\' and dmVersion=" + fwVersion;
@@ -321,8 +363,29 @@ public class Descriptors {
         String response = sendCloudData("/ws/DeviceMetaData", "POST", message);
         System.out.println("Created: " + vendorId + "/" + deviceType + "/" + descName);
         System.out.println(response);
+        
     }
 
+    
+    private void debug_log(String str) throws IOException
+    {
+        
+        String filename = "descritor" + xmlFileIndex + ".xml";
+        xmlFileIndex++;
+        
+        BufferedWriter xmlFile = new BufferedWriter(new FileWriter(filename));
+
+        xmlFile.write("<descriptors>");
+        xmlFile.write(str);
+        xmlFile.write("</descriptors>");
+        
+        xmlFile.flush();
+        xmlFile.close();
+
+        System.out.println(str);
+    }
+    
+    private int xmlFileIndex;
     private String username;
     private String password;
     private String deviceType;

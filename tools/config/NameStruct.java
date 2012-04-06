@@ -10,6 +10,13 @@ public class NameStruct {
         description=null;
     }
 
+    public NameStruct(String parseName, String descString) 
+    {
+        name = parseName;
+        description=descString;
+    }
+
+
     public void addConfig(String theDescription)
     {
         description = theDescription;

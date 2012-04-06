@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import javax.management.BadStringOperationException;
 
 public class ElementStruct {
+    
     public String name;
     public String description;
     public String type;
@@ -12,28 +13,112 @@ public class ElementStruct {
     public String max;
     public String unit;
     public LinkedList<NameStruct> values;
+
+
+    public enum ElementType {
+        STRING (true),
+        MULTILINE_STRING (true),
+        PASSWORD (true),
+        INT32 (true), 
+        UINT32 (true),
+        HEX32 (true),
+        XHEX (true),
+        FLOAT (true),
+        ENUM (false),
+        ON_OFF (false),
+        BOOLEAN (false),
+        IPV4 (false),
+        FQDNV4 (true),
+        FQDNV6 (true),
+        DATETIME (false),
+        INVALID_TYPE (false);
+
+/*        private final static boolean[] ElementTypeMinMaxSupport = { true, true, true, true, true, 
+                                                             true, true, true, false, false, 
+                                                             false, false, true, true, false}; 
+*/
+        private final static String STRING_0XHEX = "0xhex";
+        
+        private final boolean minMaxSupport;
+        
+        private ElementType(boolean support) 
+        {
+            this.minMaxSupport = support;
+        }
+
+        public boolean minMaxSupport() { return minMaxSupport; }
+        
+        public static ElementType toElementType(String str)
+        {
+            try {
+                
+                /* special case for 0xhex type */
+                if (str.equalsIgnoreCase(STRING_0XHEX))
+                {
+                    return valueOf(str.toUpperCase().substring(1));
+                }
+                else
+                {
+                    return valueOf(str.toUpperCase());
+                }
+            } catch (Exception e) {
+                return INVALID_TYPE;
+            }
+            
+        }
+    }
     
-    public ElementStruct(String parseName) throws BadStringOperationException
+    public enum AccessType {
+        READ_ONLY,
+        WRITE_ONLY,
+        READ_WRITE,
+        INVALID_TYPE;
+        
+        public static AccessType toAccessType(String str)
+        {
+            try {
+                return valueOf(str.toUpperCase());
+                
+            } catch (Exception e) {
+                return INVALID_TYPE;
+            }
+        }
+    }
+    
+/*    final static List<String> element_access_list = Arrays.asList("read_only", "write_only", "read_write"); */
+ 
+    public ElementStruct(String theName, String theDesc) throws BadStringOperationException
     {
-        if (parseName == null)
+        if (theName == null)
         {
             throw new BadStringOperationException("No name specified for an element");
         }
-        name = parseName;
-        description = null;
+        name = theName;
+        description = theDesc;
         type=null;
         access=null;
         min=null;
         max=null;
         unit=null;
         values = new LinkedList<NameStruct>();
+        
     }
+/*
+    public static boolean listContainsString(List<String> list, String checkStr) 
+    {     
+        Iterator<String> iter = list.iterator();
+        while(iter.hasNext())     
+        {         
+            String s = iter.next();         
+            if (s.contains(checkStr))
+            {             
+                return true;
+            }     
+        }
+        return false;
+    } 
+*/
 
-    public void addConfig(String theDescription)
-    {
-        description = theDescription;
-    }
-    
     public void addConfigType(String theType) throws BadStringOperationException
     {
         if (type == null)
@@ -63,7 +148,7 @@ public class ElementStruct {
 
     public void addConfigValue(NameStruct theValue) throws BadStringOperationException
     {
-        if (is_enum_type())
+        if (ElementType.toElementType(type) == ElementType.ENUM)
         {
             for (NameStruct value : values)
             {
@@ -86,62 +171,64 @@ public class ElementStruct {
             unit = theUnit;
          else throw new BadStringOperationException("Duplicate unit: " + theUnit);
     }
-
+    
+/*
     public boolean is_min_max_needed()
     {
-        return Constants.isMinMaxOption(type);
+        return isMinMaxOption(type);
     }
 
     public boolean is_enum_type()
     {
-        return Constants.isType(type, Constants.ETYPE_ENUM);
+        return isType(type, ETYPE_ENUM);
     }
 
     public boolean is_float_type()
     {
-        return Constants.isType(type, Constants.ETYPE_FLOAT);
+        return isType(type, ETYPE_FLOAT);
     }
 
     public boolean is_signed_integer_type()
     {
-        return Constants.isType(type, Constants.ETYPE_INT32);
+        return isType(type, ETYPE_INT32);
     }
-
+*/
     public boolean validate()
     {
         boolean valid = true;
-       
+        ElementType etype = ElementType.toElementType(type);
+        
         if (description == null)
         {
             log("Missing <description> for element: " + name);
             valid = false;
         }
-        else if (!Constants.isMinMaxOption(type) && (min != null || max != null))
+        else if (!etype.minMaxSupport() && (min != null || max != null))
         {
             log("Type: " + type + " should not have <min/max> on element: " + name);
             valid = false;
         }
-        else if (is_enum_type() && values.isEmpty())
+        else if (etype == ElementType.ENUM && values.isEmpty())
         {
             log("Missing <value> for element: " + name);
             valid = false;
         }
-        else if (!is_enum_type() && !values.isEmpty())
+        else if (etype != ElementType.ENUM && !values.isEmpty())
         {
-            generate_config.log("No <value> for element: " + name);
+            log("No <value> for element: " + name);
             valid = false;
         }
         if (min != null)
         {
             try {
-                if (is_float_type())
+                if (etype == ElementType.FLOAT)
                 {
                     Float.parseFloat(min);
                 }
                 else
                 {
                     int ivalue = Integer.parseInt(min);
-                    if (ivalue < 0 && is_signed_integer_type())
+                    if (ivalue < 0 && etype == ElementType.INT32)
                     {
                         throw new NumberFormatException(null);
                     }
@@ -155,14 +242,14 @@ public class ElementStruct {
         if (max != null)
         {
             try {
-                if (is_float_type())
+                if (etype == ElementType.FLOAT)
                 {
                     Float.parseFloat(max);
                 }
                 else
                 {
                     int ivalue = Integer.parseInt(max);
-                    if (ivalue < 0 && is_signed_integer_type())
+                    if (ivalue < 0 && etype == ElementType.INT32)
                     {
                         throw new NumberFormatException(null);
                     }
@@ -176,9 +263,38 @@ public class ElementStruct {
         return valid;
     }
     
-    public static void log(Object aObject)
+    private static void log(Object aObject)
     {
         System.out.println(String.valueOf(aObject));
     }
+
+    /*
+    public static boolean isElementType(String theType)
+    {
+        return listContainsString(element_type_list, theType);
+    }
+*/
+    /*
+    private static boolean isType(String theType)
+    {
+        if (type.equalsIgnoreCase(element_type_list.get(etype)))
+        {
+            return true;
+        }
+    }
+*/
+    
+/*    
+    private static boolean isMinMaxOption(String type)
+    {
+        int i = element_type_list.indexOf(type);
+        
+        if (i != -1)
+        {
+            return element_type_is_min_max_option[i];
+        }
+        return false;
+    }
+    */
 
 }
