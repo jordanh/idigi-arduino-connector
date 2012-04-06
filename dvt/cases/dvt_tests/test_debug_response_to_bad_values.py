@@ -7,7 +7,10 @@ EXPECTED_RESPONSE = 0
 
 #              EXPECTED_RESPONSE
 test_table = [
+              ["idigi_config_vendor_id,idigi_invalid_data_size,terminated\n"],
               ["idigi_config_device_type,idigi_invalid_data_size,terminated\n"],
+              ["idigi_config_device_id,idigi_invalid_data_size,terminated\n"],
+              ["idigi_config_server_url,idigi_invalid_data_range,terminated\n"],
               ["idigi_config_rx_keepalive,idigi_invalid_data_range,terminated\n"],
               ["idigi_config_ip_addr,idigi_invalid_data_size,terminated\n"],  
 ]
