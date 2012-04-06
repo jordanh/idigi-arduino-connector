@@ -42,7 +42,7 @@ LIBS = -lc -lz
 SAMPLE = idigi
 all: $(SAMPLE)
 
-LDFLAGS += -Wl,-Map,$(SAMPLE).map
+LDFLAGS += $(DFLAGS) -Wl,-Map,$(SAMPLE).map
 
 main.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h
 $(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PUBLIC_HEADER_DIR)/idigi_config.h \

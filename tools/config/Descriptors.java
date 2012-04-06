@@ -1,7 +1,6 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import sun.misc.BASE64Encoder;
 
 public class Descriptors {
 
@@ -36,7 +35,9 @@ public class Descriptors {
          log("      config_filename = iDigi Connector Configration file for data configurations");
          */
 
-        String credential = args[0];
+        int argIndex = 0;
+        String credential = args[argIndex++];
+
         if (credential.indexOf(':') == -1)
         {
             BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
@@ -56,10 +57,26 @@ public class Descriptors {
             password = credential.split(":")[1];
         }
 
-        vendor_id = args[1];
-        device_type = args[2];
-        fw_version = args[3];
-        call_delete = true;
+        Scanner vendorIdScan = new Scanner(args[argIndex].substring(2)); /* skip 0x if provided */
+        if (vendorIdScan.hasNextInt(16))
+        {
+            vendorId = args[argIndex++];
+        }
+        else
+        {
+            getVendorId();
+        }
+
+        deviceType = args[argIndex++];
+        fwVersion = args[argIndex];
+        Scanner fwVersionScan = new Scanner(fwVersion);
+        if (!fwVersionScan.hasNextInt())
+        {
+            System.out.println("Invalid f/w version!");
+            System.exit(1);
+        }
+
+        callDeleteFlag = true;
     }
 
     private final String data_config_descriptor_desc = "device configuration";
@@ -181,13 +198,46 @@ public class Descriptors {
         System.out.println(descriptors);
         
         uploadDescriptor("descriptor", descriptors);
+    }    
+
+    
+    private static String encode(String rawData)
+    {
+        final String base64Table = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "abcdefghijklmnopqrstuvwxyz" + "0123456789" + "+/";
+        int bytesToPad = (3 - (rawData.length() % 3)) % 3;
+        byte[] byteArray;
+
+        switch (bytesToPad)
+        {
+            case 1:
+                byteArray = (rawData + '\000').getBytes();
+                break;
+
+            case 2:
+                byteArray = (rawData + '\000' + '\000').getBytes();
+                break;
+
+            default:
+                byteArray = rawData.getBytes();
+                break;
+        }
+
+        String encodedData = "";
+        for (int i = 0; i < byteArray.length; i += 3)
+        {
+            int j = ((byteArray[i] & 0xff) << 16) + ((byteArray[i + 1] & 0xff) << 8) + (byteArray[i + 2] & 0xff);
+
+            encodedData = encodedData + base64Table.charAt((j >> 18) & 0x3f) + base64Table.charAt((j >> 12) & 0x3f) + base64Table.charAt((j >> 6) & 0x3f) + base64Table.charAt(j & 0x3f);
+        }
+
+        return encodedData.substring(0, encodedData.length() - bytesToPad) + "==".substring(0, bytesToPad);
     }
 
-    public void sendCloudData(String target, String method, String message)
+    private String sendCloudData(String target, String method, String message)
     {
+        String response = "";
         String cloud = "http://test.idigi.com" + target;
-        BASE64Encoder encoder = new BASE64Encoder();
-        String encodedCredential = encoder.encode((username + ":" + password).getBytes());
+        String encodedCredential = encode(username + ":" + password);
 
         try
         {
@@ -207,47 +257,76 @@ public class Descriptors {
             }
 
             connection.connect();
-            BufferedReader response = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String resp_line;
-            while ((resp_line = response.readLine()) != null)
+            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String respLine;
+            while ((respLine = reader.readLine()) != null)
             {
-                System.out.println(resp_line);
+                response += respLine;
             }
-            response.close();
+            reader.close();
             connection.disconnect();
         }
         catch (Exception x)
         {
+            System.out.println("Failed to " + method + " " + target);
             System.err.println(x);
             System.exit(1);
         }
+
+        return response;
     }
 
-    public void uploadDescriptor(String desc_name, String buffer)
+    private void getVendorId()
     {
-        if (call_delete)
-        {
-            String target = "/ws/DeviceMetaData?condition=dvVendorId=" + vendor_id + " and dmDeviceType=\'" + device_type + "\' and dmVersion=" + fw_version;
+        String response = sendCloudData("/ws/DeviceVendor", "GET", null);
 
-            sendCloudData(target.replace(" ", "%20"), "DELETE", null);
-            call_delete = false;
+        int startIndex = response.indexOf("<dvVendorId>");
+        if (startIndex == -1)
+        {
+            System.out.println(username + " has no vendor ID, so please create the vendor ID");
+            System.exit(1);
+        }
+
+        if (startIndex != response.lastIndexOf("<dvVendorId>"))
+        {
+            System.out.println(username + " has more than one vendor ID, so please specify the correct one");
+            System.exit(1);
+        }
+
+        startIndex += "<dvVendorId>".length();
+        vendorId = response.substring(startIndex, response.indexOf("</dvVendorId>"));
+        System.out.println("Found vendorID: " + vendorId);
+    }
+
+    private void uploadDescriptor(String descName, String buffer)
+    {
+        if (callDeleteFlag)
+        {
+            String target = "/ws/DeviceMetaData?condition=dvVendorId=" + vendorId + " and dmDeviceType=\'" + deviceType + "\' and dmVersion=" + fwVersion;
+
+            String response = sendCloudData(target.replace(" ", "%20"), "DELETE", null);
+            System.out.println("Deleted: " + vendorId + "/" + deviceType);
+            System.out.println(response);
+            callDeleteFlag = false;
         }
 
         String message = "<DeviceMetaData>";
-        message += "<dvVendorId>" + vendor_id + "</dvVendorId>";
-        message += "<dmDeviceType>" + device_type + "</dmDeviceType>";
-        message += "<dmVersion>" + fw_version + "</dmVersion>";
-        message += "<dmName>" + desc_name + "</dmName>";
+        message += "<dvVendorId>" + vendorId + "</dvVendorId>";
+        message += "<dmDeviceType>" + deviceType + "</dmDeviceType>";
+        message += "<dmVersion>" + fwVersion + "</dmVersion>";
+        message += "<dmName>" + descName + "</dmName>";
         message += "<dmData>" + buffer.replace("<", "&lt;").replace(">", "&gt;") + "</dmData>";
         message += "</DeviceMetaData>";
 
-        sendCloudData("/ws/DeviceMetaData", "POST", message);
+        String response = sendCloudData("/ws/DeviceMetaData", "POST", message);
+        System.out.println("Created: " + vendorId + "/" + deviceType + "/" + descName);
+        System.out.println(response);
     }
 
     private String username;
     private String password;
-    private String device_type;
-    private String vendor_id;
-    private String fw_version;
-    private Boolean call_delete;
+    private String deviceType;
+    private String vendorId;
+    private String fwVersion;
+    private Boolean callDeleteFlag;
 }
