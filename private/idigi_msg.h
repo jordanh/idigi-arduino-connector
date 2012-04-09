@@ -1392,12 +1392,6 @@ static idigi_callback_status_t msg_process_compressed_data(idigi_data_t * const 
     zlib_ptr->next_in = dblock->buffer_in;
     zlib_ptr->avail_in = bytes;
 
-    if (MsgIsStart(dblock->status_flag))
-    {
-        zlib_ptr->next_out = dblock->buffer_out;
-        zlib_ptr->avail_out = sizeof dblock->buffer_out;
-    }
-
     status = msg_decompress_data(idigi_ptr, session);
 
 error:

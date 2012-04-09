@@ -19,8 +19,8 @@ FileList =  [
                 ("dvt_fs_0.txt", 0),
                 ("dvt_fs_1.txt", 1),
                 ("dvt_fs_2.txt", 500),
-                #("dvt_fs_4.txt", 1600),
-                #("dvt_fs_5.txt", MAX_TEST_FILE_SIZE),
+                ("dvt_fs_4.txt", 1600),
+                ("dvt_fs_5.bin", MAX_TEST_FILE_SIZE),
             ]
 
 class FileSystemTestCase(iik_testcase.TestCase):
