@@ -28,16 +28,6 @@
 #define _IDIGI_REMOTE_H
 
 typedef enum {
-    idigi_group_error_unsupport_field = 1,
-    idigi_group_error_load_failed,
-    idigi_group_error_save_failed,
-    idigi_group_error_unknown_value,
-    idigi_group_error_count,
-    idigi_group_error_width = INT_MAX
-} idigi_group_error_id_t;
-
-
-typedef enum {
     idigi_remote_action_set,
     idigi_remote_action_query
 } idigi_remote_action_t;
@@ -175,10 +165,10 @@ typedef struct {
     } element_data;
 } idigi_remote_group_response_t;
 
-extern idigi_group_t const idigi_config_groups[];
-extern size_t const idigi_config_group_count;
+extern idigi_group_t const idigi_setting_groups[];
+extern size_t const idigi_setting_group_count;
 
-extern idigi_group_t const * idigi_sysinfo_groups;
-extern size_t const idigi_sysinfo_group_count;
+extern idigi_group_t const idigi_state_groups[];
+extern size_t const idigi_state_group_count;
 
 #endif /* idigi_element_H_ */

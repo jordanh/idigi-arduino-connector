@@ -132,10 +132,12 @@ typedef enum {
     idigi_group_debug_info_width = INT_MAX
 } idigi_group_debug_info_id_t;
 
+#if 0 /* I think these are redundent as the definition is in idigi_remote.h, which is included in this header. -ASK */
 extern idigi_group_t const idigi_config_groups[];
 extern size_t const idigi_config_group_count;
 
 extern idigi_group_t const * idigi_sysinfo_groups;
 extern size_t const idigi_sysinfo_group_count;
+#endif
 
 #endif /* _REMOTE_CONFIG_H_ */

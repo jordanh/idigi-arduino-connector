@@ -266,6 +266,11 @@ static idigi_service_supported_status_t app_get_data_service_support(void)
     return idigi_service_supported;
 }
 
+static idigi_service_supported_status_t app_get_remote_configuration_support(void)
+{
+    return idigi_service_supported;
+}
+
 static unsigned int app_get_max_message_transactions(void)
 {
 #define IDIGI_MAX_MSG_TRANSACTIONS   1
@@ -453,6 +458,11 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
 
     case idigi_config_data_service:
         *((idigi_service_supported_status_t *)response_data) = app_get_data_service_support();
+        ret = 0;
+        break;
+
+    case idigi_config_remote_configuration:
+        *((idigi_service_supported_status_t *)response_data) = app_get_remote_configuration_support();
         ret = 0;
         break;
 

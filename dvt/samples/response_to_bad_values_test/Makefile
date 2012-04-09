@@ -20,42 +20,46 @@
 #  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
 #
 # =======================================================================
-CC = gcc
+CC      = $(CROSS_COMPILE)gcc
+LD      = $(CROSS_COMPILE)gcc
+CXX     = $(CROSS_COMPILE)g++
+STRIP   = $(CROSS_COMPILE)strip
+AR      = $(CROSS_COMPILE)ar
 
-IDIGI_DIR=../../../../private
-PUBLIC_HEADER_DIR=../../../include
+IDIGI_DIR=../../../private
+PUBLIC_HEADER_DIR=../../../public/include
+PLATFORM_DIR=../../../public/run/platforms/linux
+SCRIPTS_DIR= ../../scripts
 
 vpath $(IDIGI_DIR)/%.c
-
-CFLAGS += -Winit-self -Wbad-function-cast -Wpointer-arith -Wlogical-op -Wmissing-parameter-type -Wstrict-prototypes -Wformat-security 
-CFLAGS += -Wformat-y2k -Wold-style-definition -Wcast-align -Wformat-nonliteral -Wpadded -Wredundant-decls -Wvariadic-macros
-# CFLAGS += -Wjump-misses-init -Wtrampolines 
-CFLAGS += -Wno-error=padded -Wno-error=format-nonliteral
+vpath $(PLATFORM_DIR)/%.c
 
 CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL 
-CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -Os
-CFLAGS += -DIDIGI_RCI_MAXIMUM_CONTENT_LENGTH=256
+CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR)  -g -Os
 
-OBJS = main.o $(IDIGI_DIR)/idigi_api.o
-LIBS = -lc -lz
+OBJS = application.o main.o ds_callback.o firmware.o $(IDIGI_DIR)/idigi_api.o network.o os.o config.o
+LIBS = -lc -lz -lpthread
 
 SAMPLE = idigi
 all: $(SAMPLE)
 
-LDFLAGS += $(DFLAGS) -Wl,-Map,$(SAMPLE).map
+CFLAGS += -Wl,-Map,$(SAMPLE).map
 
 main.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h
+ds_callback: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h
+firmware: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h
 $(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PUBLIC_HEADER_DIR)/idigi_config.h \
                         $(IDIGI_DIR)/chk_config.h $(IDIGI_DIR)/debug.h $(IDIGI_DIR)/ei_packet.h \
                         $(IDIGI_DIR)/idigi_cc.h $(IDIGI_DIR)/idigi_ds.h $(IDIGI_DIR)/idigi_fw.h \
                         $(IDIGI_DIR)/idigi_msg.h $(IDIGI_DIR)/layer.h $(IDIGI_DIR)/network_intf.h \
                         $(IDIGI_DIR)/options.h $(IDIGI_DIR)/os_intf.h $(IDIGI_DIR)/bele.h \
-                        $(IDIGI_DIR)/idigi_def.h $(IDIGI_DIR)/rci_service.h $(IDIGI_DIR)/rci_parser.h
+                        $(IDIGI_DIR)/idigi_def.h
 
-$(OBJS): *.c $(IDIGI_DIR)/*.c
+$(OBJS): *.c $(IDIGI_DIR)/*.c $(PLATFORM_DIR)/*.c
 
 $(SAMPLE): $(OBJS)
-	$(CC) $(LDFLAGS) $(OBJS) $(LIBS) -o $(SAMPLE)
+	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(SAMPLE)
+	$(AT)python $(SCRIPTS_DIR)/iikmapsum.py $(SAMPLE).map | tee $(basename $@).stats 
 
 .PHONY: clean
 clean:

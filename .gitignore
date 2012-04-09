@@ -1,4 +1,5 @@
 # Ignore C output files
+*.d
 *.a
 *.so
 *.o
