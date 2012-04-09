@@ -27,7 +27,6 @@
 #include "idigi_config.h"
 #include "idigi_api.h"
 #include "platform.h"
-#include "idigi_remote.h"
 #include "remote_config.h"
 #include "remote_config_cb.h"
 
@@ -88,26 +87,24 @@ idigi_callback_status_t app_device_stats_group_get(idigi_remote_group_request_t 
 
     switch (request->element_id)
     {
-    case idigi_group_device_stats_curtime:
+    case idigi_setting_device_stats_curtime:
     {
         ASSERT(request->element_type == idigi_element_type_datetime);
         response->element_data.element_value->string_value.length_in_bytes = strlen(device_stats_ptr->timestring);
         response->element_data.element_value->string_value.buffer = device_stats_ptr->timestring;
         break;
     }
-    case idigi_group_device_stats_ctemp:
+    case idigi_setting_device_stats_ctemp:
         ASSERT(request->element_type == idigi_element_type_float);
         response->element_data.element_value->float_value = device_stats_ptr->temperature;
         break;
-    case idigi_group_device_stats_ftemp:
+    case idigi_setting_device_stats_ftemp:
         ASSERT(request->element_type == idigi_element_type_float);
         response->element_data.element_value->float_value = device_stats_ptr->temperature * 9 / 5 + 32;
         break;
 
     default:
         ASSERT(0);
-        response->error_id = idigi_group_error_unknown_value;
-        response->element_data.error_hint = NULL;
         break;
     }
 
@@ -128,7 +125,7 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
 
     switch (request->element_id)
     {
-    case idigi_group_device_stats_curtime:
+    case idigi_setting_device_stats_curtime:
     {
 
 
@@ -244,16 +241,14 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
 
         break;
     }
-    case idigi_group_device_stats_ctemp:
+    case idigi_setting_device_stats_ctemp:
         ASSERT(request->element_type == idigi_element_type_float);
         device_stats_ptr->temperature= request->element_value->float_value;
         break;
 
-    case idigi_group_device_stats_ftemp:
+    case idigi_setting_device_stats_ftemp:
     default:
         ASSERT(0);
-        response->error_id = idigi_group_error_unknown_value;
-        response->element_data.error_hint = NULL;
         break;
     }
 

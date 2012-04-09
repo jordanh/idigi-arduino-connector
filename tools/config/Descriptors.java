@@ -1,3 +1,4 @@
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -54,7 +55,7 @@ public class Descriptors {
         if (!fwVersionScan.hasNextInt())
         {
             System.out.println("Invalid f/w version!");
-            System.exit(1);
+            ConfigGenerator.usage();
         }
 
         callDeleteFlag = true;

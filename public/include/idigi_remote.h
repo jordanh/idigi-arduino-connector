@@ -165,10 +165,7 @@ typedef struct {
     } element_data;
 } idigi_remote_group_response_t;
 
-extern idigi_group_t const idigi_setting_groups[];
-extern size_t const idigi_setting_group_count;
-
-extern idigi_group_t const idigi_state_groups[];
-extern size_t const idigi_state_group_count;
+extern idigi_group_t const idigi_remote_groups[];
+extern size_t const idigi_remote_group_count;
 
 #endif /* idigi_element_H_ */
