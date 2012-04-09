@@ -433,7 +433,7 @@ idigi_callback_status_t app_process_file_read(idigi_file_request_t const * const
  
     int result = read(request_data->fd, response_data->data_ptr, response_data->size_in_bytes);
 
-    APP_DEBUG("read %d, %u, returned %d\n", request_data->fd, response_data->size_in_bytes, result);
+    APP_DEBUG("read %d, %zu, returned %d\n", request_data->fd, response_data->size_in_bytes, result);
  
     if (result < 0)
     {
@@ -453,7 +453,7 @@ idigi_callback_status_t app_process_file_write(idigi_file_write_request_t const 
 
     int result = write(request_data->fd, request_data->data_ptr, request_data->size_in_bytes);
 
-    APP_DEBUG("write %d, %u, returned %d\n", request_data->fd, request_data->size_in_bytes, result);
+    APP_DEBUG("write %d, %zu, returned %d\n", request_data->fd, request_data->size_in_bytes, result);
  
     if (result < 0)
     {
