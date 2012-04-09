@@ -95,6 +95,7 @@ test_table = [
               ['dvt',           BASE_DVT_SRC+'full_test',                 BASE_SCRIPT_DIR+'dvt_tests/',    ['test_firmware_errors.py', 
                                                                                                             'test_device_request.py',
                                                                                                             'test_put_request.py']],
+              ['dvt',           BASE_DVT_SRC+'file_system',               BASE_SCRIPT_DIR+'dvt_tests/',    ['test_fs_all.py']],
               ['dvt',           BASE_DVT_SRC+'keep_alive_test',           BASE_SCRIPT_DIR+'keep_alive/',   ['test_keep_alive.py']],
               ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'admin_tests/',  ['test_redirect.py']],
               ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'admin_tests/',  ['test_nodebug_redirect.py']],
