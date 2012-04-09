@@ -1,0 +1,28 @@
+globalerror load_fail "Load fail"
+globalerror save_fail "Save fail"
+globalerror memory_fail "Insufficient memory"
+
+group setting serial "Serial Port"
+    element baud "Baud rate" type enum access read_write
+        value 2400
+        value 4800
+        value 9600
+        value 19200
+        value 38400
+        value 57600
+        value 115200
+        value 230400  
+    element parity "Parity" type enum access  read_write 
+        value none
+        value odd
+        value even
+    element databits "Data bits" type uint32 access  read_write  min  5 max  8 
+    element xbreak "Tx Break" type on_off access  read_write 
+    element txbytes "Tx bytes" type uint32 access  read_only 
+    element databits "Data bits" type uint32 access  read_write  min  5 max  8 
+    error invalid_baud "Invalid baud rate "
+    error invalid_databits "Invalid data bits"
+    error invalid_parity  " Invalid parity"
+    error invalid_xbreak "Invalid xbreak setting"
+    error invalid_databits_parity "Invalid combination of data bits and parity"
+
