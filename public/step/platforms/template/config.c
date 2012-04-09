@@ -445,6 +445,28 @@ static idigi_service_supported_status_t app_get_data_service_support(void)
 }
 
 /**
+ * @brief   Return true if the file system is supported
+ *
+ * This routine tells IIK whether the file system facility is supported or not. 
+ * If you plan to access device files from the iDigi server set this to idigi_service_supported.
+ *
+ * @retval idigi_service_supported  File system is supported
+ * @retval idigi_service_unsupported  File system is not supported
+ *
+ * @see @ref file_system_support API Configuration Callback
+ *
+ * @note This routine is not called if you define @b IDIGI_FILE_SYSTEM_SUPPORT configuration in @ref idigi_config.h.
+ * @note This IDIGI_FILE_SYSTEM_SUPPORT indicates application supports file system. See @ref idigi_config_data_options
+ *
+ * @note See @ref IDIGI_FILE_SYSTEM to include file system code in IIK.
+ * @note See @ref IDIGI_COMPRESSION for file system transferring compressed data.
+ */
+static idigi_service_supported_status_t app_get_file_system_support(void)
+{
+    return idigi_service_supported;
+}
+
+/**
  * @brief   Return maximum transactions
  *
  * This routine tells IIK the maximum simultaneous transactions for data service

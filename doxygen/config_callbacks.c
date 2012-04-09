@@ -21,6 +21,7 @@
  *  -# @ref error_status
  *  -# @ref firmware_support
  *  -# @ref data_service_support
+ *  -# @ref file_system_support
  *  -# @ref max_msg_transactions
  *
  * @section device_id Device ID
@@ -1162,12 +1163,86 @@
  *
  * @endcode
  *
+ * @section file_system_support  File System Support
+ *
+ * Return @ref idigi_service_supported_status_t status to enable or disable file system 
+ * capability. If it's supported, callback for @ref idigi_file_system_request_t must be 
+ * implemented for file system. This callback allows application to enable
+ * or disable file system capability during runtime.
+ *
+ * @note If @ref IDIGI_FILE_SYSTEM configuration is not defined in @ref idigi_config.h, this callback 
+ * will not be called and File System is not supported. IIK does not include file system.
+ *
+ * @note If @ref IDIGI_FILE_SYSTEM_SUPPORT is defined in @ref idigi_config.h, this callback is not needed.
+ * It enables file system capability. See @ref idigi_config_data_options. IDIGI_FILE_SYSTEM must be defined.
+ *
+ * @note Define @ref IDIGI_COMPRESSION in @ref idigi_config.h for compression transfer.
+ *
+ * @htmlonly
+ * <table class="apitable">
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
+ * <tr>
+ * <th>class_id</th>
+ * <td>@endhtmlonly @ref idigi_class_config @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <th>request_id</th>
+ * <td>@endhtmlonly @ref idigi_config_file_system @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <th>request_data</th>
+ * <td>N/A</td>
+ * </tr>
+ * <tr>
+ * <th>request_length</th>
+ * <td> N/A</td>
+ * </tr>
+ * <tr>
+ * <th>response_data</th>
+ * <td> Pointer to memory where callback writes @endhtmlonly @ref idigi_service_supported_status_t @htmlonly 
+ * status to support or not support file_system</td>
+ * </tr>
+ * <tr>
+ * <th>response_length</th>
+ * <td>N/A</td>
+ * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
+ * <tr>
+ * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
+ * <td>Callback successfully returned the status</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
+ * <td>Callback aborted IIK</td>
+ * </tr>
+ * </table>
+ * @endhtmlonly
+ *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id == idigi_class_config && request_id.config_request == idigi_config_data_service)
+ *     {
+ *         *((idigi_service_supported_status_t *)response_data) = idigi_service_supported;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ *
+ * @endcode
  *
  * @section max_msg_transactions Maximum Message Transactions
  *
- * Return maximum simultaneous transactions for data service to receive message from 
- * iDigi server. This configuration is required if @ref data_service_support is
- * enabled. 
+ * Return maximum simultaneous transactions for data service and file system to receive message from 
+ * iDigi server. This configuration is required if @ref data_service_support or @ref file_system_support
+ * is enabled. 
  *
  * @note If @ref IDIGI_MSG_MAX_TRANSACTION configuration is defined in @ref idigi_config.h, this callback 
  * will not be called. See @ref idigi_config_data_options

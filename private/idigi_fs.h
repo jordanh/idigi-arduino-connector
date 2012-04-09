@@ -84,7 +84,8 @@ typedef struct
 #define FileSetState(context, s) (context->state = s)
 #define FileGetState(context)    (context->state)
 
-#define fileSessionError(status, context)  (status>idigi_callback_busy || context->error.error_code!=idigi_file_system_noerror)
+
+#define fileErrorInSession(status, context)  (status>idigi_callback_busy || context->error.error_status!=idigi_file_noerror)
 
 static void set_file_system_service_error(msg_service_request_t * const service_request, idigi_msg_error_t const msg_error)
 {
@@ -119,17 +120,17 @@ static void format_file_error_msg(idigi_data_t * const idigi_ptr,
 
      uint8_t * fs_error_response = service_data->data_ptr;
      size_t    header_bytes = record_bytes(fs_error_response_header);
-     uint8_t   error_code = context->error.error_code;
+     uint8_t   error_code = context->error.error_status;
      size_t    buffer_size = MIN_VALUE(service_data->length_in_bytes - header_bytes, UCHAR_MAX);
      uint8_t   error_hint_len = 0;
 
-     ASSERT(error_code > idigi_file_system_noerror);
+     ASSERT(error_code > idigi_file_noerror);
 
      /* don't send an error response, of thession is canceled */
-     if (error_code == idigi_file_system_user_cancel)
+     if (error_code == idigi_file_user_cancel)
          goto done;
 
-     error_code -= idigi_file_system_user_cancel;
+     error_code -= idigi_file_user_cancel;
 
      message_store_u8(fs_error_response, opcode, fs_error_opcode);
      message_store_u8(fs_error_response, error_code, error_code);
@@ -145,7 +146,6 @@ static void format_file_error_msg(idigi_data_t * const idigi_ptr,
      else
      if (context->error.errnum != 0)
      {
-        idigi_file_request_t            request; 
         idigi_file_response_t           response;
         size_t response_length = sizeof response;
 
@@ -156,12 +156,12 @@ static void format_file_error_msg(idigi_data_t * const idigi_ptr,
         response.data_ptr = fs_error_response + header_bytes;
         response.size_in_bytes = buffer_size;
 
-        response.context = context->user_context;
+        response.user_context = context->user_context;
 
         idigi_callback(idigi_ptr->callback, idigi_class_file_system, request_id,
-                       &request, sizeof request, &response, &response_length);
+                       NULL, 0, &response, &response_length);
 
-        context->user_context = response.context;
+        context->user_context = response.user_context;
 
         if (response_length != sizeof response || response.size_in_bytes > buffer_size)
         {
@@ -204,13 +204,13 @@ static idigi_callback_status_t call_file_system_user(idigi_data_t * const idigi_
 
     request_id.file_system_request = fs_request_id;
 
-    response->context = context->user_context;
+    response->user_context = context->user_context;
     response->error   = &context->error;
 
     status = idigi_callback(idigi_ptr->callback, idigi_class_file_system, request_id,
                             request, request_length, response, &response_length);
 
-    context->user_context = response->context;
+    context->user_context = response->user_context;
  
     switch (status)
     {
@@ -222,7 +222,7 @@ static idigi_callback_status_t call_file_system_user(idigi_data_t * const idigi_
                 notify_error_status(idigi_ptr->callback, idigi_class_file_system, request_id, idigi_invalid_data_size);
                 break;
             }
-            if (context->error.error_code == idigi_file_system_user_cancel)
+            if (context->error.error_status == idigi_file_user_cancel)
             {
                 msg_error = idigi_msg_error_cancel;
                 break;
@@ -273,20 +273,20 @@ static idigi_callback_status_t call_file_stat_user(idigi_data_t * const idigi_pt
     msg_session_t * const session = service_request->session;
     file_system_context_t * context = session->service_context;
     idigi_callback_status_t     status;
-    idigi_file_path_request_t   request; 
+    idigi_file_stat_request_t   request; 
     idigi_file_stat_response_t  response;
 
     idigi_file_stat_t     stat;
 
     stat.flags    = 0;
-    stat.hash_alg = 0;
+    stat.hash_alg = idigi_file_hash_none;
 
     request.path     = path;
     request.hash_alg = hash_alg;
 
     response.stat_ptr       = &stat;
     response.size_in_bytes  = sizeof stat;
- 
+
     status = call_file_system_user(idigi_ptr, service_request, idigi_file_system_stat, 
                                     &request,  sizeof request, 
                                     &response);
@@ -298,7 +298,7 @@ static idigi_callback_status_t call_file_stat_user(idigi_data_t * const idigi_pt
     /* don't overwrite */
     if (hash_alg == idigi_file_hash_none ||
         status == idigi_callback_busy    || 
-        fileSessionError(status, context))
+        fileErrorInSession(status, context))
     {
         goto done;
     }
@@ -388,6 +388,8 @@ static idigi_callback_status_t call_file_closedir_user(idigi_data_t * const idig
                                     &request,  sizeof request, 
                                     &response);
 
+    ASSERT(status != idigi_callback_busy);
+
     context->dir.dir_handle = NULL;
     context->dir.dir_entry  = NULL;
 
@@ -403,7 +405,7 @@ static idigi_callback_status_t call_file_hash_user(idigi_data_t * const idigi_pt
     file_system_context_t * context = session->service_context;
     idigi_callback_status_t      status = idigi_callback_continue;
 
-    idigi_file_path_request_t request; 
+    idigi_file_stat_request_t request; 
     idigi_file_response_t     response;
 
     size_t hash_size = file_hash_size(context->hash_alg);
@@ -432,16 +434,16 @@ done:
 static idigi_callback_status_t call_file_open_user(idigi_data_t * const idigi_ptr, 
                                                    msg_service_request_t * const service_request,
                                                    char const * path, 
-                                                   int mode)
+                                                   int oflag)
 {
     msg_session_t * const session = service_request->session;
     file_system_context_t * context = session->service_context;
     idigi_callback_status_t      status;
-    idigi_file_path_request_t    request; 
+    idigi_file_open_request_t    request; 
     idigi_file_open_response_t   response;
 
-    request.path = path;
-    request.mode = mode;
+    request.path  = path;
+    request.oflag = oflag;
 
     response.fd_ptr = &context->fd;
     response.size_in_bytes = sizeof context->fd;
@@ -471,6 +473,9 @@ static idigi_callback_status_t call_file_close_user(idigi_data_t * const idigi_p
         status = call_file_system_user(idigi_ptr, service_request, idigi_file_system_close, 
                                        &request, sizeof request, 
                                        &response);
+
+        ASSERT(status != idigi_callback_busy);
+
         context->fd = -1;
     }
     return status;
@@ -486,7 +491,7 @@ static idigi_callback_status_t call_file_lseek_user(idigi_data_t * const idigi_p
     file_system_context_t * context = session->service_context;
 
     idigi_callback_status_t  status;
-    idigi_file_offset_request_t request;  
+    idigi_file_lseek_request_t request;  
     idigi_file_lseek_response_t response;
     
     request.fd = context->fd;
@@ -511,11 +516,11 @@ static idigi_callback_status_t call_file_ftruncate_user(idigi_data_t * const idi
     msg_session_t * const session = service_request->session;
     file_system_context_t * context = session->service_context;
     idigi_callback_status_t  status;
-    idigi_file_offset_request_t request;  
-    idigi_file_response_t       response;
+    idigi_file_ftruncate_request_t request;  
+    idigi_file_response_t          response;
 
     request.fd     = context->fd;
-    request.offset = context->offset;
+    request.length = context->offset;
     
     response.data_ptr = NULL;
     response.size_in_bytes = 0;
@@ -593,7 +598,7 @@ static idigi_callback_status_t call_file_write_user(idigi_data_t * const idigi_p
                                    &request, sizeof request, 
                                    &response);
 
-    if (status == idigi_callback_continue && !fileSessionError(status, context))
+    if (status == idigi_callback_continue && !fileErrorInSession(status, context))
     {
         *bytes_done = response.size_in_bytes;
 
@@ -619,7 +624,7 @@ static size_t parse_file_path(file_system_context_t * context, void const * cons
     if (path_len == 0)
     {
         ASSERT(idigi_false);
-        context->error.error_code = idigi_file_system_request_format_error;
+        context->error.error_status = idigi_file_request_format_error;
     }
 
     return path_len;
@@ -673,22 +678,22 @@ static idigi_callback_status_t set_file_position(idigi_data_t * const idigi_ptr,
     file_system_context_t * context = session->service_context;
     
     status = call_file_lseek_user(idigi_ptr, service_request, 0, IDIGI_SEEK_END, &ret);
-    if (status == idigi_callback_busy || fileSessionError(status, context))
+    if (status == idigi_callback_busy || fileErrorInSession(status, context))
         goto done;
 
     if (ret == -1 || (uint32_t) ret < context->offset)
     {
-        context->error.error_code = idigi_file_system_invalid_parameter;
+        context->error.error_status = idigi_file_invalid_parameter;
         goto done;
     }
 
     status = call_file_lseek_user(idigi_ptr, service_request, (long int ) context->offset, IDIGI_SEEK_SET, &ret);
-    if (status == idigi_callback_busy || fileSessionError(status, context))
+    if (status == idigi_callback_busy || fileErrorInSession(status, context))
         goto done;
 
     if (ret == -1)
     {
-        context->error.error_code = idigi_file_system_invalid_parameter;
+        context->error.error_status = idigi_file_invalid_parameter;
     }
 
 done:
@@ -717,8 +722,11 @@ static idigi_callback_status_t process_file_get_request(idigi_data_t * const idi
     {
         status = set_file_position(idigi_ptr, service_request);
 
-        if (fileSessionError(status, context))
-            call_file_close_user(idigi_ptr, service_request);
+        if (fileErrorInSession(status, context))
+        {
+            status = call_file_close_user(idigi_ptr, service_request);
+        }
+
     }
 done:
     return status;
@@ -730,12 +738,13 @@ static idigi_callback_status_t process_file_get_response(idigi_data_t * const id
     idigi_callback_status_t status = idigi_callback_continue;
     msg_session_t * session = service_request->session;
     file_system_context_t * context = session->service_context;
+    msg_service_data_t * service_data = service_request->need_data;
 
-    if (context->error.error_code != idigi_file_system_noerror)
-        goto error;
+
+    if (context->error.error_status != idigi_file_noerror)
+        goto close_file;
     
     {
-        msg_service_data_t * service_data = service_request->need_data;
         uint8_t * data_ptr = service_data->data_ptr;
 
         size_t buffer_size = service_data->length_in_bytes;
@@ -764,19 +773,8 @@ static idigi_callback_status_t process_file_get_response(idigi_data_t * const id
                     status = idigi_callback_continue;  /* Return what's read already */
                 break;
             }
-
-            if (context->error.error_code != idigi_file_system_noerror)
-            {
-                /* 1st response - can send error */
-                if (MsgIsStart(service_data->flags))
-                    goto error;
-
-                /* sent part of response already - cancel the session */
-                set_file_system_service_error(service_request, idigi_msg_error_cancel);
-                goto close_file;
-            }
-            if (fileSessionError(status, context))
-                goto close_file;
+            if (fileErrorInSession(status, context))
+                goto close_file; 
 
             if (cnt > 0) 
             {
@@ -798,15 +796,22 @@ static idigi_callback_status_t process_file_get_response(idigi_data_t * const id
  
         if (MsgIsLastData(service_data->flags))
              goto close_file;
-
+        
         goto done;
     }
 
-error:
-    format_file_error_msg(idigi_ptr, service_request, NULL);
-
 close_file:
-    call_file_close_user(idigi_ptr, service_request);
+    status = call_file_close_user(idigi_ptr, service_request);
+
+    if (context->error.error_status > idigi_file_user_cancel &&
+        status == idigi_callback_continue)
+    {
+        /* not 1st response - too late to send error code */
+        if (!MsgIsStart(service_data->flags))
+            set_file_system_service_error(service_request, idigi_msg_error_cancel);
+        else
+            format_file_error_msg(idigi_ptr, service_request, NULL);
+    }
 
 done:
     return status;
@@ -839,7 +844,7 @@ static idigi_callback_status_t process_file_response_nodata(idigi_data_t * const
     file_system_context_t * context = session->service_context;
     msg_service_data_t * service_data = service_request->need_data;
 
-    if (context->error.error_code == idigi_file_system_noerror)
+    if (context->error.error_status == idigi_file_noerror)
     {
         uint8_t * data_ptr = service_data->data_ptr;
         
@@ -897,7 +902,7 @@ static idigi_callback_status_t process_file_put_request(idigi_data_t * const idi
     msg_session_t * session = service_request->session;
     file_system_context_t * context = session->service_context;
 
-    if (fileSessionError(status, context))
+    if (context->error.error_status != idigi_file_noerror)
         goto close_file;
 
     {
@@ -933,7 +938,7 @@ static idigi_callback_status_t process_file_put_request(idigi_data_t * const idi
             if (status == idigi_callback_busy)
                 goto done;
 
-            if (fileSessionError(status, context))
+            if (fileErrorInSession(status, context))
                goto close_file;
 
             data_ptr       += header_len;
@@ -965,7 +970,7 @@ static idigi_callback_status_t process_file_put_request(idigi_data_t * const idi
                 context->offset  += bytes_written;
                 goto done;
             }
-            if (fileSessionError(status, context))
+            if (fileErrorInSession(status, context))
                goto close_file;
 
             data_ptr       += cnt;
@@ -984,12 +989,12 @@ static idigi_callback_status_t process_file_put_request(idigi_data_t * const idi
             if (status == idigi_callback_busy)
                 goto done;
 
-            if (fileSessionError(status, context))
+            if (fileErrorInSession(status, context))
                 goto close_file;
         }
     }
 close_file:
-    call_file_close_user(idigi_ptr, service_request);
+    status = call_file_close_user(idigi_ptr, service_request);
 
 done:
     return status;
@@ -1030,7 +1035,7 @@ static size_t parse_file_ls_header(file_system_context_t *context,
 
             default:
                 ASSERT(idigi_false);
-                context->error.error_code = idigi_file_system_request_format_error;
+                context->error.error_status = idigi_file_request_format_error;
                 len = 0;
         }
     }
@@ -1142,7 +1147,7 @@ static idigi_callback_status_t file_store_path(idigi_data_t * const idigi_ptr, f
     if (path_len >= IDIGI_MAX_PATH_LENGTH)
     {
         ASSERT(idigi_false);
-        context->error.error_code = idigi_file_system_out_of_memory;
+        context->error.error_status = idigi_file_out_of_memory;
         goto done;
     }
 
@@ -1151,7 +1156,7 @@ static idigi_callback_status_t file_store_path(idigi_data_t * const idigi_ptr, f
         goto done;
 
     context->path = ptr;
-    strcpy(context->path, path);
+    memcpy(context->path, path, path_len + 1);
 
     if (FileIsDir(context) && (path[path_len - 1] != '/'))
     {
@@ -1174,7 +1179,7 @@ static idigi_callback_status_t process_file_ls_request(idigi_data_t * const idig
 
     path += FILE_OPCODE_BYTES;
     
-    if (context->error.error_code != idigi_file_system_noerror)
+    if (context->error.error_status != idigi_file_noerror)
         goto done;
 
     if (parse_file_ls_header(context, service_data->data_ptr, service_data->length_in_bytes) == 0)
@@ -1183,7 +1188,7 @@ static idigi_callback_status_t process_file_ls_request(idigi_data_t * const idig
     if (FileGetState(context) < FILE_STATE_STAT_DONE)
     {
         status = call_file_stat_user(idigi_ptr, service_request, path, context->hash_alg);
-        if (status == idigi_callback_busy || fileSessionError(status, context))
+        if (status == idigi_callback_busy || fileErrorInSession(status, context))
             goto done;
 
         FileSetState(context, FILE_STATE_STAT_DONE);
@@ -1191,7 +1196,7 @@ static idigi_callback_status_t process_file_ls_request(idigi_data_t * const idig
     if (FileIsDir(context))
     {
         status = call_file_opendir_user(idigi_ptr, service_request, path);
-        if (status == idigi_callback_busy || fileSessionError(status, context))
+        if (status == idigi_callback_busy || fileErrorInSession(status, context))
             goto done;
         
         /* to read next dir entry */
@@ -1213,13 +1218,8 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
     idigi_callback_status_t status = idigi_callback_continue;
     char * error_hint = NULL;
 
-    if (context->error.error_code != idigi_file_system_noerror)
-    {
-        if (context->error.error_code == idigi_file_system_out_of_memory)
-            error_hint = FILE_STR_ETOOLONG;
-        goto error;
-     }
- 
+    if (context->error.error_status != idigi_file_noerror)
+        goto close_dir;
     {
         uint8_t * data_ptr = service_data->data_ptr;
         size_t buffer_size = service_data->length_in_bytes;
@@ -1245,9 +1245,9 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
 
             if ((file_path_len + header_len + hash_len) > buffer_size)
             {
-                context->error.error_code = idigi_file_system_out_of_memory;
+                context->error.error_status = idigi_file_out_of_memory;
                 error_hint = FILE_STR_ETOOLONG;
-                ASSERT_GOTO(idigi_false, error);
+                ASSERT_GOTO(idigi_false, close_dir);
             }
 
             if (hash_len != 0)   
@@ -1257,8 +1257,8 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
                 if (status == idigi_callback_busy)
                     goto done;
 
-                if (fileSessionError(status, context))
-                    goto error;
+                if (fileErrorInSession(status, context))
+                    goto close_dir;
 
                 resp_len += hash_len;
             }
@@ -1279,8 +1279,8 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
                 if (status == idigi_callback_busy)
                     goto done;
 
-                if (fileSessionError(status, context))
-                    goto error;
+                if (fileErrorInSession(status, context))
+                    goto close_dir;
 
                 if (*file_path == '\0')
                 {
@@ -1298,9 +1298,9 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
             {
                 if ((context->path_len + file_path_len) > IDIGI_MAX_PATH_LENGTH)
                 {
-                    context->error.error_code = idigi_file_system_out_of_memory;
+                    context->error.error_status = idigi_file_out_of_memory;
                     error_hint = FILE_STR_ETOOLONG;
-                    ASSERT_GOTO(idigi_false, error);
+                    ASSERT_GOTO(idigi_false, close_dir);
                 }
                 /* strcat file name to after directory path */
                 memcpy(context->path + context->path_len, file_path, file_path_len);
@@ -1309,8 +1309,8 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
                 if (status == idigi_callback_busy)
                     goto done;
 
-                if (fileSessionError(status, context))
-                    goto error;
+                if (fileErrorInSession(status, context))
+                    goto close_dir;
  
                 FileSetState(context, FILE_STATE_STAT_DONE);
             }
@@ -1327,8 +1327,8 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
                 if (status == idigi_callback_busy)
                     goto done;
 
-                if (fileSessionError(status, context))
-                    goto error;
+                if (fileErrorInSession(status, context))
+                    goto close_dir;
 
                 resp_len += hash_len;
             }
@@ -1341,25 +1341,24 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
         goto done;
     }
 
-error:
-    /* have a messaging error, already set in service_request */
-    if (context->error.error_code <= idigi_file_system_user_cancel) 
-        goto close_dir;
-
-    /* have a file error: 
-     *  - if 1sr response message, send error response
-     *  - otherwise, can't send error response, cancel the session
-     */
-    if (MsgIsStart(service_data->flags))
-        format_file_error_msg(idigi_ptr, service_request, error_hint);
-    else
-    if (service_request->error_value == idigi_msg_error_none)
-        set_file_system_service_error(service_request, idigi_msg_error_cancel);
-
 close_dir:
     if (context->dir.dir_handle != NULL)
-        call_file_closedir_user(idigi_ptr, service_request);
+        status = call_file_closedir_user(idigi_ptr, service_request);
 
+    if (context->error.error_status > idigi_file_user_cancel && 
+        status == idigi_callback_continue)
+    {
+         /* not 1st response - too late to send error code */
+        if (!MsgIsStart(service_data->flags))
+            set_file_system_service_error(service_request, idigi_msg_error_cancel);
+        else
+        {
+            if (context->error.error_status == idigi_file_out_of_memory && context->error.errnum == 0) 
+                error_hint = FILE_STR_ETOOLONG;
+
+            format_file_error_msg(idigi_ptr, service_request, error_hint);
+        }
+    }
 done:
     return status;
 }
@@ -1390,7 +1389,7 @@ idigi_callback_status_t allocate_file_context(idigi_data_t * const idigi_ptr, fi
     context->flags              = 0;
     context->state              = 0;
     context->error.errnum       = 0;
-    context->error.error_code   = idigi_file_system_noerror;
+    context->error.error_status   = idigi_file_noerror;
 
 done:
     *result = context;
@@ -1433,7 +1432,7 @@ static idigi_callback_status_t file_system_request_callback(idigi_data_t * const
     if (opcode != fs_put_request_opcode && !MsgIsStart(service_data->flags))
     {
         /* don't support request in >1 message */
-        context->error.error_code = idigi_file_system_request_format_error;
+        context->error.error_status = idigi_file_request_format_error;
         ASSERT_GOTO(idigi_false, done);
     }
 
@@ -1456,7 +1455,7 @@ static idigi_callback_status_t file_system_request_callback(idigi_data_t * const
             break;
 
         default:
-            context->error.error_code = idigi_file_system_request_format_error;
+            context->error.error_status = idigi_file_request_format_error;
             ASSERT_GOTO(idigi_false, done);
     }
 
@@ -1534,20 +1533,19 @@ static idigi_callback_status_t file_system_error_callback(idigi_data_t * const i
 
     size_t response_length = sizeof response;
     
-    request_id.file_system_request = idigi_file_system_error;
+    request_id.file_system_request = idigi_file_system_msg_error;
 
     request.message_status = session->error;
     response.data_ptr = NULL;
     response.size_in_bytes = 0;
-    response.context = context->user_context;
+    response.user_context = context == NULL ? NULL : context->user_context;
 
     idigi_callback(idigi_ptr->callback, idigi_class_file_system, request_id,
                    &request, sizeof request, &response, &response_length);
 
-    context->user_context = response.context;
-    
     if (context != NULL)
     {
+        context->user_context = response.user_context;
         if (context->fd >= 0)
             call_file_close_user(idigi_ptr, service_request);
 

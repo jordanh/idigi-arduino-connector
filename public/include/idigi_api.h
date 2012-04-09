@@ -272,7 +272,7 @@ typedef enum {
 */
 
 /**
-* @defgroup idigi_file_system_request_t File System Requests
+* @defgroup idigi_file_system_request_t File System Request IDs
 * @{
 */
 /**
@@ -293,7 +293,7 @@ typedef enum {
     idigi_file_system_readdir,          /**< inform callback to read next directory entry */
     idigi_file_system_closedir,         /**< inform callback to end processing a directory */
     idigi_file_system_strerror,         /**< inform callback to get an error code description  */
-    idigi_file_system_error,            /**< inform callback of an error from the server */
+    idigi_file_system_msg_error,        /**< inform callback of an error in messaging layer */
     idigi_file_system_hash              /**< inform callback to return file hash value */
 } idigi_file_system_request_t;
 /**
@@ -957,158 +957,508 @@ typedef struct
                                     the first chunk of data (IDIGI_MSG_FIRST_DATA bit is set on flags. @see idigi_data_service_block_t).
                                     Otherwise, it’s null. */
 } idigi_data_service_device_request_t;
+
 /**
 * @}
 */
 
+/**
+* @defgroup idigi_file_seek_origin_t File seek origin
+* @{
+*/
+/**
+ * Seek file position relative to start-of-file.
+ *
+ * @see idigi_file_lseek_request_t
+ * @see idigi_file_system_lseek
+ */
 #define IDIGI_SEEK_SET	0
-#define IDIGI_SEEK_CUR	1
-#define IDIGI_SEEK_END	2
 
-#define	IDIGI_O_RDONLY	0		
-#define	IDIGI_O_WRONLY	1		
+/**
+ * Seek file position relative to current position. 
+ *
+ * @see idigi_file_lseek_request_t
+ * @see idigi_file_system_lseek
+ */
+#define IDIGI_SEEK_CUR	1
+
+/**
+ * Seek file position relative to end-of-file.
+ *
+ * @see idigi_file_lseek_request_t
+ * @see idigi_file_system_lseek
+ */
+#define IDIGI_SEEK_END	2
+/**
+* @}
+*/
+
+/**
+* @defgroup file_open_flag_t File open flags
+* @{
+*/
+/**
+ * Open file for reading only.
+ *
+ * @see idigi_file_open_request_t
+ * @see idigi_file_system_open callback
+ */
+#define	IDIGI_O_RDONLY	0
+
+/**
+ * Open for writing only.
+ *
+ * @see idigi_file_open_request_t
+ * @see idigi_file_system_open callback
+ */		
+#define	IDIGI_O_WRONLY	1
+
+/**
+ * Open for reading and writing.
+ *
+ * @see idigi_file_open_request_t
+ * @see idigi_file_system_open callback
+ */	
 #define	IDIGI_O_RDWR	2		
 
+/**
+ * File offset shall be set to the end of the file prior to each write.
+ *
+ * @see idigi_file_open_request_t
+ * @see idigi_file_system_open callback
+ */	
 #define	IDIGI_O_APPEND	0x0008
+
+/**
+ * Create file, if does not exist.
+ *
+ * @see idigi_file_open_request_t
+ * @see idigi_file_system_open callback
+ */	
 #define	IDIGI_O_CREAT	0x0200
+
+/**
+ * 
+ * Truncate file, successfully opened for writing to 0 length, don't change 
+ * the owner and ile access modes.
+ *
+ * @see idigi_file_open_request_t
+ * @see idigi_file_system_open callback
+ */	
 #define	IDIGI_O_TRUNC	0x0400
+/**
+* @}
+*/
 
+/**
+* @defgroup file_stat_flag_t File status flags
+* @{
+*/
+/**
+ * File is a directory.
+ *
+ * @see idigi_file_stat_t
+ * @see idigi_file_system_stat callback
+ */
 #define IDIGI_FILE_IS_DIR   0x01
+
+/**
+ * File is a regular file.
+ *
+ * @see idigi_file_stat_t
+ * @see idigi_file_system_stat callback
+ */
 #define IDIGI_FILE_IS_REG   0x02
+/**
+* @}
+*/
 
+/**
+* @defgroup max_file_path_length Maximum path length
+* @{
+*/
+/**
+ * Maximum path length of path in bytes, supported by file system.
+ *
+ * @see idigi_file_system_readdir callback
+ */
 #define IDIGI_MAX_PATH_LENGTH   256
+/**
+* @}
+*/
 
-
+/**
+* @defgroup idigi_file_error_status_t File system error status
+* @{
+*/
+/**
+* Error code, used on return in the error_status field of @ref idigi_file_error_data_t
+* in all file system callbacks.
+*
+* @see @ref idigi_file_system_open
+* @see @ref idigi_file_system_read
+* @see @ref idigi_file_system_write  
+* @see @ref idigi_file_system_lseek
+* @see @ref idigi_file_system_ftruncate
+* @see @ref idigi_file_system_close   
+* @see @ref idigi_file_system_rm    
+* @see @ref idigi_file_system_stat   
+* @see @ref idigi_file_system_opendir
+* @see @ref idigi_file_system_readdir 
+* @see @ref idigi_file_system_closedir
+* @see @ref idigi_file_system_hash
+* @see @ref idigi_file_system_strerr
+*/
 typedef enum
 {
-    idigi_file_system_noerror,
-    idigi_file_system_user_cancel,
-    idigi_file_system_unspec_error,
-    idigi_file_system_path_not_found,
-    idigi_file_system_insufficient_storage_space,
-    idigi_file_system_request_format_error,
-    idigi_file_system_invalid_parameter,
-    idigi_file_system_out_of_memory,
-    idigi_file_system_permision_denied
-} idigi_file_error_code_t;
+    idigi_file_noerror,                      /**< No error */
+    idigi_file_user_cancel,                  /**< User application requests to cancel the session */
+    idigi_file_unspec_error,                 /**< Fatal unspecified error */
+    idigi_file_path_not_found,               /**< Path not found */
+    idigi_file_insufficient_storage_space,   /**< Insufficient storage space */
+    idigi_file_request_format_error,         /**< Request format error */
+    idigi_file_invalid_parameter,            /**< Invalid parameter */
+    idigi_file_out_of_memory,                /**< Out of memory */
+    idigi_file_permision_denied              /**< Permision denied */
+} idigi_file_error_status_t;
+/**
+* @}
+*/
 
+/**
+* @defgroup idigi_file_hash_algorithm_t File system hash algorithm
+* @{
+*/
+/**
+* Hash algorithm gives different options for hash values returned in the file lisings. 
+* 
+* @see @ref idigi_file_system_stat   
+* @see @ref idigi_file_system_hash
+*/
 typedef enum
 {
-    idigi_file_hash_none,
-    idigi_file_hash_best,
-    idigi_file_hash_crc32,
-    idigi_file_hash_md5
+    idigi_file_hash_none,       /**< Don't return hash value */
+    idigi_file_hash_best,       /**< Use best available algorithm */
+    idigi_file_hash_crc32,      /**< Use crc32 */
+    idigi_file_hash_md5         /**< Use md5 */
 } idigi_file_hash_algorithm_t;
+/**
+* @}
+*/
 
+/**
+* @defgroup idigi_file_stat_t File status data
+* @{
+*/
+/**
+* File status data structure is used to return the status of a direcory or a file, specified py the path.  
+* It is used in @ref idigi_file_stat_response_t for @ref idigi_file_system_stat callback.
+* The returned hash_alg value will be used in the consequent @ref idigi_file_system_hash callbacks.
+*/
 typedef struct
 {
-  uint32_t     last_modified;
-  size_t       file_size;
-  idigi_file_hash_algorithm_t hash_alg;
-  uint8_t      flags;
+  uint32_t     last_modified; /**< Last modified time for the entry (seconds since 1970). If not supported, use 0 */
+  size_t       file_size;               /**< File size in bytes */
+  idigi_file_hash_algorithm_t hash_alg; /**< hash algorithm */
+  uint8_t      flags;                   /**< 0, or @ref file_stat_flag_t */
 
 } idigi_file_stat_t;
+/**
+* @}
+*/
 
+/**
+* @defgroup idigi_file_dir_data_t File system directory data
+* @{
+*/
+/**
+* Directory data structure is used as a request structure for @ref idigi_file_system_readdir and
+* @ref idigi_file_system_closedir callbacks and in @ref idigi_file_dir_response_t for the
+* @ref idigi_file_system_opendir callback.
+*/
 typedef struct
 {
-    void * dir_handle;
-    void * dir_entry;
+    void * dir_handle;      /**< Value, used to identify a directory for the user application */
+    void * dir_entry;       /**< Value, used to identify a directory entry for the user application */
 
 } idigi_file_dir_data_t;
+/**
+* @}
+*/
 
+/**
+* @defgroup idigi_file_request_t File system file request
+* @{
+*/
+/**
+* File request structure is used for @ref idigi_file_system_read and @ref idigi_file_system_close
+*/
 typedef struct
 {
-    int  fd;
+    int  fd;            /**< File descriptor of an opened file */
 
 } idigi_file_request_t;
+/**
+* @}
+*/
 
+/**
+* @defgroup idigi_file_lseek_request_t File lseek request
+* @{
+*/
+/**
+* File lseek request structure is used for @ref idigi_file_system_lseek callback. 
+*/
 typedef struct
 {
-    int      fd;
-    long int offset;
-    int      origin;
+    int      fd;        /**< File descriptor of an opened file */
+    long int offset;    /**< File offset */
+    int      origin;    /**< File seek origin of @ref idigi_file_seek_origin_t type */
 
-} idigi_file_offset_request_t;
+} idigi_file_lseek_request_t;
+/**
+* @}
+*/
 
+/**
+* @defgroup idigi_file_ftruncate_request_t File ftruncate request
+* @{
+*/
+/**
+* File ftruncate request structure is used for @ref idigi_file_system_ftruncate callback. 
+*/
 typedef struct
 {
-    int          fd;
-    void const * data_ptr;
-    size_t       size_in_bytes;
+    int      fd;        /**< File descriptor of an opened file   */
+    long int length;    /**< File length in bytes to truncate to */
+
+} idigi_file_ftruncate_request_t;
+/**
+* @}
+*/
+
+/**
+* @defgroup idigi_file_write_request_t File write request
+* @{
+*/
+/**
+* File write request structure is used for @ref idigi_file_system_write callback.
+*/
+typedef struct
+{
+    int          fd;            /**< File descriptor of an opened file */
+    void const * data_ptr;      /**< A pointer to data to be written to a file */
+    size_t       size_in_bytes; /**< Number of bytes to write */
 
 } idigi_file_write_request_t;
+/**
+* @}
+*/
 
+/**
+* @defgroup idigi_file_open_request_t File open request
+* @{
+*/
+/**
+* File open request structure is used for @ref idigi_file_system_open callback.
+*/
 typedef struct
 {
-    char const * path;
-    int          mode;
-    idigi_file_hash_algorithm_t hash_alg;
+    char const * path;                      /**< File path */                     
+    int          oflag;                     /**< bitwise-inclusive OR of @ref file_open_flag_t flags */   
+
+} idigi_file_open_request_t;
+/**
+* @}
+*/
+
+/**
+* @defgroup idigi_file_stat_request_t File status request
+* @{
+*/
+/**
+* File status request structure is used for @ref idigi_file_system_stat and @ref idigi_file_system_hash 
+* callbacks.
+*/
+typedef struct
+{
+    char const * path;                      /**< File path */                     
+    idigi_file_hash_algorithm_t hash_alg;   /**< hash algorithm */ 
+
+} idigi_file_stat_request_t;
+/**
+* @}
+*/
+
+/**
+* @defgroup idigi_file_path_request_t File path request
+* @{
+*/
+/**
+* File path request structure is used for @ref idigi_file_system_rm and
+* @ref idigi_file_system_opendir callbacks.
+*/
+typedef struct
+{
+    char const * path;                      /**< File path */                     
 
 } idigi_file_path_request_t;
+/**
+* @}
+*/
 
+/**
+* @defgroup idigi_file_error_data_t File error data
+* @{
+*/
+/**
+* Error data structure is used to return error code and errno for all file system callbacks.
+*
+* @see @ref idigi_file_system_open
+* @see @ref idigi_file_system_read
+* @see @ref idigi_file_system_write  
+* @see @ref idigi_file_system_lseek
+* @see @ref idigi_file_system_ftruncate
+* @see @ref idigi_file_system_close   
+* @see @ref idigi_file_system_rm    
+* @see @ref idigi_file_system_stat   
+* @see @ref idigi_file_system_opendir
+* @see @ref idigi_file_system_readdir 
+* @see @ref idigi_file_system_closedir
+* @see @ref idigi_file_system_hash
+* @see @ref idigi_file_system_strerror
+*/
 typedef struct 
 {
-    int errnum;
-    idigi_file_error_code_t error_code;
+    idigi_file_error_status_t error_status; /**< error code of @ref idigi_file_error_status_t type */
+    int errnum;                         /**< errno */
 
 } idigi_file_error_data_t;
+/**
+* @}
+*/
 
+/**
+* @defgroup idigi_file_error_request_t File system messaging error request
+* @{
+*/
+/**
+* Messaging error request structure is used for @ref idigi_file_system_msg_error callback.
+*/
 typedef struct 
 {
-    idigi_msg_error_t message_status;
+    idigi_msg_error_t message_status;   /**< Error status in messaging layer */
 
 } idigi_file_error_request_t;
+/**
+* @}
+*/
 
+/**
+* @defgroup idigi_file_response_t File system basic response
+* @{
+*/
+/**
+* File system basic response structure is used for most of file system callbacks.
+*
+* @see @ref idigi_file_system_read
+* @see @ref idigi_file_system_write  
+* @see @ref idigi_file_system_ftruncate
+* @see @ref idigi_file_system_close   
+* @see @ref idigi_file_system_rm    
+* @see @ref idigi_file_system_readdir 
+* @see @ref idigi_file_system_closedir
+* @see @ref idigi_file_system_hash
+* @see @ref idigi_file_system_strerror
+* @see @ref idigi_file_system_msg_error
+*/
 typedef struct
 {
-    void   * context;
-    size_t   size_in_bytes;
-    idigi_file_error_data_t * error;
-
-    void   * data_ptr;
+    void  * user_context;               /**< To hold the user context */
+    size_t  size_in_bytes;              /**< On input size of data buffer, on output size of response data */
+    idigi_file_error_data_t * error;    /**< holds error code of @ref idigi_file_error_status_t type and errno */
+    void  * data_ptr;                   /**< Pointer to write response data */
 
 } idigi_file_response_t;
+/**
+* @}
+*/
 
+/**
+* @defgroup idigi_file_open_response_t File open response
+* @{
+*/
+/**
+* File open response structure is used for the @ref idigi_file_system_open callback.
+*/
 typedef struct
 {
-    void   * context;
-    size_t   size_in_bytes;
-    idigi_file_error_data_t * error;
-
-    int    * fd_ptr;
+    void   * user_context;              /**< To hold the user context */
+    size_t   size_in_bytes;             /**< sizeof(*fd_ptr) on input and output */
+    idigi_file_error_data_t * error;    /**< holds error code of @ref idigi_file_error_status_t type and errno */
+    int    * fd_ptr;                    /**< Pointer to place a file descriptor on output */
 
 } idigi_file_open_response_t;
+/**
+* @}
+*/
 
+/**
+* @defgroup idigi_file_lseek_response_t File lseek response
+* @{
+*/
+/**
+* File lseek response structure is used for @ref idigi_file_system_lseek callback.
+*/
 typedef struct
 {
-    void        * context;
-    size_t      size_in_bytes;
-    idigi_file_error_data_t * error;
-
-    long int    * offset_ptr;
+    void        * user_context;         /**< To hold the user context */
+    size_t      size_in_bytes;          /**< sizeof(*offset_ptr) on input and output */
+    idigi_file_error_data_t * error;    /**< holds error code of @ref idigi_file_error_status_t type and errno */
+    long int    * offset_ptr;           /**< Pointer to place a resulting file position on output */
 
 } idigi_file_lseek_response_t;
+/**
+* @}
+*/
 
+/**
+* @defgroup idigi_file_dir_response_t Open directory response
+* @{
+*/
+/**
+* Open directory response structure is used for @ref idigi_file_system_opendir callback.
+*/
 typedef struct
 {
-    void                  * context;
-    size_t                size_in_bytes;
-    idigi_file_error_data_t * error;
-
-    idigi_file_dir_data_t * dir_data;
+    void                  * user_context;   /**< To hold the user context */
+    size_t                size_in_bytes;    /**< sizeof(*dir_data) on input and output */
+    idigi_file_error_data_t * error;        /**< holds error code of @ref idigi_file_error_status_t type and errno */
+    idigi_file_dir_data_t * dir_data;       /**< Pointer to place directory data on output */
 
 } idigi_file_dir_response_t;
+/**
+* @}
+*/
 
+/**
+* @defgroup idigi_file_stat_response_t File status response
+* @{
+*/
+/**
+* File status response structure is used for @ref idigi_file_system_stat callback.
+*/
 typedef struct
 {
-    void                * context;
-    size_t              size_in_bytes;
-    idigi_file_error_data_t * error;
-
-    idigi_file_stat_t   * stat_ptr;
+    void                * user_context; /**< To hold the user context */
+    size_t              size_in_bytes;  /**< sizeof(*stat_ptr) on input and output */
+    idigi_file_error_data_t * error;    /**< holds error code of @ref idigi_file_error_status_t type and errno */
+    idigi_file_stat_t   * stat_ptr;     /**< Pointer to place file status data on output */
 
 } idigi_file_stat_response_t;
-
+/**
+* @}
+*/
 
  /**
  * @defgroup idigi_callback_t Application-defined callback

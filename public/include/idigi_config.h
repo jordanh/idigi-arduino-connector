@@ -131,6 +131,7 @@
  *
  * @see @ref data_service
  * @see @ref IDIGI_DATA_SERVICE
+ * @see @ref IDIGI_FILE_SYSTEM
  * @see @ref IDIGI_NO_COMPRESSION
  *
  */
@@ -156,6 +157,23 @@
  */
 #define IDIGI_DATA_SERVICE
 
+/** 
+ * If defined, IIK includes the @ref file_system.
+ * To disable the @ref file_system feature, change this line in idigi_config.h:
+ *
+ * @code
+ * #define IDIGI_FILE_SYSTEM
+ * @endcode
+ *
+ * To this:
+ * @code
+ * //#define IDIGI_FILE_SYSTEM
+ * @endcode
+ *
+ * @see @ref file_system_support
+ * @see @ref zlib
+ * @see @ref IDIGI_NO_COMPRESSION
+ */
 #define IDIGI_FILE_SYSTEM
 
 /**
@@ -433,12 +451,16 @@
 #define IDIGI_DATA_SERVICE_SUPPORT
 
 /** 
- * When defined, this string hardcode for the 
- * file_system_support instead of the application framework 
- * function app_get_file_system_support() (called via the
- * @ref idigi_config_file_system idigi_callback_t "callback" in
- *      config.c).
+ * When defined, this string hardcode for the @ref file_system_support instead of the application framework 
+ * function @ref app_get_file_system_support() (called via the @ref idigi_config_file_system @ref idigi_callback_t "callback" in config.c).   
  * 
+ * @note There is no need to implement or port @ref app_get_file_system_support() when IDIGI_FILE_SYSTEM_SUPPORT is defined. 
+ * @note This define is only used when @ref IDIGI_FILE_SYSTEM is defined in @ref idigi_config.h.
+ *  
+ * @see @ref file_system_support
+ * @see @ref idigi_config_file_system
+ * @see @ref app_get_file_system_support() 
+ * @see @ref IDIGI_FILE_SYSTEM  
  */
 #define IDIGI_FILE_SYSTEM_SUPPORT
 

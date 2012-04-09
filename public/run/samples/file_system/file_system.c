@@ -55,12 +55,12 @@ static idigi_callback_status_t app_process_file_error(idigi_file_error_data_t * 
         case EACCES:
         case EPERM:
         case EROFS:
-            error_data->error_code = idigi_file_system_permision_denied;
+            error_data->error_status = idigi_file_permision_denied;
             break;
 
         case ENOMEM:
         case ENAMETOOLONG:
-            error_data->error_code = idigi_file_system_out_of_memory;
+            error_data->error_status = idigi_file_out_of_memory;
             break;
 
 		case ENOENT:
@@ -69,11 +69,11 @@ static idigi_callback_status_t app_process_file_error(idigi_file_error_data_t * 
 		case ENOTDIR:
 		case EISDIR:
 		case EBADF:
-            error_data->error_code = idigi_file_system_path_not_found;
+            error_data->error_status = idigi_file_path_not_found;
             break;
 
         case EINVAL:
-            error_data->error_code = idigi_file_system_invalid_parameter;
+            error_data->error_status = idigi_file_invalid_parameter;
             break;
 
         case EAGAIN:
@@ -82,32 +82,32 @@ static idigi_callback_status_t app_process_file_error(idigi_file_error_data_t * 
             break;
 
 		case ENOSPC:
-			error_data->error_code = idigi_file_system_insufficient_storage_space;
+			error_data->error_status = idigi_file_insufficient_storage_space;
             break;
 
         default:
-            error_data->errnum = idigi_file_system_unspec_error;
+            error_data->error_status = idigi_file_unspec_error;
             break;
     }
     return status;
 }
 
 
-static int app_convert_file_open_mode(int mode)
+static int app_convert_file_open_mode(int oflag)
 {
 #if (IDIGI_O_RDONLY == O_RDONLY) && (IDIGI_O_WRONLY == O_WRONLY) && (IDIGI_O_RDWR == O_RDWR) && \
     (IDIGI_O_CREAT == O_CREAT)   && (IDIGI_O_APPEND == O_APPEND) && (IDIGI_O_TRUNC == O_TRUNC)
 
-    return mode;
+    return oflag;
 #else
     int result = 0;
 
-    if (mode & IDIGI_O_RDONLY) result |= O_RDONLY;
-    if (mode & IDIGI_O_WRONLY) result |= O_WRONLY;
-    if (mode & IDIGI_O_RDWR)   result |= O_RDWR;
-    if (mode & IDIGI_O_APPEND) result |= O_APPEND;
-    if (mode & IDIGI_O_CREAT)  result |= O_CREAT;
-    if (mode & IDIGI_O_TRUNC)  result |= O_TRUNC;
+    if (oflag & IDIGI_O_RDONLY) result |= O_RDONLY;
+    if (oflag & IDIGI_O_WRONLY) result |= O_WRONLY;
+    if (oflag & IDIGI_O_RDWR)   result |= O_RDWR;
+    if (oflag & IDIGI_O_APPEND) result |= O_APPEND;
+    if (oflag & IDIGI_O_CREAT)  result |= O_CREAT;
+    if (oflag & IDIGI_O_TRUNC)  result |= O_TRUNC;
 
     return result;
 #endif
@@ -137,7 +137,7 @@ static int app_convert_lseek_origin(int origin)
 #endif
 }
 
-idigi_callback_status_t app_process_file_strerror(idigi_file_request_t const * const request_data, idigi_file_response_t * response_data)
+idigi_callback_status_t app_process_file_strerror(void const * const request_data, idigi_file_response_t * response_data)
 {
     size_t strerr_size = 0;
 
@@ -160,13 +160,13 @@ idigi_callback_status_t app_process_file_strerror(idigi_file_request_t const * c
     return idigi_callback_continue;
 }
 
-idigi_callback_status_t app_process_msg_error(idigi_file_error_request_t const * const request_data, idigi_file_response_t * response_data)
+idigi_callback_status_t app_process_file_msg_error(idigi_file_error_request_t const * const request_data, idigi_file_response_t * response_data)
 {
     APP_DEBUG("Message Error %d\n", (int) request_data->message_status);
 
-    if (response_data->context != NULL)
+    if (response_data->user_context != NULL)
     {
-        APP_DEBUG("The user %p context should be freed here!\n", response_data->context);
+        APP_DEBUG("The %p user_context should be freed here!\n", response_data->user_context);
     }
 
     return idigi_callback_continue;
@@ -182,7 +182,7 @@ idigi_callback_status_t app_process_file_hash(idigi_file_path_request_t const * 
     return idigi_callback_continue;
 }
 
-idigi_callback_status_t app_process_file_stat(idigi_file_path_request_t const * const request_data, idigi_file_stat_response_t * response_data)
+idigi_callback_status_t app_process_file_stat(idigi_file_stat_request_t const * const request_data, idigi_file_stat_response_t * response_data)
 {
     struct stat statbuf;
     idigi_file_stat_t * pstat = response_data->stat_ptr;
@@ -229,8 +229,8 @@ idigi_callback_status_t app_process_file_opendir(idigi_file_path_request_t const
     {
         status = app_process_file_error(response_data->error);
 
-        if (error_data->error_code == idigi_file_system_noerror)
-            error_data->error_code = idigi_file_system_path_not_found;
+        if (error_data->error_status == idigi_file_noerror)
+            error_data->error_status = idigi_file_path_not_found;
         goto done;
     }
     
@@ -249,7 +249,7 @@ idigi_callback_status_t app_process_file_opendir(idigi_file_path_request_t const
         {
             APP_DEBUG("app_process_file_opendir: malloc fails %s\n", request_data->path);
 
-            error_data->error_code = idigi_file_system_out_of_memory;
+            error_data->error_status = idigi_file_out_of_memory;
             error_data->errnum     = ENOMEM; 
             closedir(dirp);
             APP_DEBUG("closedir for %s\n", request_data->path);
@@ -270,9 +270,9 @@ idigi_callback_status_t app_process_file_closedir(idigi_file_dir_data_t const * 
     if (request_data->dir_entry != NULL)
         app_os_free(request_data->dir_entry);
 
-    if (response_data->context != NULL)
+    if (response_data->user_context != NULL)
     {
-        APP_DEBUG("The user %p context should be freed here!\n", response_data->context);
+        APP_DEBUG("The %p user_context should be freed here!\n", response_data->user_context);
     }
     return idigi_callback_continue;
 }
@@ -346,24 +346,24 @@ done:
 }
 
 
-idigi_callback_status_t app_process_file_open(idigi_file_path_request_t const * const request_data, idigi_file_open_response_t * response_data)
+idigi_callback_status_t app_process_file_open(idigi_file_open_request_t const * const request_data, idigi_file_open_response_t * response_data)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    int mode = app_convert_file_open_mode(request_data->mode);
+    int oflag = app_convert_file_open_mode(request_data->oflag);
     int fd;
 
-    response_data->context = NULL;
+    response_data->user_context = NULL;
 
-    if (mode & O_CREAT)
+    if (oflag & O_CREAT)
     {
-       fd = open(request_data->path, mode, 0664);
+       fd = open(request_data->path, oflag, 0664);
     }
     else
     {
-       fd = open(request_data->path, mode);
+       fd = open(request_data->path, oflag);
     }
 
-    APP_DEBUG("Open %s, %d, returned %d\n", request_data->path, mode, fd);
+    APP_DEBUG("Open %s, %d, returned %d\n", request_data->path, oflag, fd);
 
     if (fd < 0)
     {
@@ -376,7 +376,7 @@ idigi_callback_status_t app_process_file_open(idigi_file_path_request_t const * 
 }
 
 
-idigi_callback_status_t app_process_file_lseek(idigi_file_offset_request_t const * const request_data, idigi_file_lseek_response_t * response_data)
+idigi_callback_status_t app_process_file_lseek(idigi_file_lseek_request_t const * const request_data, idigi_file_lseek_response_t * response_data)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     int origin = app_convert_lseek_origin(request_data->origin);
@@ -395,13 +395,13 @@ idigi_callback_status_t app_process_file_lseek(idigi_file_offset_request_t const
     return status;
 }
 
-idigi_callback_status_t app_process_file_ftruncate(idigi_file_offset_request_t const * const request_data, idigi_file_response_t * response_data)
+idigi_callback_status_t app_process_file_ftruncate(idigi_file_ftruncate_request_t const * const request_data, idigi_file_response_t * response_data)
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
-    int result = ftruncate(request_data->fd, request_data->offset);
+    int result = ftruncate(request_data->fd, request_data->length);
 
-    APP_DEBUG("ftruncate %d, %ld returned %d\n", request_data->fd, request_data->offset, result);
+    APP_DEBUG("ftruncate %d, %ld returned %d\n", request_data->fd, request_data->length, result);
 
     if (result < 0)
     {
@@ -469,21 +469,21 @@ done:
 
 idigi_callback_status_t app_process_file_close(idigi_file_request_t const * const request_data, idigi_file_response_t * response_data)
 {
-    idigi_callback_status_t status = idigi_callback_continue;
     int result = close(request_data->fd);
 
     APP_DEBUG("close %d returned %d\n", request_data->fd, result);
 
-    if (result < 0)
+    if (result < 0 && errno == EIO)
     {
-        status = app_process_file_error(response_data->error);
+        response_data->error->errnum = EIO;
+        response_data->error->error_status = idigi_file_unspec_error;
     }
-    if (response_data->context != NULL)
+    if (response_data->user_context != NULL)
     {
-        APP_DEBUG("The user %p context should be freed here!\n", response_data->context);
+        APP_DEBUG("The %p user_context should be freed here!\n", response_data->user_context);
     }
 
-    return status;
+    return idigi_callback_continue;
 }
 
 idigi_callback_status_t app_file_system_handler(idigi_data_service_request_t const request,
@@ -549,8 +549,8 @@ idigi_callback_status_t app_file_system_handler(idigi_data_service_request_t con
             app_process_file_hash(request_data, response_data);
             break;
 
-        case idigi_file_system_error:
-            app_process_msg_error(request_data, response_data);
+        case idigi_file_system_msg_error:
+            app_process_file_msg_error(request_data, response_data);
             break;
 
         default:

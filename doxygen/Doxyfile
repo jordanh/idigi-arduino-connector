@@ -650,6 +650,7 @@ INPUT                  = ./mainpage.c \
                          ./config_callbacks.c \
                          ./web_services.c \
                          ./data_service.c \
+                         ./file_system.c \
                          ./api_overview.c \
                          ./fw_download_sample.c \
                          ./device_request.c \
