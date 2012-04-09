@@ -15,26 +15,28 @@ from utils import getText
 
 MAX_TEST_FILE_SIZE = 23453
 FileData = ""
-FileList =  [
-                ("dvt_fs_0.txt", 0),
-                ("dvt_fs_1.txt", 1),
-                ("dvt_fs_2.txt", 500),
-                ("dvt_fs_4.txt", 1600),
-                ("dvt_fs_5.bin", MAX_TEST_FILE_SIZE),
-            ]
 
 class FileSystemTestCase(iik_testcase.TestCase):
 
     def test_fs_basic_cases(self):
         """ Tests put, get and remove on different sized files """
         global FileData
+
+        FileList =  [
+            ("dvt_fs_0.txt", 0),
+            ("dvt_fs_1.txt", 1),
+            ("dvt_fs_2.txt", 500),
+            ("dvt_fs_4.txt", 1600),
+            ("dvt_fs_5.bin", MAX_TEST_FILE_SIZE),
+            ]
+
         for i in xrange(MAX_TEST_FILE_SIZE):
             FileData += chr(randint(0, 255))
 
         for fname, fsize in FileList:
             putData = FileData[:fsize]
             outData = base64.encodestring(putData)
-            self.put_a_file(fname, outData)
+            self.put_a_file(fname, outData, fsize)
 
             inData = self.get_a_file(fname, fsize)
             getData = base64.decodestring(inData)
@@ -42,7 +44,33 @@ class FileSystemTestCase(iik_testcase.TestCase):
 
             self.remove_a_file(fname)
 
-    def put_a_file(self, filePath, fdata, offset = 0, truncate = False):
+    def test_fs_offset(self):
+        """ Tests put and get with different offset and size on a file """
+        fname = "dvt_fs.txt"
+
+        offsetList =  [
+            (100, 0),
+            (511, 1),
+            (8192, 512),
+            (12345, 1580),
+            (20000, MAX_TEST_FILE_SIZE-20000),
+            ]
+
+        outData = base64.encodestring(FileData)
+        self.put_a_file(fname, outData, MAX_TEST_FILE_SIZE)
+
+        for offset, fsize in offsetList:
+            putData = FileData[:fsize]
+            outData = base64.encodestring(putData)
+            self.put_a_file(fname, outData, fsize, offset)
+
+            inData = self.get_a_file(fname, fsize, offset)
+            getData = base64.decodestring(inData)
+            self.assertEqual(putData, getData, "Mismatch in the sent and received file [%s, put:%s, get:%s]" %(fname, putData, getData))
+
+        self.remove_a_file(fname)
+
+    def put_a_file(self, fpath, fdata, fsize, offset = 0, truncate = False):
         putFileRequest = \
         """<sci_request version="1.0">
           <file_system>
@@ -55,9 +83,9 @@ class FileSystemTestCase(iik_testcase.TestCase):
                </put_file>
             </commands>
           </file_system>
-        </sci_request>""" % (self.device_config.device_id, filePath, offset, truncate, fdata)
+          </sci_request>""" % (self.device_config.device_id, fpath, offset, truncate, fdata)
 
-        self.log.info("Sending put file request for \"%s\" " % filePath)
+        self.log.info("put request file:\"%s\", offset:%d, size:%d" % (fpath, offset, fsize))
         response = self.api.sci(putFileRequest)
 
         # Success response?
@@ -66,9 +94,9 @@ class FileSystemTestCase(iik_testcase.TestCase):
             response_buffer = dom.getElementsByTagName("put_file")
         except:
             raise ValueError(response)
-        self.log.info("Sent file \"%s\" " % filePath)
+        self.log.info("sent file \"%s\" " % fpath)
 
-    def get_a_file(self, filePath, fileSize, offset = 0):
+    def get_a_file(self, fpath, fsize, offset = 0):
         fdata = ""
         getFileRequest = \
             """<sci_request version="1.0">
@@ -80,9 +108,9 @@ class FileSystemTestCase(iik_testcase.TestCase):
                     <get_file path="%s" offset = "%d" length = "%d"/>
                 </commands>
               </file_system>
-              </sci_request>""" % (self.device_config.device_id, filePath, offset, fileSize)
+              </sci_request>""" % (self.device_config.device_id, fpath, offset, fsize)
 
-        self.log.info("Sending get file request for \"%s\" " % filePath)
+        self.log.info("get request file:\"%s\", offset:%d, size:%d" % (fpath, offset, fsize))
         response = self.api.sci(getFileRequest)
 
         # Success response?
@@ -93,7 +121,7 @@ class FileSystemTestCase(iik_testcase.TestCase):
         except:
             raise ValueError(response)
 
-        self.log.info("Got file \"%s\" " % filePath)
+        self.log.info("got file \"%s\" " % fpath)
         return fdata
 
     def remove_a_file(self, path):
