@@ -25,6 +25,10 @@
 #ifndef OPTIONS_H_
 #define OPTIONS_H_
 
+/*
+ * The defines in this file are included to allow compatibility with IIK v1.0 application makefiles
+ */
+
 #if defined(_LITTLE_ENDIAN)
 #define IDIGI_LITTLE_ENDIAN
 #endif
