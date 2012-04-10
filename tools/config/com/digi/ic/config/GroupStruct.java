@@ -1,3 +1,4 @@
+package com.digi.ic.config;
 
 import java.util.LinkedList;
 

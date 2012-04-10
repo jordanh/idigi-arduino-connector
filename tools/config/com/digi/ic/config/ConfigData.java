@@ -1,13 +1,15 @@
+package com.digi.ic.config;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 public class ConfigData {
 
     public enum ConfigType {
-        STATE (0),
-        SETTING (1),
-        MAX_TYPE (2);
+        SETTING (0),
+        STATE (1),
+        INVALID_TYPE (-1);
         
         private int index;
         
@@ -25,29 +27,41 @@ public class ConfigData {
             try {
                 return valueOf(str.toUpperCase());
             } catch (Exception e) {
-                return MAX_TYPE;
+                return INVALID_TYPE;
             }
         }
     }
-    private LinkedList<GroupStruct> settingGroups;
-    private LinkedList<GroupStruct> stateGroups;
+    private ArrayList<LinkedList<GroupStruct>> groupList; 
+//    private LinkedList<GroupStruct> stateGroups;
     private LinkedList<NameStruct> globalErrorGroups;
 
     public ConfigData()
     {
-        settingGroups = new LinkedList<GroupStruct>();
-        stateGroups = new LinkedList<GroupStruct>();
+        groupList = new ArrayList<LinkedList<GroupStruct>>();
+        
+        ConfigType type;
+        LinkedList<GroupStruct> groups;
+        
+        type = ConfigType.toConfigType("setting");
+        groups = new LinkedList<GroupStruct>();
+        groupList.add(type.getIndex(), groups);
+        
+        type = ConfigType.toConfigType("state");
+        groups = new LinkedList<GroupStruct>();
+        groupList.add(type.getIndex(), groups);
+        
         globalErrorGroups = new LinkedList<NameStruct>();
         
     }
-    public LinkedList<GroupStruct> getSettingGroups()
+    
+    public LinkedList<GroupStruct> getSettingGroups() throws IOException
     {
-        return settingGroups;
+        return getConfigGroup("setting");
     }
 
-    public LinkedList<GroupStruct> getStateGroups()
+    public LinkedList<GroupStruct> getStateGroups() throws IOException
     {
-        return stateGroups;
+        return getConfigGroup("state");
     }
 
     public LinkedList<NameStruct> getErrorGroups()
@@ -64,11 +78,9 @@ public class ConfigData {
         
         switch (t)
         {
-        case STATE:
-            config = stateGroups;
-            break;
         case SETTING:
-            config = settingGroups;
+        case STATE:
+            config = groupList.get(t.getIndex());
             break;
          default:
              throw new IOException("Invalid type: " + type);

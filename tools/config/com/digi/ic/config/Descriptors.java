@@ -1,3 +1,4 @@
+package com.digi.ic.config;
 
 import java.io.*;
 import java.net.*;
@@ -5,8 +6,8 @@ import java.util.*;
 
 public class Descriptors {
 
-    final static String SETTING_STRING = "setting";
-    final static String STATE_STRING = "state";
+    //final static String SETTING_STRING = "setting";
+    //final static String STATE_STRING = "state";
 
     private final String RCI_VERSION = "1.1";
     
@@ -17,6 +18,14 @@ public class Descriptors {
     public Descriptors(String[] args) throws IOException
     {
         int argIndex = 0;
+        
+        for (argIndex=0; argIndex < args.length; argIndex++)
+        {
+            if (!args[argIndex].startsWith(ConfigGenerator.DASH))
+            {
+                break;
+            }
+        }
         String credential = args[argIndex++];
 
         if (credential.indexOf(':') == -1)
@@ -66,21 +75,30 @@ public class Descriptors {
 
     public void processDescriptors(ConfigData configData) throws IOException
     {
-        LinkedList<GroupStruct> settingGroups = configData.getConfigGroup(SETTING_STRING);
-        if (!settingGroups.isEmpty())
+        
+        for (ConfigData.ConfigType type: ConfigData.ConfigType.values())
         {
-            sendDescriptors(SETTING_STRING, settingGroups, configData.getErrorGroups());
+            LinkedList<GroupStruct> groups = null;
+            
+            String configType = type.toString().toLowerCase();
+            
+            try {
+                
+                groups = configData.getConfigGroup(configType);
+                
+            } catch (IOException e) {
+                /* end of the ConfigData ConfigType */
+                break;
+            }
+            
+            if (!groups.isEmpty())
+            {
+                sendDescriptors(configType, groups, configData.getErrorGroups());
+                
+            }
         }
         
-        LinkedList<GroupStruct> stateGroups = configData.getConfigGroup(STATE_STRING);
-        if (!stateGroups.isEmpty())
-        {
-            sendDescriptors(STATE_STRING, stateGroups, configData.getErrorGroups());
-        }
-        if (!settingGroups.isEmpty() || !stateGroups.isEmpty())
-        {
-            sendRciDescriptors(!settingGroups.isEmpty(), !stateGroups.isEmpty());
-        }
+        sendRciDescriptors(configData);
     }
 
     private String getErrorDescriptors(int id, LinkedList<NameStruct> errors)
@@ -104,7 +122,7 @@ public class Descriptors {
         int error_id = 1;
         String desc = SETTING_DESCRIPTOR_DESC;
         
-        if (config_type.equalsIgnoreCase(STATE_STRING))
+        if (config_type.equalsIgnoreCase(ConfigData.ConfigType.STATE.toString()))
             desc = STATE_DESCRIPTOR_DESC;
         
         String query_descriptors = "<descriptor element=\"query_" + config_type + "\" desc=\"Retrieve " + desc;
@@ -196,20 +214,29 @@ public class Descriptors {
         uploadDescriptor("descriptor/set_" + config_type, set_descriptors);
     }
 
-    private void sendRciDescriptors(boolean settingSupport, boolean stateSupport) throws IOException
+    private void sendRciDescriptors(ConfigData configData) throws IOException
     {
         String descriptors = RCI_DESCRIPTORS;
         
-        if (settingSupport)
+        for (ConfigData.ConfigType type: ConfigData.ConfigType.values())
         {
-            descriptors += "<descriptor element=\"query_" + SETTING_STRING + "\" dscr_avail=\"true\"/>\n";
-            descriptors += "<descriptor element=\"set_" + SETTING_STRING + "\" dscr_avail=\"true\"/>\n";
-        }
-        
-        if (stateSupport)
-        {
-            descriptors += "<descriptor element=\"query_" + STATE_STRING + "\" dscr_avail=\"true\"/>\n";
-            descriptors += "<descriptor element=\"set_" + STATE_STRING + "\" dscr_avail=\"true\"/>\n";
+            LinkedList<GroupStruct> groups = null;
+            
+            String configType = type.toString().toLowerCase();
+            
+            try {
+                
+                groups = configData.getConfigGroup(configType);
+                
+            } catch (IOException e) {
+                /* end of the ConfigData ConfigType */
+                break;
+            }
+            if (!groups.isEmpty())
+            {
+                descriptors += "<descriptor element=\"query_" + configType + "\" dscr_avail=\"true\"/>\n";
+                descriptors += "<descriptor element=\"set_" + configType + "\" dscr_avail=\"true\"/>\n";
+            }
         }
         
         int error_id = 1;
@@ -362,7 +389,7 @@ public class Descriptors {
         xmlFile.flush();
         xmlFile.close();
 
-        System.out.println(str);
+        ConfigGenerator.debug_log(str);
     }
     
     private int xmlFileIndex;
