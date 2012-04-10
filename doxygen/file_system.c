@@ -23,7 +23,7 @@
  *  -# @ref file_system_msg_error 
  *  -# @ref file_data_compression
  *
- * @section file_system_overview File System Overview
+ * @section file_system_overview Overview
  *
  * The file system facility is an optional facility for applications to access files on the device 
  * remotely from the iDigi Device Cloud. The IIK invokes the application-defined callbacks  
@@ -92,11 +92,11 @@
  *  -# IIK calls @ref file_system_close or @ref file_system_closedir if there is an open file or directory.
  *  -# IIK sends last response to the iDigi Device Cloud.
  *
- * The callback returns @ref idigi_callback_abort:
+ * The callback returns @ref idigi_callback_abort status:
  *  -# IIK calls @ref file_system_close or @ref file_system_closedir if there is an open file or directory.
  *  -# IIK is aborted.
  *
- * The callback returns @ref idigi_callback_continue and sets error_status to @ref idigi_file_user_cancel:
+ * The callback returns @ref idigi_callback_continue and sets error_status to @ref idigi_file_user_cancel status:
  *  -# IIK calls @ref file_system_close or @ref file_system_closedir if there is an open file or directory.
  *  -# IIK canceles the session.
  *
@@ -144,7 +144,7 @@
  *   <p><b><i>size_in_bytes</i></b> - sizeof (int).
  *   <p><b><i>error</i></b> - Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
  *                            where the callback writes @endhtmlonly @ref idigi_file_error_status_t @htmlonly
- *                            and errno in case of file error.
+ *                            and errno in case of file I/O error.
  *   <p><b><i>fd_ptr</i></b> - Pointer to memory where the callback places a file descriptor of an open file. This file 
  *                             descriptor will be used in subsequent callbacks to read from a file,
  *                             write to a file, set file position, truncate a file, and close a file.
@@ -285,7 +285,7 @@
  *   <p><b><i>size_in_bytes</i></b> - sizeof (long int).
  *   <p><b><i>error</i></b> - Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
  *                            where the callback writes @endhtmlonly @ref idigi_file_error_status_t @htmlonly
- *                            and errno in case of file error.
+ *                            and errno in case of file I/O error.
  *   <p><b><i>offset_ptr</i></b> - Pointer to memory where the callback places resulting file offset.
  * </td></tr>
  * <tr>
@@ -411,7 +411,7 @@
  *                                    retrieved from the file and written to the memory buffer.
  *   <p><b><i>error</i></b> - Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
  *                            where the callback writes @endhtmlonly @ref idigi_file_error_status_t @htmlonly
- *                            and errno in case of file error.
+ *                            and errno in case of file I/O error.
  *   <p><b><i>data_ptr</i></b> - Pointer to memory where the callback writes data.
  * </td></tr>
  * <tr>
@@ -527,7 +527,7 @@
  *   <p><b><i>size_in_bytes</i></b> - Number of bytes actually written to the file.
  *   <p><b><i>error</i></b> - Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
  *                            where the callback writes @endhtmlonly @ref idigi_file_error_status_t @htmlonly
- *                            and errno in case of file error.
+ *                            and errno in case of file I/O error.
  *   <p><b><i>data_ptr</i></b> - NULL.
  * </td></tr>
  * <tr>
@@ -643,7 +643,7 @@
  *   <p><b><i>size_in_bytes</i></b> - 0.
  *   <p><b><i>error</i></b> - Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
  *                            where the callback writes @endhtmlonly @ref idigi_file_error_status_t @htmlonly
- *                            and errno in case of file error.
+ *                            and errno in case of file I/O error.
  *   <p><b><i>data_ptr</i></b> - NULL.
  * </td></tr>
  * <tr>
@@ -756,7 +756,7 @@
  *   <p><b><i>size_in_bytes</i></b> - 0.
  *   <p><b><i>error</i></b> - Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
  *                            where the callback writes @endhtmlonly @ref idigi_file_error_status_t @htmlonly
- *                            and errno in case of file error.
+ *                            and errno in case of file I/O error.
  *   <p><b><i>data_ptr</i></b> - NULL.
  * </td></tr>
  * <tr>
@@ -847,7 +847,7 @@
  *   <p><b><i>size_in_bytes</i></b> - 0.
  *   <p><b><i>error</i></b> - Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
  *                            where the callback writes @endhtmlonly @ref idigi_file_error_status_t @htmlonly
- *                            and errno in case of file error.
+ *                            and errno in case of file I/O error.
  *   <p><b><i>data_ptr</i></b> - NULL.
  * </td></tr>
  * <tr>
@@ -1270,7 +1270,7 @@
  *   <p><b><i>size_in_bytes</i></b> - 0.
  *   <p><b><i>error</i></b> - Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
  *                              where the callback writes @endhtmlonly @ref idigi_file_error_status_t @htmlonly
- *                              and errno in case of file error.
+ *                              and errno in case of an error.
  *   <p><b><i>data_ptr</i></b> - NULL.
  * </td></tr>
  * <tr>
@@ -1386,9 +1386,9 @@
  *                            the callback writes file status data.
  *      <p><b><i> - last_modified</i></b> - Last modified time (seconds since 1970). If not supported, use 0.
  *      <p><b><i> - file_size</i></b> - File size in bytes.
- *      <p><b><i> - hash_alg</i></b> - Actual hash algorithm: @endhtmlonly @ref idigi_file_hash_crc32 @htmlonly,
- *                  @endhtmlonly @ref idigi_file_hash_md5 @htmlonly, or @endhtmlonly @ref idigi_file_hash_none @htmlonly,
  *      <p><b><i> - flags</i></b> - Non-zero if the file is a regular file or a directory: @endhtmlonly @ref file_stat_flag_t @htmlonly.
+ *      <p><b><i> - hash_alg</i></b> - Actual hash algorithm: @endhtmlonly @ref idigi_file_hash_crc32 @htmlonly,
+ *                  @endhtmlonly @ref idigi_file_hash_md5 @htmlonly, or @endhtmlonly @ref idigi_file_hash_none @htmlonly.
  * </td></tr>
  * <tr>
  * <td>response_length</td>
