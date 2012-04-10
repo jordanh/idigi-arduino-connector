@@ -15,20 +15,19 @@ from utils import getText
 
 MAX_TEST_FILE_SIZE = 23453
 FileData = ""
+FileList =  [
+    ("dvt_fs_0.txt", 0),
+    ("dvt_fs_1.txt", 1),
+    ("dvt_fs_2.txt", 500),
+    ("dvt_fs_4.txt", 1600),
+    ("dvt_fs_5.bin", MAX_TEST_FILE_SIZE),
+    ]
 
 class FileSystemTestCase(iik_testcase.TestCase):
 
-    def test_fs_basic_cases(self):
+    def test_fs1_basic_cases(self):
         """ Tests put, get and remove on different sized files """
         global FileData
-
-        FileList =  [
-            ("dvt_fs_0.txt", 0),
-            ("dvt_fs_1.txt", 1),
-            ("dvt_fs_2.txt", 500),
-            ("dvt_fs_4.txt", 1600),
-            ("dvt_fs_5.bin", MAX_TEST_FILE_SIZE),
-            ]
 
         for i in xrange(MAX_TEST_FILE_SIZE):
             FileData += chr(randint(0, 255))
@@ -42,11 +41,9 @@ class FileSystemTestCase(iik_testcase.TestCase):
             getData = base64.decodestring(inData)
             self.assertEqual(putData, getData, "Mismatch in the sent and received file [%s, put:%s, get:%s]" %(fname, putData, getData))
 
-            self.remove_a_file(fname)
-
-    def test_fs_offset(self):
+    def test_fs2_offset(self):
         """ Tests put and get with different offset and size on a file """
-        fname = "dvt_fs.txt"
+        fname = "dvt_fs_5.bin"
 
         offsetList =  [
             (100, 0),
@@ -55,9 +52,6 @@ class FileSystemTestCase(iik_testcase.TestCase):
             (12345, 1580),
             (20000, MAX_TEST_FILE_SIZE-20000),
             ]
-
-        outData = base64.encodestring(FileData)
-        self.put_a_file(fname, outData, MAX_TEST_FILE_SIZE)
 
         for offset, fsize in offsetList:
             putData = FileData[:fsize]
@@ -68,10 +62,35 @@ class FileSystemTestCase(iik_testcase.TestCase):
             getData = base64.decodestring(inData)
             self.assertEqual(putData, getData, "Mismatch in the sent and received file [%s, put:%s, get:%s]" %(fname, putData, getData))
 
-        self.remove_a_file(fname)
+    def test_fs3_ls(self):
+        """ Tests file system ls command """
+        HashAlgoList = ['none', 'any', 'crc32', 'md5']
+
+        FILE_NAME = 0
+        FILE_SIZE = 2
+        for hashAlgo in HashAlgoList:
+            fList, dList = self.get_file_list('./', hashAlgo)
+            for fname, fsize in FileList:
+                fileFound = False
+                for eachFile in fList:
+                    if eachFile[FILE_NAME] == fname:
+                        fileFound = True
+                        self.assertEqual(eachFile[FILE_SIZE], str(fsize), "Mismatch file size [%s, expected:%d, actual:%s]" %(fname, fsize, eachFile[2]))
+                self.assertEqual(fileFound, True, "File %s not in the file list" %fname)
+
+            dirNames = ""
+            for eachDir in dList:
+                if eachDir[FILE_NAME] == "private":
+                    dirNames += eachDir[0] + ", "
+                if eachDir[FILE_NAME] == "public":
+                    dirNames += eachDir[0]
+            self.assertEqual(dirNames, "private, public", "expected: private, public, found: %s" %dirNames)
+
+        for fname, fsize in FileList:
+            self.remove_a_file(fname)
 
     def put_a_file(self, fpath, fdata, fsize, offset = 0, truncate = False):
-        putFileRequest = \
+        putRequest = \
         """<sci_request version="1.0">
           <file_system>
             <targets>
@@ -86,7 +105,7 @@ class FileSystemTestCase(iik_testcase.TestCase):
           </sci_request>""" % (self.device_config.device_id, fpath, offset, truncate, fdata)
 
         self.log.info("put request file:\"%s\", offset:%d, size:%d" % (fpath, offset, fsize))
-        response = self.api.sci(putFileRequest)
+        response = self.api.sci(putRequest)
 
         # Success response?
         try:
@@ -98,7 +117,7 @@ class FileSystemTestCase(iik_testcase.TestCase):
 
     def get_a_file(self, fpath, fsize, offset = 0):
         fdata = ""
-        getFileRequest = \
+        getRequest = \
             """<sci_request version="1.0">
               <file_system>
                 <targets>
@@ -111,7 +130,7 @@ class FileSystemTestCase(iik_testcase.TestCase):
               </sci_request>""" % (self.device_config.device_id, fpath, offset, fsize)
 
         self.log.info("get request file:\"%s\", offset:%d, size:%d" % (fpath, offset, fsize))
-        response = self.api.sci(getFileRequest)
+        response = self.api.sci(getRequest)
 
         # Success response?
         try:
@@ -125,7 +144,7 @@ class FileSystemTestCase(iik_testcase.TestCase):
         return fdata
 
     def remove_a_file(self, path):
-        rmPathRequest = \
+        rmRequest = \
             """<sci_request version="1.0">
               <file_system>
                 <targets>
@@ -138,7 +157,7 @@ class FileSystemTestCase(iik_testcase.TestCase):
             </sci_request>""" % (self.device_config.device_id, path)
 
         self.log.info("Sending rm request for \"%s\" " % path)
-        response = self.api.sci(rmPathRequest)
+        response = self.api.sci(rmRequest)
 
         # Success response?
         try:
@@ -147,6 +166,93 @@ class FileSystemTestCase(iik_testcase.TestCase):
         except:
             raise ValueError(response)
         self.log.info("\"%s\" is removed" % path)
+
+    def get_file_list(self, path, hashAlgo):
+        lsRequest = \
+            """<sci_request version="1.0">
+              <file_system>
+                <targets>
+                  <device id="%s"/>
+                </targets>
+                <commands>
+                  <ls path="%s" hash="%s"/>
+                </commands>
+              </file_system>
+            </sci_request>""" % (self.device_config.device_id, path, hashAlgo)
+
+        self.log.info("ls for path:\"%s\" and hash:%s" % (path, hashAlgo))
+        response = self.api.sci(lsRequest)
+
+        # Success response?
+        try:
+            dom = xml.dom.minidom.parseString(response)
+            response_buffer = dom.getElementsByTagName("ls")
+        except:
+            raise ValueError(response)
+
+        return self.parse_ls(response)
+
+    def get_obj_from_slice(self, segment):
+        obj = []
+
+        path_re = re.compile('path="([\.\w/-]+)"')
+        last_re = re.compile('last_modified="([\.\w/-]+)"')
+        size_re = re.compile('size="([\.\w/-]+)"')
+        hash_re = re.compile('hash="([\.\w/-]+)"')
+
+        pm = path_re.search(segment)
+        obj.append((pm and pm.group(1)) or None)
+
+        lm = last_re.search(segment)
+        obj.append((lm and lm.group(1)) or None)
+
+        sm = size_re.search(segment)
+        obj.append((sm and sm.group(1)) or None)
+
+        hm = hash_re.search(segment)
+        obj.append((hm and hm.group(1)) or None)
+
+        return obj
+
+    def get_line_indexes(self, resp, starter):
+        index = resp.find(starter)
+        if index == -1:
+            return None, None
+        end_index = resp[index:].find('/>')
+        if end_index == -1:
+            raise RuntimeError("Failed to parse out file from current response: %s" %resp)
+
+        end_index += index
+
+        return index, end_index
+
+    def parse_ls(self, resp):
+        file_list = []
+        dir_list = []
+        tmp_resp = resp
+        while 1:
+            index, end_index = self.get_line_indexes(tmp_resp, '<file ')
+            if index is None:
+                break
+
+            segment = tmp_resp[index:end_index]
+            obj = self.get_obj_from_slice(segment)
+            file_list.append(obj)
+            tmp_resp = tmp_resp[end_index:]
+
+        tmp_resp = resp
+        while 1:
+            index, end_index = self.get_line_indexes(tmp_resp, '<dir')
+            if index is None:
+                break
+
+            segment = tmp_resp[index:end_index]
+            obj = self.get_obj_from_slice(segment)
+            dir_list.append(obj)
+            tmp_resp = tmp_resp[end_index:]
+
+        self.log.info("Files: %d Dirs: %d parsed" %(len(file_list), len(dir_list)))
+        return file_list, dir_list
 
 if __name__ == '__main__':
     unittest.main() 
