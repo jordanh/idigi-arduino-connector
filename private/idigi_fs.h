@@ -1127,7 +1127,7 @@ static size_t format_file_ls_response(file_system_context_t const * context,
 
     if (!FileIsDir(context))
     {
-        fs_ls_response += result;
+        fs_ls_response += record_bytes(fs_ls_response_dir);
         message_store_be32(fs_ls_response, size, context->file_size);
         result += record_bytes(fs_ls_response_file);
     }

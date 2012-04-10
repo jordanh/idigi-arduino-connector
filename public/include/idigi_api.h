@@ -1095,20 +1095,6 @@ typedef struct
 /**
 * Error code, used on return in the error_status field of @ref idigi_file_error_data_t
 * in all file system callbacks.
-*
-* @see @ref idigi_file_system_open
-* @see @ref idigi_file_system_read
-* @see @ref idigi_file_system_write  
-* @see @ref idigi_file_system_lseek
-* @see @ref idigi_file_system_ftruncate
-* @see @ref idigi_file_system_close   
-* @see @ref idigi_file_system_rm    
-* @see @ref idigi_file_system_stat   
-* @see @ref idigi_file_system_opendir
-* @see @ref idigi_file_system_readdir 
-* @see @ref idigi_file_system_closedir
-* @see @ref idigi_file_system_hash
-* @see @ref idigi_file_system_strerr
 */
 typedef enum
 {
@@ -1152,7 +1138,7 @@ typedef enum
 * @{
 */
 /**
-* File status data structure is used to return the status of a direcory or a file, specified py the path.  
+* File status data structure is used to return the status of a direcory or a file, specified by the path.  
 * It is used in @ref idigi_file_stat_response_t for @ref idigi_file_system_stat callback.
 * The returned hash_alg value will be used in the consequent @ref idigi_file_system_hash callbacks.
 */
@@ -1160,8 +1146,8 @@ typedef struct
 {
   uint32_t     last_modified; /**< Last modified time for the entry (seconds since 1970). If not supported, use 0 */
   size_t       file_size;               /**< File size in bytes */
-  idigi_file_hash_algorithm_t hash_alg; /**< hash algorithm */
   uint8_t      flags;                   /**< 0, or @ref file_stat_flag_t */
+  idigi_file_hash_algorithm_t hash_alg; /**< hash algorithm */
 
 } idigi_file_stat_t;
 /**
@@ -1284,7 +1270,7 @@ typedef struct
 typedef struct
 {
     char const * path;                      /**< File path */                     
-    idigi_file_hash_algorithm_t hash_alg;   /**< hash algorithm */ 
+    idigi_file_hash_algorithm_t hash_alg;   /**< suggested hash algorithm */ 
 
 } idigi_file_stat_request_t;
 /**
@@ -1331,8 +1317,8 @@ typedef struct
 */
 typedef struct 
 {
-    idigi_file_error_status_t error_status; /**< error code of @ref idigi_file_error_status_t type */
-    int errnum;                         /**< errno */
+    idigi_file_error_status_t error_status; /**< error status of @ref idigi_file_error_status_t type */
+    int errnum;                             /**< errno */
 
 } idigi_file_error_data_t;
 /**
