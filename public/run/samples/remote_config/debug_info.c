@@ -27,7 +27,6 @@
 #include "idigi_config.h"
 #include "idigi_api.h"
 /* #include "platform.h" */
-#include "idigi_remote.h"
 #include "remote_config.h"
 
 
@@ -74,7 +73,7 @@ idigi_callback_status_t app_debug_info_group_get(idigi_remote_group_request_t * 
 
     switch (request->element_id)
     {
-    case idigi_group_debug_info_version:
+    case idigi_state_debug_info_version:
     {
         char * ptr;
         ptr = idigiThreadInfo.version;
@@ -82,16 +81,16 @@ idigi_callback_status_t app_debug_info_group_get(idigi_remote_group_request_t * 
         response->element_data.element_value->string_value.length_in_bytes = sizeof(idigiThreadInfo.version);
         break;
     }
-    case idigi_group_debug_info_stacktop:
+    case idigi_state_debug_info_stacktop:
         response->element_data.element_value->integer_unsigned_value =  (uint32_t)idigiThreadInfo.stacktop;
         break;
-    case idigi_group_debug_info_stacksize:
+    case idigi_state_debug_info_stacksize:
         response->element_data.element_value->integer_unsigned_value =  idigiThreadInfo.stacksize;
         break;
-    case idigi_group_debug_info_stackbottom:
+    case idigi_state_debug_info_stackbottom:
         response->element_data.element_value->integer_unsigned_value =  (uint32_t)idigiThreadInfo.stackbottom;
         break;
-    case idigi_group_debug_info_usedmem:
+    case idigi_state_debug_info_usedmem:
         response->element_data.element_value->integer_unsigned_value =  total_malloc_size;
 
     }

@@ -25,7 +25,6 @@
 #include "idigi_config.h"
 #include "idigi_api.h"
 #include "platform.h"
-#include "idigi_remote.h"
 #include "remote_config.h"
 #include "remote_config_cb.h"
 
@@ -62,7 +61,7 @@ idigi_callback_status_t app_device_info_group_init(idigi_remote_group_request_t 
 
     if (app_os_malloc(sizeof *device_info_ptr, &ptr) != 0)
     {
-        response->error_id = idigi_group_error_load_failed;
+        response->error_id = idigi_global_error_load_fail;
         response->element_data.error_hint = DEVICE_INFO_NO_MEMORY_HINT;
         goto done;
     }
@@ -86,13 +85,13 @@ idigi_callback_status_t app_device_info_group_get(idigi_remote_group_request_t *
 
     switch (request->element_id)
     {
-    case idigi_group_device_info_syspwd:
+    case idigi_setting_device_info_syspwd:
         ASSERT(request->element_type == idigi_element_type_password);
 
-    case idigi_group_device_info_product:
-    case idigi_group_device_info_model:
-    case idigi_group_device_info_company:
-    case idigi_group_device_info_desc:
+    case idigi_setting_device_info_product:
+    case idigi_setting_device_info_model:
+    case idigi_setting_device_info_company:
+    case idigi_setting_device_info_desc:
     {
         device_info_config_data_t * const device_info_ptr = session_ptr->group_context;
 
@@ -101,14 +100,14 @@ idigi_callback_status_t app_device_info_group_get(idigi_remote_group_request_t *
                                 device_info_ptr->syspwd};
 
         response->element_data.element_value->string_value.buffer = config_data[request->element_id];
-        if (request->element_id == idigi_group_device_info_desc)
+        if (request->element_id == idigi_setting_device_info_desc)
         {
             ASSERT(request->element_type == idigi_element_type_multiline_string);
             response->element_data.element_value->string_value.length_in_bytes = device_info_ptr->desc_length;
         }
         else
         {
-            if (request->element_id != idigi_group_device_info_syspwd)
+            if (request->element_id != idigi_setting_device_info_syspwd)
             {
                 ASSERT(request->element_type == idigi_element_type_string);
             }
@@ -118,8 +117,6 @@ idigi_callback_status_t app_device_info_group_get(idigi_remote_group_request_t *
     }
     default:
         ASSERT(0);
-        response->error_id = idigi_group_error_unknown_value;
-        response->element_data.error_hint = NULL;
         break;
     }
 
@@ -137,11 +134,11 @@ idigi_callback_status_t app_device_info_group_set(idigi_remote_group_request_t *
 
     switch (request->element_id)
     {
-    case idigi_group_device_info_product:
-    case idigi_group_device_info_model:
-    case idigi_group_device_info_company:
-    case idigi_group_device_info_desc:
-    case idigi_group_device_info_syspwd:
+    case idigi_setting_device_info_product:
+    case idigi_setting_device_info_model:
+    case idigi_setting_device_info_company:
+    case idigi_setting_device_info_desc:
+    case idigi_setting_device_info_syspwd:
     {
         device_info_config_data_t * const device_info_ptr = session_ptr->group_context;
 
@@ -161,13 +158,13 @@ idigi_callback_status_t app_device_info_group_set(idigi_remote_group_request_t *
         if (request->element_value->string_value.length_in_bytes < config_data[request->element_id].min_length ||
             request->element_value->string_value.length_in_bytes > config_data[request->element_id].max_length)
         {
-            response->error_id = idigi_group_device_info_error_invalid_length;
+            response->error_id = idigi_setting_device_info_error_invalid_length;
             response->element_data.error_hint = NULL;
             goto done;
         }
         memcpy(config_data[request->element_id].store_data, request->element_value->string_value.buffer, request->element_value->string_value.length_in_bytes);
         config_data[request->element_id].store_data[request->element_value->string_value.length_in_bytes] = '\0';
-        if (request->element_id == idigi_group_device_info_desc)
+        if (request->element_id == idigi_setting_device_info_desc)
         {
             device_info_ptr->desc_length = request->element_value->string_value.length_in_bytes;
         }
@@ -175,8 +172,6 @@ idigi_callback_status_t app_device_info_group_set(idigi_remote_group_request_t *
     }
     default:
         ASSERT(0);
-        response->error_id = idigi_group_error_unknown_value;
-        response->element_data.error_hint = NULL;
         break;
     }
 done:

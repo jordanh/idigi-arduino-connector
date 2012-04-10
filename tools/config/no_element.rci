@@ -1,0 +1,11 @@
+globalerror load_fail "Load fail"
+globalerror save_fail "Save fail"
+globalerror memory_fail "Insufficient memory"
+
+group setting serial "Serial Port"
+    error invalid_baud "Invalid baud rate "
+    error invalid_databits "Invalid data bits"
+    error invalid_parity  " Invalid parity"
+    error invalid_xbreak "Invalid xbreak setting"
+    error invalid_databits_parity "Invalid combination of data bits and parity"
+

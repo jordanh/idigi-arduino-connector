@@ -145,11 +145,11 @@ static idigi_callback_status_t app_process_group(remote_group_cb_index_t cb_inde
 
     switch (request->group_id)
     {
-    case idigi_group_serial:
-    case idigi_group_ethernet:
-    case idigi_group_device_stats:
-    case idigi_group_device_info:
-    case idigi_group_ic_thread:
+    case idigi_setting_serial:
+    case idigi_setting_ethernet:
+    case idigi_setting_device_stats:
+    case idigi_setting_device_info:
+    case idigi_state_debug_info:
         group_ptr = &remote_group_table[request->group_id];
         session_ptr->group_table_id = request->group_id;
         break;
