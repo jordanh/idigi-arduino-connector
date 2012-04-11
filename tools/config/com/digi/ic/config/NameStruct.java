@@ -1,3 +1,4 @@
+package com.digi.ic.config;
 
 public class NameStruct {
     

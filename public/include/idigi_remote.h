@@ -34,8 +34,8 @@ typedef enum {
 
 
 typedef enum {
-    idigi_remote_group_config,
-    idigi_remote_group_sysinfo
+    idigi_remote_group_setting,
+    idigi_remote_group_state
 } idigi_remote_group_type_t;
 
 

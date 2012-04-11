@@ -1,3 +1,4 @@
+package com.digi.ic.config;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -61,7 +62,7 @@ public class Parser {
                 
                 if (token == null)
                 {
-                    
+                    /* skip new line */
                 }
                 else if (token.equalsIgnoreCase("globalerror"))
                 {
@@ -198,6 +199,16 @@ public class Parser {
     }
 
 
+    public static boolean getFloatingSupport()
+    {
+        return floatingSupport;
+    }
+    
+    public static boolean getEnumSupport()
+    {
+        return enumSupport;
+    }
+
     private String getName() throws BadStringOperationException 
     {
         String name = getToken(); //tokenScanner.next();
@@ -209,7 +220,6 @@ public class Parser {
                 throw new BadStringOperationException("Invalid character in the name: " + name);
             }
         
-            debug_log("name= " + name);
         }
         return name;
     }
@@ -225,7 +235,6 @@ public class Parser {
             {
                 throw new BadStringOperationException("Invalid description");
             }
-            debug_log("desc= " + description);
         }
         return description;
     }
@@ -239,11 +248,21 @@ public class Parser {
             throw new BadStringOperationException("Missing type");
             
         }
-        if (ElementStruct.ElementType.toElementType(type) == ElementStruct.ElementType.INVALID_TYPE)
+        ElementStruct.ElementType elementType = ElementStruct.ElementType.toElementType(type);
+        
+        if (elementType == ElementStruct.ElementType.INVALID_TYPE)
         {
             throw new BadStringOperationException("Invalid type: " + type);
         }
-        debug_log("type =" + type);
+        else if (elementType == ElementStruct.ElementType.ENUM)
+        {
+            enumSupport = true;
+        }
+        else if (elementType == ElementStruct.ElementType.FLOAT)
+        {
+            floatingSupport = true;
+        }
+        
         return type;
     }
     
@@ -260,7 +279,6 @@ public class Parser {
         {
             throw new BadStringOperationException("Invalid access:" + access);
         }
-        debug_log("access = " + access);
         return access;
     }
 
@@ -284,7 +302,6 @@ public class Parser {
                 throw new BadStringOperationException("Invalid min or max value:" + mvalue);
             }
         }
-        debug_log("min/max = " + mvalue);
         
         return mvalue;
     }
@@ -336,7 +353,6 @@ public class Parser {
                     *       value <name> [description]
                     */
                    NameStruct value = new NameStruct(getName());
-                   debug_log("value: ");
                    
                    if (hasToken("\\\".*"))
                    {
@@ -513,14 +529,13 @@ public class Parser {
    private Scanner lineScanner;
    private Scanner tokenScanner;
 
+   private static boolean floatingSupport;
+   private static boolean enumSupport;
+
+
    public static void log(Object aObject)
    {
        System.out.println(String.valueOf(aObject));
-   }
-
-   public static void debug_log(Object aObject)
-   {
-//       System.out.println(String.valueOf(aObject));
    }
 
 }
