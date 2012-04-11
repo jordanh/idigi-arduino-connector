@@ -62,7 +62,29 @@ class FileSystemTestCase(iik_testcase.TestCase):
             getData = base64.decodestring(inData)
             self.assertEqual(putData, getData, "Mismatch in the sent and received file [%s, put:%s, get:%s]" %(fname, putData, getData))
 
-    def test_fs3_ls(self):
+    def test_fs3_truncate(self):
+        """ Tests put with different offset, size and truncate ON on list of files """
+        global FileList
+
+        truncateList =  [
+            (0, 4),
+            (0, 1),
+            (500, 83),
+            (1111, 580),
+            (4321, 16037),
+            ]
+
+        for i in xrange(len(FileList)):
+            offset, fsize = truncateList[i]
+            fname, total = FileList[i]
+
+            putData = FileData[:fsize]
+            outData = base64.encodestring(putData)
+            self.put_a_file(fname, outData, fsize, offset, True)
+
+            FileList[i] = (fname, offset + fsize)
+
+    def test_fs4_ls(self):
         """ Tests file system ls command """
         HashAlgoList = ['none', 'any', 'crc32', 'md5']
 
