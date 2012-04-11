@@ -13,82 +13,69 @@
  * app_idigi_callback(), defined in the file application.c.
  *  
  * All file system requests are initiated by the iDigi Device Cloud. When the iDigi Device Cloud sends
- * a file system request app_idigi_callback() calls app_file_system_handler() to perform file I/O functions.
- *
- * The app_file_system_handler() callback and routines it calls to perform file I/O functions are defined in
- * the file_system.c file.
+ * a file system request, app_idigi_callback() calls app_file_system_handler() routine, located in 
+ * the file_system.c file. 
  * 
+ * The app_file_system_handler() routine calls the following routins for different file I/O operations: 
+ *
+ * @htmlonly
+ * <table class="apitable">
+ * <tr>
+ * <th class="title">Routine</td>
+ * <th class="title">Operation</td>
+ * <th class="title">Request Id</td>
+ * </tr> 
+ * <tr> 
+ * <td>app_process_file_open()</td><td>Open a file</td><td>@endhtmlonly @ref idigi_file_system_open @htmlonly</td>
+ * </tr> 
+ * <tr> 
+ * <td>app_process_file_lseek()</td><td>Seek file position</td><td>@endhtmlonly @ref idigi_file_system_lseek @htmlonly</td>
+ * </tr>
+ * <tr> 
+ * <td>app_process_file_read()</td><td>Read file data</td><td>@endhtmlonly @ref idigi_file_system_read @htmlonly</td>
+ * </tr>
+ * <tr> 
+ * <td>app_process_file_write()</td><td>Write file data</td><td>@endhtmlonly @ref idigi_file_system_write @htmlonly</td>
+ * </tr>
+ * <tr> 
+ * <td>app_process_file_ftruncate()</td><td>Truncate a file</td><td>@endhtmlonly @ref idigi_file_system_ftruncate @htmlonly</td>
+ * </tr>
+ * <tr> 
+ * <td>app_process_file_close()</td><td>Close a file</td><td>@endhtmlonly @ref idigi_file_system_close @htmlonly</td>
+ * </tr>
+ * <tr> 
+ * <td>app_process_file_rm()</td><td>Remove a file</td><td>@endhtmlonly @ref idigi_file_system_rm @htmlonly</td>
+ * </tr>
+ * <tr> 
+ * <td>app_process_file_opendir()</td><td>Open a directory</td><td>@endhtmlonly @ref idigi_file_system_opendir @htmlonly</td>
+ * </tr>
+ * <tr> 
+ * <td>app_process_file_readdir()</td><td>Read a directory entry</td><td>@endhtmlonly @ref idigi_file_system_readdir @htmlonly</td>
+ * </tr>
+ * <tr> 
+ * <td>app_process_file_closedir()</td><td>Close a directory</td><td>@endhtmlonly @ref idigi_file_system_closedir @htmlonly</td>
+ * </tr>
+ * <tr> 
+ * <td>app_process_file_stat()</td><td>Get a file status</td><td>@endhtmlonly @ref idigi_file_system_stat @htmlonly</td>
+ * </tr>
+ * <tr> 
+ * <td>app_process_file_hash()</td><td>Get a file hash value</td><td>@endhtmlonly @ref idigi_file_system_hash @htmlonly</td>
+ * </tr>
+ * <tr> 
+ * <td>app_process_file_strerror()</td><td>Get an error string</td><td>@endhtmlonly @ref idigi_file_system_strerror @htmlonly</td>
+ * </tr>
+ * <tr> 
+ * <td>app_process_file_msg_error()</td><td>Inform of an error in messaging layer</td><td>@endhtmlonly @ref idigi_file_system_msg_error @htmlonly</td>
+ * </tr>
+ * </table>
+ * @endhtmlonly
+ *
  * The included python script can be used to create a file, send that file back to the iDigi Device Cloud 
  * and list the file. The file "test_file.txt" is created in the application directory and the file test is:
  * "iDigi file system sample\n".
  *
- * When the iDigi Cloud sends the request to get a file, the following routines are called:
- * -# app_process_file_open() to open a file.
- * -# app_process_file_lseek() to set file position.
- * -# app_process_file_read() called repeatedly to read file data.
- * -# app_process_file_close() to close the file.
- *
- * IIK calls app_process_file_lseek() twice: to check if the position is valid and to set the correct position. 
- *
- * This sample does not allocate memory and does not use user_context when it processes a request to get a file, 
- * but it it was, it would need to free all memory in @ref idigi_file_system_close callback.
- *
- * When the iDigi Cloud sends the request to put a file, the following routines are called:
- * -# app_process_file_open() to open a file.
- * -# app_process_file_lseek() to set file position.
- * -# app_process_file_write() called repeatedly to write file data.
- * -# app_process_file_ftruncate() to truncate a file, if was writing to existing file and truncate was requested.
- * -# app_process_file_close() to close the file.
- *
- * IIIK calls app_process_file_lseek() twice: to check if the position is valid and to set the correct position. 
- *
- * This sample does not allocate memory and does not use user_context when it processes a request to put a file, 
- * but it it was, it would need to free all memory in app_process_file_close() routine.
- *
- * When the iDigi Cloud sends the request to remove a file, app_process_file_rm() is called.
- *
- * When the iDigi Cloud sends the request to get a file listing, the following routines are called:
- * -# app_process_file_stat() to get a file status.
- * -# app_process_file_hash() to get a file hash value, if requested and supported. 
- *
- * To request the file hash value IIK sets hash_alg in @ref idigi_file_stat_request_t. 
- * The app_process_file_stat() callback sets hash_alg in the @ref idigi_file_stat_t structure of the response 
- * to the actual supported value.
- *
- * This sample does not support file hash values.
- *
- * If the application needs more than one pass to calculate the hash value, it can keep returning
- * @ref idigi_callback_busy and the callback will be repeated until it is ready to return the hash value. 
- * It might open a file, allocate memory for intermidiate data and store in the user_context of 
- * the response structure. When the callback has finished the hash calculations it must close the file, 
- * free allocated memory and return @ref idigi_callback_continue. 
- *
- * When the iDigi Cloud sends the request to get a directory listing, the following routines are called:
- * -# app_process_file_stat() to get a directory status.
- * -# app_process_file_opendir() to open a directory.
- * -# For each directory entry:
- * -# - app_process_file_readdir() to read the directory entry name.
- * -# - app_process_file_stat() to get entry status.
- * -# - app_process_file_hash() to get a hash value for a regular file, if the hash value is
- * requested and supported for the whole directory.
- * -# app_process_file_closedir() to close the directory, when all directory entries are processed.
- *
- * If a file I/O error occurs, the callback should set errnum in the @ref idigi_file_error_data_t of the response
- * to the system errno value and set a error_status to an error value of @ref idigi_file_error_status_t type.
- * This action will follow with:
- * -# app_process_file_close() or app_process_file_closedir(), if required. 
- * -# app_process_file_strerror() to get an error string description based on the storred errno.
- * -# Sending an error response to the iDigi Device Cloud, which completes the session.
- *
- * If a callback returns @ref idigi_file_user_cancel the session will be calceled without sending an error response
- * to the iDigi Device Cloud. Callbacks to close a file or directory will be invoked, if required.
- *
- * If the callback sets an error status when part of the response was already sent to the iDigi Device Cloud, 
- * the error status is treated as @ref idigi_file_user_cancel.
- *
- * If an error has occured in messaging layer, the following routines.are called, prior to cancelling the session: 
- * -# app_process_file_close() or app_process_file_closedir(), if required. 
- * -# app_process_file_msg_error() to inform of an error.  
+ * Please see @ref file_system_overview1 for sequence of callbacks for different requests, received from the 
+ * iDigi Device Cloud.
  *
  * @section fs_sample_build Building
  *
@@ -167,7 +154,7 @@
  * @section python_script Python script to write, read, and list a file
  *
  * This sample provides a simple python script to write, read, and list a file, 
- * using @htmlonly <a href="web_services.html">iDigi Web Services.</a> @endhtmlonly.
+ * using @htmlonly <a href="web_services.html">iDigi Web Services</a> @endhtmlonly.
  * It sends a request to developer.idigi.com.
  *
  * Run the python script in the sample. 
@@ -176,7 +163,7 @@
  * python file_system.py <username> <password> <device_id>
  * @endcode
  *
- * Output from this sample is similar to:
+ * Output from this sample looks like:
  *
  * @code
  *
@@ -195,7 +182,7 @@
  *
  * @endcode
  *
- * Output from the file_system.py is similar to:
+ * Output from the file_system.py looks like:
  *
  * @code
  *

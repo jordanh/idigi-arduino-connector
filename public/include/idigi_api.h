@@ -1301,19 +1301,6 @@ typedef struct
 /**
 * Error data structure is used to return error code and errno for all file system callbacks.
 *
-* @see @ref idigi_file_system_open
-* @see @ref idigi_file_system_read
-* @see @ref idigi_file_system_write  
-* @see @ref idigi_file_system_lseek
-* @see @ref idigi_file_system_ftruncate
-* @see @ref idigi_file_system_close   
-* @see @ref idigi_file_system_rm    
-* @see @ref idigi_file_system_stat   
-* @see @ref idigi_file_system_opendir
-* @see @ref idigi_file_system_readdir 
-* @see @ref idigi_file_system_closedir
-* @see @ref idigi_file_system_hash
-* @see @ref idigi_file_system_strerror
 */
 typedef struct 
 {
