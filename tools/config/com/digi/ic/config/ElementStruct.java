@@ -6,16 +6,6 @@ import javax.management.BadStringOperationException;
 
 public class ElementStruct {
     
-    public String name;
-    public String description;
-    public String type;
-    public String access;
-    public String min;
-    public String max;
-    public String unit;
-    public LinkedList<NameStruct> values;
-
-
     public enum ElementType {
         STRING (true),
         MULTILINE_STRING (true),
@@ -91,51 +81,46 @@ public class ElementStruct {
         }
         name = theName;
         description = theDesc;
-        type=null;
-        access=null;
-        min=null;
-        max=null;
-        unit=null;
         values = new LinkedList<NameStruct>();
         
     }
 
-    public void addConfigType(String theType) throws BadStringOperationException
+    public void setType(String theType) throws BadStringOperationException
     {
         if (type == null)
             type = theType;
         else throw new BadStringOperationException("Duplicate <type>: " + theType);
     }
     
-    public void addConfigAccess(String theAccess) throws BadStringOperationException
+    public void setAccess(String theAccess) throws BadStringOperationException
     {
         if (access == null)
             access = theAccess;
          else throw new BadStringOperationException("Duplicate <access>: " + theAccess);
     }
     
-    public void addConfigMin(String theMin) throws BadStringOperationException
+    public void setMin(String theMin) throws BadStringOperationException
     {
         if (min == null)
             min = theMin;
          else throw new BadStringOperationException("Duplicate <min>: " + theMin);
     }
-    public void addConfigMax(String theMax) throws BadStringOperationException
+    public void setMax(String theMax) throws BadStringOperationException
     {
         if (max == null)
             max = theMax;
          else throw new BadStringOperationException("Duplicate <max>: " + theMax);
     }
 
-    public void addConfigValue(NameStruct theValue) throws BadStringOperationException
+    public void addValue(NameStruct theValue) throws BadStringOperationException
     {
         if (ElementType.toElementType(type) == ElementType.ENUM)
         {
             for (NameStruct value : values)
             {
-                if (value.name.equals(theValue.name))
+                if (value.getName().equals(theValue.getName()))
                 {
-                    throw new BadStringOperationException("Duplicate <value>: " + theValue.name);
+                    throw new BadStringOperationException("Duplicate <value>: " + theValue.getName());
                 }
             }
             values.add(theValue);
@@ -146,11 +131,51 @@ public class ElementStruct {
         }
     }
 
-    public void addConfigUnit(String theUnit) throws BadStringOperationException
+    public void setUnit(String theUnit) throws BadStringOperationException
     {
         if (unit == null)
             unit = theUnit;
          else throw new BadStringOperationException("Duplicate unit: " + theUnit);
+    }
+    
+    public String getName()
+    {
+        return name;
+    }
+    
+    public String getDescription()
+    {
+        return description;
+    }
+    
+    public String getType()
+    {
+        return type;
+    }
+
+    public String getAccess()
+    {
+        return access;
+    }
+
+    public String getMin()
+    {
+        return min;
+    }
+
+    public String getMax()
+    {
+        return max;
+    }
+
+    public String getUnit()
+    {
+        return unit;
+    }
+    
+    public LinkedList<NameStruct> getValues()
+    {
+        return values;
     }
     
     public boolean validate()
@@ -160,22 +185,22 @@ public class ElementStruct {
         
         if (description == null)
         {
-            log("Missing <description> for element: " + name);
+            ConfigGenerator.log("Missing <description> for element: " + name);
             valid = false;
         }
         else if (!etype.minMaxSupport() && (min != null || max != null))
         {
-            log("Type: " + type + " should not have <min/max> on element: " + name);
+            ConfigGenerator.log("Type: " + type + " should not have <min/max> on element: " + name);
             valid = false;
         }
         else if (etype == ElementType.ENUM && values.isEmpty())
         {
-            log("Missing <value> for element: " + name);
+            ConfigGenerator.log("Missing <value> for element: " + name);
             valid = false;
         }
         else if (etype != ElementType.ENUM && !values.isEmpty())
         {
-            log("No <value> for element: " + name);
+            ConfigGenerator.log("No <value> for element: " + name);
             valid = false;
         }
         if (min != null)
@@ -195,7 +220,7 @@ public class ElementStruct {
                 }
             } 
             catch (NumberFormatException e){
-                log("Invalid <min> value : " + min + " for type: " + type);
+                ConfigGenerator.log("Invalid <min> value : " + min + " for type: " + type);
             }
         }
         
@@ -216,16 +241,20 @@ public class ElementStruct {
                 }
             } 
             catch (NumberFormatException e){
-                log("Invalid <max> value : " + max + " for type: " + type);
+                ConfigGenerator.log("Invalid <max> value : " + max + " for type: " + type);
             }
         }
         
         return valid;
     }
-    
-    private static void log(Object aObject)
-    {
-        System.out.println(String.valueOf(aObject));
-    }
+
+    private String name;
+    private String description;
+    private String type;
+    private String access;
+    private String min;
+    private String max;
+    private String unit;
+    private LinkedList<NameStruct> values;
 
 }

@@ -1,74 +1,17 @@
 package com.digi.ic.config;
 
 import java.io.IOException;
-import java.util.LinkedList;
 
 public class ConfigGenerator {
 
-    // Constants
+    public final static String VERSION = "1.0.0.0";
+    
     public static final String DASH = "-";
+    
     private static final String NO_EDESC_OPTION = DASH + "nodesc";
     private static final String HELP_OPTION = DASH + "help";
     private static final String VERBOSE_OPTION = DASH + "verbose";
-
-    public final static String VERSION = "1.0.0.0";
     
-    /* list all errors which are common to all errors  "name" "description" */ 
-    private final static String[] allErrors = {"parser_error", "Parser error",
-                                        "bad_xml", "Bad XML"};
-
-    /* list global errors which are common to all errors  "name" "description" */ 
-    private final static String[] globalErrors = {"invalid_version", "Invalid version"};
-    
-    /* list command errors which are common to all errors  "name" "description" */ 
-    private final static String[] commandErrors = {"bad_group", "Bad group",
-                                        "bad_index", "Bad index"};
-
-    /* list group errors which are common to all errors  "name" "description" */ 
-    private final static String[] groupErrors = {"bad_element", "Bad element",
-                                        "bad_value", "Bad value"};
-
-/* Add/update initAllErrors, initGlobalErrors, initCommandErrors, and initGroupError */
-    public static LinkedList<NameStruct> allErrorList;
-    public static LinkedList<NameStruct> globalErrorList;
-    public static LinkedList<NameStruct> commandErrorList;
-    public static LinkedList<NameStruct> groupErrorList;
-    
-    private static String[] argumentList;
-    private static boolean noErrorDescription;
-    private static boolean verboseOption;
-
-    private static boolean getErrors(LinkedList<NameStruct> linkedList, String[] error_strings) throws IOException
-    {
-        for (int i=0; i < error_strings.length; i++)
-        {
-            if (!Parser.checkAlphaNumeric(error_strings[i]))
-            {
-                throw new IOException("Invalid anme in error strings");
-            }
-            NameStruct error = new NameStruct(error_strings[i], error_strings[i+1]);
-            linkedList.add(error);
-            i++;
-            
-        }
-        return true;
-    }
-
-    public static void initErrors() throws IOException
-    {
-        allErrorList = new LinkedList<NameStruct>();
-        getErrors(allErrorList, allErrors);
-        
-        globalErrorList = new LinkedList<NameStruct>();
-        getErrors(globalErrorList, globalErrors);
-        
-        commandErrorList = new LinkedList<NameStruct>();
-        getErrors(commandErrorList, commandErrors);
-
-        groupErrorList = new LinkedList<NameStruct>();
-        getErrors(groupErrorList, groupErrors);
-    }
-
     public static void usage()
     {
         ConfigGenerator generator = new ConfigGenerator();
@@ -112,7 +55,7 @@ public class ConfigGenerator {
     }
     
     
-    public static int commandLine(String args[]) {
+    public static int checkCommandLine(String args[]) {
         int i = 0;
         int n = 0;
         String arg;
@@ -154,25 +97,21 @@ public class ConfigGenerator {
         try {
             
             /* initial top-level error elements */
-            ConfigGenerator.initErrors();
+            ConfigData.initTopLevelErrors();
             
             /* check/get args options */
-            ConfigGenerator.commandLine(args);
+            ConfigGenerator.checkCommandLine(args);
 
-            ConfigData configData = new ConfigData();
-            
             Descriptors descriptors = new Descriptors(args);
             
             /* parse file */
             String filename = args[args.length -1];
             debug_log("Reading filename: " + filename + "...");
 
-            Parser parser = new Parser(filename);
+            ConfigData configData = new ConfigData();
+
+            Parser.processFile(filename, configData);
             
-            if (!parser.processFile(configData))
-            {
-                throw new IOException("Error found in file: " +filename);
-            }
             if (configData.getSettingGroups().isEmpty() && configData.getStateGroups().isEmpty())
             {
                 throw new IOException("No groups specified in file: " + filename);
@@ -183,22 +122,10 @@ public class ConfigGenerator {
             
             /* Generate H and C files */
             debug_log("Generating C and H files...");
-            FileGenerator fileGenerator = new FileGenerator();
-            
-            try {
-                fileGenerator.generateFile(configData);
-                
-            } catch (IOException e) {
-                /* TODO: Need to delete generated files */
-                log(e.getMessage());
-                throw new IOException("Unable to generate H and C files");
-            }
-            
-            finally {
-                fileGenerator.SourceFileDone();
-            } 
-            
+            FileGenerator.generateFile(configData);
+             
             /* Generate and upload descriptors */
+            debug_log("Generating/loading descriptors...");
             descriptors.processDescriptors(configData);
                 
         } catch (IOException e) {
@@ -225,4 +152,9 @@ public class ConfigGenerator {
             System.out.println(String.valueOf(aObject));
         }
     }
+    
+    private static String[] argumentList;
+    private static boolean noErrorDescription;
+    private static boolean verboseOption;
+
 }

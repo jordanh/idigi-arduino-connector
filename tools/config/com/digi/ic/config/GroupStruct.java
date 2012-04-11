@@ -7,55 +7,65 @@ import javax.naming.NamingException;
 
 public class GroupStruct {
 
-    public String name;
-    public int instances;
-    public String description;
-    public LinkedList<ElementStruct> elements;
-    public LinkedList<NameStruct> errors;
-    
-    public GroupStruct(String theName) throws BadStringOperationException
+    public GroupStruct(String nameStr, int count, String descStr) throws BadStringOperationException
     {
-        if (theName == null)
+        if (count < 0)
         {
-            throw new BadStringOperationException("No name specified for a group");
+            throw new BadStringOperationException("invalid instance count for the group:" + nameStr);
         }
-        name = theName;
-        instances= 0;
-        description=null;
+        
+        name = nameStr;
+        instances= count;
+        description=descStr;
         elements = new LinkedList<ElementStruct>();
         errors = new LinkedList<NameStruct>();
     }
 
-    public void addConfig(int theInstances)
+    public String getName()
     {
-        instances = theInstances;
-    }
-
-    public void addConfig(String theDescription)
-    {
-        description = theDescription;
+        return name;
     }
     
-    public void addConfigElement(ElementStruct theElement) throws NamingException
+    public String getDescription()
+    {
+        return description;
+    }
+
+    public int getInstances()
+    {
+        return instances;
+    }
+    
+    public LinkedList<ElementStruct> getElements()
+    {
+        return elements;
+    }
+    
+    public LinkedList<NameStruct> getErrors()
+    {
+        return errors;
+    }
+    
+    public void addElement(ElementStruct theElement) throws NamingException
     {
         
         for (ElementStruct element : elements)
         {
-            if (element.name.equals(theElement.name))
+            if (element.getName().equals(theElement.getName()))
             {
-                throw new NamingException("Duplicate <element>: " + theElement.name);
+                throw new NamingException("Duplicate <element>: " + theElement.getName());
             }
         }
         elements.add(theElement);
     }
 
-    public void addConfigError(NameStruct theError) throws BadStringOperationException
+    public void addError(NameStruct theError) throws BadStringOperationException
     {
         for (NameStruct error : errors)
         {
-            if (error.name.equals(theError.name))
+            if (error.getName().equals(theError.getName()))
             {
-                throw new BadStringOperationException("Duplicate <error>: " + theError.name);
+                throw new BadStringOperationException("Duplicate <error>: " + theError.getName());
             }
         }
         errors.add(theError);
@@ -64,25 +74,28 @@ public class GroupStruct {
     public boolean validate()
     {
         boolean valid = true;
-        
+/*
         if (description == null)
         {
-            log("Missing description");
+            ConfigGenerator.log("Missing description");
             valid = false;
         }
-        else if (elements.isEmpty())
+        else
+*/ 
+        if (elements.isEmpty())
         {
-            log("No element specified");
+            ConfigGenerator.log("No element specified");
             valid = false;
         }
         return valid;
         
     }
 
-    private static void log(Object aObject)
-    {
-        System.out.println(String.valueOf(aObject));
-    }
-
+    private String name;
+    private int instances;
+    private String description;
+    private LinkedList<ElementStruct> elements;
+    private LinkedList<NameStruct> errors;
+    
 
 }

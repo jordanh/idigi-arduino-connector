@@ -6,8 +6,6 @@ import java.util.*;
 
 public class Descriptors {
 
-    //final static String SETTING_STRING = "setting";
-    //final static String STATE_STRING = "state";
 
     private final String RCI_VERSION = "1.1";
     
@@ -15,6 +13,9 @@ public class Descriptors {
                             "<attr name=\"version\" desc=\"RCI version of request.  Response will be returned in this versions response format\" default=\"" + RCI_VERSION +"\">\n" +
                             "<value value=\"" + RCI_VERSION + "\" desc=\"Version " + RCI_VERSION + "\"/></attr>\n";
     
+    private final String SETTING_DESCRIPTOR_DESC = "device configuration";
+    private final String STATE_DESCRIPTOR_DESC = "device state";
+
     public Descriptors(String[] args) throws IOException
     {
         int argIndex = 0;
@@ -70,9 +71,6 @@ public class Descriptors {
         callDeleteFlag = true;
     }
 
-    private final String SETTING_DESCRIPTOR_DESC = "device configuration";
-    private final String STATE_DESCRIPTOR_DESC = "device state";
-
     public void processDescriptors(ConfigData configData) throws IOException
     {
         
@@ -93,7 +91,7 @@ public class Descriptors {
             
             if (!groups.isEmpty())
             {
-                sendDescriptors(configType, groups, configData.getErrorGroups());
+                sendDescriptors(configType, groups, configData.getGroupGlobalErrors());
                 
             }
         }
@@ -104,14 +102,14 @@ public class Descriptors {
     private String getErrorDescriptors(int id, LinkedList<NameStruct> errors)
     {
         String descriptor = "";
-        for (NameStruct error: ConfigGenerator.allErrorList)
+        for (NameStruct error: ConfigData.allErrorList)
         {
-            descriptor += "<error_descriptor id=\"" + id + "\" desc=\"" + error.description + "\" />\n";
+            descriptor += "<error_descriptor id=\"" + id + "\" desc=\"" + error.getDescription() + "\" />\n";
             id++;
         }
         for (NameStruct error: errors)
         {
-            descriptor += "<error_descriptor id=\"" + id + "\" desc=\"" + error.description + "\" />\n";
+            descriptor += "<error_descriptor id=\"" + id + "\" desc=\"" + error.getDescription() + "\" />\n";
             id++;
         }
         return descriptor;
@@ -132,56 +130,56 @@ public class Descriptors {
 
         query_descriptors += "<format_define name=\"all_" + config_type + "s_groups\">\n";
         
-        query_descriptors += getErrorDescriptors(error_id, ConfigGenerator.commandErrorList);
+        query_descriptors += getErrorDescriptors(error_id, ConfigData.commandErrorList);
         
         
         String set_descriptors = "<descriptor element=\"set_" + config_type + "\" desc=\"Set " + desc;
         
         set_descriptors += "\" format=\"all_" + config_type + "s_groups\">";
          
-        set_descriptors += getErrorDescriptors(error_id, ConfigGenerator.commandErrorList);
+        set_descriptors += getErrorDescriptors(error_id, ConfigData.commandErrorList);
 
         set_descriptors += "</descriptor>";
 
         for (GroupStruct theGroup: groups)
         {
-            query_descriptors += "<descriptor element=\"" + theGroup.name + "\" desc=" + theGroup.description + ">\n";
-            if (theGroup.instances > 0)
+            query_descriptors += "<descriptor element=\"" + theGroup.getName() + "\" desc=" + theGroup.getDescription() + ">\n";
+            if (theGroup.getInstances() > 0)
             {
-                query_descriptors += "<attr name=\"index\" desc=" + theGroup.description + " type=\"int32\" min=\"1\" max=\"" + theGroup.instances + "\" />\n";
+                query_descriptors += "<attr name=\"index\" desc=" + theGroup.getDescription() + " type=\"int32\" min=\"1\" max=\"" + theGroup.getInstances() + "\" />\n";
             }
             
-            for (ElementStruct element: theGroup.elements)
+            for (ElementStruct element: theGroup.getElements())
             {
-                query_descriptors += "<element name=\"" + element.name + "\" desc=" + element.description + " type=\"" + element.type + "\"";
-                if (element.access != null)
+                query_descriptors += "<element name=\"" + element.getName() + "\" desc=" + element.getDescription() + " type=\"" + element.getType() + "\"";
+                if (element.getAccess() != null)
                 {
-                    query_descriptors += " access=\"" + element.access + "\"";
+                    query_descriptors += " access=\"" + element.getAccess() + "\"";
                 }
-                if (element.max != null)
+                if (element.getMax() != null)
                 {
-                    query_descriptors += " max=\"" + element.max + "\"";
+                    query_descriptors += " max=\"" + element.getMax() + "\"";
                 }
-                if (element.min != null)
+                if (element.getMin() != null)
                 {
-                    query_descriptors += " min=\"" + element.min + "\"";
-                }
-                
-                if (element.unit != null)
-                {
-                    query_descriptors += " unit=" + element.unit + "";
+                    query_descriptors += " min=\"" + element.getMin() + "\"";
                 }
                 
-                if (ElementStruct.ElementType.toElementType(element.type) == ElementStruct.ElementType.ENUM)
+                if (element.getUnit() != null)
+                {
+                    query_descriptors += " unit=" + element.getUnit() + "";
+                }
+                
+                if (ElementStruct.ElementType.toElementType(element.getType()) == ElementStruct.ElementType.ENUM)
                 {
                     query_descriptors += ">\n";
 
-                    for (NameStruct value: element.values)
+                    for (NameStruct value: element.getValues())
                     {
-                        query_descriptors += "<value value=\"" + value.name + "\"";
-                        if (value.description != null)
+                        query_descriptors += "<value value=\"" + value.getName() + "\"";
+                        if (value.getDescription() != null)
                         {
-                            query_descriptors += " desc=" + value.description;
+                            query_descriptors += " desc=" + value.getDescription();
                         }
                         query_descriptors += " />\n";
                     }
@@ -196,12 +194,12 @@ public class Descriptors {
             }
             
             error_id = 1;
-            query_descriptors += getErrorDescriptors(error_id, ConfigGenerator.groupErrorList);
+            query_descriptors += getErrorDescriptors(error_id, ConfigData.groupErrorList);
              
-            for (NameStruct error: theGroup.errors)
+            for (NameStruct error: theGroup.getErrors())
             {
                 error_id++;
-                query_descriptors += "<error_descriptor id=\"" + error_id + "\" desc=" + error.description + " />\n";
+                query_descriptors += "<error_descriptor id=\"" + error_id + "\" desc=" + error.getDescription() + " />\n";
             }
             query_descriptors += "</descriptor>";
         }
@@ -240,7 +238,7 @@ public class Descriptors {
         }
         
         int error_id = 1;
-        descriptors += getErrorDescriptors(error_id, ConfigGenerator.globalErrorList);
+        descriptors += getErrorDescriptors(error_id, ConfigData.globalErrorList);
         descriptors += "</descriptor>";
         
         debug_log(descriptors);

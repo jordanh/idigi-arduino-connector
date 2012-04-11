@@ -1,7 +1,6 @@
 package com.digi.ic.config;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.LinkedList;
@@ -14,42 +13,23 @@ import javax.naming.NamingException;
 
 public class Parser {
     
-    /**
-    Constructor.
-    @param aFileName full name of an existing, readable file.
-    * @throws FileNotFoundException 
-    */
-    public Parser(String fileName) throws FileNotFoundException
-    {
-        configFile = new File(fileName);
-        if (!configFile.exists()) 
-        {
-            throw new FileNotFoundException(fileName + " not found.");
-        }
-/*        
-        if (!(configFile.isFile() && configFile.canRead())) 
-        {
-            throw new FileNotFoundException("Unable to access " + aFileName);
-        }
-*/        
-        isReadToken = true;
-        lineNumber = 0;
-        groupLineNumber = 0;
-        elementLineNumber = 0;
-    }
 
-    public final boolean processFile(ConfigData configData) throws IOException
+    public static boolean processFile(String fileName, ConfigData configData) throws IOException
     {
         
         boolean processOk = true;
         
-        lineScanner = new Scanner(new FileReader(configFile));
-        tokenScanner = null;
-
-        errorConfig = configData.getErrorGroups();
         
         try 
         {
+            initialize(fileName);
+            
+            lineScanner = new Scanner(new FileReader(configFile));
+            
+            tokenScanner = null;
+
+            errorConfig = configData.getGroupGlobalErrors();
+
             token = null;
             
             /* first use a Scanner to get each word */
@@ -68,11 +48,11 @@ public class Parser {
                 {
                     NameStruct error = new NameStruct(getName(), getDescription());
                     
-                    for (NameStruct e : errorConfig)
+                    for (NameStruct err : errorConfig)
                     {
-                        if (e.name.equals(error.name))
+                        if (err.getName().equals(error.getName()))
                         {
-                            throw new BadStringOperationException("Duplicate <globalerror>: " + error.name);
+                            throw new BadStringOperationException("Duplicate <globalerror>: " + error.getName());
                         }
                     }
                     errorConfig.add(error);
@@ -85,16 +65,21 @@ public class Parser {
                      */
                     groupConfig = configData.getConfigGroup(getToken());
                     
-                    GroupStruct theGroup = new GroupStruct(getName());
-
+                    /* parse name */
+                    String nameStr = getName();
+                    
                     groupLineNumber = lineNumber;
+                    
+                    /* parse instances */
+                    int groupInstances = 0;
                     
                     if (hasTokenInt())
                     {
-                        theGroup.addConfig(getTokenInt());
+                        groupInstances = getTokenInt();
                     }
                     
-                    theGroup.addConfig(getDescription());
+                    GroupStruct theGroup = new GroupStruct(nameStr, groupInstances, getDescription());
+
                     isReadToken = true;
                     /*
                      * Parse elements and errors for the group.
@@ -112,14 +97,14 @@ public class Parser {
                             ElementStruct element = processElement();
                             if (!element.validate())
                             {
-                                throw new IOException("Error found for element: " + element.name);
+                                throw new IOException("Error found for element: " + element.getName());
                             }
-                            theGroup.addConfigElement(element);
+                            theGroup.addElement(element);
                         }
                         else if (token.equalsIgnoreCase("error"))
                         {
                             NameStruct error = new NameStruct(getName(), getDescription());
-                            theGroup.addConfigError(error);
+                            theGroup.addError(error);
                             isReadToken = true;
                         }
                         else
@@ -130,14 +115,14 @@ public class Parser {
                     
                     if (!theGroup.validate())
                     {
-                        throw new IOException("Error found for group: " + theGroup.name);
+                        throw new IOException("Error found for group: " + theGroup.getName());
                     }
                     
                     for (GroupStruct g : groupConfig)
                     {
-                        if (g.name.equals(theGroup.name))
+                        if (g.getName().equals(theGroup.getName()))
                         {
-                            throw new NamingException("Duplicate <group>: " +  theGroup.name);
+                            throw new NamingException("Duplicate <group>: " +  theGroup.getName());
                         }
                     }
                     groupConfig.add(theGroup);
@@ -161,16 +146,16 @@ public class Parser {
             String msg = e.getMessage();
             
             if (msg.indexOf("group") != -1)
-                log("Error found in line " + groupLineNumber);
+                ConfigGenerator.log("Error found in line " + groupLineNumber);
             else if (msg.indexOf("element") != -1)
-                log("Error found in line " + elementLineNumber);
+                ConfigGenerator.log("Error found in line " + elementLineNumber);
                 
-            log(e.toString());
+            ConfigGenerator.log(e.toString());
 
         } catch (BadStringOperationException e) {
             processOk = false;
-            log("Error found in line " + lineNumber);
-            log(e.toString());
+            ConfigGenerator.log("Error found in line " + lineNumber);
+            ConfigGenerator.log(e.toString());
         }
         
         finally {
@@ -208,8 +193,29 @@ public class Parser {
     {
         return enumSupport;
     }
+    
+    private static void initialize(String fileName) throws IOException
+    {
+        configFile = new File(fileName);
+        
+        if (!configFile.exists()) 
+        {
+            throw new IOException(fileName + " not found.");
+        }
+/*        
+        if (!(configFile.isFile() && configFile.canRead())) 
+        {
+            throw new FileNotFoundException("Unable to access " + aFileName);
+        }
+*/        
+        isReadToken = true;
+        lineNumber = 0;
+        groupLineNumber = 0;
+        elementLineNumber = 0;
+         
+    }
 
-    private String getName() throws BadStringOperationException 
+    private static String getName() throws BadStringOperationException 
     {
         String name = getToken(); //tokenScanner.next();
         
@@ -224,7 +230,7 @@ public class Parser {
         return name;
     }
     
-    private String getDescription() throws BadStringOperationException 
+    private static String getDescription() throws BadStringOperationException 
     {
 
         String description = null;
@@ -239,7 +245,7 @@ public class Parser {
         return description;
     }
     
-    private String getType() throws BadStringOperationException
+    private static String getType() throws BadStringOperationException
     {
         String type = getToken(); //tokenScanner.next();
         
@@ -266,7 +272,7 @@ public class Parser {
         return type;
     }
     
-    private String getAccess() throws BadStringOperationException
+    private static String getAccess() throws BadStringOperationException
     {
         String access = getToken(); // tokenScanner.next();
         
@@ -282,7 +288,7 @@ public class Parser {
         return access;
     }
 
-    private String getMinMax() throws BadStringOperationException
+    private static String getMinMax() throws BadStringOperationException
     {
         String mvalue = getToken(); // tokenScanner.next();
         
@@ -307,7 +313,7 @@ public class Parser {
     }
    
 
-   private final ElementStruct processElement() throws BadStringOperationException
+   private static final ElementStruct processElement() throws BadStringOperationException
    {
        /*
         * syntax for parsing element:
@@ -326,24 +332,24 @@ public class Parser {
                }
                else if (token.equalsIgnoreCase("type"))
                {
-                   element.addConfigType(getType());
+                   element.setType(getType());
                }
                else if (token.equalsIgnoreCase("access"))
                {
-                   element.addConfigAccess(getAccess());
+                   element.setAccess(getAccess());
                }
                else if (token.equalsIgnoreCase("min"))
                {
-                   element.addConfigMin(getMinMax());
+                   element.setMin(getMinMax());
                }
                else if (token.equalsIgnoreCase("max"))
                {
-                    element.addConfigMax(getMinMax());
+                    element.setMax(getMinMax());
                    
                }
                else if (token.equalsIgnoreCase("unit"))
                {
-                   element.addConfigUnit(getDescription());
+                   element.setUnit(getDescription());
                }
                else if (token.equalsIgnoreCase("value"))
                {
@@ -356,9 +362,9 @@ public class Parser {
                    
                    if (hasToken("\\\".*"))
                    {
-                       value.addConfig(getDescription());
+                       value.setDescription(getDescription());
                    }
-                   element.addConfigValue(value);
+                   element.addValue(value);
                }
                else
                {
@@ -374,7 +380,7 @@ public class Parser {
 
    }
    
-   private String getToken()
+   private static String getToken()
    {
        String aWord = null;
        
@@ -389,7 +395,7 @@ public class Parser {
            {
                String line = lineScanner.nextLine();
                lineNumber++;
-//               log("line " + lineNumber + ": " + line);
+//               ConfigGenerator.log("line " + lineNumber + ": " + line);
                
                if (line.length() > 0 && line.split(" ").length > 0)
                {
@@ -404,7 +410,7 @@ public class Parser {
 
        return aWord;
    }
-   private int getTokenInt() throws BadStringOperationException
+   private static int getTokenInt() throws BadStringOperationException
    {
        int anInt = 0;
        
@@ -437,7 +443,7 @@ public class Parser {
        return anInt;
    } 
 
-   private String getTokenInLine(String pattern)
+   private static String getTokenInLine(String pattern)
    {
        String aLine = null;
        
@@ -452,7 +458,7 @@ public class Parser {
            {
                String line = lineScanner.nextLine();
                lineNumber++;
-               //log("line " + lineNumber + ": " + line);
+               //ConfigGenerator.log("line " + lineNumber + ": " + line);
                if (line.length() > 0 && line.split(" ").length > 0)
                {
                    tokenScanner = new Scanner(line);
@@ -466,7 +472,7 @@ public class Parser {
 
        return aLine;
    }   
-   private boolean hasToken()
+   private static boolean hasToken()
    {
        boolean token_avail = false;
        
@@ -482,7 +488,7 @@ public class Parser {
        return token_avail;
    }
    
-   private boolean hasToken(String pattern)
+   private static boolean hasToken(String pattern)
    {
        boolean token_avail = false;
        
@@ -499,7 +505,7 @@ public class Parser {
        return token_avail;
    }
 
-   private boolean hasTokenInt()
+   private static boolean hasTokenInt()
    {
        boolean token_avail = false;
        
@@ -517,25 +523,19 @@ public class Parser {
    }
 
 // PRIVATE variables
-   private final File configFile;
-   private boolean isReadToken;
-   private String token;
-   private int lineNumber;
-   private int groupLineNumber;
-   private int elementLineNumber;
-   private LinkedList<GroupStruct> groupConfig;
-   private LinkedList<NameStruct> errorConfig;
+   private static File configFile;
+   private static boolean isReadToken;
+   private static String token;
+   private static int lineNumber;
+   private static int groupLineNumber;
+   private static int elementLineNumber;
+   private static LinkedList<GroupStruct> groupConfig;
+   private static LinkedList<NameStruct> errorConfig;
    
-   private Scanner lineScanner;
-   private Scanner tokenScanner;
+   private static Scanner lineScanner;
+   private static Scanner tokenScanner;
 
    private static boolean floatingSupport;
    private static boolean enumSupport;
-
-
-   public static void log(Object aObject)
-   {
-       System.out.println(String.valueOf(aObject));
-   }
 
 }

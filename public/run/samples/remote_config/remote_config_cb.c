@@ -73,11 +73,14 @@ extern void app_device_info_group_cancel(void * context);
 
 extern idigi_callback_status_t app_debug_info_group_get(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
 
-remote_group_table_t remote_group_table[] = {
+remote_group_table_t remote_setting_table[] = {
     {app_serial_group_init,         app_serial_group_set,       app_serial_group_get,       app_serial_group_end,       app_serial_group_cancel},
     {app_ethernet_group_init,       app_ethernet_group_set,     app_ethernet_group_get,     app_ethernet_group_end,     app_ethernet_group_cancel},
     {app_device_stats_group_init,   app_device_stats_group_set, app_device_stats_group_get, NULL, NULL},
     {app_device_info_group_init,    app_device_info_group_set,  app_device_info_group_get,  app_device_info_group_end,  app_device_info_group_cancel},
+};
+
+remote_group_table_t remote_state_table[] = {
     {NULL, NULL, app_debug_info_group_get, NULL, NULL}
 };
 
@@ -143,19 +146,30 @@ static idigi_callback_status_t app_process_group(remote_group_cb_index_t cb_inde
 
     ASSERT(session_ptr != NULL);
 
-    switch (request->group_id)
+    switch (request->group_type)
     {
-    case idigi_setting_serial:
-    case idigi_setting_ethernet:
-    case idigi_setting_device_stats:
-    case idigi_setting_device_info:
-    case idigi_state_debug_info:
-        group_ptr = &remote_group_table[request->group_id];
-        session_ptr->group_table_id = request->group_id;
+    case idigi_remote_group_setting:
+        if (request->group_id <= sizeof (remote_setting_table))
+        {
+            group_ptr = &remote_setting_table[request->group_id];
+            session_ptr->group_context = group_ptr;
+        }
+        else
+        {
+            ASSERT(0);
+        }
         break;
-    default:
-        ASSERT(0);
-        goto done;
+    case idigi_remote_group_state:
+        if (request->group_id <= sizeof (remote_state_table))
+        {
+            group_ptr = &remote_state_table[request->group_id];
+            session_ptr->group_context = group_ptr;
+        }
+        else
+        {
+            ASSERT(0);
+        }
+        break;
     }
 
     switch (cb_index)
@@ -199,7 +213,7 @@ static idigi_callback_status_t app_process_session_cancel(void * context)
     printf("process_session_cancel\n");
     if (session_ptr != NULL)
     {
-        remote_group_table_t * const group_ptr = &remote_group_table[session_ptr->group_table_id];
+        remote_group_table_t * const group_ptr = session_ptr->group_context;
         remote_group_cancel_cb_t callback = group_ptr->cancel_cb;
 
         callback(context);

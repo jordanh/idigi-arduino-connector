@@ -2,25 +2,34 @@ package com.digi.ic.config;
 
 public class NameStruct {
     
-    public String name;
-    public String description;
+    public NameStruct(String nameStr) 
+    {
+        name = nameStr;
+    }
+
+    public NameStruct(String nameStr, String descStr) 
+    {
+        name = nameStr;
+        description=descStr;
+    }
+
+
+    public void setDescription(String descStr)
+    {
+        description = descStr;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
     
-    public NameStruct(String parseName) 
+    public String getDescription()
     {
-        name = parseName;
-        description=null;
+        return description;
     }
-
-    public NameStruct(String parseName, String descString) 
-    {
-        name = parseName;
-        description=descString;
-    }
-
-
-    public void addConfig(String theDescription)
-    {
-        description = theDescription;
-    }
+    private String name;
+    private String description;
+    
 
 }

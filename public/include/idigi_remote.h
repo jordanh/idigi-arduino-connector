@@ -160,12 +160,18 @@ typedef struct {
     void * user_context;
     unsigned int error_id;
     union {
-        char * error_hint;
+        char const * error_hint;
         idigi_element_value_t * element_value;
     } element_data;
 } idigi_remote_group_response_t;
 
-extern idigi_group_t const idigi_remote_groups[];
-extern size_t const idigi_remote_group_count;
+typedef struct {
+    idigi_group_t const * groups;
+    size_t count;
+} idigi_group_table_t;
+
+extern idigi_group_table_t const idigi_group_table[];
+extern char const * const idigi_rci_errors[];
+
 
 #endif /* idigi_element_H_ */
