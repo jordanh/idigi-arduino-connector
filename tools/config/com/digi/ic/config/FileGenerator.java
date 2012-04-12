@@ -9,7 +9,24 @@ import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 
 public class FileGenerator {
+    
+    private final static String[] rciParserStrings = {"ENTITY_QUOTE", "quot",
+        "ENTITY_AMPERSAND", "amp", 
+        "ENTITY_APOSTROPHE", "apos",
+        "ENTITY_LESS_THAN", "lt",
+        "ENTITY_GREATER_THAN", "gt",
+        "SET_SETTING", "set_setting",
+        "QUERY_SETTING", "query_setting",
+        "SET_STATE", "set_state",
+        "QUERY_STATE", "query_state",
+        "VERSION", "version",
+        "VERSION_SUPPORTED", "1.1",
+        "REPLY", "rci_reply",
+        "REQUEST", "rci_request",
+        "INDEX", "index"
+    };
 
+    
     private final static String HEADER_FILENAME = "remote_config.h";
     private final static String SOURCE_FILENAME = "remote_config.c"; 
     
@@ -33,7 +50,6 @@ public class FileGenerator {
     
     private final static String COUNT_STRING = "COUNT";
     private final static String OFFSET_STRING = "OFFSET";
-    
     private final static String CHAR_CONST_STRING = "static char const * const ";
     private final static String ENUM_STRING = "enum";
 
@@ -56,19 +72,22 @@ public class FileGenerator {
                                 "#define REMOTE_CONFIG_H\n\n" + 
                                 INCLUDE_HEADER); // H file header
             
+            String defineHeader = "";
             if (!ConfigGenerator.getLimitErrorDescription())
             {
-                headerWriter.write(DEFINE + RCI_PARSER_USES_ERROR_DESCRIPTIONS);
+                defineHeader += DEFINE + RCI_PARSER_USES_ERROR_DESCRIPTIONS;
             }
             if (Parser.getEnumSupport())
             {
-                headerWriter.write(DEFINE + RCI_PARSER_USES_ENUMERATIONS);
+                defineHeader += DEFINE + RCI_PARSER_USES_ENUMERATIONS;
             }
             if (Parser.getEnumSupport())
             {
-                headerWriter.write(DEFINE + RCI_PARSER_USES_FLOATING_POINT);
+                defineHeader += DEFINE + RCI_PARSER_USES_FLOATING_POINT;
             }
-
+            defineHeader += "\n";
+            headerWriter.write(defineHeader);
+            
             sourceWriter.write(INCLUDE_HEADER); //  C file include
             
             writeDefineRciParserStringsHeader();
@@ -154,24 +173,14 @@ public class FileGenerator {
         
     }
 
-    private final static String[] rciParserStrings = {"ENTITY_QUOTE", "quot",
-                                                    "ENTITY_AMPERSAND", "amp", 
-                                                    "ENTITY_APOSTROPHE", "apos",
-                                                    "ENTITY_LESS_THAN", "lt",
-                                                    "ENTITY_GREATER_THAN", "gt",
-                                                    "SET_SETTING", "set_setting",
-                                                    "QUERY_SETTING", "query_setting",
-                                                    "SET_STATE", "set_state",
-                                                    "QUERY_STATE", "query_state",
-                                                    "VERSION", "version",
-                                                    "INDEX", "index"
-    };
-
     private static void writeDefineRciParserStringsHeader() throws IOException 
     {
-        
         for (int i=0; i < rciParserStrings.length; i++)
         {
+            if (i == 0)
+            {
+                headerWriter.write("extern char const " + IDIGI_REMOTE_ALL_STRING + "[];\n\n");
+            }
             String defineName = "RCI" + UNDERSCORE + rciParserStrings[i++].toUpperCase();
             /* define name string index */
             headerWriter.write(getDefineIndex(defineName, rciParserStrings[i].toUpperCase()));
@@ -340,7 +349,7 @@ public class FileGenerator {
         String enum_string = enum_name.toLowerCase() + UNDERSCORE + ENUM_STRING;
         
         /* write element enum strings array */
-        sourceWriter.write((CHAR_CONST_STRING + enum_string + "[] = {\n"));
+        sourceWriter.write(CHAR_CONST_STRING + enum_string + "[] = {\n");
         
         for (int value_index = 0; value_index < values.size(); value_index++)
         {
@@ -531,7 +540,7 @@ public class FileGenerator {
             if (!localErrors.isEmpty())
             {
                 define_name = getDefineString(error_name, ERROR);
-                sourceWriter.write((CHAR_CONST_STRING + define_name.toLowerCase() + "s[] = {\n"));
+                sourceWriter.write(CHAR_CONST_STRING + define_name.toLowerCase() + "s[] = {\n");
     
                 
                 /* local local errors */
@@ -620,8 +629,7 @@ public class FileGenerator {
                     define_name = getDefineString(group.getName(), "elements");
                     String group_string = "\n" + 
                                             SPACES + "{" + getRemoteAllString(getDefineString(group.getName())) + ", " + COMMENTED(group.getName()) + "\n" +
-                                            SPACES + SPACES + "1,\n" + 
-                                            SPACES + SPACES + (group.getInstances() + 1) + ",\n" +  
+                                            SPACES + SPACES + group.getInstances() + ",\n" +  
                                             SPACES + SPACES + "{" + SPACES + "asizeof(" + define_name.toLowerCase()  + "),\n" +
                                             SPACES + SPACES + SPACES + define_name.toLowerCase() + "\n" +
                                             SPACES + SPACES + "},\n";
@@ -657,7 +665,7 @@ public class FileGenerator {
         writeGlobalErrorStructures(configData.getGroupGlobalErrors());
 
         
-        String idigiGroupString = "idigi_group_table_t const " + IDIGI_REMOTE_GROUP_TABLE + "[" + ConfigData.ConfigType.getCount() + "] = {\n";
+        String idigiGroupString = "idigi_group_table_t const " + IDIGI_REMOTE_GROUP_TABLE + "[" + ConfigData.ConfigType.MAX.getIndex() + "] = {\n";
         
         for (ConfigData.ConfigType type: ConfigData.ConfigType.values())
         {
@@ -964,6 +972,5 @@ public class FileGenerator {
     private static BufferedWriter headerWriter;
     private static String configType;
     private static int prevRemoteStringLength;
-
     
 }

@@ -2,7 +2,7 @@ globalerror load_fail "Load fail"
 globalerror save_fail "Save fail"
 globalerror memory_fail "Insufficient memory"
 
-group setting serial -2 "Serial Port"
+group setting serial "Serial Port"
     element baud "Baud rate" type enum access read_write
         value 2400
         value 4800
@@ -16,8 +16,8 @@ group setting serial -2 "Serial Port"
         value none
         value odd
         value even
-    element databits "Data bits" type uint32 access  read_write  min  5 max  8 
-    element xbreak "Tx Break" type on_off access  read_write
+    element databits "Data bits" type 0xhex32 access  read_write  min AFED max  8 
+    element xbreak "Tx Break" type on_off access  read_write 
     element txbytes "Tx bytes" type uint32 access  read_only 
     error invalid_baud "Invalid baud rate "
     error invalid_databits "Invalid data bits"

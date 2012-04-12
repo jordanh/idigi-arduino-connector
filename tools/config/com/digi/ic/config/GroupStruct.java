@@ -11,7 +11,15 @@ public class GroupStruct {
     {
         if (count < 0)
         {
-            throw new BadStringOperationException("invalid instance count for the group:" + nameStr);
+            throw new BadStringOperationException("Invalid instance count for the group: " + nameStr);
+        }
+        if (nameStr == null)
+        {
+            throw new BadStringOperationException("Missing group name");
+        }
+        if (descStr == null)
+        {
+            throw new BadStringOperationException("Missing group description");
         }
         
         name = nameStr;

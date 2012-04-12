@@ -121,7 +121,8 @@ public class ConfigGenerator {
 
             Parser.processFile(filename, configData);
             
-            if (configData.getSettingGroups().isEmpty() && configData.getStateGroups().isEmpty())
+            if (((configData.getSettingGroups() == null) && (configData.getStateGroups() == null)) ||
+                ((configData.getSettingGroups().isEmpty()) && (configData.getStateGroups().isEmpty())))
             {
                 throw new IOException("No groups specified in file: " + filename);
             }
@@ -136,6 +137,8 @@ public class ConfigGenerator {
             /* Generate and upload descriptors */
             debug_log("Generating/loading descriptors...");
             descriptors.processDescriptors(configData);
+            
+            log("Done.");
                 
         } catch (IOException e) {
             log(e.getMessage());

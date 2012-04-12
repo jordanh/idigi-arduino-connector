@@ -38,7 +38,7 @@ public class Descriptors {
             try {
                 password = userInput.readLine();
             } catch (IOException ioe) {
-                System.out.println("IO error!");
+                ConfigGenerator.log("IO error!");
                 System.exit(1);
             }
         }
@@ -64,7 +64,7 @@ public class Descriptors {
         Scanner fwVersionScan = new Scanner(fwVersion);
         if (!fwVersionScan.hasNextInt())
         {
-            System.out.println("Invalid f/w version!");
+            ConfigGenerator.log("Invalid f/w version!");
             ConfigGenerator.usage();
         }
 
@@ -146,7 +146,7 @@ public class Descriptors {
         for (GroupStruct theGroup: groups)
         {
             query_descriptors += "<descriptor element=\"" + theGroup.getName() + "\" desc=" + theGroup.getDescription() + ">\n";
-            if (theGroup.getInstances() > 0)
+            if (theGroup.getInstances() > 1)
             {
                 query_descriptors += "<attr name=\"index\" desc=" + theGroup.getDescription() + " type=\"int32\" min=\"1\" max=\"" + theGroup.getInstances() + "\" />\n";
             }
@@ -317,7 +317,7 @@ public class Descriptors {
         }
         catch (Exception x)
         {
-            System.out.println("Failed to " + method + " " + target);
+            ConfigGenerator.log("Failed to " + method + " " + target);
             System.err.println(x);
             System.exit(1);
         }
@@ -332,19 +332,19 @@ public class Descriptors {
         int startIndex = response.indexOf("<dvVendorId>");
         if (startIndex == -1)
         {
-            System.out.println(username + " has no vendor ID, so please create the vendor ID");
+            ConfigGenerator.log(username + " has no vendor ID, so please create the vendor ID");
             System.exit(1);
         }
 
         if (startIndex != response.lastIndexOf("<dvVendorId>"))
         {
-            System.out.println(username + " has more than one vendor ID, so please specify the correct one");
+            ConfigGenerator.log(username + " has more than one vendor ID, so please specify the correct one");
             System.exit(1);
         }
 
         startIndex += "<dvVendorId>".length();
         vendorId = response.substring(startIndex, response.indexOf("</dvVendorId>"));
-        System.out.println("Found vendorID: " + vendorId);
+        ConfigGenerator.log("iDigi Cloud registered vendor ID: " + vendorId);
     }
 
     private void uploadDescriptor(String descName, String buffer)

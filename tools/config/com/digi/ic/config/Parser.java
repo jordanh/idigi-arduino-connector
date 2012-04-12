@@ -14,11 +14,8 @@ import javax.naming.NamingException;
 public class Parser {
     
 
-    public static boolean processFile(String fileName, ConfigData configData) throws IOException
+    public static void processFile(String fileName, ConfigData configData) throws IOException
     {
-        
-        boolean processOk = true;
-        
         
         try 
         {
@@ -71,7 +68,7 @@ public class Parser {
                     groupLineNumber = lineNumber;
                     
                     /* parse instances */
-                    int groupInstances = 0;
+                    int groupInstances = 1;
                     
                     if (hasTokenInt())
                     {
@@ -132,18 +129,13 @@ public class Parser {
                     throw new IOException("Unrecogized keyword: " + token);
                 }
             }
-            if (groupConfig.isEmpty())
-            {
-                throw new IOException("No groups specified");
-            }
             
         } catch (IOException e) {
-            processOk = false;
             ConfigGenerator.log("Error found in line " + lineNumber);
             ConfigGenerator.log(e.toString());
+            throw new IOException("Error found in file: " + fileName);
             
         } catch (NamingException e) {
-            processOk = false;
             String msg = e.getMessage();
             
             if (msg.indexOf("group") != -1)
@@ -152,11 +144,13 @@ public class Parser {
                 ConfigGenerator.log("Error found in line " + elementLineNumber);
                 
             ConfigGenerator.log(e.toString());
+            throw new IOException("Error found in file:" + fileName);
 
         } catch (BadStringOperationException e) {
-            processOk = false;
             ConfigGenerator.log("Error found in line " + lineNumber);
             ConfigGenerator.log(e.toString());
+            
+            throw new IOException("Error found in file: " + fileName);
         }
         
         finally {
@@ -170,7 +164,6 @@ public class Parser {
           lineScanner.close();
         }
         
-        return processOk;
     }
 
     private final static Pattern ALPHANUMERIC = Pattern.compile("[A-Za-z_0-9]+");
@@ -284,7 +277,7 @@ public class Parser {
         }
         if (ElementStruct.AccessType.toAccessType(access) == ElementStruct.AccessType.INVALID_TYPE)
         {
-            throw new BadStringOperationException("Invalid access:" + access);
+            throw new BadStringOperationException("Invalid access: " + access);
         }
         return access;
     }
@@ -306,7 +299,7 @@ public class Parser {
                 Float.parseFloat(mvalue);
                 
             } catch (NumberFormatException f) {
-                throw new BadStringOperationException("Invalid min or max value:" + mvalue);
+                throw new BadStringOperationException("Invalid min or max value: " + mvalue);
             }
         }
         

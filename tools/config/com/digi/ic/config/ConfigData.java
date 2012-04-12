@@ -28,7 +28,7 @@ public class ConfigData {
         MAX (2);
         
         private int index;
-        private final static int count = 2;
+//        private final static int count = 2;
         
         private ConfigType(int index)
         {
@@ -39,10 +39,12 @@ public class ConfigData {
         {
             return index;
         }
+/*        
         public static int getCount()
         {
             return count;
         }
+*/        
         public static ConfigType toConfigType(String str)
         {
             try {
@@ -101,7 +103,7 @@ public class ConfigData {
             config = groupList.get(t.getIndex());
             break;
          default:
-             throw new IOException("Invalid type: " + type);
+             throw new IOException("Missing Setting or State keyword");
         }
         
         return config;

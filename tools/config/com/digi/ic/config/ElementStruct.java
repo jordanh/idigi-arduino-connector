@@ -1,6 +1,8 @@
 package com.digi.ic.config;
 
 import java.util.LinkedList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.management.BadStringOperationException;
 
@@ -73,14 +75,21 @@ public class ElementStruct {
     }
     
  
-    public ElementStruct(String theName, String theDesc) throws BadStringOperationException
+    public ElementStruct(String nameStr, String descStr) throws BadStringOperationException
     {
-        if (theName == null)
+        if (nameStr == null)
         {
-            throw new BadStringOperationException("No name specified for an element");
+            throw new BadStringOperationException("Missing element name");
         }
-        name = theName;
-        description = theDesc;
+        
+        
+        if (descStr == null)
+        {
+            throw new BadStringOperationException("Missing element description");
+        }
+
+        name = nameStr;
+        description = descStr;
         values = new LinkedList<NameStruct>();
         
     }
@@ -181,73 +190,112 @@ public class ElementStruct {
     public boolean validate()
     {
         boolean valid = true;
+        
         ElementType etype = ElementType.toElementType(type);
         
-        if (description == null)
-        {
-            ConfigGenerator.log("Missing <description> for element: " + name);
-            valid = false;
-        }
-        else if (!etype.minMaxSupport() && (min != null || max != null))
+        if (!etype.minMaxSupport() && (min != null || max != null))
         {
             ConfigGenerator.log("Type: " + type + " should not have <min/max> on element: " + name);
             valid = false;
         }
-        else if (etype == ElementType.ENUM && values.isEmpty())
+        
+        switch (etype)
         {
-            ConfigGenerator.log("Missing <value> for element: " + name);
-            valid = false;
-        }
-        else if (etype != ElementType.ENUM && !values.isEmpty())
-        {
-            ConfigGenerator.log("No <value> for element: " + name);
-            valid = false;
-        }
-        if (min != null)
-        {
-            try {
-                if (etype == ElementType.FLOAT)
-                {
-                    Float.parseFloat(min);
-                }
-                else
-                {
-                    int ivalue = Integer.parseInt(min);
-                    if (ivalue < 0 && etype == ElementType.INT32)
-                    {
-                        throw new NumberFormatException(null);
-                    }
-                }
-            } 
-            catch (NumberFormatException e){
-                ConfigGenerator.log("Invalid <min> value : " + min + " for type: " + type);
+        case ENUM:
+            if (values.isEmpty())
+            {
+                ConfigGenerator.log("Missing <value> for element: " + name);
+                valid = false;
             }
+            break;
+            
+        case FLOAT:
+            if ((!isValidFloat(min)) || (!isValidFloat(max)))
+            {
+                ConfigGenerator.log("Invalid float value for element " + name);
+                valid = false;
+            }
+            break;
+            
+        case XHEX:
+        case HEX32:
+            boolean prefix = false;
+            if (etype == ElementType.XHEX)
+            {
+                prefix = true;
+            }
+            if ((!isValidHex(min, prefix)) || (!isValidHex(max, prefix)))
+            {
+                ConfigGenerator.log("Invalid hex value for element " + name);
+                valid = false;
+            }
+            break;
+            
+        default:
+            long min_value = 0;
+            long max_value = 0;
+            if (min != null)
+            {
+                min_value = Long.parseLong(min);
+            }
+            if (max != null)
+            {
+                max_value = Long.parseLong(max);
+            }
+            
+            if (min_value < 0 || max_value < 0 || max_value < min_value)
+            {
+                ConfigGenerator.log("Invalid min or max value for type: " + etype.toString().toLowerCase());
+                valid = false;
+            }
+            break;
         }
         
-        if (max != null)
-        {
-            try {
-                if (etype == ElementType.FLOAT)
-                {
-                    Float.parseFloat(max);
-                }
-                else
-                {
-                    int ivalue = Integer.parseInt(max);
-                    if (ivalue < 0 && etype == ElementType.INT32)
-                    {
-                        throw new NumberFormatException(null);
-                    }
-                }
-            } 
-            catch (NumberFormatException e){
-                ConfigGenerator.log("Invalid <max> value : " + max + " for type: " + type);
-            }
-        }
         
+        if (etype != ElementType.ENUM && !values.isEmpty())
+        {
+            ConfigGenerator.log("Invalid <value> for type: " + type + " on element: " + name);
+            valid = false;
+        }
         return valid;
     }
 
+    private boolean isValidFloat(String str) 
+    {
+        boolean isValid = true;
+        if (str != null)
+        {
+            try {
+                Float.parseFloat(str);
+            } 
+            catch (NumberFormatException e){
+                isValid = false;
+            }
+        }
+        return isValid;
+    }
+    
+    private boolean isValidHex(String str, boolean prefix_0x)
+    {
+        boolean isValid = true;
+        
+        String HEXCOMPILE = "[A-Fa-f0-9]";
+        if (prefix_0x)
+        {
+            HEXCOMPILE= "^0x" + "[A-Fa-f0-9]";
+        }
+        
+        Pattern HEXPATTERN = Pattern.compile(HEXCOMPILE);
+
+        if (str != null)
+        {
+            Matcher m = HEXPATTERN.matcher(str);
+            isValid = m.matches();
+        }
+        
+        return isValid;
+
+    }
     private String name;
     private String description;
     private String type;
