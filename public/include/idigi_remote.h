@@ -119,8 +119,7 @@ typedef struct {
 /* group structure */
 typedef struct {
     char const * name;
-    unsigned int start_index;
-    unsigned int end_index;
+    size_t instances;
     struct {
         size_t count;
         idigi_group_element_t const * const data;
