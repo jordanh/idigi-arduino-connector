@@ -31,7 +31,6 @@ public class FileGenerator {
     private final static String IDIGI_REMOTE_ALL_STRING = "idigi_remote_all_strings";
     private final static String IDIGI_REMOTE_GROUP_TABLE = "idigi_group_table";
     
-//    private final static String IDIGI_ERROUR_ENUM_COUNT = "idigi_group_error_COUNT,\n";
     private final static String COUNT_STRING = "COUNT";
     private final static String OFFSET_STRING = "OFFSET";
     
@@ -72,6 +71,8 @@ public class FileGenerator {
 
             sourceWriter.write(INCLUDE_HEADER); //  C file include
             
+            writeDefineRciParserStringsHeader();
+            
             /* Write all global error enum in H file */
             writeGlobalErrorHeader(configData.getGroupGlobalErrors());
 
@@ -87,6 +88,8 @@ public class FileGenerator {
             
             /* write idigi remote all strings in source file */
             sourceWriter.write("\nchar const " + IDIGI_REMOTE_ALL_STRING + "[] = {\n");
+            
+            writeRemoteRciParserStrings();
             
             for (ConfigData.ConfigType type: ConfigData.ConfigType.values())
             {
@@ -114,6 +117,8 @@ public class FileGenerator {
             /* write structures in source file */
             writeStructures(configData);
             
+            ConfigGenerator.log("Files created: " + SOURCE_FILENAME +" and "+ HEADER_FILENAME);
+            
         } catch (IOException e) {
             throw new IOException(e.getMessage());
         }
@@ -127,7 +132,7 @@ public class FileGenerator {
             
         }
     }
-    
+
     private static void initialize() throws IOException 
     {
         
@@ -147,6 +152,40 @@ public class FileGenerator {
         headerWriter.write(note_string);
         sourceWriter.write(note_string);
         
+    }
+
+    private final static String[] rciParserStrings = {"ENTITY_QUOTE", "quot",
+                                                    "ENTITY_AMPERSAND", "amp", 
+                                                    "ENTITY_APOSTROPHE", "apos",
+                                                    "ENTITY_LESS_THAN", "lt",
+                                                    "ENTITY_GREATER_THAN", "gt",
+                                                    "SET_SETTING", "set_setting",
+                                                    "QUERY_SETTING", "query_setting",
+                                                    "SET_STATE", "set_state",
+                                                    "QUERY_STATE", "query_state",
+                                                    "VERSION", "version",
+                                                    "INDEX", "index"
+    };
+
+    private static void writeDefineRciParserStringsHeader() throws IOException 
+    {
+        
+        for (int i=0; i < rciParserStrings.length; i++)
+        {
+            String defineName = "RCI" + UNDERSCORE + rciParserStrings[i++].toUpperCase();
+            /* define name string index */
+            headerWriter.write(getDefineIndex(defineName, rciParserStrings[i].toUpperCase()));
+        }
+    }
+    
+    private static void writeRemoteRciParserStrings() throws IOException
+    {
+        for (int i=0; i < rciParserStrings.length; i++)
+        {
+            String defineName = "RCI" + UNDERSCORE + rciParserStrings[i++].toUpperCase();
+            sourceWriter.write(getCharString(defineName, rciParserStrings[i]));
+        }
+
     }
     
     private static void writeDefineStrings(LinkedList<GroupStruct> groups) throws IOException
@@ -416,7 +455,7 @@ public class FileGenerator {
             
             if (errorCount > 0)
             {
-                sourceWriter.write(("char const * const " + GLOBAL_RCI_ERROR + "s[" + errorCount + "] = {\n"));
+                sourceWriter.write("char const * const " + GLOBAL_RCI_ERROR + "s[" + errorCount + "] = {\n");
     
                 /* top-level all errors */
                 for (NameStruct error: ConfigData.allErrorList)
@@ -478,7 +517,6 @@ public class FileGenerator {
                     }
                     sourceWriter.write(COMMENTED(error.getName()));
                 }
-
                 sourceWriter.write("};\n\n");
             }
         }
@@ -585,7 +623,7 @@ public class FileGenerator {
                                             SPACES + SPACES + "1,\n" + 
                                             SPACES + SPACES + (group.getInstances() + 1) + ",\n" +  
                                             SPACES + SPACES + "{" + SPACES + "asizeof(" + define_name.toLowerCase()  + "),\n" +
-                                            SPACES + SPACES + SPACES + "&" + define_name.toLowerCase() + "[0]\n" +
+                                            SPACES + SPACES + SPACES + define_name.toLowerCase() + "\n" +
                                             SPACES + SPACES + "},\n";
                     
                     if ((!ConfigGenerator.getLimitErrorDescription()) && (!group.getErrors().isEmpty()))
@@ -593,7 +631,7 @@ public class FileGenerator {
                         define_name = getDefineString(group.getName(), "errors");
             
                         group_string +=   SPACES + SPACES + "{" + SPACES + "asizeof(" + define_name.toLowerCase() + "),\n" +
-                                          SPACES + SPACES + SPACES + "&" + define_name.toLowerCase() + "[0]\n" +
+                                          SPACES + SPACES + SPACES + define_name.toLowerCase() + "\n" +
                                           SPACES + SPACES + "}\n" +
                                           SPACES + "}";
                     }
@@ -890,10 +928,9 @@ public class FileGenerator {
         char[] characters = name.toCharArray();
         
         String quote_char = SPACES + name.length() + ",";
-        
-        for (int i=0; i < characters.length; i++)
+        for (char c: characters)
         {
-            quote_char += "\'" + characters[i] +"\',";
+            quote_char += "\'" + c + "\',";
         }
         quote_char += "\n";
         

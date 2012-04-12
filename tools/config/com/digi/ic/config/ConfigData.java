@@ -25,7 +25,7 @@ public class ConfigData {
     public enum ConfigType {
         SETTING (0),
         STATE (1),
-        INVALID_TYPE (-1);
+        MAX (2);
         
         private int index;
         private final static int count = 2;
@@ -48,7 +48,7 @@ public class ConfigData {
             try {
                 return valueOf(str.toUpperCase());
             } catch (Exception e) {
-                return INVALID_TYPE;
+                return MAX;
             }
         }
     }

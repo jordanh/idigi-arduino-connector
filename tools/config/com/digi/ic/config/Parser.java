@@ -139,7 +139,8 @@ public class Parser {
             
         } catch (IOException e) {
             processOk = false;
-            System.err.println(e.getMessage());
+            ConfigGenerator.log("Error found in line " + lineNumber);
+            ConfigGenerator.log(e.toString());
             
         } catch (NamingException e) {
             processOk = false;

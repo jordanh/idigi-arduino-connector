@@ -32,41 +32,20 @@ public class ConfigGenerator {
     
     public static String getArgumentListString()
     {
-        String argString = "\"";
-        for (String theArg: argumentList)
-        {
-            if (theArg.equalsIgnoreCase(argumentList[0]) &&
-                theArg.indexOf(':') != -1)
-            {
-                argString += theArg.split(":")[0];
-                argString += ":*****";
-            }
-            else if (theArg.equalsIgnoreCase(argumentList[2]))
-            {
-                argString += "\"" + theArg + "\"";
-            }
-            else
-            {
-                argString += " " + theArg;
-            }
-        }
-        argString += "\"";
-        return argString;
+        return argumentList;
     }
     
     
     public static int checkCommandLine(String args[]) {
-        int i = 0;
         int n = 0;
-        String arg;
   
-        for (i=0; i < args.length; i++)
+        
+        for (String arg: args)
         {
-            arg = args[i];
-            if (arg.equals(NO_EDESC_OPTION)) {
+             if (arg.equals(NO_EDESC_OPTION)) {
                 noErrorDescription = true;
             }
-            if (arg.equals(VERBOSE_OPTION)) {
+            else if (arg.equals(VERBOSE_OPTION)) {
                 verboseOption = true;
             }
             else if (arg.equals(HELP_OPTION)) {
@@ -83,8 +62,38 @@ public class ConfigGenerator {
         {
             usage();
         }
+
+        argumentList = "\"";
+
+        for (String arg: args)
+        {
+            if (!arg.startsWith(DASH))
+            {
+               /* get username:password argument */
+               String str = args[args.length - n];
+               if (arg.equalsIgnoreCase(str) &&
+                   arg.indexOf(':') != -1)
+               {
+                   argumentList += arg.split(":")[0];
+                   argumentList += ":*****";
+               }
+               else if (arg.equalsIgnoreCase(args[args.length - 3]))
+               {
+                   /* get device type argument */
+                   argumentList += " \"" + arg + "\"";
+                }
+                else
+                {
+                    argumentList += " " + arg;
+                }
+           }
+           else
+           {
+               argumentList += arg + " ";
+           }
+        }
+        argumentList += "\"";
         
-        argumentList = args;
         return n;
     }
     public static boolean getLimitErrorDescription()
@@ -153,7 +162,7 @@ public class ConfigGenerator {
         }
     }
     
-    private static String[] argumentList;
+    private static String argumentList;
     private static boolean noErrorDescription;
     private static boolean verboseOption;
 

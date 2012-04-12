@@ -102,22 +102,22 @@ public class Descriptors {
     private String getErrorDescriptors(int id, LinkedList<NameStruct> errors)
     {
         String descriptor = "";
+        int index = 1;
         for (NameStruct error: ConfigData.allErrorList)
         {
-            descriptor += "<error_descriptor id=\"" + id + "\" desc=\"" + error.getDescription() + "\" />\n";
-            id++;
+            descriptor += "<error_descriptor id=\"" + index + "\" desc=\"" + error.getDescription() + "\" />\n";
+            index++;
         }
         for (NameStruct error: errors)
         {
-            descriptor += "<error_descriptor id=\"" + id + "\" desc=\"" + error.getDescription() + "\" />\n";
             id++;
+            descriptor += "<error_descriptor id=\"" + id + "\" desc=\"" + error.getDescription() + "\" />\n";
         }
         return descriptor;
     }
     
     private void sendDescriptors(String config_type, LinkedList<GroupStruct> groups, LinkedList<NameStruct> global_error) throws IOException 
     {        
-        int error_id = 1;
         String desc = SETTING_DESCRIPTOR_DESC;
         
         if (config_type.equalsIgnoreCase(ConfigData.ConfigType.STATE.toString()))
@@ -129,6 +129,8 @@ public class Descriptors {
         
 
         query_descriptors += "<format_define name=\"all_" + config_type + "s_groups\">\n";
+        
+        int error_id = ConfigData.allErrorList.size() + ConfigData.globalErrorList.size();
         
         query_descriptors += getErrorDescriptors(error_id, ConfigData.commandErrorList);
         
@@ -193,9 +195,10 @@ public class Descriptors {
                 }
             }
             
-            error_id = 1;
+            error_id = ConfigData.allErrorList.size() + ConfigData.globalErrorList.size() + ConfigData.groupErrorList.size();
             query_descriptors += getErrorDescriptors(error_id, ConfigData.groupErrorList);
-             
+            error_id += ConfigData.groupErrorList.size();
+            
             for (NameStruct error: theGroup.getErrors())
             {
                 error_id++;
@@ -237,7 +240,7 @@ public class Descriptors {
             }
         }
         
-        int error_id = 1;
+        int error_id = ConfigData.allErrorList.size();
         descriptors += getErrorDescriptors(error_id, ConfigData.globalErrorList);
         descriptors += "</descriptor>";
         
@@ -346,14 +349,15 @@ public class Descriptors {
 
     private void uploadDescriptor(String descName, String buffer)
     {
-        
+  
+        ConfigGenerator.debug_log("Uploading description:" + descName);
         if (callDeleteFlag)
         {
             String target = "/ws/DeviceMetaData?condition=dvVendorId=" + vendorId + " and dmDeviceType=\'" + deviceType + "\' and dmVersion=" + fwVersion;
 
             String response = sendCloudData(target.replace(" ", "%20"), "DELETE", null);
-            System.out.println("Deleted: " + vendorId + "/" + deviceType);
-            System.out.println(response);
+            ConfigGenerator.debug_log("Deleted: " + vendorId + "/" + deviceType);
+            ConfigGenerator.debug_log(response);
             callDeleteFlag = false;
         }
 
@@ -366,15 +370,15 @@ public class Descriptors {
         message += "</DeviceMetaData>";
 
         String response = sendCloudData("/ws/DeviceMetaData", "POST", message);
-        System.out.println("Created: " + vendorId + "/" + deviceType + "/" + descName);
-        System.out.println(response);
+        ConfigGenerator.debug_log("Created: " + vendorId + "/" + deviceType + "/" + descName);
+        ConfigGenerator.debug_log(response);
         
     }
 
     
     private void debug_log(String str) throws IOException
     {
-        
+/* 
         String filename = "descritor" + xmlFileIndex + ".xml";
         xmlFileIndex++;
         
@@ -386,11 +390,11 @@ public class Descriptors {
         
         xmlFile.flush();
         xmlFile.close();
-
+*/
         ConfigGenerator.debug_log(str);
     }
     
-    private int xmlFileIndex;
+//    private int xmlFileIndex;
     private String username;
     private String password;
     private String deviceType;
