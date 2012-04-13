@@ -44,6 +44,91 @@
 extern int app_os_malloc(size_t const size, void ** ptr);
 extern void app_os_free(void * const ptr);
 
+#define DVT_FS_BUSY_OFFSET      0
+#define DVT_FS_START_OFFSET     1
+#define DVT_FS_MIDDLE_OFFSET    2
+#define DVT_FS_END_OFFSET       3
+#define DVT_FS_TIMEOUT_OFFSET   4
+
+typedef enum
+{
+    dvt_fs_case_offset_busy,
+    dvt_fs_case_offset_start,
+    dvt_fs_case_offset_middle,
+    dvt_fs_case_offset_end,
+    dvt_fs_case_offset_timeout,
+    dvt_fs_case_offset_COUNT
+} dvt_fs_case_offset_t;
+
+typedef enum
+{
+    dvt_fs_state_at_start,
+    dvt_fs_state_at_middle,
+    dvt_fs_state_at_end
+} dvt_fs_state_t;
+
+typedef enum
+{
+    dvt_fs_error_none,
+    dvt_fs_error_get_busy,
+    dvt_fs_error_get_start,
+    dvt_fs_error_get_middle,
+    dvt_fs_error_get_end,
+    dvt_fs_error_get_timeout,
+    dvt_fs_error_put_busy,
+    dvt_fs_error_put_start,
+    dvt_fs_error_put_middle,
+    dvt_fs_error_put_end,
+    dvt_fs_error_put_timeout,
+    dvt_fs_error_ls_busy,
+    dvt_fs_error_ls_start,
+    dvt_fs_error_ls_middle,
+    dvt_fs_error_ls_end,
+    dvt_fs_error_ls_timeout,
+    dvt_fs_error_ls_invalid_hash,
+    dvt_fs_error_rm_timeout,
+    dvt_fs_error_COUNT
+} dvt_fs_error_cases_t;
+
+typedef struct
+{
+    char const * fpath;
+    dvt_fs_error_cases_t error_case;
+}dvt_fs_error_entry_t;
+
+static dvt_fs_error_entry_t dvt_fs_error_list[] =
+{
+    {"dvt_fs_get_error.test", dvt_fs_error_get_busy},
+    {"dvt_fs_put_error.test", dvt_fs_error_put_busy},
+    {"./public", dvt_fs_error_ls_busy},
+    {"./public/step", dvt_fs_error_ls_start},
+    {"./public/run", dvt_fs_error_ls_end},
+    {"./public/run/samples", dvt_fs_error_ls_middle},
+    {"./public/run/platforms", dvt_fs_error_ls_timeout},
+    {"./public/include", dvt_fs_error_ls_invalid_hash},
+    {"dvt_fs_rm_error.test", dvt_fs_error_rm_timeout}
+};
+
+static size_t const  dvt_fs_error_list_count  = asizeof(dvt_fs_error_list);
+static dvt_fs_error_cases_t dvt_current_error_case = dvt_fs_error_none;
+static dvt_fs_state_t dvt_current_state = dvt_fs_state_at_start;
+
+static void update_error_case(char const * const path)
+{
+    size_t i;
+
+    dvt_current_error_case = dvt_fs_error_none;
+    for (i = 0; i < dvt_fs_error_list_count; i++)
+    {
+        if (!strcmp(path, dvt_fs_error_list[i].fpath))
+        {
+            dvt_current_error_case = dvt_fs_error_list[i].error_case;
+            break;
+        }
+    }
+    dvt_current_state = dvt_fs_state_at_start;
+}
+
 static idigi_callback_status_t app_process_file_error(idigi_file_error_data_t * error_data)
 {
     idigi_callback_status_t status = idigi_callback_continue;
@@ -224,6 +309,7 @@ idigi_callback_status_t app_process_file_opendir(idigi_file_path_request_t const
     dirp = opendir(request_data->path);
 
     APP_DEBUG("opendir for %s returned %p\n", request_data->path, (void *) dirp);
+    update_error_case(request_data->path);
 
     if (dirp == NULL)
     {
@@ -364,6 +450,7 @@ idigi_callback_status_t app_process_file_open(idigi_file_open_request_t const * 
     }
 
     APP_DEBUG("Open %s, %d, returned %d\n", request_data->path, oflag, fd);
+    update_error_case(request_data->path);
 
     if (fd < 0)
     {
@@ -390,6 +477,18 @@ idigi_callback_status_t app_process_file_lseek(idigi_file_lseek_request_t const 
     if (offset < 0)
     {
         status = app_process_file_error(response_data->error);
+    }
+    else
+    {
+        if (dvt_current_error_case != dvt_fs_error_none)
+        {
+            if (request_data->offset < dvt_fs_case_offset_COUNT)
+                dvt_current_error_case += request_data->offset;
+            else
+            {
+                APP_DEBUG("Unexpected offset %ld for error case %d\n", request_data->offset, dvt_current_error_case);
+            }
+        }
     }
 
     return status;
@@ -418,6 +517,7 @@ idigi_callback_status_t app_process_file_rm(idigi_file_path_request_t const * co
     int result = unlink(request_data->path);
 
     APP_DEBUG("unlink %s returned %d\n", request_data->path, result);
+    update_error_case(request_data->path);
 
     if (result < 0)
     {
@@ -430,6 +530,51 @@ idigi_callback_status_t app_process_file_rm(idigi_file_path_request_t const * co
 idigi_callback_status_t app_process_file_read(idigi_file_request_t const * const request_data, idigi_file_response_t * response_data)
 {
     idigi_callback_status_t status = idigi_callback_continue;
+
+    switch (dvt_current_error_case)
+    {
+        case dvt_fs_error_get_busy:
+            if (dvt_current_state < dvt_fs_state_at_end)
+            {
+                status = idigi_callback_busy;
+                goto done;
+            }
+            break;
+
+        case dvt_fs_error_get_start:
+            if (dvt_current_state == dvt_fs_state_at_start)
+            {
+                response_data->error->errnum = EACCES;
+                response_data->error->error_status = idigi_file_permision_denied;
+                goto done;
+            }
+            break;
+
+        case dvt_fs_error_get_middle:
+            if (dvt_current_state == dvt_fs_state_at_middle)
+            {
+                response_data->error->errnum = EINVAL;
+                response_data->error->error_status = idigi_file_invalid_parameter;
+                goto done;
+            }
+            break;
+
+        case dvt_fs_error_get_end:
+            if (dvt_current_state == dvt_fs_state_at_end)
+            {
+                response_data->error->errnum = ENOMEM;
+                response_data->error->error_status = idigi_file_out_of_memory;
+                goto done;
+            }
+            break;
+
+        case dvt_fs_error_get_timeout:
+            status = idigi_callback_busy;
+            goto done;
+
+        default:
+            break;
+    }
  
     int result = read(request_data->fd, response_data->data_ptr, response_data->size_in_bytes);
 
@@ -444,6 +589,8 @@ idigi_callback_status_t app_process_file_read(idigi_file_request_t const * const
     response_data->size_in_bytes = result;
 
 done:
+    if (dvt_current_state < dvt_fs_state_at_end)
+        dvt_current_state++;
     return status;
 }
 

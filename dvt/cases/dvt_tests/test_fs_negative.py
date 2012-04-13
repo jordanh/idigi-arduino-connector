@@ -13,6 +13,14 @@ impl = getDOMImplementation()
 
 from utils import getText
 
+MAX_TEST_FILE_SIZE = 4321
+FileData = ""
+TEST_ERROR_BUSY = 0
+TEST_ERROR_AT_START = 1
+TEST_ERROR_AT_MIDDLE = 2
+TEST_ERROR_AT_END = 3
+TEST_ERROR_TIMEOUT = 4
+
 class FileSystemErrorTestCase(iik_testcase.TestCase):
 
     def test_fs1_invalid_path(self):
@@ -41,6 +49,24 @@ class FileSystemErrorTestCase(iik_testcase.TestCase):
         self.verify_get_file(fname, fsize, errorExpected=True, offset=fsize+1)
         self.verify_remove_file(fname, errorExpected=False)
 
+    def test_fs3_get_error(self):
+        """ Tests file get with error returned by the connector at start, middle and end of read """
+        fname = "dvt_fs_get_error.test"
+        global FileData
+
+        for i in xrange(MAX_TEST_FILE_SIZE):
+            FileData += chr(randint(0, 255))
+
+        fsize = len(FileData)    #idigi connector reads around 500 bytes at once
+        outData = base64.encodestring(FileData)
+        self.verify_put_file(fname, outData, len(FileData), errorExpected=False)
+        self.verify_get_file(fname, fsize, errorExpected=False, offset=TEST_ERROR_BUSY)
+        self.verify_get_file(fname, fsize, errorExpected=True, offset=TEST_ERROR_AT_START)
+        self.verify_get_file(fname, fsize, errorExpected=True, offset=TEST_ERROR_AT_MIDDLE)
+        self.verify_get_file(fname, fsize, errorExpected=True, offset=TEST_ERROR_AT_END)
+        #self.verify_get_file(fname, fsize, errorExpected=True, offset=TEST_ERROR_TIMEOUT)
+        self.verify_remove_file(fname, errorExpected=False)
+
     def verify_put_file(self, fpath, fdata, fsize, errorExpected, offset = 0, truncate = False):
         putRequest = \
         """<sci_request version="1.0">
@@ -60,7 +86,6 @@ class FileSystemErrorTestCase(iik_testcase.TestCase):
         self.verify_device_response(self.api.sci(putRequest), errorExpected)
 
     def verify_get_file(self, fpath, fsize, errorExpected, offset = 0):
-        fdata = ""
         getRequest = \
             """<sci_request version="1.0">
               <file_system>
@@ -78,14 +103,15 @@ class FileSystemErrorTestCase(iik_testcase.TestCase):
 
     def verify_device_response(self, response, errorExpected):
         # validate response?
-        try:
-            dom = xml.dom.minidom.parseString(response)
-            if errorExpected:
-                self.assertEqual(errorExpected, False, "Error response was expected, but got success [%s]" % response)
-        except:
-            if not errorExpected:
-                self.assertEqual(errorExpected, True, "Success response was expected, but got error [%s]" % response)
 
+        if (response.find('<error') == -1):
+            errorActual = False
+            errorString = "Expected error, but got success"
+        else:
+            errorActual = True
+            errorString = "Expected success, but got error"
+
+        self.assertTrue(errorExpected == errorActual, "%s, response[%s]" %(errorString, response))
         self.log.info("Test success!")
 
     def verify_remove_file(self, path, errorExpected):
@@ -150,8 +176,7 @@ class FileSystemErrorTestCase(iik_testcase.TestCase):
         if index == -1:
             return None, None
         end_index = resp[index:].find('/>')
-        if end_index == -1:
-            raise RuntimeError("Failed to parse out file from current response: %s" %resp)
+        self.assertTrue(end_index != -1, "Failed to parse out file from current response: %s" %resp)
 
         end_index += index
 

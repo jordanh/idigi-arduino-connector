@@ -241,9 +241,7 @@ class FileSystemTestCase(iik_testcase.TestCase):
         if index == -1:
             return None, None
         end_index = resp[index:].find('/>')
-        if end_index == -1:
-            raise RuntimeError("Failed to parse out file from current response: %s" %resp)
-
+        self.assertTrue(end_index != -1, "Failed to parse out file from current response: %s" %resp)
         end_index += index
 
         return index, end_index

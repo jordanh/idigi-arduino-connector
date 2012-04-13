@@ -363,19 +363,9 @@ static idigi_callback_status_t msg_call_service_layer(idigi_data_t * const idigi
     service_ptr->session = session;
 
     status = cb_fn(idigi_ptr, service_ptr);
-    if ((status == idigi_callback_continue) && (service_ptr->service_type != type))
-    {        
-        msg_data_block_t * const dblock = (session->in_dblock != NULL) ? session->in_dblock : session->out_dblock;
-
-        ASSERT_GOTO(dblock != NULL, error);
-        if (MsgIsStart(dblock->status_flag) && MsgIsClientOwned(dblock->status_flag))
-        {
-            session->current_state = msg_state_delete;
-        }
-        else
-        {
-            msg_set_error(session, service_ptr->error_value);
-        }
+    if ((status == idigi_callback_continue) && (service_ptr->service_type == msg_service_type_error))
+    {
+        msg_set_error(session, service_ptr->error_value);
         status = idigi_callback_unrecognized;
     }
 
@@ -1588,7 +1578,8 @@ static idigi_callback_status_t msg_process_error(idigi_data_t * const idigi_ptr,
     
             ASSERT(error_val < (uint8_t)idigi_msg_error_count);
             status = msg_inform_error(idigi_ptr, session, msg_error);
-            msg_delete_session(idigi_ptr, msg_fac, session);
+            if (status != idigi_callback_busy)
+                msg_delete_session(idigi_ptr, msg_fac, session);
         }
     }
     else
@@ -1713,24 +1704,24 @@ static idigi_callback_status_t msg_process(idigi_data_t * const idigi_ptr, void 
             case msg_opcode_capability:
                 status = msg_process_capabilities(idigi_ptr, msg_ptr, data_ptr);
                 break;
-    
+
             case msg_opcode_start:
                 status = msg_process_start(idigi_ptr, msg_ptr, data_ptr, length);
                 break;
-    
+
             case msg_opcode_data:
                 status = msg_process_data(idigi_ptr, msg_ptr, data_ptr, length);
                 break;
-    
+
             case msg_opcode_ack:
                 status = msg_process_ack(msg_ptr, data_ptr);
                 break;
-    
+
             case msg_opcode_error:
                 status = msg_process_error(idigi_ptr, msg_ptr, data_ptr);
                 break;
-    
-            default:            
+
+            default:
                 idigi_debug("msg_process: Invalid opcode\n");
                 break;
         }
@@ -1766,6 +1757,7 @@ static idigi_callback_status_t msg_cleanup_all_sessions(idigi_data_t * const idi
 
         session = next_session;
     }
+
 error:
     return status;
 }
@@ -1776,10 +1768,10 @@ static idigi_callback_status_t msg_delete_facility(idigi_data_t * const idigi_pt
     idigi_msg_data_t * const msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
 
     if (msg_ptr == NULL)
-	{
-	   status = idigi_callback_continue;
-	   goto error;
-	}
+    {
+        status = idigi_callback_continue;
+        goto error;
+    }
 
     ASSERT_GOTO(service_id < msg_service_id_count, error);
     ASSERT_GOTO(msg_ptr->service_cb[service_id] != NULL, error);
