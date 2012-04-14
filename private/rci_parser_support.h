@@ -24,7 +24,10 @@
  */
 
 #include <stdarg.h>
-#include "idigi_strings.h"
+#if defined IDIGI_DEBUG
+#include <ctype.h>
+#endif
+#include "remote_config.h"
 
 typedef enum
 {
@@ -89,7 +92,8 @@ typedef enum
 {
     rci_traversal_state_all_groups_start,
     rci_traversal_state_all_groups_group_start,
-    rci_traversal_state_one_group
+    rci_traversal_state_one_group,
+    rci_traversal_state_one_element
 } rci_traversal_state_t;
 
 typedef enum
@@ -184,11 +188,15 @@ typedef struct
         rci_attribute_list_t attribute;
     } input;
     struct {
+        rci_traversal_state_t state;
         rci_command_t command;
+        idigi_remote_group_type_t type;
+        idigi_remote_action_t action;
         struct {
             int group;
             int element;
         } id;
+        unsigned int index;
     } traversal;
     struct {
         rci_string_t const * tag;
@@ -210,17 +218,62 @@ typedef struct
     } output;
     struct {
         rci_error_state_t state;
-        unsigned int error_id;
+        idigi_remote_group_response_t response;
         char const * description;
-        char const * hint;
     } error;
 } rci_t;
 
 static char const nul = '\0';
 
+#define POINTER_AND_SIZE(p)     (p), sizeof *(p)
+#define RCI_NO_HINT             NULL
+
+#define CSTR_LEN(p)     *(p)
+#define CSTR_DATA(p)    ((p) + 1)
+
+static void cstr_to_rci_string(char const * const cstr, rci_string_t * const rcistr)
+{
+    rcistr->data = CSTR_DATA(cstr);
+    rcistr->length = CSTR_LEN(cstr);
+}
+
+static idigi_bool_t buffer_equals_buffer(char const * const str1, int len1, char const * const str2, int const len2)
+{
+    ASSERT(len1 >= 1);
+    ASSERT(len2 >= 1);
+    
+    return ((len1 == len2) && (memcmp(str1, str2, len1) == 0)) ? idigi_true : idigi_false;
+}
+
+static idigi_bool_t cstr_equals_buffer(char const * const cstr, char const * const str2, unsigned int const len2)
+{
+    return buffer_equals_buffer(CSTR_DATA(cstr), CSTR_LEN(cstr), str2, len2);
+}
+
+#if 0 /* currently unused - remove before shipping */
+static idigi_bool_t cstr_equals_cstr(char const * const cstr1, char const * const cstr2)
+{
+    return buffer_equals_buffer(CSTR_DATA(cstr1), CSTR_LEN(cstr1), CSTR_DATA(cstr2), CSTR_LEN(cstr2));
+}
+#endif
+
 static idigi_bool_t cstr_equals_rcistr(char const * const cstr, rci_string_t const * const rcistr)
 {
     return cstr_equals_buffer(cstr, rcistr->data, rcistr->length);
+}
+
+#if 0 /* currently unused - remove before shipping */
+static idigi_bool_t cstr_equals_str(char const * const cstr, char const * const str)
+{
+    return cstr_equals_buffer(cstr, str, strlen(str));
+}
+#endif
+
+static idigi_bool_t rcistr_to_uint(rci_string_t const * const rcistr, unsigned int * const value)
+{
+    ASSERT(!isdigit(rcistr->data[rcistr->length]));
+
+    return (sscanf(rcistr->data, "%u", value) == 1);
 }
 
 static void rci_set_buffer(rci_buffer_t * const dst, rci_service_buffer_t const * const src)
@@ -244,20 +297,20 @@ static char * rci_buffer_position(rci_buffer_t const * const buffer)
 
 static void rci_buffer_advance(rci_buffer_t * const buffer, size_t const amount)
 {
-    assert((buffer->current + amount) <= buffer->end);
+    ASSERT((buffer->current + amount) <= buffer->end);
     buffer->current += amount;
 }
 
 static int rci_buffer_read(rci_buffer_t const * const buffer)
 {
-    assert(rci_buffer_remaining(buffer) != 0);
+    ASSERT(rci_buffer_remaining(buffer) != 0);
     
     return *(buffer->current);
 }
 
 static void rci_buffer_write(rci_buffer_t const * const buffer, int const value)
 {
-    assert(rci_buffer_remaining(buffer) != 0);
+    ASSERT(rci_buffer_remaining(buffer) != 0);
     
     *(buffer->current) = value;
 }

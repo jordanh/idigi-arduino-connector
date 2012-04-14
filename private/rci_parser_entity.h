@@ -28,11 +28,11 @@ static struct
     char const * name;
     int value;
 } entity_map[] = {
-    { INDEXED_CSTR(ENTITY_QUOTE_STRING_INDEX), '"' },
-    { INDEXED_CSTR(ENTITY_AMPERSAND_STRING_INDEX), '&' },
-    { INDEXED_CSTR(ENTITY_APOSTROPHE_STRING_INDEX), '\'' },
-    { INDEXED_CSTR(ENTITY_LESS_THAN_STRING_INDEX), '<' },
-    { INDEXED_CSTR(ENTITY_GREATER_THAN_STRING_INDEX), '>' },
+    { RCI_ENTITY_QUOTE, '"' },
+    { RCI_ENTITY_AMPERSAND, '&' },
+    { RCI_ENTITY_APOSTROPHE, '\'' },
+    { RCI_ENTITY_LESS_THAN, '<' },
+    { RCI_ENTITY_GREATER_THAN, '>' },
 };
     
 static char const * rci_entity_name(int const value)

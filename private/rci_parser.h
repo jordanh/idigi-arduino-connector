@@ -32,9 +32,9 @@
 
 static idigi_bool_t rci_action_session_start(rci_t * const rci, rci_service_data_t * service_data)
 {
-    assert(rci->service_data == NULL);
+    ASSERT(rci->service_data == NULL);
     rci->service_data = service_data;
-    assert(rci->service_data != NULL);
+    ASSERT(rci->service_data != NULL);
 
     rci_set_buffer(&rci->buffer.input, &rci->service_data->input);
     rci_set_buffer(&rci->buffer.output, &rci->service_data->output);
@@ -132,7 +132,7 @@ static rci_status_t rci_parser(rci_session_t const action, ...)
             break;
         }
         
-        assert(success);
+        ASSERT(success);
         if (!success) goto done;
     }
 

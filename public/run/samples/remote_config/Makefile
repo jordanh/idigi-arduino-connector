@@ -21,6 +21,7 @@
 #
 # =======================================================================
 CC = gcc
+OD = objdump
 
 IDIGI_DIR=../../../../private
 PUBLIC_HEADER_DIR=../../../include
@@ -29,15 +30,17 @@ PLATFORM_DIR=../../platforms/linux
 vpath $(IDIGI_DIR)/%.c
 vpath $(PLATFORM_DIR)/%.c
 
-#CFLAGS += -Winit-self -Wbad-function-cast -Wpointer-arith -Wlogical-op -Wmissing-parameter-type -Wstrict-prototypes -Wformat-security 
-#CFLAGS += -Wformat-y2k -Wold-style-definition -Wcast-align -Wformat-nonliteral -Wpadded -Wredundant-decls -Wvariadic-macros
-## CFLAGS += -Wjump-misses-init -Wtrampolines 
+CFLAGS += -Winit-self -Wbad-function-cast -Wpointer-arith -Wlogical-op -Wmissing-parameter-type -Wstrict-prototypes -Wformat-security 
+CFLAGS += -Wformat-y2k -Wold-style-definition -Wcast-align -Wformat-nonliteral -Wpadded -Wredundant-decls -Wvariadic-macros
 CFLAGS += -Wno-error=padded -Wno-error=format-nonliteral -Wno-unused-function
 
-#CFLAGS += $(DFLAGS) -MD -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL 
-CFLAGS += $(DFLAGS) -MD -Wall -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL 
+CFLAGS += $(DFLAGS) -MD -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL 
 CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR) -I. -g
 CFLAGS += -DIDIGI_RCI_MAXIMUM_CONTENT_LENGTH=256
+
+ifeq ($(RCI_DEBUG),true)
+CFLAGS += -DRCI_DEBUG
+endif
 
 LIBS = -lc -lz -lpthread
 
@@ -45,7 +48,7 @@ SAMPLE = idigi
 .PHONY:all
 all: $(SAMPLE)
 
-LDFLAGS += -Wl,-Map,$(SAMPLE).map
+LDFLAGS += -Wl,-Map=$(SAMPLE).map,--sort-common
 
 SRCS = device_info.c \
        device_stats.c ethernet.c debug_info.c serial.c remote_config_cb.c remote_config.c application.c \
@@ -62,9 +65,13 @@ DEPS = $(OBJS:.o=.d)
 
 $(SAMPLE): $(OBJS)
 	$(CC) $(LDFLAGS) $^ $(LIBS) -o $@
-
+ifeq ($(RCI_DEBUG),true)
+	$(OD) -dS $@ >$@.dis
+	awk -f size.awk idigi.map
+endif
+    
 .PHONY: clean
 clean:
-	-rm -f $(OBJS) $(DEPS)
+	-rm -f $(SAMPLE) $(OBJS) $(DEPS)
 
 

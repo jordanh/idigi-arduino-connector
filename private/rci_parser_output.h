@@ -59,7 +59,7 @@ static idigi_bool_t rci_output_formatted(rci_buffer_t * const output, size_t * c
         int const result = vsnprintf(rci_buffer_position(output), have, format, ap);
         size_t const need = (size_t) result;
         
-        assert(result > 0);
+        ASSERT(result > 0);
         overflow = (need > have);
         if (!overflow)
         {
@@ -77,7 +77,7 @@ static idigi_bool_t rci_output_formatted(rci_buffer_t * const output, size_t * c
 static void rci_output_character(rci_buffer_t * const output, size_t * const remaining, int const value)
 {
     size_t const bytes = 1;
-    assert(rci_buffer_remaining(output) != 0);
+    ASSERT(rci_buffer_remaining(output) != 0);
     
     rci_buffer_write(output, value);
     rci_buffer_advance(output, bytes);
@@ -100,7 +100,7 @@ static idigi_bool_t rci_output_entity_name(rci_buffer_t * const output, size_t *
 {
     char const * const name = rci_entity_name(value);
     
-    assert(name != NULL);
+    ASSERT(name != NULL);
     
     return rci_output_cstr(output, remaining, name);
 }
@@ -113,7 +113,7 @@ static void rci_generate_output(rci_t * const rci)
     
     while ((remaining != 0) && !overflow)
     {
-        assert(remaining == rci_buffer_remaining(output));
+        ASSERT(remaining == rci_buffer_remaining(output));
         
         switch (rci->output.state)
         {
@@ -145,7 +145,7 @@ static void rci_generate_output(rci_t * const rci)
                     rci->output.state = rci_output_state_element_tag_name;
                     break;
                 default:
-                    assert(idigi_false);
+                    ASSERT(idigi_false);
                     break;
             }
             break;
@@ -163,7 +163,7 @@ static void rci_generate_output(rci_t * const rci)
                     rci->output.state = rci_output_state_element_tag_close;
                     break;
                 default:
-                    assert(idigi_false);
+                    ASSERT(idigi_false);
                     break;
             }
             break;
@@ -183,7 +183,7 @@ static void rci_generate_output(rci_t * const rci)
                     rci->output.attribute_pair_index = 0;
                     break;
                 default:
-                    assert(idigi_false);
+                    ASSERT(idigi_false);
                     break;
             }
             break;
@@ -201,7 +201,7 @@ static void rci_generate_output(rci_t * const rci)
                     rci->output.state = rci_output_state_element_tag_close;
                     break;
                 default:
-                    assert(idigi_false);
+                    ASSERT(idigi_false);
                     break;
             }
             break;
@@ -218,7 +218,7 @@ static void rci_generate_output(rci_t * const rci)
                         rci->output.state = rci_output_state_element_param_name;
                         break;
                     default:
-                        assert(idigi_false);
+                        ASSERT(idigi_false);
                         break;
                 }
             }
@@ -231,7 +231,7 @@ static void rci_generate_output(rci_t * const rci)
                         rci->output.state = rci_output_state_element_tag_close;
                         break;
                     default:
-                        assert(idigi_false);
+                        ASSERT(idigi_false);
                         break;
                 }
             }
@@ -251,7 +251,7 @@ static void rci_generate_output(rci_t * const rci)
                     rci->output.state = rci_output_state_element_param_equal_sign;
                     break;
                 default:
-                    assert(idigi_false);
+                    ASSERT(idigi_false);
                     break;
             }
             break;
@@ -266,7 +266,7 @@ static void rci_generate_output(rci_t * const rci)
                     rci->output.state = rci_output_state_element_param_start_quote;
                     break;
                 default:
-                    assert(idigi_false);
+                    ASSERT(idigi_false);
                     break;
             }
             break;
@@ -285,13 +285,13 @@ static void rci_generate_output(rci_t * const rci)
                     }
                     else
                     {
-                        assert(rci->output.state == rci_output_state_element_param_end_quote);
+                        ASSERT(rci->output.state == rci_output_state_element_param_end_quote);
                         rci->output.state = rci_output_state_element_param_space;
                         rci->output.attribute_pair_index++;
                     }
                     break;
                 default:
-                    assert(idigi_false);
+                    ASSERT(idigi_false);
                     break;
             }
             break;
@@ -368,7 +368,7 @@ static void rci_generate_output(rci_t * const rci)
                     rci->output.type = rci_output_type_end_tag;
                     break;
                 default:
-                    assert(idigi_false);
+                    ASSERT(idigi_false);
                     break;
             }
             break;
