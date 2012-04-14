@@ -202,22 +202,21 @@ typedef void (* send_complete_cb_t)(struct idigi_data * const idigi_ptr, uint8_t
 
 typedef struct idigi_facility {
     unsigned int facility_index;
-    uint16_t facility_num;
     size_t size;
     uint8_t * packet;
     void * facility_data;
     struct idigi_facility * next;
     struct idigi_facility * prev;
+    uint16_t facility_num;
 } idigi_facility_t;
 
 typedef struct idigi_buffer {
-    uint8_t buffer[MSG_MAX_RECV_PACKET_SIZE];
     struct idigi_buffer * next;
     idigi_bool_t    in_use;
+    uint8_t buffer[MSG_MAX_RECV_PACKET_SIZE];
 } idigi_buffer_t;
 
 typedef struct idigi_data {
-
     uint8_t * device_id;
 #if !defined(IDIGI_VENDOR_ID)
     uint8_t * vendor_id;
@@ -228,17 +227,6 @@ typedef struct idigi_data {
     size_t device_type_length;
 #endif
 
-#if !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS)
-    uint16_t tx_keepalive_interval;
-#endif
-
-#if !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
-    uint16_t rx_keepalive_interval;
-#endif
-
-#if !defined(IDIGI_WAIT_COUNT)
-    uint16_t wait_count;
-#endif
     unsigned long last_rx_keepalive_sent_time;
     unsigned long last_tx_keepalive_received_time;
 
@@ -255,7 +243,7 @@ typedef struct idigi_data {
 
     unsigned int layer_state;
     unsigned int request_id;
-    uint16_t facilities;
+
     idigi_bool_t network_connected;
     idigi_bool_t network_busy;
     idigi_bool_t edp_connected;
@@ -288,6 +276,20 @@ typedef struct idigi_data {
         size_t total_length;
 
     } receive_packet;
+
+    uint16_t facilities;
+
+#if !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS)
+    uint16_t tx_keepalive_interval;
+#endif
+
+#if !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
+    uint16_t rx_keepalive_interval;
+#endif
+
+#if !defined(IDIGI_WAIT_COUNT)
+    uint16_t wait_count;
+#endif
 
 } idigi_data_t;
 

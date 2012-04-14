@@ -512,8 +512,8 @@ typedef struct  {
 * @ref idigi_firmware_description, @ref idigi_firmware_name_spec, and @ref idigi_firmware_target_reset callbacks.
 */
 typedef struct {
-    unsigned int timeout; /**< Timeout value which callback must return control back to IIK in seconds */
-    uint8_t target;       /**< Target number */
+    unsigned int timeout;   /**< Timeout value which callback must return control back to IIK in seconds */
+    uint8_t target;         /**< Target number */
 } idigi_fw_config_t;
 /**
 * @}
@@ -529,12 +529,12 @@ typedef struct {
 */
 typedef struct {
     unsigned int timeout;       /**< Timeout value which callback must return control back to IIK in seconds */
-    uint8_t target;             /**< Target number of whcih firmware download request for */
     uint32_t version;           /**< Reserved */
     uint32_t code_size;         /**< size of the code that is ready to be sent to the target */
     char * desc_string;         /**< Reserved */
     char * file_name_spec;      /**< Reserved */
     char * filename;            /**< Pointer to filename of the image to be downloaded */
+    uint8_t target;             /**< Target number of which firmware download request for */
 } idigi_fw_download_request_t;
 /**
 * @}
@@ -550,10 +550,10 @@ typedef struct {
 */
 typedef struct {
     unsigned int timeout;   /**< Timeout value which callback must return control back to IIK in seconds */
-    uint8_t target;         /**< Target number of which image data for */
     uint32_t offset;        /**< Offset value where this particular block of image data fits into the download */
     uint8_t * data;         /**< Pointer binary image data */
     size_t length;          /**< Length of binary image data in bytes */
+    uint8_t target;         /**< Target number of which firmware download request for */
 } idigi_fw_image_data_t;
 /**
 * @}
@@ -570,9 +570,9 @@ typedef struct {
 */
 typedef struct {
     unsigned int timeout;   /**< Timeout value which callback must return control back to IIK in seconds */
-    uint8_t target;         /**< Target number of which firmware download complete for */
     uint32_t code_size;     /**< Code size of the entire image data sent */
     uint32_t checksum;      /**< CRC-32 value computed from offset 0 to code size. If it's 0, no checksum is required */
+    uint8_t target;         /**< Target number of which firmware download request for */
 } idigi_fw_download_complete_request_t;
 /**
 * @}
@@ -605,8 +605,8 @@ typedef struct {
 */
 typedef struct {
     unsigned int timeout;       /**< Timeout value which callback must return control back to IIK in seconds */
-    uint8_t target;             /**< Target number of which firmware download abort for */
     idigi_fw_status_t status;   /**< Abort reason or status */
+    uint8_t target;             /**< Target number of which firmware download request for */
 } idigi_fw_download_abort_t;
 /**
 * @}
@@ -1146,9 +1146,8 @@ typedef struct
 {
   uint32_t     last_modified; /**< Last modified time for the entry (seconds since 1970). If not supported, use 0 */
   size_t       file_size;               /**< File size in bytes */
-  uint8_t      flags;                   /**< 0, or @ref file_stat_flag_t */
   idigi_file_hash_algorithm_t hash_alg; /**< hash algorithm */
-
+  uint8_t flags;                   /**< 0, or @ref file_stat_flag_t */
 } idigi_file_stat_t;
 /**
 * @}
@@ -1167,7 +1166,6 @@ typedef struct
 {
     void * dir_handle;      /**< Value, used to identify a directory for the user application */
     void * dir_entry;       /**< Value, used to identify a directory entry for the user application */
-
 } idigi_file_dir_data_t;
 /**
 * @}
@@ -1183,7 +1181,6 @@ typedef struct
 typedef struct
 {
     int  fd;            /**< File descriptor of an opened file */
-
 } idigi_file_request_t;
 /**
 * @}
@@ -1201,7 +1198,6 @@ typedef struct
     int      fd;        /**< File descriptor of an opened file */
     long int offset;    /**< File offset */
     int      origin;    /**< File seek origin of @ref idigi_file_seek_origin_t type */
-
 } idigi_file_lseek_request_t;
 /**
 * @}
@@ -1218,7 +1214,6 @@ typedef struct
 {
     int      fd;        /**< File descriptor of an opened file   */
     long int length;    /**< File length in bytes to truncate to */
-
 } idigi_file_ftruncate_request_t;
 /**
 * @}
@@ -1236,7 +1231,6 @@ typedef struct
     int          fd;            /**< File descriptor of an opened file */
     void const * data_ptr;      /**< A pointer to data to be written to a file */
     size_t       size_in_bytes; /**< Number of bytes to write */
-
 } idigi_file_write_request_t;
 /**
 * @}
@@ -1253,7 +1247,6 @@ typedef struct
 {
     char const * path;                      /**< File path */                     
     int          oflag;                     /**< bitwise-inclusive OR of @ref file_open_flag_t flags */   
-
 } idigi_file_open_request_t;
 /**
 * @}
@@ -1271,7 +1264,6 @@ typedef struct
 {
     char const * path;                      /**< File path */                     
     idigi_file_hash_algorithm_t hash_alg;   /**< suggested hash algorithm */ 
-
 } idigi_file_stat_request_t;
 /**
 * @}
@@ -1288,7 +1280,6 @@ typedef struct
 typedef struct
 {
     char const * path;                      /**< File path */                     
-
 } idigi_file_path_request_t;
 /**
 * @}
@@ -1306,7 +1297,6 @@ typedef struct
 {
     idigi_file_error_status_t error_status; /**< error status of @ref idigi_file_error_status_t type */
     int errnum;                             /**< errno */
-
 } idigi_file_error_data_t;
 /**
 * @}
@@ -1322,7 +1312,6 @@ typedef struct
 typedef struct 
 {
     idigi_msg_error_t message_status;   /**< Error status in messaging layer */
-
 } idigi_file_error_request_t;
 /**
 * @}
@@ -1352,7 +1341,6 @@ typedef struct
     size_t  size_in_bytes;              /**< On input size of data buffer, on output size of response data */
     idigi_file_error_data_t * error;    /**< holds error code of @ref idigi_file_error_status_t type and errno */
     void  * data_ptr;                   /**< Pointer to write response data */
-
 } idigi_file_response_t;
 /**
 * @}
@@ -1371,7 +1359,6 @@ typedef struct
     size_t   size_in_bytes;             /**< sizeof(*fd_ptr) on input and output */
     idigi_file_error_data_t * error;    /**< holds error code of @ref idigi_file_error_status_t type and errno */
     int    * fd_ptr;                    /**< Pointer to place a file descriptor on output */
-
 } idigi_file_open_response_t;
 /**
 * @}
@@ -1390,7 +1377,6 @@ typedef struct
     size_t      size_in_bytes;          /**< sizeof(*offset_ptr) on input and output */
     idigi_file_error_data_t * error;    /**< holds error code of @ref idigi_file_error_status_t type and errno */
     long int    * offset_ptr;           /**< Pointer to place a resulting file position on output */
-
 } idigi_file_lseek_response_t;
 /**
 * @}
@@ -1409,7 +1395,6 @@ typedef struct
     size_t                size_in_bytes;    /**< sizeof(*dir_data) on input and output */
     idigi_file_error_data_t * error;        /**< holds error code of @ref idigi_file_error_status_t type and errno */
     idigi_file_dir_data_t * dir_data;       /**< Pointer to place directory data on output */
-
 } idigi_file_dir_response_t;
 /**
 * @}
@@ -1428,7 +1413,6 @@ typedef struct
     size_t              size_in_bytes;  /**< sizeof(*stat_ptr) on input and output */
     idigi_file_error_data_t * error;    /**< holds error code of @ref idigi_file_error_status_t type and errno */
     idigi_file_stat_t   * stat_ptr;     /**< Pointer to place file status data on output */
-
 } idigi_file_stat_response_t;
 /**
 * @}
