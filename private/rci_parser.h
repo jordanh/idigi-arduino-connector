@@ -24,6 +24,7 @@
  */
 
 #include "rci_parser_support.h"
+#include "rci_parser_debug.h"
 #include "rci_parser_entity.h"
 #include "rci_parser_input.h"
 #include "rci_parser_traversal.h"

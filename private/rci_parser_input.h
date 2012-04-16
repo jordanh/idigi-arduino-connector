@@ -257,7 +257,7 @@ static idigi_bool_t rci_handle_unary_tag(rci_t * const rci)
                     }
                 }
                     
-                rci->traversal.state = rci_traversal_state_one_group;
+                rci->traversal.state = rci_traversal_state_one_group_start;
                 state_call(rci, rci_parser_state_traversal);
             }
         }
@@ -274,7 +274,7 @@ static idigi_bool_t rci_handle_unary_tag(rci_t * const rci)
                 goto error;
             }
 
-            rci->traversal.state = rci_traversal_state_one_element;
+            rci->traversal.state = rci_traversal_state_one_element_start;
             state_call(rci, rci_parser_state_traversal);
         }   
         break;
@@ -611,6 +611,10 @@ static idigi_bool_t rci_parse_input_whitespace(rci_t * const rci)
     
     switch (rci->input.state)
     {
+    case rci_input_state_element_start_name:
+        rci->input.state = rci_input_state_element_param_name;
+        break;
+        
     case rci_input_state_element_param_value_escaping:
 	case rci_input_state_content_escaping:
         rci->status = rci_status_internal_error;
@@ -703,9 +707,11 @@ static idigi_bool_t rci_parse_input_other(rci_t * const rci)
         break;
                
     case rci_input_state_element_param_quote:
-    default:
         rci->status = rci_status_internal_error;
         continue_parsing = idigi_false;
+        break;
+        
+    default:
         break;
     }
 
@@ -720,11 +726,13 @@ static void rci_parse_input(rci_t * const rci)
 #endif
 
     rci_buffer_t * const input = &rci->buffer.input;
-        
+
     while ((rci_buffer_remaining(input) != 0) && (rci->parser.state.current == rci_parser_state_input))
     {
         idigi_bool_t continue_parsing;
-        
+
+        output_debug_info(rci);
+                
         rci->input.value = rci_buffer_read(input);
         switch (rci->input.value)
         {
@@ -779,8 +787,8 @@ static void rci_parse_input(rci_t * const rci)
             if (rci->input.position != rci_buffer_position(&rci->buffer.input))
             {
                 *(rci->input.position) = rci->input.value;
-                rci->input.position++;
             }
+            rci->input.position++;
         }    
         rci_buffer_advance(input, 1);
     }
@@ -792,6 +800,6 @@ static void rci_parse_input(rci_t * const rci)
     }
     
 done:
-    ;
+    output_debug_info(rci);
 }
 

@@ -90,10 +90,22 @@ typedef enum
 
 typedef enum
 {
+    rci_traversal_state_none,
     rci_traversal_state_all_groups_start,
     rci_traversal_state_all_groups_group_start,
-    rci_traversal_state_one_group,
-    rci_traversal_state_one_element
+    rci_traversal_state_all_groups_element_start,
+    rci_traversal_state_all_groups_element_data,
+    rci_traversal_state_all_groups_element_end,
+    rci_traversal_state_all_groups_group_end,
+    rci_traversal_state_all_groups_end,
+    rci_traversal_state_one_group_start,
+    rci_traversal_state_one_group_element_start,
+    rci_traversal_state_one_group_element_data,
+    rci_traversal_state_one_group_element_end,
+    rci_traversal_state_one_group_end,
+    rci_traversal_state_one_element_start,
+    rci_traversal_state_one_element_data,
+    rci_traversal_state_one_element_end
 } rci_traversal_state_t;
 
 typedef enum
@@ -181,6 +193,7 @@ typedef struct
         int value;
         char * position;
         union {
+            rci_string_t generic;
             rci_string_t tag;
             rci_string_t content;
         } string;
@@ -197,15 +210,17 @@ typedef struct
             int element;
         } id;
         unsigned int index;
+        rci_string_t tag;
     } traversal;
     struct {
+        rci_output_state_t state;
+        rci_output_type_t type;
         rci_string_t const * tag;
         rci_attribute_list_t * attribute;
-        rci_output_type_t type;
-        rci_output_state_t state;
         struct {
             idigi_element_value_type_t type;
             union {
+                void * generic;
                 unsigned int * unsigned_integer;
                 signed int * signed_integer;
                 char const * counted_string;
@@ -228,7 +243,7 @@ static char const nul = '\0';
 #define POINTER_AND_SIZE(p)     (p), sizeof *(p)
 #define RCI_NO_HINT             NULL
 
-#define CSTR_LEN(p)     *(p)
+#define CSTR_LEN(p)     ((size_t) *(p))
 #define CSTR_DATA(p)    ((p) + 1)
 
 static void cstr_to_rci_string(char const * const cstr, rci_string_t * const rcistr)
@@ -237,10 +252,10 @@ static void cstr_to_rci_string(char const * const cstr, rci_string_t * const rci
     rcistr->length = CSTR_LEN(cstr);
 }
 
-static idigi_bool_t buffer_equals_buffer(char const * const str1, int len1, char const * const str2, int const len2)
+static idigi_bool_t buffer_equals_buffer(char const * const str1, size_t const len1, char const * const str2, size_t const len2)
 {
-    ASSERT(len1 >= 1);
-    ASSERT(len2 >= 1);
+    ASSERT(len1 != 0);
+    ASSERT(len2 != 0);
     
     return ((len1 == len2) && (memcmp(str1, str2, len1) == 0)) ? idigi_true : idigi_false;
 }
