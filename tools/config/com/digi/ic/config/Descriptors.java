@@ -4,6 +4,8 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import javax.management.BadStringOperationException;
+
 public class Descriptors {
 
 
@@ -84,7 +86,7 @@ public class Descriptors {
                 
                 groups = configData.getConfigGroup(configType);
                 
-            } catch (IOException e) {
+            } catch (BadStringOperationException e) {
                 /* end of the ConfigData ConfigType */
                 break;
             }
@@ -229,7 +231,7 @@ public class Descriptors {
                 
                 groups = configData.getConfigGroup(configType);
                 
-            } catch (IOException e) {
+            } catch (BadStringOperationException e) {
                 /* end of the ConfigData ConfigType */
                 break;
             }
@@ -378,7 +380,7 @@ public class Descriptors {
     
     private void debug_log(String str) throws IOException
     {
-/* 
+/* debugging code 
         String filename = "descritor" + xmlFileIndex + ".xml";
         xmlFileIndex++;
         

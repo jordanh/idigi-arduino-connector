@@ -1,8 +1,9 @@
 package com.digi.ic.config;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
+
+import javax.management.BadStringOperationException;
 
 public class ConfigData {
 
@@ -68,12 +69,12 @@ public class ConfigData {
         
     }
     
-    public LinkedList<GroupStruct> getSettingGroups() throws IOException
+    public LinkedList<GroupStruct> getSettingGroups() throws BadStringOperationException
     {
         return getConfigGroup("setting");
     }
 
-    public LinkedList<GroupStruct> getStateGroups() throws IOException
+    public LinkedList<GroupStruct> getStateGroups() throws BadStringOperationException
     {
         return getConfigGroup("state");
     }
@@ -84,7 +85,7 @@ public class ConfigData {
     }
 
     
-    public LinkedList<GroupStruct> getConfigGroup(String type) throws IOException
+    public LinkedList<GroupStruct> getConfigGroup(String type) throws BadStringOperationException
     {
         ConfigType t = ConfigType.toConfigType(type);
         
@@ -97,13 +98,13 @@ public class ConfigData {
             config = groupList.get(t.getIndex());
             break;
          default:
-             throw new IOException("Missing Setting or State keyword");
+             throw new BadStringOperationException("Missing Setting or State keyword");
         }
         
         return config;
     }
 
-    public static void initTopLevelErrors() throws IOException
+    public static void initTopLevelErrors() throws BadStringOperationException
     {
         allErrorList = new LinkedList<NameStruct>();
         getErrors(allErrorList, allErrors);
@@ -118,13 +119,13 @@ public class ConfigData {
         getErrors(groupErrorList, groupErrors);
     }
 
-    private static boolean getErrors(LinkedList<NameStruct> linkedList, String[] error_strings) throws IOException
+    private static boolean getErrors(LinkedList<NameStruct> linkedList, String[] error_strings) throws BadStringOperationException
     {
         for (int i=0; i < error_strings.length; i++)
         {
             if (!Parser.checkAlphaNumeric(error_strings[i]))
             {
-                throw new IOException("Invalid anme in error strings");
+                throw new BadStringOperationException("Invalid name in error strings");
             }
             NameStruct error = new NameStruct(error_strings[i], error_strings[i+1]);
             linkedList.add(error);

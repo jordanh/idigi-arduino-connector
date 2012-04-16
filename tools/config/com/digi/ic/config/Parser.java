@@ -94,7 +94,7 @@ public class Parser {
                             ElementStruct element = processElement();
                             if (!element.validate())
                             {
-                                throw new IOException("Error found for element: " + element.getName());
+                                throw new NamingException("Error found for element: " + element.getName());
                             }
                             theGroup.addElement(element);
                         }
@@ -126,14 +126,13 @@ public class Parser {
                 }
                 else
                 {
-                    throw new IOException("Unrecogized keyword: " + token);
+                    throw new BadStringOperationException("Unrecogized keyword: " + token);
                 }
             }
             
         } catch (IOException e) {
-            ConfigGenerator.log("Error found in line " + lineNumber);
             ConfigGenerator.log(e.toString());
-            throw new IOException("Error found in file: " + fileName);
+            throw new IOException("Error reading file: " + fileName);
             
         } catch (NamingException e) {
             String msg = e.getMessage();
@@ -194,7 +193,7 @@ public class Parser {
         
         if (!configFile.exists()) 
         {
-            throw new IOException(fileName + " not found.");
+            throw new IOException(fileName + " file not found.");
         }
 /*        
         if (!(configFile.isFile() && configFile.canRead())) 

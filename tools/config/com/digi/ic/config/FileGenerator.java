@@ -8,8 +8,11 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 
+import javax.management.BadStringOperationException;
+
 public class FileGenerator {
-    
+
+    /* Strings for RCI parser. Macros are created in remote_config.h */
     private final static String[] rciParserStrings = {"ENTITY_QUOTE", "quot",
         "ENTITY_AMPERSAND", "amp", 
         "ENTITY_APOSTROPHE", "apos",
@@ -120,7 +123,7 @@ public class FileGenerator {
                     
                     theConfig = configData.getConfigGroup(configType);
                     
-                } catch (IOException e) {
+                } catch (BadStringOperationException e) {
                     /* end of the ConfigData ConfigType */
                     break;
                 }
@@ -610,7 +613,7 @@ public class FileGenerator {
                 
                 groups = configData.getConfigGroup(configType);
                 
-            } catch (IOException e) {
+            } catch (BadStringOperationException e) {
                 /* end of the ConfigData ConfigType */
                 break;
             }
@@ -677,7 +680,7 @@ public class FileGenerator {
                 
                 groups = configData.getConfigGroup(configType);
                 
-            } catch (IOException e) {
+            } catch (BadStringOperationException e) {
                 /* end of the ConfigData ConfigType */
                 break;
             }
@@ -842,7 +845,7 @@ public class FileGenerator {
                 
                 groups = configData.getConfigGroup(configType);
                 
-            } catch (IOException e) {
+            } catch (BadStringOperationException e) {
                 /* end of the ConfigData ConfigType */
                 break;
             }

@@ -26,6 +26,7 @@ public class ElementStruct {
         DATETIME (false),
         INVALID_TYPE (false);
 
+        /* special type since string cannot start 0x (zero)  */
         private final static String STRING_0XHEX = "0xhex";
         
         private final boolean minMaxSupport;
@@ -77,11 +78,11 @@ public class ElementStruct {
  
     public ElementStruct(String nameStr, String descStr) throws BadStringOperationException
     {
-        if (nameStr == null)
+/*        if (nameStr == null)
         {
             throw new BadStringOperationException("Missing element name");
         }
-        
+*/
         
         if (descStr == null)
         {

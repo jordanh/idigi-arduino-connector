@@ -11,6 +11,8 @@ public class ConfigGenerator {
     private static final String NO_EDESC_OPTION = DASH + "nodesc";
     private static final String HELP_OPTION = DASH + "help";
     private static final String VERBOSE_OPTION = DASH + "verbose";
+    
+    /* internal option to set different server name */
     private static final String SERVER_OPTION = DASH + "s";
     private static final String SERVER_NAME = "developer.idigi.com";
     
@@ -49,7 +51,7 @@ public class ConfigGenerator {
         
         for (String arg: args)
         {
-             if (arg.equals(NO_EDESC_OPTION)) {
+            if (arg.equals(NO_EDESC_OPTION)) {
                 noErrorDescription = true;
             }
             else if (arg.equals(VERBOSE_OPTION)) {
@@ -62,15 +64,16 @@ public class ConfigGenerator {
             {
                 /* split the [option]=[option value] */
                 String[] options = arg.split("=", 2);
-                if (options.length == 1)
-                {
-                    /* no equal separator */
-                    usage();
-                }
-                else if (options[1].equals(SERVER_OPTION))
+                
+                if ((options.length == 2) && (options[0].equals(SERVER_OPTION)))
                 {
                     /* SERVER_OPTION */
                     serverName = options[1];
+                }
+                else
+                {
+                    /* no equal separator */
+                    usage();
                 }
             }
             else {
@@ -133,6 +136,7 @@ public class ConfigGenerator {
             /* check/get args options */
             ConfigGenerator.checkCommandLine(args);
 
+            /* descriptor constructor for arguments */
             Descriptors descriptors = new Descriptors(args);
             
             /* parse file */
@@ -143,8 +147,8 @@ public class ConfigGenerator {
 
             Parser.processFile(filename, configData);
             
-            if (((configData.getSettingGroups() == null) && (configData.getStateGroups() == null)) ||
-                ((configData.getSettingGroups().isEmpty()) && (configData.getStateGroups().isEmpty())))
+//            if ((configData.getSettingGroups() == null) && (configData.getStateGroups() == null))
+            if ((configData.getSettingGroups().isEmpty()) && (configData.getStateGroups().isEmpty()))
             {
                 throw new IOException("No groups specified in file: " + filename);
             }
@@ -162,7 +166,7 @@ public class ConfigGenerator {
             
             log("Done.");
                 
-        } catch (IOException e) {
+        } catch (Exception e) {
             log(e.getMessage());
             
             if (verboseOption)

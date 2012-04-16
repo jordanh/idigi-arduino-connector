@@ -13,10 +13,11 @@ public class GroupStruct {
         {
             throw new BadStringOperationException("Invalid instance count for the group: " + nameStr);
         }
-        if (nameStr == null)
+/*         if (nameStr == null)
         {
             throw new BadStringOperationException("Missing group name");
         }
+*/
         if (descStr == null)
         {
             throw new BadStringOperationException("Missing group description");
@@ -82,14 +83,6 @@ public class GroupStruct {
     public boolean validate()
     {
         boolean valid = true;
-/*
-        if (description == null)
-        {
-            ConfigGenerator.log("Missing description");
-            valid = false;
-        }
-        else
-*/ 
         if (elements.isEmpty())
         {
             ConfigGenerator.log("No element specified");

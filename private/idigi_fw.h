@@ -397,6 +397,8 @@ enum fw_info {
 
     }
 
+    CONFIRM(offsetof(idigi_fw_config_t, timeout) == 0);
+
     /* let's get and build target info response */
     for (i=0; i < request_list_count; i++)
     {
@@ -557,6 +559,7 @@ enum fw_download_response {
 
     uint8_t abort_opcode = fw_download_abort_opcode;
 
+    CONFIRM(offsetof(idigi_fw_download_request_t, timeout) == 0);
 
     request_data.target = message_load_u8(fw_download_request, target);
 
@@ -615,7 +618,6 @@ enum fw_download_response {
         request_data.filename = string_id_ptr;
         *(request_data.filename + string_id_length) = '\0';
     }
-
 
     /* call callback */
     status = get_fw_config(fw_ptr, idigi_firmware_download_request, &request_data, sizeof request_data, &response_status, NULL, fw_equal);
@@ -697,6 +699,8 @@ enum fw_binary_ack {
 
     idigi_fw_status_t response_status = idigi_fw_user_abort;
 
+    CONFIRM(offsetof(idigi_fw_image_data_t, timeout) == 0);
+
     /* Parse firmware binary block */
     request_data.target = message_load_u8(fw_binary_block, target);
 
@@ -777,6 +781,8 @@ static idigi_callback_status_t process_fw_abort(idigi_firmware_data_t * const fw
         idigi_fw_download_abort_t request_data;
         uint8_t abort_status = message_load_u8(fw_abort, status);
 
+        CONFIRM(offsetof(idigi_fw_download_abort_t, timeout) == 0);
+
         request_data.target = message_load_u8(fw_abort, target);
         switch (abort_status)
         {
@@ -855,6 +861,8 @@ enum fw_complete_response {
     idigi_callback_status_t status = idigi_callback_abort;
     idigi_fw_download_complete_request_t request_data;
     idigi_fw_download_complete_response_t response_data;
+
+    CONFIRM(offsetof(idigi_fw_download_complete_request_t, timeout) == 0);
 
     request_data.target = message_load_u8(fw_complete_request, target);
 

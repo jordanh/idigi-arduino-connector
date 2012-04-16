@@ -3,5 +3,5 @@
 for file in $(ls *.rci)
 do
     printf "\n\n%s\n" $file
-    ../../../tools/config/ConfigGenerator.jar mlchan:mlchan "Linux Application" 1 $file
+    java -jar ../../../tools/config/ConfigGenerator.jar -s=test.idigi.com mlchan:mlchan "Linux Application" 1 $file
 done
