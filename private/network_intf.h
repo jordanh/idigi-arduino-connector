@@ -377,7 +377,11 @@ static uint8_t * new_receive_packet(idigi_data_t * const idigi_ptr)
     {
         packet = buffer_ptr->buffer;
         idigi_ptr->receive_packet.free_packet_buffer = buffer_ptr->next;
+
+        CONFIRM(offsetof(idigi_buffer_t, buffer) == 0);
+        CONFIRM((sizeof buffer_ptr->buffer % sizeof (int)) == 0);
     }
+
 
     return packet;
 }

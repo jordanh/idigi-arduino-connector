@@ -233,19 +233,19 @@ idigi_callback_status_t app_ethernet_group_get(idigi_remote_group_request_t * re
 
     ethernet_ptr = session_ptr->group_context;
 
-    switch (request->element_id)
+    switch (request->element.id)
     {
     case idigi_setting_ethernet_dhcp:
-        ASSERT(request->element_type == idigi_element_type_boolean);
+        ASSERT(request->element.type == idigi_element_type_boolean);
         response->element_data.element_value->boolean_value = ethernet_ptr->dhcp_enabled;
         break;
     case idigi_setting_ethernet_dns:
-        ASSERT(request->element_type == idigi_element_type_fqdnv4);
+        ASSERT(request->element.type == idigi_element_type_fqdnv4);
         response->element_data.element_value->string_value.buffer = ethernet_ptr->dns;
         response->element_data.element_value->string_value.length_in_bytes = strlen(ethernet_ptr->dns);
         break;
     case idigi_setting_ethernet_duplex:
-        ASSERT(request->element_type == idigi_element_type_enum);
+        ASSERT(request->element.type == idigi_element_type_enum);
         response->element_data.element_value->enum_value = ethernet_ptr->duplex;
         break;
     case idigi_setting_ethernet_ip:
@@ -254,8 +254,8 @@ idigi_callback_status_t app_ethernet_group_get(idigi_remote_group_request_t * re
     {
         char * config_data[] = {ethernet_ptr->ip_address, ethernet_ptr->subnet, ethernet_ptr->gateway};
 
-        ASSERT(request->element_type == idigi_element_type_ipv4);
-        response->element_data.element_value->string_value.buffer = config_data[request->element_id];
+        ASSERT(request->element.type == idigi_element_type_ipv4);
+        response->element_data.element_value->string_value.buffer = config_data[request->element.id];
         response->element_data.element_value->string_value.length_in_bytes = sizeof ethernet_ptr->ip_address;
         break;
     }
@@ -276,24 +276,24 @@ idigi_callback_status_t app_ethernet_group_set(idigi_remote_group_request_t * re
 
     ASSERT(session_ptr != NULL);
     ASSERT(session_ptr->group_context != NULL);
-    ASSERT(request->element_value != NULL);
+    ASSERT(request->element.value != NULL);
 
     ethernet_ptr = session_ptr->group_context;
-    switch (request->element_id)
+    switch (request->element.id)
     {
     case idigi_setting_ethernet_dhcp:
-        ASSERT(request->element_type == idigi_element_type_boolean);
-        ethernet_ptr->dhcp_enabled = request->element_value->boolean_value;
+        ASSERT(request->element.type == idigi_element_type_boolean);
+        ethernet_ptr->dhcp_enabled = request->element.value->boolean_value;
         break;
     case idigi_setting_ethernet_dns:
-        ASSERT(request->element_type == idigi_element_type_fqdnv4);
-        ASSERT(request->element_value->string_value.length_in_bytes <= sizeof ethernet_ptr->dns);
-        memcpy(ethernet_ptr->dns, request->element_value->string_value.buffer, request->element_value->string_value.length_in_bytes);
-        ethernet_ptr->dns[request->element_value->string_value.length_in_bytes] = '\0';
+        ASSERT(request->element.type == idigi_element_type_fqdnv4);
+        ASSERT(request->element.value->string_value.length_in_bytes <= sizeof ethernet_ptr->dns);
+        memcpy(ethernet_ptr->dns, request->element.value->string_value.buffer, request->element.value->string_value.length_in_bytes);
+        ethernet_ptr->dns[request->element.value->string_value.length_in_bytes] = '\0';
         break;
     case idigi_setting_ethernet_duplex:
-        ASSERT(request->element_type == idigi_element_type_enum);
-        ethernet_ptr->duplex = request->element_value->enum_value;
+        ASSERT(request->element.type == idigi_element_type_enum);
+        ethernet_ptr->duplex = request->element.value->enum_value;
         break;
     case idigi_setting_ethernet_ip:
     case idigi_setting_ethernet_subnet:
@@ -308,10 +308,10 @@ idigi_callback_status_t app_ethernet_group_set(idigi_remote_group_request_t * re
                 {ethernet_ptr->gateway, sizeof ethernet_ptr->gateway}
         };
 
-        ASSERT(request->element_type == idigi_element_type_ipv4);
-        ASSERT(request->element_value->string_value.length_in_bytes <= config_data[request->element_id].max_length);
-        memcpy(config_data[request->element_id].data, request->element_value->string_value.buffer, request->element_value->string_value.length_in_bytes);
-        config_data[request->element_id].data[request->element_value->string_value.length_in_bytes] = '\0';
+        ASSERT(request->element.type == idigi_element_type_ipv4);
+        ASSERT(request->element.value->string_value.length_in_bytes <= config_data[request->element.id].max_length);
+        memcpy(config_data[request->element.id].data, request->element.value->string_value.buffer, request->element.value->string_value.length_in_bytes);
+        config_data[request->element.id].data[request->element.value->string_value.length_in_bytes] = '\0';
         break;
     }
     default:
@@ -360,7 +360,7 @@ idigi_callback_status_t app_ethernet_group_end(idigi_remote_group_request_t * re
 
         /* TODO: need to check valid DNS? */
         strcpy(ethernet_config_data.dns, ethernet_ptr->dns);
-        ethernet_config_data.dhcp_enabled = (request->element_value->boolean_value == idigi_boolean_true) ? ethernet_dhcp_enabled : ethernet_dhcp_disabled;
+        ethernet_config_data.dhcp_enabled = (request->element.value->boolean_value == idigi_boolean_true) ? ethernet_dhcp_enabled : ethernet_dhcp_disabled;
 
         switch (ethernet_ptr->duplex)
         {

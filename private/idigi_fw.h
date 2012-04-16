@@ -167,6 +167,7 @@ static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_pt
         unsigned int * const req_timeout = request;
         /* we want callback to return immediately */
         *req_timeout = 0;
+
     }
 
     request_id.firmware_request = fw_request_id;

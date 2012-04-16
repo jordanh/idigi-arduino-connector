@@ -285,7 +285,7 @@ public class Descriptors {
     private String sendCloudData(String target, String method, String message)
     {
         String response = "";
-        String cloud = "http://test.idigi.com" + target;
+        String cloud = "http://" + ConfigGenerator.getServerName() + target;
         String encodedCredential = encode(username + ":" + password);
 
         try

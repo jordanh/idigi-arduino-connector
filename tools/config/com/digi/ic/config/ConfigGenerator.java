@@ -11,6 +11,8 @@ public class ConfigGenerator {
     private static final String NO_EDESC_OPTION = DASH + "nodesc";
     private static final String HELP_OPTION = DASH + "help";
     private static final String VERBOSE_OPTION = DASH + "verbose";
+    private static final String SERVER_OPTION = DASH + "s";
+    private static final String SERVER_NAME = "developer.idigi.com";
     
     public static void usage()
     {
@@ -35,10 +37,15 @@ public class ConfigGenerator {
         return argumentList;
     }
     
+    public static String getServerName()
+    {
+        return serverName;
+    }
     
     public static int checkCommandLine(String args[]) {
         int n = 0;
   
+        serverName = SERVER_NAME;
         
         for (String arg: args)
         {
@@ -50,6 +57,21 @@ public class ConfigGenerator {
             }
             else if (arg.equals(HELP_OPTION)) {
                 usage();
+            }
+            else if (arg.startsWith(DASH))
+            {
+                /* split the [option]=[option value] */
+                String[] options = arg.split("=", 2);
+                if (options.length == 1)
+                {
+                    /* no equal separator */
+                    usage();
+                }
+                else if (options[1].equals(SERVER_OPTION))
+                {
+                    /* SERVER_OPTION */
+                    serverName = options[1];
+                }
             }
             else {
                 n++;
@@ -168,5 +190,6 @@ public class ConfigGenerator {
     private static String argumentList;
     private static boolean noErrorDescription;
     private static boolean verboseOption;
+    private static String serverName;
 
 }

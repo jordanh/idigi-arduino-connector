@@ -63,7 +63,7 @@ idigi_callback_status_t app_serial_group_init(idigi_remote_group_request_t * req
     void * ptr;
     remote_group_session_t * const session_ptr = response->user_context;
     serial_config_data_t * serial_ptr = NULL;
-    int group_index = request->group_index -1;
+    int group_index = request->group.index -1;
 
     ASSERT(session_ptr != NULL);
 
@@ -94,7 +94,7 @@ idigi_callback_status_t app_serial_group_get(idigi_remote_group_request_t * requ
 
     serial_ptr = session_ptr->group_context;
 
-    switch (request->element_id)
+    switch (request->element.id)
     {
     case idigi_setting_serial_baud:
         switch (serial_ptr->baud)
@@ -154,7 +154,7 @@ idigi_callback_status_t app_serial_group_get(idigi_remote_group_request_t * requ
         response->element_data.element_value->on_off_value = (serial_ptr->xbreak_enable) ? idigi_on: idigi_off;
         break;
     case idigi_setting_serial_txbytes:
-        response->element_data.element_value->integer_unsigned_value = serial_txbytes[request->group_index-1];
+        response->element_data.element_value->integer_unsigned_value = serial_txbytes[request->group.index-1];
         break;
     default:
         ASSERT(0);
@@ -177,13 +177,13 @@ idigi_callback_status_t app_serial_group_set(idigi_remote_group_request_t * requ
 
     serial_ptr = session_ptr->group_context;
 
-    switch (request->element_id)
+    switch (request->element.id)
     {
     case idigi_setting_serial_baud:
     {
         unsigned int const serial_supported_baud_rates[] = { 2400, 4800, 9600, 19200, 38400, 57600, 115200, 230400};
 
-        switch (request->element_value->enum_value)
+        switch (request->element.value->enum_value)
         {
         case idigi_setting_serial_baud_2400:
         case idigi_setting_serial_baud_4800:
@@ -193,8 +193,8 @@ idigi_callback_status_t app_serial_group_set(idigi_remote_group_request_t * requ
         case idigi_setting_serial_baud_57600:
         case idigi_setting_serial_baud_115200:
         case idigi_setting_serial_baud_230400:
-            ASSERT(request->element_type == idigi_element_type_enum);
-            serial_ptr->baud = serial_supported_baud_rates[request->element_value->enum_value];
+            ASSERT(request->element.type == idigi_element_type_enum);
+            serial_ptr->baud = serial_supported_baud_rates[request->element.value->enum_value];
             break;
         default:
             response->error_id = idigi_setting_serial_error_invalid_baud;
@@ -206,13 +206,13 @@ idigi_callback_status_t app_serial_group_set(idigi_remote_group_request_t * requ
     {
         unsigned int const serial_supported_parity[] = {parity_none, parity_odd, parity_even};
 
-        switch (request->element_value->enum_value)
+        switch (request->element.value->enum_value)
         {
         case idigi_setting_serial_parity_none:
         case idigi_setting_serial_parity_odd:
         case idigi_setting_serial_parity_even:
-            ASSERT(request->element_type == idigi_element_type_enum);
-            serial_ptr->parity = serial_supported_parity[request->element_value->enum_value];
+            ASSERT(request->element.type == idigi_element_type_enum);
+            serial_ptr->parity = serial_supported_parity[request->element.value->enum_value];
             break;
         default:
             response->error_id = idigi_setting_serial_error_invalid_parity;
@@ -221,12 +221,12 @@ idigi_callback_status_t app_serial_group_set(idigi_remote_group_request_t * requ
         break;
     }
     case idigi_setting_serial_databits:
-        ASSERT(request->element_type == idigi_element_type_uint32);
-        serial_ptr->databits = request->element_value->integer_unsigned_value;
+        ASSERT(request->element.type == idigi_element_type_uint32);
+        serial_ptr->databits = request->element.value->integer_unsigned_value;
         break;
     case idigi_setting_serial_xbreak:
-        ASSERT(request->element_type == idigi_element_type_on_off);
-        serial_ptr->xbreak_enable = (request->element_value->on_off_value == idigi_on) ? 1: 0;
+        ASSERT(request->element.type == idigi_element_type_on_off);
+        serial_ptr->xbreak_enable = (request->element.value->on_off_value == idigi_on) ? 1: 0;
         break;
     default:
         ASSERT(0);
@@ -250,7 +250,7 @@ idigi_callback_status_t app_serial_group_end(idigi_remote_group_request_t * requ
 
     if (request->action == idigi_remote_action_set)
     {
-        serial_config_data[request->group_index-1] = *serial_ptr;
+        serial_config_data[request->group.index-1] = *serial_ptr;
     }
 
     if (serial_ptr != NULL)

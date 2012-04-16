@@ -71,7 +71,7 @@ idigi_callback_status_t app_debug_info_group_get(idigi_remote_group_request_t * 
 
     ASSERT(response->element_data.element_value != NULL);
 
-    switch (request->element_id)
+    switch (request->element.id)
     {
     case idigi_state_debug_info_version:
     {

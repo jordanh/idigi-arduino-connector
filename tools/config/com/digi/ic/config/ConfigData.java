@@ -28,8 +28,7 @@ public class ConfigData {
         MAX (2);
         
         private int index;
-//        private final static int count = 2;
-        
+
         private ConfigType(int index)
         {
             this.index = index;
@@ -39,12 +38,7 @@ public class ConfigData {
         {
             return index;
         }
-/*        
-        public static int getCount()
-        {
-            return count;
-        }
-*/        
+
         public static ConfigType toConfigType(String str)
         {
             try {

@@ -83,10 +83,10 @@ idigi_callback_status_t app_device_info_group_get(idigi_remote_group_request_t *
     ASSERT(session_ptr != NULL);
     ASSERT(session_ptr->group_context != NULL);
 
-    switch (request->element_id)
+    switch (request->element.id)
     {
     case idigi_setting_device_info_syspwd:
-        ASSERT(request->element_type == idigi_element_type_password);
+        ASSERT(request->element.type == idigi_element_type_password);
 
     case idigi_setting_device_info_product:
     case idigi_setting_device_info_model:
@@ -99,19 +99,19 @@ idigi_callback_status_t app_device_info_group_get(idigi_remote_group_request_t *
                                 device_info_ptr->company, device_info_ptr->desc,
                                 device_info_ptr->syspwd};
 
-        response->element_data.element_value->string_value.buffer = config_data[request->element_id];
-        if (request->element_id == idigi_setting_device_info_desc)
+        response->element_data.element_value->string_value.buffer = config_data[request->element.id];
+        if (request->element.id == idigi_setting_device_info_desc)
         {
-            ASSERT(request->element_type == idigi_element_type_multiline_string);
+            ASSERT(request->element.type == idigi_element_type_multiline_string);
             response->element_data.element_value->string_value.length_in_bytes = device_info_ptr->desc_length;
         }
         else
         {
-            if (request->element_id != idigi_setting_device_info_syspwd)
+            if (request->element.id != idigi_setting_device_info_syspwd)
             {
-                ASSERT(request->element_type == idigi_element_type_string);
+                ASSERT(request->element.type == idigi_element_type_string);
             }
-            response->element_data.element_value->string_value.length_in_bytes = strlen(config_data[request->element_id]);
+            response->element_data.element_value->string_value.length_in_bytes = strlen(config_data[request->element.id]);
         }
         break;
     }
@@ -132,7 +132,7 @@ idigi_callback_status_t app_device_info_group_set(idigi_remote_group_request_t *
     ASSERT(session_ptr != NULL);
     ASSERT(session_ptr->group_context != NULL);
 
-    switch (request->element_id)
+    switch (request->element.id)
     {
     case idigi_setting_device_info_product:
     case idigi_setting_device_info_model:
@@ -155,18 +155,18 @@ idigi_callback_status_t app_device_info_group_set(idigi_remote_group_request_t *
         };
 
 
-        if (request->element_value->string_value.length_in_bytes < config_data[request->element_id].min_length ||
-            request->element_value->string_value.length_in_bytes > config_data[request->element_id].max_length)
+        if (request->element.value->string_value.length_in_bytes < config_data[request->element.id].min_length ||
+            request->element.value->string_value.length_in_bytes > config_data[request->element.id].max_length)
         {
             response->error_id = idigi_setting_device_info_error_invalid_length;
             response->element_data.error_hint = NULL;
             goto done;
         }
-        memcpy(config_data[request->element_id].store_data, request->element_value->string_value.buffer, request->element_value->string_value.length_in_bytes);
-        config_data[request->element_id].store_data[request->element_value->string_value.length_in_bytes] = '\0';
-        if (request->element_id == idigi_setting_device_info_desc)
+        memcpy(config_data[request->element.id].store_data, request->element.value->string_value.buffer, request->element.value->string_value.length_in_bytes);
+        config_data[request->element.id].store_data[request->element.value->string_value.length_in_bytes] = '\0';
+        if (request->element.id == idigi_setting_device_info_desc)
         {
-            device_info_ptr->desc_length = request->element_value->string_value.length_in_bytes;
+            device_info_ptr->desc_length = request->element.value->string_value.length_in_bytes;
         }
         break;
     }

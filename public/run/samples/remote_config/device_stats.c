@@ -85,21 +85,21 @@ idigi_callback_status_t app_device_stats_group_get(idigi_remote_group_request_t 
 
     device_stats_ptr = session_ptr->group_context;
 
-    switch (request->element_id)
+    switch (request->element.id)
     {
     case idigi_setting_device_stats_curtime:
     {
-        ASSERT(request->element_type == idigi_element_type_datetime);
+        ASSERT(request->element.type == idigi_element_type_datetime);
         response->element_data.element_value->string_value.length_in_bytes = strlen(device_stats_ptr->timestring);
         response->element_data.element_value->string_value.buffer = device_stats_ptr->timestring;
         break;
     }
     case idigi_setting_device_stats_ctemp:
-        ASSERT(request->element_type == idigi_element_type_float);
+        ASSERT(request->element.type == idigi_element_type_float);
         response->element_data.element_value->float_value = device_stats_ptr->temperature;
         break;
     case idigi_setting_device_stats_ftemp:
-        ASSERT(request->element_type == idigi_element_type_float);
+        ASSERT(request->element.type == idigi_element_type_float);
         response->element_data.element_value->float_value = device_stats_ptr->temperature * 9 / 5 + 32;
         break;
 
@@ -123,7 +123,7 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
 
     device_stats_ptr = session_ptr->group_context;
 
-    switch (request->element_id)
+    switch (request->element.id)
     {
     case idigi_setting_device_stats_curtime:
     {
@@ -135,14 +135,14 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
         char * ptr;
         size_t len;
 
-        ASSERT(request->element_type == idigi_element_type_datetime);
-        ASSERT(request->element_value != NULL);
-        ASSERT(request->element_value->string_value.buffer != NULL);
-        ASSERT(request->element_value->string_value.length_in_bytes != DEVICE_STATS_TIME_STRING_LENGTH);
+        ASSERT(request->element.type == idigi_element_type_datetime);
+        ASSERT(request->element.value != NULL);
+        ASSERT(request->element.value->string_value.buffer != NULL);
+        ASSERT(request->element.value->string_value.length_in_bytes != DEVICE_STATS_TIME_STRING_LENGTH);
 
         lt = localtime(&device_stats_ptr->curtime);
 
-        ptr = request->element_value->string_value.buffer;
+        ptr = request->element.value->string_value.buffer;
         len = 4;
         *(ptr+len) = '\0';
         t = atoi(ptr);
@@ -230,20 +230,20 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
             goto done;
         }
 #else
-        ASSERT(request->element_type == idigi_element_type_datetime);
-        ASSERT(request->element_value != NULL);
-        ASSERT(request->element_value->string_value.buffer != NULL);
-        ASSERT(request->element_value->string_value.length_in_bytes != DEVICE_STATS_TIME_STRING_LENGTH);
+        ASSERT(request->element.type == idigi_element_type_datetime);
+        ASSERT(request->element.value != NULL);
+        ASSERT(request->element.value->string_value.buffer != NULL);
+        ASSERT(request->element.value->string_value.length_in_bytes != DEVICE_STATS_TIME_STRING_LENGTH);
 
-        ASSERT(request->element_value->string_value.length_in_bytes < sizeof device_stats_ptr->timestring);
-        memcpy(device_stats_ptr->timestring, request->element_value->string_value.buffer, request->element_value->string_value.length_in_bytes);
+        ASSERT(request->element.value->string_value.length_in_bytes < sizeof device_stats_ptr->timestring);
+        memcpy(device_stats_ptr->timestring, request->element.value->string_value.buffer, request->element.value->string_value.length_in_bytes);
 #endif
 
         break;
     }
     case idigi_setting_device_stats_ctemp:
-        ASSERT(request->element_type == idigi_element_type_float);
-        device_stats_ptr->temperature= request->element_value->float_value;
+        ASSERT(request->element.type == idigi_element_type_float);
+        device_stats_ptr->temperature= request->element.value->float_value;
         break;
 
     case idigi_setting_device_stats_ftemp:

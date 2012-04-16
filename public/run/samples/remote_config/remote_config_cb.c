@@ -146,12 +146,12 @@ static idigi_callback_status_t app_process_group(remote_group_cb_index_t cb_inde
 
     ASSERT(session_ptr != NULL);
 
-    switch (request->group_type)
+    switch (request->group.type)
     {
     case idigi_remote_group_setting:
-        if (request->group_id <= sizeof (remote_setting_table))
+        if (request->group.id <= sizeof (remote_setting_table))
         {
-            group_ptr = &remote_setting_table[request->group_id];
+            group_ptr = &remote_setting_table[request->group.id];
             session_ptr->group_context = group_ptr;
         }
         else
@@ -160,9 +160,9 @@ static idigi_callback_status_t app_process_group(remote_group_cb_index_t cb_inde
         }
         break;
     case idigi_remote_group_state:
-        if (request->group_id <= sizeof (remote_state_table))
+        if (request->group.id <= sizeof (remote_state_table))
         {
-            group_ptr = &remote_state_table[request->group_id];
+            group_ptr = &remote_state_table[request->group.id];
             session_ptr->group_context = group_ptr;
         }
         else

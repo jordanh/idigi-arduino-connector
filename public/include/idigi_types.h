@@ -35,6 +35,7 @@
 #include <string.h>
 #include <limits.h>
 #include <assert.h>
+#include <stddef.h>
 
 #if __STDC_VERSION__ >= 199901L /* Test used for C89/C99 Compiler */
   /* 
@@ -123,6 +124,18 @@ typedef int idigi_network_handle_t;
 /**
 * @}
 */
+
+/**
+ * Compile time assertion of functional state (limits, range checking, etc.)
+ *
+ *   Failure will emit a compiler-specific error
+ *           gcc: 'duplicate case value'
+ *   Example:
+ *           CONFIRM(sizeof (int) == 4);
+ *           CONFIRM(CHAR_BIT == 8);
+ *           CONFIRM(ElementCount(array) == array_item_count);
+ */
+#define CONFIRM(cond)           do { switch(0) {case 0: case (cond):;} } while (0)
 
 #define asizeof(array)  (sizeof array/sizeof array[0])
 

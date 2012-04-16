@@ -147,12 +147,16 @@ typedef union {
 
 typedef struct {
     idigi_remote_action_t action;
-    idigi_remote_group_type_t group_type;
-    unsigned int group_id;
-    unsigned int group_index;
-    unsigned int element_id;
-    idigi_element_value_type_t element_type;
-    idigi_element_value_t * element_value;
+    struct {
+        idigi_remote_group_type_t type;
+        unsigned int id;
+        unsigned int index;
+    } group;
+    struct {
+        unsigned int id;
+        idigi_element_value_type_t type;
+        idigi_element_value_t * value;
+    } element;
 } idigi_remote_group_request_t;
 
 typedef struct {

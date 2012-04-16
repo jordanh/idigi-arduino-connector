@@ -211,6 +211,11 @@ typedef struct idigi_facility {
 } idigi_facility_t;
 
 typedef struct idigi_buffer {
+    /* this buffer must be FIRST field in the structure
+     * since this is used between network interface
+     * and all facilities and facilities release the buffer
+     * by returning the pointer of the buffer.
+     */
     uint8_t buffer[MSG_MAX_RECV_PACKET_SIZE];
     struct idigi_buffer * next;
     idigi_bool_t    in_use;
