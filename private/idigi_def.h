@@ -211,9 +211,9 @@ typedef struct idigi_facility {
 } idigi_facility_t;
 
 typedef struct idigi_buffer {
+    uint8_t buffer[MSG_MAX_RECV_PACKET_SIZE];
     struct idigi_buffer * next;
     idigi_bool_t    in_use;
-    uint8_t buffer[MSG_MAX_RECV_PACKET_SIZE];
 } idigi_buffer_t;
 
 typedef struct idigi_data {
