@@ -140,7 +140,7 @@ static idigi_callback_status_t app_process_group(remote_group_cb_index_t cb_inde
                                                  idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    remote_group_table_t * group_ptr;
+    remote_group_table_t * group_ptr = NULL;
     remote_group_cb_t callback;
     remote_group_session_t * session_ptr = response->user_context;
 

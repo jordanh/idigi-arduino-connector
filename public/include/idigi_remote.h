@@ -133,10 +133,7 @@ typedef struct {
 
 
 typedef union {
-    struct {
-        char * buffer;
-        size_t length_in_bytes;
-    } string_value;
+    char * string_value;
     int32_t integer_signed_value;
     uint32_t integer_unsigned_value;
     float float_value;

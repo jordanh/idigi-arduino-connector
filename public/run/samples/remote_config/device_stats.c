@@ -90,8 +90,7 @@ idigi_callback_status_t app_device_stats_group_get(idigi_remote_group_request_t 
     case idigi_setting_device_stats_curtime:
     {
         ASSERT(request->element.type == idigi_element_type_datetime);
-        response->element_data.element_value->string_value.length_in_bytes = strlen(device_stats_ptr->timestring);
-        response->element_data.element_value->string_value.buffer = device_stats_ptr->timestring;
+        response->element_data.element_value->string_value = device_stats_ptr->timestring;
         break;
     }
     case idigi_setting_device_stats_ctemp:
@@ -137,12 +136,11 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
 
         ASSERT(request->element.type == idigi_element_type_datetime);
         ASSERT(request->element.value != NULL);
-        ASSERT(request->element.value->string_value.buffer != NULL);
-        ASSERT(request->element.value->string_value.length_in_bytes != DEVICE_STATS_TIME_STRING_LENGTH);
+        ASSERT(request->element.value->string_value != NULL);
 
         lt = localtime(&device_stats_ptr->curtime);
 
-        ptr = request->element.value->string_value.buffer;
+        ptr = request->element.value->string_value;
         len = 4;
         *(ptr+len) = '\0';
         t = atoi(ptr);
@@ -232,11 +230,11 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
 #else
         ASSERT(request->element.type == idigi_element_type_datetime);
         ASSERT(request->element.value != NULL);
-        ASSERT(request->element.value->string_value.buffer != NULL);
-        ASSERT(request->element.value->string_value.length_in_bytes != DEVICE_STATS_TIME_STRING_LENGTH);
+        ASSERT(request->element.value->string_value != NULL);
+/*        ASSERT(strlen(request->element.value->string_value) == DEVICE_STATS_TIME_STRING_LENGTH); */
 
-        ASSERT(request->element.value->string_value.length_in_bytes < sizeof device_stats_ptr->timestring);
-        memcpy(device_stats_ptr->timestring, request->element.value->string_value.buffer, request->element.value->string_value.length_in_bytes);
+        ASSERT(strlen(request->element.value->string_value) < sizeof device_stats_ptr->timestring);
+        memcpy(device_stats_ptr->timestring, request->element.value->string_value, strlen(request->element.value->string_value));
 #endif
 
         break;

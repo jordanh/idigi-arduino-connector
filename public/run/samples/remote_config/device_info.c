@@ -45,9 +45,13 @@ typedef struct {
     char syspwd[DEVICE_INFO_SYSPWD_LENGTH];
 } device_info_config_data_t;
 
-device_info_config_data_t device_info_config_data = {"ICC Product", "\0", "Digi International Inc.", "ICC Demo on Linux\n"
-        "with firmware ugrade, put service, device request and remote configuration supports", 102, "\0"};
+device_info_config_data_t device_info_config_data = {"ICC Product\0", "\0", "Digi International Inc.\0", "ICC Demo on Linux\n"
+        "with firmware ugrade, put service, device request and remote configuration supports\0", 102, "\0"};
 
+void print_device_info_desc(void)
+{
+    printf("%s", device_info_config_data.desc);
+}
 idigi_callback_status_t app_device_info_group_init(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
 {
 
@@ -99,11 +103,10 @@ idigi_callback_status_t app_device_info_group_get(idigi_remote_group_request_t *
                                 device_info_ptr->company, device_info_ptr->desc,
                                 device_info_ptr->syspwd};
 
-        response->element_data.element_value->string_value.buffer = config_data[request->element.id];
+        response->element_data.element_value->string_value = config_data[request->element.id];
         if (request->element.id == idigi_setting_device_info_desc)
         {
             ASSERT(request->element.type == idigi_element_type_multiline_string);
-            response->element_data.element_value->string_value.length_in_bytes = device_info_ptr->desc_length;
         }
         else
         {
@@ -111,7 +114,6 @@ idigi_callback_status_t app_device_info_group_get(idigi_remote_group_request_t *
             {
                 ASSERT(request->element.type == idigi_element_type_string);
             }
-            response->element_data.element_value->string_value.length_in_bytes = strlen(config_data[request->element.id]);
         }
         break;
     }
@@ -141,6 +143,7 @@ idigi_callback_status_t app_device_info_group_set(idigi_remote_group_request_t *
     case idigi_setting_device_info_syspwd:
     {
         device_info_config_data_t * const device_info_ptr = session_ptr->group_context;
+        size_t value_length;
 
         struct {
             char * store_data;
@@ -154,19 +157,19 @@ idigi_callback_status_t app_device_info_group_set(idigi_remote_group_request_t *
                 {device_info_ptr->syspwd, 0, sizeof device_info_ptr->syspwd},
         };
 
-
-        if (request->element.value->string_value.length_in_bytes < config_data[request->element.id].min_length ||
-            request->element.value->string_value.length_in_bytes > config_data[request->element.id].max_length)
+        value_length = strlen(request->element.value->string_value);
+        if (value_length < config_data[request->element.id].min_length ||
+            value_length >= config_data[request->element.id].max_length)
         {
             response->error_id = idigi_setting_device_info_error_invalid_length;
             response->element_data.error_hint = NULL;
             goto done;
         }
-        memcpy(config_data[request->element.id].store_data, request->element.value->string_value.buffer, request->element.value->string_value.length_in_bytes);
-        config_data[request->element.id].store_data[request->element.value->string_value.length_in_bytes] = '\0';
+        memcpy(config_data[request->element.id].store_data, request->element.value->string_value, value_length);
+        config_data[request->element.id].store_data[value_length] = '\0';
         if (request->element.id == idigi_setting_device_info_desc)
         {
-            device_info_ptr->desc_length = request->element.value->string_value.length_in_bytes;
+            device_info_ptr->desc_length = value_length;
         }
         break;
     }

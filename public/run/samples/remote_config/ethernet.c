@@ -241,8 +241,7 @@ idigi_callback_status_t app_ethernet_group_get(idigi_remote_group_request_t * re
         break;
     case idigi_setting_ethernet_dns:
         ASSERT(request->element.type == idigi_element_type_fqdnv4);
-        response->element_data.element_value->string_value.buffer = ethernet_ptr->dns;
-        response->element_data.element_value->string_value.length_in_bytes = strlen(ethernet_ptr->dns);
+        response->element_data.element_value->string_value = ethernet_ptr->dns;
         break;
     case idigi_setting_ethernet_duplex:
         ASSERT(request->element.type == idigi_element_type_enum);
@@ -255,8 +254,7 @@ idigi_callback_status_t app_ethernet_group_get(idigi_remote_group_request_t * re
         char * config_data[] = {ethernet_ptr->ip_address, ethernet_ptr->subnet, ethernet_ptr->gateway};
 
         ASSERT(request->element.type == idigi_element_type_ipv4);
-        response->element_data.element_value->string_value.buffer = config_data[request->element.id];
-        response->element_data.element_value->string_value.length_in_bytes = sizeof ethernet_ptr->ip_address;
+        response->element_data.element_value->string_value = config_data[request->element.id];
         break;
     }
     default:
@@ -273,6 +271,7 @@ idigi_callback_status_t app_ethernet_group_set(idigi_remote_group_request_t * re
 
     remote_group_session_t * const session_ptr = response->user_context;
     ethernet_idigi_data_t * ethernet_ptr;
+    size_t length;
 
     ASSERT(session_ptr != NULL);
     ASSERT(session_ptr->group_context != NULL);
@@ -287,9 +286,11 @@ idigi_callback_status_t app_ethernet_group_set(idigi_remote_group_request_t * re
         break;
     case idigi_setting_ethernet_dns:
         ASSERT(request->element.type == idigi_element_type_fqdnv4);
-        ASSERT(request->element.value->string_value.length_in_bytes <= sizeof ethernet_ptr->dns);
-        memcpy(ethernet_ptr->dns, request->element.value->string_value.buffer, request->element.value->string_value.length_in_bytes);
-        ethernet_ptr->dns[request->element.value->string_value.length_in_bytes] = '\0';
+        length = strlen(request->element.value->string_value);
+
+        ASSERT(length <= sizeof ethernet_ptr->dns);
+        memcpy(ethernet_ptr->dns, request->element.value->string_value, length);
+        ethernet_ptr->dns[length] = '\0';
         break;
     case idigi_setting_ethernet_duplex:
         ASSERT(request->element.type == idigi_element_type_enum);
@@ -309,9 +310,12 @@ idigi_callback_status_t app_ethernet_group_set(idigi_remote_group_request_t * re
         };
 
         ASSERT(request->element.type == idigi_element_type_ipv4);
-        ASSERT(request->element.value->string_value.length_in_bytes <= config_data[request->element.id].max_length);
-        memcpy(config_data[request->element.id].data, request->element.value->string_value.buffer, request->element.value->string_value.length_in_bytes);
-        config_data[request->element.id].data[request->element.value->string_value.length_in_bytes] = '\0';
+
+        length = strlen(request->element.value->string_value);
+
+        ASSERT(length <= config_data[request->element.id].max_length);
+        memcpy(config_data[request->element.id].data, request->element.value->string_value, length);
+        config_data[request->element.id].data[length] = '\0';
         break;
     }
     default:

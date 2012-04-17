@@ -77,8 +77,7 @@ idigi_callback_status_t app_debug_info_group_get(idigi_remote_group_request_t * 
     {
         char * ptr;
         ptr = idigiThreadInfo.version;
-        response->element_data.element_value->string_value.buffer = ptr;
-        response->element_data.element_value->string_value.length_in_bytes = sizeof(idigiThreadInfo.version);
+        response->element_data.element_value->string_value = ptr;
         break;
     }
     case idigi_state_debug_info_stacktop:
