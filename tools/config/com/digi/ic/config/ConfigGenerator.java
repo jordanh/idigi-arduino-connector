@@ -19,14 +19,21 @@ public class ConfigGenerator {
     public static void usage()
     {
         ConfigGenerator generator = new ConfigGenerator();
-
-        log("Usage: java -jar " + generator.getClass().getName() + ".jar [" + HELP_OPTION + "] [" + NO_EDESC_OPTION + "] [" + VERBOSE_OPTION + "] <username[:password]> [vendor_id] <device_type> <fw_version> <config_filename>\n");
+        String className = generator.getClass().getName();
+        
+        int firstChar = className.lastIndexOf(".") +1;
+        if (firstChar > 0)
+        {
+            className = className.substring(firstChar);
+        }
+        
+        log("Usage: java -jar " + className + ".jar [" + HELP_OPTION + "] [" + NO_EDESC_OPTION + "] [" + VERBOSE_OPTION + "] <username[:password]> [vendor_id] <device_type> <fw_version> <config_filename>\n");
         log("Options:");
-        log("      " + HELP_OPTION +     "           = optional to show this menu");
-        log("      " + NO_EDESC_OPTION + "         = optional to exclude error description in the C file (Code size reduction)");
-        log("      " + VERBOSE_OPTION +  "        = optional to output message about what the tool is doing.");
+        log("      " + HELP_OPTION +     "           = optional option to show this menu");
+        log("      " + NO_EDESC_OPTION + "         = optional option to exclude error description in the C file (Code size reduction)");
+        log("      " + VERBOSE_OPTION +  "        = optional option to output message about what the tool is doing.");
         log("      username        = username to log in iDigi Cloud. If no password is given you will be prompted to enter the password");
-        log("      password        = optional for password to log in iDigi Cloud");
+        log("      password        = optional option for password to log in iDigi Cloud");
         log("      vendor_id       = optional Vendor ID obtained from iDigi Cloud registration. If not given, tool tries to retrieve it from the Cloud");
         log("      device_type     = Device type string with quotes(i.e. \"device type\")");
         log("      fw_version      = firmware version number in decimal");
@@ -165,9 +172,9 @@ public class ConfigGenerator {
             descriptors.processDescriptors(configData);
             
             log("Done.");
-                
+            
         } catch (Exception e) {
-            log(e.getMessage());
+            log (e.toString());
             
             if (verboseOption)
             {

@@ -14,7 +14,7 @@ import javax.naming.NamingException;
 public class Parser {
     
 
-    public static void processFile(String fileName, ConfigData configData) throws IOException
+    public static void processFile(String fileName, ConfigData configData) throws IOException, NullPointerException
     {
         
         try 
@@ -129,6 +129,9 @@ public class Parser {
                     throw new BadStringOperationException("Unrecogized keyword: " + token);
                 }
             }
+        } catch (NullPointerException e) {
+            ConfigGenerator.log(e.toString());
+            throw new NullPointerException();
             
         } catch (IOException e) {
             ConfigGenerator.log(e.toString());
@@ -187,13 +190,13 @@ public class Parser {
         return enumSupport;
     }
     
-    private static void initialize(String fileName) throws IOException
+    private static void initialize(String fileName) throws NullPointerException
     {
         configFile = new File(fileName);
         
         if (!configFile.exists()) 
         {
-            throw new IOException(fileName + " file not found.");
+            throw new NullPointerException(fileName + " file not found.");
         }
 /*        
         if (!(configFile.isFile() && configFile.canRead())) 
