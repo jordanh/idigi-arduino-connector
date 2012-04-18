@@ -171,7 +171,7 @@
  *    idigi_callback_status_t status = idigi_callback_continue;
  *    idigi_file_error_data_t * error_data = response_data->error;
  *    int oflag = 0; 
- *    int fd;
+ *    long int fd;
  *
  *    if (request_data->oflag & IDIGI_O_RDONLY) oflag |= O_RDONLY;
  *    if (request_data->oflag & IDIGI_O_WRONLY) oflag |= O_WRONLY;
@@ -185,7 +185,7 @@
  *
  *    if (fd < 0)
  *    {
- *        int errnum = errno;
+ *        long int errnum = errno;
  *        error_data->errnum = (void *) errnum;
  *        
  *        switch (errnum)
@@ -306,13 +306,13 @@
  *           break;
  *    }
  *
- *    offset = lseek((int) request_data->handle, request_data->offset, origin);
+ *    offset = lseek((long int) request_data->handle, request_data->offset, origin);
  *
  *    response_data->offset = offset;
  *
  *    if (offset < 0)
  *    {
- *        int errnum = errno;
+ *        long int errnum = errno;
  *        error_data->errnum = (void *) errnum;
  *        
  *        switch (errnum)
@@ -407,7 +407,7 @@
  *    idigi_callback_status_t status = idigi_callback_continue;
  *    idigi_file_error_data_t * error_data = response_data->error;
  * 
- *    int result = read((int) request_data->handle, response_data->data_ptr, response_data->size_in_bytes);
+ *    int result = read((long int) request_data->handle, response_data->data_ptr, response_data->size_in_bytes);
  *
  *    if (result >= 0)
  *    {
@@ -415,7 +415,7 @@
  *    }
  *    else
  *    {
- *        int errnum = errno;
+ *        long int errnum = errno;
  *        error_data->errnum = (void *) errnum;
  *            
  *        switch (errnum)
@@ -506,7 +506,7 @@
  *    idigi_callback_status_t status = idigi_callback_continue;
  *    idigi_file_error_data_t * error_data = response_data->error;
  * 
- *    int result = write((int) request_data->handle, request_data->data_ptr, request_data->size_in_bytes);
+ *    int result = write((long int) request_data->handle, request_data->data_ptr, request_data->size_in_bytes);
  * 
  *    if (result >= 0)
  *    {
@@ -515,7 +515,7 @@
  *    else
  *    if (result < 0)
  *    {
- *        int errnum = errno;
+ *        long int errnum = errno;
  *        error_data->errnum = (void *) errnum;
  *            
  *        switch (errnum)
@@ -605,11 +605,11 @@
  *    idigi_callback_status_t status = idigi_callback_continue;
  *    idigi_file_error_data_t * error_data = response_data->error;
  * 
- *    int result = ftruncate((int) request_data->handle, request_data->length);
+ *    int result = ftruncate((long int) request_data->handle, request_data->length);
  * 
  *    if (result < 0)
  *    {
- *        int errnum = errno;
+ *        long int errnum = errno;
  *        error_data->errnum = (void *) errnum;
  *            
  *        switch (errnum)
@@ -623,7 +623,7 @@
  *                status = idigi_callback_busy;
  *                break;
  *            default:
- *                error_data->errnum = idigi_file_unspec_error;
+ *                error_data->error_status = idigi_file_unspec_error;
  *        }
  *    }
  *    return status;
@@ -695,7 +695,7 @@
  * {
  *     idigi_file_error_data_t * error_data = response_data->error;
  *
- *     int result = close((int) request_data->handle);
+ *     int result = close((long int) request_data->handle);
  *
  *     if (result < 0 && errno == EIO)
  *     {
@@ -781,7 +781,7 @@
  *
  *     if (result < 0)
  *     {
- *          int errnum = errno;
+ *          long int errnum = errno;
  *          error_data->errnum = (void *) errnum;
  *
  *          switch (errnum)
@@ -912,7 +912,7 @@
  *     }
  *     else
  *     {
- *         int errnum = errno;
+ *         long int errnum = errno;
  *         error_data->errnum = (void *) errnum;
  *
  *         switch (errnum)
@@ -1302,7 +1302,7 @@
  *     }
  *     else
  *     {
- *         int errnum = errno;
+ *         long int errnum = errno;
  *         error_data->errnum = (void *) errnum;
  *
  *         switch (errnum)
@@ -1493,7 +1493,7 @@
  *    UNUSED_ARGUMENT(request_data);
  * 
  *    idigi_file_error_data_t * error_data = response_data->error;
- *    int errnum = (int) error_data->errnum;
+ *    long int errnum = (long int) error_data->errnum;
  * 
  *    char * err_str = strerror(errnum);
  *    char * ptr = response_data->data_ptr;
