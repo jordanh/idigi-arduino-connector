@@ -396,11 +396,11 @@ static idigi_callback_status_t call_file_close_user(idigi_data_t * const idigi_p
 
     if (context->handle != NULL)
     {
+        idigi_file_error_data_t error_data = context->error;
         idigi_file_request_t request;
         idigi_file_response_t response;
 
         request.handle = context->handle;
-        idigi_file_error_data_t error_data = context->error;
         FileSetState(context, FILE_STATE_CLOSING);
  
         status = call_file_system_user(idigi_ptr, service_request, fs_request_id,
@@ -689,6 +689,43 @@ done:
     return status;
 }
 
+static idigi_callback_status_t set_file_position(idigi_data_t * const idigi_ptr,
+                                                 msg_service_request_t * const service_request)
+
+{
+    idigi_callback_status_t status;
+    long int ret;
+
+    /* Check that offset is inside the file
+       Some systems crash, when trying to set offset outside the file 
+     */
+    msg_session_t * const session = service_request->session;
+    file_system_context_t * context = session->service_context;
+    
+    status = call_file_lseek_user(idigi_ptr, service_request, 0, IDIGI_SEEK_END, &ret);
+    if (status == idigi_callback_busy || !fileOperationSuccess(status, context))
+        goto done;
+
+    if (ret == -1 || (uint32_t) ret < context->data.f.offset)
+    {
+        context->error.error_status = idigi_file_invalid_parameter;
+        goto done;
+    }
+
+    status = call_file_lseek_user(idigi_ptr, service_request, (long int ) context->data.f.offset, IDIGI_SEEK_SET, &ret);
+    if (status == idigi_callback_busy || !fileOperationSuccess(status, context))
+        goto done;
+
+    if (ret == -1)
+    {
+        context->error.error_status = idigi_file_invalid_parameter;
+    }
+
+done:
+    return status;
+}
+
+
 static idigi_callback_status_t process_file_get_response(idigi_data_t * const idigi_ptr,
                                                           msg_service_request_t * const service_request)
 {
@@ -711,20 +748,12 @@ static idigi_callback_status_t process_file_get_response(idigi_data_t * const id
         {
            if (context->data.f.offset != 0)
            {
-                long int ret;
-                status = call_file_lseek_user(idigi_ptr, service_request, (long int ) context->data.f.offset, IDIGI_SEEK_SET, &ret);
-
+                status = set_file_position(idigi_ptr, service_request);
                 if (status == idigi_callback_busy)
                     goto done;
 
                 if (!fileOperationSuccess(status, context))
                     goto close_file;
-
-                if (ret == -1)
-                {
-                    context->error.error_status = idigi_file_invalid_parameter;
-                    goto close_file;
-                }
            }
 
            *data_ptr++ = fs_get_response_opcode;
@@ -911,19 +940,14 @@ static idigi_callback_status_t process_file_put_request(idigi_data_t * const idi
 
             if (context->data.f.offset != 0)
             {
-                long int ret = -1;
-                status = call_file_lseek_user(idigi_ptr, service_request, (long int ) context->data.f.offset, IDIGI_SEEK_SET, &ret);
-
-                if (status == idigi_callback_busy)
-                    goto done;
-
-                if (!fileOperationSuccess(status, context))
-                    goto close_file;
-
-                if (ret == -1)
+                if (context->data.f.offset != 0)
                 {
-                    context->error.error_status = idigi_file_invalid_parameter;
-                    goto close_file;
+                    status = set_file_position(idigi_ptr, service_request);
+                    if (status == idigi_callback_busy)
+                        goto done;
+
+                    if (!fileOperationSuccess(status, context))
+                        goto close_file;
                 }
             }
             data_ptr  += header_len;
