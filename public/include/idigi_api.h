@@ -1154,33 +1154,17 @@ typedef struct
 */
 
 /**
-* @defgroup idigi_file_dir_data_t File system directory data
+* @defgroup idigi_file_request_t File or directory request
 * @{
 */
 /**
-* Directory data structure is used as a request structure for @ref idigi_file_system_readdir and
-* @ref idigi_file_system_closedir callbacks and in @ref idigi_file_dir_response_t for the
-* @ref idigi_file_system_opendir callback.
+* File or directory request structure is used for @ref idigi_file_system_read, @ref idigi_file_system_close,
+* @ref idigi_file_system_readdir, and @ref idigi_file_system_closedir,
 */
 typedef struct
 {
-    void * dir_handle;      /**< Value, used to identify a directory for the user application */
-    void * dir_entry;       /**< Value, used to identify a directory entry for the user application */
-} idigi_file_dir_data_t;
-/**
-* @}
-*/
+    void * handle;            /**< Application defined file or directory handle */
 
-/**
-* @defgroup idigi_file_request_t File system file request
-* @{
-*/
-/**
-* File request structure is used for @ref idigi_file_system_read and @ref idigi_file_system_close
-*/
-typedef struct
-{
-    int  fd;            /**< File descriptor of an opened file */
 } idigi_file_request_t;
 /**
 * @}
@@ -1195,9 +1179,10 @@ typedef struct
 */
 typedef struct
 {
-    int      fd;        /**< File descriptor of an opened file */
-    long int offset;    /**< File offset */
-    int      origin;    /**< File seek origin of @ref idigi_file_seek_origin_t type */
+    void   * handle;      /**< Application defined file handle */
+    long int offset;      /**< File offset */
+    int      origin;      /**< File seek origin of @ref idigi_file_seek_origin_t type */
+
 } idigi_file_lseek_request_t;
 /**
 * @}
@@ -1212,8 +1197,9 @@ typedef struct
 */
 typedef struct
 {
-    int      fd;        /**< File descriptor of an opened file   */
-    long int length;    /**< File length in bytes to truncate to */
+    void   * handle; /**< Application defined file handle */
+    long int length;      /**< File length in bytes to truncate to */
+
 } idigi_file_ftruncate_request_t;
 /**
 * @}
@@ -1228,9 +1214,10 @@ typedef struct
 */
 typedef struct
 {
-    int          fd;            /**< File descriptor of an opened file */
+    void       * handle;        /**< Application defined file handle */
     void const * data_ptr;      /**< A pointer to data to be written to a file */
     size_t       size_in_bytes; /**< Number of bytes to write */
+
 } idigi_file_write_request_t;
 /**
 * @}
@@ -1290,13 +1277,15 @@ typedef struct
 * @{
 */
 /**
-* Error data structure is used to return error code and errno for all file system callbacks.
+* Error data structure is used to return error status and error token for all file system callbacks.
+* An error token is used to return an error description in a future @ref idigi_file_system_strerror callback.
 *
 */
 typedef struct 
 {
-    idigi_file_error_status_t error_status; /**< error status of @ref idigi_file_error_status_t type */
-    int errnum;                             /**< errno */
+    void                    * errnum;       /**< Application defined error token.*/
+    idigi_file_error_status_t error_status; /**< Error status of @ref idigi_file_error_status_t type */
+
 } idigi_file_error_data_t;
 /**
 * @}
@@ -1318,47 +1307,59 @@ typedef struct
 */
 
 /**
+* @defgroup idigi_file_data_response_t File system data response
+* @{
+*/
+/**
+* File system data response structure is used for @ref idigi_file_system_read, 
+* @ref idigi_file_system_readdir, and @ref idigi_file_system_strerror callbacks.
+*/
+typedef struct
+{
+    void                    * user_context; /**< To hold the user context */
+    idigi_file_error_data_t * error;        /**< Holds error status of @ref idigi_file_error_status_t type and errnum */
+    void                    * data_ptr;     /**< Pointer to write response data */
+    size_t                  size_in_bytes;  /**< On input size of data buffer, on output size of response data */
+
+
+} idigi_file_data_response_t;
+/**
+* @}
+*/
+
+/**
 * @defgroup idigi_file_response_t File system basic response
 * @{
 */
 /**
-* File system basic response structure is used for most of file system callbacks.
-*
-* @see @ref idigi_file_system_read
-* @see @ref idigi_file_system_write  
-* @see @ref idigi_file_system_ftruncate
-* @see @ref idigi_file_system_close   
-* @see @ref idigi_file_system_rm    
-* @see @ref idigi_file_system_readdir 
-* @see @ref idigi_file_system_closedir
-* @see @ref idigi_file_system_hash
-* @see @ref idigi_file_system_strerror
-* @see @ref idigi_file_system_msg_error
+* File system basic response structure is used for @ref idigi_file_system_close,
+* @ref idigi_file_system_rm, @ref idigi_file_system_closedir,
+* @ref idigi_file_system_ftruncate, and  @ref idigi_file_system_msg_error callbacks.
 */
 typedef struct
 {
-    void  * user_context;               /**< To hold the user context */
-    size_t  size_in_bytes;              /**< On input size of data buffer, on output size of response data */
-    idigi_file_error_data_t * error;    /**< holds error code of @ref idigi_file_error_status_t type and errno */
-    void  * data_ptr;                   /**< Pointer to write response data */
+    void                    * user_context; /**< To hold the user context */
+    idigi_file_error_data_t * error;        /**< Pointer to file error data */
+
 } idigi_file_response_t;
 /**
 * @}
 */
 
 /**
-* @defgroup idigi_file_open_response_t File open response
+* @defgroup idigi_file_open_response_t File or directory open response
 * @{
 */
 /**
-* File open response structure is used for the @ref idigi_file_system_open callback.
+* File or directory open response structure is used for the @ref idigi_file_system_open
+* and @ref idigi_file_system_opendir callback.
 */
 typedef struct
 {
-    void   * user_context;              /**< To hold the user context */
-    size_t   size_in_bytes;             /**< sizeof(*fd_ptr) on input and output */
-    idigi_file_error_data_t * error;    /**< holds error code of @ref idigi_file_error_status_t type and errno */
-    int    * fd_ptr;                    /**< Pointer to place a file descriptor on output */
+    void                    * user_context; /**< To hold the user context */
+    idigi_file_error_data_t * error;        /**< Pointer to file error data */
+    void                    * handle;       /**< Application defined file handle or directory */
+
 } idigi_file_open_response_t;
 /**
 * @}
@@ -1373,32 +1374,33 @@ typedef struct
 */
 typedef struct
 {
-    void        * user_context;         /**< To hold the user context */
-    size_t      size_in_bytes;          /**< sizeof(*offset_ptr) on input and output */
-    idigi_file_error_data_t * error;    /**< holds error code of @ref idigi_file_error_status_t type and errno */
-    long int    * offset_ptr;           /**< Pointer to place a resulting file position on output */
+    void                    * user_context; /**< To hold the user context */
+    idigi_file_error_data_t * error;        /**< Pointer to file error data */
+    long int                  offset;       /**< Resulting file position */
+
 } idigi_file_lseek_response_t;
 /**
 * @}
 */
 
 /**
-* @defgroup idigi_file_dir_response_t Open directory response
+* @defgroup idigi_file_write_response_t File write response
 * @{
 */
 /**
-* Open directory response structure is used for @ref idigi_file_system_opendir callback.
+* File write response structure is used for @ref idigi_file_system_write callback.
 */
 typedef struct
 {
-    void                  * user_context;   /**< To hold the user context */
-    size_t                size_in_bytes;    /**< sizeof(*dir_data) on input and output */
-    idigi_file_error_data_t * error;        /**< holds error code of @ref idigi_file_error_status_t type and errno */
-    idigi_file_dir_data_t * dir_data;       /**< Pointer to place directory data on output */
-} idigi_file_dir_response_t;
+    void                    * user_context;  /**< To hold the user context */
+    idigi_file_error_data_t * error;         /**< Pointer to file error data */
+    size_t                    size_in_bytes; /**< On input size of data buffer, on output size of response data */
+
+} idigi_file_write_response_t;
 /**
 * @}
 */
+
 
 /**
 * @defgroup idigi_file_stat_response_t File status response
@@ -1409,10 +1411,10 @@ typedef struct
 */
 typedef struct
 {
-    void                * user_context; /**< To hold the user context */
-    size_t              size_in_bytes;  /**< sizeof(*stat_ptr) on input and output */
-    idigi_file_error_data_t * error;    /**< holds error code of @ref idigi_file_error_status_t type and errno */
-    idigi_file_stat_t   * stat_ptr;     /**< Pointer to place file status data on output */
+    void                    * user_context; /**< To hold the user context */
+    idigi_file_error_data_t * error;        /**< Pointer to file error data */
+    idigi_file_stat_t         statbuf;      /**< Pointer to place file status data on output */
+
 } idigi_file_stat_response_t;
 /**
 * @}
