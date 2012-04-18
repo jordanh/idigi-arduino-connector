@@ -136,7 +136,7 @@ static void update_error_case(char const * const path)
     dvt_current_state = dvt_fs_state_at_start;
 }
 
-static idigi_callback_status_t app_process_file_error(idigi_file_error_data_t * error_data, int errnum)
+static idigi_callback_status_t app_process_file_error(idigi_file_error_data_t * error_data, long int errnum)
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
@@ -236,7 +236,7 @@ idigi_callback_status_t app_process_file_strerror(void const * const request_dat
     UNUSED_ARGUMENT(request_data);
 
     idigi_file_error_data_t * error_data = response_data->error;
-    int errnum = (int) error_data->errnum;
+    long int errnum = (long int) error_data->errnum;
 
     if (errnum != 0)
     {
@@ -435,14 +435,14 @@ idigi_callback_status_t app_process_file_open(idigi_file_open_request_t const * 
 {
     idigi_callback_status_t status = idigi_callback_continue;
     int oflag = app_convert_file_open_mode(request_data->oflag);
-    int fd;
+    long int fd;
 
     response_data->user_context = NULL;
 
     // 0664 = read,write owner + read,write group + read others
     fd = open(request_data->path, oflag, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH); 
 
-    APP_DEBUG("Open %s, %d, returned %d\n", request_data->path, oflag, fd);
+    APP_DEBUG("Open %s, %d, returned %ld\n", request_data->path, oflag, fd);
     update_error_case(request_data->path);
 
     if (fd < 0)
@@ -461,11 +461,11 @@ idigi_callback_status_t app_process_file_lseek(idigi_file_lseek_request_t const 
 {
     idigi_callback_status_t status = idigi_callback_continue;
     int origin = app_convert_lseek_origin(request_data->origin);
-    int fd = (int) request_data->handle;
+    long int fd = (long int) request_data->handle;
 
     long int offset = lseek(fd, request_data->offset, origin);
 
-    APP_DEBUG("lseek fd %d, offset %ld, origin %d returned %ld\n", fd, request_data->offset, 
+    APP_DEBUG("lseek fd %ld, offset %ld, origin %d returned %ld\n", fd, request_data->offset, 
                                                 request_data->origin, offset);
     response_data->offset = offset;
 
@@ -493,11 +493,11 @@ idigi_callback_status_t app_process_file_ftruncate(idigi_file_ftruncate_request_
                                                    idigi_file_response_t * response_data)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    int fd = (int) request_data->handle;
+    long int fd = (long int) request_data->handle;
 
     int result = ftruncate(fd, request_data->length);
 
-    APP_DEBUG("ftruncate %d, %ld returned %d\n", fd, request_data->length, result);
+    APP_DEBUG("ftruncate %ld, %ld returned %d\n", fd, request_data->length, result);
 
     if (result < 0)
     {
@@ -529,7 +529,7 @@ idigi_callback_status_t app_process_file_read(idigi_file_request_t const * const
                                               idigi_file_data_response_t * response_data)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    int fd = (int) request_data->handle;
+    long int fd = (long int) request_data->handle;
 
         switch (dvt_current_error_case)
     {
@@ -578,7 +578,7 @@ idigi_callback_status_t app_process_file_read(idigi_file_request_t const * const
   
     int result = read(fd, response_data->data_ptr, response_data->size_in_bytes);
 
-    APP_DEBUG("read %d, %zu, returned %d\n", fd, response_data->size_in_bytes, result);
+    APP_DEBUG("read %ld, %zu, returned %d\n", fd, response_data->size_in_bytes, result);
  
     if (result < 0)
     {
@@ -598,11 +598,11 @@ idigi_callback_status_t app_process_file_write(idigi_file_write_request_t const 
                                                idigi_file_write_response_t * response_data)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    int fd = (int) request_data->handle;
+    long int fd = (long int) request_data->handle;
 
     int result = write(fd, request_data->data_ptr, request_data->size_in_bytes);
 
-    APP_DEBUG("write %d, %zu, returned %d\n", fd, request_data->size_in_bytes, result);
+    APP_DEBUG("write %ld, %zu, returned %d\n", fd, request_data->size_in_bytes, result);
  
     if (result < 0)
     {
@@ -619,10 +619,10 @@ done:
 idigi_callback_status_t app_process_file_close(idigi_file_request_t const * const request_data, 
                                                idigi_file_response_t * response_data)
 {
-    int fd = (int) request_data->handle;
+    long int fd = (long int) request_data->handle;
     int result = close(fd);
 
-    APP_DEBUG("close %d returned %d\n", fd, result);
+    APP_DEBUG("close %ld returned %d\n", fd, result);
 
     if (result < 0 && errno == EIO)
     {
