@@ -1,10 +1,9 @@
 package com.digi.ic.config;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.management.BadStringOperationException;
 
 public class ElementStruct {
     
@@ -75,18 +74,22 @@ public class ElementStruct {
         }
     }
     
+    public static boolean includeFloatLimit()
+    {
+        return floatLimit;
+    }
  
-    public ElementStruct(String nameStr, String descStr) throws BadStringOperationException
+    public ElementStruct(String nameStr, String descStr) throws IOException
     {
 /*        if (nameStr == null)
         {
-            throw new BadStringOperationException("Missing element name");
+            throw new IOException("Missing element name");
         }
 */
         
         if (descStr == null)
         {
-            throw new BadStringOperationException("Missing element description");
+            throw new IOException("Missing element description");
         }
 
         name = nameStr;
@@ -95,57 +98,61 @@ public class ElementStruct {
         
     }
 
-    public void setType(String theType) throws BadStringOperationException
+    public void setType(String theType) throws IOException
     {
         if (type == null)
             type = theType;
-        else throw new BadStringOperationException("Duplicate <type>: " + theType);
+        else throw new IOException("Duplicate <type>: " + theType);
     }
     
-    public void setAccess(String theAccess) throws BadStringOperationException
+    public void setAccess(String theAccess) throws IOException
     {
         if (access == null)
             access = theAccess;
-         else throw new BadStringOperationException("Duplicate <access>: " + theAccess);
+         else throw new IOException("Duplicate <access>: " + theAccess);
     }
     
-    public void setMin(String theMin) throws BadStringOperationException
+    public void setMin(String theMin) throws IOException
     {
         if (min == null)
             min = theMin;
-         else throw new BadStringOperationException("Duplicate <min>: " + theMin);
+         else throw new IOException("Duplicate <min>: " + theMin);
     }
-    public void setMax(String theMax) throws BadStringOperationException
+    public void setMax(String theMax) throws IOException
     {
         if (max == null)
             max = theMax;
-         else throw new BadStringOperationException("Duplicate <max>: " + theMax);
+         else throw new IOException("Duplicate <max>: " + theMax);
     }
 
-    public void addValue(NameStruct theValue) throws BadStringOperationException
+    public void addValue(NameStruct theValue) throws IOException
     {
-        if (ElementType.toElementType(type) == ElementType.ENUM)
+        if (type == null)
+        {
+            throw new IOException("Missing <type> on element: " + name);
+        }
+        else if (ElementType.toElementType(type) == ElementType.ENUM)
         {
             for (NameStruct value : values)
             {
                 if (value.getName().equals(theValue.getName()))
                 {
-                    throw new BadStringOperationException("Duplicate <value>: " + theValue.getName());
+                    throw new IOException("Duplicate <value>: " + theValue.getName());
                 }
             }
             values.add(theValue);
         }
         else
         {
-            throw new BadStringOperationException("Invalid <value> for type: " + type);
+            throw new IOException("Invalid <value> for type: " + type);
         }
     }
 
-    public void setUnit(String theUnit) throws BadStringOperationException
+    public void setUnit(String theUnit) throws IOException
     {
         if (unit == null)
             unit = theUnit;
-         else throw new BadStringOperationException("Duplicate unit: " + theUnit);
+         else throw new IOException("Duplicate unit: " + theUnit);
     }
     
     public String getName()
@@ -188,16 +195,14 @@ public class ElementStruct {
         return values;
     }
     
-    public boolean validate()
+    public void validate() throws Exception
     {
-        boolean valid = true;
-        
         ElementType etype = ElementType.toElementType(type);
         
-        if (!etype.minMaxSupport() && (min != null || max != null))
+        if (type == null)
         {
-            ConfigGenerator.log("Type: " + type + " should not have <min/max> on element: " + name);
-            valid = false;
+            ConfigGenerator.log("Missing <type>!");
+            throw new Exception("Error on \"" + name + "\" element!");
         }
         
         switch (etype)
@@ -205,16 +210,33 @@ public class ElementStruct {
         case ENUM:
             if (values.isEmpty())
             {
-                ConfigGenerator.log("Missing <value> for element: " + name);
-                valid = false;
+                ConfigGenerator.log("Missing <value>!");
+                throw new Exception("Error on \"" + name + "\" element!");
             }
             break;
             
         case FLOAT:
             if ((!isValidFloat(min)) || (!isValidFloat(max)))
             {
-                ConfigGenerator.log("Invalid float value for element " + name);
-                valid = false;
+                ConfigGenerator.log("Invalid float value!");
+                throw new Exception("Error on \"" + name + "\" element!");
+            }
+            
+            if ((min != null) && (max != null))
+            {
+                float minValue = Float.parseFloat(min);
+                float maxValue = Float.parseFloat(max);
+                
+                if (minValue > maxValue)
+                {
+                    ConfigGenerator.log("Error min value > max value!");
+                    throw new Exception("Error on \"" + name + "\" element!");
+                }
+            }
+            
+            if (((min == null) || (max == null)) && ((min != null) || (max != null)))
+            {
+                floatLimit = true; 
             }
             break;
             
@@ -227,38 +249,79 @@ public class ElementStruct {
             }
             if ((!isValidHex(min, prefix)) || (!isValidHex(max, prefix)))
             {
-                ConfigGenerator.log("Invalid hex value for element " + name);
-                valid = false;
+                ConfigGenerator.log("Invalid hex value!");
+                throw new Exception("Error on \"" + name + "\" element!");
+            }
+            if ((min != null) && (max != null))
+            {
+                int index = 0;
+                if (prefix)
+                {
+                    index = 2;
+                }
+                
+                int minValue = Integer.parseInt(min.substring(index), 16);
+                int maxValue = Integer.parseInt(max.substring(index), 16);
+                
+                if (minValue > maxValue)
+                {
+                    ConfigGenerator.log("Error min value > max value!");
+                    throw new Exception("Error on \"" + name + "\" element!");
+                }
             }
             break;
-            
         default:
-            long min_value = 0;
-            long max_value = 0;
+            long minValue = 0;
+            long maxValue = 0;
             if (min != null)
             {
-                min_value = Long.parseLong(min);
+                try {
+                    minValue = Long.parseLong(min);
+                } catch (NumberFormatException e) {
+                    ConfigGenerator.log("Invalid min value: " + min);
+                    throw new Exception("Error on \"" + name + "\" element!");
+                }
             }
             if (max != null)
             {
-                max_value = Long.parseLong(max);
+                try {
+                    maxValue = Long.parseLong(max);
+                } catch (NumberFormatException e) {
+                    ConfigGenerator.log("Invalid max value: " + max);
+                    throw new Exception("Error on \"" + name + "\" element!");
+                }
+                    
             }
             
-            if (min_value < 0 || max_value < 0 || max_value < min_value)
+            if ((etype != ElementStruct.ElementType.INT32) && ((minValue < 0) || (maxValue < 0)))
             {
                 ConfigGenerator.log("Invalid min or max value for type: " + etype.toString().toLowerCase());
-                valid = false;
+                throw new Exception("Error on \"" + name + "\" element!");
             }
+            
+            if ((min != null) && (max != null))
+            {
+                if (minValue > maxValue)
+                {
+                    ConfigGenerator.log("Error min value > max value!");
+                    throw new Exception("Error on \"" + name + "\" element!");
+                }
+            }
+
             break;
         }
         
-        
+        if (!etype.minMaxSupport() && (min != null || max != null))
+        {
+            ConfigGenerator.log("\"" + type + "\" type should not have <min/max>!");
+            throw new Exception("Error on \"" + name + "\" element!");
+        }
+
         if (etype != ElementType.ENUM && !values.isEmpty())
         {
-            ConfigGenerator.log("Invalid <value> for type: " + type + " on element: " + name);
-            valid = false;
+            ConfigGenerator.log("Invalid <value> for type: " + type);
+            throw new Exception("Error on \"" + name + "\" element!");
         }
-        return valid;
     }
 
     private boolean isValidFloat(String str) 
@@ -293,7 +356,6 @@ public class ElementStruct {
             Matcher m = HEXPATTERN.matcher(str);
             isValid = m.matches();
         }
-        
         return isValid;
 
     }
@@ -306,4 +368,5 @@ public class ElementStruct {
     private String unit;
     private LinkedList<NameStruct> values;
 
+    private static boolean floatLimit;
 }

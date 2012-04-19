@@ -4,8 +4,6 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import javax.management.BadStringOperationException;
-
 public class Descriptors {
 
 
@@ -86,7 +84,7 @@ public class Descriptors {
                 
                 groups = configData.getConfigGroup(configType);
                 
-            } catch (BadStringOperationException e) {
+            } catch (IOException e) {
                 /* end of the ConfigData ConfigType */
                 break;
             }
@@ -231,7 +229,7 @@ public class Descriptors {
                 
                 groups = configData.getConfigGroup(configType);
                 
-            } catch (BadStringOperationException e) {
+            } catch (IOException e) {
                 /* end of the ConfigData ConfigType */
                 break;
             }
