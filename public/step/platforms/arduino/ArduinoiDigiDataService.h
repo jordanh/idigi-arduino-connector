@@ -9,33 +9,31 @@ extern "C" {
 
 #define IDIGI_DS_TARGET_LEN  64
 
-typedef enum {
-  arids_type_simple_buffer,
-  arids_type_async_callback,
-} arids_putfile_context_types_t;
 
-typedef unsigned int (* arids_callback_t)(char *buffer, size_t *length);
-
-typedef struct {
+class iDigiPutFileRequest {
+  friend class ArduinoiDigiDataService;
+  
+public:
+  iDigiPutFileRequest():active_flag(false), finished_flag(false) { };
+  
   char *buffer;
   size_t length;
-} arids_data_block_t;
-
-typedef enum {
-  arids_context_state_init,
-  arids_context_state_done,
-} arids_context_state_t;
-
-typedef struct {
-  arids_putfile_context_types_t type;
-  union {
-    arids_callback_t callback;
-    arids_data_block_t data;
-  } action;
   size_t written;
-  arids_context_state_t state;
-} arids_putfile_context_t;
+  
+  void finished() { finished_flag = true; }
+  bool isFinished() { return finished_flag; }
+  const char *getFilePath() { return header.path; }
+  const char *getMimeType() { return header.content_type; }
+  const unsigned int getError() { return (unsigned int) error; }
+  
+private:
+  bool active_flag;
+  bool finished_flag;
+  idigi_data_service_put_request_t header;
+  idigi_msg_error_t error;
+};
 
+typedef void (* iDigiPutFileHandler)(iDigiPutFileRequest *);
 
 class iDigiDataServiceRequest {
   friend class ArduinoiDigiDataService;
@@ -50,7 +48,7 @@ public:
   void setResponse(char *response, size_t length) { buffer = response;
                                                     this->length = length;
                                                     is_response = true; }
-
+  
 private:
   void *device_handle;
   char target[IDIGI_DS_TARGET_LEN];
@@ -66,15 +64,24 @@ class ArduinoiDigiDataService {
   friend class ArduinoiDigiInterfaceClass;
   
 public:
-  ArduinoiDigiDataService():_requestCallback(NULL), _requestContext() { };
+  ArduinoiDigiDataService():_putFileCallback(NULL), _putFileContext(),
+                            _requestCallback(NULL), _requestContext() { };
   
   size_t putFile(char *filePath, char *mimeType, char *buffer, size_t length);
+  size_t putFile(char *filePath, char *mimeType, char *buffer, size_t length, unsigned int flags);
+  unsigned int putFileAsync(char *filePath, char *mimeType, iDigiPutFileHandler handler);
+  unsigned int putFileAsync(char *filePath, char *mimeType, iDigiPutFileHandler handler, unsigned int flags);
+  bool putFileAsyncBusy() { return _putFileContext.active_flag; }
   void registerHandler(iDigiDataServiceHandler callback);
   bool sendResponse(iDigiDataServiceRequest *request, char *buffer, size_t length);
 
-private: 
+private:
+  iDigiPutFileHandler     _putFileCallback;
+  iDigiPutFileRequest     _putFileContext;
   iDigiDataServiceHandler _requestCallback;
   iDigiDataServiceRequest _requestContext;
+
+  static void putFileSyncHandler(iDigiPutFileRequest *request) { }
   
   idigi_callback_status_t appReqHandler(idigi_data_service_request_t const request,
                                         void const * request_data, size_t const request_length,

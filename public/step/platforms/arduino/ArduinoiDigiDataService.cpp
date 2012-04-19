@@ -4,35 +4,68 @@
 
 extern ArduinoiDigiInterfaceClass iDigi;
 
-size_t ArduinoiDigiDataService::putFile(char *filePath, char *mimeType, char *buffer, size_t length)
+size_t ArduinoiDigiDataService::putFile(char *filePath, char *mimeType, 
+                                        char *buffer, size_t length)
 {
-  idigi_status_t status = idigi_success;
-  idigi_data_service_put_request_t header;
-  arids_putfile_context_t context;
+  return putFile(filePath, mimeType, buffer, length, 0);
+}
+
+size_t ArduinoiDigiDataService::putFile(char *filePath, char *mimeType, 
+                                        char *buffer, size_t length, unsigned int flags)
+{
+  unsigned int result = putFileAsync(filePath, mimeType, &putFileSyncHandler, flags);
   
-  context.type = arids_type_simple_buffer;
-  context.action.data.buffer = buffer;
-  context.action.data.length = length;
-  context.state = arids_context_state_init;
-  context.written = 0;
+  if (result != idigi_success) {
+    // error occured
+    return -result;
+  }
   
-  header.flags = IDIGI_DATA_PUT_APPEND;
-  header.path = filePath;
-  header.content_type = mimeType;
-  header.context = (void *) &context;
+  _putFileContext.buffer = buffer;
+  _putFileContext.length = length;
+  _putFileContext.finished_flag = true;
   
-  status = idigi_initiate_action(iDigi.getHandle(), idigi_initiate_data_service,
-                                 &header, NULL);
-  
-  if (status != idigi_success)
-    return -status;
-  
-  while (context.state != arids_context_state_done)
+  while (putFileAsyncBusy())
   {
     iDigi.step();
   }
   
-  return context.written;
+  return _putFileContext.written;
+}
+
+unsigned int ArduinoiDigiDataService::putFileAsync(char *filePath, char *mimeType,
+                                          iDigiPutFileHandler handler)
+{
+  return putFileAsync(filePath, mimeType, handler, 0);
+}
+
+unsigned int ArduinoiDigiDataService::putFileAsync(char *filePath, char *mimeType,
+                                          iDigiPutFileHandler handler, unsigned int flags)
+{
+  idigi_status_t status = idigi_success;
+  
+  if (_putFileContext.active_flag)
+  {
+    // Another request is already active, do not create a new request
+    return (unsigned int) idigi_service_busy;
+  }
+
+  _putFileCallback = handler;
+  _putFileContext.written = 0;
+  _putFileContext.finished_flag = 0;
+  _putFileContext.header.flags = flags;
+  _putFileContext.header.path = filePath;
+  _putFileContext.header.content_type = mimeType;
+  _putFileContext.header.context = (void *) &_putFileContext;
+  
+  status = idigi_initiate_action(iDigi.getHandle(), idigi_initiate_data_service,
+                                 &(_putFileContext.header), NULL);
+  
+  if (status == idigi_success)
+  {
+    _putFileContext.active_flag = true;
+  }
+  
+  return (unsigned int) status;
 }
 
 void ArduinoiDigiDataService::registerHandler(iDigiDataServiceHandler handler)
@@ -53,6 +86,7 @@ bool ArduinoiDigiDataService::sendResponse(iDigiDataServiceRequest *request,
   return true;
 }
 
+// private definitions
 idigi_callback_status_t ArduinoiDigiDataService::appReqHandler(idigi_data_service_request_t const request,
                                                  void const * request_data, size_t const request_length,
                                                  void * response_data, size_t * const response_length)
@@ -120,40 +154,35 @@ idigi_callback_status_t ArduinoiDigiDataService::appPutReqHandlerNeedData(idigi_
                                                                             idigi_data_service_msg_response_t * const response_data)
 {
   idigi_callback_status_t status = idigi_callback_continue;
-  idigi_data_service_put_request_t *request_header = (idigi_data_service_put_request_t *) request_data->service_context;
   idigi_data_service_block_t * message = (idigi_data_service_block_t *) response_data->client_data;
-  arids_putfile_context_t *putfile_context = (arids_putfile_context_t *) request_header->context;
+
   
-  size_t maxwrite = putfile_context->action.data.length - putfile_context->written;
-  size_t copylen =  maxwrite < message->length_in_bytes ? maxwrite : message->length_in_bytes;
+  size_t copylen = _putFileContext.length < message->length_in_bytes ? _putFileContext.length :
+                                                                      message->length_in_bytes;
   
-  switch(putfile_context->type)
+  memcpy(message->data, (void *)_putFileContext.buffer, copylen);
+  message->length_in_bytes = copylen;
+  _putFileContext.buffer += copylen;
+  _putFileContext.length -= copylen;
+  response_data->message_status = idigi_msg_error_none;
+  
+  if (_putFileContext.written == 0)
   {
-    case arids_type_simple_buffer:
-      memcpy(message->data, (void *) (putfile_context->action.data.buffer+putfile_context->written), copylen);
-      message->length_in_bytes = copylen;
-      response_data->message_status = idigi_msg_error_none;
-      if (putfile_context->written == 0)
-      {
-        message->flags |= IDIGI_MSG_FIRST_DATA;
-      }
-      
-      putfile_context->written += copylen;
-      
-      if (putfile_context->written >= putfile_context->action.data.length)
-      {
-        message->flags |= IDIGI_MSG_LAST_DATA;
-        putfile_context->state = arids_context_state_done;
-      }    
-      break;
-    case arids_type_async_callback:
-      message->flags = (putfile_context->action.callback)((char *) message->data, &(message->length_in_bytes));
-      putfile_context->written += message->length_in_bytes;
-      if (message->flags & IDIGI_MSG_LAST_DATA)
-        putfile_context->state = arids_context_state_done;
-      break;
-    default:
-      break;
+    message->flags |= IDIGI_MSG_FIRST_DATA;
+  }
+  _putFileContext.written += copylen;
+
+  if (_putFileContext.length == 0)
+  {
+    if (_putFileContext.finished_flag)
+    {
+      message->flags |= IDIGI_MSG_LAST_DATA;
+      _putFileContext.active_flag = false;
+    } else
+    {
+      // not finished, we need more data from the user
+      _putFileCallback(&_putFileContext);
+    }
   }
   
   return status;
@@ -181,9 +210,11 @@ idigi_callback_status_t ArduinoiDigiDataService::appPutReqHandlerError(idigi_dat
 {
   idigi_callback_status_t status = idigi_callback_continue;
   idigi_data_service_block_t * message = request_data->server_data;
-  idigi_msg_error_t const * const error_value = (idigi_msg_error_t *) message->data;
   
-  AR_DEBUG_PRINTF("put data service error: %d\n", *error_value);
+  _putFileContext.active_flag = false;
+  _putFileContext.finished_flag = true;
+  _putFileContext.error = *((idigi_msg_error_t *) message->data);
+  AR_DEBUG_PRINTF("put data service error: %u\n", _putFileContext.error);
   
   return status;
 }

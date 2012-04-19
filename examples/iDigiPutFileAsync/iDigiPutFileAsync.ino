@@ -23,6 +23,7 @@ IPAddress dns(10, 10, 8, 62);
 IPAddress subnet(255, 255, 0, 0);
 #endif /* ETHERNET_DHCP */
 
+char file_data[128] = { 0 };
 bool idigi_connected = false;
 unsigned long int next_upload_time = 0;
 
@@ -69,20 +70,19 @@ void loop() {
   
   if (idigi_connected && (millis() >= next_upload_time))
   {
-    char file_data[128] = { 0 };
-    size_t len = snprintf(file_data, sizeof(file_data), "Arduino up for %lu seconds.\r\n",
-                                 millis() / 1000);
-    size_t uploaded = iDigi.dataService.putFile("uptime.txt", "text/plain",
-                                                file_data, len, IDIGI_DATA_PUT_APPEND);
-    
-    if (uploaded > 0)
+    if (iDigi.dataService.putFileAsyncBusy())
     {
-      Serial.print(uploaded);
-      Serial.println(" bytes uploaded in uptime.txt to iDigi.");
-    } else
-    {
-      Serial.print("Error uploading uptime.txt: ");
-      Serial.println(-uploaded);
+      Serial.println("iDigi putFileAsync() busy, delaying 10 seconds.");
+    } else {
+      unsigned int result = iDigi.dataService.putFileAsync("uptime.txt", "text/plain",
+                              putFileUptimeData, IDIGI_DATA_PUT_APPEND);
+      if (result == 0)
+      {
+        Serial.println("iDigi putFile request submitted.");
+      } else {
+        Serial.print("Error returned from putFileAsync(): ");
+        Serial.println(result, DEC);
+      }
     }
     next_upload_time = millis() + 10000;
   }
@@ -91,3 +91,17 @@ void loop() {
   iDigi.step();
 }
 
+void putFileUptimeData(iDigiPutFileRequest *request)
+{
+    // Format the data to send to iDigi, set length in request:
+    request->length = snprintf(file_data, sizeof(file_data), "Arduino up for %lu seconds.\r\n",
+                                 millis() / 1000);
+                                 
+    // Tell iDigi where our formatted data is:
+    request->buffer = file_data;
+    
+    // Tell iDigi there will be no more data to send, so don't bother calling us again:
+    request->finished();
+    
+    Serial.println("About to upload uptime.txt...");
+}
