@@ -168,13 +168,9 @@
  * @code
  *
  * Open test_file.txt, 577, returned 4
- * lseek fd 4, offset 0, origin 2 returned 0
- * lseek fd 4, offset 0, origin 0 returned 0
  * write 4, 25, returned 25
  * close 4 returned 0
  * Open test_file.txt, 0, returned 4
- * lseek fd 4, offset 0, origin 2 returned 25
- * lseek fd 4, offset 0, origin 0 returned 0
  * read 4, 496, returned 25
  * read 4, 471, returned 0
  * close 4 returned 0
