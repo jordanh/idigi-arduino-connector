@@ -40,12 +40,12 @@ static idigi_bool_t rci_action_session_start(rci_t * const rci, rci_service_data
     rci_set_buffer(&rci->buffer.input, &rci->service_data->input);
     rci_set_buffer(&rci->buffer.output, &rci->service_data->output);
 
-    rci->input.state = rci_input_state_element_tag_open;
-    rci->input.position = rci_buffer_position(&rci->buffer.input);
-    rci->input.string.tag.data = NULL;
-    
-    rci->traversal.command = rci_command_unseen;
-                   
+    rci->input.destination = rci_buffer_position(&rci->buffer.input);
+
+    rci->shared.request.group.id = INVALID_ID;
+    rci->shared.request.group.index = INVALID_INDEX;
+    rci->shared.request.element.id = INVALID_ID;
+                       
     rci->status = rci_status_busy;
     
     return idigi_true;
