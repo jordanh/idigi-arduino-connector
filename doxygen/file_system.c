@@ -637,9 +637,6 @@
  *
  * @note This callback must free all memory, allocated during the file system session.
  *
- * @note IIK invokes this callback only once for any open file, the callback must not return 
- * @ref idigi_callback_busy.
- *
  * @htmlonly
  * <table class="apitable">
  * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
@@ -1083,9 +1080,6 @@
  * callback.
  *
  * @note This callback must free all memory, allocated during the file system session.
- *
- * @note IIK invokes this callback only once for any open directory, the callback must not return 
- * @ref idigi_callback_busy.
  *
  * @htmlonly
  * <table class="apitable">
