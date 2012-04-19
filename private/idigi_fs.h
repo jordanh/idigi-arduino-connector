@@ -299,22 +299,36 @@ static idigi_callback_status_t call_file_stat_user(idigi_data_t * const idigi_pt
         context->data.d.last_modified = response.statbuf.last_modified;
         context->flags = response.statbuf.flags;
     
-        /* don't overwrite */
-        if (hash_alg == idigi_file_hash_none)
-            goto done;
-
-        /* asked for best context->hash_alg, if asked for none */
-        if (hash_alg == idigi_file_hash_best)
+        switch(hash_alg)
         {
-            if (response.statbuf.hash_alg == idigi_file_hash_best)
-                context->data.d.hash_alg = idigi_file_hash_none;
-            else
-                context->data.d.hash_alg = response.statbuf.hash_alg;
+            /* don't overwrite existing value for directory */
+            case idigi_file_hash_none:
+                 goto done;
+
+            case idigi_file_hash_best:
+                switch(response.statbuf.hash_alg)
+                {
+                    case idigi_file_hash_md5:
+                    case idigi_file_hash_crc32:
+                    case idigi_file_hash_none:
+                        break;
+                    default:
+                        context->data.d.hash_alg = idigi_file_hash_none;
+                        break;
+                }
+                break;
+
+            default:
+                if (hash_alg != response.statbuf.hash_alg)
+                    context->data.d.hash_alg = idigi_file_hash_none;
+                break;
         }
-        else
-        /* asked for crc32, md5, use it or none */
-        if (response.statbuf.hash_alg != context->data.d.hash_alg)
-           context->data.d.hash_alg = idigi_file_hash_none;
+
+        if (context->data.d.hash_alg != idigi_file_hash_none)
+        {
+            if (!FileIsDir(context) && !FileIsReg(context))
+                context->data.d.hash_alg = idigi_file_hash_none;
+        }
     }
 done:
     return status;
@@ -1051,7 +1065,7 @@ static size_t parse_file_ls_header(file_system_context_t *context,
 
 
 
-static size_t format_file_ls_response_header(uint8_t * data_ptr)
+static size_t format_file_ls_response_header(idigi_file_hash_algorithm_t hash_alg, size_t hash_size, uint8_t * data_ptr)
 {
    /* 
      * File System Ls response header format:
@@ -1072,8 +1086,8 @@ static size_t format_file_ls_response_header(uint8_t * data_ptr)
     uint8_t * fs_ls_response = data_ptr;
 
     message_store_u8(fs_ls_response, opcode,     fs_ls_response_opcode);
-    message_store_u8(fs_ls_response, hash_alg,   idigi_file_hash_none);
-    message_store_u8(fs_ls_response, hash_bytes, 0);
+    message_store_u8(fs_ls_response, hash_alg,   hash_alg);
+    message_store_u8(fs_ls_response, hash_bytes, hash_size);
 
     return record_bytes(fs_ls_response_header);
 }
@@ -1243,7 +1257,7 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
 
         if (MsgIsStart(service_data->flags))
         {
-            resp_len = format_file_ls_response_header(data_ptr);
+            resp_len = format_file_ls_response_header(context->data.d.hash_alg, hash_len, data_ptr);
             buffer_size -= resp_len;
             data_ptr    += resp_len;
         }
