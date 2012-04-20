@@ -365,7 +365,6 @@ idigi_callback_status_t app_process_file_opendir(idigi_file_path_request_t const
 {
 
     idigi_callback_status_t status = idigi_callback_continue;
-    idigi_file_error_data_t * error_data = response_data->error;
     DIR * dirp;
 
     errno = 0;
@@ -388,6 +387,8 @@ idigi_callback_status_t app_process_file_opendir(idigi_file_path_request_t const
         }
         else
         {
+            idigi_file_error_data_t * error_data = response_data->error;
+
             APP_DEBUG("app_process_file_opendir: malloc fails %s\n", request_data->path);
 
             error_data->error_status = idigi_file_out_of_memory;

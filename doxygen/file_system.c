@@ -26,7 +26,7 @@
  *
  * The file system facility is an optional facility for applications to access files on the device 
  * remotely from the iDigi Device Cloud. The IIK invokes the application-defined callbacks  
- * to read from a file, to write to a file, and to list files and directory entries.
+ * to read from a file, to write to a file, and to list files or directory entries.
  *
  * A typical application-defined callback sequence for reading file data by the iDigi Device Cloud would include:
  *  -# IIK calls application-defined @ref file_system_open callback with read-only access.
@@ -44,7 +44,7 @@
  *
  * A typical application-defined callback sequence to get listing for a single file would be:
  *  -# IIK calls application-defined @ref file_system_stat callback. 
- *  -# IIK calls application-defined @ref file_system_hash callback if the hash value must be returned for this file.
+ *  -# IIK calls application-defined @ref file_system_hash callback, if the requested hash value is supported.
  *
  * A typical application-defined callback sequence to get a directory listing would be:
  *  -# IIK calls application-defined @ref file_system_stat callback and learns that the path is a directory.
@@ -52,8 +52,8 @@
  *  -# For each directory entry IIK invokes application-defined callbacks:
  *      -# @ref file_system_readdir callback.
  *      -# @ref file_system_stat callback.
- *      -# @ref file_system_hash callback, if the hash value must be returned for this file.
- *  -# When all of the directory entries are processed, IIK calls application-defined @ref file_system_closedir.
+ *      -# @ref file_system_hash callback, if the requested hash value is supported.
+ *  -# When all directory entries are processed, IIK calls application-defined @ref file_system_closedir callback.
  *
  * @note See @ref file_system_support under Configuration to enable or disable file system.
  *
@@ -72,35 +72,39 @@
  * @li error_status - error status of @ref idigi_file_error_status_t type. 
  * @li errnum - Application defined error token.
  * 
- * The callback should use @ref idigi_file_noerror status in case of successful file operation and
- * @ref idigi_file_user_cancel status to cancel the session. Any other error status will be used to send 
- * the File System error message to the iDigi Device Cloud.
+ * The callback should use:
+ * @li @ref idigi_file_noerror status - in case of successful file operation.
+ * @li @ref idigi_file_user_cancel status - to cancel the session. 
+ * @li Any other error status - to send the File System error message to the iDigi Device Cloud.
  *
- * The callback can set errnum to the system errno value. It will be used later in the @ref file_system_strerror 
+ * The callback can set errnum to the system errno value. It will be used later in the @ref file_system_strerror callback
  * to send the error string to the iDigi Device Cloud. 
  *
  * Different scenarios for the session termination are described below.
  *
  * If the session is successful:
- *  -# IIK calls @ref file_system_close callback or @ref file_system_closedir if there is an open file or directory.
+ *  -# IIK calls @ref file_system_close or @ref file_system_closedir callback, if there is an open file or directory.
  *  -# IIK sends last response to the iDigi Device Cloud.
  *
- * The callback returns @ref idigi_callback_abort status:
- *  -# IIK calls @ref file_system_close callback or @ref file_system_closedir callback if there is an open file or directory.
+ * The callback aborts IIK:
+ *  -# The callback returns @ref idigi_callback_abort status.
+ *  -# IIK calls @ref file_system_close or @ref file_system_closedir callback, if there is an open file or directory.
  *  -# IIK is aborted.
  *
- * The callback returns @ref idigi_callback_continue and sets error_status to @ref idigi_file_user_cancel status:
- *  -# IIK calls @ref file_system_close callback or @ref file_system_closedir callback if there is an open file or directory.
+ * The callback cancels the file system session:
+ *  -# The callback returns @ref idigi_callback_continue and sets error_status to @ref idigi_file_user_cancel.
+ *  -# IIK calls @ref file_system_close or @ref file_system_closedir callback, if there is an open file or directory.
  *  -# IIK canceles the session.
  *
- * The callback returns @ref idigi_callback_continue and sets error status and errnum:
- *  -# IIK calls @ref file_system_close callback or @ref file_system_closedir callback if there is an open file or directory.
+ * The callback encounters a file I/O error:
+ *  -# The callback returns @ref idigi_callback_continue and sets error status and errnum.
+ *  -# IIK calls @ref file_system_close or @ref file_system_closedir callback, if there is an open file or directory.
  *  -# If IIK has already sent part of file or directory data, it cancels the session. This is due to the fact 
  *     that it can't differentiate an error response from part of the data response.
  *  -# Otherwise IIK calls @ref file_system_strerror callback and sends an error response to the iDigi Device Cloud.
  *
  * File system was notified of an error in the messaging layer:
- *  -# IIK calls @ref file_system_close callback or @ref file_system_closedir callback if there is an open file or directory.
+ *  -# IIK calls @ref file_system_close or @ref file_system_closedir callback, if there is an open file or directory.
  *  -# IIK calls @ref file_system_msg_error callback.
  *  -# IIK canceles the session.
  *
@@ -169,7 +173,6 @@
  *                                               idigi_file_open_response_t * response_data)
  * {
  *    idigi_callback_status_t status = idigi_callback_continue;
- *    idigi_file_error_data_t * error_data = response_data->error;
  *    int oflag = 0; 
  *    long int fd;
  *
@@ -185,6 +188,8 @@
  *
  *    if (fd < 0)
  *    {
+ *        idigi_file_error_data_t * error_data = response_data->error;
+ *
  *        long int errnum = errno;
  *        error_data->errnum = (void *) errnum;
  *        
@@ -223,7 +228,7 @@
  *
  * @section file_system_lseek   Seek file position
  *
- * Set the file offset for a file, associated with the open file descriptor.
+ * Set the file offset for an open file.
  *
  * @htmlonly
  * <table class="apitable">
@@ -288,7 +293,6 @@
  *                                                idigi_file_lseek_response_t * response_data)
  * {
  *    idigi_callback_status_t status = idigi_callback_continue;
- *    idigi_file_error_data_t * error_data = response_data->error;
  *    int origin;
  *    long int offset;
  *
@@ -312,6 +316,8 @@
  *
  *    if (offset < 0)
  *    {
+ *        idigi_file_error_data_t * error_data = response_data->error;
+ *
  *        long int errnum = errno;
  *        error_data->errnum = (void *) errnum;
  *        
@@ -341,7 +347,7 @@
  *
  * @section file_system_read    Read file data
  *
- * Read data from a file, associated with the open file descriptor.
+ * Read data from an open file.
  *
  * @htmlonly
  * <table class="apitable">
@@ -405,7 +411,6 @@
  *                                               idigi_file_data_response_t * response_data)
  * {
  *    idigi_callback_status_t status = idigi_callback_continue;
- *    idigi_file_error_data_t * error_data = response_data->error;
  * 
  *    int result = read((long int) request_data->handle, response_data->data_ptr, response_data->size_in_bytes);
  *
@@ -415,6 +420,8 @@
  *    }
  *    else
  *    {
+ *        idigi_file_error_data_t * error_data = response_data->error;
+ *
  *        long int errnum = errno;
  *        error_data->errnum = (void *) errnum;
  *            
@@ -440,7 +447,7 @@
  *
  * @section file_system_write   Write file data
  *
- * Write data to a file, associated with the open file descriptor.
+ * Write data to an open file.
  *
  * @htmlonly
  * <table class="apitable">
@@ -504,7 +511,6 @@
  *                                                idigi_file_write_response_t * response_data)
  * {
  *    idigi_callback_status_t status = idigi_callback_continue;
- *    idigi_file_error_data_t * error_data = response_data->error;
  * 
  *    int result = write((long int) request_data->handle, request_data->data_ptr, request_data->size_in_bytes);
  * 
@@ -515,6 +521,8 @@
  *    else
  *    if (result < 0)
  *    {
+ *        idigi_file_error_data_t * error_data = response_data->error;
+ *
  *        long int errnum = errno;
  *        error_data->errnum = (void *) errnum;
  *            
@@ -541,7 +549,7 @@
  * @section file_system_ftruncate   Truncate a file
  *
  *
- * Truncate a file to a specified length.
+ * Truncate an open file to a specified length.
  *
  * @htmlonly
  * <table class="apitable">
@@ -603,12 +611,13 @@
  *                                                     idigi_file_response_t * response_data)
  * {
  *    idigi_callback_status_t status = idigi_callback_continue;
- *    idigi_file_error_data_t * error_data = response_data->error;
  * 
  *    int result = ftruncate((long int) request_data->handle, request_data->length);
  * 
  *    if (result < 0)
  *    {
+ *        idigi_file_error_data_t * error_data = response_data->error;
+ *
  *        long int errnum = errno;
  *        error_data->errnum = (void *) errnum;
  *            
@@ -633,9 +642,9 @@
  *
  * @section file_system_close   Close a file
  *
- * Close a file, associated with the open file descriptor.
+ * Close an open file.
  *
- * @note This callback must free all memory, allocated during the file system session.
+ * @note This callback must release all resources, used during the file system session.
  *
  * @htmlonly
  * <table class="apitable">
@@ -690,19 +699,18 @@
  * idigi_callback_status_t app_process_file_close(idigi_file_request_t const * const request_data, 
  *                                                idigi_file_response_t * response_data)
  * {
- *     idigi_file_error_data_t * error_data = response_data->error;
  *
  *     int result = close((long int) request_data->handle);
  *
  *     if (result < 0 && errno == EIO)
  *     {
+ *         idigi_file_error_data_t * error_data = response_data->error;
+
  *         error_data->errnum = (void *) EIO;
  *         error_data->error_status = idigi_file_unspec_error;
  *     }
- *     if (response_data->user_context != NULL)
- *     {
- *        // Session data must be freed here
- *     }
+ *
+ *     // All session resources must be released in this callback
  *     return idigi_callback_continue;
  *  } 
  *
@@ -771,13 +779,14 @@
  *                                             idigi_file_response_t * response_data)
  * {
  *    idigi_callback_status_t status = idigi_callback_continue;
- *    idigi_file_error_data_t * error_data = response_data->error;
  *
  *     // Posix function to remove a file
  *     int result = unlink(request_data->path);
  *
  *     if (result < 0)
  *     {
+ *          idigi_file_error_data_t * error_data = response_data->error;
+ *
  *          long int errnum = errno;
  *          error_data->errnum = (void *) errnum;
  *
@@ -942,9 +951,11 @@
  *
  * @section file_system_readdir     Read next directory entry
  *
- * The callbacks reads the next directory entry, specified by the directory handle,
- * returned in the @ref file_system_opendir callback. The callback writes the directory entry name to memory, 
- * pointed by data_ptr. The callback sets size_in_bytes to 0, when no more directory entries exist.
+ * The callbacks reads the next directory entry for the directory handle,
+ * returned in the @ref file_system_opendir callback. 
+ *
+ * The callback writes the directory entry name to memory at the data_ptr address. When no more 
+ * directory entries exist, the callback sets size_in_bytes to 0.
  *
  * @htmlonly
  * <table class="apitable">
@@ -1077,10 +1088,10 @@
  *
  * @section file_system_closedir    Close a directory
  *
- * Close a directory, specified by the directory handle, returned in the @ref file_system_opendir
+ * Close a directory for the directory handle, returned in the @ref file_system_opendir
  * callback.
  *
- * @note This callback must free all memory, allocated during the file system session.
+ * @note This callback must release all resources, used during the file system session.
  *
  * @htmlonly
  * <table class="apitable">
@@ -1147,11 +1158,8 @@
  *
  *     closedir(dir_data->dirp);
  *     app_os_free(dir_data);
- * 
- *     if (response_data->user_context != NULL)
- *     {
- *         // Session data must be freed here
- *     }
+ *
+ *     // All session resources must be released in this callback
  *     return idigi_callback_continue;
  * }
  * 
@@ -1159,7 +1167,7 @@
  *
  * @section file_system_stat        Get file status
  *
- * Get file status for the named file, specified by the path.
+ * Get file status for the named file path.
  *
  * When called for a file, the callback returns the following information in the @ref idigi_file_stat_t
  * structure of the response:
@@ -1173,9 +1181,8 @@
  * structure of the response:
  * @li Last modified time
  * @li The @ref IDIGI_FILE_IS_DIR flag set.
- * @li Hash algorithm of @ref idigi_file_hash_algorithm_t type to be used for this directory.
- * The @ref file_system_hash callback will be called for each regular file in the directory and the hash 
- * algorithm returned for the directory will be used for each file.
+ * @li Hash algorithm of @ref idigi_file_hash_algorithm_t type to be used for each regular file in this directory
+ * in a separate @ref file_system_hash callback. 
  *
  * Hash values support is optional.
  *
@@ -1278,7 +1285,6 @@
  *     struct stat statbuf;
  *     idigi_file_stat_t * pstat = &response_data->statbuf;
  *     idigi_callback_status_t status = idigi_callback_continue;
- *     idigi_file_error_data_t * error_data = response_data->error;
  * 
  *     int result = stat(request_data->path, &statbuf);
  * 
@@ -1297,6 +1303,7 @@
  *     }
  *     else
  *     {
+ *         idigi_file_error_data_t * error_data = response_data->error;
  *         long int errnum = errno;
  *         error_data->errnum = (void *) errnum;
  *
@@ -1374,8 +1381,8 @@
  *   <p><b><i>error</i></b> - [OUT] Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
  *                            where the callback writes @endhtmlonly @ref idigi_file_error_status_t @htmlonly
  *                            and errnum in case of file error.
- *   <p><b><i>data_ptr</i></b> - Pointer to  memory, where the callback writes the hash value.</td></tr>
- *   <p><b><i>size_in_bytes</i></b> - Size of memory buffer for hash value: 16 bytes for md5, 
+ *   <p><b><i>data_ptr</i></b> - Pointer to  memory, where the callback writes the hash value.
+ *   <p><b><i>size_in_bytes</i></b> - [IN] Size of memory buffer for hash value: 16 bytes for md5, 
  *                                4 bytes for crc32.
  * <tr>
  * <td>response_length</td>
@@ -1427,11 +1434,10 @@
  *
  * Get error description string to send to the iDigi Device Cloud.
  *
- * IIK invokes this callback if an earlier callback has encountered a file I/O eror and
+ * IIK invokes this this callback if an earlier callback has encountered a file I/O eror and
  * has set an error_status and errnum in @ref idigi_file_error_data_t structure of the response.
  *
- * IIK invokes the @ref file_system_close or the @ref file_system_closedir callback
- * prior to calling the @ref file_system_strerror callback.
+ * IIK invokes this callback after calling the @ref file_system_close or the @ref file_system_closedir callback.
  *
  * @htmlonly
  * <table class="apitable">
@@ -1561,11 +1567,7 @@
  * {
  *     APP_DEBUG("Message Error %d\n", (int) request_data->message_status);
  *
- *     if (response_data->user_context != NULL)
- *     {
- *         // Session data must be freed here
- *     }
- * 
+ *    // All session resources must be released in this callback
  *    return idigi_callback_continue;
  * }
  *
