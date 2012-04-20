@@ -8,9 +8,6 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.management.BadStringOperationException;
-import javax.naming.NamingException;
-
 public class Parser {
     
 
@@ -49,7 +46,7 @@ public class Parser {
                     {
                         if (err.getName().equals(error.getName()))
                         {
-                            throw new BadStringOperationException("Duplicate <globalerror>: " + error.getName());
+                            throw new IOException("Duplicate <globalerror>: " + error.getName());
                         }
                     }
                     errorConfig.add(error);
@@ -92,10 +89,9 @@ public class Parser {
                         if (token.equalsIgnoreCase("element"))
                         {
                             ElementStruct element = processElement();
-                            if (!element.validate())
-                            {
-                                throw new NamingException("Error found for element: " + element.getName());
-                            }
+                            
+                            element.validate();
+                                    
                             theGroup.addElement(element);
                         }
                         else if (token.equalsIgnoreCase("error"))
@@ -110,49 +106,34 @@ public class Parser {
                         }
                     }
                     
-                    if (!theGroup.validate())
-                    {
-                        throw new IOException("Error found for group: " + theGroup.getName());
-                    }
+                    theGroup.validate();
                     
                     for (GroupStruct g : groupConfig)
                     {
                         if (g.getName().equals(theGroup.getName()))
                         {
-                            throw new NamingException("Duplicate <group>: " +  theGroup.getName());
+                            throw new Exception("Duplicate <group>: " +  theGroup.getName());
                         }
                     }
                     groupConfig.add(theGroup);
                 }
                 else
                 {
-                    throw new BadStringOperationException("Unrecogized keyword: " + token);
+                    throw new IOException("Unrecogized keyword: " + token);
                 }
             }
         } catch (NullPointerException e) {
             ConfigGenerator.log(e.toString());
             throw new NullPointerException();
-            
-        } catch (IOException e) {
-            ConfigGenerator.log(e.toString());
-            throw new IOException("Error reading file: " + fileName);
-            
-        } catch (NamingException e) {
-            String msg = e.getMessage();
-            
-            if (msg.indexOf("group") != -1)
-                ConfigGenerator.log("Error found in line " + groupLineNumber);
-            else if (msg.indexOf("element") != -1)
-                ConfigGenerator.log("Error found in line " + elementLineNumber);
-                
-            ConfigGenerator.log(e.toString());
-            throw new IOException("Error found in file:" + fileName);
 
-        } catch (BadStringOperationException e) {
-            ConfigGenerator.log("Error found in line " + lineNumber);
-            ConfigGenerator.log(e.toString());
-            
+        } catch (IOException e) {
+            fileErrorFoundLog(e.getMessage());
             throw new IOException("Error found in file: " + fileName);
+            
+        } catch (Exception e) {
+            String msg = e.getMessage();
+            groupErrorFoundLog(msg);
+            throw new IOException("Error found in file:" + fileName);
         }
         
         finally {
@@ -166,6 +147,22 @@ public class Parser {
           lineScanner.close();
         }
         
+    }
+
+    private static void fileErrorFoundLog(String str)
+    {
+        ConfigGenerator.log("Error found in line " + lineNumber);
+        ConfigGenerator.log(str);
+    }
+
+    private static void groupErrorFoundLog(String str)
+    {
+        if (str.indexOf("group") != -1)
+            ConfigGenerator.log("Error found in line " + groupLineNumber);
+        else if (str.indexOf("element") != -1)
+            ConfigGenerator.log("Error found in line " + elementLineNumber);
+            
+        ConfigGenerator.log(str);
     }
 
     private final static Pattern ALPHANUMERIC = Pattern.compile("[A-Za-z_0-9]+");
@@ -211,7 +208,7 @@ public class Parser {
          
     }
 
-    private static String getName() throws BadStringOperationException 
+    private static String getName() throws IOException 
     {
         String name = getToken(); //tokenScanner.next();
         
@@ -219,14 +216,14 @@ public class Parser {
         {
             if (!checkAlphaNumeric(name)) 
             {
-                throw new BadStringOperationException("Invalid character in the name: " + name);
+                throw new IOException("Invalid character in the name: " + name);
             }
         
         }
         return name;
     }
     
-    private static String getDescription() throws BadStringOperationException 
+    private static String getDescription() throws IOException 
     {
 
         String description = null;
@@ -235,26 +232,26 @@ public class Parser {
             description = getTokenInLine("\\\".*?\\\"");
             if (description == null)
             {
-                throw new BadStringOperationException("Invalid description");
+                throw new IOException("Invalid description");
             }
         }
         return description;
     }
     
-    private static String getType() throws BadStringOperationException
+    private static String getType() throws IOException
     {
         String type = getToken(); //tokenScanner.next();
         
         if (type == null)
         {
-            throw new BadStringOperationException("Missing type");
+            throw new IOException("Missing type");
             
         }
         ElementStruct.ElementType elementType = ElementStruct.ElementType.toElementType(type);
         
         if (elementType == ElementStruct.ElementType.INVALID_TYPE)
         {
-            throw new BadStringOperationException("Invalid type: " + type);
+            throw new IOException("Invalid type: " + type);
         }
         else if (elementType == ElementStruct.ElementType.ENUM)
         {
@@ -268,48 +265,36 @@ public class Parser {
         return type;
     }
     
-    private static String getAccess() throws BadStringOperationException
+    private static String getAccess() throws IOException
     {
         String access = getToken(); // tokenScanner.next();
         
         if (access == null)
         {
-            throw new BadStringOperationException("Missing access");
+            throw new IOException("Missing access");
             
         }
         if (ElementStruct.AccessType.toAccessType(access) == ElementStruct.AccessType.INVALID_TYPE)
         {
-            throw new BadStringOperationException("Invalid access: " + access);
+            throw new IOException("Invalid access: " + access);
         }
         return access;
     }
 
-    private static String getMinMax() throws BadStringOperationException
+    private static String getMinMax() throws IOException
     {
         String mvalue = getToken(); // tokenScanner.next();
         
         if (mvalue == null)
         {
-            throw new BadStringOperationException("Missing min or max value");
+            throw new IOException("Missing min or max value");
             
         }
-        try {
-            Integer.parseInt(mvalue);
-            
-        } catch (NumberFormatException e) {
-            try {
-                Float.parseFloat(mvalue);
-                
-            } catch (NumberFormatException f) {
-                throw new BadStringOperationException("Invalid min or max value: " + mvalue);
-            }
-        }
-        
         return mvalue;
     }
    
 
-   private static final ElementStruct processElement() throws BadStringOperationException
+   private static final ElementStruct processElement() throws IOException
    {
        /*
         * syntax for parsing element:
@@ -368,8 +353,8 @@ public class Parser {
                }
            }
            
-       } catch (BadStringOperationException e) {
-           throw new BadStringOperationException(e.toString());
+       } catch (IOException e) {
+           throw new IOException(e.toString());
        }
        
        return element;
@@ -406,7 +391,7 @@ public class Parser {
 
        return aWord;
    }
-   private static int getTokenInt() throws BadStringOperationException
+   private static int getTokenInt() throws IOException
    {
        int anInt = 0;
        
@@ -434,7 +419,7 @@ public class Parser {
        if (tokenScanner != null && tokenScanner.hasNextInt())
            anInt = tokenScanner.nextInt();
        else
-           throw new BadStringOperationException("Not integer (expect an integer value)");
+           throw new IOException("Not integer (expect an integer value)");
 
        return anInt;
    } 

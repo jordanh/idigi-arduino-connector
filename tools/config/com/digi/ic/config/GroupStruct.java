@@ -1,26 +1,26 @@
 package com.digi.ic.config;
 
+import java.io.IOException;
 import java.util.LinkedList;
 
-import javax.management.BadStringOperationException;
 import javax.naming.NamingException;
 
 public class GroupStruct {
 
-    public GroupStruct(String nameStr, int count, String descStr) throws BadStringOperationException
+    public GroupStruct(String nameStr, int count, String descStr) throws IOException
     {
         if (count < 0)
         {
-            throw new BadStringOperationException("Invalid instance count for the group: " + nameStr);
+            throw new IOException("Invalid instance count for the group: " + nameStr);
         }
 /*         if (nameStr == null)
         {
-            throw new BadStringOperationException("Missing group name");
+            throw new IOException("Missing group name");
         }
 */
         if (descStr == null)
         {
-            throw new BadStringOperationException("Missing group description");
+            throw new IOException("Missing group description");
         }
         
         name = nameStr;
@@ -68,27 +68,25 @@ public class GroupStruct {
         elements.add(theElement);
     }
 
-    public void addError(NameStruct theError) throws BadStringOperationException
+    public void addError(NameStruct theError) throws IOException
     {
         for (NameStruct error : errors)
         {
             if (error.getName().equals(theError.getName()))
             {
-                throw new BadStringOperationException("Duplicate <error>: " + theError.getName());
+                throw new IOException("Duplicate <error>: " + theError.getName());
             }
         }
         errors.add(theError);
     }
 
-    public boolean validate()
+    public void validate() throws Exception
     {
-        boolean valid = true;
         if (elements.isEmpty())
         {
             ConfigGenerator.log("No element specified");
-            valid = false;
-        }
-        return valid;
+            throw new Exception ("Error on \"" + name + "\" group!");
+         }
         
     }
 
