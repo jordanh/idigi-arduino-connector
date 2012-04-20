@@ -1,8 +1,14 @@
-                      Release Notes for 40003007_C
-                     iDigi Integration Kit v1.1.0.14
-                           February 03, 2012 
+                          Release Notes for
+                     iDigi Integration Kit v1.1.1.1
+                           April 20, 2012 
 
 ENHANCEMENTS
+
+    v1.1.1
+
+        IIK now covered by Mozilla Public License, v. 2.0
+
+        You may obtain a copy of the license at http://mozilla.org/MPL/2.0/.
 
     v1.1
 

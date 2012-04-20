@@ -1,25 +1,14 @@
-# ****************************************************************************
-# Copyright (c) 2011 Digi International Inc., All Rights Reserved
+# ***************************************************************************
+# Copyright (c) 1996-2012 Digi International Inc.,
+# All rights not expressly granted are reserved.
 # 
-# This software contains proprietary and confidential information of Digi
-# International Inc.  By accepting transfer of this copy, Recipient agrees
-# to retain this software in confidence, to prevent disclosure to others,
-# and to make no use of this software other than that for which it was
-# delivered.  This is an unpublished copyrighted work of Digi International
-# Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
-# prohibited.
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at http://mozilla.org/MPL/2.0/.
 # 
-# Notwithstanding anything to the contrary therein you may reuse and modify 
-# the script for your internal business purposes.  This script is provided 
-# AS IS without warranty of any kind.  You accept sole responsibility and 
-# liability for its use as well as any modifications you make.
-# Restricted Rights Legend
-#
 # Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
 #
 # ***************************************************************************
-# update_firmware.py
-# Send an image file to do firmware upgrade using update_firmware SCI operation.
 # It updates firmware target = 0 with image file name "image.a"
 # -------------------------------------------------
 # Usage: update_firmware.py <username> <password> <device_id>
