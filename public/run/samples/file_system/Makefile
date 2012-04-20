@@ -32,8 +32,16 @@ vpath $(PLATFORM_DIR)/%.c
 CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL 
 CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR)  -g -O0
 
+ifeq ($(APP_ENABLE_MD5),true)
+CFLAGS += -DAPP_ENABLE_MD5
+endif
+
 OBJS = application.o file_system.o $(IDIGI_DIR)/idigi_api.o $(PLATFORM_DIR)/os.o $(PLATFORM_DIR)/network.o  $(PLATFORM_DIR)/config.o $(PLATFORM_DIR)/main.o 
 LIBS = -lc -lz -lpthread
+
+ifeq ($(APP_ENABLE_MD5),true)
+LIBS += -lssl
+endif
 
 SAMPLE = idigi
 all: $(SAMPLE)

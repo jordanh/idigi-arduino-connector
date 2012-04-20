@@ -33,9 +33,23 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <errno.h>
-
 #include "idigi_api.h"
 #include "platform.h"
+
+#if defined APP_ENABLE_MD5
+#include <openssl/md5.h>
+
+#define APP_MD5_BUFFER_SIZE 1024
+
+typedef struct
+{
+    MD5_CTX md5;
+    char buf[APP_MD5_BUFFER_SIZE];
+    unsigned int flags;
+    int fd;
+
+} app_md5_ctx;
+#endif
 
 #ifndef APP_MIN_VALUE
 #define APP_MIN_VALUE(a,b) (((a)<(b))?(a):(b))
@@ -46,10 +60,11 @@ extern void app_os_free(void * const ptr);
 
 typedef struct
 {
-    DIR         * dirp;
+    DIR * dirp;
     struct dirent dir_entry;
 
 } app_dir_data_t;
+
 
 static idigi_callback_status_t app_process_file_error(idigi_file_error_data_t * error_data, long int errnum)
 {
@@ -97,7 +112,6 @@ static idigi_callback_status_t app_process_file_error(idigi_file_error_data_t * 
     }
     return status;
 }
-
 
 static int app_convert_file_open_mode(int oflag)
 {
@@ -168,16 +182,113 @@ idigi_callback_status_t app_process_file_strerror(void const * const request_dat
     return idigi_callback_continue;
 }
 
+
+#if defined APP_ENABLE_MD5
+static app_md5_ctx * app_allocate_md5_ctx(unsigned int flags, idigi_file_error_data_t * error_data)
+{
+    app_md5_ctx * ctx = NULL;
+    void * ptr = NULL;
+
+    int result = app_os_malloc(sizeof *ctx, &ptr);
+
+    if (result == 0 && ptr != NULL)
+    {
+        ctx = ptr;
+        ctx->flags = flags;
+        ctx->fd    = -1;
+    }
+    else
+    {
+        app_process_file_error(error_data, ENOMEM);
+        APP_DEBUG("app_allocate_md5_ctx: malloc fails\n");
+    }
+    return ctx;
+}
+
 idigi_callback_status_t app_process_file_msg_error(idigi_file_error_request_t const * const request_data,
                                                    idigi_file_response_t * response_data)
 {
     APP_DEBUG("Message Error %d\n", (int) request_data->message_status);
 
+    // All application resources, used in the session, must be released in this callback
     if (response_data->user_context != NULL)
     {
-        APP_DEBUG("The %p user_context should be freed here!\n", response_data->user_context);
+        app_md5_ctx * ctx = response_data->user_context;
+
+        if (ctx->fd >= 0)
+            close(ctx->fd);
+
+        app_os_free(response_data->user_context);
+        response_data->user_context = NULL;
+    }
+    return idigi_callback_continue;
+}
+
+idigi_callback_status_t app_process_file_hash(idigi_file_path_request_t const * const request_data,
+                                              idigi_file_data_response_t * response_data)
+{
+    idigi_callback_status_t status = idigi_callback_continue;
+    app_md5_ctx * ctx = response_data->user_context;
+    int ret;
+
+    if (ctx == NULL)
+        goto error;
+    
+    if (ctx->fd < 0)
+    {
+        ctx->fd = open(request_data->path, O_RDONLY); 
+        APP_DEBUG("Open %s, returned %d\n", request_data->path, ctx->fd);
+
+        if (ctx->fd < 0)
+            goto error;
+
+        MD5_Init(&ctx->md5);
+    }
+    
+    while ((ret = read (ctx->fd, ctx->buf, sizeof ctx->buf)) > 0)
+    {
+  		  MD5_Update(&ctx->md5, ctx->buf, ret);
+    }
+    if (ret == -1 && errno == EAGAIN)
+    {
+        status = idigi_callback_busy;
+        goto done;
     }
 
+    APP_DEBUG("Closse %d\n", ctx->fd);
+	close (ctx->fd);
+    ctx->fd = -1;
+
+    if (ret == 0)
+    {
+        MD5_Final (response_data->data_ptr, &ctx->md5);
+        goto done;
+    }
+
+error:
+    memset(response_data->data_ptr, 0, response_data->size_in_bytes);
+
+done:
+    if (ctx != NULL && status == idigi_callback_continue)
+    {
+        // free md5 context here,  if ls was issued a single file
+        if ((ctx->flags & IDIGI_FILE_IS_DIR) == 0)
+        {
+            app_os_free(response_data->user_context);
+            response_data->user_context = NULL;
+        }
+    }
+    return status;
+}
+#else
+
+idigi_callback_status_t app_process_file_msg_error(idigi_file_error_request_t const * const request_data,
+                                                   idigi_file_response_t * response_data)
+{
+    UNUSED_ARGUMENT(response_data);
+    APP_DEBUG("Message Error %d\n", (int) request_data->message_status);
+
+    // All application resources, used in the session, must be released in this callback
     return idigi_callback_continue;
 }
 
@@ -186,9 +297,13 @@ idigi_callback_status_t app_process_file_hash(idigi_file_path_request_t const * 
 {
     UNUSED_ARGUMENT(request_data);
 
+    // app_process_file_hash() should not be called if APP_ENABLE_MD5 is not defined
+    ASSERT(0)
+
     memset(response_data->data_ptr, 0, response_data->size_in_bytes);
     return idigi_callback_continue;
 }
+#endif
 
 idigi_callback_status_t app_process_file_stat(idigi_file_stat_request_t const * const request_data,
                                               idigi_file_stat_response_t * response_data)
@@ -207,17 +322,40 @@ idigi_callback_status_t app_process_file_stat(idigi_file_stat_request_t const * 
         goto done;
     }
         
-    pstat->flags         = 0;
-    pstat->file_size     = statbuf.st_size;
+    pstat->flags = 0;
+    pstat->file_size = statbuf.st_size;
     pstat->last_modified = statbuf.st_mtime;
-    pstat->hash_alg      = idigi_file_hash_none;
+    pstat->hash_alg = idigi_file_hash_none;
 
     if (S_ISDIR(statbuf.st_mode))
        pstat->flags |= IDIGI_FILE_IS_DIR;
     else
     if (S_ISREG(statbuf.st_mode))
        pstat->flags |= IDIGI_FILE_IS_REG;
-    
+
+#if defined APP_ENABLE_MD5
+    /*
+     * If ls was issued for a directory
+     * - app_process_file_stat() is called with the requested hash algorithm once for this directory.
+     * - app_process_file_stat() is called with idigi_file_hash_none for each directory entry.
+     */
+    switch (request_data->hash_alg)
+    {
+        case idigi_file_hash_best:
+        case idigi_file_hash_md5:
+            if (pstat->flags != 0)
+            {
+                pstat->hash_alg = idigi_file_hash_md5;
+                if (response_data->user_context == NULL)
+                    response_data->user_context = app_allocate_md5_ctx(pstat->flags, response_data->error);
+            }
+            break;
+
+           
+        default:
+            break;
+    }
+#endif    
 done:
     return status;
 }
@@ -235,13 +373,14 @@ idigi_callback_status_t app_process_file_opendir(idigi_file_path_request_t const
 
     if (dirp != NULL)
     {
-        void           * ptr;
+        void * ptr;
+        app_dir_data_t * dir_data = NULL;
 
-        int result  = app_os_malloc(sizeof (app_dir_data_t), &ptr);
+        int result  = app_os_malloc(sizeof *dir_data, &ptr);
 
         if (result == 0 && ptr != NULL)
         {
-            app_dir_data_t * dir_data = ptr;
+            dir_data = ptr;
             response_data->handle = ptr;
 
             dir_data->dirp = dirp;
@@ -266,16 +405,23 @@ idigi_callback_status_t app_process_file_closedir(idigi_file_request_t const * c
                                                   idigi_file_response_t * response_data)
 {
     app_dir_data_t * dir_data = request_data->handle;
+    UNUSED_ARGUMENT(response_data);
 
     APP_DEBUG("closedir %p\n", (void *) dir_data->dirp);
 
     closedir(dir_data->dirp);
     app_os_free(dir_data);
 
+    // All application resources, used in the session, must be released in this callback
+
+#if defined APP_ENABLE_MD5
     if (response_data->user_context != NULL)
     {
-        APP_DEBUG("The %p user_context should be freed here!\n", response_data->user_context);
+        // free md5 context here, if ls was issued a directory
+        app_os_free(response_data->user_context);
+        response_data->user_context = NULL;
     }
+#endif
     return idigi_callback_continue;
 }
 
@@ -484,10 +630,8 @@ idigi_callback_status_t app_process_file_close(idigi_file_request_t const * cons
         error_data->errnum = (void *) EIO;
         error_data->error_status = idigi_file_unspec_error;
     }
-    if (response_data->user_context != NULL)
-    {
-        APP_DEBUG("The %p user_context should be freed here!\n", response_data->user_context);
-    }
+
+    // All application resources, used in the session, must be released in this callback
 
     return idigi_callback_continue;
 }

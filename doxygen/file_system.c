@@ -890,13 +890,14 @@
  * 
  *     if (dirp != NULL)
  *     {
- *         void           * ptr;
+ *         void * ptr;
+ *         app_dir_data_t * dir_data = NULL;
  * 
- *         int result  = app_os_malloc(sizeof (app_dir_data_t), &ptr);
+ *         int result  = app_os_malloc(sizeof *dir_data, &ptr);
  * 
  *         if (result == 0 && ptr != NULL)
  *         {
- *             app_dir_data_t * dir_data = ptr;
+ *             dir_data = ptr;
  *             response_data->handle = ptr;
  *             dir_data->dirp = dirp;
  *         }
