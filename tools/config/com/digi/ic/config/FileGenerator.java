@@ -27,7 +27,6 @@ public class FileGenerator {
         "INDEX", "index"
     };
 
-    
     private final static String HEADER_FILENAME = "remote_config.h";
     private final static String SOURCE_FILENAME = "remote_config.c"; 
     
@@ -100,15 +99,19 @@ public class FileGenerator {
             {
                 defineHeader += DEFINE + RCI_PARSER_USES_ERROR_DESCRIPTIONS;
             }
+            
             if (Parser.getEnumSupport())
             {
                 defineHeader += DEFINE + RCI_PARSER_USES_ENUMERATIONS;
             }
-            if (Parser.getEnumSupport())
+            
+            if (Parser.getFloatingSupport())
             {
                 defineHeader += DEFINE + RCI_PARSER_USES_FLOATING_POINT;
             }
+            
             defineHeader += "\n";
+            
             headerWriter.write(defineHeader);
             
             sourceWriter.write(INCLUDE + "\"" + HEADER_FILENAME + "\"\n\n");
@@ -441,7 +444,7 @@ public class FileGenerator {
                 limit_string += SPACES + "FLT_MIN";
                 break;
             case INT32:
-                limit_string += SPACES + "INT_MIN";
+                limit_string += SPACES + "INT32_MIN";
                 break;
             default:
                 limit_string += SPACES + "0";
@@ -467,10 +470,15 @@ public class FileGenerator {
                 limit_string += SPACES + "FLT_MAX";
                 break;
             case INT32:
-                limit_string += SPACES + "INT_MAX";
+                limit_string += SPACES + "INT32_MAX";
+                break;
+            case UINT32:
+            case HEX32:
+            case XHEX:
+                limit_string += SPACES + "UINT32_MAX";
                 break;
             default:
-                limit_string += SPACES + "UINT_MAX";
+                limit_string += SPACES + "SIZE_MAX";
                 break;
             }
         }

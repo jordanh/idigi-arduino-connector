@@ -7,6 +7,10 @@ import java.util.regex.Pattern;
 
 public class ElementStruct {
     
+    private final static int INT32_MIN_VALUE = -2147483648;
+    private final static int INT32_MAX_VALUE = 2147483647;
+    private final static long UINT32_MAX_VALUE = 4294967295L;
+
     public enum ElementType {
         STRING (true),
         MULTILINE_STRING (true),
@@ -270,9 +274,11 @@ public class ElementStruct {
                 }
             }
             break;
+
         default:
-            long minValue = 0;
-            long maxValue = 0;
+            long minValue = (etype == ElementStruct.ElementType.INT32) ? INT32_MIN_VALUE : 0;
+            long maxValue = (etype == ElementStruct.ElementType.INT32) ? INT32_MAX_VALUE : UINT32_MAX_VALUE;
+            
             if (min != null)
             {
                 try {
@@ -293,19 +299,30 @@ public class ElementStruct {
                     
             }
             
-            if ((etype != ElementStruct.ElementType.INT32) && ((minValue < 0) || (maxValue < 0)))
+            if (etype != ElementStruct.ElementType.INT32)
             {
-                ConfigGenerator.log("Invalid min or max value for type: " + etype.toString().toLowerCase());
+                if ((minValue < 0) || (maxValue < 0))
+                {
+                    ConfigGenerator.log("Invalid min or max value for type: " + etype.toString().toLowerCase());
+                    throw new Exception("Error on \"" + name + "\" element!");
+                }
+                if ((minValue > UINT32_MAX_VALUE) || (maxValue > UINT32_MAX_VALUE))
+                {
+                    ConfigGenerator.log("Overflow min or max value for type: " + etype.toString().toLowerCase());
+                    throw new Exception("Error on \"" + name + "\" element!");
+                }
+            }
+            else if ((minValue < INT32_MIN_VALUE) || (minValue > INT32_MAX_VALUE) || 
+                     (maxValue < INT32_MIN_VALUE) || (maxValue > INT32_MAX_VALUE))
+            {
+                ConfigGenerator.log("Overflow min or max value for type: " + etype.toString().toLowerCase());
                 throw new Exception("Error on \"" + name + "\" element!");
             }
             
-            if ((min != null) && (max != null))
+            if (minValue > maxValue)
             {
-                if (minValue > maxValue)
-                {
-                    ConfigGenerator.log("Error min value > max value!");
-                    throw new Exception("Error on \"" + name + "\" element!");
-                }
+                ConfigGenerator.log("Error min value > max value!");
+                throw new Exception("Error on \"" + name + "\" element!");
             }
 
             break;
@@ -322,6 +339,7 @@ public class ElementStruct {
             ConfigGenerator.log("Invalid <value> for type: " + type);
             throw new Exception("Error on \"" + name + "\" element!");
         }
+        
     }
 
     private boolean isValidFloat(String str) 
@@ -343,10 +361,10 @@ public class ElementStruct {
     {
         boolean isValid = true;
         
-        String HEXCOMPILE = "[A-Fa-f0-9]";
+        String HEXCOMPILE = "[A-Fa-f0-9]{1,8}";
         if (prefix_0x)
         {
-            HEXCOMPILE= "^0x" + "[A-Fa-f0-9]";
+            HEXCOMPILE = "0x[A-Fa-f0-9]{1,8}";
         }
         
         Pattern HEXPATTERN = Pattern.compile(HEXCOMPILE);
@@ -356,9 +374,10 @@ public class ElementStruct {
             Matcher m = HEXPATTERN.matcher(str);
             isValid = m.matches();
         }
-        return isValid;
 
+        return isValid;
     }
+    
     private String name;
     private String description;
     private String type;

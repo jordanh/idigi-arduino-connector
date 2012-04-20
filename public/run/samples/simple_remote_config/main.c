@@ -136,5 +136,6 @@ int main (void)
 
     print_remote_configurations();
 
+    return 0;
 }
 #endif

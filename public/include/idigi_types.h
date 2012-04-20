@@ -75,11 +75,27 @@
 * @}
 */
 
+#ifndef UINT16_MAX
 #define UINT16_MAX  0xFFFF
-
 #endif
 
+#ifndef INT32_MIN
+#define INT32_MIN (-2147483647 -1)
+#endif
 
+#ifndef INT32_MAX
+#define INT32_MAX 2147483647
+#endif
+
+#ifndef UINT32_MAX
+#define UINT32_MAX 4294967295U
+#endif
+
+#ifndef SIZE_MAX
+#define SIZE_MAX ((size_t)-1)
+#endif
+
+#endif
 /**
 * @defgroup idigi_network_handle_t Network Handle
 * @{

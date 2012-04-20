@@ -131,16 +131,16 @@ void print_remote_configurations(void)
                     idigi_element_value_unsigned_integer_t const * const value_limit = &element_ptr->value_limit->integer_unsigned_value;
                     if (value_limit->min_value != 0 || value_limit->max_value != 0)
                     {
-                        fprintf(fp, " min = %X max = %X ", (unsigned)value_limit->min_value, (unsigned)value_limit->max_value);
+                        fprintf(fp, " min = %X max = %X ", value_limit->min_value, value_limit->max_value);
                     }
                     break;
                 }
                 case idigi_element_type_0xhex:
                 {
                     idigi_element_value_unsigned_integer_t const * const value_limit = &element_ptr->value_limit->integer_unsigned_value;
-                    if (value_limit->min_value != 0 &&  value_limit->max_value != 0)
+                    if (value_limit->min_value != 0 ||  value_limit->max_value != 0)
                     {
-                        fprintf(fp, " min = 0x%X max = ox%X ", (unsigned)value_limit->min_value, (unsigned)value_limit->max_value);
+                        fprintf(fp, " min = 0x%X max = 0x%X ", value_limit->min_value, value_limit->max_value);
                     }
                     break;
                 }

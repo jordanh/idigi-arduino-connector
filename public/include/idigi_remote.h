@@ -64,8 +64,7 @@ typedef enum {
 
 typedef enum {
     idigi_boolean_false,
-    idigi_boolean_true,
-    idigi_boolean_integer_width = INT_MAX
+    idigi_boolean_true
 } idigi_boolean_t;
 
 typedef enum {
@@ -84,7 +83,6 @@ typedef struct {
     uint32_t min_value;
     uint32_t max_value;
 } idigi_element_value_unsigned_integer_t;
-
 
 typedef struct {
     size_t min_length_in_bytes;
