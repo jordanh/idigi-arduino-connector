@@ -1087,7 +1087,7 @@ static size_t format_file_ls_response_header(idigi_file_hash_algorithm_t hash_al
 
     message_store_u8(fs_ls_response, opcode,     fs_ls_response_opcode);
     message_store_u8(fs_ls_response, hash_alg,   hash_alg);
-    message_store_u8(fs_ls_response, hash_bytes, hash_size);
+    message_store_u8(fs_ls_response, hash_bytes, (uint8_t) hash_size);
 
     return record_bytes(fs_ls_response_header);
 }

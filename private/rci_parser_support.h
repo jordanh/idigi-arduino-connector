@@ -190,26 +190,14 @@ typedef struct
     } parser;
     struct {
         rci_input_state_t state;
-        int value;
-        char * position;
-        union {
-            rci_string_t generic;
-            rci_string_t tag;
-            rci_string_t content;
-        } string;
+        int character;
+        char * destination;
+        rci_command_t command;
         rci_string_t entity;
         rci_attribute_list_t attribute;
     } input;
     struct {
         rci_traversal_state_t state;
-        rci_command_t command;
-        idigi_remote_group_type_t type;
-        idigi_remote_action_t action;
-        struct {
-            int group;
-            int element;
-        } id;
-        unsigned int index;
         rci_string_t tag;
     } traversal;
     struct {
@@ -233,15 +221,25 @@ typedef struct
     } output;
     struct {
         rci_error_state_t state;
-        idigi_remote_group_response_t response;
         char const * description;
     } error;
+    struct {
+        union {
+            rci_string_t generic;
+            rci_string_t tag;
+            rci_string_t content;
+        } string;
+        idigi_remote_group_request_t request;
+        idigi_remote_group_response_t response;
+    } shared;
 } rci_t;
 
 static char const nul = '\0';
 
 #define POINTER_AND_SIZE(p)     (p), sizeof *(p)
 #define RCI_NO_HINT             NULL
+#define INVALID_ID              UINT_MAX
+#define INVALID_INDEX              UINT_MAX
 
 #define CSTR_LEN(p)     ((size_t) *(p))
 #define CSTR_DATA(p)    ((p) + 1)
