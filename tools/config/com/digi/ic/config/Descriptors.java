@@ -3,6 +3,9 @@ package com.digi.ic.config;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.regex.Pattern;
+
+import javax.xml.bind.DatatypeConverter;
 
 public class Descriptors {
 
@@ -32,7 +35,7 @@ public class Descriptors {
         if (credential.indexOf(':') == -1)
         {
             BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
-    
+
             username = credential;
             System.out.print("Enter password: ");
             try {
@@ -44,13 +47,14 @@ public class Descriptors {
         }
         else
         {
-            username = credential.split(":")[0];
-            password = credential.split(":")[1];
+            String [] userpass = credential.split(":");
+
+            username = userpass[0];
+            password = userpass[1];
         }
 
         vendorId = args[argIndex];
-        Scanner vendorIdScan = new Scanner(vendorId.regionMatches(true, 0, "0x", 0, 2) ? vendorId.substring(2) : vendorId); /* skip 0x if provided */
-        if (vendorIdScan.hasNextInt(16))
+        if (Pattern.matches("(0[xX])?\\p{XDigit}+", vendorId))
         {
             argIndex++;
         }
@@ -249,44 +253,12 @@ public class Descriptors {
         uploadDescriptor("descriptor", descriptors);
     }    
 
-    
-    private static String encode(String rawData)
-    {
-        final String base64Table = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "abcdefghijklmnopqrstuvwxyz" + "0123456789" + "+/";
-        int bytesToPad = (3 - (rawData.length() % 3)) % 3;
-        byte[] byteArray;
-
-        switch (bytesToPad)
-        {
-            case 1:
-                byteArray = (rawData + '\000').getBytes();
-                break;
-
-            case 2:
-                byteArray = (rawData + '\000' + '\000').getBytes();
-                break;
-
-            default:
-                byteArray = rawData.getBytes();
-                break;
-        }
-
-        String encodedData = "";
-        for (int i = 0; i < byteArray.length; i += 3)
-        {
-            int j = ((byteArray[i] & 0xff) << 16) + ((byteArray[i + 1] & 0xff) << 8) + (byteArray[i + 2] & 0xff);
-
-            encodedData = encodedData + base64Table.charAt((j >> 18) & 0x3f) + base64Table.charAt((j >> 12) & 0x3f) + base64Table.charAt((j >> 6) & 0x3f) + base64Table.charAt(j & 0x3f);
-        }
-
-        return encodedData.substring(0, encodedData.length() - bytesToPad) + "==".substring(0, bytesToPad);
-    }
-
     private String sendCloudData(String target, String method, String message)
     {
         String response = "";
         String cloud = "http://" + ConfigGenerator.getServerName() + target;
-        String encodedCredential = encode(username + ":" + password);
+        String credential = username + ":" + password;
+        String encodedCredential = DatatypeConverter.printBase64Binary(credential.getBytes());
 
         try
         {
@@ -347,10 +319,20 @@ public class Descriptors {
         ConfigGenerator.log("iDigi Cloud registered vendor ID: " + vendorId);
     }
 
+    private String tagMessageSegment(String tagName, String value)
+    {
+        return "<" + tagName + ">" + value + "</" + tagName + ">";
+    }
+
+    private String replaceXmlEntities(String buffer)
+    {
+        return buffer.replace("<", "&lt;").replace(">", "&gt;");
+    }
+
     private void uploadDescriptor(String descName, String buffer)
     {
-  
         ConfigGenerator.debug_log("Uploading description:" + descName);
+
         if (callDeleteFlag)
         {
             String target = "/ws/DeviceMetaData?condition=dvVendorId=" + vendorId + " and dmDeviceType=\'" + deviceType + "\' and dmVersion=" + fwVersion;
@@ -362,20 +344,18 @@ public class Descriptors {
         }
 
         String message = "<DeviceMetaData>";
-        message += "<dvVendorId>" + vendorId + "</dvVendorId>";
-        message += "<dmDeviceType>" + deviceType + "</dmDeviceType>";
-        message += "<dmVersion>" + fwVersion + "</dmVersion>";
-        message += "<dmName>" + descName + "</dmName>";
-        message += "<dmData>" + buffer.replace("<", "&lt;").replace(">", "&gt;") + "</dmData>";
+        message += tagMessageSegment("dvVendorId", vendorId);
+        message += tagMessageSegment("dmDeviceType", deviceType);
+        message += tagMessageSegment("dmVersion", fwVersion);
+        message += tagMessageSegment("dmName", descName);
+        message += tagMessageSegment("dmData", replaceXmlEntities(buffer));
         message += "</DeviceMetaData>";
 
         String response = sendCloudData("/ws/DeviceMetaData", "POST", message);
         ConfigGenerator.debug_log("Created: " + vendorId + "/" + deviceType + "/" + descName);
         ConfigGenerator.debug_log(response);
-        
     }
 
-    
     private void debug_log(String str) throws IOException
     {
 /* debugging code 
