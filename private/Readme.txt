@@ -1,6 +1,5 @@
                           Release Notes for
-                     iDigi Integration Kit v1.1.1.1
-                           April 20, 2012 
+                     iDigi Integration Kit v1.1.1
 
 ENHANCEMENTS
 
