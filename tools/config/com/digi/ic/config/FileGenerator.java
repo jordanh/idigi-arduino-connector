@@ -24,7 +24,10 @@ public class FileGenerator {
         "VERSION_SUPPORTED", "1.1",
         "REPLY", "rci_reply",
         "REQUEST", "rci_request",
-        "INDEX", "index"
+        "INDEX", "index",
+        "ID", "id",
+        "HINT", "hint",
+        "ERROR", "error"
     };
 
     private final static String HEADER_FILENAME = "remote_config.h";
