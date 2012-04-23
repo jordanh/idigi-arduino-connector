@@ -17,6 +17,8 @@ IPAddress dns(10, 40, 8, 28);
 IPAddress subnet(255, 255, 255, 0);
 #endif /* ETHERNET_DHCP */
 
+bool idigi_connected = false;
+
 void setup() {
   String deviceId;
   
@@ -44,6 +46,18 @@ void setup() {
 }
 
 void loop() {
+  if (idigi_connected ^ iDigi.isConnected())
+  {
+    idigi_connected = iDigi.isConnected();
+    Serial.print("iDigi");
+    if (idigi_connected)
+    {
+      Serial.println(" connected.");
+    } else {
+      Serial.println(" disconnected.");
+    }
+  }
+
   delay(125);
   iDigi.step(); 
   Serial.println("iDigi step.");
