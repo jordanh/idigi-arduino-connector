@@ -1,149 +1,190 @@
 package com.digi.ic.config;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 public class ConfigData {
 
-    /* list all errors which are common to all errors  "name" "description" */ 
-    private final static String[] allErrors = {"parser_error", "Parser error",
-                                               "bad_xml", "Bad XML"};
-
-    /* list global errors which are common to all errors  "name" "description" */ 
-    private final static String[] globalErrors = {"bad_command", "Bad command",
-                                                  "invalid_version", "Invalid version"};
-    
-    /* list command errors which are common to all errors  "name" "description" */ 
-    private final static String[] commandErrors = {"bad_group", "Bad group",
-                                                   "bad_index", "Bad index"};
-
-    /* list group errors which are common to all errors  "name" "description" */ 
-    private final static String[] groupErrors = {"bad_element", "Bad element",
-                                                 "bad_value", "Bad value"};
-
     public enum ConfigType {
         SETTING (0),
-        STATE (1),
-        MAX (2);
-        
+        STATE (1);
+
         private int index;
+        private final static int configTypeCount = 2;
 
         private ConfigType(int index)
         {
             this.index = index;
         }
-        
+
         public int getIndex()
         {
             return index;
         }
 
-        public static ConfigType toConfigType(String str)
+        public static int getConfigTypeCount()
         {
+            return configTypeCount;
+        }
+        public static ConfigType toConfigType(String str) throws Exception
+        {
+            if (str == null)
+            {
+                throw new Exception ("Missing setting or state keyword!");
+            }
             try {
                 return valueOf(str.toUpperCase());
             } catch (Exception e) {
-                return MAX;
+                throw new Exception("Invalid setting or state keyword: " + str);
             }
         }
     }
-    
-    public ConfigData()
+
+    public ConfigData() throws Exception
     {
         groupList = new ArrayList<LinkedList<GroupStruct>>();
-        
+
         ConfigType type;
         LinkedList<GroupStruct> groups;
-        
+
         type = ConfigType.toConfigType("setting");
         groups = new LinkedList<GroupStruct>();
         groupList.add(type.getIndex(), groups);
-        
+
         type = ConfigType.toConfigType("state");
         groups = new LinkedList<GroupStruct>();
         groupList.add(type.getIndex(), groups);
-        
-        groupGlobalErrors = new LinkedList<NameStruct>();
-        
+
+        int index = 1;
+        rciErrorMap.put(rciCommonErrors, index);
+
+        index += rciCommonErrors.size();
+        rciErrorMap.put(rciGlobalErrors, index);
+
+        index += rciGlobalErrors.size();
+        rciErrorMap.put(rciCommandErrors, index);
+
+        index += rciCommandErrors.size();
+        rciErrorMap.put(rciGroupErrors, index);
+
+        index += rciGroupErrors.size();
+        rciErrorMap.put(userGlobalErrors, index);
     }
-    
-    public LinkedList<GroupStruct> getSettingGroups() throws IOException
+
+    public LinkedList<GroupStruct> getSettingGroups() throws Exception
     {
         return getConfigGroup("setting");
     }
 
-    public LinkedList<GroupStruct> getStateGroups() throws IOException
+    public LinkedList<GroupStruct> getStateGroups() throws Exception
     {
         return getConfigGroup("state");
     }
 
-    public LinkedList<NameStruct> getGroupGlobalErrors()
+    public LinkedList<GroupStruct> getConfigGroup(String type) throws Exception
     {
-        return groupGlobalErrors;
-    }
+        ConfigType groupType = ConfigType.toConfigType(type);
 
-    
-    public LinkedList<GroupStruct> getConfigGroup(String type) throws IOException
-    {
-        ConfigType t = ConfigType.toConfigType(type);
-        
-        LinkedList<GroupStruct> config = null;
-        
-        switch (t)
-        {
-        case SETTING:
-        case STATE:
-            config = groupList.get(t.getIndex());
-            break;
-         default:
-             throw new IOException("Missing Setting or State keyword");
-        }
-        
+        LinkedList<GroupStruct> config = groupList.get(groupType.getIndex());
+
         return config;
     }
 
-    public static void initTopLevelErrors() throws IOException
+    public static LinkedHashMap<String, String> getUserGlobalErrors()
     {
-        allErrorList = new LinkedList<NameStruct>();
-        getErrors(allErrorList, allErrors);
-        
-        globalErrorList = new LinkedList<NameStruct>();
-        getErrors(globalErrorList, globalErrors);
-        
-        commandErrorList = new LinkedList<NameStruct>();
-        getErrors(commandErrorList, commandErrors);
-
-        groupErrorList = new LinkedList<NameStruct>();
-        getErrors(groupErrorList, groupErrors);
+        return userGlobalErrors.getStrings();
     }
 
-    private static boolean getErrors(LinkedList<NameStruct> linkedList, String[] error_strings) throws IOException
+    public static void addUserGroupError(String name, String description) throws Exception
     {
-        for (int i=0; i < error_strings.length; i++)
+
+        if (userGlobalErrors.size() > 0 && userGlobalErrors.getStrings().containsKey(name))
         {
-            if (!Parser.checkAlphaNumeric(error_strings[i]))
-            {
-                throw new IOException("Invalid name in error strings");
-            }
-            NameStruct error = new NameStruct(error_strings[i], error_strings[i+1]);
-            linkedList.add(error);
-            i++;
-            
+            throw new Exception("Duplicate <globalerror>: " + name);
         }
-        return true;
+        userGlobalErrors.addStrings(name, description);
     }
 
-    /*  top-level global errors */
-    public static LinkedList<NameStruct> allErrorList;
-    public static LinkedList<NameStruct> globalErrorList;
-    public static LinkedList<NameStruct> commandErrorList;
-    public static LinkedList<NameStruct> groupErrorList;
-    
+    public static LinkedHashMap<String, String> getRciCommonErrors()
+    {
+        return rciCommonErrors.getStrings();
+    }
+
+    public static LinkedHashMap<String, String> getRciGlobalErrors()
+    {
+        return rciGlobalErrors.getStrings();
+    }
+
+    public static LinkedHashMap<String, String> getRciCommandErrors()
+    {
+        return rciCommandErrors.getStrings();
+    }
+
+    public static LinkedHashMap<String, String> getRciGroupErrors()
+    {
+        return rciGroupErrors.getStrings();
+    }
+
+    public static int getRciCommonErrorsIndex()
+    {
+        return rciErrorMap.get(rciCommonErrors);
+    }
+
+    public static int getRciGlobalErrorsIndex()
+    {
+        return rciErrorMap.get(rciGlobalErrors);
+    }
+
+    public static int getRciCommandErrorsIndex()
+    {
+        return rciErrorMap.get(rciCommandErrors);
+    }
+
+    public static int getRciGroupErrorsIndex()
+    {
+        return rciErrorMap.get(rciGroupErrors);
+    }
+
+    public static int getUserGlobalErrorsIndex()
+    {
+        return rciErrorMap.get(userGlobalErrors);
+    }
+
+    public static LinkedHashMap<String, String> getRciStrings()
+    {
+        return rciStrings.getStrings();
+    }
+
+    public static Map<Object, Integer> getRciErrorMap()
+    {
+        return rciErrorMap;
+    }
+
+    public static int getAllErrorsSize()
+    {
+        int size = rciCommonErrors.size() + rciGlobalErrors.size() +
+                   rciCommandErrors.size() + rciGroupErrors.size() +
+                   userGlobalErrors.size();
+
+        return size;
+    }
+
     /* user setting and state groups */
-    private ArrayList<LinkedList<GroupStruct>> groupList;
+    private final ArrayList<LinkedList<GroupStruct>> groupList;
+
+    private static RciStrings userGlobalErrors = new RciStrings();
+
     /* user global error */
-    private LinkedList<NameStruct> groupGlobalErrors;
+    private static Map<Object, Integer> rciErrorMap = new HashMap<Object, Integer>();
+
+    protected static RciStrings rciCommonErrors =new RciCommonErrors();
+    protected static RciStrings rciGlobalErrors = new RciGlobalErrors();
+    protected static RciStrings rciCommandErrors =new RciCommandErrors();
+    protected static RciStrings rciGroupErrors = new RciGroupErrors();
+    protected static RciStrings rciStrings = new RciParserStrings();
 
 
 }

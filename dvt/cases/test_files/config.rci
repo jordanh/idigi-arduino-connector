@@ -25,7 +25,7 @@ group setting serial 2 "Serial Port"
     error invalid_xbreak "Invalid xbreak setting"
     error invalid_databits_parity "Invalid combination of data bits and parity"
 
-group setting ethernet "Ethernet interface"
+group setting ethernet "Ethernet interface:If DHCP is true, IP Address, Subnet, and Gateway are ignored"
     element ip "IP Address" type ipv4  
     element subnet "Subnet" type ipv4 
     element gateway "Gateway" type ipv4

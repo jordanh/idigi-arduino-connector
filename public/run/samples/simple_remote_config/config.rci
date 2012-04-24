@@ -3,6 +3,6 @@ globalerror save_fail "Unable to save the value"
 globalerror no_memory "Insufficient memory"
 
 group setting keepalive "iDigi Connector Keepalive Configuration"
-    element rx "Interval which device will send Keep-Alive messages: Between 5 to 7200 seconds" type uint32 min 5 max 7200 unit "in seconds"
-    element tx "Interval which server will send Keep-Alive messages: Between 5 to 7200 seconds" type uint32 min 5 max 7200 unit "in seconds"
+    element rx "Rx interval: Time value which device will send Keep-Alive messages must be between 5 to 7200 seconds" type uint32 min 5 max 7200 unit "in seconds"
+    element tx "Tx Interval: Time value which server will send Keep-Alive messages must be between 5 to 7200 seconds" type uint32 min 5 max 7200 unit "in seconds"
     

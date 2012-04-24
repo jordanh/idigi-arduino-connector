@@ -1,6 +1,7 @@
 package com.digi.ic.config;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 
 import javax.naming.NamingException;
@@ -13,28 +14,24 @@ public class GroupStruct {
         {
             throw new IOException("Invalid instance count for the group: " + nameStr);
         }
-/*         if (nameStr == null)
-        {
-            throw new IOException("Missing group name");
-        }
-*/
+
         if (descStr == null)
         {
             throw new IOException("Missing group description");
         }
-        
+
         name = nameStr;
         instances= count;
         description=descStr;
         elements = new LinkedList<ElementStruct>();
-        errors = new LinkedList<NameStruct>();
+        errorMap = new LinkedHashMap<String, String>();
     }
 
     public String getName()
     {
         return name;
     }
-    
+
     public String getDescription()
     {
         return description;
@@ -44,20 +41,20 @@ public class GroupStruct {
     {
         return instances;
     }
-    
+
     public LinkedList<ElementStruct> getElements()
     {
         return elements;
     }
-    
-    public LinkedList<NameStruct> getErrors()
+
+    public LinkedHashMap<String, String> getErrors()
     {
-        return errors;
+        return errorMap;
     }
-    
+
     public void addElement(ElementStruct theElement) throws NamingException
     {
-        
+
         for (ElementStruct element : elements)
         {
             if (element.getName().equals(theElement.getName()))
@@ -68,33 +65,33 @@ public class GroupStruct {
         elements.add(theElement);
     }
 
-    public void addError(NameStruct theError) throws IOException
+    public void addError(String name, String description) throws IOException
     {
-        for (NameStruct error : errors)
+        if (errorMap.containsKey(name))
         {
-            if (error.getName().equals(theError.getName()))
-            {
-                throw new IOException("Duplicate <error>: " + theError.getName());
-            }
+            throw new IOException("Duplicate <error>: " + name);
         }
-        errors.add(theError);
+        errorMap.put(name, description);
     }
 
-    public void validate() throws Exception
+    public boolean validate()
     {
+        boolean isValid = true;
+
         if (elements.isEmpty())
         {
             ConfigGenerator.log("No element specified");
-            throw new Exception ("Error on \"" + name + "\" group!");
+            isValid = false;
          }
-        
+
+        return isValid;
     }
 
-    private String name;
-    private int instances;
-    private String description;
-    private LinkedList<ElementStruct> elements;
-    private LinkedList<NameStruct> errors;
-    
+    private final String name;
+    private final int instances;
+    private final String description;
+    private final LinkedList<ElementStruct> elements;
+    private final LinkedHashMap<String, String> errorMap;
+
 
 }

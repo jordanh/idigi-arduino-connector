@@ -131,7 +131,7 @@ typedef struct {
 
 
 typedef union {
-    char * string_value;
+    char const * string_value;
     int32_t integer_signed_value;
     uint32_t integer_unsigned_value;
     float float_value;
