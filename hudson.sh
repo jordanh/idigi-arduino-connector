@@ -5,7 +5,6 @@ BASE_DIR=$WORKSPACE/idigi
 OUTPUT_DIR=$WORKSPACE/output
 PART_NUMBER=40003007
 PKG_NAME=${PART_NUMBER}_${REVISION}
-GETTING_STARTED=90002142_C.pdf
 
 function cleanup () 
 {
@@ -45,14 +44,17 @@ cp -rf private "${BASE_DIR}"
 cp -rf public "${BASE_DIR}"
 cp -rf docs "${BASE_DIR}"
 
-# Grab the getting started guide from pending if it exists
-if [ -f /eng/store/pending/90000000/${GETTING_STARTED} ]
-  then
-    echo ">> Pulling Getting Started Guide from /eng/store/pending/90000000/${GETTING_STARTED} and copying to ${BASE_DIR}."
-    cp /eng/store/pending/90000000/${GETTING_STARTED} "${BASE_DIR}/GettingStarted.pdf"
-  else
-    echo ">> Pulling Getting Started Guide from /eng/store/released/90000000/${GETTING_STARTED} and copying to ${BASE_DIR}."
-    cp /eng/store/released/90000000/${GETTING_STARTED} "${BASE_DIR}/GettingStarted.pdf"
+# Get the name of the getting starting guides and see which one is newer
+released_file=$(find /eng/store/released/90000000 -name 90002142*.pdf)
+pending_file=$(find /eng/store/pending/90000000 -name 90002142*.pdf)
+
+if [ $released_file < $pending_file ]
+    then
+        echo ">> Pulling Getting Started Guide from ${pending_file}"
+        cp "${pending_file}" "${BASE_DIR}/GettingStarted.pdf"
+    else
+        echo ">> Pulling Getting Started Guide from ${released_file}"
+        cp "${released_file}" "${BASE_DIR}/GettingStarted.pdf"
 fi
 
 # Replace the version number in Readme.txt to match the Tag used to build
