@@ -4,19 +4,19 @@
  *
  * @section fs_sample_overview Overview
  *
- * This sample demonstrates how read and write files and list files or directories on your device, 
+ * This sample demonstrates how to read and write files and list files or directories on your device, 
  * using the @ref file_system_overview1 "file system API".
  *
  * @section fs_sample_description Code Flow
  *
- * The routine main() in the platform directory initializes the IIK and registers the application callback 
- * app_idigi_callback(), defined in the file application.c.
- *  
- * All file system requests are initiated by the iDigi Device Cloud. When the iDigi Device Cloud sends
- * a file system request, app_idigi_callback() calls app_file_system_handler() routine, located in 
- * the file_system.c file. 
+ * The routine main() in the platform directory initializes the IIK and registers the application callback. 
+ * The application defined callback app_idigi_callback() in the application.c file 
+ * calls app_file_system_handler() when a file system request is received. The app_file_system_handler() callback 
+ * is defined in the file_system.c file. 
+ *
+ * All file system requests are initiated by the iDigi Device Cloud. 
  * 
- * The app_file_system_handler() routine calls the following routins for different file I/O operations: 
+ * The app_file_system_handler() routine calls the following routines to perform different file I/O operations: 
  *
  * @htmlonly
  * <table class="apitable">
@@ -26,56 +26,123 @@
  * <th class="title">Request Id</td>
  * </tr> 
  * <tr> 
- * <td>app_process_file_open()</td><td>Open a file</td><td>@endhtmlonly @ref idigi_file_system_open @htmlonly</td>
+ * <td>app_process_file_open()</td><td>@endhtmlonly @ref file_system_open @htmlonly</td><td>@endhtmlonly @ref idigi_file_system_open @htmlonly</td>
  * </tr> 
  * <tr> 
- * <td>app_process_file_lseek()</td><td>Seek file position</td><td>@endhtmlonly @ref idigi_file_system_lseek @htmlonly</td>
+ * <td>app_process_file_lseek()</td><td>@endhtmlonly @ref file_system_lseek @htmlonly</td><td>@endhtmlonly @ref idigi_file_system_lseek @htmlonly</td>
  * </tr>
  * <tr> 
- * <td>app_process_file_read()</td><td>Read file data</td><td>@endhtmlonly @ref idigi_file_system_read @htmlonly</td>
+ * <td>app_process_file_read()</td><td>@endhtmlonly @ref file_system_read @htmlonly</td><td>@endhtmlonly @ref idigi_file_system_read @htmlonly</td>
  * </tr>
  * <tr> 
- * <td>app_process_file_write()</td><td>Write file data</td><td>@endhtmlonly @ref idigi_file_system_write @htmlonly</td>
+ * <td>app_process_file_write()</td><td>@endhtmlonly @ref file_system_write @htmlonly</td><td>@endhtmlonly @ref idigi_file_system_write @htmlonly</td>
  * </tr>
  * <tr> 
- * <td>app_process_file_ftruncate()</td><td>Truncate a file</td><td>@endhtmlonly @ref idigi_file_system_ftruncate @htmlonly</td>
+ * <td>app_process_file_ftruncate()</td><td>@endhtmlonly @ref file_system_ftruncate @htmlonly</td><td>@endhtmlonly @ref idigi_file_system_ftruncate @htmlonly</td>
  * </tr>
  * <tr> 
- * <td>app_process_file_close()</td><td>Close a file</td><td>@endhtmlonly @ref idigi_file_system_close @htmlonly</td>
+ * <td>app_process_file_close()</td><td>@endhtmlonly @ref file_system_close @htmlonly</td><td>@endhtmlonly @ref idigi_file_system_close @htmlonly</td>
  * </tr>
  * <tr> 
- * <td>app_process_file_rm()</td><td>Remove a file</td><td>@endhtmlonly @ref idigi_file_system_rm @htmlonly</td>
+ * <td>app_process_file_rm()</td><td>@endhtmlonly @ref file_system_rm @htmlonly</td><td>@endhtmlonly @ref idigi_file_system_rm @htmlonly</td>
  * </tr>
  * <tr> 
- * <td>app_process_file_opendir()</td><td>Open a directory</td><td>@endhtmlonly @ref idigi_file_system_opendir @htmlonly</td>
+ * <td>app_process_file_opendir()</td><td>@endhtmlonly @ref file_system_opendir @htmlonly</td><td>@endhtmlonly @ref idigi_file_system_opendir @htmlonly</td>
  * </tr>
  * <tr> 
- * <td>app_process_file_readdir()</td><td>Read a directory entry</td><td>@endhtmlonly @ref idigi_file_system_readdir @htmlonly</td>
+ * <td>app_process_file_readdir()</td><td>@endhtmlonly @ref file_system_readdir @htmlonly</td><td>@endhtmlonly @ref idigi_file_system_readdir @htmlonly</td>
  * </tr>
  * <tr> 
- * <td>app_process_file_closedir()</td><td>Close a directory</td><td>@endhtmlonly @ref idigi_file_system_closedir @htmlonly</td>
+ * <td>app_process_file_closedir()</td><td>@endhtmlonly @ref file_system_closedir @htmlonly</td><td>@endhtmlonly @ref idigi_file_system_closedir @htmlonly</td>
  * </tr>
  * <tr> 
- * <td>app_process_file_stat()</td><td>Get a file status</td><td>@endhtmlonly @ref idigi_file_system_stat @htmlonly</td>
+ * <td>app_process_file_stat()</td><td>@endhtmlonly @ref file_system_stat @htmlonly</td><td>@endhtmlonly @ref idigi_file_system_stat @htmlonly</td>
  * </tr>
  * <tr> 
- * <td>app_process_file_hash()</td><td>Get a file hash value</td><td>@endhtmlonly @ref idigi_file_system_hash @htmlonly</td>
+ * <td>app_process_file_hash()</td><td>@endhtmlonly @ref file_system_hash @htmlonly</td><td>@endhtmlonly @ref idigi_file_system_hash @htmlonly</td>
  * </tr>
  * <tr> 
- * <td>app_process_file_strerror()</td><td>Get an error string</td><td>@endhtmlonly @ref idigi_file_system_strerror @htmlonly</td>
+ * <td>app_process_file_strerror()</td><td>@endhtmlonly @ref file_system_strerror @htmlonly</td><td>@endhtmlonly @ref idigi_file_system_strerror @htmlonly</td>
  * </tr>
  * <tr> 
- * <td>app_process_file_msg_error()</td><td>Inform of an error in messaging layer</td><td>@endhtmlonly @ref idigi_file_system_msg_error @htmlonly</td>
+ * <td>app_process_file_msg_error()</td><td>@endhtmlonly @ref file_system_msg_error @htmlonly</td><td>@endhtmlonly @ref idigi_file_system_msg_error @htmlonly</td>
  * </tr>
  * </table>
  * @endhtmlonly
  *
- * The included python script can be used to create a file, send that file back to the iDigi Device Cloud 
- * and list the file. The file "test_file.txt" is created in the application directory and the file test is:
- * "iDigi file system sample\n".
+ * Please read @ref file_system_overview1 "file system overview" about the typical callback sequences for different 
+ * file system requests, received from the iDigi Device Cloud.
  *
- * Please see @ref file_system_overview1 for sequence of callbacks for different requests, received from the 
- * iDigi Device Cloud.
+ * @section fs_sample_ls Listing a Directory
+ *
+ * The sample uses the reentrant readdir_r() function in the @ref file_system_readdir "app_process_file_readdir()" callback. 
+ * It uses the application defined app_dir_data_t structure to store a directory entry and a pointer to a directory stream.
+ *
+ * @code
+ *
+ * typedef struct
+ * {
+ *     DIR * dirp;
+ *     struct dirent dir_entry;
+ * 
+ * } app_dir_data_t;
+ *
+ * @endcode
+ *
+ * The sample allocates this structure in the @ref file_system_opendir "app_process_file_opendir()" callback after the successful 
+ * opendir() call and returns the pointer to app_dir_data_t structure in the handle field of the @ref idigi_file_open_response_t 
+ * "response_data" argument. 
+ * 
+ * This handle is provided in the @ref idigi_file_request_t "request_data" argument of the @ref file_system_readdir 
+ * "app_process_file_readdir()" callback, where the dirp and dir_entry are used in the readdir_r() call.
+ *
+ * The same handle is provided in the @ref idigi_file_request_t "request_data" argument of the
+ * @ref file_system_closedir "app_process_file_closedir()" callback, where the dirp is used in the closedir() call.
+ *
+ * The @ref file_system_closedir "app_process_file_closedir()" callback frees the app_dir_data_t memory.
+ * 
+ * @section fs_sample_hash_support File Hash Values Support
+ *
+ * By default the file system sample does not support file hash values. Md5 support can be enabled using the following define:
+ * 
+ * -DAPP_ENABLE_MD5=true
+ *
+ * When Md5 support is enabled the sample uses the uses MD5_Init(), MD5_Update(), and MD5_Final() functions 
+ * from the openssl library. 
+ *
+ * The sample allocates memory to store the hash context, the file descriptor, and the file data buffer. It stores 
+ * the pointer to this memory in the user_context field, provided to all application callbacks in the response_data 
+ * structure.
+ *
+ * @code
+ *
+ * typedef struct
+ * {
+ *     MD5_CTX md5;
+ *     char buf[APP_MD5_BUFFER_SIZE];
+ *     unsigned int flags; // was ls issued for a single file or for a directory
+ *     int fd;
+ *
+ * } app_md5_ctx;
+ *
+ * @endcode
+ *  
+ * To calculate a file hash value for a single file:
+ *  -# @ref file_system_stat "app_process_file_stat()" callback allocates memory for the app_md5_ctx structue.
+ *  -# @ref file_system_hash "app_process_file_hash()" callback:
+ *      -# opens a file,
+ *      -# reads file data and calculates the hash value,
+ *      -# closes the file,
+ *      -# frees the app_md5_ctx memory.
+ *
+ * To calculate a file hash values for directory entries:
+ *  -# The initial @ref file_system_stat "app_process_file_stat()" callback, called with the directory path, allocates memory
+ *          for the app_md5_ctx structue.
+ *  -# @ref file_system_hash "app_process_file_hash()" callback for each regular file in the directory: 
+ *      -# opens a file,
+ *      -# reads file data and calculates the hash value,
+ *      -# closes the file.
+ *  -# @ref file_system_closedir "app_process_file_closedir()" callback frees the the app_md5_ctx memory.
  *
  * @section fs_sample_build Building
  *
@@ -156,6 +223,8 @@
  * This sample provides a simple python script to write, read, and list a file, 
  * using @htmlonly <a href="web_services.html">iDigi Web Services</a> @endhtmlonly.
  * It sends a request to developer.idigi.com.
+ *
+ * The file "test_file.txt" is created in the current directory. The file data is: "iDigi file system sample\n".
  *
  * Run the python script in the sample. 
  *

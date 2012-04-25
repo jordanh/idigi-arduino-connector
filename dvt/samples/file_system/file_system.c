@@ -340,7 +340,7 @@ idigi_callback_status_t app_process_file_hash(idigi_file_path_request_t const * 
         goto done;
     }
 
-    APP_DEBUG("Closse %d\n", ctx->fd);
+    APP_DEBUG("Close %d\n", ctx->fd);
 	close (ctx->fd);
     ctx->fd = -1;
 

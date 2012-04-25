@@ -311,6 +311,7 @@ static idigi_callback_status_t call_file_stat_user(idigi_data_t * const idigi_pt
                     case idigi_file_hash_md5:
                     case idigi_file_hash_crc32:
                     case idigi_file_hash_none:
+                        context->data.d.hash_alg = response.statbuf.hash_alg;
                         break;
                     default:
                         context->data.d.hash_alg = idigi_file_hash_none;
