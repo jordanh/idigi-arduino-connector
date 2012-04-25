@@ -147,14 +147,13 @@ public class Parser {
 
     }
 
-    private final static Pattern ALPHANUMERIC = Pattern.compile("[A-Za-z_0-9]+");
-//    private final static Pattern ALPHANUMERIC = Pattern.compile("\\p{Alnum}+");
-    public static boolean checkAlphaNumeric(String s)
+    private final static Pattern ALPHACHARACTERS = Pattern.compile("\\w+");
+    public static boolean checkAlphaCharacters(String s)
     {
         if( s == null){ return false; }
         else
         {
-            Matcher m = ALPHANUMERIC.matcher(s);
+            Matcher m = ALPHACHARACTERS.matcher(s);
             return m.matches();
         }
     }
@@ -179,7 +178,7 @@ public class Parser {
             throw new Exception("Missing name!");
         }
 
-        if (!checkAlphaNumeric(name))
+        if (!checkAlphaCharacters(name))
         {
             throw new Exception("Invalid character in the name: " + name);
         }

@@ -180,11 +180,11 @@ public class ConfigData {
     /* user global error */
     private static Map<Object, Integer> rciErrorMap = new HashMap<Object, Integer>();
 
-    protected static RciStrings rciCommonErrors =new RciCommonErrors();
-    protected static RciStrings rciGlobalErrors = new RciGlobalErrors();
-    protected static RciStrings rciCommandErrors =new RciCommandErrors();
-    protected static RciStrings rciGroupErrors = new RciGroupErrors();
-    protected static RciStrings rciStrings = new RciParserStrings();
+    private static RciStrings rciCommonErrors =new RciCommonErrors();
+    private static RciStrings rciGlobalErrors = new RciGlobalErrors();
+    private static RciStrings rciCommandErrors =new RciCommandErrors();
+    private static RciStrings rciGroupErrors = new RciGroupErrors();
+    private static RciStrings rciStrings = new RciParserStrings();
 
 
 }
