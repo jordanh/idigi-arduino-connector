@@ -166,7 +166,7 @@ public class ConfigData {
     public static int getAllErrorsSize()
     {
         int size = rciCommonErrors.size() + rciGlobalErrors.size() +
-                   rciCommandErrors.size() + rciGroupErrors.size() +
+                   rciCommandErrors.size() + rciGroupErrors.size();
                    userGlobalErrors.size();
 
         return size;

@@ -3,7 +3,6 @@ package com.digi.ic.config;
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import java.util.regex.Pattern;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -19,58 +18,16 @@ public class Descriptors {
     private final String SETTING_DESCRIPTOR_DESCRIPTION = "device configuration";
     private final String STATE_DESCRIPTOR_DESCRIPTION = "device state";
 
-    public Descriptors(String[] args) throws IOException
+    public Descriptors(final String user, final String pass, final String vendor, final String type, final String version)
     {
-        int argIndex;
-
-        for (argIndex=0; argIndex < args.length; argIndex++)
-        {
-            if (!args[argIndex].startsWith(ConfigGenerator.DASH))
-            {
-                break;
-            }
-        }
-
-        String credential = args[argIndex++];
-
-        if (credential.indexOf(':') == -1)
-        {
-            BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
-
-            username = credential;
-            System.out.print("Enter password: ");
-            try {
-                password = userInput.readLine();
-            } catch (IOException ioe) {
-                ConfigGenerator.log("IO error!");
-                System.exit(1);
-            }
-        }
-        else
-        {
-            String [] userpass = credential.split(":");
-
-            username = userpass[0];
-            password = userpass[1];
-        }
-
-        vendorId = args[argIndex];
-        if (Pattern.matches("(0[xX])?\\p{XDigit}+", vendorId))
-        {
-            argIndex++;
-        }
-        else
+        username = user;
+        password = pass;
+        deviceType = type;
+        fwVersion = version;
+        vendorId = vendor;
+        if (vendorId == null)
         {
             getVendorId();
-        }
-
-        deviceType = args[argIndex++];
-        fwVersion = args[argIndex];
-        Scanner fwVersionScan = new Scanner(fwVersion);
-        if (!fwVersionScan.hasNextInt())
-        {
-            ConfigGenerator.log("Invalid f/w version!");
-            ConfigGenerator.usage();
         }
 
         callDeleteFlag = true;
@@ -383,7 +340,7 @@ public class Descriptors {
     private void debug_log(String str) throws IOException
     {
 // debugging code
-/*
+
         String filename = "descritor" + xmlFileIndex + ".xml";
         xmlFileIndex++;
 
@@ -395,13 +352,13 @@ public class Descriptors {
 
         xmlFile.flush();
         xmlFile.close();
-*/
+
         ConfigGenerator.debug_log(str);
     }
 
-//    private int xmlFileIndex;
-    private String username;
-    private String password;
+    private int xmlFileIndex;
+    private final String username;
+    private final String password;
     private final String deviceType;
     private String vendorId;
     private final String fwVersion;

@@ -51,7 +51,6 @@ public class FileGenerator {
     private final static String CHAR_CONST_STRING = STATIC + "char" + CONST + "*" + CONST;
     private final static String ENUM_STRING = "enum";
 
-    private final static String INT_MAX_WIDTH_STRING = "_WIDTH = INT_MAX\n}";
     private final static String ID_T_STRING = "_id_t;\n\n";
 
 
@@ -171,12 +170,11 @@ public class FileGenerator {
 
         headerWriter = new BufferedWriter(new FileWriter(HEADER_FILENAME));
         sourceWriter = new BufferedWriter(new FileWriter(SOURCE_FILENAME));
-        ConfigGenerator generator = new ConfigGenerator();
 
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         Date date = new Date();
 
-        String className = generator.getClass().getName();
+        String className = ConfigGenerator.class.getClass().getName();
 
         int firstChar = className.lastIndexOf(".") +1;
         if (firstChar > 0)
@@ -746,25 +744,36 @@ public class FileGenerator {
     private static void writeGlobalErrorHeader() throws IOException
     {
 
-        if (ConfigData.getAllErrorsSize() > 0)
+        /* write typedef enum for rci errors */
+        headerWriter.write("\n" + TYPEDEF_ENUM + " " + GLOBAL_RCI_ERROR + "_" + OFFSET_STRING + " = 1,\n");
+
+        writeErrorHeader(ConfigData.getRciCommonErrorsIndex(), GLOBAL_RCI_ERROR, ConfigData.getRciCommonErrors());
+
+        writeErrorHeader(ConfigData.getRciGlobalErrorsIndex(), GLOBAL_RCI_ERROR, ConfigData.getRciGlobalErrors());
+
+        writeErrorHeader(ConfigData.getRciCommandErrorsIndex(), GLOBAL_RCI_ERROR, ConfigData.getRciCommandErrors());
+
+        writeErrorHeader(ConfigData.getRciGroupErrorsIndex(), GLOBAL_RCI_ERROR, ConfigData.getRciGroupErrors());
+
+        headerWriter.write(" " + GLOBAL_RCI_ERROR + "_" + COUNT_STRING + "\n} "  + GLOBAL_RCI_ERROR + ID_T_STRING);
+
+        /* write typedef enum for user global error */
+        String enumName = GLOBAL_ERROR + "_" + OFFSET_STRING;
+
+        headerWriter.write("\n" + TYPEDEF_ENUM + " " + enumName + " = " +  GLOBAL_RCI_ERROR + "_" + COUNT_STRING + ",\n");
+
+        writeErrorHeader(1, GLOBAL_ERROR, ConfigData.getUserGlobalErrors());
+
+        String endString = String.format(" %s_%s", GLOBAL_ERROR, COUNT_STRING);
+
+        if (ConfigData.getUserGlobalErrors().isEmpty())
         {
-            /* write typedef enum for error */
-            headerWriter.write("\n" + TYPEDEF_ENUM + " " + GLOBAL_RCI_ERROR + "_" + OFFSET_STRING + " = 1,\n");
-
-            writeErrorHeader(ConfigData.getRciCommonErrorsIndex(), GLOBAL_RCI_ERROR, ConfigData.getRciCommonErrors());
-
-            writeErrorHeader(ConfigData.getRciGlobalErrorsIndex(), GLOBAL_RCI_ERROR, ConfigData.getRciGlobalErrors());
-
-            writeErrorHeader(ConfigData.getRciCommandErrorsIndex(), GLOBAL_RCI_ERROR, ConfigData.getRciCommandErrors());
-
-            writeErrorHeader(ConfigData.getRciGroupErrorsIndex(), GLOBAL_RCI_ERROR, ConfigData.getRciGroupErrors());
-
-            writeErrorHeader(ConfigData.getUserGlobalErrorsIndex(), GLOBAL_ERROR, ConfigData.getUserGlobalErrors());
-
-            headerWriter.write(" " + GLOBAL_RCI_ERROR + "_" + COUNT_STRING + ",\n");
-            headerWriter.write(" " + GLOBAL_RCI_ERROR + INT_MAX_WIDTH_STRING + GLOBAL_RCI_ERROR + ID_T_STRING);
-
+            endString += " = " + enumName;
         }
+        endString += "\n} " + GLOBAL_ERROR + ID_T_STRING;
+
+        headerWriter.write(endString);
+
     }
 
     private static void writeEnumHeader(LinkedList<GroupStruct> groups) throws Exception
@@ -813,16 +822,9 @@ public class FileGenerator {
                     if (index++ == 0)
                     {
                         /* write start index */
-                        if (ConfigData.getAllErrorsSize() > 0)
-                        {
-                            enumString += " = " +  GLOBAL_RCI_ERROR + "_" + COUNT_STRING;
-                        }
-                        else
-                        {
-                            enumString += " = 1";
-
-                        }
+                        enumString += " = " +  GLOBAL_ERROR + "_" + COUNT_STRING;
                     }
+
                     enumString += ",\n";
 
                     headerWriter.write(enumString);
@@ -896,7 +898,7 @@ public class FileGenerator {
 
     private static String endEnumString(String group_name)
     {
-        return (getEnumString(group_name) + INT_MAX_WIDTH_STRING +
+        return (getEnumString(group_name) + "_" + COUNT_STRING + "\n}" +
                 getEnumString(group_name) + ID_T_STRING);
     }
 

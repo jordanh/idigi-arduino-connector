@@ -122,7 +122,7 @@ public class ElementStruct {
          else throw new Exception("Duplicate <max> keyword: " + theMax);
     }
 
-    public void addValue(String name, String description) throws Exception
+    public void addValue(String valueName, String description) throws Exception
     {
         if (type == null)
         {
@@ -131,12 +131,12 @@ public class ElementStruct {
         else if (ElementType.toElementType(type) == ElementType.ENUM)
         {
 
-            if (valueMap.containsKey(name))
+            if (valueMap.containsKey(valueName))
             {
-                throw new Exception("Duplicate <value>: " + name);
+                throw new Exception("Duplicate <value>: " + valueName);
             }
 
-            valueMap.put(name, description);
+            valueMap.put(valueName, description);
         }
         else
         {
