@@ -24,7 +24,6 @@ public class FileGenerator {
     private final static String ERROR = "error";
 
     private final static String IDIGI_REMOTE_HEADER = "\"idigi_remote.h\"\n\n";
-    private final static String INTEGER_LIMIT_HEADER = "\"limits.h\"\n";
     private final static String FLOAT_LIMIT_HEADER = "\"float.h\"\n";
 
     private final static String TYPEDEF_ENUM = "typedef enum {\n";
@@ -58,118 +57,18 @@ public class FileGenerator {
     private final static String RCI_PARSER_USES_ENUMERATIONS = "RCI_PARSER_USES_ENUMERATIONS\n";
     private final static String RCI_PARSER_USES_FLOATING_POINT = "RCI_PARSER_USES_FLOATING_POINT\n";
 
-
-    public static void generateFile(ConfigData configData) throws Exception
+    public FileGenerator(String directoryPath) throws IOException
     {
-        try {
+        if (directoryPath != null)
+        {
+            if (!directoryPath.endsWith("/")) directoryPath += "/";
 
-            initialize();
-
-            headerWriter.write("#ifndef REMOTE_CONFIG_H\n" +
-                                "#define REMOTE_CONFIG_H\n\n" +
-                                INCLUDE + INTEGER_LIMIT_HEADER); // H file header
-
-            String defineHeader = "";
-
-            if (ElementStruct.includeFloatLimit())
-            {
-                defineHeader += INCLUDE + FLOAT_LIMIT_HEADER;
-            }
-
-            defineHeader += INCLUDE + IDIGI_REMOTE_HEADER;
-
-            if (!ConfigGenerator.excludeErrorDescription())
-            {
-                defineHeader += DEFINE + RCI_PARSER_USES_ERROR_DESCRIPTIONS;
-            }
-
-            if (Parser.getEnumSupport())
-            {
-                defineHeader += DEFINE + RCI_PARSER_USES_ENUMERATIONS;
-            }
-
-            if (Parser.getFloatingSupport())
-            {
-                defineHeader += DEFINE + RCI_PARSER_USES_FLOATING_POINT;
-            }
-
-            defineHeader += "\n";
-
-            headerWriter.write(defineHeader);
-
-            writeDefineRciParserStringsHeader();
-
-            /* Write all global error enum in H file */
-            writeGlobalErrorHeader();
-
-            /* Write all group enum in H file */
-            writeGroupHeader(configData);
-
-            headerWriter.write("\n#endif /* REMOTE_CONFIG_H */\n"); // end of H file
-
-            /* Start writing C file */
-            sourceWriter.write(INCLUDE + "\"" + HEADER_FILENAME + "\"\n\n");
-
-            /* Write all string length and index defines in C file */
-            writeDefineStrings(configData);
-
-            /* Write all string length and index defines in C file */
-            writeDefineGlobalErrors(configData);
-
-            /* write idigi remote all strings in source file */
-            sourceWriter.write(String.format("\nchar const %s[] = {\n", IDIGI_REMOTE_ALL_STRING));
-
-            writeRemoteRciParserStrings();
-
-
-            for (ConfigData.ConfigType type: ConfigData.ConfigType.values())
-            {
-                LinkedList<GroupStruct> theConfig = null;
-
-                configType = type.toString().toLowerCase();
-
-                try {
-
-                    theConfig = configData.getConfigGroup(configType);
-
-                } catch (Exception e) {
-                    /* end of the ConfigData ConfigType */
-                    break;
-                }
-
-
-                if (!theConfig.isEmpty())
-                {
-                    writeRemoteAllStrings(theConfig);
-                }
-            }
-            writeErrorsRemoteAllStrings(configData);
-            sourceWriter.write(" \'\\0\'\n};\n\n"); // end of IDIGI_REMOTE_ALL_STRING
-
-            /* write structures in source file */
-            writeStructures(configData);
-
-            ConfigGenerator.log("Files created: " + SOURCE_FILENAME +" and "+ HEADER_FILENAME);
-
-        } catch (IOException e) {
-            throw new IOException(e.getMessage());
+            headerFile = directoryPath + HEADER_FILENAME;
+            sourceFile = directoryPath + SOURCE_FILENAME;
         }
 
-        finally {
-            headerWriter.flush();
-            headerWriter.close();
-
-            sourceWriter.flush();
-            sourceWriter.close();
-
-        }
-    }
-
-    private static void initialize() throws IOException
-    {
-
-        headerWriter = new BufferedWriter(new FileWriter(HEADER_FILENAME));
-        sourceWriter = new BufferedWriter(new FileWriter(SOURCE_FILENAME));
+        headerWriter = new BufferedWriter(new FileWriter(headerFile));
+        sourceWriter = new BufferedWriter(new FileWriter(sourceFile));
 
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         Date date = new Date();
@@ -190,10 +89,123 @@ public class FileGenerator {
 
         headerWriter.write(note_string);
         sourceWriter.write(note_string);
+    }
+
+    public void generateFile(ConfigData configData) throws Exception
+    {
+        try {
+
+            writeHeaderFile(configData);
+
+            /* Start writing C file
+             * 1. include file
+             * 2. all #define for all strings from user's groups
+             * 3. all #define for all RCI and user's global errors
+             * 4. all strings in idigi_remote_all_strings[]
+             */
+            sourceWriter.write(INCLUDE + "\"" + HEADER_FILENAME + "\"\n\n");
+
+            /* Write all string length and index defines in C file */
+            writeDefineStrings(configData);
+
+            /* Write all string length and index defines in C file */
+            writeDefineGlobalErrors(configData);
+
+            /* write idigi remote all strings in source file */
+            writeRemoteAllStrings(configData);
+
+            /* write structures in source file */
+            writeAllStructures(configData);
+
+            ConfigGenerator.log("Files created:\n\t" + sourceFile + "\n\t"+ headerFile);
+
+        } catch (IOException e) {
+            throw new IOException(e.getMessage());
+        }
+
+        finally {
+            headerWriter.close();
+            sourceWriter.close();
+        }
 
     }
 
-    private static void writeDefineRciParserStringsHeader() throws IOException
+    private void writeHeaderFile(ConfigData configData) throws Exception
+    {
+        String defineName = HEADER_FILENAME.replace('.', '_').toLowerCase();
+        headerWriter.write(String.format("#ifndef %s\n#define %s\n\n", defineName, defineName));
+
+        writeDefineOptionHeader();
+
+        writeDefineRciParserStringsHeader();
+
+        /* Write all global error enum in H file */
+        writeGlobalErrorHeader();
+
+        /* Write all group enum in H file */
+        writeGroupHeader(configData);
+
+        headerWriter.write(String.format("\n\n#endif /* %s */\n", defineName));
+    }
+
+    private void writeDefineOptionHeader() throws IOException
+    {
+
+        String headerString = "";
+
+        if (!ConfigGenerator.excludeErrorDescription())
+        {
+            headerString += DEFINE + RCI_PARSER_USES_ERROR_DESCRIPTIONS;
+        }
+
+        if (Parser.getEnumSupport())
+        {
+            headerString += DEFINE + RCI_PARSER_USES_ENUMERATIONS;
+        }
+
+        if (Parser.getFloatingSupport())
+        {
+            headerString += DEFINE + RCI_PARSER_USES_FLOATING_POINT;
+            headerString += "\n" + INCLUDE + FLOAT_LIMIT_HEADER;
+        }
+
+        headerString += "\n" + INCLUDE + IDIGI_REMOTE_HEADER;
+
+        headerWriter.write(headerString);
+    }
+
+    private void writeRemoteAllStrings(ConfigData configData) throws Exception
+    {
+        sourceWriter.write(String.format("\nchar const %s[] = {\n", IDIGI_REMOTE_ALL_STRING));
+
+        writeRemoteRciParserStrings();
+
+        for (ConfigData.ConfigType type: ConfigData.ConfigType.values())
+        {
+            LinkedList<GroupStruct> theConfig = null;
+
+            configType = type.toString().toLowerCase();
+
+            try {
+
+                theConfig = configData.getConfigGroup(configType);
+
+            } catch (Exception e) {
+                /* end of the ConfigData ConfigType */
+                break;
+            }
+
+
+            if (!theConfig.isEmpty())
+            {
+                writeGroupRemoteAllStrings(theConfig);
+            }
+        }
+        writeErrorsRemoteAllStrings(configData);
+        sourceWriter.write(" \'\\0\'\n};\n\n"); // end of IDIGI_REMOTE_ALL_STRING
+    }
+
+    private void writeDefineRciParserStringsHeader() throws IOException
     {
         LinkedHashMap<String, String> rciStrings = ConfigData.getRciStrings();
 
@@ -210,7 +222,7 @@ public class FileGenerator {
         }
     }
 
-    private static void writeRemoteRciParserStrings() throws IOException
+    private void writeRemoteRciParserStrings() throws IOException
     {
         LinkedHashMap<String, String> rciStrings = ConfigData.getRciStrings();
 
@@ -221,7 +233,7 @@ public class FileGenerator {
 
     }
 
-    private static void writeDefineStrings(ConfigData configData) throws Exception
+    private void writeDefineStrings(ConfigData configData) throws Exception
     {
         String defineName = null;
 
@@ -278,7 +290,7 @@ public class FileGenerator {
         }
     }
 
-    private static void writeRemoteAllStrings(LinkedList<GroupStruct> groups) throws Exception
+    private void writeGroupRemoteAllStrings(LinkedList<GroupStruct> groups) throws Exception
     {
         for (GroupStruct group: groups)
         {
@@ -309,7 +321,7 @@ public class FileGenerator {
         }
     }
 
-    private static void writeDefineErrors(String prefixName, LinkedHashMap<String, String> errorMap) throws IOException
+    private void writeDefineErrors(String prefixName, LinkedHashMap<String, String> errorMap) throws IOException
     {
         for (String key : errorMap.keySet())
         {
@@ -319,7 +331,7 @@ public class FileGenerator {
         }
     }
 
-    private static void writeDefineGlobalErrors(ConfigData configData) throws IOException
+    private void writeDefineGlobalErrors(ConfigData configData) throws IOException
     {
         if (!ConfigGenerator.excludeErrorDescription())
         {
@@ -335,7 +347,7 @@ public class FileGenerator {
         }
     }
 
-    private static void writeLinkedHashMapStrings(LinkedHashMap<String, String> stringMap) throws IOException
+    private void writeLinkedHashMapStrings(LinkedHashMap<String, String> stringMap) throws IOException
     {
         for (String key : stringMap.keySet())
         {
@@ -343,7 +355,7 @@ public class FileGenerator {
         }
 
     }
-    private static void writeErrorsRemoteAllStrings(ConfigData configData) throws IOException
+    private void writeErrorsRemoteAllStrings(ConfigData configData) throws IOException
     {
         if (!ConfigGenerator.excludeErrorDescription())
         {
@@ -359,7 +371,7 @@ public class FileGenerator {
         }
     }
 
-    private static void writeEnumStructure(String enum_name, LinkedHashMap<String, String> valueMap) throws IOException
+    private void writeEnumStructure(String enum_name, LinkedHashMap<String, String> valueMap) throws IOException
     {
         String enum_string = enum_name.toLowerCase() + "_" + ENUM_STRING;
 
@@ -391,7 +403,7 @@ public class FileGenerator {
         sourceWriter.write(enum_limit_string);
     }
 
-    private static void writeElementLimitStructures(String element_name, ElementStruct element) throws Exception
+    private void writeElementLimitStructures(String element_name, ElementStruct element) throws Exception
     {
         /* write element value limit structure */
         String limit_string = STATIC;
@@ -475,7 +487,7 @@ public class FileGenerator {
         sourceWriter.write("\n};\n\n");
     }
 
-    private static void writeElementArrays(String group_name, LinkedList<ElementStruct> elements) throws Exception
+    private void writeElementArrays(String group_name, LinkedList<ElementStruct> elements) throws Exception
     {
         /* write group element structure array */
         sourceWriter.write(String.format("static idigi_group_element_t const %s_elements[] = {",
@@ -515,7 +527,7 @@ public class FileGenerator {
 
     }
 
-    private static void writeGlobalErrorStructures(ConfigData configData) throws IOException
+    private void writeGlobalErrorStructures(ConfigData configData) throws IOException
     {
         if (!ConfigGenerator.excludeErrorDescription())
         {
@@ -549,7 +561,7 @@ public class FileGenerator {
         }
     }
 
-    private static int  writeErrorStructures(int errorCount, String defineName, LinkedHashMap<String, String> errorMap) throws IOException
+    private int  writeErrorStructures(int errorCount, String defineName, LinkedHashMap<String, String> errorMap) throws IOException
     {
         for (String key : errorMap.keySet())
         {
@@ -565,7 +577,7 @@ public class FileGenerator {
         return errorCount;
     }
 
-    private static void writeErrorStructures(String error_name, LinkedHashMap<String, String> localErrors) throws IOException
+    private void writeErrorStructures(String error_name, LinkedHashMap<String, String> localErrors) throws IOException
     {
         if (!ConfigGenerator.excludeErrorDescription())
         {
@@ -586,7 +598,7 @@ public class FileGenerator {
         }
     }
 
-    private static void writeGroupStructures(LinkedList<GroupStruct> groups) throws Exception
+    private void writeGroupStructures(LinkedList<GroupStruct> groups) throws Exception
     {
         String define_name;
 
@@ -620,7 +632,7 @@ public class FileGenerator {
 
     }
 
-    private static void writeStructures(ConfigData configData) throws Exception
+    private void writeAllStructures(ConfigData configData) throws Exception
     {
         String define_name;
 
@@ -723,7 +735,7 @@ public class FileGenerator {
         sourceWriter.write(idigiGroupString);
     }
 
-    private static void writeErrorHeader(int errorIndex, String enumDefine, LinkedHashMap<String, String> errorMap) throws IOException
+    private void writeErrorHeader(int errorIndex, String enumDefine, LinkedHashMap<String, String> errorMap) throws IOException
     {
         for (String key : errorMap.keySet())
         {
@@ -741,7 +753,7 @@ public class FileGenerator {
         }
     }
 
-    private static void writeGlobalErrorHeader() throws IOException
+    private void writeGlobalErrorHeader() throws IOException
     {
 
         /* write typedef enum for rci errors */
@@ -776,7 +788,7 @@ public class FileGenerator {
 
     }
 
-    private static void writeEnumHeader(LinkedList<GroupStruct> groups) throws Exception
+    private void writeEnumHeader(LinkedList<GroupStruct> groups) throws Exception
     {
 
         for (GroupStruct group: groups)
@@ -836,7 +848,7 @@ public class FileGenerator {
 
     }
 
-    private static void writeGroupHeader(ConfigData configData) throws Exception
+    private void writeGroupHeader(ConfigData configData) throws Exception
     {
 
         for (ConfigData.ConfigType type: ConfigData.ConfigType.values())
@@ -863,9 +875,6 @@ public class FileGenerator {
                 /* Write all enum in H file */
                 writeEnumHeader(groups);
 
-                /* Write all string length and index defines in C file */
-//                writeDefineStrings(groups);
-
                 for (GroupStruct group: groups)
                 {
                     /* add each group enum */
@@ -880,12 +889,12 @@ public class FileGenerator {
 
     }
 
-    private static String COMMENTED(String comment)
+    private String COMMENTED(String comment)
     {
         return " /*" + comment + "*/\n";
     }
 
-    private static String getEnumString(String enum_name)
+    private String getEnumString(String enum_name)
     {
         String str = " " + IDIGI + "_" + configType;
 
@@ -896,25 +905,25 @@ public class FileGenerator {
         return str;
     }
 
-    private static String endEnumString(String group_name)
+    private String endEnumString(String group_name)
     {
         return (getEnumString(group_name) + "_" + COUNT_STRING + "\n}" +
                 getEnumString(group_name) + ID_T_STRING);
     }
 
-    private static String getDefineString(String define_name)
+    private String getDefineString(String define_name)
     {
         return (configType.toUpperCase() + "_" + define_name.toUpperCase());
     }
 
-    private static String getDefineStringIndex(String define_name, String string)
+    private String getDefineStringIndex(String define_name, String string)
     {
         String str = DEFINE + define_name + " " + "(" + IDIGI_REMOTE_ALL_STRING + "+" + prevRemoteStringLength + ")\n";
         prevRemoteStringLength += string.length() + 1;
         return str;
     }
 
-    private static String getCharString(String string)
+    private String getCharString(String string)
     {
         char[] characters = string.toCharArray();
 
@@ -928,17 +937,18 @@ public class FileGenerator {
         return quote_char;
     }
 
-    private static String getRemoteAllString(String define_name)
+    private String getRemoteAllString(String define_name)
     {
       return (" " + define_name.toUpperCase());
 
     }
 
-    private static String getElementDefine(String type_name, String element_name)
+    private String getElementDefine(String type_name, String element_name)
     {
         return (String.format(" %s_element_%s_%s,\n", IDIGI, type_name, element_name));
     }
-    private static String getAccess(String access)
+
+    private String getAccess(String access)
     {
         if (access == null)
         {
@@ -946,9 +956,12 @@ public class FileGenerator {
         }
         return access;
     }
-    private static BufferedWriter sourceWriter;
-    private static BufferedWriter headerWriter;
-    private static String configType;
-    private static int prevRemoteStringLength;
+
+    private String headerFile = HEADER_FILENAME;
+    private String sourceFile = SOURCE_FILENAME;
+    private final BufferedWriter sourceWriter;
+    private final BufferedWriter headerWriter;
+    private String configType;
+    private int prevRemoteStringLength;
 
 }

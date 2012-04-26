@@ -94,17 +94,21 @@ typedef struct {
     char const * const * value;
 } idigi_element_value_enum_t;
 
+#if defined(RCI_PARSER_USES_FLOATING_POINT)
 typedef struct {
     float min_value;
     float max_value;
 } idigi_element_value_float_t;
+#endif
 
 typedef union {
     idigi_element_value_unsigned_integer_t integer_unsigned_value;
     idigi_element_value_signed_integer_t integer_signed_value;
     idigi_element_value_string_t string_value;
     idigi_element_value_enum_t enum_value;
+#if defined(RCI_PARSER_USES_FLOATING_POINT)
     idigi_element_value_float_t float_value;
+#endif
 } idigi_element_value_limit_t;
 
 typedef struct {
