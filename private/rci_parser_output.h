@@ -115,6 +115,8 @@ static void rci_generate_output(rci_t * const rci)
     {
         ASSERT(remaining == rci_buffer_remaining(output));
         
+        output_debug_info(rci, RCI_DEBUG_SHOW_DIFFS);
+
         switch (rci->output.state)
         {
         case rci_output_state_none:
@@ -322,39 +324,38 @@ static void rci_generate_output(rci_t * const rci)
             rci->output.state = rci_output_state_element_param_value;
             break;
         case rci_output_state_content:
-            switch (rci->output.content.type)
+            switch (rci->shared.request.element.type)
             {
-                case idigi_element_type_string:
-                case idigi_element_type_multiline_string:
-                case idigi_element_type_password:
-                    rci->output.state = rci_output_state_content_scan;
-                    rci->output.entity_scan_index = 0;
-                    break;
-                case idigi_element_type_ipv4:
-                case idigi_element_type_fqdnv4:
-                case idigi_element_type_fqdnv6:
-                case idigi_element_type_datetime:
-                    overflow = rci_output_formatted(output, &remaining, "%s", rci->output.content.data.nul_terminated_string);
-                    break;
-                case idigi_element_type_int32:
-                    overflow = rci_output_formatted(output, &remaining, "%ld", rci->output.content.data.signed_integer);
-                    break;
-                case idigi_element_type_uint32:
-                    overflow = rci_output_formatted(output, &remaining, "%lud", rci->output.content.data.unsigned_integer);
-                    break;
-                case idigi_element_type_hex32:
-                    overflow = rci_output_formatted(output, &remaining, "%lx", rci->output.content.data.unsigned_integer);
-                    break;
-                case idigi_element_type_0xhex:
-                    overflow = rci_output_formatted(output, &remaining, "0x%lx", rci->output.content.data.unsigned_integer);
-                    break;
-                case idigi_element_type_float:
-                    overflow = rci_output_formatted(output, &remaining, "%f", rci->output.content.data.float_precision);
-                    break;
-                case idigi_element_type_enum:
-                case idigi_element_type_on_off:
-                case idigi_element_type_boolean:
-                    overflow = rci_output_cstr(output, &remaining, rci->output.content.data.counted_string);
+            case idigi_element_type_string:
+            case idigi_element_type_multiline_string:
+            case idigi_element_type_password:
+                rci->output.state = rci_output_state_content_scan;
+                rci->output.entity_scan_index = 0;
+                break;
+            case idigi_element_type_ipv4:
+            case idigi_element_type_fqdnv4:
+            case idigi_element_type_fqdnv6:
+            case idigi_element_type_datetime:
+            case idigi_element_type_enum:
+            case idigi_element_type_on_off:
+            case idigi_element_type_boolean:
+                overflow = rci_output_formatted(output, &remaining, "%s", rci->shared.value.string_value);
+                break;
+            case idigi_element_type_int32:
+                overflow = rci_output_formatted(output, &remaining, "%ld", rci->shared.value.integer_signed_value);
+                break;
+            case idigi_element_type_uint32:
+                overflow = rci_output_formatted(output, &remaining, "%lud", rci->shared.value.integer_signed_value);
+                break;
+            case idigi_element_type_hex32:
+                overflow = rci_output_formatted(output, &remaining, "%lx", rci->shared.value.integer_signed_value);
+                break;
+            case idigi_element_type_0xhex:
+                overflow = rci_output_formatted(output, &remaining, "0x%lx", rci->shared.value.integer_signed_value);
+                break;
+            case idigi_element_type_float:
+                overflow = rci_output_formatted(output, &remaining, "%f", rci->shared.value.float_value);
+                break;
             }
             if (overflow) break;
 
@@ -373,7 +374,7 @@ static void rci_generate_output(rci_t * const rci)
             }
             break;
         case rci_output_state_content_scan:
-            if (rci_output_non_entity_character(output, &remaining, rci->output.content.data.nul_terminated_string[rci->output.entity_scan_index]))
+            if (rci_output_non_entity_character(output, &remaining, rci->shared.value.string_value[rci->output.entity_scan_index]))
             {
                 rci->output.entity_scan_index++;
             }
@@ -384,7 +385,7 @@ static void rci_generate_output(rci_t * const rci)
             }
             break;
         case rci_output_state_content_entity:
-            overflow = rci_output_entity_name(output, &remaining, rci->output.content.data.nul_terminated_string[rci->output.entity_scan_index]);
+            overflow = rci_output_entity_name(output, &remaining, rci->shared.value.string_value[rci->output.entity_scan_index]);
             if (overflow) break;
             
             rci->output.entity_scan_index++;
@@ -403,5 +404,7 @@ static void rci_generate_output(rci_t * const rci)
             break;
         }
     }
+
+    output_debug_info(rci, RCI_DEBUG_SHOW_DIFFS);
 }
 

@@ -46,6 +46,13 @@ static void reassign_service_buffer(rci_service_buffer_t * const dst, rci_servic
     }
 }
 
+static char const * boolean_as_string(idigi_bool_t const value)
+{
+    char const * const result = (value ? "true" : "false");
+
+    return result;
+}
+
 #define enum_to_case(name)  case name:  result = #name;             break
 
 static char const * rci_status_t_as_string(rci_status_t const value)
@@ -59,6 +66,36 @@ static char const * rci_status_t_as_string(rci_status_t const value)
         enum_to_case(rci_status_more_input);
         enum_to_case(rci_status_flush_output);
         enum_to_case(rci_status_error);
+    }
+    return result;
+}
+
+static char const * idigi_remote_config_request_t_as_string(idigi_remote_config_request_t const value)
+{
+    char const * result;
+    switch (value)
+    {
+        enum_to_case(idigi_remote_config_session_start);
+        enum_to_case(idigi_remote_config_session_end);
+        enum_to_case(idigi_remote_config_action_start);
+        enum_to_case(idigi_remote_config_action_end);
+        enum_to_case(idigi_remote_config_group_start);
+        enum_to_case(idigi_remote_config_group_end);
+        enum_to_case(idigi_remote_config_group_process);
+        enum_to_case(idigi_remote_config_session_cancel);
+    }
+    return result;
+}
+
+static char const * idigi_callback_status_t_as_string(idigi_callback_status_t const value)
+{
+    char const * result;
+    switch (value)
+    {
+        enum_to_case(idigi_callback_continue);
+        enum_to_case(idigi_callback_busy);
+        enum_to_case(idigi_callback_abort);
+        enum_to_case(idigi_callback_unrecognized);
     }
     return result;
 }
@@ -230,6 +267,13 @@ static char const * rci_error_state_t_as_string(rci_error_state_t const value)
     switch (value)
     {
         enum_to_case(rci_error_state_none);
+        enum_to_case(rci_error_state_error_open);
+        enum_to_case(rci_error_state_error_content);
+        enum_to_case(rci_error_state_error_close);
+        enum_to_case(rci_error_state_element_close);
+        enum_to_case(rci_error_state_group_close);
+        enum_to_case(rci_error_state_command_close);
+        enum_to_case(rci_error_state_reply_close);
 	    enum_to_case(rci_error_state_complete);
     }
     return result;
@@ -274,9 +318,19 @@ static void output_buffer_diff(char const * const name, void const * const curre
     }
 }
 
-#define output_diff(format, operation, member)  do {if (previous.member != current->member) printf("%s(%p): " format " -> " format "\n", #member, (void *)&(current->member), operation(previous.member), operation(current->member)); previous.member = current->member; } while (0)
+#define output_diff(format, operation, member) \
+    do { \
+        if (show_all) \
+            printf("%s(%p): " format "\n", #member, (void *)&(current->member), operation(previous.member)); \
+        else if (previous.member != current->member) \
+        { \
+            printf("%s(%p): " format " -> " format "\n", #member, (void *)&(current->member), operation(previous.member), operation(current->member)); \
+            previous.member = current->member; \
+        } \
+    } while (0)
 
 #define output_enum(name, member)               output_diff("%s", name ## _as_string, member)
+#define output_boolean(member)                  output_diff("%s", boolean_as_string, member)
 #define output_pointer(member)                  output_diff("%p", (void const *), member)
 #define output_unsigned_int(member)             output_diff("%u", (unsigned int), member)
 #define output_signed_int(member)               output_diff("%d", (signed int), member)
@@ -291,7 +345,10 @@ static void output_buffer_diff(char const * const name, void const * const curre
 
 #define output_service_data_buffer_diff(name)   output_buffer_diff("service_data." #name, current->service_data->name.data, service_data.name.data, current->service_data->name.bytes)
 
-static void output_debug_info(rci_t const * const current)
+#define RCI_DEBUG_SHOW_ALL      idigi_true
+#define RCI_DEBUG_SHOW_DIFFS    idigi_false
+
+static void output_debug_info(rci_t const * const current, idigi_bool_t const show_all)
 {
     static rci_t previous;
     static rci_service_data_t service_data;
@@ -313,6 +370,9 @@ static void output_debug_info(rci_t const * const current)
 
     output_enum(rci_status_t, status);
 
+    output_enum(idigi_remote_config_request_t, callback.config_request);
+    output_enum(idigi_callback_status_t, callback.status);
+
     output_rci_buffer(buffer.input);
     output_rci_buffer(buffer.output);
     
@@ -322,6 +382,7 @@ static void output_debug_info(rci_t const * const current)
     output_enum(rci_input_state_t, input.state);
     output_signed_int(input.character);
     output_pointer(input.destination);
+    output_boolean(input.send_content);
     output_enum(rci_command_t, input.command);
     output_rci_string(input.entity);
     output_rci_attribute_list(input.attribute);
@@ -333,8 +394,6 @@ static void output_debug_info(rci_t const * const current)
     output_enum(rci_output_type_t, output.type);
     output_pointer(output.tag);
     output_pointer(output.attribute);
-    output_enum(idigi_element_value_type_t, output.content.type);
-    output_pointer(output.content.data.generic);
     output_size(output.attribute_pair_index);
     output_size(output.entity_scan_index);
 

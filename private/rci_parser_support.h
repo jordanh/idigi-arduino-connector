@@ -29,6 +29,16 @@
 #endif
 #include "remote_config.h"
 
+#define ROUND_UP(value, interval)   ((value) + -(value) % (interval))
+
+static char const nul = '\0';
+
+static char const * const on_off_strings[] = {RCI_OFF, RCI_ON};
+static idigi_element_value_enum_t on_off_enum = { asizeof(on_off_strings), on_off_strings};
+
+static char const * const boolean_strings[] = {RCI_FALSE, RCI_TRUE};
+static idigi_element_value_enum_t boolean_enum = { asizeof(boolean_strings), boolean_strings};
+
 typedef enum
 {
     rci_session_start,
@@ -133,6 +143,13 @@ typedef enum
 typedef enum
 {
     rci_error_state_none,
+    rci_error_state_error_open,
+    rci_error_state_error_content,
+    rci_error_state_error_close,
+    rci_error_state_element_close,
+    rci_error_state_group_close,
+    rci_error_state_command_close,
+    rci_error_state_reply_close,
     rci_error_state_complete
 } rci_error_state_t;
 
@@ -171,13 +188,17 @@ typedef struct
 typedef struct
 {
     size_t count;
-    rci_attribute_t pair[2];
+    rci_attribute_t * pair;
 } rci_attribute_list_t;
 
 typedef struct
 {
     rci_service_data_t * service_data;
     rci_status_t status;
+    struct {
+        idigi_remote_config_request_t config_request;
+        idigi_callback_status_t status;
+    } callback;
     struct {
         rci_buffer_t input;
         rci_buffer_t output;
@@ -192,9 +213,12 @@ typedef struct
         rci_input_state_t state;
         int character;
         char * destination;
+        idigi_bool_t send_content;
         rci_command_t command;
         rci_string_t entity;
+        rci_attribute_t pair[2];
         rci_attribute_list_t attribute;
+        char storage[ROUND_UP(IDIGI_RCI_MAXIMUM_CONTENT_LENGTH + sizeof nul, sizeof (int))];
     } input;
     struct {
         rci_traversal_state_t state;
@@ -205,22 +229,14 @@ typedef struct
         rci_output_type_t type;
         rci_string_t const * tag;
         rci_attribute_list_t * attribute;
-        struct {
-            idigi_element_value_type_t type;
-            union {
-                void * generic;
-                unsigned int * unsigned_integer;
-                signed int * signed_integer;
-                char const * counted_string;
-                char const * nul_terminated_string;
-                float * float_precision;
-            } data;
-        } content;
         size_t attribute_pair_index;
         size_t entity_scan_index;
     } output;
     struct {
         rci_error_state_t state;
+        rci_string_t tag;
+        rci_attribute_t pair;
+        rci_attribute_list_t attribute;
         char const * description;
     } error;
     struct {
@@ -229,17 +245,15 @@ typedef struct
             rci_string_t tag;
             rci_string_t content;
         } string;
+        idigi_element_value_t value;
         idigi_remote_group_request_t request;
         idigi_remote_group_response_t response;
     } shared;
 } rci_t;
 
-static char const nul = '\0';
-
-#define POINTER_AND_SIZE(p)     (p), sizeof *(p)
 #define RCI_NO_HINT             NULL
 #define INVALID_ID              UINT_MAX
-#define INVALID_INDEX              UINT_MAX
+#define INVALID_INDEX           UINT_MAX
 
 #define CSTR_LEN(p)     ((size_t) *(p))
 #define CSTR_DATA(p)    ((p) + 1)
@@ -275,12 +289,10 @@ static idigi_bool_t cstr_equals_rcistr(char const * const cstr, rci_string_t con
     return cstr_equals_buffer(cstr, rcistr->data, rcistr->length);
 }
 
-#if 0 /* currently unused - remove before shipping */
 static idigi_bool_t cstr_equals_str(char const * const cstr, char const * const str)
 {
     return cstr_equals_buffer(cstr, str, strlen(str));
 }
-#endif
 
 static idigi_bool_t rcistr_to_uint(rci_string_t const * const rcistr, unsigned int * const value)
 {
@@ -326,6 +338,40 @@ static void rci_buffer_write(rci_buffer_t const * const buffer, int const value)
     ASSERT(rci_buffer_remaining(buffer) != 0);
     
     *(buffer->current) = value;
+}
+
+static idigi_bool_t ptr_in_buffer(rci_buffer_t const * const buffer, char const * const pointer)
+{
+    return ((pointer >= buffer->start) && (pointer <= buffer->end));
+}
+
+static void adjust_char_pointer(rci_t const * const rci, char const * const old_base, char * * const pointer)
+{
+    size_t const offset = (*pointer - old_base);
+    char * new_base = (char *) rci->input.storage;
+     
+    *pointer = (new_base + offset);
+}
+
+static void adjust_rci_string(rci_t const * const rci, char const * const base, rci_string_t * const string)
+{
+    char * pointer = (char *) string->data;
+    
+    adjust_char_pointer(rci, base, &pointer);
+    string->data = pointer;
+}
+
+static void rci_prep_reply(rci_t * const rci, rci_string_t * const tag, rci_attribute_list_t * const attribute)
+{
+    cstr_to_rci_string(RCI_REPLY, tag);
+
+    attribute->count = 1;
+    cstr_to_rci_string(RCI_VERSION, &attribute->pair[0].name);
+    cstr_to_rci_string(RCI_VERSION_SUPPORTED, &attribute->pair[0].value);
+
+    rci->output.tag = tag;
+    rci->output.attribute = attribute;
+    rci->output.type = rci_output_type_start_tag;
 }
 
 

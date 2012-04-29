@@ -43,6 +43,8 @@ static void rci_traverse_data(rci_t * const rci)
         /* no break; */
                 
     case rci_traversal_state_all_groups_group_start:
+        rci_callback(rci, idigi_remote_config_group_start);
+
         rci->output.type = rci_output_type_start_tag;
         rci->output.tag = &rci->traversal.tag;
         cstr_to_rci_string(group->name, &rci->traversal.tag);
@@ -57,7 +59,10 @@ static void rci_traverse_data(rci_t * const rci)
         break;
                     
     case rci_traversal_state_all_groups_element_data:
-        /* callback */
+        if (!rci_callback(rci, idigi_remote_config_group_process))
+            goto done;
+            
+        rci_output_content(rci);
         rci->traversal.state = rci_traversal_state_all_groups_element_end;
         break;
         
@@ -71,6 +76,8 @@ static void rci_traverse_data(rci_t * const rci)
         break;
 
     case rci_traversal_state_all_groups_group_end:
+        rci_callback(rci, idigi_remote_config_group_end);
+
         rci->output.type = rci_output_type_end_tag;
         rci->output.tag = &rci->traversal.tag;
         cstr_to_rci_string(group->name, &rci->traversal.tag);
@@ -91,6 +98,8 @@ static void rci_traverse_data(rci_t * const rci)
         break;
         
     case rci_traversal_state_one_group_start:
+        rci_callback(rci, idigi_remote_config_group_start);
+
         rci->output.type = rci_output_type_start_tag;
         rci->output.tag = &rci->traversal.tag;
         cstr_to_rci_string(group->name, &rci->traversal.tag);
@@ -105,7 +114,10 @@ static void rci_traverse_data(rci_t * const rci)
         break;
                     
     case rci_traversal_state_one_group_element_data:
-        /* callback */
+        if (!rci_callback(rci, idigi_remote_config_group_process))
+            goto done;
+            
+        rci_output_content(rci);
         rci->traversal.state = rci_traversal_state_one_group_element_end;
         break;
         
@@ -119,6 +131,8 @@ static void rci_traverse_data(rci_t * const rci)
         break;
         
     case rci_traversal_state_one_group_end:
+        rci_callback(rci, idigi_remote_config_group_end);
+
         rci->output.type = rci_output_type_end_tag;
         rci->output.tag = &rci->traversal.tag;
         cstr_to_rci_string(group->name, &rci->traversal.tag);
@@ -140,7 +154,10 @@ static void rci_traverse_data(rci_t * const rci)
         break;
                     
     case rci_traversal_state_one_element_data:
-        /* callback */
+        if (!rci_callback(rci, idigi_remote_config_group_process))
+            goto done;
+            
+        rci_output_content(rci);
         rci->traversal.state = rci_traversal_state_one_element_end;
         break;
         
