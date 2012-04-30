@@ -87,7 +87,7 @@ static idigi_facility_init_t const idigi_supported_facility_table[] = {
     #endif
 #endif
 
-#if defined(IDIGI_REMOTE_CONFIGURATION)
+#if (IDIGI_RCI_MAXIMUM_CONTENT_LENGTH > 0)
     #if defined(IDIGI_REMOTE_CONFIGURATION_SUPPORT)
         {{MANDATORY_FACILITY}, idigi_facility_rci_service_init, idigi_facility_rci_service_delete, idigi_facility_rci_service_cleanup, msg_discovery, msg_process}
     #else
