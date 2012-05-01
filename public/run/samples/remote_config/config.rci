@@ -61,10 +61,12 @@ group state debug_info "Debug info on IC thread"
     element stackbottom "Stack end" type 0xhex access  read_only 
     element usedmem "Allocated memory used" type uint32 access  read_only 
 
-group setting gps "GPS"
-    element state "Enable GPS tracking" type on_off
-    element latitude "Latitude" type float min -90.0 max 90.0
-    element longitude "Longitude" type float min -180.0 max 180.0
+# State configuration for GPS
+# Must setup the following group in order for GPS shown in iDigi Cloud.
+group state gps_stats "GPS"
+    element latitude "Latitude" type float access read_only
+    element longitude "Longitude" type float access read_only
     error invalid_lat "Invalid latitude value"
     error invalid_long "Invalid longitude value"
+
     

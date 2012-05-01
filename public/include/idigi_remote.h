@@ -325,7 +325,7 @@ typedef struct {
 * @{
 */
 /**
-* Remote configuration reponse
+* Remote configuration response
 */
 typedef struct {
     void * user_context;        /**< Pointer to callback's context returned from previous callback call.

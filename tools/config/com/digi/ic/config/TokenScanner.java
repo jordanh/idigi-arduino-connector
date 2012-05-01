@@ -7,6 +7,10 @@ import java.util.Scanner;
 
 public class TokenScanner {
 
+    private int lineNumber;
+    private Scanner lineScanner;
+    private Scanner tokenScanner;
+
     public TokenScanner(String fileName) throws Exception {
         try {
 
@@ -30,7 +34,7 @@ public class TokenScanner {
         String aWord = null;
 
         do {
-            if (tokenScanner != null && !tokenScanner.hasNext()) {
+            if ((tokenScanner != null) && (!tokenScanner.hasNext())) {
                 tokenScanner.close();
                 tokenScanner = null;
             }
@@ -39,15 +43,14 @@ public class TokenScanner {
                     String line = lineScanner.nextLine();
                     lineNumber++;
                     // ConfigGenerator.log("line " + lineNumber + ": " + line);
-
-                    if (line.length() > 0 && line.split(" ").length > 0) {
+                    if ((!line.startsWith("#")) && (line.length() > 0) && (line.split(" ").length > 0)) {
                         tokenScanner = new Scanner(line);
                         break;
                     }
                 }
             }
 
-            if (tokenScanner != null && tokenScanner.hasNext())
+            if ((tokenScanner != null) && (tokenScanner.hasNext()))
                 aWord = tokenScanner.next();
 
             if (!lineScanner.hasNextLine()) {
@@ -73,7 +76,7 @@ public class TokenScanner {
     public String getTokenInLine(String pattern) {
         String aLine = null;
 
-        if (tokenScanner != null && !tokenScanner.hasNext()) {
+        if ((tokenScanner != null) && (!tokenScanner.hasNext())) {
             tokenScanner.close();
             tokenScanner = null;
         }
@@ -82,7 +85,7 @@ public class TokenScanner {
                 String line = lineScanner.nextLine();
                 lineNumber++;
                 // ConfigGenerator.log("line " + lineNumber + ": " + line);
-                if (line.length() > 0 && line.split(" ").length > 0) {
+                if (!line.startsWith("#") && line.length() > 0 && line.split(" ").length > 0) {
                     tokenScanner = new Scanner(line);
                     break;
                 }
@@ -150,9 +153,5 @@ public class TokenScanner {
         lineScanner.close();
 
     }
-
-    private int lineNumber;
-    private Scanner lineScanner;
-    private Scanner tokenScanner;
 
 }

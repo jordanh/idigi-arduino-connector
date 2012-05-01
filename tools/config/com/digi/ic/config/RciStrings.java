@@ -4,6 +4,8 @@ import java.util.LinkedHashMap;
 
 public class RciStrings {
 
+    private final LinkedHashMap<String, String> rciStrings = new LinkedHashMap<String, String>();
+
     public RciStrings(String[] strPairs) // throws Exception
     {
 
@@ -31,7 +33,5 @@ public class RciStrings {
     public LinkedHashMap<String, String> getStrings() {
         return rciStrings;
     }
-
-    private final LinkedHashMap<String, String> rciStrings = new LinkedHashMap<String, String>();
 
 }

@@ -39,7 +39,7 @@
 #define MAC_ADDR_LENGTH     6
 
 /*
- * Routine to get the IP address, you will need to modify this routine for your 
+ * Routine to get the IP address, you will need to modify this routine for your
  * platform.
  */
 static int app_get_ip_address(uint8_t ** ip_address, size_t *size)
@@ -52,8 +52,8 @@ static int app_get_ip_address(uint8_t ** ip_address, size_t *size)
     unsigned int    i;
     static struct in_addr  ip_addr; /* Used to store the IP address */
 
-/* Remove this //#error statement once you modify this routine to return the correct IP address */
-//#error "Specify device IP address. Set size to 4 (bytes) for IPv4 or 16 (bytes) for IPv6"
+/* Remove this #error statement once you modify this routine to return the correct IP address */
+#error "Specify device IP address. Set size to 4 (bytes) for IPv4 or 16 (bytes) for IPv6"
 
     if (buf == NULL)
     {
@@ -115,11 +115,11 @@ error:
 }
 
 /* MAC address used in this sample */
-static uint8_t device_mac_addr[MAC_ADDR_LENGTH] = {0x78, 0xE7, 0xD1, 0x84, 0x47, 0x82};
+static uint8_t device_mac_addr[MAC_ADDR_LENGTH] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 static int app_get_mac_addr(uint8_t ** addr, size_t * size)
 {
-//#error "Specify device MAC address for LAN connection"
+#error "Specify device MAC address for LAN connection"
 
     *addr = device_mac_addr;
     *size = sizeof device_mac_addr;
@@ -133,7 +133,7 @@ static int app_get_device_id(uint8_t ** id, size_t * size)
     uint8_t * mac_addr;
     size_t mac_size;
 
-//#error  "Specify device id"
+#error  "Specify device id"
 
     /* This sample uses the MAC address to format the device ID */
     app_get_mac_addr(&mac_addr, &mac_size);
@@ -154,8 +154,8 @@ static int app_get_device_id(uint8_t ** id, size_t * size)
 }
 static int app_get_vendor_id(uint8_t ** id, size_t * size)
 {
-//#error  "Specify vendor id"
-    static const uint8_t device_vendor_id[VENDOR_ID_LENGTH] = {0x01, 0x00, 0x00, 0x01};
+#error  "Specify vendor id"
+    static const uint8_t device_vendor_id[VENDOR_ID_LENGTH] = {0x00, 0x00, 0x00, 0x00};
 
     *id   = (uint8_t *)device_vendor_id;
     *size = sizeof device_vendor_id;
@@ -165,7 +165,7 @@ static int app_get_vendor_id(uint8_t ** id, size_t * size)
 
 static int app_get_device_type(char ** type, size_t * size)
 {
-//#error "Specify device type"
+#error "Specify device type"
     static const char const *device_type = "Linux Application";
 
     /* Return pointer to device type. */
@@ -177,8 +177,8 @@ static int app_get_device_type(char ** type, size_t * size)
 
 static int app_get_server_url(char ** url, size_t * size)
 {
-//#error "Specify iDigi Server URL"
-    static const char const *idigi_server_url = "test.idigi.com";
+#error "Specify iDigi Server URL"
+    static const char const *idigi_server_url = "developer.idigi.com";
 
     /* Return pointer to device type. */
     *url = (char *)idigi_server_url;
@@ -189,7 +189,7 @@ static int app_get_server_url(char ** url, size_t * size)
 
 static int app_get_connection_type(idigi_connection_type_t ** type)
 {
-//#error "Specify LAN or WAN connection type"
+#error "Specify LAN or WAN connection type"
 
     /* Return pointer to connection type */
     static idigi_connection_type_t  device_connection_type = idigi_lan_connection_type;
@@ -201,7 +201,7 @@ static int app_get_connection_type(idigi_connection_type_t ** type)
 
 static int app_get_link_speed(uint32_t **speed, size_t * size)
 {
-//#error "Specify link speed for WAN connection type"
+#error "Specify link speed for WAN connection type"
     UNUSED_ARGUMENT(speed);
     UNUSED_ARGUMENT(size);
 
@@ -210,8 +210,8 @@ static int app_get_link_speed(uint32_t **speed, size_t * size)
 
 static int app_get_phone_number(uint8_t ** number, size_t * size)
 {
-//#error "Specify phone number dialed for WAN connection type"
-    /* 
+#error "Specify phone number dialed for WAN connection type"
+    /*
      * Return pointer to phone number for WAN connection type.
      */
     UNUSED_ARGUMENT(number);
@@ -224,7 +224,7 @@ static int app_get_phone_number(uint8_t ** number, size_t * size)
 /* This keep alive is sent from the server to the device */
 static int app_get_tx_keepalive_interval(uint16_t **interval, size_t * size)
 {
-//#error "Specify server to device TX keepalive interval in seconds"
+#error "Specify server to device TX keepalive interval in seconds"
 
 #define DEVICE_TX_KEEPALIVE_INTERVAL_IN_SECONDS     90
     /* Return pointer to Tx keepalive interval in seconds */
@@ -239,7 +239,7 @@ static int app_get_tx_keepalive_interval(uint16_t **interval, size_t * size)
 /* This keep alive is sent from the device to the server  */
 static int app_get_rx_keepalive_interval(uint16_t **interval, size_t * size)
 {
-//#error "Specify server to device RX keepalive interval in seconds"
+#error "Specify server to device RX keepalive interval in seconds"
 #define DEVICE_RX_KEEPALIVE_INTERVAL_IN_SECONDS     60
     /* Return pointer to Rx keepalive interval in seconds */
     static uint16_t device_rx_keepalive_interval = DEVICE_RX_KEEPALIVE_INTERVAL_IN_SECONDS;
@@ -251,10 +251,10 @@ static int app_get_rx_keepalive_interval(uint16_t **interval, size_t * size)
 
 static int app_get_wait_count(uint16_t **count, size_t * size)
 {
-//#error "Specify the number of times that not receiving keepalive messages from server is allowed"
+#error "Specify the number of times that not receiving keepalive messages from server is allowed"
 #define DEVICE_WAIT_COUNT     5
-    /* 
-     * Return pointer to wait count (number of times not receiving Tx keepalive 
+    /*
+     * Return pointer to wait count (number of times not receiving Tx keepalive
      * from server is allowed).
      */
     static uint16_t device_wait_count = DEVICE_WAIT_COUNT;
@@ -364,20 +364,20 @@ void app_config_error(idigi_error_status_t * const error_data)
 
     char const * data_service_string[] = {"idigi_data_service_put_request",
                                           "idigi_data_service_device_request"};
-    char const * file_system_string[] = {"idigi_file_system_open",    
-                                       "idigi_file_system_read",    
-                                       "idigi_file_system_write",   
-                                       "idigi_file_system_lseek",   
+    char const * file_system_string[] = {"idigi_file_system_open",
+                                       "idigi_file_system_read",
+                                       "idigi_file_system_write",
+                                       "idigi_file_system_lseek",
                                        "idigi_file_system_ftruncate",
-                                       "idigi_file_system_close",   
-                                       "idigi_file_system_rm",      
+                                       "idigi_file_system_close",
+                                       "idigi_file_system_rm",
                                        "idigi_file_system_stat",
-                                       "idigi_file_system_opendir", 
-                                       "idigi_file_system_readdir", 
+                                       "idigi_file_system_opendir",
+                                       "idigi_file_system_readdir",
                                        "idigi_file_system_closedir",
                                        "idigi_file_system_strerror",
                                        "idigi_file_system_msg_error",
-                                       "idigi_file_system_hash"};    
+                                       "idigi_file_system_hash"};
 
     switch (error_data->class_id)
     {

@@ -166,8 +166,7 @@ public class FileGenerator {
         String uintDefine = null;
         String floatInclude = null;
 
-        for (ElementStruct.ElementType type : ElementStruct.ElementType
-                .values()) {
+        for (ElementStruct.ElementType type : ElementStruct.ElementType.values()) {
             if (type.isSet()) {
                 switch (type) {
                 case UINT32:
@@ -198,9 +197,16 @@ public class FileGenerator {
                     break;
                 case ON_OFF:
                     headerString += DEFINE + RCI_PARSER_USES_ON_OFF;
+                    /* must put before writing the defines and strings */
+                    ConfigData.getRciStrings().put("ON", "on");
+                    ConfigData.getRciStrings().put("OFF", "off");
+
                     break;
                 case BOOLEAN:
                     headerString += DEFINE + RCI_PARSER_USES_BOOLEAN;
+                    /* must put before writing the defines and strings */
+                    ConfigData.getRciStrings().put("TRUE", "true");
+                    ConfigData.getRciStrings().put("FALSE", "false");
                     break;
                 default:
                     if (stringDefine == null) {
