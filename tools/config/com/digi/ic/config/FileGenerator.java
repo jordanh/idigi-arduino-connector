@@ -57,8 +57,8 @@ public class FileGenerator {
     private final static String RCI_PARSER_USES_STRINGS = "RCI_PARSER_USES_STRINGS\n";
     private final static String RCI_PARSER_USES_UNSIGNED_INTEGER = "RCI_PARSER_USES_UNSIGNED_INTEGER\n";
     private final static String RCI_PARSER_USES_SIGNED_INTEGER = "RCI_PARSER_USES_INTEGER\n";
-//    private final static String RCI_PARSER_USES_ON_OFF = "RCI_PARSER_USES_ON_OFF\n";
-//    private final static String RCI_PARSER_USES_BOOLEAN = "RCI_PARSER_USES_UNSIGNED_BOOLEAN\n";
+    private final static String RCI_PARSER_USES_ON_OFF = "RCI_PARSER_USES_ON_OFF\n";
+    private final static String RCI_PARSER_USES_BOOLEAN = "RCI_PARSER_USES_BOOLEAN\n";
 
     private String headerFile = HEADER_FILENAME;
     private String sourceFile = SOURCE_FILENAME;
@@ -197,10 +197,10 @@ public class FileGenerator {
                     
                     break;
                 case ON_OFF:
-//                    headerString += DEFINE + RCI_PARSER_USES_ON_OFF;
+                    headerString += DEFINE + RCI_PARSER_USES_ON_OFF;
                     break;
                 case BOOLEAN:
-//                    headerString += DEFINE + RCI_PARSER_USES_BOOLEAN;
+                    headerString += DEFINE + RCI_PARSER_USES_BOOLEAN;
                     break;
                 default:
                     if (stringDefine == null) {
