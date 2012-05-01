@@ -71,10 +71,7 @@ extern idigi_callback_status_t app_device_info_group_end(idigi_remote_group_requ
 extern void app_device_info_group_cancel(void * context);
 
 extern idigi_callback_status_t app_debug_info_group_get(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
-
-extern idigi_callback_status_t app_gps_group_init(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
-extern idigi_callback_status_t app_gps_group_get(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
-extern idigi_callback_status_t app_gps_group_set(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
+extern idigi_callback_status_t app_gps_stats_group_get(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
 
 
 remote_group_table_t remote_setting_table[] = {
@@ -82,11 +79,11 @@ remote_group_table_t remote_setting_table[] = {
     {app_ethernet_group_init,       app_ethernet_group_set,     app_ethernet_group_get,     app_ethernet_group_end,     app_ethernet_group_cancel},
     {app_device_stats_group_init,   app_device_stats_group_set, app_device_stats_group_get, NULL, NULL},
     {app_device_info_group_init,    app_device_info_group_set,  app_device_info_group_get,  app_device_info_group_end,  app_device_info_group_cancel},
-    {app_gps_group_init,   app_gps_group_set, app_gps_group_get, NULL, NULL},
 };
 
 remote_group_table_t remote_state_table[] = {
     {NULL, NULL, app_debug_info_group_get, NULL, NULL}
+    {NULL, NULL, app_gps_stats_group_get, NULL, NULL},
 };
 
 #define remote_group_no_resource_error  10
