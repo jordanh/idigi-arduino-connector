@@ -22,7 +22,7 @@
  * =======================================================================
  *
  */
-#include "idigi_remote.h"
+#include "remote_config.h"
 
 static char const * const element_type_strings[] = {
     "string",
@@ -56,6 +56,13 @@ static void print_name(FILE * fp, char const * const label, char const * const n
     fprintf(fp, "%s %.*s ", label, length, ptr);
 }
 
+static void debug_name(char const * const label, char const * const name)
+{
+    unsigned char length = *name;
+    char * ptr = (char *)name+1;
+
+    printf("%s %.*s ", label, length, ptr);
+}
 void print_remote_configurations(void)
 {
     size_t i;
@@ -96,6 +103,7 @@ void print_remote_configurations(void)
 
                 switch (element_ptr->type)
                 {
+#if defined(RCI_PARSER_USES_ENUMERATIONS)
                 case idigi_element_type_enum:
                 {
                     idigi_element_value_enum_t const * const enum_ptr = &element_ptr->value_limit->enum_value;
@@ -108,6 +116,7 @@ void print_remote_configurations(void)
                     }
                     break;
                 }
+#endif
                 case idigi_element_type_int32:
                 {
                     idigi_element_value_signed_integer_t const * const value_limit = &element_ptr->value_limit->integer_signed_value;
@@ -144,6 +153,7 @@ void print_remote_configurations(void)
                     }
                     break;
                 }
+#if defined(RCI_PARSER_USES_FLOATING_POINT)
                 case idigi_element_type_float:
                 {
                     idigi_element_value_float_t const * const value_limit = &element_ptr->value_limit->float_value;
@@ -153,6 +163,7 @@ void print_remote_configurations(void)
                     }
                     break;
                 }
+#endif
                 case idigi_element_type_string:
                 case idigi_element_type_multiline_string:
                 case idigi_element_type_password:
@@ -165,7 +176,8 @@ void print_remote_configurations(void)
                     break;
                 }
                 default:
-                    printf(" invalid min and max on the type");
+                    debug_name("element", element_ptr->name);
+                    printf("invalid min and max on the type: %d\n", element_ptr->type);
                     break;
                 }
             }

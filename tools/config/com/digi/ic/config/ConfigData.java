@@ -8,32 +8,42 @@ import java.util.Map;
 
 public class ConfigData {
 
+    /* user setting and state groups */
+    private final ArrayList<LinkedList<GroupStruct>> groupList;
+
+    private static RciStrings userGlobalErrors = new RciStrings();
+
+    /* user global error */
+    private static Map<Object, Integer> rciErrorMap = new HashMap<Object, Integer>();
+
+    private static RciStrings rciCommonErrors = new RciCommonErrors();
+    private static RciStrings rciGlobalErrors = new RciGlobalErrors();
+    private static RciStrings rciCommandErrors = new RciCommandErrors();
+    private static RciStrings rciGroupErrors = new RciGroupErrors();
+    private static RciStrings rciStrings = new RciParserStrings();
+
+
     public enum ConfigType {
-        SETTING (0),
-        STATE (1);
+        SETTING(0), STATE(1);
 
         private int index;
         private final static int configTypeCount = 2;
 
-        private ConfigType(int index)
-        {
+        private ConfigType(int index) {
             this.index = index;
         }
 
-        public int getIndex()
-        {
+        public int getIndex() {
             return index;
         }
 
-        public static int getConfigTypeCount()
-        {
+        public static int getConfigTypeCount() {
             return configTypeCount;
         }
-        public static ConfigType toConfigType(String str) throws Exception
-        {
-            if (str == null)
-            {
-                throw new Exception ("Missing setting or state keyword!");
+
+        public static ConfigType toConfigType(String str) throws Exception {
+            if (str == null) {
+                throw new Exception("Missing setting or state keyword!");
             }
             try {
                 return valueOf(str.toUpperCase());
@@ -43,8 +53,7 @@ public class ConfigData {
         }
     }
 
-    public ConfigData() throws Exception
-    {
+    public ConfigData() throws Exception {
         groupList = new ArrayList<LinkedList<GroupStruct>>();
 
         ConfigType type;
@@ -74,18 +83,15 @@ public class ConfigData {
         rciErrorMap.put(userGlobalErrors, index);
     }
 
-    public LinkedList<GroupStruct> getSettingGroups() throws Exception
-    {
+    public LinkedList<GroupStruct> getSettingGroups() throws Exception {
         return getConfigGroup("setting");
     }
 
-    public LinkedList<GroupStruct> getStateGroups() throws Exception
-    {
+    public LinkedList<GroupStruct> getStateGroups() throws Exception {
         return getConfigGroup("state");
     }
 
-    public LinkedList<GroupStruct> getConfigGroup(String type) throws Exception
-    {
+    public LinkedList<GroupStruct> getConfigGroup(String type) throws Exception {
         ConfigType groupType = ConfigType.toConfigType(type);
 
         LinkedList<GroupStruct> config = groupList.get(groupType.getIndex());
@@ -93,98 +99,68 @@ public class ConfigData {
         return config;
     }
 
-    public static LinkedHashMap<String, String> getUserGlobalErrors()
-    {
+    public static LinkedHashMap<String, String> getUserGlobalErrors() {
         return userGlobalErrors.getStrings();
     }
 
-    public static void addUserGroupError(String name, String description) throws Exception
-    {
+    public static void addUserGroupError(String name, String description)
+            throws Exception {
 
-        if (userGlobalErrors.size() > 0 && userGlobalErrors.getStrings().containsKey(name))
-        {
+        if ((userGlobalErrors.size() > 0) && (userGlobalErrors.getStrings().containsKey(name))) {
             throw new Exception("Duplicate <globalerror>: " + name);
         }
         userGlobalErrors.addStrings(name, description);
     }
 
-    public static LinkedHashMap<String, String> getRciCommonErrors()
-    {
+    public static LinkedHashMap<String, String> getRciCommonErrors() {
         return rciCommonErrors.getStrings();
     }
 
-    public static LinkedHashMap<String, String> getRciGlobalErrors()
-    {
+    public static LinkedHashMap<String, String> getRciGlobalErrors() {
         return rciGlobalErrors.getStrings();
     }
 
-    public static LinkedHashMap<String, String> getRciCommandErrors()
-    {
+    public static LinkedHashMap<String, String> getRciCommandErrors() {
         return rciCommandErrors.getStrings();
     }
 
-    public static LinkedHashMap<String, String> getRciGroupErrors()
-    {
+    public static LinkedHashMap<String, String> getRciGroupErrors() {
         return rciGroupErrors.getStrings();
     }
 
-    public static int getRciCommonErrorsIndex()
-    {
+    public static int getRciCommonErrorsIndex() {
         return rciErrorMap.get(rciCommonErrors);
     }
 
-    public static int getRciGlobalErrorsIndex()
-    {
+    public static int getRciGlobalErrorsIndex() {
         return rciErrorMap.get(rciGlobalErrors);
     }
 
-    public static int getRciCommandErrorsIndex()
-    {
+    public static int getRciCommandErrorsIndex() {
         return rciErrorMap.get(rciCommandErrors);
     }
 
-    public static int getRciGroupErrorsIndex()
-    {
+    public static int getRciGroupErrorsIndex() {
         return rciErrorMap.get(rciGroupErrors);
     }
 
-    public static int getUserGlobalErrorsIndex()
-    {
+    public static int getUserGlobalErrorsIndex() {
         return rciErrorMap.get(userGlobalErrors);
     }
 
-    public static LinkedHashMap<String, String> getRciStrings()
-    {
+    public static LinkedHashMap<String, String> getRciStrings() {
         return rciStrings.getStrings();
     }
 
-    public static Map<Object, Integer> getRciErrorMap()
-    {
+    public static Map<Object, Integer> getRciErrorMap() {
         return rciErrorMap;
     }
 
-    public static int getAllErrorsSize()
-    {
-        int size = rciCommonErrors.size() + rciGlobalErrors.size() +
-                   rciCommandErrors.size() + rciGroupErrors.size();
-                   userGlobalErrors.size();
+    public static int getAllErrorsSize() {
+        int size = rciCommonErrors.size() + rciGlobalErrors.size()
+                + rciCommandErrors.size() + rciGroupErrors.size() 
+                + userGlobalErrors.size();
 
         return size;
     }
-
-    /* user setting and state groups */
-    private final ArrayList<LinkedList<GroupStruct>> groupList;
-
-    private static RciStrings userGlobalErrors = new RciStrings();
-
-    /* user global error */
-    private static Map<Object, Integer> rciErrorMap = new HashMap<Object, Integer>();
-
-    private static RciStrings rciCommonErrors =new RciCommonErrors();
-    private static RciStrings rciGlobalErrors = new RciGlobalErrors();
-    private static RciStrings rciCommandErrors =new RciCommandErrors();
-    private static RciStrings rciGroupErrors = new RciGroupErrors();
-    private static RciStrings rciStrings = new RciParserStrings();
-
-
 }

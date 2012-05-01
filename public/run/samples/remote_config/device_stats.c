@@ -36,12 +36,11 @@ extern int app_os_get_system_time(unsigned long * const uptime);
 
 typedef struct {
     time_t curtime;
-    float   temperature;
-
+    int32_t signed_integer;
     char timestring[DEVICE_STATS_TIME_STRING_LENGTH];
 } device_stats_config_data_t;
 
-device_stats_config_data_t device_stats_config_data = {0, 0, "\0"};
+device_stats_config_data_t device_stats_config_data = {0, -10, "\0"};
 
 idigi_callback_status_t app_device_stats_group_init(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
 {
@@ -93,13 +92,9 @@ idigi_callback_status_t app_device_stats_group_get(idigi_remote_group_request_t 
         response->element_data.element_value->string_value = device_stats_ptr->timestring;
         break;
     }
-    case idigi_setting_device_stats_ctemp:
-        ASSERT(request->element.type == idigi_element_type_float);
-        response->element_data.element_value->float_value = device_stats_ptr->temperature;
-        break;
-    case idigi_setting_device_stats_ftemp:
-        ASSERT(request->element.type == idigi_element_type_float);
-        response->element_data.element_value->float_value = device_stats_ptr->temperature * 9 / 5 + 32;
+    case idigi_setting_device_stats_signed_integer:
+        ASSERT(request->element.type == idigi_element_type_int32);
+        response->element_data.element_value->integer_signed_value = device_stats_ptr->signed_integer;
         break;
 
     default:
@@ -239,12 +234,11 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
 
         break;
     }
-    case idigi_setting_device_stats_ctemp:
-        ASSERT(request->element.type == idigi_element_type_float);
-        device_stats_ptr->temperature= request->element.value->float_value;
+    case idigi_setting_device_stats_signed_integer:
+        ASSERT(request->element.type == idigi_element_type_int32);
+        device_stats_ptr->temperature= request->element.value->integer_signed_value;
         break;
 
-    case idigi_setting_device_stats_ftemp:
     default:
         ASSERT(0);
         break;

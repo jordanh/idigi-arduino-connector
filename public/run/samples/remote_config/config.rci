@@ -2,7 +2,7 @@ globalerror load_fail "Load fail"
 globalerror save_fail "Save fail"
 globalerror memory_fail "Insufficient memory"
 
-group setting serial 2 "Serial Port"
+group setting serial 2 "Serial Port" "Port 1 is used for printf"
     element baud "Baud rate" type enum access read_write
         value 2400
         value 4800
@@ -43,9 +43,8 @@ group setting ethernet "Ethernet interface"
 
 
 group setting device_stats  "Device statistics"
-    element curtime "Current time" type datetime access  read_write 
-    element ctemp "Temperature" type float access read_write unit "C"
-    element ftemp "Temperature" type float access  read_only  unit "F"
+    element curtime "Current time" type datetime access  read_write
+    element signed_integer "Signed integer" type int32 min -100 max 100
 
 group setting device_info  "Device info"
     element product "Product" type string access  read_write  min  1 max  64 
@@ -61,3 +60,11 @@ group state debug_info "Debug info on IC thread"
     element stacksize "Stack size" type hex32 access  read_only 
     element stackbottom "Stack end" type 0xhex access  read_only 
     element usedmem "Allocated memory used" type uint32 access  read_only 
+
+group setting gps "GPS"
+    element state "Enable GPS tracking" type on_off
+    element latitude "Latitude" type float min -90.0 max 90.0
+    element longitude "Longitude" type float min -180.0 max 180.0
+    error invalid_lat "Invalid latitude value"
+    error invalid_long "Invalid longitude value"
+    

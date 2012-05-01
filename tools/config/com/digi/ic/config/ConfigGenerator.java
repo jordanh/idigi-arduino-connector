@@ -27,53 +27,95 @@ public class ConfigGenerator {
     public final static String DEVICE_TYPE = "deviceType";
     public final static String FIRMWARE_VERSION = "firmwareVersion";
     public final static String CONFIG_FILENAME = "configFileName";
-    private static void usage()
-    {
-        String className = ConfigGenerator.class.getClass().getName();
 
-        int firstChar = className.lastIndexOf(".") +1;
-        if (firstChar != -1)
-        {
+    private static void usage() {
+        String className = ConfigGenerator.class.getName();
+
+        int firstChar = className.lastIndexOf(".") + 1;
+        if (firstChar != -1) {
             className = className.substring(firstChar);
         }
 
-        log(String.format("Usage: java -jar %s.jar [", className) +
-            DASH + HELP_OPTION + "] [" +
-            DASH + VERBOSE_OPTION + "] [" +
-            DASH + NO_DESC_OPTION + "] [" +
-            DASH + VENDOR_OPTION + "] [" +
-            DASH + DIRECTORY_OPTION + "] [" +
-            DASH + SERVER_OPTION + "] [" +
-            String.format("<%s[:%s]> <%s> <%s> <%s>\n", USERNAME, PASSWORD, DEVICE_TYPE, FIRMWARE_VERSION, CONFIG_FILENAME));
+        log(String.format("Usage: java -jar %s.jar [", className)
+                + DASH
+                + HELP_OPTION
+                + "] ["
+                + DASH
+                + VERBOSE_OPTION
+                + "] ["
+                + DASH
+                + NO_DESC_OPTION
+                + "] ["
+                + DASH
+                + VENDOR_OPTION
+                + "] ["
+                + DASH
+                + DIRECTORY_OPTION
+                + "] ["
+                + DASH
+                + SERVER_OPTION
+                + "] ["
+                + String.format("<%s[:%s]> <%s> <%s> <%s>\n", USERNAME,
+                        PASSWORD, DEVICE_TYPE, FIRMWARE_VERSION,
+                        CONFIG_FILENAME));
 
         log("Options:");
-        log(String.format("\t%-16s \t= optional option to show this menu", DASH + HELP_OPTION));
-        log(String.format("\t%-16s \t= optional option to output message about what the tool is doing", DASH + VERBOSE_OPTION));
-        log(String.format("\t%-16s \t= optional option to exclude error description in the C file (Code size reduction)", DASH + NO_DESC_OPTION));
-        log(String.format("\t%-16s \t= optional option for vendor ID obtained from iDigi Cloud registration.", DASH + VENDOR_OPTION + "=<vendorID>"));
-        log(String.format("\t%-16s \t  If not given, tool tries to retrieve it from the Cloud", ""));
+        log(String.format("\t%-16s \t= optional option to show this menu", DASH
+                + HELP_OPTION));
+        log(String
+                .format(
+                        "\t%-16s \t= optional option to output message about what the tool is doing",
+                        DASH + VERBOSE_OPTION));
+        log(String
+                .format(
+                        "\t%-16s \t= optional option to exclude error description in the C file (Code size reduction)",
+                        DASH + NO_DESC_OPTION));
+        log(String
+                .format(
+                        "\t%-16s \t= optional option for vendor ID obtained from iDigi Cloud registration.",
+                        DASH + VENDOR_OPTION + "=<vendorID>"));
+        log(String
+                .format(
+                        "\t%-16s \t  If not given, tool tries to retrieve it from the Cloud",
+                        ""));
 
-        log(String.format("\t%-16s \t= optional option for directory path where source and header files will be created.", DASH + DIRECTORY_OPTION + "=<directory path>"));
-        log(String.format("\t%-16s \t= optional option for iDigi Cloud server. Default is developer.idigi.com", DASH + SERVER_OPTION + "=<server address>"));
+        log(String
+                .format(
+                        "\t%-16s \t= optional option for directory path where source and header files will be created.",
+                        DASH + DIRECTORY_OPTION + "=<directory path>"));
+        log(String
+                .format(
+                        "\t%-16s \t= optional option for iDigi Cloud server. Default is developer.idigi.com",
+                        DASH + SERVER_OPTION + "=<server address>"));
 
-        log(String.format("\n\t%-16s \t= username to log in iDigi Cloud. If no password is given you will be prompted to enter the password", USERNAME));
-        log(String.format("\t%-16s \t= optional option for password to log in iDigi Cloud", PASSWORD));
-        log(String.format("\t%-16s \t= Device type string with quotes(i.e. \"device type\")", DEVICE_TYPE));
-        log(String.format("\t%-16s \t= firmware version number in decimal", FIRMWARE_VERSION));
-        log(String.format("\t%-16s \t= iDigi Connector Configration file", CONFIG_FILENAME));
+        log(String
+                .format(
+                        "\n\t%-16s \t= username to log in iDigi Cloud. If no password is given you will be prompted to enter the password",
+                        USERNAME));
+        log(String
+                .format(
+                        "\t%-16s \t= optional option for password to log in iDigi Cloud",
+                        PASSWORD));
+        log(String
+                .format(
+                        "\t%-16s \t= Device type string with quotes(i.e. \"device type\")",
+                        DEVICE_TYPE));
+        log(String.format("\t%-16s \t= firmware version number in decimal",
+                FIRMWARE_VERSION));
+        log(String.format("\t%-16s \t= iDigi Connector Configration file",
+                CONFIG_FILENAME));
         System.exit(1);
     }
 
-    private void getPassword()
-    {
-        BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
+    private void getPassword() {
+        BufferedReader userInput = new BufferedReader(new InputStreamReader(
+                System.in));
 
         System.out.print("Enter password: ");
 
         try {
             password = userInput.readLine();
-            if (password.isEmpty())
-            {
+            if (password.isEmpty()) {
                 log("You must enter a password.\nPlease try again!");
                 System.exit(1);
             }
@@ -83,66 +125,44 @@ public class ConfigGenerator {
         }
     }
 
-    private static void toOption(String option)
-    {
+    private static void toOption(String option) {
 
         /* split the [option]=[option value] */
         try {
 
             String[] keys = option.split("=", 2);
 
-            if (keys.length == 2)
-            {
-                if (keys[0].equals(SERVER_OPTION))
-                {
+            if (keys.length == 2) {
+                if (keys[0].equals(SERVER_OPTION)) {
                     /* SERVER_OPTION */
                     serverName = keys[1];
-                }
-                else if (keys[0].equals(VENDOR_OPTION))
-                {
+                } else if (keys[0].equals(VENDOR_OPTION)) {
 
-                    if (Pattern.matches("(0[xX])?\\p{XDigit}+", keys[1]))
-                    {
+                    if (Pattern.matches("(0[xX])?\\p{XDigit}+", keys[1])) {
                         vendorId = keys[1];
+                    } else {
+                        throw new Exception("Invalid Vendor Id!");
                     }
-                    else
-                    {
-                        throw new Exception ("Invalid Vendor Id!");
-                    }
-                }
-                else if (keys[0].equals(DIRECTORY_OPTION))
-                {
-                    if (new File(keys[1]).isDirectory())
-                    {
+                } else if (keys[0].equals(DIRECTORY_OPTION)) {
+                    if (new File(keys[1]).isDirectory()) {
                         directoryPath = keys[1];
+                    } else {
+                        throw new Exception("Invalid directory path!");
                     }
-                    else
-                    {
-                        throw new Exception ("Invalid directory path!");
-                    }
-                }
-                else
-                {
-                    throw new Exception ("Invalid Option: " + keys[0]);
+                } else {
+                    throw new Exception("Invalid Option: " + keys[0]);
                 }
 
-            }
-            else if (option. equals(NO_DESC_OPTION)) {
+            } else if (option.equals(NO_DESC_OPTION)) {
                 noErrorDescription = true;
-            }
-            else if (option.equals(VERBOSE_OPTION)) {
+            } else if (option.equals(VERBOSE_OPTION)) {
                 verboseOption = true;
-            }
-            else if (option.equals(HELP_OPTION)) {
+            } else if (option.equals(HELP_OPTION)) {
                 usage();
-            }
-            else if (option.isEmpty())
-            {
-                throw new Exception ("Missing Option!");
-            }
-            else
-            {
-                throw new Exception ("Invalid Option: " + option);
+            } else if (option.isEmpty()) {
+                throw new Exception("Missing Option!");
+            } else {
+                throw new Exception("Invalid Option: " + option);
             }
         } catch (Exception e) {
             log(e.getMessage());
@@ -151,28 +171,22 @@ public class ConfigGenerator {
 
     }
 
-    private void toArgument(int argNumber, String arg)
-    {
+    private void toArgument(int argNumber, String arg) {
         try {
-            switch (argNumber)
-            {
+            switch (argNumber) {
             case 1:
                 /* username:password argument */
-                if (arg.indexOf(':') != -1)
-                {
+                if (arg.indexOf(':') != -1) {
                     String[] userpass = arg.split(":", 2);
 
                     username = userpass[0];
                     argumentLog += username + ":";
 
-                    if (!userpass[1].isEmpty())
-                    {
+                    if (!userpass[1].isEmpty()) {
                         password = userpass[1];
                         argumentLog += "*****";
                     }
-                }
-                else
-                {
+                } else {
                     username = arg;
                     argumentLog += username;
                 }
@@ -187,9 +201,8 @@ public class ConfigGenerator {
                 /* firmware version */
                 fwVersion = arg;
                 Scanner fwVersionScan = new Scanner(fwVersion);
-                if (!fwVersionScan.hasNextInt())
-                {
-                    throw new Exception ("Invalid f/w version: " + arg);
+                if (!fwVersionScan.hasNextInt()) {
+                    throw new Exception("Invalid f/w version: " + arg);
                 }
                 argumentLog += " " + arg;
                 break;
@@ -205,76 +218,64 @@ public class ConfigGenerator {
         }
     }
 
-    public static String getArgumentLogString()
-    {
+    public static String getArgumentLogString() {
         return argumentLog;
     }
 
-    public static String getServerName()
-    {
+    public static String getServerName() {
         return serverName;
     }
 
-    public ConfigGenerator (String args[])
-    {
+    public ConfigGenerator(String args[]) {
         int argCount = 0;
 
         argumentLog = "\"";
 
         serverName = SERVER_NAME;
 
-        for (String arg: args)
-        {
-            if (arg.startsWith(DASH))
-            {
+        for (String arg : args) {
+            if (arg.startsWith(DASH)) {
                 String str = arg.substring(DASH.length());
 
                 toOption(str);
 
                 argumentLog += arg + " ";
-            }
-            else {
+            } else {
                 toArgument(++argCount, arg);
             }
         }
         argumentLog += "\"";
 
-        if (argCount != 4)
-        {
+        if (argCount != 4) {
             usage();
         }
-        if (password == null)
-        {
+        if (password == null) {
             getPassword();
         }
     }
 
-    public static boolean excludeErrorDescription()
-    {
+    public static boolean excludeErrorDescription() {
         return noErrorDescription;
     }
 
-    public static void log(Object aObject)
-    {
+    public static void log(Object aObject) {
         System.out.println(String.valueOf(aObject));
     }
 
-    public static void debug_log(Object aObject)
-    {
-        if (verboseOption)
-        {
+    public static void debug_log(Object aObject) {
+        if (verboseOption) {
             System.out.println(String.valueOf(aObject));
         }
     }
 
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) {
         try {
 
             new ConfigGenerator(args);
 
             /* descriptor constructor for arguments */
-            Descriptors descriptors = new Descriptors(username, password, vendorId, deviceType, fwVersion);
+            Descriptors descriptors = new Descriptors(username, password,
+                    vendorId, deviceType, fwVersion);
 
             /* parse file */
             debug_log("Reading filename: " + filename + "...");
@@ -283,13 +284,16 @@ public class ConfigGenerator {
 
             Parser.processFile(filename, configData);
 
-            if ((configData.getSettingGroups().isEmpty()) && (configData.getStateGroups().isEmpty()))
-            {
-                throw new IOException("No groups specified in file: " + filename);
+            if ((configData.getSettingGroups().isEmpty())
+                    && (configData.getStateGroups().isEmpty())) {
+                throw new IOException("No groups specified in file: "
+                        + filename);
             }
 
-            debug_log("Number of setting groups: " + configData.getSettingGroups().size());
-            debug_log("Number of state groups: " + configData.getStateGroups().size());
+            debug_log("Number of setting groups: "
+                    + configData.getSettingGroups().size());
+            debug_log("Number of state groups: "
+                    + configData.getStateGroups().size());
 
             /* Generate H and C files */
             debug_log("Generating C and H files...");
@@ -303,10 +307,9 @@ public class ConfigGenerator {
             log("Done.");
 
         } catch (Exception e) {
-            log (e.toString());
+            log(e.toString());
 
-            if (verboseOption)
-            {
+            if (verboseOption) {
                 e.printStackTrace();
                 if (e.getCause() != null)
                     System.err.println(e.getMessage());

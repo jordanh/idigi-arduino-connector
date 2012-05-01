@@ -1,8 +1,9 @@
-globalerror load_fail "Unable to load the value"
-globalerror save_fail "Unable to save the value"
-globalerror no_memory "Insufficient memory"
 
 group setting keepalive "iDigi Connector Keepalive Configuration"
-    element rx "Rx interval: Time value which device will send Keep-Alive messages must be between 5 to 7200 seconds" type uint32 min 5 max 7200 unit "in seconds"
-    element tx "Tx Interval: Time value which server will send Keep-Alive messages must be between 5 to 7200 seconds" type uint32 min 5 max 7200 unit "in seconds"
+    element rx "Rx interval" "Time value which device will send Keep-Alive messages must be between 5 to 7200 seconds" type uint32 min 5 max 7200 unit "in seconds"
+    element tx "Tx Interval" "Time value which server will send Keep-Alive messages must be between 5 to 7200 seconds" type uint32 min 5 max 7200 unit "in seconds"
+    
+    error load_fail "Unable to load the value"
+    error save_fail "Unable to save the value"
+    error no_memory "Insufficient memory"
     

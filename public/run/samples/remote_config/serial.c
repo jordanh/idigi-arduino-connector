@@ -25,7 +25,6 @@
 #include "idigi_config.h"
 #include "idigi_api.h"
 #include "platform.h"
-//#include "idigi_remote.h"
 #include "remote_config.h"
 #include "remote_config_cb.h"
 

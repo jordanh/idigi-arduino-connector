@@ -7,14 +7,12 @@ import java.util.Scanner;
 
 public class TokenScanner {
 
-    public TokenScanner(String fileName) throws Exception
-    {
+    public TokenScanner(String fileName) throws Exception {
         try {
 
             File configFile = new File(fileName);
 
-            if (!configFile.exists())
-            {
+            if (!configFile.exists()) {
                 throw new NullPointerException(fileName + " file not found.");
             }
 
@@ -24,30 +22,25 @@ public class TokenScanner {
 
         } catch (NullPointerException e) {
             ConfigGenerator.log("Unable to open " + fileName);
-            throw new Exception("Error in opening "+ fileName);
+            throw new Exception("Error in opening " + fileName);
         }
     }
 
-    public String getToken()
-    {
+    public String getToken() {
         String aWord = null;
 
         do {
-            if (tokenScanner != null && !tokenScanner.hasNext())
-            {
+            if (tokenScanner != null && !tokenScanner.hasNext()) {
                 tokenScanner.close();
                 tokenScanner = null;
             }
-            if (tokenScanner == null)
-            {
-                while (lineScanner.hasNextLine())
-                {
+            if (tokenScanner == null) {
+                while (lineScanner.hasNextLine()) {
                     String line = lineScanner.nextLine();
                     lineNumber++;
-//                  ConfigGenerator.log("line " + lineNumber + ": " + line);
+                    // ConfigGenerator.log("line " + lineNumber + ": " + line);
 
-                    if (line.length() > 0 && line.split(" ").length > 0)
-                    {
+                    if (line.length() > 0 && line.split(" ").length > 0) {
                         tokenScanner = new Scanner(line);
                         break;
                     }
@@ -57,8 +50,7 @@ public class TokenScanner {
             if (tokenScanner != null && tokenScanner.hasNext())
                 aWord = tokenScanner.next();
 
-            if (!lineScanner.hasNextLine())
-            {
+            if (!lineScanner.hasNextLine()) {
                 break;
             }
         } while (aWord == null);
@@ -66,8 +58,7 @@ public class TokenScanner {
         return aWord;
     }
 
-    public int getTokenInt() throws IOException
-    {
+    public int getTokenInt() throws IOException {
         String str = getToken();
 
         try {
@@ -79,24 +70,19 @@ public class TokenScanner {
         }
     }
 
-    public String getTokenInLine(String pattern)
-    {
+    public String getTokenInLine(String pattern) {
         String aLine = null;
 
-        if (tokenScanner != null && !tokenScanner.hasNext())
-        {
+        if (tokenScanner != null && !tokenScanner.hasNext()) {
             tokenScanner.close();
             tokenScanner = null;
         }
-        if (tokenScanner == null)
-        {
-            while (lineScanner.hasNextLine())
-            {
+        if (tokenScanner == null) {
+            while (lineScanner.hasNextLine()) {
                 String line = lineScanner.nextLine();
                 lineNumber++;
-                //ConfigGenerator.log("line " + lineNumber + ": " + line);
-                if (line.length() > 0 && line.split(" ").length > 0)
-                {
+                // ConfigGenerator.log("line " + lineNumber + ": " + line);
+                if (line.length() > 0 && line.split(" ").length > 0) {
                     tokenScanner = new Scanner(line);
                     break;
                 }
@@ -109,73 +95,62 @@ public class TokenScanner {
         return aLine;
     }
 
-    public boolean hasToken()
-    {
+    public boolean hasToken() {
         boolean token_avail = false;
 
-        if (tokenScanner != null)
-        {
+        if (tokenScanner != null) {
             token_avail = tokenScanner.hasNext();
         }
-        if (!token_avail)
-        {
+        if (!token_avail) {
             token_avail = lineScanner.hasNext();
         }
 
         return token_avail;
     }
 
-    public boolean hasToken(String pattern)
-    {
+    public boolean hasToken(String pattern) {
         boolean token_avail = false;
 
-        if (tokenScanner != null)
-        {
+        if (tokenScanner != null) {
             token_avail = tokenScanner.hasNext(pattern);
         }
 
-        if (!token_avail)
-        {
+        if (!token_avail) {
             token_avail = lineScanner.hasNext(pattern);
         }
 
         return token_avail;
     }
 
-    public boolean hasTokenInt()
-    {
+    public boolean hasTokenInt() {
         boolean token_avail = false;
 
-        if (tokenScanner != null)
-        {
+        if (tokenScanner != null) {
             token_avail = tokenScanner.hasNextInt();
         }
 
-        if (!token_avail)
-        {
+        if (!token_avail) {
             token_avail = lineScanner.hasNextInt();
         }
 
         return token_avail;
     }
 
-    public int getLineNumber()
-    {
+    public int getLineNumber() {
         return lineNumber;
     }
 
-    public void  close()
-    {
-        //ensure the underlying stream is always closed
-        //this only has any effect if the item passed to the Scanner
-        //constructor implements Closeable (which it does in this case).
-        if (tokenScanner != null)
-        {
+    public void close() {
+        // ensure the underlying stream is always closed
+        // this only has any effect if the item passed to the Scanner
+        // constructor implements Closeable (which it does in this case).
+        if (tokenScanner != null) {
             tokenScanner.close();
         }
         lineScanner.close();
 
     }
+
     private int lineNumber;
     private Scanner lineScanner;
     private Scanner tokenScanner;
