@@ -49,7 +49,7 @@ static idigi_callback_status_t app_process_session_start(idigi_remote_group_resp
 
     if (app_os_malloc(sizeof *session_ptr, &ptr) != 0)
     {
-        response->error_id = idigi_global_error_no_memory;
+        response->error_id = idigi_setting_keepalive_error_no_memory;
         goto done;
     }
 

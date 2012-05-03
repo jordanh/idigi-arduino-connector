@@ -86,7 +86,6 @@ remote_group_table_t remote_state_table[] = {
     {NULL, NULL, app_gps_stats_group_get, NULL, NULL},
 };
 
-#define remote_group_no_resource_error  10
 
 static idigi_callback_status_t app_process_session_start(idigi_remote_group_response_t * const response)
 {
@@ -97,7 +96,7 @@ static idigi_callback_status_t app_process_session_start(idigi_remote_group_resp
 
     if (app_os_malloc(sizeof *session_ptr, &ptr) != 0)
     {
-        response->error_id = remote_group_no_resource_error;
+        response->error_id = idigi_global_error_memory_fail;
         goto done;
     }
 
@@ -270,7 +269,7 @@ idigi_callback_status_t app_remote_config_handler(idigi_remote_config_request_t 
         status = app_process_session_cancel(request_data);
         break;
     default:
-        APP_DEBUG("app_remote_config_handler: unknown reqeust id %d\n", request);
+        APP_DEBUG("app_remote_config_handler: unknown request id %d\n", request);
         break;
     }
 

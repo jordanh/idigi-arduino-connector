@@ -59,6 +59,11 @@ public class ConfigGenerator {
                         PASSWORD, DEVICE_TYPE, FIRMWARE_VERSION,
                         CONFIG_FILENAME));
 
+        log("Description:");
+        log("\tIt generates and uploads configuration information (descriptors) to the iDigi Cloud server");
+        log("\tand it also generates ANSI C header file (remote_config.h) ");
+        log("\tfrom the input iDigi Connector remote configuration file.\n");
+
         log("Options:");
         log(String.format("\t%-16s \t= optional option to show this menu", DASH
                 + HELP_OPTION));

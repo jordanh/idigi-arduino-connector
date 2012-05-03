@@ -22,16 +22,21 @@
  * =======================================================================
  *
  */
-#include "idigi_types.h"
-
+/**
+ * @file
+ *  @brief IC remote configuration definitions and structures
+ *
+ */
 #ifndef _IDIGI_REMOTE_H
 #define _IDIGI_REMOTE_H
 
- /**
+#include "idigi_types.h"
+
+/**
  * @defgroup idigi_remote_action_t iDigi remote configuration action types
  * @{
  */
- /**
+/**
  * Remote request action types
  */
 typedef enum {
@@ -39,16 +44,16 @@ typedef enum {
     idigi_remote_action_query   /**< Query remote configuration */
 } idigi_remote_action_t;
 /**
-* @}
-*/
+ * @}
+ */
 
 /**
-* @defgroup idigi_remote_group_type_t iDigi remote configuration types
-* @{
-*/
+ * @defgroup idigi_remote_group_type_t iDigi remote configuration types
+ * @{
+ */
 /**
-* Remote request group types.
-*/
+ * Remote request group types.
+ */
 typedef enum {
     idigi_remote_group_setting, /**< Setting configuration */
     idigi_remote_group_state    /**< State configuration */
@@ -59,12 +64,12 @@ typedef enum {
 */
 
 /**
-* @defgroup idigi_element_value_type_t idigi remote configuration element types
-* @{
-*/
+ * @defgroup idigi_element_value_type_t idigi remote configuration element types
+ * @{
+ */
 /**
-* Remote configuration element value types
-*/
+ * Remote configuration element value types
+ */
 typedef enum {
     idigi_element_type_string,              /**< Single line string */
     idigi_element_type_multiline_string,    /**< This type is used for a string that may be more
@@ -76,7 +81,7 @@ typedef enum {
     idigi_element_type_uint32,              /**< 32-bit unsigned integer value */
     idigi_element_type_hex32,               /**< 32-bit unsigned hexadecimal */
     idigi_element_type_0xhex,               /**< 32-bit unsigned hexadecimal with 0x prefix shown in iDigi Device Cloud.*/
-    idigi_element_type_float,               /** Floating value. float.h is included. */
+    idigi_element_type_float,               /**< Floating value. float.h is included. */
     idigi_element_type_enum,                /**< enum is used to define a set of allowed values for an element.
                                                 This is a pull-down menu shown in iDigi Device Cloud. */
     idigi_element_type_on_off,              /**< “on” or “off “ value. An applciation's callback should use
@@ -109,12 +114,12 @@ typedef enum {
 */
 
 /**
-* @defgroup idigi_on_off_t  iDigi on or off values
-* @{
-*/
+ * @defgroup idigi_on_off_t  iDigi on or off values
+ * @{
+ */
 /**
-* iDigi ON and OFF value types
-*/
+ * iDigi ON and OFF value types
+ */
 typedef enum {
     idigi_off,  /**< OFF */
     idigi_on    /**< ON */
@@ -217,75 +222,101 @@ typedef struct {
     } errors;
 } idigi_group_t;
 
-#if ENABLE_COMPILE_TIME_DATA_PASSING
 /**
-* @defgroup idigi_element_value_t iDigi remote configuration element value union
-* @{
-*/
+ * @defgroup idigi_element_value_t iDigi remote configuration element value union
+ * @{
+ */
 /**
-* Remote Configuration Element value
-*/
+ * Remote Configuration Element value
+ */
 typedef union {
+#if defined(RCI_PARSER_USES_STRING)
     char const * string_value;          /**< Pointer to a nul-terminated string for the following value types:
                                              @htmlonly
                                              <ul>
-                                             <li>idigi_element_type_string</li>
-                                             <li>idigi_element_type_multiline_string</li>
-                                             <li>idigi_element_type_password</li>
-                                             <li>idigi_element_type_ipv4</li>
-                                             <li>idigi_element_type_fqdnv4</li>
-                                             <li>idigi_element_type_fqdnv6</li>
-                                             <li>idigi_element_type_datetime</li>
+                                             <li>@endhtmlonly @ref idigi_element_type_string @htmlonly</li>
+                                             <li>@endhtmlonly @ref idigi_element_type_multiline_string @htmlonly</li>
+                                             <li>@endhtmlonly @ref idigi_element_type_password @htmlonly</li>
+                                             <li>@endhtmlonly @ref idigi_element_type_ipv4 @htmlonly</li>
+                                             <li>@endhtmlonly @ref idigi_element_type_fqdnv4 @htmlonly</li>
+                                             <li>@endhtmlonly @ref idigi_element_type_fqdnv6 @htmlonly</li>
+                                             <li>@endhtmlonly @ref idigi_element_type_datetime @htmlonly</li>
                                              </ul>
                                              @endhtmlonly
                                              Note: An application's callback must return the address of the pointer
                                              to the string for idigi_remote_action_set.
                                          */
-    int32_t integer_signed_value;       /**< Signed integer value for idigi_element_type_int32 value type */
+#endif
+
+#if defined(RCI_PARSER_USES_SIGNED_INTEGER)
+    int32_t integer_signed_value;       /**< Signed integer value for @ref idigi_element_type_int32 value type */
+#endif
+
+#if defined(RCI_PARSER_USES_UNSIGNED_INTEGER)
     uint32_t integer_unsigned_value;    /**< Unsigned integer value for the following value types:
                                              @htmlonly
                                              <ul>
-                                             <li>idigi_element_type_uint32</li>
-                                             <li>idigi_element_type_hex32</li>
-                                             <li>idigi_element_type_0xhex32</li>
+                                             <li>@endhtmlonly @ref idigi_element_type_uint32 @htmlonly</li>
+                                             <li>@endhtmlonly @ref idigi_element_type_hex32 @htmlonly</li>
+                                             <li>@endhtmlonly @ref idigi_element_type_0xhex @htmlonly</li>
                                              </ul>
                                              @endhtmlonly
                                            */
-    double float_value;                 /**< Floating point value for idigi_element_type_float value type */
-    unsigned int enum_value;            /**< Enumeration value for idigi_element_type_enum value type */
-    idigi_on_off_t  on_off_value;       /**< idigi_on for on or idigi_off for Off value for idigi_element_type_on_off value type */
-    idigi_boolean_t boolean_value;      /**< idigi_true for true or idigi_false for false value for idigi_element_type_boolean value type */
+#endif
+
+#if defined(RCI_PARSER_USES_FLOATING_POINT)
+    double float_value;                 /**< Floating point value for @ref idigi_element_type_float value type */
+#endif
+
+#if defined(RCI_PARSER_USES_ENUMERATIONS)
+    unsigned int enum_value;            /**< Enumeration value for @ref idigi_element_type_enum value type */
+#endif
+    idigi_on_off_t  on_off_value;       /**< @ref idigi_on for on or @ref idigi_off for Off value for @ref idigi_element_type_on_off value type */
+    idigi_boolean_t boolean_value;      /**< @ref idigi_boolean_true for true or @ref idigi_boolean_false for false value for @ref idigi_element_type_boolean value type */
 } idigi_element_value_t;
 /**
 * @}
 */
 
-#endif /* #if ENABLE_COMPILE_TIME_DATA_PASSING */
+/**
+* @defgroup idigi_remote_group_t iDigi remote configuration group
+* @{
+*/
+/**
+* Remote configuration group
+*/
+typedef struct {
+    idigi_remote_group_type_t type; /**< Type of the remote configuration group:
+                                         @htmlonly
+                                         <ul>
+                                         <li>@endhtmlonly @ref idigi_remote_group_setting @htmlonly for setting configuration</li>
+                                         <li>@endhtmlonly @ref idigi_remote_group_state @htmlonly for state configuration</li>
+                                         </ul>
+                                         @endhtmlonly
+                                       */
+    unsigned int id;                /**< An enumeration value of the remote configuration group */
+    unsigned int index;             /**< Index of the remote configuration group */
+} idigi_remote_group_t;
+/**
+* @}
+*/
 
-typedef union {
-#if defined(RCI_PARSER_USES_STRING)
-    char const * string_value;
-#endif
-
-#if defined(RCI_PARSER_USES_SIGNED_INTEGER)
-    int32_t integer_signed_value;
-#endif
-
-#if defined(RCI_PARSER_USES_UNSIGNED_INTEGER)
-    uint32_t integer_unsigned_value;
-#endif
-
-#if defined(RCI_PARSER_USES_FLOATING_POINT)
-    double float_value;
-#endif
-
-#if defined(RCI_PARSER_USES_ENUMERATIONS)
-    unsigned int enum_value;
-#endif
-
-    idigi_on_off_t  on_off_value;
-    idigi_boolean_t boolean_value;
-} idigi_element_value_t;
+/**
+* @defgroup idigi_remote_element_t iDigi remote configuration element
+* @{
+*/
+/**
+* Remote configuration element
+*/
+typedef struct {
+    unsigned int id;                /**< An enumeration value of the element */
+    idigi_element_value_type_t type;/**< Value type of the element */
+    idigi_element_value_t * value;  /**< Pointer to memory which contains the element value to be
+                                         set for @ref idigi_remote_action_set action */
+} idigi_remote_element_t;
+/**
+* @}
+*/
 
 /**
 * @defgroup idigi_remote_group_request_t iDigi remote configuration request structure
@@ -295,27 +326,29 @@ typedef union {
 * Remote configuration request
 */
 typedef struct {
-    idigi_remote_action_t action;   /**< idigi_remote_action_set for setting remote configuration or
-                                         idigi_remote_action_query for querying remote configuration */
-    struct {
-        idigi_remote_group_type_t type; /**< Type of the remote configuration group:
-                                             @htmlonly
-                                             <ul>
-                                             <li>idigi_remote_group_setting for setting configuration</li>
-                                             <li>idigi_remote_group_state for state configuration</li>
-                                             </ul>
-                                             @endhtmlonly
-                                           */
-        unsigned int id;                /**< An enumeration value of the remote configuration group */
-        unsigned int index;             /**< Index of the remote configuration group */
-    } group;
-    struct {
-        unsigned int id;                /**< An enumeration value of the element */
-        idigi_element_value_type_t type;/**< Value type of the element */
-        idigi_element_value_t * value;  /**< Pointer to memory which contains the element value to be
-                                             set for idigi_remote_action_set action */
-    } element;
+    idigi_remote_action_t action;   /**< @htmlonly <ul><li> @endhtmlonly @ref idigi_remote_action_set @htmlonly for setting remote configuration or</li>
+                                         <li> @endhtmlonly @ref idigi_remote_action_query @htmlonly for querying remote configuration </li></ul> @endhtmlonly */
+    idigi_remote_group_t group;     /**< Group configuration to be accessed */
+    idigi_remote_element_t element; /**< Element of the group configuration */
 } idigi_remote_group_request_t;
+/**
+* @}
+*/
+
+/**
+* @defgroup idigi_remote_element_response_t iDigi remote configuration element response
+* @{
+*/
+/**
+* Remote configuration element response
+*/
+typedef union {
+    char const * error_hint;    /**< Callback returns a pointer to a constant nul-terminated string which will be sent
+                                     to the iDigi Cloud if error is encountered.
+                                     Note: this string cannot be altered until next callback call.
+                                  */
+    idigi_element_value_t * element_value; /**< Pointer to memory where callback write the element value */
+} idigi_remote_element_response_t;
 /**
 * @}
 */
@@ -330,15 +363,9 @@ typedef struct {
 typedef struct {
     void * user_context;        /**< Pointer to callback's context returned from previous callback call.
                                      Callback may write its own context which will be passed back to subsequential callback.*/
-    unsigned int error_id;      /**< Callback writes error enumeration value if error is encountered */
-    union {
-        char const * error_hint;    /**< Callback returns a pointer to a constant nul-terminated hit string which will be sent
-                                         to the iDigi Cloud if error is encountered. Error description is sent if it's provided
-                                         for the given error_id.
-                                         Note: this string cannot be altered until next callback call.
-                                      */
-        idigi_element_value_t * element_value; /**< Pointer to memory where callback write the element value */
-    } element_data;
+    unsigned int error_id;      /**< Callback writes error enumeration value if error is encountered.
+                                     Error description is sent if it's provided for the given error_id. */
+    idigi_remote_element_response_t element_data;  /**< Element response data */
 } idigi_remote_group_response_t;
 /**
 * @}
@@ -348,9 +375,5 @@ typedef struct {
     idigi_group_t const * groups;
     size_t count;
 } idigi_group_table_t;
-
-extern idigi_group_table_t const idigi_group_table[];
-extern char const * const idigi_rci_errors[];
-
 
 #endif /* idigi_element_H_ */

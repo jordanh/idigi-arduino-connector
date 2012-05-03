@@ -177,7 +177,7 @@
 #define IDIGI_FILE_SYSTEM
 
 /**
- * This is used to define the maximum content length of an element's value for the remote_configuration _service,
+ * This is used to define the maximum content length in bytes of an element's value for the remote_configuration _service,
  * IC includes the remote_configuration_service that allows user remote configuration, control, and information
  * exchange between a device and iDigi Cloud.
  * To disable the remote_configuration feature, define this to 0 in idigi_config.h:
@@ -472,7 +472,7 @@
  * function @ref app_get_remote_configuration_support() (called via the @ref idigi_config_remote_configuration @ref idigi_callback_t "callback" in config.c).
  *
  * @note There is no need to implement or port @ref app_get_remote_configuration_support() when IDIGI_REMOTE_CONFIGURATION_SUPPORT is defined.
- * @note This define is only used when @ref IDIGI_REMOTE_CONFIURATION is defined in @ref idigi_config.h.
+ * @note This define is only used when @ref IDIGI_RCI_MAXIMUM_CONTENT_LENGTH is defined a non-zero in @ref idigi_config.h.
  *
  * @see @ref idigi_config_remote_configuration
  * @see @ref app_get_remote_configuration_support()

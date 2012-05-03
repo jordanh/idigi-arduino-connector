@@ -22,6 +22,8 @@
  * =======================================================================
  *
  */
+#define IDIGI_RCI_PARSER_INTERNAL_DATA
+
 #include "remote_config.h"
 
 static char const * const element_type_strings[] = {
