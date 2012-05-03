@@ -58,6 +58,7 @@ typedef struct
 
 extern int app_os_malloc(size_t const size, void ** ptr);
 extern void app_os_free(void * const ptr);
+extern int app_os_get_system_time(unsigned long * const uptime);
 
 typedef struct
 {
@@ -71,6 +72,9 @@ typedef struct
 #define DVT_FS_MIDDLE_OFFSET    2
 #define DVT_FS_END_OFFSET       3
 #define DVT_FS_TIMEOUT_OFFSET   4
+#define DVT_FS_TIMEOUT_MIDDLE_OFFSET   5
+
+#define DVT_FS_TIMEOUT_SECS     80
 
 typedef enum
 {
@@ -79,6 +83,7 @@ typedef enum
     dvt_fs_case_offset_middle,
     dvt_fs_case_offset_end,
     dvt_fs_case_offset_timeout,
+    dvt_fs_case_offset_timeout_middle,
     dvt_fs_case_offset_COUNT
 } dvt_fs_case_offset_t;
 
@@ -97,6 +102,7 @@ typedef enum
     dvt_fs_error_get_middle,
     dvt_fs_error_get_end,
     dvt_fs_error_get_timeout,
+    dvt_fs_error_get_timeout_middle,
     dvt_fs_error_put_busy,
     dvt_fs_error_put_start,
     dvt_fs_error_put_middle,
@@ -128,7 +134,7 @@ static dvt_fs_error_entry_t dvt_fs_error_list[] =
     {"./public/run/samples", dvt_fs_error_ls_middle},
     {"./public/run/platforms", dvt_fs_error_ls_timeout},
     {"./public/include", dvt_fs_error_ls_invalid_hash},
-    {"dvt_fs_rm_error.test", dvt_fs_error_rm_timeout}
+    {"dvt_fs_rm_tout.test", dvt_fs_error_rm_timeout}
 };
 
 static size_t const  dvt_fs_error_list_count  = asizeof(dvt_fs_error_list);
@@ -322,7 +328,7 @@ idigi_callback_status_t app_process_file_hash(idigi_file_path_request_t const * 
     if (ctx->fd < 0)
     {
         ctx->fd = open(request_data->path, O_RDONLY); 
-        APP_DEBUG("Open %s, returned %d\n", request_data->path, ctx->fd);
+        APP_DEBUG("app_process_file_hash: Open %s, returned %d\n", request_data->path, ctx->fd);
 
         if (ctx->fd < 0)
             goto error;
@@ -340,7 +346,7 @@ idigi_callback_status_t app_process_file_hash(idigi_file_path_request_t const * 
         goto done;
     }
 
-    APP_DEBUG("Close %d\n", ctx->fd);
+    APP_DEBUG("app_process_file_hash: Close %d\n", ctx->fd);
 	close (ctx->fd);
     ctx->fd = -1;
 
@@ -419,7 +425,17 @@ idigi_callback_status_t app_process_file_stat(idigi_file_stat_request_t const * 
        pstat->flags |= IDIGI_FILE_IS_REG;
 
 #if defined APP_ENABLE_MD5
-    /*
+
+    if (request_data->hash_alg != idigi_file_hash_none)
+    {
+        update_error_case(request_data->path);
+        if (dvt_current_error_case == dvt_fs_error_ls_invalid_hash)
+        {
+            pstat->hash_alg = idigi_file_hash_crc32;
+            goto done;
+        }
+    }
+     /*
      * If ls was issued for a directory
      * - app_process_file_stat() is called with the requested hash algorithm once for this directory.
      * - app_process_file_stat() is called with idigi_file_hash_none for each directory entry.
@@ -457,6 +473,14 @@ idigi_callback_status_t app_process_file_opendir(idigi_file_path_request_t const
     dirp = opendir(request_data->path);
     update_error_case(request_data->path);
 
+    if ((dirp != NULL) && (dvt_current_error_case == dvt_fs_error_ls_start))
+    {
+       closedir(dirp);
+       response_data->error->errnum = (void *) EACCES;
+       response_data->error->error_status = idigi_file_permision_denied;
+       goto done;
+    }
+
     if (dirp != NULL)
     {
         void  * ptr;
@@ -471,6 +495,7 @@ idigi_callback_status_t app_process_file_opendir(idigi_file_path_request_t const
 
             dir_data->dirp = dirp;
             APP_DEBUG("opendir for %s returned %p\n", request_data->path, (void *) dirp);
+            update_error_case(request_data->path);
         }
         else
         {
@@ -483,7 +508,7 @@ idigi_callback_status_t app_process_file_opendir(idigi_file_path_request_t const
     }
     else
         status = app_process_file_error(response_data->error, errno);
-
+done:
     return status;
 }
 
@@ -518,6 +543,42 @@ idigi_callback_status_t app_process_file_readdir(idigi_file_request_t const * co
     app_dir_data_t * dir_data = request_data->handle;
     struct dirent  * result;
     int rc;
+
+    switch (dvt_current_error_case)
+    {
+        case dvt_fs_error_ls_busy:
+            if (dvt_current_state < dvt_fs_state_at_end)
+            {
+                status = idigi_callback_busy;
+                goto done;
+            }
+            break;
+
+        case dvt_fs_error_ls_middle:
+            if (dvt_current_state == dvt_fs_state_at_middle)
+            {
+                response_data->error->errnum = (void *) EINVAL;
+                response_data->error->error_status = idigi_file_invalid_parameter;
+                goto done;
+            }
+            break;
+
+        case dvt_fs_error_ls_end:
+            if (dvt_current_state == dvt_fs_state_at_end)
+            {
+                response_data->error->errnum = (void *) ENOMEM;
+                response_data->error->error_status = idigi_file_out_of_memory;
+                goto done;
+            }
+            break;
+
+        case dvt_fs_error_ls_timeout:
+                status = idigi_callback_busy;
+                goto done;
+
+        default:
+            break;
+    }
 
     // Read next directory entry, skip "." and ".."
     do
@@ -572,6 +633,8 @@ idigi_callback_status_t app_process_file_readdir(idigi_file_request_t const * co
     }
 
 done:
+    if (dvt_current_state < dvt_fs_state_at_end)
+        dvt_current_state++;
     return status;
 }
 
@@ -621,8 +684,10 @@ idigi_callback_status_t app_process_file_lseek(idigi_file_lseek_request_t const 
     }    
     else
     {
-        if (dvt_current_error_case != dvt_fs_error_none)
+        if (dvt_current_error_case != dvt_fs_error_none && 
+            request_data->origin == IDIGI_SEEK_SET)
         {
+            APP_DEBUG("Offset %ld\n",request_data->offset);
             if (request_data->offset < dvt_fs_case_offset_COUNT)
                 dvt_current_error_case += request_data->offset;
             else
@@ -657,17 +722,43 @@ idigi_callback_status_t app_process_file_rm(idigi_file_path_request_t const * co
                                             idigi_file_response_t * response_data)
 {
     idigi_callback_status_t status = idigi_callback_continue;
+    update_error_case(request_data->path);
+    static int cleanup = 0;
 
+    if ((dvt_current_error_case == dvt_fs_error_rm_timeout) && (cleanup == 0))
+    {
+        static unsigned long dvt_start_time = 0;
+        unsigned long dvt_current_time;
+
+        if (dvt_start_time == 0)
+        {
+            app_os_get_system_time(&dvt_start_time);
+        }
+
+        app_os_get_system_time(&dvt_current_time);
+
+        if ((dvt_current_time - dvt_start_time) < DVT_FS_TIMEOUT_SECS)
+        {
+             status = idigi_callback_busy;
+        }
+        else
+        {
+            dvt_start_time = 0;
+            response_data->error->error_status = idigi_file_user_cancel;
+            cleanup = 1;
+        }
+        goto done;
+    }
+    cleanup = 0;
     int result = unlink(request_data->path);
 
     APP_DEBUG("unlink %s returned %d\n", request_data->path, result);
-    update_error_case(request_data->path);
-
     if (result < 0)
     {
         status = app_process_file_error(response_data->error, errno);
     }
-
+ 
+done:
     return status;
 }
 
@@ -676,8 +767,10 @@ idigi_callback_status_t app_process_file_read(idigi_file_request_t const * const
 {
     idigi_callback_status_t status = idigi_callback_continue;
     long int fd = (long int) request_data->handle;
+    static unsigned long dvt_start_time;
+    unsigned long dvt_current_time;
 
-        switch (dvt_current_error_case)
+    switch (dvt_current_error_case)
     {
         case dvt_fs_error_get_busy:
             if (dvt_current_state < dvt_fs_state_at_end)
@@ -715,8 +808,24 @@ idigi_callback_status_t app_process_file_read(idigi_file_request_t const * const
             break;
 
         case dvt_fs_error_get_timeout:
-            status = idigi_callback_busy;
+            if (dvt_current_state == dvt_fs_state_at_start)
+                app_os_get_system_time(&dvt_start_time);
+            
+            app_os_get_system_time(&dvt_current_time);
+
+            if ((dvt_current_time - dvt_start_time) < DVT_FS_TIMEOUT_SECS)
+                status = idigi_callback_busy;
+            else
+                response_data->error->error_status = idigi_file_user_cancel;
             goto done;
+
+    case dvt_fs_error_get_timeout_middle:
+            if (dvt_current_state > dvt_fs_state_at_start)
+            {
+                status = idigi_callback_busy;
+                goto done;
+            }
+            break;
 
         default:
             break;
@@ -745,6 +854,62 @@ idigi_callback_status_t app_process_file_write(idigi_file_write_request_t const 
 {
     idigi_callback_status_t status = idigi_callback_continue;
     long int fd = (long int) request_data->handle;
+    static unsigned long dvt_start_time;
+    unsigned long dvt_current_time;
+
+    switch (dvt_current_error_case)
+    {
+    case dvt_fs_error_put_busy:
+
+            if (dvt_current_state < dvt_fs_state_at_middle)
+            {
+                status = idigi_callback_busy;
+                goto done;
+            }
+            break;
+
+        case dvt_fs_error_put_start:
+            if (dvt_current_state == dvt_fs_state_at_start)
+            {
+                response_data->error->errnum = (void *) EACCES;
+                response_data->error->error_status = idigi_file_permision_denied;
+                goto done;
+            }
+            break;
+
+        case dvt_fs_error_put_middle:
+            if (dvt_current_state == dvt_fs_state_at_middle)
+            {
+                response_data->error->errnum = (void *) EINVAL;
+                response_data->error->error_status = idigi_file_invalid_parameter;
+                goto done;
+            }
+            break;
+
+        case dvt_fs_error_put_end:
+            if (dvt_current_state == dvt_fs_state_at_end)
+            {
+                response_data->error->errnum = (void *) ENOMEM;
+                response_data->error->error_status = idigi_file_out_of_memory;
+                goto done;
+            }
+            break;
+
+    case dvt_fs_error_put_timeout:
+            if (dvt_current_state == dvt_fs_state_at_start)
+                app_os_get_system_time(&dvt_start_time);
+            
+            app_os_get_system_time(&dvt_current_time);
+
+            if ((dvt_current_time - dvt_start_time) < DVT_FS_TIMEOUT_SECS)
+                status = idigi_callback_busy;
+            else
+                response_data->error->error_status = idigi_file_user_cancel;
+            goto done;
+
+        default:
+            break;
+    }
 
     int result = write(fd, request_data->data_ptr, request_data->size_in_bytes);
 
@@ -759,6 +924,8 @@ idigi_callback_status_t app_process_file_write(idigi_file_write_request_t const 
     response_data->size_in_bytes = result;
 
 done:
+    if (dvt_current_state < dvt_fs_state_at_end)
+        dvt_current_state++;
     return status;
 }
 
@@ -781,7 +948,6 @@ idigi_callback_status_t app_process_file_close(idigi_file_request_t const * cons
     {
         APP_DEBUG("The %p user_context should be freed here!\n", response_data->user_context);
     }
-
     return idigi_callback_continue;
 }
 
@@ -825,31 +991,31 @@ idigi_callback_status_t app_file_system_handler(idigi_data_service_request_t con
             break;
 
         case idigi_file_system_stat:
-            app_process_file_stat(request_data, response_data);
+            status = app_process_file_stat(request_data, response_data);
             break;
 
         case idigi_file_system_opendir:
-            app_process_file_opendir(request_data, response_data);
+            status = app_process_file_opendir(request_data, response_data);
             break;
 
         case idigi_file_system_readdir:
-            app_process_file_readdir(request_data, response_data);
+            status = app_process_file_readdir(request_data, response_data);
             break;
 
         case idigi_file_system_closedir:
-            app_process_file_closedir(request_data, response_data);
+            status = app_process_file_closedir(request_data, response_data);
             break;
 
         case idigi_file_system_strerror:
-            app_process_file_strerror(request_data, response_data);
+            status = app_process_file_strerror(request_data, response_data);
             break;
 
         case idigi_file_system_hash:
-            app_process_file_hash(request_data, response_data);
+            status = app_process_file_hash(request_data, response_data);
             break;
 
         case idigi_file_system_msg_error:
-            app_process_file_msg_error(request_data, response_data);
+            status = app_process_file_msg_error(request_data, response_data);
             break;
 
         default:

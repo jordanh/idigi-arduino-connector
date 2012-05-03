@@ -14,12 +14,14 @@ impl = getDOMImplementation()
 from utils import getText
 
 MAX_TEST_FILE_SIZE = 4321
+MAX_TEST_PUT_SIZE = 20000   # must be > 2*MAX_TEST_FILE_SIZE
 FileData = ""
 TEST_ERROR_BUSY = 0
 TEST_ERROR_AT_START = 1
 TEST_ERROR_AT_MIDDLE = 2
 TEST_ERROR_AT_END = 3
 TEST_ERROR_TIMEOUT = 4
+TEST_ERROR_TIMEOUT_MIDDLE = 5
 
 class FileSystemErrorTestCase(iik_testcase.TestCase):
 
@@ -49,7 +51,26 @@ class FileSystemErrorTestCase(iik_testcase.TestCase):
         self.verify_get_file(fname, fsize, errorExpected=True, offset=fsize+1)
         self.verify_remove_file(fname, errorExpected=False)
 
-    def test_fs3_get_error(self):
+    def test_fs3_ls_error(self):
+        """ Tests ls errors """
+        self.verify_file_list("./public/step", errorExpected=True)
+        self.verify_file_list("./public/run", errorExpected=True)
+        self.verify_file_list("./public/run/samples", errorExpected=True)
+        self.verify_file_list("./public/include",hashAlgo="md5",errorExpected=False)
+        self.verify_file_list("./public/run/platforms", errorExpected=True)
+        self.verify_file_list("./public", errorExpected=False)
+
+    def test_fs4_rm_error(self):
+        """ Tests rm with file not there and rm timeout """
+        fname = "dvt_fs_rm_tout.test"
+        putData = "abcd"
+        fsize = len(putData)
+        outData = base64.encodestring(putData)
+        self.verify_put_file(fname, outData, fsize, errorExpected=False)
+        self.verify_remove_file(fname, errorExpected=True)
+        self.verify_remove_file(fname, errorExpected=False)
+
+    def test_fs5_get_error(self):
         """ Tests file get with error returned by the connector at start, middle and end of read """
         fname = "dvt_fs_get_error.test"
         global FileData
@@ -64,7 +85,32 @@ class FileSystemErrorTestCase(iik_testcase.TestCase):
         self.verify_get_file(fname, fsize, errorExpected=True, offset=TEST_ERROR_AT_START)
         self.verify_get_file(fname, fsize, errorExpected=True, offset=TEST_ERROR_AT_MIDDLE)
         self.verify_get_file(fname, fsize, errorExpected=True, offset=TEST_ERROR_AT_END)
-        #self.verify_get_file(fname, fsize, errorExpected=True, offset=TEST_ERROR_TIMEOUT)
+        self.verify_get_file(fname, fsize, errorExpected=True, offset=TEST_ERROR_TIMEOUT)
+        self.verify_get_file(fname, fsize, errorExpected=True, offset=TEST_ERROR_TIMEOUT_MIDDLE)
+        self.verify_remove_file(fname, errorExpected=False)
+
+    def test_fs6_put_error(self):
+        """ Tests file put with error returned by the connector at start, middle and end of write """
+        fname = "dvt_fs_put_error.test"
+        global FileData
+
+        FileData = ""
+        for i in xrange(MAX_TEST_FILE_SIZE):
+            FileData += chr(randint(0, 255))
+    
+        fsize = len(FileData)    
+        outData = base64.encodestring(FileData)
+        self.verify_put_file(fname, outData, fsize, errorExpected=False, offset=TEST_ERROR_BUSY)
+        self.verify_put_file(fname, outData, fsize, errorExpected=True, offset=TEST_ERROR_AT_START)
+        self.verify_put_file(fname, outData, fsize, errorExpected=False, offset=TEST_ERROR_BUSY)
+        self.verify_put_file(fname, outData, fsize, errorExpected=True, offset=TEST_ERROR_AT_END)
+
+        for i in xrange(MAX_TEST_PUT_SIZE - fsize):
+            FileData += chr(randint(0, 255))
+        outData = base64.encodestring(FileData)
+        fsize = len(FileData)      # size is MAX_TEST_PUT_SIZE
+
+        self.verify_put_file(fname, outData, fsize, errorExpected=True, offset=TEST_ERROR_TIMEOUT)
         self.verify_remove_file(fname, errorExpected=False)
 
     def verify_put_file(self, fpath, fdata, fsize, errorExpected, offset = 0, truncate = False):
@@ -146,7 +192,7 @@ class FileSystemErrorTestCase(iik_testcase.TestCase):
         self.log.info("ls for path:\"%s\" and hash:%s" % (path, hashAlgo))
         response = self.api.sci(lsRequest)
         self.verify_device_response(response, errorExpected)
-
+        #self.log.info("response: %s" % (response))
         return self.parse_ls(response)
 
     def get_obj_from_slice(self, segment):

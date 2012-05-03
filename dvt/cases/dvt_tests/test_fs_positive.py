@@ -6,6 +6,7 @@ import re
 import os
 import base64
 import xml.dom.minidom
+import hashlib
 
 from random import randint
 from xml.dom.minidom import getDOMImplementation
@@ -89,7 +90,9 @@ class FileSystemTestCase(iik_testcase.TestCase):
         HashAlgoList = ['none', 'any', 'crc32', 'md5']
 
         FILE_NAME = 0
+        FILE_TSTAMP = 1
         FILE_SIZE = 2
+        FILE_HASH = 3
         for hashAlgo in HashAlgoList:
             fList, dList = self.get_file_list('./', hashAlgo)
             for fname, fsize in FileList:
@@ -97,6 +100,12 @@ class FileSystemTestCase(iik_testcase.TestCase):
                 for eachFile in fList:
                     if eachFile[FILE_NAME] == fname:
                         fileFound = True
+                        if hashAlgo == 'md5' or hashAlgo == 'any':
+                            fpath = 'dvt/samples/file_system/' + fname
+                            hash_value = self.md5Checksum(fpath)
+                            hash_value = hash_value.upper();
+                            eachFile[FILE_HASH] = eachFile[FILE_HASH].upper()
+                            self.assertEqual(eachFile[FILE_HASH], hash_value , "Mismatch file hash [%s, expected:%s, actual:%s]" %(fname, hash_value, eachFile[3]))
                         self.assertEqual(eachFile[FILE_SIZE], str(fsize), "Mismatch file size [%s, expected:%d, actual:%s]" %(fname, fsize, eachFile[2]))
                 self.assertEqual(fileFound, True, "File %s not in the file list" %fname)
 
@@ -273,6 +282,16 @@ class FileSystemTestCase(iik_testcase.TestCase):
 
         self.log.info("Files: %d Dirs: %d parsed" %(len(file_list), len(dir_list)))
         return file_list, dir_list
+
+    def md5Checksum(self, filePath):
+        fh = open(filePath, 'rb')
+        m = hashlib.md5()
+        while True:
+            data = fh.read(8192)
+            if not data:
+                break
+            m.update(data)
+        return m.hexdigest()
 
 if __name__ == '__main__':
     unittest.main() 
