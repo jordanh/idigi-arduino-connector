@@ -30,7 +30,9 @@ import sys
 expected_content = "iDigi file system sample\n"
 
 test_file = "test_file.txt"
-
+get_path  = test_file
+put_path  = test_file
+ls_path   = test_file
 
 def Usage():
     print 'Usage: file_system.py <username> <password> <device_id>\n'
@@ -57,7 +59,7 @@ def PostMessage(username, password, device_id):
             </commands>
         </file_system>
     </sci_request>
-    """ % (device_id, test_file, put_data, test_file, test_file)
+    """ % (device_id, put_path, put_data, get_path, ls_path)
 
     # to what URL to send the request with a given HTTP method
     webservice = httplib.HTTP("developer.idigi.com",80)
