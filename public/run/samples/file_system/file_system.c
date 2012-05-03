@@ -677,31 +677,31 @@ idigi_callback_status_t app_file_system_handler(idigi_data_service_request_t con
             break;
 
         case idigi_file_system_stat:
-            app_process_file_stat(request_data, response_data);
+            status = app_process_file_stat(request_data, response_data);
             break;
 
         case idigi_file_system_opendir:
-            app_process_file_opendir(request_data, response_data);
+            status = app_process_file_opendir(request_data, response_data);
             break;
 
         case idigi_file_system_readdir:
-            app_process_file_readdir(request_data, response_data);
+            status = app_process_file_readdir(request_data, response_data);
             break;
 
         case idigi_file_system_closedir:
-            app_process_file_closedir(request_data, response_data);
+            status = app_process_file_closedir(request_data, response_data);
             break;
 
         case idigi_file_system_strerror:
-            app_process_file_strerror(request_data, response_data);
+            status = app_process_file_strerror(request_data, response_data);
             break;
 
         case idigi_file_system_hash:
-            app_process_file_hash(request_data, response_data);
+            status = app_process_file_hash(request_data, response_data);
             break;
 
         case idigi_file_system_msg_error:
-            app_process_file_msg_error(request_data, response_data);
+            status = app_process_file_msg_error(request_data, response_data);
             break;
 
         default:
