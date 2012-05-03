@@ -68,6 +68,7 @@ typedef struct
 
 
 #define IDIGI_FILE_TRUNC            0x01
+#define IDIGI_LSEEK_DONE            0x02
 
 #define FILE_STATE_NONE             0
 #define FILE_STATE_READDIR_DONE     1
@@ -87,6 +88,9 @@ typedef struct
 
 #define FileNeedTrunc(context)  FsIsBitSet(context->flags, IDIGI_FILE_TRUNC)
 #define FileClearTrunc(context) FsBitClear(context->flags, IDIGI_FILE_TRUNC) 
+
+#define FileLseekDone(context)    FsIsBitSet(context->flags, IDIGI_LSEEK_DONE)
+#define FileSetLseekDone(context) FsBitSet(context->flags, IDIGI_LSEEK_DONE) 
 
 #define FileSetState(context, s) (context->state = s)
 #define FileGetState(context)    (context->state)
@@ -761,7 +765,7 @@ static idigi_callback_status_t process_file_get_response(idigi_data_t * const id
 
         if (MsgIsStart(service_data->flags))
         {
-           if (context->data.f.offset != 0)
+           if (!FileLseekDone(context) && (context->data.f.offset != 0))
            {
                 status = set_file_position(idigi_ptr, service_request);
                 if (status == idigi_callback_busy)
@@ -769,6 +773,8 @@ static idigi_callback_status_t process_file_get_response(idigi_data_t * const id
 
                 if (!fileOperationSuccess(status, context))
                     goto close_file;
+
+                FileSetLseekDone(context);
            }
 
            *data_ptr++ = fs_get_response_opcode;
@@ -904,7 +910,7 @@ static size_t parse_file_put_header(file_system_context_t * context, uint8_t con
     if (len != 0)
     {
         fs_put_request += len;
-        context->flags  = message_load_u8(fs_put_request, flags);
+        context->flags  |= message_load_u8(fs_put_request, flags);
         context->data.f.offset = message_load_be32(fs_put_request, offset);
         len   += header_len;
     }
@@ -953,17 +959,16 @@ static idigi_callback_status_t process_file_put_request(idigi_data_t * const idi
                     goto done;
             }
 
-            if (context->data.f.offset != 0)
+            if (!FileLseekDone(context) && (context->data.f.offset != 0))
             {
-                if (context->data.f.offset != 0)
-                {
-                    status = set_file_position(idigi_ptr, service_request);
-                    if (status == idigi_callback_busy)
-                        goto done;
+                status = set_file_position(idigi_ptr, service_request);
+                if (status == idigi_callback_busy)
+                    goto done;
 
-                    if (!fileOperationSuccess(status, context))
-                        goto close_file;
-                }
+                if (!fileOperationSuccess(status, context))
+                    goto close_file;
+
+                FileSetLseekDone(context);
             }
             data_ptr  += header_len;
             bytes_to_write -= header_len;
@@ -1259,8 +1264,8 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
         if (MsgIsStart(service_data->flags))
         {
             resp_len = format_file_ls_response_header(context->data.d.hash_alg, hash_len, data_ptr);
-            buffer_size -= resp_len;
-            data_ptr    += resp_len;
+            service_data->length_in_bytes = resp_len;
+            goto done;
         }
 
         if (context->handle == NULL)
@@ -1566,7 +1571,7 @@ static idigi_callback_status_t file_system_error_callback(idigi_data_t * const i
     
     request_id.file_system_request = idigi_file_system_msg_error;
 
-    request.message_status = session->error;
+    request.message_status = service_request->error_value;
     response.data_ptr = NULL;
     response.size_in_bytes = 0;
     response.user_context = context == NULL ? NULL : context->user_context;
@@ -1590,8 +1595,6 @@ static idigi_callback_status_t file_system_error_callback(idigi_data_t * const i
                 goto done;
         }
     }
-
-    file_system_free_callback(idigi_ptr, service_request);
 
 done:
     return idigi_callback_continue;
