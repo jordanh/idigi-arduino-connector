@@ -40,8 +40,6 @@ idigi_callback_status_t app_gps_stats_group_get(idigi_remote_group_request_t * r
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
-    ASSERT(session_ptr != NULL);
-
     switch (request->element.id)
     {
     case idigi_state_gps_stats_latitude:

@@ -657,7 +657,6 @@ INPUT                  = ./mainpage.c \
                          ./file_system_sample.c \
                          ./device_request.c \
                          ./rci_sample.c \
-                         ./rci_tool.c \
                          ../public/run/platforms/template \
                          ../public/include
 
