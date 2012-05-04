@@ -39,14 +39,14 @@
 /**
  * @brief   Get the IP address of the device
  *
- * This routine assigns a pointer to the IP address of the device in *ip_address 
- * along with the size of the IP address which must be either a 4-octet value for 
- * IPv4 or a 6-octet value for IPv6. This routine returns fail if an error occurred, 
+ * This routine assigns a pointer to the IP address of the device in *ip_address
+ * along with the size of the IP address which must be either a 4-octet value for
+ * IPv4 or a 6-octet value for IPv6. This routine returns fail if an error occurred,
  * otherwise true.
  *
  * @param [out] ip_address  Pointer to memory containing IP address
  * @param [out] size Size of the IP address in bytes
- *  
+ *
  * @retval 0  IP address was returned OK
  * @retval -1  Could not get IP address
  *
@@ -63,15 +63,15 @@ static int app_get_ip_address(uint8_t ** ip_address, size_t * size)
 /**
  * @brief   Get the MAC address of the device
  *
- * This routine assigns a pointer to the MAC address of the device in *mac_address along 
+ * This routine assigns a pointer to the MAC address of the device in *mac_address along
  * with the size. This routine returns fail if an error occurred, otherwise true.
  *
  * @param [out] addr  Pointer to memory containing IP address
  * @param [out] size Size of the MAC address in bytes (6 bytes).
- *  
+ *
  * @retval 0  MAC address was returned OK
  * @retval -1  Could not get the MAC address
- * 
+ *
  * @see @ref mac_address API Configuration Callback
  */
 static int app_get_mac_addr(uint8_t ** addr, size_t * size)
@@ -104,15 +104,15 @@ static int app_get_mac_addr(uint8_t ** addr, size_t * size)
  * taken to always use the same network interface's MAC since there is a unique mapping
  * between a device and a Device ID.
  *
- * The pointer ID is filled in with the address of the memory location which contains the 
+ * The pointer ID is filled in with the address of the memory location which contains the
  * device ID, size is filled in with the size of the device ID.
 . *
  * @param [out] id  Pointer to memory containing the device ID
  * @param [out] size Size of the device ID in bytes (16 bytes)
- *  
+ *
  * @retval 0  Device ID was returned OK
  * @retval -1  Could not get the device ID
- * 
+ *
  * @see @ref device_id API Configuration Callback
  */
 static int app_get_device_id(uint8_t ** id, size_t * size)
@@ -144,16 +144,16 @@ static int app_get_device_id(uint8_t ** id, size_t * size)
 /**
  * @brief   Get the iDigi vendor ID
  *
- * This routine assigns a pointer to the vendor ID which is a unique code identifying 
- * the manufacturer of a device. Vendor IDs are assigned to manufacturers by iDigi. 
+ * This routine assigns a pointer to the vendor ID which is a unique code identifying
+ * the manufacturer of a device. Vendor IDs are assigned to manufacturers by iDigi.
  * This routine returns fail if an error occurred, otherwise true.
  *
  * @param [out] id  Pointer to memory containing the device ID
  * @param [out] size Size of the vendor ID in bytes (4 bytes)
- *  
+ *
  * @retval 0  Vendor ID was returned OK
  * @retval -1  Could not get the vendor ID
- * 
+ *
  * @see @ref vendor_id API Configuration Callback
  * @see @ref idigi_config_vendor_id
  * @see @ref idigi_vendor_id "Obtaining an iDigi Vendor ID"
@@ -184,13 +184,13 @@ static int app_get_vendor_id(uint8_t ** id, size_t * size)
  *
  * @param [out] type  Pointer to memory containing the device type
  * @param [out] size Size of the device type in bytes (Maximum is 63 bytes)
- *  
+ *
  * @retval 0  Device type was returned OK
  * @retval -1  Could not get the device type
  *
  * @see @ref device_type API Configuration Callback
  * @see @ref IDIGI_DEVICE_TYPE
- * 
+ *
  * @note This routine is not needed if you define @ref IDIGI_DEVICE_TYPE configuration in @ref idigi_config.h.
  * See @ref idigi_config_data_options
  */
@@ -209,15 +209,15 @@ static int app_get_device_type(char ** type, size_t * size)
 /**
  * @brief   Get the iDigi server URL
  *
- * This routine assigns a pointer to the ASCII null-terminated string of the iDigi 
+ * This routine assigns a pointer to the ASCII null-terminated string of the iDigi
  * Device Cloud FQDN, this is typically developer.idig.com.
  *
  * @param [out] url  Pointer to memory containing the URL
  * @param [out] size Size of the server URL in bytes (Maximum is 63 bytes)
- *  
+ *
  * @retval 0  The URL type was returned OK
  * @retval -1  Could not get the URL
- * 
+ *
  * @see @ref server_url API Configuration Callback
  *
  * @note This routine is not needed if you define @b IDIGI_CLOUD_URL configuration in @ref idigi_config.h.
@@ -240,13 +240,13 @@ static int app_get_server_url(char ** url, size_t * size)
  *
  * This routine specifies the connection type as @ref idigi_lan_connection_type or
  * @ref idigi_wan_connection_type. Fill in the type parameter with the address of the
- * idigi_connection_type_t. 
+ * idigi_connection_type_t.
  *
  * @param [out] type  Pointer to memory containing the @ref idigi_connection_type_t
- *  
+ *
  * @retval 0  The connection type was returned OK
  * @retval -1  Could not get connection type
- * 
+ *
  * @see @ref connection_type API Configuration Callback
  *
  * @note This routine is not needed if you define @b IDIGI_CONNECTION_TYPE configuration in @ref idigi_config.h.
@@ -267,15 +267,15 @@ static int app_get_connection_type(idigi_connection_type_t ** type)
 /**
  * @brief   Get the link speed
  *
- * This routine assigns the link speed for WAN connection type. If connection type is LAN, 
+ * This routine assigns the link speed for WAN connection type. If connection type is LAN,
  * IIK will not request link speed configuration.
  *
  * @param [out] speed Pointer to memory containing the link speed
  * @param [out] size Size of the link speed in bytes
- *  
+ *
  * @retval 0  The link speed was returned OK
  * @retval -1  Could not get the link speed
- * 
+ *
  * @see @ref link_speed API Configuration Callback
  *
  * @note This routine is not needed if you define @b IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND configuration in @ref idigi_config.h.
@@ -299,10 +299,10 @@ static int app_get_link_speed(uint32_t ** speed, size_t * size)
  *
  * @param [out] number  Pointer to memory containing the phone number
  * @param [out] size Size of the phone number in bytes
- *  
+ *
  * @retval 0  The phone number was returned OK
  * @retval -1  Could not get the phone number
- * 
+ *
  * @see @ref phone_number API Configuration Callback
  *
  * @note This routine is not needed if you define @b IDIGI_WAN_PHONE_NUMBER_DIALED configuration in @ref idigi_config.h.
@@ -311,7 +311,7 @@ static int app_get_link_speed(uint32_t ** speed, size_t * size)
 static int app_get_phone_number(uint8_t ** number, size_t * size)
 {
 //#error "Specify phone number dialed for WAN connection type"
-    /* 
+    /*
      * Return pointer to phone number for WAN connection type.
      */
     UNUSED_ARGUMENT(number);
@@ -322,17 +322,17 @@ static int app_get_phone_number(uint8_t ** number, size_t * size)
 /**
  * @brief   Get the TX keepalive interval
  *
- * This routine assigns the TX keepalive interval in seconds. This indicates how 
+ * This routine assigns the TX keepalive interval in seconds. This indicates how
  * often the iDigi Device Cloud sends a keepalive message to the device to verify the
- * device is still operational. Keepalive messages are from the prospective of the cloud, 
+ * device is still operational. Keepalive messages are from the prospective of the cloud,
  * this keepalive is sent from the cloud to the device. The value must be between 5 and 7200 seconds.
  *
  * @param [out] interval  Pointer to memory containing the keep alive interval
  * @param [out] size Size of memory buffer, containing the keep alive interval in bytes (this must be 2 bytes).
- *  
+ *
  * @retval 0  The keep alive interval was returned OK
  * @retval -1  Could not get the keep alive interval
- * 
+ *
  * @see @ref tx_keepalive API Configuration Callback
  *
  * @note This routine is not needed if you define @ref IDIGI_TX_KEEPALIVE_IN_SECONDS configuration in @ref idigi_config.h.
@@ -354,17 +354,17 @@ static int app_get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
 /**
  * @brief   Get the RX keepalive interval
  *
- * This routine assigns the RX keepalive interval in seconds. This indicates how 
+ * This routine assigns the RX keepalive interval in seconds. This indicates how
  * often the IIK device sends keepalive messages to the iDigi Device Cloud. Keepalive
- * messages are from the prospective of the cloud, this keepalive is sent from the 
+ * messages are from the prospective of the cloud, this keepalive is sent from the
  * device to the cloud. The value must be between 5 and 7200 seconds.
  *
  * @param [out] interval  Pointer to memory containing the keep alive interval
  * @param [out] size Size of memory buffer, containing the keep alive interval in bytes (this must be 2 bytes).
- *  
+ *
  * @retval 0  The keep alive interval was returned OK
  * @retval -1  Could not get the keep alive interval
- * 
+ *
  * @see @ref rx_keepalive API Configuration Callback
  *
  * @note This routine is not needed if you define @b IDIGI_RX_KEEPALIVE_IN_SECONDS configuration in @ref idigi_config.h.
@@ -385,16 +385,16 @@ static int app_get_rx_keepalive_interval(uint16_t ** interval, size_t * size)
 /**
  * @brief   Get the wait count
  *
- * This routine assigns the number of times that not receiving a keepalive message 
+ * This routine assigns the number of times that not receiving a keepalive message
  * from the iDigi Device Cloud will indicate that the connection is considered lost.
  * This must be a 2-octet integer value between 2 to 64 counts.
  *
  * @param [out] count  Pointer to memory containing the wait count
  * @param [out] size Size of memory buffer, containing the wait count in bytes (this must be 2 bytes).
- *  
+ *
  * @retval 0  The wait count was returned OK
  * @retval -1  Could not get the wait count
- * 
+ *
  * @see @ref wait_count API Configuration Callback
  *
  * @note This routine is not needed if you define @b IDIGI_WAIT_COUNT configuration in @ref idigi_config.h.
@@ -404,8 +404,8 @@ static int app_get_wait_count(uint16_t ** count, size_t * size)
 {
 //#error "Specify the number of times that not receiving keepalive messages from server is allowed"
 #define    DEVICE_WAIT_COUNT    3
-    /* 
-     * Return pointer to wait count (number of times not receiving Tx keepalive 
+    /*
+     * Return pointer to wait count (number of times not receiving Tx keepalive
      * from server is allowed).
      */
     static uint16_t device_wait_count = DEVICE_WAIT_COUNT;
@@ -418,15 +418,15 @@ static int app_get_wait_count(uint16_t ** count, size_t * size)
 /**
  * @brief   Return true if firmware download is supported
  *
- * This routine tells IIK whether firmware access facility is supported or not. 
- * If firmware access facility is not supported, callback for idigi_class_firmware 
+ * This routine tells IIK whether firmware access facility is supported or not.
+ * If firmware access facility is not supported, callback for idigi_class_firmware
  * class will not be executed.
  *
  * @retval idigi_service_supported  Firmware download is supported
  * @retval idigi_service_unsupported  Firmware download is not supported
  *
  * @see @ref firmware_support API Configuration Callback
- * 
+ *
  * @note This routine is not called if you define @b IDIGI_FIRMWARE_SUPPORT configuration in @ref idigi_config.h.
  * @note This IDIGI_FIRMWARE_SUPPORT indicates application supports firmware download. See @ref idigi_config_data_options
  *
@@ -440,7 +440,7 @@ static idigi_service_supported_status_t app_get_firmware_support(void)
 /**
  * @brief   Return true if the data service is supported
  *
- * This routine tells IIK whether the data service facility is supported or not. 
+ * This routine tells IIK whether the data service facility is supported or not.
  * If you plan on sending data to/from the iDigi server set this to idigi_service_supported.
  *
  * @retval idigi_service_supported  Data service is supported
@@ -462,7 +462,7 @@ static idigi_service_supported_status_t app_get_data_service_support(void)
 /**
  * @brief   Return true if the file system is supported
  *
- * This routine tells IIK whether the file system facility is supported or not. 
+ * This routine tells IIK whether the file system facility is supported or not.
  * If you plan to access device files from the iDigi server set this to idigi_service_supported.
  *
  * @retval idigi_service_supported  File system is supported
@@ -484,7 +484,7 @@ static idigi_service_supported_status_t app_get_file_system_support(void)
 /**
  * @brief   Return true if the remote configuration is supported
  *
- * This routine tells IIK whether the remote configuration facility is supported or not.
+ * This routine tells IC whether the remote configuration service is supported or not.
  * If you plan on accessing device data configurations through iDigi server set
  * this to idigi_service_supported.
  *
@@ -492,6 +492,7 @@ static idigi_service_supported_status_t app_get_file_system_support(void)
  * @retval idigi_service_unsupported  Remote configuration is not supported
  *
  *
+ * @note @b IDIGI_RCI_MAXIMUM_CONTENT_LENGTH must be defined a non-zero length in @ref idigi_config.h idigi_remote.h.
  * @note This routine is not called if you define @b IDIGI_REMOTE_CONFIGURATION_SUPPORT configuration in @ref idigi_config.h.
  * @note This IDIGI_REMOTE_CONFIGURATION_SUPPORT indicates application supports remote configuration. See @ref idigi_config_data_options
  *
@@ -509,7 +510,7 @@ static idigi_service_supported_status_t app_get_remote_configuration_support(voi
  *
  * @retval 0  unlimited transactions
  * @retval >0  maximum transactions
- * 
+ *
  * @see @ref max_msg_transactions API Configuration Callback
  *
  * @note This routine is not needed if you define @b IDIGI_MSG_MAX_TRANSACTION configuration in @ref idigi_config.h.
@@ -609,20 +610,29 @@ static void app_config_error(idigi_error_status_t * const error_data)
     char const * data_service_string[] = {"idigi_data_service_put_request",
                                           "idigi_data_service_device_request"};
 
-    char const * file_system_string[] = {"idigi_file_system_open",    
-                                         "idigi_file_system_read",    
-                                         "idigi_file_system_write",   
-                                         "idigi_file_system_lseek",   
+    char const * file_system_string[] = {"idigi_file_system_open",
+                                         "idigi_file_system_read",
+                                         "idigi_file_system_write",
+                                         "idigi_file_system_lseek",
                                          "idigi_file_system_ftruncate",
-                                         "idigi_file_system_close",   
-                                         "idigi_file_system_rm",      
+                                         "idigi_file_system_close",
+                                         "idigi_file_system_rm",
                                          "idigi_file_system_stat",
-                                         "idigi_file_system_opendir", 
-                                         "idigi_file_system_readdir", 
+                                         "idigi_file_system_opendir",
+                                         "idigi_file_system_readdir",
                                          "idigi_file_system_closedir",
                                          "idigi_file_system_strerror",
                                          "idigi_file_system_msg_error",
-                                         "idigi_file_system_hash"};    
+                                         "idigi_file_system_hash"};
+
+    char const * remote_config_string[]= { "idigi_remote_config_session_start",
+                                            "idigi_remote_config_session_end",
+                                            "idigi_remote_config_action_start",
+                                            "idigi_remote_config_action_end",
+                                            "idigi_remote_config_group_start",
+                                            "idigi_remote_config_group_end",
+                                            "idigi_remote_config_group_process",
+                                            "idigi_remote_config_session_cancel"};
 
     switch (error_data->class_id)
     {
@@ -654,6 +664,12 @@ static void app_config_error(idigi_error_status_t * const error_data)
         APP_DEBUG("idigi_error_status: File system - %s (%d)  status = %s (%d)\n",
                      file_system_string[error_data->request_id.file_system_request],
                      error_data->request_id.file_system_request,
+                     error_status_string[error_data->status],error_data->status);
+        break;
+ case idigi_class_remote_config_service:
+        APP_DEBUG("idigi_error_status: Remote configuration - %s (%d)  status = %s (%d)\n",
+                remote_config_string[error_data->request_id.remote_config_request],
+                     error_data->request_id.remote_config_request,
                      error_status_string[error_data->status],error_data->status);
         break;
     default:

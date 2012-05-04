@@ -336,7 +336,7 @@ typedef struct {
 */
 
 /**
-* @defgroup idigi_remote_element_response_t iDigi remote configuration element response
+* @defgroup idigi_remote_element_response_t iDigi remote configuration element response union
 * @{
 */
 /**

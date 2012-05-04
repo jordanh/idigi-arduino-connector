@@ -337,6 +337,7 @@ void app_config_error(idigi_error_status_t * const error_data)
                                              "idigi_config_firmware_facility",
                                              "idigi_config_data_service",
                                              "idigi_config_file_system",
+                                             "idigi_config_remote_configuration",
                                               "idigi_config_max_transaction"};
 
     char const * network_request_string[] = { "idigi_network_connect",
@@ -379,6 +380,15 @@ void app_config_error(idigi_error_status_t * const error_data)
                                        "idigi_file_system_msg_error",
                                        "idigi_file_system_hash"};
 
+    char const * remote_config_string[]= { "idigi_remote_config_session_start",
+                                            "idigi_remote_config_session_end",
+                                            "idigi_remote_config_action_start",
+                                            "idigi_remote_config_action_end",
+                                            "idigi_remote_config_group_start",
+                                            "idigi_remote_config_group_end",
+                                            "idigi_remote_config_group_process",
+                                            "idigi_remote_config_session_cancel"};
+
     switch (error_data->class_id)
     {
     case idigi_class_config:
@@ -409,6 +419,12 @@ void app_config_error(idigi_error_status_t * const error_data)
            APP_DEBUG("idigi_error_status: File system - %s (%d)  status = %s (%d)\n",
                         file_system_string[error_data->request_id.file_system_request],
                         error_data->request_id.file_system_request,
+                        error_status_string[error_data->status],error_data->status);
+           break;
+    case idigi_class_remote_config_service:
+           APP_DEBUG("idigi_error_status: Remote configuration - %s (%d)  status = %s (%d)\n",
+                   remote_config_string[error_data->request_id.remote_config_request],
+                        error_data->request_id.remote_config_request,
                         error_status_string[error_data->status],error_data->status);
            break;
     default:
