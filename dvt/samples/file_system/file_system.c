@@ -74,7 +74,7 @@ typedef struct
 #define DVT_FS_TIMEOUT_OFFSET   4
 #define DVT_FS_TIMEOUT_MIDDLE_OFFSET   5
 
-#define DVT_FS_TIMEOUT_SECS     80
+#define DVT_FS_TIMEOUT_SECS     70
 
 typedef enum
 {
