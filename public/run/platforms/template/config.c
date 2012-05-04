@@ -660,7 +660,7 @@ static void app_config_error(idigi_error_status_t * const error_data)
                      error_data->request_id.data_service_request,
                      error_status_string[error_data->status],error_data->status);
         break;
- case idigi_class_file_system:
+    case idigi_class_file_system:
         APP_DEBUG("idigi_error_status: File system - %s (%d)  status = %s (%d)\n",
                      file_system_string[error_data->request_id.file_system_request],
                      error_data->request_id.file_system_request,
