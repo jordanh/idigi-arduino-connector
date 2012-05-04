@@ -236,7 +236,7 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
     }
     case idigi_setting_device_stats_signed_integer:
         ASSERT(request->element.type == idigi_element_type_int32);
-        device_stats_ptr->temperature= request->element.value->integer_signed_value;
+        device_stats_ptr->signed_integer= request->element.value->integer_signed_value;
         break;
 
     default:

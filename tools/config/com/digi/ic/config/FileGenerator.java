@@ -55,7 +55,7 @@ public class FileGenerator {
     private final static String RCI_PARSER_USES_FLOATING_POINT = "RCI_PARSER_USES_FLOATING_POINT\n";
     private final static String RCI_PARSER_USES_STRINGS = "RCI_PARSER_USES_STRINGS\n";
     private final static String RCI_PARSER_USES_UNSIGNED_INTEGER = "RCI_PARSER_USES_UNSIGNED_INTEGER\n";
-    private final static String RCI_PARSER_USES_SIGNED_INTEGER = "RCI_PARSER_USES_INTEGER\n";
+    private final static String RCI_PARSER_USES_SIGNED_INTEGER = "RCI_PARSER_USES_SIGNED_INTEGER\n";
     private final static String RCI_PARSER_USES_ON_OFF = "RCI_PARSER_USES_ON_OFF\n";
     private final static String RCI_PARSER_USES_BOOLEAN = "RCI_PARSER_USES_BOOLEAN\n";
     

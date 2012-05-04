@@ -230,7 +230,7 @@ typedef struct {
  * Remote Configuration Element value
  */
 typedef union {
-#if defined(RCI_PARSER_USES_STRING)
+#if defined(RCI_PARSER_USES_STRINGS)
     char const * string_value;          /**< Pointer to a nul-terminated string for the following value types:
                                              @htmlonly
                                              <ul>
