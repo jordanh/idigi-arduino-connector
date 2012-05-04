@@ -258,6 +258,8 @@
  *  @li app_get_wait_count()
  *  @li app_get_firmware_support()
  *  @li app_get_data_service_support()
+ *  @li app_get_file_system_support()
+ *  @li app_get_remote_configuration_support()
  *  @li app_get_max_message_transactions()
  *  @li app_config_error()
  *
@@ -274,7 +276,7 @@
  *
  * @code
  * // Initialize the IIK with the application callback
- * idigi_handle = idigi_init((idigi_callback_t) idigi_callback);
+ * idigi_handle = idigi_init((idigi_callback_t) app_idigi_callback);
  * @endcode
  *
  * and placed in location capable of starting a network client.

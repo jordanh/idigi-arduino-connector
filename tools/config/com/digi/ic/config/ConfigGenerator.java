@@ -86,7 +86,7 @@ public class ConfigGenerator {
 
         log(String
                 .format(
-                        "\t%-16s \t= optional option for directory path where source and header files will be created.",
+                        "\t%-16s \t= optional option for directory path where the header file will be created.",
                         DASH + DIRECTORY_OPTION + "=<directory path>"));
         log(String
                 .format(

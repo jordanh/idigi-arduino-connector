@@ -12,12 +12,12 @@
  *
  * The routine main() in the platform directory initializes the IIK and
  * registers the application callback.  In the file application.c is the
- * application defined callback idigi_callback(), this routine calls idigi_data_service_callback()
+ * application defined callback app_idigi_callback(), this routine calls app_data_service_handler()
  * when a device request is received.
  *
  * A User can use the included python script to send a device request to the device.
  *
- * When the iDigi Cloud sends a device request to the device, idigi_data_service_callback() is called
+ * When the iDigi Cloud sends a device request to the device, app_data_service_handler() is called
  * with @ref idigi_data_service_type_have_data message type to process the data. This callback
  * is continually called with this message type until the last chunk of data is processed. This 
  * sample examines the given target and prints out the device request data. It cancels

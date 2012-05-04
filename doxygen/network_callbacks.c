@@ -73,7 +73,7 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
@@ -202,7 +202,7 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
@@ -296,7 +296,7 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
@@ -388,7 +388,7 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
@@ -457,7 +457,7 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
@@ -517,7 +517,7 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {

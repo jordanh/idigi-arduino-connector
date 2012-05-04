@@ -22,6 +22,7 @@
  *  -# @ref firmware_support
  *  -# @ref data_service_support
  *  -# @ref file_system_support
+ *  -# @ref rci_support
  *  -# @ref max_msg_transactions
  *
  * @section device_id Device ID
@@ -90,7 +91,7 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
@@ -179,7 +180,7 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
@@ -260,7 +261,7 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
@@ -335,7 +336,7 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
@@ -411,7 +412,7 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
@@ -481,7 +482,7 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
@@ -557,7 +558,7 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
@@ -634,7 +635,7 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
@@ -709,7 +710,7 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
@@ -784,7 +785,7 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
@@ -859,7 +860,7 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
@@ -932,7 +933,7 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
@@ -1000,7 +1001,7 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
@@ -1074,7 +1075,7 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
@@ -1149,7 +1150,7 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
@@ -1224,12 +1225,87 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
  *
  *     if (class_id == idigi_class_config && request_id.config_request == idigi_config_data_service)
+ *     {
+ *         *((idigi_service_supported_status_t *)response_data) = idigi_service_supported;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ *
+ * @endcode
+ *
+ * @section rci_support  Remote Configuration Support
+ *
+ * Return @ref idigi_service_supported_status_t status to enable or disable remote configuration 
+ * capability. If it's supported, callback for @ref idigi_remote_config_request_t must be 
+ * implemented for remote configuration. This callback allows application to enable
+ * or disable remote configuration capability during runtime.
+ *
+ * @note If @ref IDIGI_RCI_MAXIMUM_CONTENT_LENGTH configuration is defined zero in @ref idigi_config.h, this callback 
+ * will not be called and remote configuration is not supported. IC does not include remote configuration.
+ *
+ * @note If @ref IDIGI_REMOTE_CONFIGURATION_SUPPORT is defined in @ref idigi_config.h, this callback is not needed.
+ * It enables remote configuration capability. See @ref idigi_config_data_options. IDIGI_REMOTE_CONFIGURATION_SUPPORT
+ * must be defined a non-zero value.
+ *
+ *
+ * @htmlonly
+ * <table class="apitable">
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
+ * <tr>
+ * <th>class_id</th>
+ * <td>@endhtmlonly @ref idigi_class_config @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <th>request_id</th>
+ * <td>@endhtmlonly @ref idigi_config_remote_configuration @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <th>request_data</th>
+ * <td>N/A</td>
+ * </tr>
+ * <tr>
+ * <th>request_length</th>
+ * <td> N/A</td>
+ * </tr>
+ * <tr>
+ * <th>response_data</th>
+ * <td> Pointer to memory where callback writes @endhtmlonly @ref idigi_service_supported_status_t @htmlonly 
+ * status to support or not support remote configuration</td>
+ * </tr>
+ * <tr>
+ * <th>response_length</th>
+ * <td>N/A</td>
+ * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
+ * <tr>
+ * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
+ * <td>Callback successfully returned the status</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
+ * <td>Callback aborted IIK</td>
+ * </tr>
+ * </table>
+ * @endhtmlonly
+ *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id == idigi_class_config && request_id.config_request == idigi_config_remote_configuration)
  *     {
  *         *((idigi_service_supported_status_t *)response_data) = idigi_service_supported;
  *     }
@@ -1293,7 +1369,7 @@
  *
  * @code
  *
- * idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
  *                              void * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {

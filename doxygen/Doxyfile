@@ -651,10 +651,13 @@ INPUT                  = ./mainpage.c \
                          ./web_services.c \
                          ./data_service.c \
                          ./file_system.c \
+                         ./rci_service.c \
                          ./api_overview.c \
                          ./fw_download_sample.c \
                          ./file_system_sample.c \
                          ./device_request.c \
+                         ./rci_sample.c \
+                         ./rci_tool.c \
                          ../public/run/platforms/template \
                          ../public/include
 
@@ -1531,7 +1534,11 @@ INCLUDE_FILE_PATTERNS  =
 # undefined via #undef or recursively expanded use the := operator 
 # instead of the = operator.
 
-PREDEFINED           = IDIGI_VERSION_1100 IDIGI_VERSION ENABLE_COMPILE_TIME_DATA_PASSING IDIGI_DEBUG DIGI_REQUIRED_TO_GENERATE_INTERNAL_DOCUMENATION
+PREDEFINED           = IDIGI_VERSION_1100 IDIGI_VERSION ENABLE_COMPILE_TIME_DATA_PASSING IDIGI_DEBUG \
+                       DIGI_REQUIRED_TO_GENERATE_INTERNAL_DOCUMENATION \
+                       RCI_PARSER_USES_STRING RCI_PARSER_USES_SIGNED_INTEGER \
+                       RCI_PARSER_USES_UNSIGNED_INTEGER RCI_PARSER_USES_FLOATING_POINT \
+                       RCI_PARSER_USES_ENUMERATIONS
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then 
 # this tag can be used to specify a list of macro names that should be expanded. 

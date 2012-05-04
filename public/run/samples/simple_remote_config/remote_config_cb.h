@@ -26,25 +26,6 @@
 #ifndef REMOTE_CONFIG_CB_H_
 #define REMOTE_CONFIG_CB_H_
 
-typedef idigi_callback_status_t(* remote_group_init_cb_t) (idigi_remote_group_request_t * request, idigi_remote_group_response_t * response, void ** group_context);
-typedef idigi_callback_status_t(* remote_group_cb_t) (idigi_remote_group_request_t * request, idigi_remote_group_response_t * response, void * group_context);
-typedef void (* remote_group_cancel_cb_t) (void * context);
-
-typedef struct remote_group_table {
-    remote_group_init_cb_t init_cb;
-    remote_group_cb_t set_cb;
-    remote_group_cb_t get_cb;
-    remote_group_cb_t end_cb;
-    remote_group_cancel_cb_t cancel_cb;
-} remote_group_table_t;
-
-
-typedef struct {
-    void * session_context;
-    void * group_context;
-    remote_group_table_t * group;
-} remote_config_session_t;
-
 extern int app_os_malloc(size_t const size, void ** ptr);
 extern void app_os_free(void * const ptr);
 

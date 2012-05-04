@@ -12,7 +12,7 @@
  * @section connect_description Code Flow
  *
  * The @ref AppStructure "Public Application Framework" @b Sample section file application.c contains
- * @ref idigi_callback_t "application defined callback idigi_callback()", which traps the
+ * @ref idigi_callback_t "application defined callback app_idigi_callback()", which traps the
  * @ref fw_overview1 "Firmware Download" callbacks.  These callbacks are then processed in
  * app_firmware_handler() when a firmware request callback is received.
  *

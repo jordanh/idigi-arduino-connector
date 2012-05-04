@@ -175,7 +175,7 @@
  * @section features IIK Features
  *     @li Send data to and from a device using the iDigi Device Cloud
  *     @li Update firmware on the device
- *     @li View the device configuration
+ *     @li View and configure the device configurations
  *     @li Reboot a device
  *
  * @section communicating Communicating with your device

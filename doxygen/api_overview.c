@@ -90,6 +90,8 @@
  *   @li Firmware download
  *   @li Handle a device request
  *   @li Request more data when sending data to the iDigi Device Cloud
+ *   @li Access file system 
+ *   @li Access device configurations
  *
  * @b Class @b ID and @b Request @b ID
  * enumeration values are used to identify the callback action. The application must perform and return

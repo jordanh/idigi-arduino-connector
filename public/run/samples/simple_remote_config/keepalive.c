@@ -36,16 +36,54 @@ typedef struct {
 keepalive_data_t nvRamKeepalive = {
         60, 90
 };
-idigi_callback_status_t app_keepalive_group_init(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response, void ** context)
+
+idigi_callback_status_t app_keepalive_session_start(idigi_remote_group_response_t * const response)
 {
+    /* nothing to do here since we only have one group */
+    UNUSED_ARGUMENT(response);
+    printf("app_keepalive_session_start\n");
+    return idigi_callback_continue;
+}
+
+idigi_callback_status_t app_keepalive_session_end(idigi_remote_group_response_t * const response)
+{
+    /* nothing to do here since we only have one group */
+    UNUSED_ARGUMENT(response);
+    printf("app_keepalive_session_end\n");
+    return idigi_callback_continue;
+}
+
+idigi_callback_status_t app_keepalive_action_start(idigi_remote_group_request_t * const request,
+                                                        idigi_remote_group_response_t * const response)
+{
+    /* nothing to do here since we only have one group */
+    UNUSED_ARGUMENT(request);
+    UNUSED_ARGUMENT(response);
+    printf("app_keepalive_action_start\n");
+    return idigi_callback_continue;
+}
+
+idigi_callback_status_t app_keepalive_action_end(idigi_remote_group_request_t * const request,
+                                                      idigi_remote_group_response_t * const response)
+{
+    /* nothing to do here since we only have one group */
+    UNUSED_ARGUMENT(request);
+    UNUSED_ARGUMENT(response);
+    printf("app_keepalive_action_end\n");
+    return idigi_callback_continue;
+}
+
+idigi_callback_status_t app_keepalive_group_init(idigi_remote_group_request_t * const request,
+                                                 idigi_remote_group_response_t * const response)
+{
+    idigi_callback_status_t status = idigi_callback_continue;
 
     void * ptr;
     keepalive_data_t * keepalive;
 
     UNUSED_ARGUMENT(request);
-    UNUSED_ARGUMENT(response);
 
-    printf("keepalive_group_init\n");
+    printf("app_keepalive_group_init\n");
 
     if (app_os_malloc(sizeof *keepalive, &ptr) != 0)
     {
@@ -55,47 +93,21 @@ idigi_callback_status_t app_keepalive_group_init(idigi_remote_group_request_t * 
     {
         keepalive = ptr;
         *keepalive = nvRamKeepalive;
-        *context = keepalive;
-    }
-
-    return idigi_callback_continue;
-}
-
-idigi_callback_status_t app_keepalive_group_get(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response, void * context)
-{
-    idigi_callback_status_t status = idigi_callback_continue;
-    keepalive_data_t * const keepalive = context;
-
-    UNUSED_ARGUMENT(request);
-    ASSERT(keepalive != NULL);
-
-    printf("keepalive_group_get\n");
-
-    switch (request->element.id)
-    {
-    case idigi_setting_keepalive_rx:
-        response->element_data.element_value->integer_unsigned_value = keepalive->rx_keepalive;
-        break;
-    case idigi_setting_keepalive_tx:
-        response->element_data.element_value->integer_unsigned_value = keepalive->tx_keepalive;
-        break;
-    default:
-        ASSERT(0);
-        break;
+        response->user_context = keepalive;
     }
 
     return status;
 }
 
-idigi_callback_status_t app_keepalive_group_set(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response, void * context)
+idigi_callback_status_t app_keepalive_group_set(idigi_remote_group_request_t * const request,
+                                                 idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    keepalive_data_t * const keepalive = context;
+    keepalive_data_t * const keepalive = response->user_context;
 
-    UNUSED_ARGUMENT(response);
     ASSERT(keepalive != NULL);
 
-    printf("keepalive_group_set\n");
+    printf("app_keepalive_group_set\n");
 
     switch (request->element.id)
     {
@@ -114,30 +126,61 @@ idigi_callback_status_t app_keepalive_group_set(idigi_remote_group_request_t * r
 
 }
 
-idigi_callback_status_t app_keepalive_group_end(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response, void * context)
+idigi_callback_status_t app_keepalive_group_get(idigi_remote_group_request_t * const request,
+                                                 idigi_remote_group_response_t * const response)
 {
-    keepalive_data_t * const keepalive = context;
+    idigi_callback_status_t status = idigi_callback_continue;
+    keepalive_data_t * const keepalive = response->user_context;
 
     UNUSED_ARGUMENT(request);
-    UNUSED_ARGUMENT(response);
+    ASSERT(keepalive != NULL);
+
+    printf("app_keepalive_group_get\n");
+
+    switch (request->element.id)
+    {
+    case idigi_setting_keepalive_rx:
+        response->element_data.element_value->integer_unsigned_value = keepalive->rx_keepalive;
+        break;
+    case idigi_setting_keepalive_tx:
+        response->element_data.element_value->integer_unsigned_value = keepalive->tx_keepalive;
+        break;
+    default:
+        ASSERT(0);
+        break;
+    }
+
+    return status;
+
+}
+
+idigi_callback_status_t app_keepalive_group_end(idigi_remote_group_request_t * const request,
+                                                 idigi_remote_group_response_t * const response)
+{
+   keepalive_data_t * const keepalive = response->user_context;
+
+    UNUSED_ARGUMENT(request);
 
     ASSERT(keepalive != NULL);
 
-    printf("keepalive_group_end\n");
+    printf("app_keepalive_group_end\n");
 
     /* should start writing onto NvRam */
     nvRamKeepalive = *keepalive;
 
-    app_os_free(context);
+    printf("Receive (Rx) keepalive interval: %d", nvRamKeepalive.rx_keepalive);
+    printf("Transmit (Tx) keepalive interval: %d", nvRamKeepalive.tx_keepalive);
+    app_os_free(keepalive);
 
     return idigi_callback_continue;
+
 }
 
-void app_keepalive_group_cancel(void * context)
+void app_keepalive_session_cancel(void * context)
 {
     ASSERT(context != NULL);
 
-    printf("keepalive_group_cancel\n");
+    printf("app_keepalive_group_cancel\n");
 
     app_os_free(context);
 
