@@ -54,7 +54,7 @@ public class ConfigGenerator {
                 + "] ["
                 + DASH
                 + SERVER_OPTION
-                + "] ["
+                + "] "
                 + String.format("<%s[:%s]> <%s> <%s> <%s>\n", USERNAME,
                         PASSWORD, DEVICE_TYPE, FIRMWARE_VERSION,
                         CONFIG_FILENAME));

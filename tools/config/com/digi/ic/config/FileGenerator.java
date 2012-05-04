@@ -97,6 +97,9 @@ public class FileGenerator {
     public void generateFile(ConfigData configData) throws Exception {
         try {
 
+            String defineName = HEADER_FILENAME.replace('.', '_').toLowerCase();
+            headerWriter.write(String.format("#ifndef %s\n#define %s\n\n", defineName, defineName));
+            
             writeHeaderFile(configData);
 
             /*
@@ -105,7 +108,7 @@ public class FileGenerator {
              * 2. all #define for all RCI and user's global errors 
              * 3. all strings in idigi_remote_all_strings[]
              */
-            headerWriter.write(String.format("\n\n#if defined(%s)\n\n", RCI_PARSER_DATA));
+            headerWriter.write(String.format("\n\n#if defined %s\n\n", RCI_PARSER_DATA));
 
             /* Write all string length and index defines in C file */
             writeDefineStrings(configData);
@@ -120,6 +123,8 @@ public class FileGenerator {
             writeAllStructures(configData);
             
             headerWriter.write(String.format("\n#endif /* %s */\n\n", RCI_PARSER_DATA));
+            
+            headerWriter.write(String.format("\n#endif /* %s */\n", defineName));
 
             ConfigGenerator.log("Files created:\n\t" + headerFile);
 
@@ -135,9 +140,9 @@ public class FileGenerator {
     }
 
     private void writeHeaderFile(ConfigData configData) throws Exception {
-        String defineName = HEADER_FILENAME.replace('.', '_').toLowerCase();
-        headerWriter.write(String.format("#ifndef %s\n#define %s\n\n",
-                defineName, defineName));
+//        String defineName = HEADER_FILENAME.replace('.', '_').toLowerCase();
+//        headerWriter.write(String.format("#ifndef %s\n#define %s\n\n",
+//                defineName, defineName));
 
         writeDefineOptionHeader();
 
@@ -149,7 +154,7 @@ public class FileGenerator {
         /* Write all group enum in H file */
         writeGroupHeader(configData);
 
-        headerWriter.write(String.format("\n#endif /* %s */\n", defineName));
+//        headerWriter.write(String.format("\n#endif /* %s */\n", defineName));
     }
 
     private void writeDefineOptionHeader() throws IOException {
