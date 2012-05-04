@@ -45,16 +45,15 @@ static rci_command_t find_rci_command(rci_string_t const * const tag)
     size_t i;
     rci_command_t result = rci_command_unknown;
       
-    CONFIRM(rci_command_set_setting == 0);
-    CONFIRM(rci_command_set_state == 1);
-    CONFIRM(rci_command_query_setting == 2);
-    CONFIRM(rci_command_query_state == 3);
+    CONFIRM(rci_command_set_state == (rci_command_set_setting + 1));
+    CONFIRM(rci_command_query_setting == (rci_command_set_state + 1));
+    CONFIRM(rci_command_query_state == (rci_command_query_setting + 1));
     
     for (i = 0; i < asizeof(rci_command); i++)
     {
         if (cstr_equals_rcistr(rci_command[i], tag))
         {
-            result = (rci_command_t) i;
+            result = (rci_command_t) (rci_command_set_setting + i);
             break;
         }
     }
@@ -322,7 +321,7 @@ static idigi_bool_t rci_handle_unary_tag(rci_t * const rci)
             }
 
             {
-                rci_string_t const * const index = find_attribute_value(&rci->input.attribute, RCI_INDEX);
+                rci_string_t const * const index = find_attribute_value(&rci->shared.attribute, RCI_INDEX);
                 idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
                 
                 if (index == NULL)
@@ -386,7 +385,7 @@ static idigi_bool_t rci_handle_start_tag(rci_t * const rci)
     case rci_command_unseen:
         if (cstr_equals_rcistr(RCI_REQUEST, &rci->shared.string.tag))
         {
-            rci_string_t const * const version = find_attribute_value(&rci->input.attribute, RCI_VERSION);
+            rci_string_t const * const version = find_attribute_value(&rci->shared.attribute, RCI_VERSION);
             
             if ((version == NULL) || (cstr_equals_rcistr(RCI_VERSION_SUPPORTED, version)))
             {
@@ -394,7 +393,7 @@ static idigi_bool_t rci_handle_start_tag(rci_t * const rci)
                 
                 rci->input.command = rci_command_header;
                 
-                rci_prep_reply(rci, &rci->shared.string.tag, &rci->input.attribute);
+                rci_prep_reply(rci, &rci->shared.string.tag, &rci->shared.attribute);
                 state_call(rci, rci_parser_state_output);
             }
             else
@@ -455,7 +454,7 @@ static idigi_bool_t rci_handle_start_tag(rci_t * const rci)
             }
             else
             {
-                rci_string_t const * const index = find_attribute_value(&rci->input.attribute, RCI_INDEX);
+                rci_string_t const * const index = find_attribute_value(&rci->shared.attribute, RCI_INDEX);
                 idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
                 
                 if (index == NULL)
@@ -649,12 +648,9 @@ static idigi_bool_t rci_parse_input_less_than_sign(rci_t * const rci)
         rci->input.state = rci_input_state_element_tag_name;
         break;
         
+    case rci_input_state_content_first:
     case rci_input_state_content:
-        if (rci->shared.request.element.id == INVALID_ID)
-        {
-            ASSERT(strspn(rci->shared.string.content.data, " \t\n\r\f") == ((size_t) (rci_buffer_position(&rci->buffer.input) - rci->shared.string.content.data)));
-        }
-        else
+        if (rci->shared.request.element.id != INVALID_ID)
         {
             continue_parsing = rci_handle_content(rci);
         }
@@ -662,7 +658,7 @@ static idigi_bool_t rci_parse_input_less_than_sign(rci_t * const rci)
         break;
     
     default:
-        rci->status = rci_status_internal_error;
+        rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
         continue_parsing = idigi_false;
         break;
     }
@@ -673,17 +669,21 @@ static idigi_bool_t rci_parse_input_less_than_sign(rci_t * const rci)
 
 static idigi_bool_t rci_parse_input_greater_than_sign(rci_t * const rci)
 {
-    idigi_bool_t continue_parsing;
+    idigi_bool_t continue_parsing = idigi_true;
     
     switch (rci->input.state)
     {
     case rci_input_state_element_start_name:
+        set_rcistr_length(rci, &rci->shared.string.tag);
+        /* no break; */
+        
     case rci_input_state_element_param_name:
         rci->input.state = rci_input_state_content;
         continue_parsing = rci_handle_start_tag(rci);
         break;
         
     case rci_input_state_element_end_name:
+        set_rcistr_length(rci, &rci->shared.string.tag);
         rci->input.state = rci_input_state_element_tag_open;
         continue_parsing = rci_handle_end_tag(rci);
         break;
@@ -694,12 +694,11 @@ static idigi_bool_t rci_parse_input_greater_than_sign(rci_t * const rci)
         break;
     
     default:
-        rci->status = rci_status_internal_error;
+        rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
         continue_parsing = idigi_false;
         break;
     }
 
-    ASSERT(continue_parsing);
     return continue_parsing;
 }
 
@@ -709,17 +708,27 @@ static idigi_bool_t rci_parse_input_equals_sign(rci_t * const rci)
     
     switch (rci->input.state)
     {
-    case rci_input_state_element_param_name:
+    case rci_input_state_element_param_equals:
+        set_rcistr_length(rci, &rci->shared.attribute.pair[rci->shared.attribute.count].name);
         rci->input.state = rci_input_state_element_param_quote;
-        /* save param pointer */
         break;
         
+    case rci_input_state_element_param_value_first:
+        rci->shared.attribute.pair[rci->shared.attribute.count].name.data = rci->input.destination;
+        rci->input.state = rci_input_state_element_param_value;
+        break;
+        
+    case rci_input_state_content_first:
+        rci->shared.string.tag.data = rci->input.destination;
+        rci->input.state = rci_input_state_content;
+        break;
+
     case rci_input_state_element_param_value:
     case rci_input_state_content:
         break;
     
     default:
-        rci->status = rci_status_internal_error;
+        rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
         continue_parsing = idigi_false;
         break;
     }
@@ -735,16 +744,33 @@ static idigi_bool_t rci_parse_input_slash(rci_t * const rci)
     switch (rci->input.state)
     {
     case rci_input_state_element_tag_name:
-        rci->input.state = rci_input_state_element_end_name;
+        rci->input.state = rci_input_state_element_end_name_first;
         break;
         
     case rci_input_state_element_start_name:
+        set_rcistr_length(rci, &rci->shared.string.tag);
+        /* no break; */
+        
     case rci_input_state_element_param_name:
         rci->input.state = rci_input_state_element_tag_close;
         break;
     
+    case rci_input_state_element_param_value_first:
+        rci->shared.attribute.pair[rci->shared.attribute.count].value.data = rci->input.destination;
+        rci->input.state = rci_input_state_element_param_value;
+        break;
+
+    case rci_input_state_content_first:
+        rci->shared.string.tag.data = rci->input.destination;
+        rci->input.state = rci_input_state_content;
+        break;
+
+    case rci_input_state_element_param_value:
+    case rci_input_state_content:
+        break;
+    
     default:
-        rci->status = rci_status_internal_error;
+        rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
         continue_parsing = idigi_false;
         break;
     }
@@ -760,19 +786,25 @@ static idigi_bool_t rci_parse_input_quote(rci_t * const rci)
     switch (rci->input.state)
     {
     case rci_input_state_element_param_quote:
-        rci->input.state = rci_input_state_element_param_value;
+        rci->input.state = rci_input_state_element_param_value_first;
         break;
         
     case rci_input_state_element_param_value:
-        /* at end of value */
+        set_rcistr_length(rci, &rci->shared.attribute.pair[rci->shared.attribute.count].value);
+        rci->shared.attribute.count++;
         rci->input.state = rci_input_state_element_param_name;
+        break;
+        
+    case rci_input_state_content_first:
+        rci->shared.string.tag.data = rci->input.destination;
+        rci->input.state = rci_input_state_content;
         break;
 
      case rci_input_state_content:
         break;
    
     default:
-        rci->status = rci_status_internal_error;
+        rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
         continue_parsing = idigi_false;
         break;
     }
@@ -788,12 +820,32 @@ static idigi_bool_t rci_parse_input_whitespace(rci_t * const rci)
     switch (rci->input.state)
     {
     case rci_input_state_element_start_name:
+        set_rcistr_length(rci, &rci->shared.string.tag);
         rci->input.state = rci_input_state_element_param_name;
         break;
+
+    case rci_input_state_element_param_name:
+        set_rcistr_length(rci, &rci->shared.attribute.pair[rci->shared.attribute.count].name);
+        rci->input.state = rci_input_state_element_param_equals;
+        break;
         
+    case rci_input_state_element_param_value_first:
+        rci->shared.attribute.pair[rci->shared.attribute.count].value.data = rci->input.destination;
+        rci->input.state = rci_input_state_element_param_value;
+        break;
+
+    case rci_input_state_content_first:
+        rci->shared.string.content.data = rci->input.destination;
+        rci->input.state = rci_input_state_content;
+        break;
+
+    case rci_input_state_element_param_value:
+    case rci_input_state_content:
+        break;
+    
     case rci_input_state_element_param_value_escaping:
 	case rci_input_state_content_escaping:
-        rci->status = rci_status_internal_error;
+        rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
         continue_parsing = idigi_false;
         break;
 
@@ -811,12 +863,20 @@ static idigi_bool_t rci_parse_input_ampersand(rci_t * const rci)
     
     switch (rci->input.state)
     {
+    case rci_input_state_element_param_value_first:
+        rci->shared.attribute.pair[rci->shared.attribute.count].value.data = rci->input.destination;
+        /* no break; */
+        
     case rci_input_state_element_param_value:
         rci->input.state = rci_input_state_element_param_value_escaping;
         rci->input.character = nul;
         ASSERT(rci->input.entity.data == NULL);
         break;
 
+    case rci_input_state_content_first:
+        rci->shared.string.content.data = rci->input.destination;
+        /* no break; */
+        
     case rci_input_state_content:
         rci->input.state = rci_input_state_content_escaping;
         rci->input.character = nul;
@@ -824,7 +884,7 @@ static idigi_bool_t rci_parse_input_ampersand(rci_t * const rci)
         break;
         
     default:
-        rci->status = rci_status_internal_error;
+        rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
         continue_parsing = idigi_false;
         break;
     }
@@ -847,12 +907,22 @@ static idigi_bool_t rci_parse_input_semicolon(rci_t * const rci)
         ASSERT(rci->input.character != nul);
         break;
 
+    case rci_input_state_element_param_value_first:
+        rci->shared.attribute.pair[rci->shared.attribute.count].value.data = rci->input.destination;
+        rci->input.state = rci_input_state_element_param_value;
+        break;
+
+    case rci_input_state_content_first:
+        rci->shared.string.tag.data = rci->input.destination;
+        rci->input.state = rci_input_state_content;
+        break;
+
     case rci_input_state_element_param_value:
     case rci_input_state_content:
         break;
-        
+    
     default:
-        rci->status = rci_status_internal_error;
+        rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
         continue_parsing = idigi_false;
         break;
     }
@@ -868,11 +938,13 @@ static idigi_bool_t rci_parse_input_other(rci_t * const rci)
     switch (rci->input.state)
     {
     case rci_input_state_element_tag_name:
+        rci->shared.string.tag.data = rci->input.destination;
         rci->input.state = rci_input_state_element_start_name;
-        /* no break; */
-    case rci_input_state_element_end_name:
-        if (rci->shared.string.tag.data == NULL)
-            rci->shared.string.tag.data = rci->input.destination;
+        break;
+        
+    case rci_input_state_element_end_name_first:
+        rci->shared.string.tag.data = rci->input.destination;
+        rci->input.state = rci_input_state_element_end_name;
         break;
 
     case rci_input_state_element_param_value_escaping:
@@ -882,8 +954,23 @@ static idigi_bool_t rci_parse_input_other(rci_t * const rci)
         rci->input.character = nul;
         break;
                
+    case rci_input_state_element_param_value_first:
+        rci->shared.attribute.pair[rci->shared.attribute.count].value.data = rci->input.destination;
+        rci->input.state = rci_input_state_element_param_value;
+        break;
+
+    case rci_input_state_element_param_name:
+        rci->shared.attribute.pair[rci->shared.attribute.count].name.data = rci->input.destination;
+        rci->input.state = rci_input_state_element_param_equals;
+        break;
+
+    case rci_input_state_content_first:
+        rci->shared.string.content.data = rci->input.destination;
+        rci->input.state = rci_input_state_content;
+        break;
+
     case rci_input_state_element_param_quote:
-        rci->status = rci_status_internal_error;
+        rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
         continue_parsing = idigi_false;
         break;
         
@@ -997,10 +1084,10 @@ static void rci_parse_input(rci_t * const rci)
                     size_t i;
                     
                     adjust_rci_string(rci, base, &rci->shared.string.generic);
-                    for (i = 0; i < asizeof(rci->input.pair); i++)
+                    for (i = 0; i < asizeof(rci->shared.attribute.pair); i++)
                     {
-                        adjust_rci_string(rci, base, &rci->input.pair[i].name);
-                        adjust_rci_string(rci, base, &rci->input.pair[i].value);
+                        adjust_rci_string(rci, base, &rci->shared.attribute.pair[i].name);
+                        adjust_rci_string(rci, base, &rci->shared.attribute.pair[i].value);
                     }
                     adjust_char_pointer(rci, base, &rci->input.destination);
                 }

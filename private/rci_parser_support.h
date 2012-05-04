@@ -27,6 +27,7 @@
 #if defined IDIGI_DEBUG
 #include <ctype.h>
 #endif
+#define IDIGI_RCI_PARSER_INTERNAL_DATA
 #include "remote_config.h"
 
 #define ROUND_UP(value, interval)   ((value) + -(value) % (interval))
@@ -89,11 +90,15 @@ typedef enum
     rci_input_state_element_tag_name,
     rci_input_state_element_tag_close,
     rci_input_state_element_start_name,
+	rci_input_state_element_end_name_first,
 	rci_input_state_element_end_name,
 	rci_input_state_element_param_name,
+	rci_input_state_element_param_equals,
 	rci_input_state_element_param_quote,
+	rci_input_state_element_param_value_first,
 	rci_input_state_element_param_value,
 	rci_input_state_element_param_value_escaping,
+	rci_input_state_content_first,
 	rci_input_state_content,
 	rci_input_state_content_escaping
 } rci_input_state_t;
@@ -164,12 +169,12 @@ typedef enum
 
 typedef enum
 {
+    rci_command_unseen,
+    rci_command_header,
     rci_command_set_setting,
     rci_command_set_state,
     rci_command_query_setting,
     rci_command_query_state,
-    rci_command_unseen,
-    rci_command_header,
     rci_command_unknown
 } rci_command_t;
 
@@ -188,7 +193,7 @@ typedef struct
 typedef struct
 {
     size_t count;
-    rci_attribute_t * pair;
+    rci_attribute_t pair[2];
 } rci_attribute_list_t;
 
 typedef struct
@@ -216,8 +221,6 @@ typedef struct
         idigi_bool_t send_content;
         rci_command_t command;
         rci_string_t entity;
-        rci_attribute_t pair[2];
-        rci_attribute_list_t attribute;
         char storage[ROUND_UP(IDIGI_RCI_MAXIMUM_CONTENT_LENGTH + sizeof nul, sizeof (int))];
     } input;
     struct {
@@ -227,7 +230,7 @@ typedef struct
     struct {
         rci_output_state_t state;
         rci_output_type_t type;
-        rci_string_t const * tag;
+        rci_string_t * tag;
         rci_attribute_list_t * attribute;
         size_t attribute_pair_index;
         size_t entity_scan_index;
@@ -235,8 +238,6 @@ typedef struct
     struct {
         rci_error_state_t state;
         rci_string_t tag;
-        rci_attribute_t pair;
-        rci_attribute_list_t attribute;
         char const * description;
     } error;
     struct {
@@ -248,6 +249,7 @@ typedef struct
         idigi_element_value_t value;
         idigi_remote_group_request_t request;
         idigi_remote_group_response_t response;
+        rci_attribute_list_t attribute;
     } shared;
 } rci_t;
 
@@ -343,6 +345,18 @@ static void rci_buffer_write(rci_buffer_t const * const buffer, int const value)
 static idigi_bool_t ptr_in_buffer(rci_buffer_t const * const buffer, char const * const pointer)
 {
     return ((pointer >= buffer->start) && (pointer <= buffer->end));
+}
+
+static void set_rcistr_length(rci_t const * const rci, rci_string_t * const string)
+{
+    ASSERT(string->length == 0);
+    string->length = (rci->input.destination - string->data);
+}
+
+static void clear_rcistr(rci_string_t * const string)
+{
+    string->data = NULL;
+    string->length = 0;
 }
 
 static void adjust_char_pointer(rci_t const * const rci, char const * const old_base, char * * const pointer)

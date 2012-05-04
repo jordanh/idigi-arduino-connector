@@ -161,7 +161,7 @@ int main (int argc, char * argv[])
         goto done;
     }
 
-    while (!feof(fp) && status != rci_status_complete)
+    while (status != rci_status_complete)
     {
         if (status == rci_status_more_input)
         {
@@ -171,10 +171,10 @@ int main (int argc, char * argv[])
         if (session == rci_session_start)
         {
             status = rci_parser(session, &parser_data);
+            session = rci_session_active;
         }
         else
         {
-            session = rci_session_active;
             status = rci_parser(session);
         }
             
@@ -199,16 +199,15 @@ int main (int argc, char * argv[])
         case rci_status_internal_error:
             printf("Broken\n");
             goto done;
+            
         case rci_status_error:
             printf("Cancel Message\n");
             goto done;
+            
         default:
             assert(0);
-            cstr_equals_buffer(NULL, NULL, 0);
             break;
-
         }
-
     }
 
 done:

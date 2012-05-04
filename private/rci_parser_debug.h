@@ -23,9 +23,12 @@
  *
  */
 
-#if ! defined RCI_DEBUG
+#define RCI_DEBUG_SHOW_ALL      idigi_true
+#define RCI_DEBUG_SHOW_DIFFS    idigi_false
 
-#define output_debug_info(rci)  ((void) rci)
+#if !(defined RCI_DEBUG)
+
+#define output_debug_info(rci, show_all)    ((void) rci, (void) show_all)
 
 #else
 
@@ -49,6 +52,39 @@ static void reassign_service_buffer(rci_service_buffer_t * const dst, rci_servic
 static char const * boolean_as_string(idigi_bool_t const value)
 {
     char const * const result = (value ? "true" : "false");
+
+    return result;
+}
+
+static char const * character_as_string(int const value)
+{
+    static char storage[sizeof "\0xFF"][2];
+    static size_t index;
+    static size_t const count = asizeof(storage);
+    char const * result;
+    
+    if (isprint(value))
+    {
+        switch (value)
+        {
+        case '\r':  result = "\r"; goto done; break;
+        case '\n':  result = "\n"; goto done; break;
+        case '\t':  result = "\t"; goto done; break;
+        case '\f':  result = "\f"; goto done; break;
+        }
+
+        sprintf(storage[index], "%c", value);
+    }
+    else
+    {
+        sprintf(storage[index], "0x%02x", value);
+    }
+    
+    result = storage[index];
+    index++;
+    if (index == count) index = 0;
+
+done:
 
     return result;
 }
@@ -122,11 +158,15 @@ static char const * rci_input_state_t_as_string(rci_input_state_t const value)
         enum_to_case(rci_input_state_element_tag_name);
         enum_to_case(rci_input_state_element_tag_close);
         enum_to_case(rci_input_state_element_start_name);
+	    enum_to_case(rci_input_state_element_end_name_first);
 	    enum_to_case(rci_input_state_element_end_name);
 	    enum_to_case(rci_input_state_element_param_name);
+	    enum_to_case(rci_input_state_element_param_equals);
 	    enum_to_case(rci_input_state_element_param_quote);
+	    enum_to_case(rci_input_state_element_param_value_first);
 	    enum_to_case(rci_input_state_element_param_value);
 	    enum_to_case(rci_input_state_element_param_value_escaping);
+	    enum_to_case(rci_input_state_content_first);
 	    enum_to_case(rci_input_state_content);
 	    enum_to_case(rci_input_state_content_escaping);
     }
@@ -321,7 +361,7 @@ static void output_buffer_diff(char const * const name, void const * const curre
 #define output_diff(format, operation, member) \
     do { \
         if (show_all) \
-            printf("%s(%p): " format "\n", #member, (void *)&(current->member), operation(previous.member)); \
+            printf("%s(%p): " format "\n", #member, (void *)&(current->member), operation(current->member)); \
         else if (previous.member != current->member) \
         { \
             printf("%s(%p): " format " -> " format "\n", #member, (void *)&(current->member), operation(previous.member), operation(current->member)); \
@@ -331,6 +371,7 @@ static void output_buffer_diff(char const * const name, void const * const curre
 
 #define output_enum(name, member)               output_diff("%s", name ## _as_string, member)
 #define output_boolean(member)                  output_diff("%s", boolean_as_string, member)
+#define output_character(member)                output_diff("%s", character_as_string, member)
 #define output_pointer(member)                  output_diff("%p", (void const *), member)
 #define output_unsigned_int(member)             output_diff("%u", (unsigned int), member)
 #define output_signed_int(member)               output_diff("%d", (signed int), member)
@@ -344,9 +385,6 @@ static void output_buffer_diff(char const * const name, void const * const curre
 #define output_rci_attribute_list(name)         do { output_size(name.count); assert(asizeof(current->name.pair) == 2); output_rci_attribute(name.pair[0]); output_rci_attribute(name.pair[1]); } while (0)
 
 #define output_service_data_buffer_diff(name)   output_buffer_diff("service_data." #name, current->service_data->name.data, service_data.name.data, current->service_data->name.bytes)
-
-#define RCI_DEBUG_SHOW_ALL      idigi_true
-#define RCI_DEBUG_SHOW_DIFFS    idigi_false
 
 static void output_debug_info(rci_t const * const current, idigi_bool_t const show_all)
 {
@@ -380,12 +418,11 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
     output_enum(rci_parser_state_t, parser.state.previous);
 
     output_enum(rci_input_state_t, input.state);
-    output_signed_int(input.character);
+    output_character(input.character);
     output_pointer(input.destination);
     output_boolean(input.send_content);
     output_enum(rci_command_t, input.command);
     output_rci_string(input.entity);
-    output_rci_attribute_list(input.attribute);
 
     output_enum(rci_traversal_state_t, traversal.state);
     output_rci_string(traversal.tag);
@@ -418,6 +455,7 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
     {
         output_string(shared.response.element_data.error_hint);
     }
+    output_rci_attribute_list(shared.attribute);
 
     output_service_data_buffer_diff(input);
     output_service_data_buffer_diff(output);
@@ -426,6 +464,7 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
     
     previous = *current;
     step++;
+    ASSERT(step < 1000);
 }
 
 #endif

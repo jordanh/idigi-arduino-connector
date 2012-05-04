@@ -86,14 +86,14 @@ static void rci_output_character(rci_buffer_t * const output, size_t * const rem
 
 static idigi_bool_t rci_output_non_entity_character(rci_buffer_t * const output, size_t * const remaining, int const value)
 {
-    idigi_bool_t const overflow = (rci_entity_name(value) != NULL);
+    idigi_bool_t const non_entity_character = (rci_entity_name(value) == NULL);
     
-    if (!overflow)
+    if (non_entity_character)
     {
         rci_output_character(output, remaining, value);
     }
     
-    return overflow;
+    return non_entity_character;
 }
 
 static idigi_bool_t rci_output_entity_name(rci_buffer_t * const output, size_t * const remaining, int const value)
@@ -174,6 +174,8 @@ static void rci_generate_output(rci_t * const rci)
             overflow = rci_output_rcistr(output, &remaining, rci->output.tag);
             if (overflow) break;
             
+            clear_rcistr(rci->output.tag);
+            
             switch (rci->output.type)
             {
                 case rci_output_type_end_tag:
@@ -181,8 +183,15 @@ static void rci_generate_output(rci_t * const rci)
                     break;
                 case rci_output_type_start_tag:
                 case rci_output_type_unary:
-                    rci->output.state = rci_output_state_element_param_space;
-                    rci->output.attribute_pair_index = 0;
+                    if (rci->output.attribute == NULL)
+                    {
+                        rci->output.state = (rci->output.type == rci_output_type_start_tag) ? rci_output_state_element_tag_close : rci_output_state_element_tag_slash;
+                    }
+                    else
+                    {
+                        rci->output.state = rci_output_state_element_param_space;
+                        rci->output.attribute_pair_index = 0;
+                    }
                     break;
                 default:
                     ASSERT(idigi_false);
@@ -196,11 +205,9 @@ static void rci_generate_output(rci_t * const rci)
             switch (rci->output.type)
             {
                 case rci_output_type_end_tag:
-                    rci->output.state = rci_output_state_element_tag_name;
-                    break;
                 case rci_output_type_start_tag:
                 case rci_output_type_unary:
-                    rci->output.state = rci_output_state_element_tag_close;
+                    rci->output.state = rci_output_state_none;
                     break;
                 default:
                     ASSERT(idigi_false);
@@ -243,6 +250,7 @@ static void rci_generate_output(rci_t * const rci)
             overflow = rci_output_rcistr(output, &remaining, &rci->output.attribute->pair[rci->output.attribute_pair_index].name);
             if (overflow) break;
             
+            clear_rcistr(&rci->output.attribute->pair[rci->output.attribute_pair_index].name);
             switch (rci->output.type)
             {
                 case rci_output_type_end_tag:
@@ -288,8 +296,9 @@ static void rci_generate_output(rci_t * const rci)
                     else
                     {
                         ASSERT(rci->output.state == rci_output_state_element_param_end_quote);
-                        rci->output.state = rci_output_state_element_param_space;
                         rci->output.attribute_pair_index++;
+                        clear_rcistr(&rci->output.attribute->pair[rci->output.attribute_pair_index].value);
+                        rci->output.state = rci_output_state_element_param_space;
                     }
                     break;
                 default:
@@ -299,11 +308,16 @@ static void rci_generate_output(rci_t * const rci)
             break;
         case rci_output_state_element_param_value:
             rci->output.entity_scan_index = 0;
+            rci->output.state = rci_output_state_element_param_value_scan;
             /* no break; */
         case rci_output_state_element_param_value_scan:
             if (rci_output_non_entity_character(output, &remaining, rci->output.attribute->pair[rci->output.attribute_pair_index].value.data[rci->output.entity_scan_index]))
             {
                 rci->output.entity_scan_index++;
+                if (rci->output.entity_scan_index == rci->output.attribute->pair[rci->output.attribute_pair_index].value.length)
+                {
+                        rci->output.state = rci_output_state_element_param_end_quote;
+                }
             }
             else
             {
@@ -315,13 +329,13 @@ static void rci_generate_output(rci_t * const rci)
             overflow = rci_output_entity_name(output, &remaining, rci->output.attribute->pair[rci->output.attribute_pair_index].value.data[rci->output.entity_scan_index]);
             if (overflow) break;
             
-            rci->output.entity_scan_index++;
             rci->output.state = rci_output_state_element_param_value_semicolon;
             break;
         case rci_output_state_element_param_value_semicolon:
             rci_output_character(output, &remaining, ';');
 
-            rci->output.state = rci_output_state_element_param_value;
+            rci->output.entity_scan_index++;
+            rci->output.state = rci_output_state_element_param_value_scan;
             break;
         case rci_output_state_content:
             switch (rci->shared.request.element.type)

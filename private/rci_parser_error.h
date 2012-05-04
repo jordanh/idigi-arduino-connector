@@ -31,41 +31,63 @@ static void rci_generate_error(rci_t * const rci)
         /* unlikely case - have it be the one to come back around */
         if (rci->input.command == rci_command_unseen)
         {
-            rci_prep_reply(rci, &rci->error.tag, &rci->error.attribute);
+            rci_prep_reply(rci, &rci->error.tag, &rci->shared.attribute);
             rci->error.state = rci_error_state_error_open;
             break;
         }
         else
         {
             rci->output.tag = &rci->error.tag;
-            rci->output.attribute = &rci->error.attribute;
+            rci->output.attribute = &rci->shared.attribute;
             /* no break; */
         }
         
     case rci_error_state_error_open:
         cstr_to_rci_string(RCI_ERROR, &rci->error.tag);
-        rci->error.attribute.count = 0;
+        rci->output.attribute->count = 1;
+        cstr_to_rci_string(RCI_INDEX, &rci->output.attribute->pair[0].name);
+        rci->output.attribute->pair[0].value.data = rci->input.storage;
+        rci->output.attribute->pair[0].value.length = sprintf(rci->input.storage, "%d", rci->shared.response.error_id);
+        
         rci->output.type = rci_output_type_start_tag;
         
+#if defined RCI_PARSER_USES_DESCRIPTIONS
         rci->error.state = rci_error_state_error_content;
+#else
+        rci->error.state = rci_error_state_error_close;
+#endif        
         break;
             
     case rci_error_state_error_content:
 #if defined RCI_PARSER_USES_DESCRIPTIONS
         output.content.data.counted_string = rci->output.description;
         rci->output.type = rci_output_type_content;
-#endif        
         rci->error.state = rci_error_state_error_close;
+#endif
         break;
         
     case rci_error_state_error_close:
+        cstr_to_rci_string(RCI_ERROR, &rci->error.tag);
+        rci->output.attribute = NULL;
         rci->output.type = rci_output_type_end_tag;
         
-        rci->error.state = (rci->input.command == rci_command_unseen) ? rci_error_state_reply_close : rci_error_state_element_close;
+        switch (rci->input.command)
+        {
+        case rci_command_unseen:
+        case rci_command_unknown:
+            rci->error.state = rci_error_state_reply_close;
+            break;
+        default:
+            if (rci->shared.request.element.id != INVALID_ID)
+                rci->error.state = rci_error_state_element_close;
+            else if (rci->shared.request.group.id != INVALID_ID)
+                rci->error.state = rci_error_state_group_close;
+            else
+                rci->error.state = rci_error_state_command_close;
+        }    
         break;
         
     case rci_error_state_element_close:
-        if (rci->shared.request.element.id != INVALID_ID)
         {
             idigi_group_table_t const * const table = (idigi_group_table + rci->shared.request.group.type);
             idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
@@ -75,15 +97,10 @@ static void rci_generate_error(rci_t * const rci)
             rci->shared.request.element.id = INVALID_ID;
 
             rci->error.state = rci_error_state_group_close;
-            break;
         }
-        else
-        {
-            /* no break; */
-        }
+        break;
         
     case rci_error_state_group_close:
-        if (rci->shared.request.group.id != INVALID_ID)
         {
             idigi_group_table_t const * const table = (idigi_group_table + rci->shared.request.group.type);
             idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
@@ -94,20 +111,22 @@ static void rci_generate_error(rci_t * const rci)
             rci->shared.request.group.id = INVALID_ID;
 
             rci->error.state = rci_error_state_command_close;
-            break;
         }
-        else
-        {
-            /* no break; */
-        }
-        
-    
+        break;
+
     case rci_error_state_command_close:
         {
-            idigi_bool_t const is_set = (rci->shared.request.action == idigi_remote_action_set);
-            idigi_bool_t const is_setting = (rci->shared.request.group.type == idigi_remote_group_setting);
-            char const * const tag = is_set ? (is_setting ? RCI_SET_SETTING : RCI_SET_STATE) : (is_setting ? RCI_QUERY_SETTING : RCI_QUERY_STATE);
- 
+            char const * tag = NULL;
+
+            switch (rci->input.command)
+            {
+            case rci_command_set_setting:   tag = RCI_SET_SETTING;      break;
+            case rci_command_set_state:     tag = RCI_SET_STATE;        break;
+            case rci_command_query_setting: tag = RCI_QUERY_SETTING;    break;
+            case rci_command_query_state:   tag = RCI_QUERY_STATE;      break;
+            default:                        ASSERT(idigi_false);        break;
+            }
+             
             rci_callback(rci, idigi_remote_config_action_end);
 
             cstr_to_rci_string(tag, &rci->error.tag);
@@ -116,7 +135,7 @@ static void rci_generate_error(rci_t * const rci)
         break;
 
     case rci_error_state_reply_close:
-       rci_callback(rci, idigi_remote_config_session_end);
+        rci_callback(rci, idigi_remote_config_session_end);
 
         cstr_to_rci_string(RCI_REQUEST, &rci->error.tag);
         rci->error.state = rci_error_state_complete;
