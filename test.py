@@ -343,28 +343,33 @@ def main():
 
     if args.configuration == 'default' or args.configuration == 'all':
         print "============ Default ============="
-        run_tests('%s_%s' % (args.descriptor, 'Default'), '.', True, api, cflags, tty=args.tty)
+        run_tests('%s_%s' % (args.descriptor, 'Default'), '.', True, api, cflags, 
+        [('public/include/idigi_config.h', 'IDIGI_NO_FILE_SYSTEM', 'IDIGI_FILE_SYSTEM')], tty=args.tty)
 
     if args.configuration == 'nodebug' or args.configuration == 'all':
         print "============ No Debug ============="
         run_tests('%s_%s' % (args.descriptor, 'Release'), '.', False, api, cflags, 
-        [('public/include/idigi_config.h', 'IDIGI_DEBUG', 'IDIGI_NO_DEBUG')], tty=args.tty)
+        [('public/include/idigi_config.h', 'IDIGI_DEBUG', 'IDIGI_NO_DEBUG'),
+         ('public/include/idigi_config.h', 'IDIGI_NO_FILE_SYSTEM', 'IDIGI_FILE_SYSTEM')], tty=args.tty)
 
     if args.configuration == 'compression' or args.configuration == 'all':
         print "============ Compression On ============="
         run_tests('%s_%s' % (args.descriptor, 'Compression'), '.', False, api, cflags,
         [('public/include/idigi_config.h', 'IDIGI_NO_COMPRESSION', 
          'IDIGI_COMPRESSION'), 
+         ('public/include/idigi_config.h', 'IDIGI_NO_FILE_SYSTEM', 'IDIGI_FILE_SYSTEM'),
          ('public/include/idigi_config.h', 'IDIGI_DEBUG', 'IDIGI_NO_DEBUG')], tty=args.tty)
 
     if args.configuration == 'debug' or args.configuration == 'all':
         print "============ Debug On ============="
         run_tests('%s_%s' % (args.descriptor, 'Debug'), '.', True, api, cflags, 
-        [('public/include/idigi_config.h', 'IDIGI_NO_DEBUG', 'IDIGI_DEBUG')], tty=args.tty)
+        [('public/include/idigi_config.h', 'IDIGI_NO_DEBUG', 'IDIGI_DEBUG'),
+         ('public/include/idigi_config.h', 'IDIGI_NO_FILE_SYSTEM', 'IDIGI_FILE_SYSTEM')], tty=args.tty)
 
     if args.configuration == 'config_header' or args.configuration == 'all':
         print "============ Configurations in idigi_config.h ============="
         run_tests('%s_%s' % (args.descriptor, 'idigiconfig'), '.', True, api, cflags,
+        [('public/include/idigi_config.h', 'IDIGI_NO_FILE_SYSTEM', 'IDIGI_FILE_SYSTEM')],
             update_config_header=True, tty=args.tty)
 
     if args.configuration == 'template' or args.configuration == 'all':

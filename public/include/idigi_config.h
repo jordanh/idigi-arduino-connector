@@ -158,16 +158,22 @@
 #define IDIGI_DATA_SERVICE
 
 /**
+ * This is a compilation convenience definition.  See @ref IDIGI_FILE_SYSTEM.
+ *
+ */
+#define IDIGI_NO_FILE_SYSTEM
+#if (!defined (IDIGI_NO_FILE_SYSTEM) || defined(DIGI_REQUIRED_TO_GENERATE_INTERNAL_DOCUMENATION))
+/**
  * If defined, IIK includes the @ref file_system.
- * To disable the @ref file_system feature, change this line in idigi_config.h:
+ * To enable the @ref file_system feature change this line in idigi_config.h:
  *
  * @code
- * #define IDIGI_FILE_SYSTEM
+ * #define IDIGI_NO_FILE_SYSTEM
  * @endcode
  *
  * To this:
  * @code
- * //#define IDIGI_FILE_SYSTEM
+ * #define IDIGI_FILE_SYSTEM
  * @endcode
  *
  * @see @ref file_system_support
@@ -175,6 +181,7 @@
  * @see @ref IDIGI_NO_COMPRESSION
  */
 #define IDIGI_FILE_SYSTEM
+#endif
 
 /**
  * This is used to define the maximum content length in bytes of an element's value for the remote_configuration _service,
