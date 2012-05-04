@@ -101,8 +101,7 @@ class FileSystemTestCase(iik_testcase.TestCase):
                     if eachFile[FILE_NAME] == fname:
                         fileFound = True
                         if hashAlgo == 'md5' or hashAlgo == 'any':
-                            fpath = 'dvt/samples/file_system/' + fname
-                            hash_value = self.md5Checksum(fpath)
+                            hash_value = self.md5Checksum(fname)
                             hash_value = hash_value.upper();
                             eachFile[FILE_HASH] = eachFile[FILE_HASH].upper()
                             self.assertEqual(eachFile[FILE_HASH], hash_value , "Mismatch file hash [%s, expected:%s, actual:%s]" %(fname, hash_value, eachFile[3]))
