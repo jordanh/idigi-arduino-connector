@@ -10,6 +10,7 @@
 
 # Ignore generate nosetests
 nosestest*.xml
+*.nxml
 
 # Ignore generated archive and output dirs
 archive
