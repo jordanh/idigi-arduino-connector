@@ -44,6 +44,7 @@ import argparse
 from stat import * # ST_SIZE etc
 from threading import Thread
 
+BASE_SCRIPT_DIR= 'dvt/cases/'
 SAMPLE_SCRIPT_DIR='dvt/cases/sample_tests/'
 SAMPLE_PLATFORM_RUN_DIR = 'public/run/platforms/linux/'
 SAMPLE_PLATFORM_STEP_DIR = 'public/step/platforms/linux/'
