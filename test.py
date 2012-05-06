@@ -40,6 +40,7 @@ from build_utils import get_template_dirs, setup_platform, build, sandbox
 sys.path.append('./dvt/scripts')
 import config
 import argparse
+import gcov as gcov_config
 
 from stat import * # ST_SIZE etc
 from threading import Thread
@@ -57,6 +58,8 @@ SSL_CA_CERT_DST = './public/include/idigi-ca-cert-public.crt'
 
 DEVICE_ID_PROTOTYPE = '00000000-00000000-%sFF-FF%s'
 MAC_ADDR_PROTOTYPE = '%s:%s'
+
+GCOV_FLAGS = " -g -pg -fprofile-arcs -ftest-coverage"
 #
 # Modify this table when adding a new test.
 # 
@@ -162,7 +165,7 @@ def start_iik(executable, tty=False):
 
 def run_test(test, test_list, execution_type, base_src_dir, base_script_dir, 
     description, base_dir, debug_on, api, cflags, replace_list=[], 
-    update_config_header=False, tty=False):
+    update_config_header=False, tty=False, gcov=False):
     device_location = None
     try:
         sandbox_dir = sandbox(base_dir)
@@ -194,6 +197,28 @@ def run_test(test, test_list, execution_type, base_src_dir, base_script_dir,
                 os.path.join(sandbox_dir, 'public/include/idigi_config.h'), 
                 os.path.join(test_dir, 'config.ini'))
  
+        if gcov is True:
+            cflags += GCOV_FLAGS
+            # Resolve the main.c file.  If it exists inthe src_dir assume
+            # that is what is used, otherwise autoresolve to 
+            # ../../platforms/linux/main.c
+            main = None
+            local_main = os.path.join(src_dir, "main.c")
+            if os.path.isfile(local_main):
+                main = local_main
+            else:
+                platform_main = os.path.join(src_dir, 
+                    "../../platforms/linux/main.c")
+                if os.path.isfile(platform_main):
+                    main = platform_main
+                else:
+                    print "Error:  Could not resolve main.c."
+                    return
+            # Instrument the main file with a __gcov_flush USR1 signal hook.
+            gcov_config.instrument(main)
+            # Add -lgcov to libraries.
+            gcov_config.add_lib(os.path.join(src_dir, "Makefile"))
+
         print '>>> [%s] Testing [%s]-[%s]' % (description, execution_type, test)
 
         build_args = ['nosetests',
@@ -284,8 +309,13 @@ def run_test(test, test_list, execution_type, base_src_dir, base_script_dir,
                         print '>>> [%s] Finished [%s]-[%s]' % (description, execution_type, test_script)
         finally:
             # Killing the process should also cause the thread to complete.
-            print '>>> [%s] Killing Process with pid [%s]' % (description, pid)
-            os.kill(int(pid), signal.SIGKILL)
+            if gcov:
+                print '>>> [%s] Flushing gcov coverage data for pid [%s] and exiting.' % (description, pid)
+                os.kill(int(pid), signal.SIGUSR1)
+                os.system('dvt/scripts/gcovr %s --root %s -d --xml > %s_%s_%s_%s_coverage.xml' % (sandbox_dir, sandbox_dir, description, execution_type, test, test_script))
+            else:
+                print '>>> [%s] Killing Process with pid [%s]' % (description, pid)
+                os.kill(int(pid), signal.SIGKILL)
     except Exception, e:
         print ">>> [%s] Error: %s" % (description, e)
     finally:
@@ -297,11 +327,12 @@ def run_test(test, test_list, execution_type, base_src_dir, base_script_dir,
                 # If we get a failure deleting the device, proceed
                 # as the device was already removed.
                 pass
-        shutil.rmtree(sandbox_dir)
+        #shutil.rmtree(sandbox_dir)
 
 
 def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[], 
-    update_config_header=False, tty=False, test_type=None, test_name=None):
+    update_config_header=False, tty=False, gcov=False, test_type=None, 
+    test_name=None):
 
     tests = TESTS
     # If test_type is defined, filter tests executed to the test_type.
@@ -329,14 +360,16 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
                 if test_list.has_key(test_name):
                     test_list = { test_name : test_list[test_name] }
                 else:
-                    print "Error: %s is not valid for this test type."
+                    print "Error: no tests found for %s with this test type."\
+                        % test_name
                     return
 
             for test_set in test_list:
                 run_test(test_set, test_list[test_set], test, 
                     os.path.join(test_type.src_dir, test_set), 
                     test_type.script_dir, description, base_dir, debug_on, 
-                    api, cflags, replace_list, update_config_header, tty)
+                    api, cflags, replace_list, update_config_header, tty, 
+                    gcov)
 
 def clean_output(directory):
     for root, folders, files in os.walk(directory):
@@ -381,6 +414,7 @@ def main():
                                     'debug', 'config_header', 'template', 
                                     'all'])
     parser.add_argument('--tty', action='store_true',dest='tty', default=False)
+    parser.add_argument('--gcov', action='store_true', dest='gcov', default=False)
 
     args = parser.parse_args()
 
@@ -427,14 +461,15 @@ def main():
         run_tests('%s_%s' % (args.descriptor, 'Debug'), '.', True, api, cflags, 
         [('public/include/idigi_config.h', 'IDIGI_NO_DEBUG', 'IDIGI_DEBUG'),
          ('public/include/idigi_config.h', 'IDIGI_NO_FILE_SYSTEM', 'IDIGI_FILE_SYSTEM')], 
-         tty=args.tty, test_name=args.test_name, test_type=args.test_type)
+         tty=args.tty, gcov=args.gcov, test_name=args.test_name, 
+         test_type=args.test_type)
 
     if args.configuration == 'config_header' or args.configuration == 'all':
         print "============ Configurations in idigi_config.h ============="
         run_tests('%s_%s' % (args.descriptor, 'idigiconfig'), '.', True, api, cflags,
         [('public/include/idigi_config.h', 'IDIGI_NO_FILE_SYSTEM', 'IDIGI_FILE_SYSTEM')],
-            update_config_header=True, tty=args.tty,
-            test_name=args.test_name, test_type=args.test_type)
+        update_config_header=True, tty=args.tty, test_name=args.test_name, 
+        test_type=args.test_type)
 
     if args.configuration == 'template' or args.configuration == 'all':
         print "============ Template platform ============="
