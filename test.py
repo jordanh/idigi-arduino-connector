@@ -296,7 +296,7 @@ def run_test(test, test_list, execution_type, base_src_dir, base_script_dir,
                 # If we get a failure deleting the device, proceed
                 # as the device was already removed.
                 pass
-        #shutil.rmtree(sandbox_dir)
+        shutil.rmtree(sandbox_dir)
 
 
 def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[], 
