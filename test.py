@@ -105,11 +105,11 @@ dvt_tests = {
 dvt_test    = TestType('dvt_test', 'dvt/samples/', 'dvt/cases/dvt_tests',
                        dvt_tests)
 
-keepalive_test = TestType('keepalive_test', 'dvt/samples/', 
-                          'dvt/cases/keep_alive')
 keepalive_tests = {
     'keep_alive_test'             : ('test_keep_alive.py',),
 }
+keepalive_test = TestType('keepalive_test', 'dvt/samples/', 
+                          'dvt/cases/keep_alive', keepalive_tests)
 
 admin_tests = {
     'full_test'                   : ('test_redirect.py', 
@@ -123,6 +123,9 @@ TESTS = dict((test.name,test) for test in [run_sample, step_sample,
                                            dvt_test, admin_test, 
                                            keepalive_test])
 SAMPLE_TESTS = dict((test.name,test) for test in [run_sample, step_sample])
+
+DVT_TESTS = dict((test.name,test) for test in [dvt_test, admin_test, 
+                                           keepalive_test])
 
 def generate_id(api):
     """
@@ -306,6 +309,9 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
         if test_type == 'sample':
             print "Executing sample tests."
             tests = SAMPLE_TESTS
+        elif test_type == 'dvt':
+            print "Executing dvt tests."
+            tests = DVT_TESTS
         elif test_type not in TESTS:
             print "Error:  test_type (%s) is not valid (%s)."\
                 % (test_type, TESTS.keys())
