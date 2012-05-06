@@ -22,8 +22,6 @@
 #
 import commands
 import sys
-import os
-import time
 import getopt
 import signal
 import imp
@@ -50,17 +48,7 @@ SAMPLE_SCRIPT_DIR='dvt/cases/sample_tests/'
 SAMPLE_PLATFORM_RUN_DIR = 'public/run/platforms/linux/'
 SAMPLE_PLATFORM_STEP_DIR = 'public/step/platforms/linux/'
 
-BASE_RUN_SAMPLE_DIR='public/run/samples/'
-BASE_STEP_SAMPLE_DIR='public/step/samples/'
-BASE_DVT_SRC='dvt/samples/'
-BASE_SCRIPT_DIR='dvt/cases/'
 BUILD_TEST='dvt/cases/build_tests/test_build.py'
-
-#indices of test_table
-EXECUTION = 0
-SRC_DIR  = 1
-TEST_DIR = 2
-TEST_LIST = 3
 
 MEMORY_USAGE_FILE = './dvt/memory_usage.txt'
 SSL_CA_CERT_SRC = './dvt/cases/test_files/idigi-ca-cert-public.crt'
@@ -78,35 +66,63 @@ MAC_ADDR_PROTOTYPE = '%s:%s'
 # 2. Directory of the python test script
 # 3. List of python test scripts to run
 #
-#              Execution type   Directory                                 Script directory                Test Scripts
-test_table = [
-              ['step',          BASE_STEP_SAMPLE_DIR+'compile_and_link',  BASE_SCRIPT_DIR+'sample_tests/', ['test_discovery.py']],
-              ['step',          BASE_STEP_SAMPLE_DIR+'connect_to_idigi',  BASE_SCRIPT_DIR+'sample_tests/', ['test_discovery.py']],
-              ['step',          BASE_STEP_SAMPLE_DIR+'connect_on_ssl',    BASE_SCRIPT_DIR+'sample_tests/', ['test_ssl.py']],
-              ['step',          BASE_STEP_SAMPLE_DIR+'firmware_download', BASE_SCRIPT_DIR+'sample_tests/', ['test_firmware.py']],
-              ['step',          BASE_STEP_SAMPLE_DIR+'send_data',         BASE_SCRIPT_DIR+'sample_tests/', ['test_send_data.py']],
-              ['step',          BASE_STEP_SAMPLE_DIR+'device_request',    BASE_SCRIPT_DIR+'sample_tests/', ['test_device_request.py']],
-              ['run',           BASE_RUN_SAMPLE_DIR+'compile_and_link',   BASE_SCRIPT_DIR+'sample_tests/', ['test_discovery.py']],
-              ['run',           BASE_RUN_SAMPLE_DIR+'connect_to_idigi',   BASE_SCRIPT_DIR+'sample_tests/', ['test_discovery.py']],
-              ['run',           BASE_RUN_SAMPLE_DIR+'connect_on_ssl',     BASE_SCRIPT_DIR+'sample_tests/', ['test_ssl.py']],
-              ['run',           BASE_RUN_SAMPLE_DIR+'firmware_download',  BASE_SCRIPT_DIR+'sample_tests/', ['test_firmware.py']],
-              ['run',           BASE_RUN_SAMPLE_DIR+'send_data',          BASE_SCRIPT_DIR+'sample_tests/', ['test_send_data.py']],
-              ['run',           BASE_RUN_SAMPLE_DIR+'device_request',     BASE_SCRIPT_DIR+'sample_tests/', ['test_device_request.py']],
-              ['dvt',           BASE_DVT_SRC+'full_test',                 BASE_SCRIPT_DIR+'dvt_tests/',    ['test_firmware_errors.py', 
-                                                                                                            'test_device_request.py',
-                                                                                                            'test_put_request.py']],
-              ['dvt',           BASE_DVT_SRC+'file_system',               BASE_SCRIPT_DIR+'dvt_tests/',    ['test_fs_positive.py',
-                                                                                                            'test_fs_negative.py']],
-              ['dvt',           BASE_DVT_SRC+'keep_alive_test',           BASE_SCRIPT_DIR+'keep_alive/',   ['test_keep_alive.py']],
-              ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'admin_tests/',  ['test_redirect.py']],
-              ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'admin_tests/',  ['test_nodebug_redirect.py']],
-              ['dvt',           BASE_DVT_SRC+'data_service',              BASE_SCRIPT_DIR+'dvt_tests/',    ['test_reboot.py',
-                                                                                                            'test_disconnect.py']],
-              ['dvt',           BASE_DVT_SRC+'reboot_test',               BASE_SCRIPT_DIR+'dvt_tests/',    ['test_delay_reboot.py',
-                                                                                                            'test_disconnect.py']],
-              ['dvt',           BASE_DVT_SRC+'terminate_test',             BASE_SCRIPT_DIR+'dvt_tests/',    ['test_ds_terminate.py']],
-              ['dvt',           BASE_DVT_SRC+'response_to_bad_values_test', BASE_SCRIPT_DIR+'dvt_tests/',   ['test_debug_response_to_bad_values.py']],
-]
+#              Execution type   Test Set                                           Script directory                Test Scripts
+
+class TestType(object):
+
+    def __init__(self, name, src_dir, script_dir, tests):
+        self.name = name
+        self.src_dir = src_dir
+        self.script_dir = script_dir
+        self.tests = tests
+
+sample_tests = {
+    'compile_and_link'  : [],
+    'connect_to_idigi'  : ('test_discovery.py',),
+    'connect_on_ssl'    : ('test_ssl.py',),
+    'firmware_download' : ('test_firmware.py',),
+    'send_data'         : ('test_send_data.py',),
+    'device_request'    : ('test_device_request.py',)
+}
+run_sample  = TestType('run_sample', 'public/run/samples/', 
+                       'dvt/cases/sample_tests', sample_tests)
+step_sample = TestType('step_sample', 'public/step/samples/', 
+                       'dvt/cases/sample_tests', sample_tests)
+
+dvt_tests = {
+    'full_test'                   : ('test_firmware_errors.py', 
+                                     'test_device_request.py', 
+                                     'test_put_request.py',
+                                     'test_reboot.py',
+                                     'test_disconnect.py'),
+    'file_system'                 : ('test_fs_positive.py',
+                                     'test_fs_negative.py'),
+    'reboot_test'                 : ('test_delay_reboot.py',
+                                     'test_disconnect.py'),
+    'terminate_test'              : ('test_ds_terminate.py',),
+    'response_to_bad_values_test' : ('test_debug_response_to_bad_values.py',),
+}
+dvt_test    = TestType('dvt_test', 'dvt/samples/', 'dvt/cases/dvt_tests',
+                       dvt_tests)
+
+keepalive_test = TestType('keepalive_test', 'dvt/samples/', 
+                          'dvt/cases/keep_alive')
+keepalive_tests = {
+    'keep_alive_test'             : ('test_keep_alive.py',),
+}
+
+admin_tests = {
+    'full_test'                   : ('test_redirect.py', 
+                                     'test_nodebug_redirect.py')
+}
+admin_test  = TestType('admin_test',  'dvt/samples', 
+                       'dvt/cases/admin_tests', admin_tests)
+
+# Dictionary mapping Test Type name to it's instance.
+TESTS = dict((test.name,test) for test in [run_sample, step_sample, 
+                                           dvt_test, admin_test, 
+                                           keepalive_test])
+SAMPLE_TESTS = dict((test.name,test) for test in [run_sample, step_sample])
 
 def generate_id(api):
     """
@@ -140,146 +156,180 @@ def start_iik(executable, tty=False):
     else:
         os.system('%s 2>&1' % (executable))
 
-def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[], 
+def run_test(test, test_list, execution_type, base_src_dir, base_script_dir, 
+    description, base_dir, debug_on, api, cflags, replace_list=[], 
     update_config_header=False, tty=False):
-
-    for test in test_table:
+    device_location = None
+    try:
         sandbox_dir = sandbox(base_dir)
-        device_location = None
+
+        for (f, s, r) in replace_list:
+            config.replace_string(os.path.join(sandbox_dir, f), s, r)
+
+        (device_id, mac_addr, device_location) = generate_id(api)
+        src_dir        = os.path.join(sandbox_dir, base_src_dir)
+        test_dir       = os.path.join(sandbox_dir, base_script_dir)
+        if not (src_dir.find('compile_and_link') == -1):
+            config.replace_string(os.path.join(src_dir, 'Makefile'), 
+                'c99', 'c89')
+
+        # Use config.c in the local directory if it exists
         try:
-            for (f, s, r) in replace_list:
-                config.replace_string(os.path.join(sandbox_dir, f), s, r)
+            filename = os.path.join(src_dir, "config.c")
+            f = open(filename, 'r')
+            f.close()
+            setup_platform(test_dir, src_dir, mac_addr)
+        except IOError:
+            setup_platform(test_dir, os.path.join(sandbox_dir, 
+                SAMPLE_PLATFORM_RUN_DIR), mac_addr)
+            setup_platform(test_dir, os.path.join(sandbox_dir, 
+                SAMPLE_PLATFORM_STEP_DIR), mac_addr)
 
-            (device_id, mac_addr, device_location) = generate_id(api)
-            src_dir        = os.path.join(sandbox_dir, test[SRC_DIR])
-            test_dir       = os.path.join(sandbox_dir, test[TEST_DIR])
-            src_dirname    = os.path.basename(src_dir)
-            test_list      = test[TEST_LIST]
+        if update_config_header:
+            config.update_config_header(
+                os.path.join(sandbox_dir, 'public/include/idigi_config.h'), 
+                os.path.join(test_dir, 'config.ini'))
+ 
+        print '>>> [%s] Testing [%s]-[%s]' % (description, execution_type, test)
 
-            if not (src_dir.find('compile_and_link') == -1):
-                config.replace_string(os.path.join(src_dir, 'Makefile'), 'c99', 'c89')
+        build_args = ['nosetests',
+                      '--with-xunit',
+                      '-s', # Don't Capture STDOUT
+                      '--xunit-file=%s_%s_%s_build.nxml' % (description, execution_type, test),
+                      '--with-build',
+                      '--build_cflags=%s' % cflags,
+                      '--build_src=%s' % src_dir]
 
-            # Use config.c in the local directory if it exists
-            try:
-                filename = os.path.join(src_dir, "config.c")
-                f = open(filename, 'r')
-                f.close()
-                setup_platform(test_dir, src_dir, mac_addr)
-            except IOError:
-                setup_platform(test_dir, os.path.join(sandbox_dir, SAMPLE_PLATFORM_RUN_DIR), mac_addr)
-                setup_platform(test_dir, os.path.join(sandbox_dir, SAMPLE_PLATFORM_STEP_DIR), mac_addr)
+        rc = nose.run(defaultTest=[BUILD_TEST], argv=build_args)
 
-            execution_type = test[EXECUTION]
+        # If False is returned, Fail this build
+        if rc == False:
+            raise Exception("Failed to Build from %s." % src_dir)
+    
+        if not (src_dir.find('compile_and_link') == -1):
+            print '>>> [%s] Finished [%s]-[%s]' % (description, src_dir, 'c89')
+            return
 
-            if update_config_header:
-                config.update_config_header(
-                    os.path.join(sandbox_dir, 'public/include/idigi_config.h'), 
-                    os.path.join(test_dir, 'config.ini'))
-     
-            print '>>> [%s] Testing [%s]-[%s]' % (description, execution_type, src_dir)
+        print '>>> [%s] Starting idigi [%s]-[%s]' % (description, execution_type, src_dir)
 
-            build_args = ['nosetests',
-                          '--with-xunit',
-                          '-s', # Don't Capture STDOUT
-                          '--xunit-file=%s_%s_%s_build.nxml' % (description, execution_type, src_dirname),
-                          '--with-build',
-                          '--build_cflags=%s' % cflags,
-                          '--build_src=%s' % src_dir]
+        # Move idigi executable to a unique file name to allow us to isolate
+        # the pid.
+        old_idigi_path = os.path.join(src_dir, 'idigi')
+        idigi_executable = str(uuid.uuid4())
+        idigi_path = os.path.join(src_dir, idigi_executable)
+        shutil.move(old_idigi_path, idigi_path)
 
-            rc = nose.run(defaultTest=[BUILD_TEST], argv=build_args)
+        # Spawn in separate thread rather than shelling off in background.
+        # Will allow capture of STDOUT/STDERR easier, save to separate file.
+        iik_thread = Thread(group=None, target=start_iik, args=(idigi_path,tty))
+        iik_thread.start()
 
-            # If False is returned, Fail this build
-            if rc == False:
-                raise Exception("Failed to Build from %s." % src_dir)
-        
-            if not (src_dir.find('compile_and_link') == -1):
-                print '>>> [%s] Finished [%s]-[%s]' % (description, src_dir, 'c89')
-                continue
+        connected = False
+        for _ in xrange(1,10):
+            device_core = api.get_first('DeviceCore', 
+                    condition="devConnectwareId='%s'" % device_id)
+            if hasattr(device_core, 'dpConnectionStatus') \
+                and device_core.dpConnectionStatus == '1':
+                print ">>> [%s] Device %s Connected." % (description, device_id)
+                connected = True
+                break
+            else:
+                time.sleep(1)
 
-            print '>>> [%s] Starting idigi [%s]-[%s]' % (description, execution_type, src_dir)
+        # Sleep 5 seconds to allow device to do it's initialization (push data for example)
+        time.sleep(5)
+        pid = commands.getoutput('pidof -s %s' % idigi_path)
+        if pid == '':
+            raise Exception(">>> [%s] idigi [%s] not running dir=[%s]" % (description, execution_type, src_dir))
 
-            # Move idigi executable to a unique file name to allow us to isolate
-            # the pid.
-            old_idigi_path = os.path.join(src_dir, 'idigi')
-            idigi_executable = str(uuid.uuid4())
-            idigi_path = os.path.join(src_dir, idigi_executable)
-            shutil.move(old_idigi_path, idigi_path)
+        if not connected:
+            raise Exception("Device %s was not connected after 10 seconds." % device_id)
 
-            # Spawn in separate thread rather than shelling off in background.
-            # Will allow capture of STDOUT/STDERR easier, save to separate file.
-            iik_thread = Thread(group=None, target=start_iik, args=(idigi_path,tty))
-            iik_thread.start()
+        print '>>> [%s] Started idigi [%s]-[%s]' % (description, execution_type, src_dir)
 
-            connected = False
-            for _ in xrange(1,10):
-                device_core = api.get_first('DeviceCore', 
-                        condition="devConnectwareId='%s'" % device_id)
-                if hasattr(device_core, 'dpConnectionStatus') \
-                    and device_core.dpConnectionStatus == '1':
-                    print ">>> [%s] Device %s Connected." % (description, device_id)
-                    connected = True
-                    break
+        try:
+            for test_script in test_list:
+                # skip the test if script filename starts with 'test_nodebug'
+                if debug_on and test_script.find('test_nodebug') == 0:
+                    print '>>> [%s] Skip [%s]-[%s] since debug is on' % (description, execution_type, test_script)
                 else:
-                    time.sleep(1)
-
-            # Sleep 5 seconds to allow device to do it's initialization (push data for example)
-            time.sleep(5)
-            pid = commands.getoutput('pidof -s %s' % idigi_path)
-            if pid == '':
-                raise Exception(">>> [%s] idigi [%s] not running dir=[%s]" % (description, execution_type, src_dir))
-
-            if not connected:
-                raise Exception("Device %s was not connected after 10 seconds." % device_id)
-
-            print '>>> [%s] Started idigi [%s]-[%s]' % (description, execution_type, src_dir)
-
-            try:
-                for test_script in test_list:
-                    # skip the test if script filename starts with 'test_nodebug'
-                    if debug_on and test_script.find('test_nodebug') == 0:
-                        print '>>> [%s] Skip [%s]-[%s] since debug is on' % (description, execution_type, test_script)
+                    # skip the test if script filename starts with 'test_debug'
+                    if (not debug_on and test_script.find('test_debug') == 0) or (update_config_header and test_script.find('test_debug') == 0):
+                        print '>>> [%s] Skip [%s]-[%s] since debug is off or update_config_header' % (description, execution_type, test_script)
+                        filename1 = "%s.txt" % device_id
+                        print '>>> deleting file [%s]' % filename1
+                        os.unlink(filename1)
                     else:
-                        # skip the test if script filename starts with 'test_debug'
-                        if (not debug_on and test_script.find('test_debug') == 0) or (update_config_header and test_script.find('test_debug') == 0):
-                            print '>>> [%s] Skip [%s]-[%s] since debug is off or update_config_header' % (description, execution_type, test_script)
-                            filename1 = "%s.txt" % device_id
-                            print '>>> deleting file [%s]' % filename1
-                            os.unlink(filename1)
-                        else:
-                            print '>>> [%s] Executing [%s]-[%s]' % (description, execution_type, test_script)
-                        
-                            # Argument list to call nose with.  Generate a nosetest xml file in 
-                            # current directory, pass in idigi / iik connection settings.
-                            arguments = ['nosetests',
-                                         '--with-xunit',
-                                         '-s', # Don't capture STDOUT (allow everything else to print)
-                                         '--xunit-file=%s_%s_%s_%s.nxml' % (description, execution_type, src_dirname, test_script),
-                                         '--with-iik',
-                                         '--idigi_username=%s'  % api.username,
-                                         '--idigi_password=%s'  % api.password,
-                                         '--idigi_hostname=%s'  % api.hostname,
-                                         '--iik_device_id=%s' % device_id,
-                                         '--iik_config=%s/config.ini' % test_dir]
-                        
-                            test_to_run = os.path.join(test_dir, test_script)
-                            nose.run(defaultTest=[test_to_run], argv=arguments)
-                            print '>>> [%s] Finished [%s]-[%s]' % (description, execution_type, test_script)
-            finally:
-                # Killing the process should also cause the thread to complete.
-                print '>>> [%s] Killing Process with pid [%s]' % (description, pid)
-                os.kill(int(pid), signal.SIGKILL)
-        except Exception, e:
-            print ">>> [%s] Error: %s" % (description, e)
+                        print '>>> [%s] Executing [%s]-[%s]' % (description, execution_type, test_script)
+                    
+                        # Argument list to call nose with.  Generate a nosetest xml file in 
+                        # current directory, pass in idigi / iik connection settings.
+                        arguments = ['nosetests',
+                                     '--with-xunit',
+                                     '-s', # Don't capture STDOUT (allow everything else to print)
+                                     '--xunit-file=%s_%s_%s_%s.nxml' % (description, execution_type, test, test_script),
+                                     '--with-iik',
+                                     '--idigi_username=%s'  % api.username,
+                                     '--idigi_password=%s'  % api.password,
+                                     '--idigi_hostname=%s'  % api.hostname,
+                                     '--iik_device_id=%s' % device_id,
+                                     '--iik_config=%s/config.ini' % test_dir]
+                    
+                        test_to_run = os.path.join(test_dir, test_script)
+                        nose.run(defaultTest=[test_to_run], argv=arguments)
+                        print '>>> [%s] Finished [%s]-[%s]' % (description, execution_type, test_script)
         finally:
-            # Delete the Device after we're done with it.
-            if device_location is not None:
-                try:
-                    api.delete_location(device_location)
-                except:
-                    # If we get a failure deleting the device, proceed
-                    # as the device was already removed.
-                    pass
-            shutil.rmtree(sandbox_dir)
+            # Killing the process should also cause the thread to complete.
+            print '>>> [%s] Killing Process with pid [%s]' % (description, pid)
+            os.kill(int(pid), signal.SIGKILL)
+    except Exception, e:
+        print ">>> [%s] Error: %s" % (description, e)
+    finally:
+        # Delete the Device after we're done with it.
+        if device_location is not None:
+            try:
+                api.delete_location(device_location)
+            except:
+                # If we get a failure deleting the device, proceed
+                # as the device was already removed.
+                pass
+        shutil.rmtree(sandbox_dir)
+
+
+def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[], 
+    update_config_header=False, tty=False, test_type=None, test_name=None):
+
+    tests = TESTS
+    # If test_type is defined, filter tests executed to the test_type.
+    if test_type is not None:
+        # If 'sample' is provided as the test_type, include all samples.
+        if test_type == 'sample':
+            print "Executing sample tests."
+            tests = SAMPLE_TESTS
+        elif test_type not in TESTS:
+            print "Error:  test_type (%s) is not valid (%s)."\
+                % (test_type, TESTS.keys())
+            return
+        else:
+            print "Executing %s tests." % test_type
+            tests = { test_type : TESTS[test_type] }
+
+    for test in tests:
+            test_type = tests[test]
+            test_list = test_type.tests
+            # If test_name is specified, filter test list to the test_name.
+            if test_name is not None:
+                if test_list.has_key(test_name):
+                    test_list = { test_name : test_list[test_name] }
+                else:
+                    print "Error: %s is not valid for this test type."
+                    return
+
+            for test_set in test_list:
+                run_test(test_set, test_list[test_set], test, 
+                    os.path.join(test_type.src_dir, test_set), 
+                    test_type.script_dir, description, base_dir, debug_on, 
+                    api, cflags, replace_list, update_config_header, tty)
 
 def clean_output(directory):
     for root, folders, files in os.walk(directory):
@@ -317,6 +367,8 @@ def main():
     parser.add_argument('--hostname', action='store', type=str, default='test.idigi.com')
     parser.add_argument('--descriptor', action='store', type=str, default='linux-x64')
     parser.add_argument('--architecture', action='store', type=str, default='x64')
+    parser.add_argument('--test_name', action='store', type=str, default=None)
+    parser.add_argument('--test_type', action='store', type=str, default=None)
     parser.add_argument('--configuration', action='store', type=str, 
         default='all', choices=['default', 'nodebug', 'compression', 
                                     'debug', 'config_header', 'template', 
@@ -344,13 +396,15 @@ def main():
     if args.configuration == 'default' or args.configuration == 'all':
         print "============ Default ============="
         run_tests('%s_%s' % (args.descriptor, 'Default'), '.', True, api, cflags, 
-        [('public/include/idigi_config.h', 'IDIGI_NO_FILE_SYSTEM', 'IDIGI_FILE_SYSTEM')], tty=args.tty)
+        [('public/include/idigi_config.h', 'IDIGI_NO_FILE_SYSTEM', 'IDIGI_FILE_SYSTEM')], 
+        tty=args.tty, test_name=args.test_name, test_type=args.test_type)
 
     if args.configuration == 'nodebug' or args.configuration == 'all':
         print "============ No Debug ============="
         run_tests('%s_%s' % (args.descriptor, 'Release'), '.', False, api, cflags, 
         [('public/include/idigi_config.h', 'IDIGI_DEBUG', 'IDIGI_NO_DEBUG'),
-         ('public/include/idigi_config.h', 'IDIGI_NO_FILE_SYSTEM', 'IDIGI_FILE_SYSTEM')], tty=args.tty)
+         ('public/include/idigi_config.h', 'IDIGI_NO_FILE_SYSTEM', 'IDIGI_FILE_SYSTEM')], 
+         tty=args.tty, test_name=args.test_name, test_type=args.test_type)
 
     if args.configuration == 'compression' or args.configuration == 'all':
         print "============ Compression On ============="
@@ -358,19 +412,22 @@ def main():
         [('public/include/idigi_config.h', 'IDIGI_NO_COMPRESSION', 
          'IDIGI_COMPRESSION'), 
          ('public/include/idigi_config.h', 'IDIGI_NO_FILE_SYSTEM', 'IDIGI_FILE_SYSTEM'),
-         ('public/include/idigi_config.h', 'IDIGI_DEBUG', 'IDIGI_NO_DEBUG')], tty=args.tty)
+         ('public/include/idigi_config.h', 'IDIGI_DEBUG', 'IDIGI_NO_DEBUG')], 
+         tty=args.tty, test_name=args.test_name, test_type=args.test_type)
 
     if args.configuration == 'debug' or args.configuration == 'all':
         print "============ Debug On ============="
         run_tests('%s_%s' % (args.descriptor, 'Debug'), '.', True, api, cflags, 
         [('public/include/idigi_config.h', 'IDIGI_NO_DEBUG', 'IDIGI_DEBUG'),
-         ('public/include/idigi_config.h', 'IDIGI_NO_FILE_SYSTEM', 'IDIGI_FILE_SYSTEM')], tty=args.tty)
+         ('public/include/idigi_config.h', 'IDIGI_NO_FILE_SYSTEM', 'IDIGI_FILE_SYSTEM')], 
+         tty=args.tty, test_name=args.test_name, test_type=args.test_type)
 
     if args.configuration == 'config_header' or args.configuration == 'all':
         print "============ Configurations in idigi_config.h ============="
         run_tests('%s_%s' % (args.descriptor, 'idigiconfig'), '.', True, api, cflags,
         [('public/include/idigi_config.h', 'IDIGI_NO_FILE_SYSTEM', 'IDIGI_FILE_SYSTEM')],
-            update_config_header=True, tty=args.tty)
+            update_config_header=True, tty=args.tty,
+            test_name=args.test_name, test_type=args.test_type)
 
     if args.configuration == 'template' or args.configuration == 'all':
         print "============ Template platform ============="
