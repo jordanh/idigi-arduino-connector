@@ -176,7 +176,7 @@ def run_test(test, test_list, execution_type, base_src_dir, base_script_dir,
         (device_id, mac_addr, device_location) = generate_id(api)
         src_dir        = os.path.join(sandbox_dir, base_src_dir)
         test_dir       = os.path.join(sandbox_dir, base_script_dir)
-        if not (src_dir.find('compile_and_link') == -1):
+        if test =='compile_and_link':
             config.replace_string(os.path.join(src_dir, 'Makefile'), 
                 'c99', 'c89')
 
@@ -197,7 +197,7 @@ def run_test(test, test_list, execution_type, base_src_dir, base_script_dir,
                 os.path.join(sandbox_dir, 'public/include/idigi_config.h'), 
                 os.path.join(test_dir, 'config.ini'))
  
-        if gcov is True:
+        if gcov is True and test != 'compile_and_link':
             cflags += GCOV_FLAGS
             # Resolve the main.c file.  If it exists inthe src_dir assume
             # that is what is used, otherwise autoresolve to 
@@ -235,7 +235,7 @@ def run_test(test, test_list, execution_type, base_src_dir, base_script_dir,
         if rc == False:
             raise Exception("Failed to Build from %s." % src_dir)
     
-        if not (src_dir.find('compile_and_link') == -1):
+        if test == 'compile_and_link':
             print '>>> [%s] Finished [%s]-[%s]' % (description, src_dir, 'c89')
             return
 
@@ -309,7 +309,7 @@ def run_test(test, test_list, execution_type, base_src_dir, base_script_dir,
                         print '>>> [%s] Finished [%s]-[%s]' % (description, execution_type, test_script)
         finally:
             # Killing the process should also cause the thread to complete.
-            if gcov:
+            if gcov and test != 'compile_and_link':
                 print '>>> [%s] Flushing gcov coverage data for pid [%s] and exiting.' % (description, pid)
                 os.kill(int(pid), signal.SIGUSR1)
                 os.system('dvt/scripts/gcovr %s --root %s -d --xml > %s_%s_%s_%s_coverage.xml' % (sandbox_dir, sandbox_dir, description, execution_type, test, test_script))
