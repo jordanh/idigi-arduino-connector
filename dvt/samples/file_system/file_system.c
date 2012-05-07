@@ -72,7 +72,6 @@ typedef struct
 #define DVT_FS_MIDDLE_OFFSET    2
 #define DVT_FS_END_OFFSET       3
 #define DVT_FS_TIMEOUT_OFFSET   4
-#define DVT_FS_TIMEOUT_MIDDLE_OFFSET   5
 
 #define DVT_FS_TIMEOUT_SECS     70
 
@@ -83,7 +82,6 @@ typedef enum
     dvt_fs_case_offset_middle,
     dvt_fs_case_offset_end,
     dvt_fs_case_offset_timeout,
-    dvt_fs_case_offset_timeout_middle,
     dvt_fs_case_offset_COUNT
 } dvt_fs_case_offset_t;
 
@@ -102,7 +100,6 @@ typedef enum
     dvt_fs_error_get_middle,
     dvt_fs_error_get_end,
     dvt_fs_error_get_timeout,
-    dvt_fs_error_get_timeout_middle,
     dvt_fs_error_put_busy,
     dvt_fs_error_put_start,
     dvt_fs_error_put_middle,
@@ -573,9 +570,21 @@ idigi_callback_status_t app_process_file_readdir(idigi_file_request_t const * co
             break;
 
         case dvt_fs_error_ls_timeout:
-                status = idigi_callback_busy;
-                goto done;
+            {
+                static unsigned long dvt_start_time;
+                unsigned long dvt_current_time;
 
+                if (dvt_current_state == dvt_fs_state_at_start)
+                    app_os_get_system_time(&dvt_start_time);
+            
+                app_os_get_system_time(&dvt_current_time);
+
+                if ((dvt_current_time - dvt_start_time) < DVT_FS_TIMEOUT_SECS)
+                    status = idigi_callback_busy;
+                else
+                    response_data->error->error_status = idigi_file_user_cancel;
+                goto done;
+            }
         default:
             break;
     }
@@ -818,14 +827,6 @@ idigi_callback_status_t app_process_file_read(idigi_file_request_t const * const
             else
                 response_data->error->error_status = idigi_file_user_cancel;
             goto done;
-
-    case dvt_fs_error_get_timeout_middle:
-            if (dvt_current_state > dvt_fs_state_at_start)
-            {
-                status = idigi_callback_busy;
-                goto done;
-            }
-            break;
 
         default:
             break;
