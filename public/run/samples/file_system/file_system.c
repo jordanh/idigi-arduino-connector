@@ -157,7 +157,7 @@ static int app_convert_lseek_origin(int origin)
 #endif
 }
 
-idigi_callback_status_t app_process_file_strerror(void const * const request_data, 
+idigi_callback_status_t app_process_file_strerror(void const * const request_data,
                                                   idigi_file_data_response_t * response_data)
 {
     size_t strerr_size = 0;
@@ -171,7 +171,7 @@ idigi_callback_status_t app_process_file_strerror(void const * const request_dat
     {
         char * err_str = strerror(errnum);
         char * ptr = response_data->data_ptr;
-     
+
         strerr_size = strnlen(err_str, response_data->size_in_bytes - 1) + 1;
         memcpy(ptr, err_str, strerr_size);
         ptr[strerr_size] = '\0';
@@ -233,10 +233,10 @@ idigi_callback_status_t app_process_file_hash(idigi_file_path_request_t const * 
 
     if (ctx == NULL)
         goto error;
-    
+
     if (ctx->fd < 0)
     {
-        ctx->fd = open(request_data->path, O_RDONLY); 
+        ctx->fd = open(request_data->path, O_RDONLY);
         APP_DEBUG("Open %s, returned %d\n", request_data->path, ctx->fd);
 
         if (ctx->fd < 0)
@@ -244,10 +244,10 @@ idigi_callback_status_t app_process_file_hash(idigi_file_path_request_t const * 
 
         MD5_Init(&ctx->md5);
     }
-    
+
     while ((ret = read (ctx->fd, ctx->buf, sizeof ctx->buf)) > 0)
     {
-  		  MD5_Update(&ctx->md5, ctx->buf, ret);
+        MD5_Update(&ctx->md5, ctx->buf, ret);
     }
     if (ret == -1 && errno == EAGAIN)
     {
@@ -321,7 +321,7 @@ idigi_callback_status_t app_process_file_stat(idigi_file_stat_request_t const * 
         status = app_process_file_error(response_data->error, errno);
         goto done;
     }
-        
+
     pstat->flags = 0;
     pstat->file_size = statbuf.st_size;
     pstat->last_modified = statbuf.st_mtime;
@@ -351,11 +351,11 @@ idigi_callback_status_t app_process_file_stat(idigi_file_stat_request_t const * 
             }
             break;
 
-           
+
         default:
             break;
     }
-#endif    
+#endif
 done:
     return status;
 }
@@ -501,7 +501,7 @@ idigi_callback_status_t app_process_file_open(idigi_file_open_request_t const * 
     response_data->user_context = NULL;
 
     // 0664 = read,write owner + read,write group + read others
-    fd = open(request_data->path, oflag, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH); 
+    fd = open(request_data->path, oflag, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH);
 
     APP_DEBUG("Open %s, %d, returned %ld\n", request_data->path, oflag, fd);
 
@@ -525,7 +525,7 @@ idigi_callback_status_t app_process_file_lseek(idigi_file_lseek_request_t const 
 
     long int offset = lseek(fd, request_data->offset, origin);
 
-    APP_DEBUG("lseek fd %ld, offset %ld, origin %d returned %ld\n", fd, request_data->offset, 
+    APP_DEBUG("lseek fd %ld, offset %ld, origin %d returned %ld\n", fd, request_data->offset,
                                                 request_data->origin, offset);
     response_data->offset = offset;
 
@@ -577,11 +577,11 @@ idigi_callback_status_t app_process_file_read(idigi_file_request_t const * const
 {
     idigi_callback_status_t status = idigi_callback_continue;
     long int fd = (long int) request_data->handle;
- 
+
     int result = read(fd, response_data->data_ptr, response_data->size_in_bytes);
 
     APP_DEBUG("read %ld, %zu, returned %d\n", fd, response_data->size_in_bytes, result);
- 
+
     if (result < 0)
     {
         status = app_process_file_error(response_data->error, errno);
@@ -603,7 +603,7 @@ idigi_callback_status_t app_process_file_write(idigi_file_write_request_t const 
     int result = write(fd, request_data->data_ptr, request_data->size_in_bytes);
 
     APP_DEBUG("write %ld, %zu, returned %d\n", fd, request_data->size_in_bytes, result);
- 
+
     if (result < 0)
     {
         status = app_process_file_error(response_data->error, errno);
@@ -616,7 +616,7 @@ done:
     return status;
 }
 
-idigi_callback_status_t app_process_file_close(idigi_file_request_t const * const request_data, 
+idigi_callback_status_t app_process_file_close(idigi_file_request_t const * const request_data,
                                                idigi_file_response_t * response_data)
 {
     long int fd = (long int) request_data->handle;
