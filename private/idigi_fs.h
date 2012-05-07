@@ -148,7 +148,7 @@ static void format_file_error_msg(idigi_data_t * const idigi_ptr,
 
      if (hint != NULL)
      {
-        error_hint_len = strnlen(hint, buffer_size - 1) + 1;
+        error_hint_len = MIN_VALUE(strlen(hint) + 1, buffer_size);
         memcpy(fs_error_response + header_bytes, hint, error_hint_len);
         fs_error_response[header_bytes + error_hint_len -1] = '\0';
      }
@@ -636,8 +636,11 @@ static idigi_callback_status_t call_file_write_user(idigi_data_t * const idigi_p
 static size_t parse_file_path(file_system_context_t * context, void const * const path_ptr, size_t const buffer_size)
 {
     char const * path = path_ptr;
-    size_t path_len = strnlen(path, buffer_size - 1);
+    size_t path_len = strlen(path);
 
+    if (path_len > buffer_size)
+        path_len = 0;
+    else
     if (path_len != 0 && path[path_len] == '\0')
     {
         path_len++;
