@@ -23,7 +23,7 @@
         </ethernet>
         <device_stats>
             <curtime>2012-03-14T13:05-0500</curtime>
-            <ctemp>38.9</ctemp>
+            <signed_integer>100</signed_integer>
         </device_stats>
         <device_info>
             <product>iDigi Connector Linux sample</product>

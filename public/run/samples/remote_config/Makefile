@@ -50,7 +50,7 @@ all: $(SAMPLE)
 
 LDFLAGS += -Wl,-Map=$(SAMPLE).map,--sort-common
 
-SRCS = gps_stats.c device_info.c \
+SRCS = devicesecurity.c system.c gps_stats.c device_info.c \
        device_stats.c ethernet.c debug_info.c serial.c remote_config_cb.c application.c \
        main.c os.c config.c firmware.c \
        $(PLATFORM_DIR)/network.c

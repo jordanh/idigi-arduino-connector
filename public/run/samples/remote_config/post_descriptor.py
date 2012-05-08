@@ -21,7 +21,7 @@
 # send_descriptor.py
 # 
 # -------------------------------------------------
-# Usage: send_descriptor.py <username> <password> <device_id> <device_type> <firmware_version>
+# Usage: post_descriptor.py <username> <password> <device_id> <device_type> <firmware_version>
 # -------------------------------------------------
 
 import httplib
@@ -38,9 +38,10 @@ fw_version = 16777216
 
 server_url = 'test.idigi.com'
    
-descriptor_table = [ {'name':'descriptor',              'file':'descriptor.xml'},
-                     {'name':'descriptor/query_setting','file':'query_setting_descriptor.xml'},
-                     {'name':'descriptor/set_setting',  'file':'set_setting_descriptor.xml'},
+descriptor_table = [ {'name':'descriptor',               'file':'descriptor.xml'},
+                     {'name':'descriptor/do_command',    'file':'do_command_descriptor.xml'},
+#                     {'name':'descriptor/query_setting','file':'query_setting_descriptor.xml'},
+#                     {'name':'descriptor/set_setting',  'file':'set_setting_descriptor.xml'},
 #                     {'name':'descriptor/set_state',    'file':'set_state_descriptor.xml'},
 #                     {'name':'descriptor/query_state',  'file':'query_state_descriptor.xml'},
                    ]
