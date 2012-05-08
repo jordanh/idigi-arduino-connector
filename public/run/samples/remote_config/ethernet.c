@@ -55,9 +55,9 @@ enum {
     ethernet_duplex_full,
 };
 typedef struct {
-    unsigned char ip_address[ETHERNET_IPV4_ADDR_SIZE];
-    unsigned char subnet[ETHERNET_IPV4_ADDR_SIZE];
-    unsigned char gateway[ETHERNET_IPV4_ADDR_SIZE];
+    in_addr_t ip_address;
+    in_addr_t subnet;
+    in_addr_t gateway;
     unsigned int duplex;
     char dns[ETHERNET_DNS_FQDN_LENGTH];
 
@@ -73,7 +73,7 @@ typedef struct {
     idigi_boolean_t dhcp_enabled;
 } ethernet_idigi_data_t;
 
-ethernet_config_data_t ethernet_config_data = {{0}, {0}, {0}, ethernet_duplex_auto, "\0", ethernet_dhcp_enabled};
+ethernet_config_data_t ethernet_config_data = {0, 0, 0, ethernet_duplex_auto, "\0", ethernet_dhcp_enabled};
 
 
 int ethernet_configuration_init(void)
@@ -84,7 +84,6 @@ int ethernet_configuration_init(void)
     struct ifconf   conf;
     unsigned int    entries = 0;
     unsigned int    i;
-    static struct in_addr  ip_addr; /* Used to store the IP address */
 
     ethernet_config_data_t * const ethernet_ptr = &ethernet_config_data;
 
@@ -125,16 +124,12 @@ int ethernet_configuration_init(void)
         APP_DEBUG("get_ip_address: %d: Interface name [%s]\tIP Address [%s]\n", i+1, req->ifr_name, inet_ntoa(sa->sin_addr));
         if (sa->sin_addr.s_addr != htonl(INADDR_LOOPBACK))
         {
-            ip_addr = sa->sin_addr;
+            ethernet_ptr->ip_address = sa->sin_addr.s_addr;
+            status = 0;
             break;
         }
     }
 
-    {
-        in_addr_t * addr = (in_addr_t *)ethernet_ptr->ip_address;
-        *addr = ip_addr.s_addr;
-    }
-    status = 0;
 
     {
         struct ifreq * req = &conf.ifc_req[i];
@@ -148,11 +143,7 @@ int ethernet_configuration_init(void)
         }
 
         APP_DEBUG("get_ip_address: IP Address [%s]\n", inet_ntoa(sa->sin_addr));
-        {
-            in_addr_t * addr = (in_addr_t *)ethernet_ptr->subnet;
-            *addr = sa->sin_addr.s_addr;
-        }
-
+        ethernet_ptr->subnet = sa->sin_addr.s_addr;
     }
 
 error:
@@ -169,7 +160,7 @@ error:
 
 void ethernet_get_ip_address(unsigned char ** addr, size_t * size)
 {
-    *addr = &ethernet_config_data.ip_address[0];
+    *addr = (unsigned char *) &ethernet_config_data.ip_address;
     *size = sizeof ethernet_config_data.ip_address;
 }
 
@@ -178,7 +169,6 @@ idigi_callback_status_t app_ethernet_group_init(idigi_remote_group_request_t * r
     remote_group_session_t * const session_ptr = response->user_context;
     void * ptr;
     ethernet_idigi_data_t * ethernet_ptr = NULL;
-    struct in_addr * addr;
 
     UNUSED_ARGUMENT(request);
     ASSERT(session_ptr != NULL);
@@ -191,14 +181,9 @@ idigi_callback_status_t app_ethernet_group_init(idigi_remote_group_request_t * r
     }
 
     ethernet_ptr = ptr;
-    addr = (struct in_addr *)ethernet_config_data.ip_address;
-    sprintf(ethernet_ptr->ip_address, "%s", inet_ntoa(*addr));
-
-    addr = (struct in_addr *)ethernet_config_data.subnet;
-    sprintf(ethernet_ptr->subnet, "%s", inet_ntoa(*addr));
-
-    addr = (struct in_addr *)ethernet_config_data.gateway;
-    sprintf(ethernet_ptr->gateway, "%s", inet_ntoa(*addr));
+    inet_ntop(AF_INET, &ethernet_config_data.ip_address,    ethernet_ptr->ip_address,   sizeof ethernet_ptr->ip_address);
+    inet_ntop(AF_INET, &ethernet_config_data.subnet,        ethernet_ptr->subnet,       sizeof ethernet_ptr->subnet);
+    inet_ntop(AF_INET, &ethernet_config_data.gateway,       ethernet_ptr->gateway,      sizeof ethernet_ptr->gateway);
 
     strcpy(ethernet_ptr->dns, ethernet_config_data.dns);
     ethernet_ptr->dhcp_enabled = (ethernet_config_data.dhcp_enabled == ethernet_dhcp_enabled) ? idigi_boolean_true : idigi_boolean_false;
@@ -341,21 +326,21 @@ idigi_callback_status_t app_ethernet_group_end(idigi_remote_group_request_t * re
 
     if (request->action == idigi_remote_action_set)
     {
-        if (inet_aton(ethernet_ptr->ip_address, (struct in_addr *)ethernet_config_data.ip_address) == 0)
+        if (inet_aton(ethernet_ptr->ip_address, (struct in_addr *)&ethernet_config_data.ip_address) == 0)
         {
             response->error_id = idigi_global_error_save_fail;
             response->element_data.error_hint = "IP address";
             goto done;
         }
 
-        if (inet_aton(ethernet_ptr->subnet, (struct in_addr *)ethernet_config_data.subnet) == 0)
+        if (inet_aton(ethernet_ptr->subnet, (struct in_addr *)&ethernet_config_data.subnet) == 0)
         {
             response->error_id = idigi_global_error_save_fail;
             response->element_data.error_hint = "Subnet";
             goto done;
         }
 
-        if (inet_aton(ethernet_ptr->gateway, (struct in_addr *)ethernet_config_data.gateway) == 0)
+        if (inet_aton(ethernet_ptr->gateway, (struct in_addr *)&ethernet_config_data.gateway) == 0)
         {
             response->error_id = idigi_global_error_save_fail;
             response->element_data.error_hint = "Gateway";
