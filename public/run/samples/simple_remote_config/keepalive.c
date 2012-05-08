@@ -27,6 +27,9 @@
 #include "platform.h"
 #include "remote_config.h"
 
+extern int app_os_malloc(size_t const size, void ** ptr);
+extern void app_os_free(void * const ptr);
+
 typedef struct {
     unsigned int rx_keepalive;
     unsigned int tx_keepalive;

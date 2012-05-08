@@ -28,6 +28,10 @@
 #include "idigi_api.h"
 #include "platform.h"
 
+#if (!defined IDIGI_RCI_MAXIMUM_CONTENT_LENGTH) || (IDIGI_RCI_MAXIMUM_CONTENT_LENGTH <= 0)
+#error "Must define IDIGI_RCI_MAXIMUM_CONTENT_LENGTH > 0 in idigi_config.h"
+#endif
+
 extern void idigiThreadStackInit(void);
 
 extern void print_remote_configurations(void);

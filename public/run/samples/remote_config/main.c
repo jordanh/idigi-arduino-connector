@@ -28,6 +28,10 @@
 #include "idigi_api.h"
 #include "platform.h"
 
+#if (!defined IDIGI_RCI_MAXIMUM_CONTENT_LENGTH) || (IDIGI_RCI_MAXIMUM_CONTENT_LENGTH <= 0)
+#error "Must define IDIGI_RCI_MAXIMUM_CONTENT_LENGTH > 0 in idigi_config.h"
+#endif
+
 extern void idigiThreadStackInit(void);
 
 extern void print_remote_configurations(void);
@@ -177,7 +181,7 @@ int main (int argc, char * argv[])
         {
             status = rci_parser(session);
         }
-            
+
         switch (status)
         {
 
@@ -199,11 +203,11 @@ int main (int argc, char * argv[])
         case rci_status_internal_error:
             printf("Broken\n");
             goto done;
-            
+
         case rci_status_error:
             printf("Cancel Message\n");
             goto done;
-            
+
         default:
             assert(0);
             break;

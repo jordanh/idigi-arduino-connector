@@ -30,7 +30,7 @@ vpath $(IDIGI_DIR)/%.c
 vpath $(PLATFORM_DIR)/%.c
 
 CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL 
-CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR)  -g -Os
+CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR) -I. -g -Os
 
 OBJS = keepalive.o remote_config_cb.o firmware.o\
        main.o application.o $(IDIGI_DIR)/idigi_api.o $(PLATFORM_DIR)/os.o $(PLATFORM_DIR)/config.o $(PLATFORM_DIR)/network.o 
