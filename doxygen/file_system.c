@@ -170,7 +170,7 @@
  * @code
  *
  * idigi_callback_status_t app_process_file_open(idigi_file_open_request_t const * const request_data, 
- *                                               idigi_file_open_response_t * response_data)
+ *                                               idigi_file_open_response_t * const response_data)
  * {
  *    idigi_callback_status_t status = idigi_callback_continue;
  *    int oflag = 0; 
@@ -290,7 +290,7 @@
  * @code
  *
  * idigi_callback_status_t app_process_file_lseek(idigi_file_lseek_request_t const * const request_data, 
- *                                                idigi_file_lseek_response_t * response_data)
+ *                                                idigi_file_lseek_response_t * const response_data)
  * {
  *    idigi_callback_status_t status = idigi_callback_continue;
  *    int origin;
@@ -408,7 +408,7 @@
  * @code
  *
  * idigi_callback_status_t app_process_file_read(idigi_file_request_t const * const request_data, 
- *                                               idigi_file_data_response_t * response_data)
+ *                                               idigi_file_data_response_t * const response_data)
  * {
  *    idigi_callback_status_t status = idigi_callback_continue;
  * 
@@ -508,7 +508,7 @@
  * @code
  *
  * idigi_callback_status_t app_process_file_write(idigi_file_write_request_t const * const request_data, 
- *                                                idigi_file_write_response_t * response_data)
+ *                                                idigi_file_write_response_t * const response_data)
  * {
  *    idigi_callback_status_t status = idigi_callback_continue;
  * 
@@ -608,7 +608,7 @@
  * @code
  *
  * idigi_callback_status_t app_process_file_ftruncate(idigi_file_ftruncate_request_t const * const request_data, 
- *                                                     idigi_file_response_t * response_data)
+ *                                                     idigi_file_response_t * const response_data)
  * {
  *    idigi_callback_status_t status = idigi_callback_continue;
  * 
@@ -697,7 +697,7 @@
  * @code
  *
  * idigi_callback_status_t app_process_file_close(idigi_file_request_t const * const request_data, 
- *                                                idigi_file_response_t * response_data)
+ *                                                idigi_file_response_t * const response_data)
  * {
  *
  *     int result = close((long int) request_data->handle);
@@ -776,7 +776,7 @@
  * @code
  *
  * idigi_callback_status_t app_process_file_rm(idigi_file_path_request_t const * const request_data, 
- *                                             idigi_file_response_t * response_data)
+ *                                             idigi_file_response_t * const response_data)
  * {
  *    idigi_callback_status_t status = idigi_callback_continue;
  *
@@ -887,7 +887,7 @@
  * } app_dir_data_t;
  *
  * idigi_callback_status_t app_process_file_opendir(idigi_file_path_request_t const * const request_data,
- *                                                  idigi_file_open_response_t * response_data)
+ *                                                  idigi_file_open_response_t * const response_data)
  * {
  * 
  *     idigi_callback_status_t status = idigi_callback_continue;
@@ -1025,7 +1025,7 @@
  *
  *
  * idigi_callback_status_t app_process_file_readdir(idigi_file_request_t const * const request_data,
- *                                                  idigi_file_data_response_t * response_data)
+ *                                                  idigi_file_data_response_t * const response_data)
  * {
  *     idigi_callback_status_t status = idigi_callback_continue;
  *     app_dir_data_t * dir_data = request_data->handle;
@@ -1152,7 +1152,7 @@
  *
  *
  * idigi_callback_status_t app_process_file_closedir(idigi_file_request_t const * const request_data,
- *                                                   idigi_file_response_t * response_data)
+ *                                                   idigi_file_response_t * const response_data)
  * {
  *     app_dir_data_t * dir_data = request_data->handle;
  *
@@ -1280,7 +1280,7 @@
  * @code
  *
  * idigi_callback_status_t app_process_file_stat(idigi_file_stat_request_t const * const request_data, 
- *                                               idigi_file_stat_response_t * response_data)
+ *                                               idigi_file_stat_response_t * const response_data)
  * {
  *     struct stat statbuf;
  *     idigi_file_stat_t * pstat = &response_data->statbuf;
@@ -1411,7 +1411,7 @@
  * @code
  *
  * idigi_callback_status_t app_process_file_hash(idigi_file_stat_request_t const * const request_data, 
- *                                               idigi_file_data_response_t * response_data)
+ *                                               idigi_file_data_response_t * const response_data)
  * {
  *     idigi_callback_status_t status = idigi_callback_continue;
  *
@@ -1486,12 +1486,9 @@
  *
  * @code
  *
- * idigi_callback_status_t app_process_file_strerror(void const * const request_data, 
- *                                                   idigi_file_response_t * response_data)
+ * idigi_callback_status_t app_process_file_strerror(idigi_file_response_t * const response_data)
  * {
  *    size_t strerr_size = 0;
- *
- *    UNUSED_ARGUMENT(request_data);
  * 
  *    idigi_file_error_data_t * error_data = response_data->error;
  *    long int errnum = (long int) error_data->errnum;
@@ -1499,9 +1496,9 @@
  *    char * err_str = strerror(errnum);
  *    char * ptr = response_data->data_ptr;
  *
- *    strerr_size = strnlen(err_str, response_data->size_in_bytes - 1) + 1;
+ *    strerr_size = strnlen(err_str, response_data->size_in_bytes);
  *    memcpy(ptr, err_str, strerr_size);
- *    ptr[strerr_size] = '\0';
+ *    ptr[strerr_size - 1] = '\0';
  * 
  *    response_data->size_in_bytes = strerr_size;
  *
@@ -1565,6 +1562,8 @@
  * idigi_callback_status_t app_process_file_msg_error(idigi_file_error_request_t const * const request_data, 
  *                                                    idigi_file_response_t * response_data)
  * {
+ *     UNUSED_ARGUMENT(response_data);
+ *
  *     APP_DEBUG("Message Error %d\n", (int) request_data->message_status);
  *
  *    // All session resources must be released in this callback
