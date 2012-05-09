@@ -182,6 +182,9 @@ static idigi_callback_status_t app_process_file_error(idigi_file_error_data_t * 
             error_data->error_status = idigi_file_invalid_parameter;
             break;
 
+#if EAGAIN != EWOULDBLOCK
+        case EWOULDBLOCK:
+#endif
         case EAGAIN:
             status = idigi_callback_busy;
             break;
@@ -1010,7 +1013,6 @@ idigi_callback_status_t app_file_system_handler(idigi_data_service_request_t con
             break;
 
         default:
-            status = idigi_callback_unrecognized;
             APP_DEBUG("Unsupported file system request %d\n", request);
     }
 
