@@ -1398,7 +1398,7 @@ done:
 }
 
 
-idigi_callback_status_t allocate_file_context(idigi_data_t * const idigi_ptr,
+static idigi_callback_status_t allocate_file_context(idigi_data_t * const idigi_ptr,
                                               file_system_opcode_t opcode,
                                               file_system_context_t * * result)
 {
