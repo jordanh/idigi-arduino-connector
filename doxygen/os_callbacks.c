@@ -3,7 +3,7 @@
  * @htmlinclude nav.html
  *
  * @section os_callbacks OS Callbacks
- * The IIK interfaces to the platform's OS through the callbacks listed below.  These
+ * The iDigi connector interfaces to the platform's OS through the callbacks listed below.  These
  * are called through the application callback described in the @ref api1_overview.
  * The class id is @ref idigi_class_operating_system.
  * 
@@ -57,7 +57,7 @@
  * </tr>
  * <tr>
  * <th>@endhtmlonly @ref idigi_callback_abort @htmlonly</th>
- * <td>Callback was unable to allocate memory and callback aborts IIK</td>
+ * <td>Callback was unable to allocate memory and callback aborts iDigi connector</td>
  * </tr>
  * <tr>
  * <th>@endhtmlonly @ref idigi_callback_busy @htmlonly</th>
@@ -202,7 +202,7 @@
  * </tr>
  * <tr>
  * <th>@endhtmlonly @ref idigi_callback_abort @htmlonly</th>
- * <td>Error occurred and callback aborted IIK</td>
+ * <td>Error occurred and callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -232,7 +232,7 @@
  * and implemented in the @b Platform function app_os_sleep() in os.c.
  *
  * @see app_os_sleep()
- * @see @ref threading "Multi-threading and the IIK Threading Model"
+ * @see @ref threading "Multi-threading and the iDigi connector Threading Model"
  *
  * @htmlonly
  * <table class="apitable">
@@ -270,7 +270,7 @@
  * </tr>
  * <tr>
  * <th>@endhtmlonly @ref idigi_callback_abort @htmlonly</th>
- * <td>Error occurred and callback aborted IIK</td>
+ * <td>Error occurred and callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly

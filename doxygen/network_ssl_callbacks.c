@@ -66,7 +66,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback was unable to connect to the server and callback aborted IIK</td>
+ * <td>Callback was unable to connect to the server and callback aborted iDigi connector</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_busy @htmlonly</td>
@@ -160,7 +160,7 @@
  *
  * Callback is called to send data to the iDigi Cloud over SSL connection. This function may 
  * block up to the timeout specified in the idigi_write_request_t. If it encounters EAGAIN 
- * or EWOULDBLOCK error, 0 bytes must be returned and IIK will continue calling this function.
+ * or EWOULDBLOCK error, 0 bytes must be returned and iDigi connector will continue calling this function.
  *
  * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
  * and implemented in the @b Platform function app_network_send() in network.c.
@@ -203,7 +203,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback was unable to send data to server and callback aborts IIK</td>
+ * <td>Callback was unable to send data to server and callback aborts iDigi connector</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_busy @htmlonly</td>
@@ -285,7 +285,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback was unable to receive data from server and callback aborts IIK</td>
+ * <td>Callback was unable to receive data from server and callback aborts iDigi connector</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_busy @htmlonly</td>
@@ -319,7 +319,7 @@
  *         FD_ZERO(&read_set);
  *         FD_SET(ssl_ptr->sfd, &read_set);
  *
- *         /* Blocking point for IIK */
+ *         /* Blocking point for iDigi connector */
  *         ready = select(ssl_ptr->sfd + 1, &read_set, NULL, NULL, &timeout);
  *         if (ready == 0)
  *         {

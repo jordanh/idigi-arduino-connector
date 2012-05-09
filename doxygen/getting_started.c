@@ -4,7 +4,7 @@
  *
  * @section table_of_contents_porting Getting Started
  *
- * The Getting Started process will walk you through the steps necessary to get the IIK integrated into your 
+ * The Getting Started process will walk you through the steps necessary to get the iDigi connector integrated into your 
  * development environment and running applications which connect to the iDigi Device Cloud.
  * 
  * These steps include:
@@ -42,7 +42,7 @@
  *
  * @section step1 Step 1: Determine if your compiler is C89 or C99 compliant
  *
- * The IIK is ANSI X3.159-1989 (ANSI C89) and ISO/IEC 9899:1999 (ANSI C99) compliant.  If your compiler is ANSI C89 or C99 compliant and you are 
+ * The iDigi connector is ANSI X3.159-1989 (ANSI C89) and ISO/IEC 9899:1999 (ANSI C99) compliant.  If your compiler is ANSI C89 or C99 compliant and you are 
  * running on a 32-bit processor you can skip to the next section.  
  *
  * If your compiler is not ANSI C89 or C99 compliant, you will have to review (and edit) public/include/idigi_types.h 
@@ -55,7 +55,7 @@
  * Note by default these are defined for a 32-bit machine.
  *  
  * @subsection debug_macros Implement the debug macros
- * The file public/include/idigi_types.h implements the two macros listed below, which are used to debug the IIK.
+ * The file public/include/idigi_types.h implements the two macros listed below, which are used to debug the iDigi connector.
  *
  *  @li @ref USER_DEBUG_VPRINTF
  *  @li @ref ASSERT 
@@ -69,7 +69,7 @@
  *
  * Open the file public/include/idigi_config.h to configure processor endianess.  
  * 
- * The IIK defaults to little endian.  To reconfigure for big endian, comment out the @ref IDIGI_LITTLE_ENDIAN define.
+ * The iDigi connector defaults to little endian.  To reconfigure for big endian, comment out the @ref IDIGI_LITTLE_ENDIAN define.
  *
  * @section step3 Step 3: Build the compile_and_link sample
  *
@@ -78,9 +78,9 @@
  * You need to add the source files and include paths to your build system listed
  * below.
  *
- * @subsection idigi_initialization IIK Initialization
+ * @subsection idigi_initialization iDigi connector Initialization
  *
- * The routine idigi_init() is called to initialize the IIK, currently this is
+ * The routine idigi_init() is called to initialize the iDigi connector, currently this is
  * called from the routine main() in main.c; you will need to call idigi_init()
  * at the initialization point for your application with an application callback.
  * For the compile_and_link sample you can call idigi_init() as:
@@ -107,7 +107,7 @@
  * </tr>
  * <tr>
  * <td>idigi_api.c</td>
- * <td>Contains the code for the IIK</td>
+ * <td>Contains the code for the iDigi connector</td>
  * <td>private</td>
  * </tr>
  * <tr>
@@ -126,7 +126,7 @@
  * @subsection add_define Add the defines
  *
  * The following define is required, and used to indicate that the version of
- * the IIK is 1.1
+ * the iDigi connector is 1.1
  *
  * @li IDIGI_VERSION=0x1010000UL
  *
@@ -177,8 +177,8 @@
  *
  * @section step5 Step 5: Porting your platform for the connect_to_idigi sample
  *
- * The @b connect_to_idigi sample validates the most fundamental IIK porting aspects.  If you can successfully connect and stay
- * connected to the iDigi cloud, all other IIK functions (like @ref put_request "sending data" or @ref firmware_download "firmware download")
+ * The @b connect_to_idigi sample validates the most fundamental iDigi connector porting aspects.  If you can successfully connect and stay
+ * connected to the iDigi cloud, all other iDigi connector functions (like @ref put_request "sending data" or @ref firmware_download "firmware download")
  * should work without failure.
  *
  * Go into the platforms directory and select a platform which is similar to your platform.  If
@@ -239,7 +239,7 @@
  * @note The required routines contain the @htmlonly #error @endhtmlonly preprocessor directive 
  * which must be removed before compiling.
  *
- * @note The memory assigned to configuration items must be @b statically @b allocated and is accessed by the IIK 
+ * @note The memory assigned to configuration items must be @b statically @b allocated and is accessed by the iDigi connector 
  * after the routine returns.
  *
  * The following is a list of configuration routines which need to be implemented for
@@ -264,7 +264,7 @@
  *  @li app_config_error()
  *
  * @note For information on using hard coded values instead of these configuration callbacks,
- *       which helps to reduce the IIK code space,  see @ref idigi_config_data_options
+ *       which helps to reduce the iDigi connector code space,  see @ref idigi_config_data_options
  *
  * @subsection application_start iDigi Initialization
  *
@@ -275,7 +275,7 @@
  * The idigi_init() call, must now include a proper callback:
  *
  * @code
- * // Initialize the IIK with the application callback
+ * // Initialize the iDigi connector with the application callback
  * idigi_handle = idigi_init((idigi_callback_t) app_idigi_callback);
  * @endcode
  *
@@ -293,7 +293,7 @@
  * 
  *     APP_DEBUG("idigi_run thread starts\n");
  * 
- *     // Run the IIK, this will only return on an IIK abort
+ *     // Run the iDigi connector, this will only return on an iDigi connector abort
  *     status = idigi_run((idigi_handle_t)arg);
  * 
  *     APP_DEBUG("idigi_run thread exits %d\n", status);
@@ -302,7 +302,7 @@
  * }
  * @endcode
  *
- * @note The idigi_init() call must successfully complete prior to any other IIK call (i.e., idigi_run(), idigi_step()).
+ * @note The idigi_init() call must successfully complete prior to any other iDigi connector call (i.e., idigi_run(), idigi_step()).
  *
  *
  * @section step6 Step 6: Setup your build environment
@@ -321,7 +321,7 @@
  * </tr>
  * <tr>
  * <td>idigi_api.c</td>
- * <td>Contains the code for the IIK</td>
+ * <td>Contains the code for the iDigi connector</td>
  * <td>private</td>
  * </tr>
  * <tr>
@@ -370,7 +370,7 @@
  * The name of the executable generated by the Linux Makefile is called idigi.
  * In Linux, type ./idigi from a console to execute the program.
  *
-* @note By default @ref IDIGI_DEBUG is defined in idigi_config.h, which prints helpful IIK Library debug
+* @note By default @ref IDIGI_DEBUG is defined in idigi_config.h, which prints helpful iDigi connector Library debug
  * messages to the standard output.
  *
  * @subsection good_results_output Example output from a successful run of connect_to_idigi
@@ -415,7 +415,7 @@
  *  rx_keepalive_process: time to send Rx keepalive
  * @endcode
  *
- * @subsection bad_results_output Locating helpful error info in IIK standard output
+ * @subsection bad_results_output Locating helpful error info in iDigi connector standard output
  *
  * When an error occurs, since APP_DEBUG is defined as printf in your platform.h file, critical errors are
  * displayed via the @ref idigi_config_error_status callback.  Below is an example with an output showing an error

@@ -69,14 +69,14 @@
  *   status = idigi_initiate_action(handle, idigi_initiate_data_service, &header, NULL);
  * @endcode
  *
- * This example will invoke the IIK to initiate a data transfer to the iDigi Device
+ * This example will invoke the iDigi connector to initiate a data transfer to the iDigi Device
  * Cloud.  The result of this operation creates a file testfile.txt in the testdir directory
  * on the iDigi Device Cloud.  Once the iDigi Device Cloud is ready to receive data
  * from the device the application callback is called requesting data.
  *
  * @subsection get_data Put Request Callback
  *
- * After calling idigi_initiate_action(), the IIK will make @ref idigi_data_service_put_request "Put Request"
+ * After calling idigi_initiate_action(), the iDigi connector will make @ref idigi_data_service_put_request "Put Request"
  * @ref idigi_callback_t "callbacks" to retrieve the application data. These callbacks will continue 
  * until the transfer is complete or an error is encountered. @ref IDIGI_MSG_LAST_DATA flag in the client_data 
  * field indicates the last chunk of data.
@@ -151,7 +151,7 @@
  * </tr>
  * <tr>
  * <th>@endhtmlonly @ref idigi_callback_abort @htmlonly</th>
- * <td>Aborts IIK</td>
+ * <td>Aborts iDigi connector</td>
  * </tr>
  * <tr>
  * <th>@endhtmlonly @ref idigi_callback_busy @htmlonly</th>
@@ -307,7 +307,7 @@
  * </tr>
  * <tr>
  * <th>@endhtmlonly @ref idigi_callback_abort @htmlonly</th>
- * <td>Aborts IIK</td>
+ * <td>Aborts iDigi connector</td>
  * </tr>
  * <tr>
  * <th>@endhtmlonly @ref idigi_callback_busy @htmlonly</th>
@@ -463,8 +463,8 @@
  * @endcode
  *
  * @section zlib Optional Data Compression Support
- * The IIK has an optional Data Compression switch that reduces the amount of network traffic.  This option requires applications
- * to link with the zlib library and add the zlib header file (zlib.h) to the IIK include path.
+ * The iDigi connector has an optional Data Compression switch that reduces the amount of network traffic.  This option requires applications
+ * to link with the zlib library and add the zlib header file (zlib.h) to the iDigi connector include path.
  *
  * @note Enabling this option greatly increases the application code size and memory required to execute.
  *

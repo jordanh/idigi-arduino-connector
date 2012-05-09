@@ -6,7 +6,7 @@
  *
  * Applications can communicate to devices over the iDigi Cloud using iDigi Web Services,
  * requests are sent to the iDigi server using Server Command Interface (SCI).
- * The IIK supports a subset of the SCI operations supported by iDigi, the
+ * The iDigi connector supports a subset of the SCI operations supported by iDigi, the
  * supported SCI operations are listed in the table below:
  *
  

@@ -9,7 +9,7 @@
  *
  * @section connect_description Code Flow
  *
- * The routine main() in the platform directory initializes the IC and
+ * The routine main() in the platform directory initializes the iDigi connector and
  * registers the application callback.  In the file application.c is the
  * application defined callback app_idigi_callback(), this routine calls app_remote_config_handler()
  * when a remote command interface (RCI) request is received.
@@ -105,7 +105,7 @@
  * </tr>
  * <tr>
  * <th>idigi_api.c</th>
- * <td>Code for the IC </td>
+ * <td>Code for the iDigi connector </td>
  * <td>private</td>
  * </tr>
  * <tr>
@@ -142,7 +142,7 @@
  *
  * The following defines are used in this sample:
  *
- * @li -DIDIGI_VERSION=0x1010000UL (indicates version 1.1 of the IC)
+ * @li -DIDIGI_VERSION=0x1010000UL (indicates version 1.1 of the iDigi connector)
  *
  * @section running Running
  *

@@ -9,7 +9,7 @@
  *
  * @section fs_sample_description Code Flow
  *
- * The routine main() in the platform directory initializes the IIK and registers the application callback
+ * The routine main() in the platform directory initializes the iDigi connector and registers the application callback
  * app_idigi_callback() as part of @ref AppStructure "Public Application Framework". The app_idigi_callback()
  * is defined in the application.c file. The app_idigi_callback() callback calls app_file_system_handler(), 
  * defined in the file_system.c file in the platform directory, when a file system request is received. 
@@ -122,7 +122,7 @@
  * @section fs_sample_put_file The put_file command
  *
  * The put_file command initiates a file system session, which writes a file on the device. 
- * IIK will invoke the following application callbacks: 
+ * iDigi connector will invoke the following application callbacks: 
  *
  *  -# @ref file_system_open "app_process_file_open()" is called with the "test_file.txt" path and
  *          @ref IDIGI_O_WRONLY | @ref IDIGI_O_CREAT oflag
@@ -130,13 +130,13 @@
  *  -# @ref file_system_close "app_process_file_close()" is called with the file descriptor
  *
  * The put_file command could be used to write part of the file. 
- * If the put_file command is issued with non-zero offset, IIK then would call 
+ * If the put_file command is issued with non-zero offset, iDigi connector then would call 
  * @ref file_system_lseek "app_process_file_lseek()" callback to set the file position.
  *
  * @section fs_sample_get_file The get_file command
  *
  * The get_file command initiates a file system session, which reads a file and sends file data 
- * to the iDigi Device Cloud. IIK will invoke the following application callbacks: 
+ * to the iDigi Device Cloud. iDigi connector will invoke the following application callbacks: 
  *
  *  -# @ref file_system_open "app_process_file_open()" is called with the "test_file.txt" path and
  *          @ref IDIGI_O_RDONLY oflag
@@ -144,12 +144,12 @@
  *  -# @ref file_system_close "app_process_file_close()" is called with the file descriptor
  *
  * The get_file command could be used to read part of the file. If the get_file command is issued with non-zero offset, 
- * IIK then would call @ref file_system_lseek "app_process_file_lseek()" callback to set the file position.
+ * iDigi connector then would call @ref file_system_lseek "app_process_file_lseek()" callback to set the file position.
  *
  * @section fs_sample_ls_file The ls command
  * 
  * The ls command initiates a file system session, which lists a file or directory.  
- * In this example IIK will invoke the following application callback: 
+ * In this example iDigi connector will invoke the following application callback: 
  *
  *  @ref file_system_stat "app_process_file_stat()" is called with the "test_file.txt" path and
  *          @ref idigi_file_hash_none hash_alg.
@@ -163,7 +163,7 @@
  *
  * @endcode
  *
- * IIK will invoke the following application callbacks:
+ * iDigi connector will invoke the following application callbacks:
  *
  *  -# @ref file_system_stat "app_process_file_stat()" called with the "./" path and
  *          @ref idigi_file_hash_md5 hash_alg
@@ -196,7 +196,7 @@
  *
  * @endcode
  *
- * IIK will invoke the @ref file_system_rm "app_process_file_rm()" callback.
+ * iDigi connector will invoke the @ref file_system_rm "app_process_file_rm()" callback.
  *  
  * @section fs_sample_output Sample output
  * 
@@ -270,7 +270,7 @@
  * </tr>
  * <tr>
  * <td>idigi_api.c</td>
- * <td>Code for the IIK </td>
+ * <td>Code for the iDigi connector </td>
  * <td>private</td>
  * </tr>
  * <tr>
@@ -307,6 +307,6 @@
  *
  * The following defines are used in this sample:
  *
- * @li -DIDIGI_VERSION=0x1010000UL (indicates version 1.1 of the IIK)
+ * @li -DIDIGI_VERSION=0x1010000UL (indicates version 1.1 of the iDigi connector)
  *
  */

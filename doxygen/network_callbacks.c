@@ -4,7 +4,7 @@
  * @htmlinclude nav.html
  *
  * @section net Network Callbacks
- * The IIK interfaces to the platform's network interface through the callbacks listed below.  These
+ * The iDigi connector interfaces to the platform's network interface through the callbacks listed below.  These
  * are called through the application callback described in the @ref api1_overview.
  * 
  *  -# @ref connect
@@ -16,7 +16,7 @@
  *
  * @section connect Connect
  *
- * This callback is called to establish connection between IIK and the iDigi Cloud.
+ * This callback is called to establish connection between iDigi connector and the iDigi Cloud.
  * Callback is responsible to setup any socket options.
  *
  * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
@@ -60,7 +60,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback was unable to connect to the server and callback aborted IIK</td>
+ * <td>Callback was unable to connect to the server and callback aborted iDigi connector</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_busy @htmlonly</td>
@@ -146,7 +146,7 @@
  *
  * Callback is called to send data to the iDigi Device Cloud. This function may block up to
  * the timeout specified in the idigi_write_request_t. If it encounters EAGAIN or EWOULDBLOCK
- * error, 0 bytes must be returned and IIK will continue calling this function.
+ * error, 0 bytes must be returned and iDigi connector will continue calling this function.
  *
  * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
  * and implemented in the @b Platform function app_network_send() in network.c.
@@ -189,7 +189,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback was unable to send data to server and callback aborts IIK</td>
+ * <td>Callback was unable to send data to server and callback aborts iDigi connector</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_busy @htmlonly</td>
@@ -242,7 +242,7 @@
  * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
  * and implemented in the @b Platform function app_network_receive() in network.c.
  *
- * @note In the multithreaded model (idigi_run()) this is the point where the IIK
+ * @note In the multithreaded model (idigi_run()) this is the point where the iDigi connector
  * will relinquish control of the CPU.
  *
  * @see app_network_receive()
@@ -283,7 +283,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback was unable to receive data from server and callback aborts IIK</td>
+ * <td>Callback was unable to receive data from server and callback aborts iDigi connector</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_busy @htmlonly</td>
@@ -379,7 +379,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback was unable to close the connection and callback aborted IIK</td>
+ * <td>Callback was unable to close the connection and callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -409,7 +409,7 @@
  * @section disconnected Connection disconnected
  *
  * Callback is called when the iDigi server has terminated the connection. 
- * IIK calls this callback to notify that the iDigi server has disconnected 
+ * iDigi connector calls this callback to notify that the iDigi server has disconnected 
  * the connection. 
  *
  * @htmlonly
@@ -444,11 +444,11 @@
  * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
- * <td>IIK will continue and establish the connection again</td>
+ * <td>iDigi connector will continue and establish the connection again</td>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>IIK will abort and return idigi_disconnected error status</td>
+ * <td>iDigi connector will abort and return idigi_disconnected error status</td>
  * </tr>
  * </table>
  * @endhtmlonly

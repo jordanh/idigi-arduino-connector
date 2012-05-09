@@ -214,7 +214,7 @@
  * </tr>
  * <tr>
  * <th>@endhtmlonly @ref idigi_callback_abort @htmlonly</th>
- * <td>Callback aborted IIK</td>
+ * <td>Callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly 
@@ -307,7 +307,7 @@
  * </tr>
  * <tr>
  * <th>@endhtmlonly @ref idigi_callback_abort @htmlonly</th>
- * <td>Callback aborted IIK</td>
+ * <td>Callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly 
@@ -458,7 +458,7 @@
  * </tr>
  * <tr>
  * <th>@endhtmlonly @ref idigi_callback_abort @htmlonly</th>
- * <td>Callback aborted IIK</td>
+ * <td>Callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly 
@@ -602,7 +602,7 @@
  * </tr>
  * <tr>
  * <th>@endhtmlonly @ref idigi_callback_abort @htmlonly</th>
- * <td>Callback aborted IIK</td>
+ * <td>Callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly 
@@ -715,7 +715,7 @@
  * </tr>
  * <tr>
  * <th>@endhtmlonly @ref idigi_callback_abort @htmlonly</th>
- * <td>Callback aborted IIK</td>
+ * <td>Callback aborted iDigi connector</td>
  * </tr>
  * <tr>
  * <th>@endhtmlonly @ref idigi_callback_busy @htmlonly</th>
@@ -822,7 +822,7 @@
  * </tr>
  * <tr>
  * <th>@endhtmlonly @ref idigi_callback_abort @htmlonly</th>
- * <td>Callback aborted IIK</td>
+ * <td>Callback aborted iDigi connector</td>
  * </tr>
  * <tr>
  * <th>@endhtmlonly @ref idigi_callback_busy @htmlonly</th>
@@ -902,7 +902,7 @@
  * </tr>
  * <tr>
  * <th>@endhtmlonly @ref idigi_callback_abort @htmlonly</th>
- * <td>Callback aborted IIK</td>
+ * <td>Callback aborted iDigi connector</td>
  * </tr>
  * <tr>
  * <th>@endhtmlonly @ref idigi_callback_busy @htmlonly</th>

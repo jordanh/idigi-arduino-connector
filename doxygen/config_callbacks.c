@@ -3,7 +3,7 @@
  * @htmlinclude nav.html
  *
  * @section config Configuration Callbacks
- * The IIK interfaces to the platform's configuration through the callbacks listed below.  These
+ * The iDigi connector interfaces to the platform's configuration through the callbacks listed below.  These
  * are called through the application callback described in the @ref api1_overview.
  * 
  *  -# @ref device_id
@@ -82,7 +82,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback was unable to get device ID and callback aborted IIK</td>
+ * <td>Callback was unable to get device ID and callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -171,7 +171,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback was unable to get vendor ID and callback aborted IIK</td>
+ * <td>Callback was unable to get vendor ID and callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -252,7 +252,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback was unable to get device type and callback aborted IIK</td>
+ * <td>Callback was unable to get device type and callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -327,7 +327,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback was unable to get server URL and callback aborted IIK</td>
+ * <td>Callback was unable to get server URL and callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -403,7 +403,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback was unable to get connection type and callback aborted IIK</td>
+ * <td>Callback was unable to get connection type and callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -473,7 +473,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback was unable to get MAC address and callback aborted IIK</td>
+ * <td>Callback was unable to get MAC address and callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -503,7 +503,7 @@
  * @section link_speed Link Speed
  *
  * Return link speed for a WAN connection type. If connection 
- * type is LAN, IIK will not request link speed configuration.. 
+ * type is LAN, iDigi connector will not request link speed configuration.. 
  *
  * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
  * and implemented in the @b Platform function app_get_link_speed() in config.c.
@@ -549,7 +549,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback was unable to get link speed and callback aborted IIK</td>
+ * <td>Callback was unable to get link speed and callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -579,7 +579,7 @@
  *
  * Return the phone number dialed for a WAN connection type. 
  * The phone number is a variable length, non null-terminated string.
- * If connection type is LAN, IIK will not request phone number 
+ * If connection type is LAN, iDigi connector will not request phone number 
  *
  * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
  * and implemented in the @b Platform function app_get_phone_number() in config.c.
@@ -626,7 +626,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback was unable to get phone number and callback aborted IIK</td>
+ * <td>Callback was unable to get phone number and callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -701,7 +701,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback was unable to get TX keepalive interval and callback aborted IIK</td>
+ * <td>Callback was unable to get TX keepalive interval and callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -730,7 +730,7 @@
  * @section rx_keepalive RX Keepalive Interval
  *
  * Return RX keepalive interval in seconds. This tells how 
- * often the IIK sends keepalive messages to the iDigi Device Cloud (device to the iDigi Device Cloud).
+ * often the iDigi connector sends keepalive messages to the iDigi Device Cloud (device to the iDigi Device Cloud).
  *
  * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
  * and implemented in the @b Platform function app_get_rx_keepalive_interval() in config.c.
@@ -776,7 +776,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback was unable to get RX keepalive interval and callback aborted IIK</td>
+ * <td>Callback was unable to get RX keepalive interval and callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -851,7 +851,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback was unable to get wait count and callback aborted IIK</td>
+ * <td>Callback was unable to get wait count and callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -924,7 +924,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback was unable to get IP address and callback aborted IIK</td>
+ * <td>Callback was unable to get IP address and callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -953,8 +953,8 @@
  *
  * @section error_status  Error Status Notification
  *
- * This callback is called to notify the user that IIK encountered an error. When IIK finds an
- * error, the IIK will call this callback indicating the error status
+ * This callback is called to notify the user that iDigi connector encountered an error. When iDigi connector finds an
+ * error, the iDigi connector will call this callback indicating the error status
  *
  * @note If @ref IDIGI_DEBUG  is not defined in @ref idigi_config.h, this callback 
  * will not be called.
@@ -974,7 +974,7 @@
  * <tr>
  * <th>request_data</th>
  * <td>Pointer to @endhtmlonly @ref idigi_error_status_t @htmlonly containing
- *     the class id, request id, and error status which IIK encountered error with.</td>
+ *     the class id, request id, and error status which iDigi connector encountered error with.</td>
  * </tr>
  * <tr>
  * <th>request_length</th>
@@ -1024,7 +1024,7 @@
  * or disable firmware download capability during runtime.
  *
  * @note If @ref IDIGI_FIRMWARE_SERVICE configuration is not defined in @ref idigi_config.h, this callback 
- * will not be called and Firmware Download is not supported. IIK does not include firmware support.
+ * will not be called and Firmware Download is not supported. iDigi connector does not include firmware support.
  *
  * @note If @ref IDIGI_FIRMWARE_SUPPORT is defined in @ref idigi_config.h, this callback is not needed. 
  * It enables firmware download capability. See @ref idigi_config_data_options. IDIGI_FIRMWARE_SERVICE must be defined.
@@ -1066,7 +1066,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback aborted IIK</td>
+ * <td>Callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -1097,7 +1097,7 @@
  * or disable data service capability during runtime.
  *
  * @note If @ref IDIGI_DATA_SERVICE configuration is not defined in @ref idigi_config.h, this callback 
- * will not be called and Data Service is not supported. IIK does not include data service.
+ * will not be called and Data Service is not supported. iDigi connector does not include data service.
  *
  * @note If @ref IDIGI_DATA_SERVICE_SUPPORT is defined in @ref idigi_config.h, this callback is not needed.
  * It enables data service capability. See @ref idigi_config_data_options. IDIGI_DATA_SERVICE must be defined.
@@ -1141,7 +1141,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback aborted IIK</td>
+ * <td>Callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -1172,7 +1172,7 @@
  * or disable file system capability during runtime.
  *
  * @note If @ref IDIGI_FILE_SYSTEM configuration is not defined in @ref idigi_config.h, this callback 
- * will not be called and File System is not supported. IIK does not include file system.
+ * will not be called and File System is not supported. iDigi connector does not include file system.
  *
  * @note If @ref IDIGI_FILE_SYSTEM_SUPPORT is defined in @ref idigi_config.h, this callback is not needed.
  * It enables file system capability. See @ref idigi_config_data_options. IDIGI_FILE_SYSTEM must be defined.
@@ -1216,7 +1216,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback aborted IIK</td>
+ * <td>Callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -1291,7 +1291,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback aborted IIK</td>
+ * <td>Callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -1360,7 +1360,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback aborted IIK</td>
+ * <td>Callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly

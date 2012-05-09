@@ -22,7 +22,7 @@
  *
  * @section intro Introduction
  *
- * The iDigi Integration Kit (IIK) is a software development package used to
+ * The iDigi Integration Kit (iDigi connector) is a software development package used to
  * communicate and exchange information between a device and the iDigi Device
  * Cloud. iDigi supports application to device data interaction (messaging),
  * application & device data storage, and remote management of devices. Devices
@@ -42,12 +42,12 @@
  *
  * @section language Language Support
  *
- * The IIK software provided is ANSI X3.159-1989 (ANSI C89) and ISO/IEC 9899:1999 (ANSI C99) compliant. The sample platforms 
+ * The iDigi connector software provided is ANSI X3.159-1989 (ANSI C89) and ISO/IEC 9899:1999 (ANSI C99) compliant. The sample platforms 
  * provided use standard ANSI C calls which are available in most operating systems.  If you are running on a Linux i486 based platform 
  * and using the GNU toolchain the Linux platform and samples can be run without any modifications.
  *
  * @section requirements Platform Memory Requirements
- * The IIK requires both Flash and RAM.  Flash is needed to store instructions and variables.  RAM is needed for dynamic allocation
+ * The iDigi connector requires both Flash and RAM.  Flash is needed to store instructions and variables.  RAM is needed for dynamic allocation
  * and program stack.  
  *     
  * @subsection CodespaceRequirements Code Space Estimates 
@@ -58,7 +58,7 @@
  * @htmlonly
  * <table class="apitable">
  * <tr>
- * <th class="title">IIK Service Options and Configuration Methodology</td>
+ * <th class="title">iDigi connector Service Options and Configuration Methodology</td>
  * <th class="title">Text</td>
  * <th class="title">rodata</td>
  * <th class="title">data</td>
@@ -121,7 +121,7 @@
  * <th class="title">Notes</td>
  * </tr>
  * <tr>
- * <td>IIK Base usage</td>
+ * <td>iDigi connector Base usage</td>
  * <td>2436</td>
  * <td>2436</td>
  * <td>Memory usage for internal state machines, infrastructure and communication buffers</td>
@@ -167,12 +167,12 @@
  * </table>
  * @endhtmlonly
  *   
- * This includes all code from within the private IIK library, but none of the code implemented in the @ref idigi_callback_t 
+ * This includes all code from within the private iDigi connector library, but none of the code implemented in the @ref idigi_callback_t 
  * "application-defined callback".  These metrics should be treated as typical.  It is recommended that the actual program stack size 
  * used to call @ref idigi_run() or idigi_step() be these metrics plus the amount of memory typical for handling a TCP network client, 
  * or a thread that accesses local configuration, or makes malloc/free OS calls, whichever is the worst case.
  * 
- * @section features IIK Features
+ * @section features iDigi connector Features
  *     @li Send data to and from a device using the iDigi Device Cloud
  *     @li Update firmware on the device
  *     @li View and configure the device configurations
@@ -185,34 +185,34 @@
  *
  * @ref web_services "iDigi Web Services" requests are sent from a remote application to
  * the iDigi Device Cloud, which then directly communicates to the device.  This
- * allows for bidirectional machine to machine communication.  Each IIK sample includes
+ * allows for bidirectional machine to machine communication.  Each iDigi connector sample includes
  * a Python application demonstrating how to communicate to a device using the
  * @ref web_services "iDigi Web Services".
  *
  * @section threading Threading Model
  *
- * The IIK can be deployed in a multithreaded (idigi_run()) or round robin control loop (idigi_step()) environment.    
- * In environments that include preemptive threading, the IIK can be implemented as a separate stand-alone thread
+ * The iDigi connector can be deployed in a multithreaded (idigi_run()) or round robin control loop (idigi_step()) environment.    
+ * In environments that include preemptive threading, the iDigi connector can be implemented as a separate stand-alone thread
  * by calling idigi_run().  This is a blocking call that only returns due to a major system failure.
  *    
- * Alternatively, when threading is unavailable, in a round robin control loop or fixed state machine, the IIK can 
+ * Alternatively, when threading is unavailable, in a round robin control loop or fixed state machine, the iDigi connector can 
  * be implemented using the non-blocking idigi_step() call within the round robin control loop.  
  * 
  * Note in a cooperative, non-preemptive multithreaded environment, either idigi_run() or idigi_step() can used, based on 
- * system determinism and the potential for a non-cooperative thread to exceed the IIK's system timing.  
+ * system determinism and the potential for a non-cooperative thread to exceed the iDigi connector's system timing.  
  * 
- * @note You should decide before proceeding how you intend to call the IIK (within a round robin control loop or running 
+ * @note You should decide before proceeding how you intend to call the iDigi connector (within a round robin control loop or running 
  * as a separate thread).  In a limited services OS with no real time threading, you should use the idigi_step() routine.  
  * Otherwise you should use the idigi_run() routine.
  *
  * @section code_organization Source Code Organization
- * The IIK source code is divided into two partitions, a private partition and a public Application Framework.  The private partition
- * includes the sources that implement the @ref api_overview "IIK public API".  The public Application Framework includes a
+ * The iDigi connector source code is divided into two partitions, a private partition and a public Application Framework.  The private partition
+ * includes the sources that implement the @ref api_overview "iDigi connector public API".  The public Application Framework includes a
  * set of sample applications used for demonstration purposes.
  *
  * @note The private partition should be treated as a black box and never used, changed, debugged or referenced directly.  It's recommended
  * after completing the @ref getting_started process that this private partition be converted into a library.   Note the term
- * "IIK library" is used synonymously for the "IIK private partition".
+ * "iDigi connector library" is used synonymously for the "iDigi connector private partition".
  *
  * @subsection DirectoryStructure Directory Structure
  *
@@ -229,42 +229,42 @@
  * </tr>
  * <tr>
  * <td rowspan="2">private</td>
- * <td style="border-bottom: 0px none;">IIK Library Code</td>
+ * <td style="border-bottom: 0px none;">iDigi connector Library Code</td>
  * </tr><tr>
- * <td style="border-top: 0px none;">This directory contains all the private and internal files used to build the IIK library. 
+ * <td style="border-top: 0px none;">This directory contains all the private and internal files used to build the iDigi connector library. 
  * <b>You should never modify, directly call, debug, or reference any file from this directory</b>.</td>
  * </tr>
  * <tr>
  * <td rowspan=2>public/include</td>
- * <td style="border-bottom: 0px none;"> @endhtmlonly  @ref api_overview "IIK Public API" @htmlonly </td>
+ * <td style="border-bottom: 0px none;"> @endhtmlonly  @ref api_overview "iDigi connector Public API" @htmlonly </td>
  * </tr><tr>
  * <td style="border-top: 0px none;">Contains the three public headers: @endhtmlonly  @ref idigi_api.h,  @ref idigi_types.h,
- * and @ref idigi_config.h @htmlonly.  The @endhtmlonly @ref api_overview "IIK Public API"  @htmlonly is located in @endhtmlonly @ref idigi_api.h @htmlonly and
+ * and @ref idigi_config.h @htmlonly.  The @endhtmlonly @ref api_overview "iDigi connector Public API"  @htmlonly is located in @endhtmlonly @ref idigi_api.h @htmlonly and
  * required for application development.  All the machine device types are located in @endhtmlonly @ref idigi_types.h @htmlonly and might
  * require updating to match your platform's characteristics (i.e., data size and supported compiler data types).  The header @endhtmlonly
- * @ref idigi_config.h @htmlonly contains all the IIK settings and configurations. </td>
+ * @ref idigi_config.h @htmlonly contains all the iDigi connector settings and configurations. </td>
  * </tr>
  * <tr>
  * <td rowspan=2>public/run</td>
- * <td style="border-bottom: 0px none;">Platforms and samples for running the IIK as a separate thread</td>
+ * <td style="border-bottom: 0px none;">Platforms and samples for running the iDigi connector as a separate thread</td>
  * </tr><tr>
  * <td style="border-top: 0px none;">This directory contains platforms and samples that use @endhtmlonly idigi_run() @htmlonly which runs
- * the IIK as a separate thread in a multitasking environment.</td>
+ * the iDigi connector as a separate thread in a multitasking environment.</td>
  * </tr>
  * <td rowspan=2>public/run/platforms</td>
- * <td style="border-bottom: 0px none;">Platform files for running the IIK as a separate thread</td>
+ * <td style="border-bottom: 0px none;">Platform files for running the iDigi connector as a separate thread</td>
  * </tr><tr>
- * <td style="border-top: 0px none;">Platform dependent files that interface between the IIK library (private) and the sample applications.
+ * <td style="border-top: 0px none;">Platform dependent files that interface between the iDigi connector library (private) and the sample applications.
  * These files include @endhtmlonly os.c, network.c, config.c, platform.h and main.c.@htmlonly
  * The Getting Started Procedure walks you through the process of porting and setting these platform files.</td>
  * </tr>
  * <tr>
  * <td rowspan="2">public/run/samples</td>
- * <td style="border-bottom: 0px none;">Samples for the IIK</td>
+ * <td style="border-bottom: 0px none;">Samples for the iDigi connector</td>
  * </tr><tr>
- * <td style="border-top: 0px none;">Samples on how to use the IIK, the compile_and_link sample is used to verify
+ * <td style="border-top: 0px none;">Samples on how to use the iDigi connector, the compile_and_link sample is used to verify
  * that your new envirorment is able to build. There is a sample for each major
- * feature in the IIK, there is documentation in this guide for each sample.</td>
+ * feature in the iDigi connector, there is documentation in this guide for each sample.</td>
  * </tr>
  * <tr>
  * <td rowspan=2>public/step</td>
@@ -275,21 +275,21 @@
  * @endhtmlonly
  *
  * @subsection AppStructure Source Code Hierarchy
- * The IIK is split into two separate partitions, a private partition and a public Application Framework.
+ * The iDigi connector is split into two separate partitions, a private partition and a public Application Framework.
  *
- * The private partition (IIK Library) includes source code that implements the @ref api_overview "IIK public API", plus all the internal code used to implement the
+ * The private partition (iDigi connector Library) includes source code that implements the @ref api_overview "iDigi connector public API", plus all the internal code used to implement the
  * iDigi Cloud protocol.  This private partition should be treated as a black box and never used, changed, debugged or referenced directly.
  *
  * The public Application Framework partition is further divided in two: a Platform and Sample section.  The Platform section is related to system
  * specific porting dependencies (i.e., fleshing out @ref os_callbacks "operating system" calls, @ref network_callbacks "networking", @ref config_callbacks "system configuration").  The Sample section contains an application
- * structure to cleanly interface between the Platform section and the IIK private partition.
+ * structure to cleanly interface between the Platform section and the iDigi connector private partition.
  *
  * For instance, in a linux run thread model, the main() routine starts two threads: idigi_run_thread() and application_run_thread() in main.c.  This file is
- * located in the Platform section since it relies on threads (an operating system dependency).  The idigi_run_thread() directly calls the @ref api_overview "IIK API"
+ * located in the Platform section since it relies on threads (an operating system dependency).  The idigi_run_thread() directly calls the @ref api_overview "iDigi connector API"
  * idigi_run(), and the application_run_thread() calls application_run().  The application_run() function has no system dependencies and contains
- * IIK specific functions, therefore, it resides within the Sample section.
+ * iDigi connector specific functions, therefore, it resides within the Sample section.
  *
- * In the diagram below, the IIK Library is shown encapsulated within the dotted line on top (in the Private Source Code Area).  The
+ * In the diagram below, the iDigi connector Library is shown encapsulated within the dotted line on top (in the Private Source Code Area).  The
  * bottom is the Platform section, where the bottom left side shows main() calling idigi_init() and spawning the two threads.   Also
  * shown is the application_run_thread() calling application_run() in the Sample section.  The Sample section is encapsulated within the
  * dotted line on the center-right.
@@ -298,18 +298,18 @@
  *
  * Based on the particular sample, application_run() could either make calls to idigi_initiate_action(), or could just return and complete.
  *
- * The diagram further shows the IIK Library making callbacks into the Sample section.  The @ref idigi_callback_t "application callback function", initially passed
- * to the IIK library via the idigi_init() call, will pass the callback request to the appropriate handler, which will either be in the Platform section for
+ * The diagram further shows the iDigi connector Library making callbacks into the Sample section.  The @ref idigi_callback_t "application callback function", initially passed
+ * to the iDigi connector library via the idigi_init() call, will pass the callback request to the appropriate handler, which will either be in the Platform section for
  * @ref os_callbacks "operating system", @ref network_callbacks "networking", or @ref config_callbacks "configuration" callbacks; or remain locally
  * handled (in the Sample section) for the Data Service callbacks.
  *
  * @subsection PortingFocus Porting Guidelines
- * The IIK @ref getting_started process includes pulling the IIK into your local build environment, getting the private partition
+ * The iDigi connector @ref getting_started process includes pulling the iDigi connector into your local build environment, getting the private partition
  * compiled and linked (using the @ref step3 "compile_and_link" sample) and then your @ref step5 "platform ported".  Once your platform
  * is ported, you will verify and confirm your port using the @ref step7 "connect_to_idigi" sample.
  *
  * When porting, it is strongly recommended that you maintain the structure of the public Application Framework.  Once porting, compilation and testing
- * are complete, the you can dismantle this framework and incorporate the IIK into your environment as you see fit.
+ * are complete, the you can dismantle this framework and incorporate the iDigi connector into your environment as you see fit.
  *
  * When reusing the Application Framework, the largest effort will be updating the lowest layer of the Platform code.  Specifically, the
  * static @ref os_routines "operating system" functions located in os.c, the @ref network_routines "networking" functions in network.c and
