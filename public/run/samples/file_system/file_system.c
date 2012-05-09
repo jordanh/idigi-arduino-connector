@@ -95,6 +95,9 @@ static idigi_callback_status_t app_process_file_error(idigi_file_error_data_t * 
             error_data->error_status = idigi_file_invalid_parameter;
             break;
 
+#if EAGAIN != EWOULDBLOCK
+        case EWOULDBLOCK:
+#endif
         case EAGAIN:
             status = idigi_callback_busy;
             break;
@@ -398,7 +401,6 @@ static idigi_callback_status_t app_process_file_closedir(idigi_file_request_t co
                                                          idigi_file_response_t * const response_data)
 {
     app_dir_data_t * dir_data = request_data->handle;
-    UNUSED_ARGUMENT(response_data);
 
     ASSERT(dir_data != NULL);
     APP_DEBUG("closedir %p\n", (void *) dir_data->dirp);
@@ -415,6 +417,8 @@ static idigi_callback_status_t app_process_file_closedir(idigi_file_request_t co
         free(response_data->user_context);
         response_data->user_context = NULL;
     }
+#else
+    UNUSED_ARGUMENT(response_data);
 #endif
     return idigi_callback_continue;
 }
@@ -687,7 +691,6 @@ idigi_callback_status_t app_file_system_handler(idigi_data_service_request_t con
             break;
 
         default:
-            status = idigi_callback_unrecognized;
             APP_DEBUG("Unsupported file system request %d\n", request);
     }
 
