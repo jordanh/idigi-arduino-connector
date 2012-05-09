@@ -11,8 +11,8 @@
  *
  * The routine main() in the platform directory initializes the IIK and registers the application callback
  * app_idigi_callback() as part of @ref AppStructure "Public Application Framework". The app_idigi_callback()
- * is defined in the application.c file. The app_idigi_callback() callback calls app_file_system_handler(), defined in the file_system.c file,
- * when a file system request is received. 
+ * is defined in the application.c file. The app_idigi_callback() callback calls app_file_system_handler(), 
+ * defined in the file_system.c file in the platform directory, when a file system request is received. 
  *
  * All file system requests are initiated by the iDigi Device Cloud. 
  * 

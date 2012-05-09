@@ -36,7 +36,7 @@ ifeq ($(APP_ENABLE_MD5),true)
 CFLAGS += -DAPP_ENABLE_MD5
 endif
 
-OBJS = application.o file_system.o $(IDIGI_DIR)/idigi_api.o $(PLATFORM_DIR)/os.o $(PLATFORM_DIR)/network.o  $(PLATFORM_DIR)/config.o $(PLATFORM_DIR)/main.o 
+OBJS = application.o $(PLATFORM_DIR)/file_system.o $(IDIGI_DIR)/idigi_api.o $(PLATFORM_DIR)/os.o $(PLATFORM_DIR)/network.o  $(PLATFORM_DIR)/config.o $(PLATFORM_DIR)/main.o 
 LIBS = -lc -lz -lpthread
 
 ifeq ($(APP_ENABLE_MD5),true)

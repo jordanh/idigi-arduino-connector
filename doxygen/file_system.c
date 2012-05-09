@@ -900,14 +900,11 @@
  *     if (dirp != NULL)
  *     {
  *         void * ptr;
- *         app_dir_data_t * dir_data = NULL;
- * 
- *         int result  = app_os_malloc(sizeof *dir_data, &ptr);
- * 
- *         if (result == 0 && ptr != NULL)
+ *         app_dir_data_t * dir_data = malloc(sizeof *dir_data);
+ *
+ *         if (dir_data != NULL)
  *         {
- *             dir_data = ptr;
- *             response_data->handle = ptr;
+ *             response_data->handle = dir_data;
  *             dir_data->dirp = dirp;
  *         }
  *         else
@@ -1157,7 +1154,7 @@
  *     app_dir_data_t * dir_data = request_data->handle;
  *
  *     closedir(dir_data->dirp);
- *     app_os_free(dir_data);
+ *     free(dir_data);
  *
  *     // All session resources must be released in this callback
  *     return idigi_callback_continue;

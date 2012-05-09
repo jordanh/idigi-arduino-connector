@@ -33,6 +33,7 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <errno.h>
+#include <time.h>
 #include "idigi_api.h"
 #include "platform.h"
 
@@ -54,10 +55,6 @@ typedef struct
 #ifndef APP_MIN_VALUE
 #define APP_MIN_VALUE(a,b) (((a)<(b))?(a):(b))
 #endif
-
-extern int app_os_malloc(size_t const size, void ** ptr);
-extern void app_os_free(void * const ptr);
-extern int app_os_get_system_time(unsigned long * const uptime);
 
 typedef struct
 {
@@ -272,14 +269,10 @@ static idigi_callback_status_t app_process_file_strerror(idigi_file_data_respons
 #if defined APP_ENABLE_MD5
 static app_md5_ctx * app_allocate_md5_ctx(unsigned int const flags, idigi_file_error_data_t * const error_data)
 {
-    app_md5_ctx * ctx = NULL;
-    void * ptr = NULL;
+    app_md5_ctx * ctx = malloc(sizeof *ctx);
 
-    int result = app_os_malloc(sizeof *ctx, &ptr);
-
-    if (result == 0 && ptr != NULL)
+    if (ctx != NULL)
     {
-        ctx = ptr;
         ctx->flags = flags;
         ctx->fd    = -1;
     }
@@ -305,7 +298,7 @@ static idigi_callback_status_t app_process_file_msg_error(idigi_file_error_reque
         if (ctx->fd >= 0)
             close(ctx->fd);
 
-        app_os_free(response_data->user_context);
+        free(response_data->user_context);
         response_data->user_context = NULL;
     }
     return idigi_callback_continue;
@@ -367,7 +360,7 @@ done:
         // free md5 context here,  if ls was issued a single file
         if ((ctx->flags & IDIGI_FILE_IS_DIR) == 0)
         {
-            app_os_free(response_data->user_context);
+            free(response_data->user_context);
             response_data->user_context = NULL;
         }
     }
@@ -486,15 +479,11 @@ static idigi_callback_status_t app_process_file_opendir(idigi_file_path_request_
 
     if (dirp != NULL)
     {
-        void * ptr;
-        app_dir_data_t * dir_data = NULL;
+        app_dir_data_t * dir_data = malloc(sizeof *dir_data);
 
-        int result  = app_os_malloc(sizeof *dir_data, &ptr);
-
-        if (result == 0 && ptr != NULL)
+        if (dir_data != NULL)
         {
-            dir_data = ptr;
-            response_data->handle = ptr;
+            response_data->handle = dir_data;
 
             dir_data->dirp = dirp;
             APP_DEBUG("opendir for %s returned %p\n", request_data->path, (void *) dirp);
@@ -525,7 +514,7 @@ static idigi_callback_status_t app_process_file_closedir(idigi_file_request_t co
     APP_DEBUG("closedir %p\n", (void *) dir_data->dirp);
 
     closedir(dir_data->dirp);
-    app_os_free(dir_data);
+    free(dir_data);
 
     // All application resources, used in the session, must be released in this callback
 
@@ -533,7 +522,7 @@ static idigi_callback_status_t app_process_file_closedir(idigi_file_request_t co
     if (response_data->user_context != NULL)
     {
         // free md5 context here, if ls was issued a directory
-        app_os_free(response_data->user_context);
+        free(response_data->user_context);
         response_data->user_context = NULL;
     }
 #endif
@@ -577,13 +566,13 @@ static idigi_callback_status_t app_process_file_readdir(idigi_file_request_t con
 
         case dvt_fs_error_ls_timeout:
             {
-                static unsigned long dvt_start_time;
-                unsigned long dvt_current_time;
+                static time_t dvt_start_time;
+                time_t dvt_current_time;
 
                 if (dvt_current_state == dvt_fs_state_at_start)
-                    app_os_get_system_time(&dvt_start_time);
+                    time(&dvt_start_time);
             
-                app_os_get_system_time(&dvt_current_time);
+                time(&dvt_current_time);
 
                 if ((dvt_current_time - dvt_start_time) < DVT_FS_TIMEOUT_SECS)
                     status = idigi_callback_busy;
@@ -735,15 +724,15 @@ static idigi_callback_status_t app_process_file_rm(idigi_file_path_request_t con
 
     if ((dvt_current_error_case == dvt_fs_error_rm_timeout) && (cleanup == 0))
     {
-        static unsigned long dvt_start_time = 0;
-        unsigned long dvt_current_time;
+        static time_t dvt_start_time = 0;
+        time_t dvt_current_time;
 
         if (dvt_start_time == 0)
         {
-            app_os_get_system_time(&dvt_start_time);
+            time(&dvt_start_time);
         }
 
-        app_os_get_system_time(&dvt_current_time);
+        time(&dvt_current_time);
 
         if ((dvt_current_time - dvt_start_time) < DVT_FS_TIMEOUT_SECS)
         {
@@ -778,8 +767,8 @@ static idigi_callback_status_t app_process_file_read(idigi_file_request_t const 
     idigi_callback_status_t status = idigi_callback_continue;
     long int const fd = (long int) request_data->handle;
 
-    static unsigned long dvt_start_time;
-    unsigned long dvt_current_time;
+        static time_t dvt_start_time;
+        time_t dvt_current_time;
 
     switch (dvt_current_error_case)
     {
@@ -820,9 +809,9 @@ static idigi_callback_status_t app_process_file_read(idigi_file_request_t const 
 
         case dvt_fs_error_get_timeout:
             if (dvt_current_state == dvt_fs_state_at_start)
-                app_os_get_system_time(&dvt_start_time);
+                time(&dvt_start_time);
             
-            app_os_get_system_time(&dvt_current_time);
+            time(&dvt_current_time);
 
             if ((dvt_current_time - dvt_start_time) < DVT_FS_TIMEOUT_SECS)
                 status = idigi_callback_busy;
@@ -857,8 +846,9 @@ static idigi_callback_status_t app_process_file_write(idigi_file_write_request_t
 {
     idigi_callback_status_t status = idigi_callback_continue;
     long int const fd = (long int) request_data->handle;
-    static unsigned long dvt_start_time;
-    unsigned long dvt_current_time;
+    static time_t dvt_start_time;
+    time_t dvt_current_time;
+
 
     switch (dvt_current_error_case)
     {
@@ -900,9 +890,9 @@ static idigi_callback_status_t app_process_file_write(idigi_file_write_request_t
 
     case dvt_fs_error_put_timeout:
             if (dvt_current_state == dvt_fs_state_at_start)
-                app_os_get_system_time(&dvt_start_time);
+                time(&dvt_start_time);
             
-            app_os_get_system_time(&dvt_current_time);
+            time(&dvt_current_time);
 
             if ((dvt_current_time - dvt_start_time) < DVT_FS_TIMEOUT_SECS)
                 status = idigi_callback_busy;
