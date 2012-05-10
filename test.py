@@ -63,8 +63,6 @@ TEST_DIR = 2
 TEST_LIST = 3
 
 MEMORY_USAGE_FILE = './dvt/memory_usage.txt'
-SSL_CA_CERT_SRC = './dvt/cases/test_files/idigi-ca-cert-public.crt'
-SSL_CA_CERT_DST = './public/include/idigi-ca-cert-public.crt'
 
 DEVICE_ID_PROTOTYPE = '00000000-00000000-%sFF-FF%s'
 MAC_ADDR_PROTOTYPE = '%s:%s'
@@ -339,7 +337,6 @@ def main():
     # create empty memory usage file
     mem_usage_file = open(MEMORY_USAGE_FILE, 'w')
     mem_usage_file.close()
-    shutil.copy(SSL_CA_CERT_SRC, SSL_CA_CERT_DST)
 
     if args.configuration == 'default' or args.configuration == 'all':
         print "============ Default ============="
