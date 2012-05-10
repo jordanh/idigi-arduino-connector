@@ -20,6 +20,7 @@ memory_usage.txt
 archive
 output
 
-# Ignore compiled java class files and build folder
+# Ignore compiled java class files and build/dist folders
 *.class
 build
+dist

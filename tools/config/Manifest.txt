@@ -1,4 +1,0 @@
-Main-Class: com.digi.ic.config.ConfigGenerator
-Name: com.digi.ic.config
-Sealed: true
-

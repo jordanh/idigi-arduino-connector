@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE project>
+<project basedir="." default="dist" name="ConfigGenerator">
+	<property name="build.dir" location="build"/>
+	<property name="class.dir" location="${build.dir}/classes"/>
+	<property name="dist.dir" location="dist"/>
+	<property name="src.dir" location="src"/>
+	<property name="jar" location="ConfigGenerator.jar"/>
+	<!-- This should be overriden by caller.  Used in the Manifest. -->
+	<property name="version" value="0.0"/>
+
+	<target name="init">
+		<mkdir dir="${build.dir}"/>
+	</target>
+
+	<target name="compile" depends="init">
+		<mkdir dir="${class.dir}"/>
+		<javac srcdir="${src.dir}" destdir="${class.dir}"/>
+	</target>
+
+	<target name="jar" depends="compile">
+		<jar destfile="${build.dir}/${jar}">
+			<fileset dir="${class.dir}"/>
+			<manifest>
+				<attribute name="Main-Class" value="com.digi.ic.config.ConfigGenerator"/>
+				<attribute name="Implementation-Vendor" value="Digi International"/>
+				<attribute name="Implementation-Title" value="RCI Config Generator"/>
+				<attribute name="Implementation-Version" value="${version}"/>
+				<attribute name="Sealed" value="true"/>
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="dist" depends="jar">
+		<mkdir dir="${dist.dir}"/>
+		<copy file="${build.dir}/${jar}" todir="${dist.dir}"/>
+	</target>
+
+	<target name="clean">
+		<delete dir="${build.dir}"/>
+	</target>
+</project>
