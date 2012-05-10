@@ -8,9 +8,18 @@
 # Ignore compiled python data
 *.pyc
 
-# Ignore generate nosetests
+# Ignore generated nosetests and coverage data
 nosestest*.xml
+*.nxml
+*coverage.xml
+
+# Ignore memory usage files
+memory_usage.txt
 
 # Ignore generated archive and output dirs
 archive
 output
+
+# Ignore compiled java class files and build folder
+*.class
+build
