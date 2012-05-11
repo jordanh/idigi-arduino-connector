@@ -210,8 +210,13 @@ def run_test(test, test_list, execution_type, base_src_dir, base_script_dir,
                 if os.path.isfile(platform_main):
                     main = platform_main
                 else:
-                    print "Error:  Could not resolve main.c."
-                    return
+                    platform_main = os.path.join(src_dir,
+                            "../../../public/run/platforms/linux/main.c")
+                    if os.path.isfile(platform_main):
+                        main = platform_main
+                    else:
+                        print "Error:  Could not resolve main.c from %s." % src_dir
+                        return
             # Instrument the main file with a __gcov_flush USR1 signal hook.
             gcov_config.instrument(main)
             # Add -lgcov to libraries.
