@@ -413,7 +413,9 @@ def print_text_report(covdata):
 #
 def print_xml_report(covdata):
 
-    prefix = filter_pattern_size
+    prefix = len(options.root)
+    if not options.root.endswith('/'):
+        prefix += 1
 
     impl = xml.dom.minidom.getDOMImplementation()
     docType = impl.createDocumentType(
