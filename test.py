@@ -165,7 +165,7 @@ def start_iik(executable, tty=False):
 
 def run_test(test, test_list, execution_type, base_src_dir, base_script_dir, 
     description, base_dir, debug_on, api, cflags, replace_list=[], 
-    update_config_header=False, tty=False, gcov=False):
+    update_config_header=False, tty=False, gcov=False, sample=False):
     device_location = None
     try:
         sandbox_dir = sandbox(base_dir)
@@ -312,7 +312,15 @@ def run_test(test, test_list, execution_type, base_src_dir, base_script_dir,
             if gcov and test != 'compile_and_link':
                 print '>>> [%s] Flushing gcov coverage data for pid [%s] and exiting.' % (description, pid)
                 os.kill(int(pid), signal.SIGUSR1)
-                os.system('dvt/scripts/gcovr %s --root %s -d --xml > %s_%s_%s_%s_coverage.xml' % (sandbox_dir, sandbox_dir, description, execution_type, test, test_script))
+                # Only include Coverage data for files in private directory unless this is a sample test.
+                inclusion = '-f ".*%s/private.*"' % sandbox_dir
+                if sample:
+                    # Otherwise, explicitly filter private
+                    inclusion = '-e ".*%s/private.*"' % sandbox_dir
+                cwd = os.getcwd()   
+                cmd = 'cd %s; %s/dvt/scripts/gcovr %s --root %s -d --xml %s > %s/%s_%s_%s_%s_coverage.xml' % (src_dir, sandbox_dir, sandbox_dir, sandbox_dir, inclusion, cwd, description, execution_type, test, test_script)
+                print "Command is %s" % cmd
+                os.system(cmd)
             else:
                 print '>>> [%s] Killing Process with pid [%s]' % (description, pid)
                 os.kill(int(pid), signal.SIGKILL)
@@ -365,11 +373,12 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
                     return
 
             for test_set in test_list:
+                sample = test_type.name.find('sample') != -1
                 run_test(test_set, test_list[test_set], test, 
                     os.path.join(test_type.src_dir, test_set), 
                     test_type.script_dir, description, base_dir, debug_on, 
                     api, cflags, replace_list, update_config_header, tty, 
-                    gcov)
+                    gcov, sample)
 
 def clean_output(directory):
     for root, folders, files in os.walk(directory):

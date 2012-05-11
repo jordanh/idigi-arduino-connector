@@ -310,12 +310,11 @@ def process_datafile(filename, covdata, options):
     (dirname,base) = os.path.split(filename)
     (name,ext) = os.path.splitext(base)
     prevdir = os.getcwd()
-    objdir = ''
+    objdir = dirname
     (head, tail) = os.path.split(name)
     errors=[]
 
     while True:
-        os.chdir(dirname)
         cmd = [gcov_cmd, "--branch-counts", "--branch-probabilities", 
                "--preserve-paths"]
         if objdir:
