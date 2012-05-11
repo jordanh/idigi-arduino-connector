@@ -318,7 +318,7 @@ def run_test(test, test_list, execution_type, base_src_dir, base_script_dir,
                     # Otherwise, explicitly filter private
                     inclusion = '-e ".*%s/private.*"' % sandbox_dir
                 cwd = os.getcwd()   
-                cmd = 'cd %s; %s/dvt/scripts/gcovr %s --root %s -d --xml %s > %s/%s_%s_%s_%s_coverage.xml' % (src_dir, sandbox_dir, sandbox_dir, sandbox_dir, inclusion, cwd, description, execution_type, test, test_script)
+                cmd = 'cd %s; %s/dvt/scripts/gcovr %s --root %s -d --xml %s > "%s/%s_%s_%s_%s_coverage.xml"' % (src_dir, sandbox_dir, sandbox_dir, sandbox_dir, inclusion, cwd, description, execution_type, test, test_script)
                 print "Command is %s" % cmd
                 os.system(cmd)
             else:
