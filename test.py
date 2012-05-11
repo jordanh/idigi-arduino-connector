@@ -382,7 +382,7 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
 
 def clean_output(directory):
     for root, folders, files in os.walk(directory):
-        for test_result in filter(lambda f: f.endswith('.nxml'), files):
+        for test_result in filter(lambda f: f.endswith('.nxml') or f.endswith('coverage.xml'), files):
             file_path = os.path.join(root, test_result)
             print "Removing %s." % file_path
             os.remove(file_path)
