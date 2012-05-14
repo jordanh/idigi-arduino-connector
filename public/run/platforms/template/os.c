@@ -25,7 +25,7 @@
 
  /**
   * @file
-  *  @brief Functions used by the IIK to interface to the OS.
+  *  @brief Functions used by the iDigi connector to interface to the OS.
   *
   */
 #include "idigi_api.h"
@@ -81,7 +81,7 @@ void app_os_free(void * const ptr)
  * @brief   Get the system time.
  *
  * Get the current system time in seconds, this is only used as a reference 
- * by the IIK.
+ * by the iDigi connector.
  *
  * 
  * @param [in] uptime   Current system time in seconds.
@@ -103,7 +103,7 @@ int app_os_get_system_time(unsigned long * const uptime)
  *
  * Sleep or relinquish to run other task. This is called
  * to let other task to be executed when idigi_run is called.
- * IIK calls this callback if IIK is busy and is not calling
+ * iDigi connector calls this callback if iDigi connector is busy and is not calling
  * receive callback
  *
  * @param [in] timeout_in_seconds  Maximum number in seconds to sleep

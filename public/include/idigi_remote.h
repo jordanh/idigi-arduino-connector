@@ -85,9 +85,9 @@ typedef enum {
     idigi_element_type_enum,                /**< enum is used to define a set of allowed values for an element.
                                                 This is a pull-down menu shown in iDigi Device Cloud. */
     idigi_element_type_on_off,              /**< “on” or “off “ value. An applciation's callback should use
-                                                 idigi_on value for “on”  or idigi_off value for “off”. */
-    idigi_element_type_boolean,             /**< true or false.An application's callback should use  idigi_true
-                                                value for true  or idigi_false value for false. */
+                                                 idigi_on value for “on”  or idigi_off value for “off”. See @ref idigi_on_off_t*/
+    idigi_element_type_boolean,             /**< true or false value. An application's callback should use  idigi_boolean_true
+                                                value for true  or idigi_boolean_false value for false. See @ref idigi_boolean_t */
 
     idigi_element_type_ipv4,                /**< Valid IPv4 address (32-bit value) which is shown aaa.bbb.ccc.ddd in iDigi Device Cloud */
     idigi_element_type_fqdnv4,              /**< This type accepts either ipv4 or DNS name. */
@@ -96,7 +96,7 @@ typedef enum {
                                                  for date and time representation. The format is: YYYY-MM-DDTHH:MM:SStz
                                                  where
                                                      @htmlonly
-                                                     <table class="apitable">
+                                                     <table>
                                                      <tr><td>YYYY:</td> <td>Year<td></tr>
                                                      <tr><td>MM:</td> <td>Month<td></tr>
                                                      <tr><td>DD:</td> <td>Day<td></tr>

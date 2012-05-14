@@ -25,7 +25,7 @@
 
  /**
   * @file
-  *  @brief Configuration routines for the IIK.
+  *  @brief Configuration routines for the iDigi connector.
   *
   */
 #include <stdio.h>
@@ -182,11 +182,11 @@ static int app_get_vendor_id(uint8_t ** id, size_t * size)
 static int app_get_device_type(char ** type, size_t * size)
 {
 #error "Specify device type"
-    static const char const *device_type = "IIK Linux Sample";
+    static char const device_type[] = "iDigi connector Linux Sample";
 
     /* Return pointer to device type. */
     *type = (char *)device_type;
-    *size = strlen(device_type);
+    *size = sizeof device_type -1;
 
     return 0;
 }
@@ -211,11 +211,11 @@ static int app_get_device_type(char ** type, size_t * size)
 static int app_get_server_url(char ** url, size_t * size)
 {
 #error "Specify iDigi Server URL"
-    static const char const *idigi_server_url = "developer.idigi.com";
+    static char const idigi_server_url[] = "developer.idigi.com";
 
     /* Return pointer to device type. */
     *url = (char *)idigi_server_url;
-    *size = strlen(idigi_server_url);
+    *size = sizeof idigi_server_url -1;
 
     return 0;
 }
@@ -253,7 +253,7 @@ static int app_get_connection_type(idigi_connection_type_t ** type)
  * @brief   Get the link speed
  *
  * This routine assigns the link speed for WAN connection type. If connection type is LAN, 
- * IIK will not request link speed configuration.
+ * iDigi connector will not request link speed configuration.
  *
  * @param [out] speed Pointer to memory containing the link speed
  * @param [out] size Size of the link speed in bytes
@@ -280,7 +280,7 @@ static int app_get_link_speed(uint32_t ** speed, size_t * size)
  *
  * This routine assigns the phone number dialed for WAN connection type,
  * including any dialing prefixes. It's a variable length, non null-terminated string.
- * If connection type is LAN, IIK will not request phone number.
+ * If connection type is LAN, iDigi connector will not request phone number.
  *
  * @param [out] number  Pointer to memory containing the phone number
  * @param [out] size Size of the phone number in bytes
@@ -340,7 +340,7 @@ static int app_get_tx_keepalive_interval(uint16_t ** interval, size_t * size)
  * @brief   Get the RX keepalive interval
  *
  * This routine assigns the RX keepalive interval in seconds. This indicates how 
- * often the IIK device sends keepalive messages to the iDigi Device Cloud. Keepalive
+ * often the iDigi connector device sends keepalive messages to the iDigi Device Cloud. Keepalive
  * messages are from the prospective of the cloud, this keepalive is sent from the 
  * device to the cloud. The value must be between 5 and 7200 seconds.
  *
@@ -403,7 +403,7 @@ static int app_get_wait_count(uint16_t ** count, size_t * size)
 /**
  * @brief   Return true if firmware download is supported
  *
- * This routine tells IIK whether firmware access facility is supported or not. 
+ * This routine tells iDigi connector whether firmware access facility is supported or not.
  * If firmware access facility is not supported, callback for idigi_class_firmware 
  * class will not be executed.
  *
@@ -415,7 +415,7 @@ static int app_get_wait_count(uint16_t ** count, size_t * size)
  * @note This routine is not called if you define @b IDIGI_FIRMWARE_SUPPORT configuration in @ref idigi_config.h.
  * @note This IDIGI_FIRMWARE_SUPPORT indicates application supports firmware download. See @ref idigi_config_data_options
  *
- * @note See @ref IDIGI_FIRMWARE_SERVICE to include firmware access facility code in IIK.
+ * @note See @ref IDIGI_FIRMWARE_SERVICE to include firmware access facility code in iDigi connector.
  */
 static idigi_service_supported_status_t app_get_firmware_support(void)
 {
@@ -425,7 +425,7 @@ static idigi_service_supported_status_t app_get_firmware_support(void)
 /**
  * @brief   Return true if the data service is supported
  *
- * This routine tells IIK whether the data service facility is supported or not. 
+ * This routine tells iDigi connector whether the data service facility is supported or not.
  * If you plan on sending data to/from the iDigi server set this to idigi_service_supported.
  *
  * @retval idigi_service_supported  Data service is supported
@@ -436,7 +436,7 @@ static idigi_service_supported_status_t app_get_firmware_support(void)
  * @note This routine is not called if you define @b IDIGI_DATA_SERVICE_SUPPORT configuration in @ref idigi_config.h.
  * @note This IDIGI_DATA_SERVICE_SUPPORT indicates application supports data service. See @ref idigi_config_data_options
  *
- * @note See @ref IDIGI_DATA_SERVICE to include data service code in IIK.
+ * @note See @ref IDIGI_DATA_SERVICE to include data service code in iDigi connector.
  * @note See @ref IDIGI_COMPRESSION for data service transferring compressed data.
  */
 static idigi_service_supported_status_t app_get_data_service_support(void)
@@ -447,7 +447,7 @@ static idigi_service_supported_status_t app_get_data_service_support(void)
 /**
  * @brief   Return true if the file system is supported
  *
- * This routine tells IIK whether the file system facility is supported or not. 
+ * This routine tells iDigi connector whether the file system facility is supported or not.
  * If you plan to access device files from the iDigi server set this to idigi_service_supported.
  *
  * @retval idigi_service_supported  File system is supported
@@ -458,7 +458,7 @@ static idigi_service_supported_status_t app_get_data_service_support(void)
  * @note This routine is not called if you define @b IDIGI_FILE_SYSTEM_SUPPORT configuration in @ref idigi_config.h.
  * @note This IDIGI_FILE_SYSTEM_SUPPORT indicates application supports file system. See @ref idigi_config_data_options
  *
- * @note See @ref IDIGI_FILE_SYSTEM to include file system code in IIK.
+ * @note See @ref IDIGI_FILE_SYSTEM to include file system code in iDigi connector.
  * @note See @ref IDIGI_COMPRESSION for file system transferring compressed data.
  */
 static idigi_service_supported_status_t app_get_file_system_support(void)
@@ -466,7 +466,7 @@ static idigi_service_supported_status_t app_get_file_system_support(void)
 /**
  * @brief   Return true if the remote configuration is supported
  *
- * This routine tells IIK whether the remote configuration facility is supported or not.
+ * This routine tells iDigi connector whether the remote configuration facility is supported or not.
  * If you plan on accessing device data configuration through iDigi server set
  * this to idigi_service_supported.
  *
@@ -486,7 +486,7 @@ static idigi_service_supported_status_t app_get_remote_configuration_support(voi
 /**
  * @brief   Return maximum transactions
  *
- * This routine tells IIK the maximum simultaneous transactions for data service
+ * This routine tells iDigi connector the maximum simultaneous transactions for data service
  * to receive messages from iDigi Cloud.
  *
  * @retval 0  unlimited transactions
@@ -507,12 +507,12 @@ static unsigned int app_get_max_message_transactions(void)
 /**
  * @brief   Error status notification
  *
- * This routine is called when IIK encounters an error. This is used as
+ * This routine is called when iDigi connector encounters an error. This is used as
  * a debug tool for finding configuration or keepalive error.
  *
  * The error_data argument contains class id, request id, and error status.
  *
- * @note If @ref IDIGI_DEBUG is not defined in idigi_config.h, IIK will
+ * @note If @ref IDIGI_DEBUG is not defined in idigi_config.h, iDigi connector will
  * not call this callback to notify any error encountered.
  *
  * @retval None
