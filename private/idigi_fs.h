@@ -77,7 +77,7 @@ typedef struct
 
 #define FILE_OPCODE_BYTES           1
 
-#define FILE_STR_ETOOLONG "File name too long"
+static const char file_str_etoolong[] = "File name too long";
 
 #define FsIsBitSet(flag, bit)  (((flag) & (bit)) == (bit))
 #define FsBitSet(flag, bit)    ((flag) |= (bit))
@@ -1250,7 +1250,7 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
     file_system_context_t * context = session->service_context;
     msg_service_data_t    * service_data = service_request->need_data;
     idigi_callback_status_t status = idigi_callback_continue;
-    char * error_hint = NULL;
+    const char * error_hint = NULL;
 
     if ((context->error.error_status != idigi_file_noerror) || (FileGetState(context) == FILE_STATE_CLOSING))
        goto close_dir;
@@ -1280,7 +1280,7 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
             if ((file_path_len + header_len + hash_len) > buffer_size)
             {
                 context->error.error_status = idigi_file_out_of_memory;
-                error_hint = FILE_STR_ETOOLONG;
+                error_hint = file_str_etoolong;
                 ASSERT_GOTO(idigi_false, close_dir);
             }
 
@@ -1334,7 +1334,7 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
                 if ((context->data.d.path_len + file_path_len) > IDIGI_MAX_PATH_LENGTH)
                 {
                     context->error.error_status = idigi_file_out_of_memory;
-                    error_hint = FILE_STR_ETOOLONG;
+                    error_hint = file_str_etoolong;
                     ASSERT_GOTO(idigi_false, close_dir);
                 }
                 /* strcat file name to after directory path */
@@ -1388,7 +1388,7 @@ close_dir:
         {
             if ((context->error.error_status == idigi_file_out_of_memory) && 
                 (context->error.errnum == NULL))
-            error_hint = FILE_STR_ETOOLONG;
+            error_hint = file_str_etoolong;
 
             format_file_error_msg(idigi_ptr, service_request, error_hint);
         }
