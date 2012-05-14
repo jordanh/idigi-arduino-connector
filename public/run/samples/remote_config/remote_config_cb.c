@@ -127,7 +127,7 @@ static idigi_callback_status_t app_process_group(remote_group_cb_index_t cb_inde
     switch (request->group.type)
     {
     case idigi_remote_group_setting:
-        if (request->group.id <= sizeof (remote_setting_table))
+        if (request->group.id <= asizeof (remote_setting_table))
         {
             group_ptr = &remote_setting_table[request->group.id];
             session_ptr->group_context = group_ptr;
@@ -138,7 +138,7 @@ static idigi_callback_status_t app_process_group(remote_group_cb_index_t cb_inde
         }
         break;
     case idigi_remote_group_state:
-        if (request->group.id <= sizeof (remote_state_table))
+        if (request->group.id <= asizeof (remote_state_table))
         {
             group_ptr = &remote_state_table[request->group.id];
             session_ptr->group_context = group_ptr;
