@@ -30,8 +30,7 @@
 
 static char const event_list[] =
 {
-    "idigi_send",
-    ""
+    "idigi_send"
 };
 
 static size_t const event_list_size = asizeof(event_list);
@@ -87,6 +86,7 @@ error:
 
 idigi_connector_error_t ic_set_event(int const event)
 {
+    pointer event_ptr;
     idigi_connector_error_t status = idigi_connector_event_error;
 
     ASSERT_GOTO(event < event_list_size, error);
