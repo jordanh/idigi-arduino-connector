@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 1996-2012 Digi International Inc.,
  * All rights not expressly granted are reserved.
- * 
+ *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/.
- * 
+ *
  * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
  */
@@ -43,7 +43,7 @@ static struct idigi_parameters_t
 } idigi_params;
 
 /*
- * Routine to get the IP address, you will need to modify this routine for your 
+ * Routine to get the IP address, you will need to modify this routine for your
  * platform.
  */
 static int app_get_ip_address(uint8_t ** ip_address, size_t *size)
@@ -199,7 +199,7 @@ static int app_get_link_speed(uint32_t **speed, size_t * size)
 
 static int app_get_phone_number(uint8_t ** number, size_t * size)
 {
-    /* 
+    /*
      * Return pointer to phone number for WAN connection type.
      */
     UNUSED_ARGUMENT(number);
@@ -238,8 +238,8 @@ static int app_get_rx_keepalive_interval(uint16_t **interval, size_t * size)
 static int app_get_wait_count(uint16_t **count, size_t * size)
 {
 #define DEVICE_WAIT_COUNT     5
-    /* 
-     * Return pointer to wait count (number of times not receiving Tx keepalive 
+    /*
+     * Return pointer to wait count (number of times not receiving Tx keepalive
      * from server is allowed).
      */
     static uint16_t device_wait_count = DEVICE_WAIT_COUNT;
@@ -404,7 +404,7 @@ static unsigned char convertHexDigit(char hexDigit)
     unsigned char returnValue = BAD_HEX_DIGIT;
     static char const table[]="0123456789ABCDEF";
     unsigned int idx;
-    
+
     for (idx = 0; idx < strlen(table); idx++)
     {
         if (table[idx] == toupper(hexDigit))
@@ -413,14 +413,14 @@ static unsigned char convertHexDigit(char hexDigit)
             break;
         }
     }
-    
+
     return returnValue;
 }
 static int convert_address_string(unsigned char * dest, char * source, int length)
 {
     int idx;
     unsigned char hi, low;
-    
+
     for (idx = 0; idx < length; idx++)
     {
         hi  = convertHexDigit(*source++);
@@ -446,7 +446,7 @@ static void parse_config(struct idigi_parameters_t *parms)
     return;
   }
 
-  APP_DEBUG("parsing config file [%s]\n", CONFIG_FILE);
+  APP_DEBUG("--->parsing config file [%s]<----\n", CONFIG_FILE);
   /* Read next line */
   while ((s = fgets (buff, sizeof buff, fp)) != NULL)
   {
@@ -476,7 +476,7 @@ static void parse_config(struct idigi_parameters_t *parms)
     if (strcmp(name, "vendor_id")==0)
     {
        ret = convert_address_string(parms->vendor_id, value, VENDOR_ID_LENGTH);
-       if (ret < 0) 
+       if (ret < 0)
        {
            APP_DEBUG("config: Vendor ID invalid\n");
            continue;
@@ -487,7 +487,7 @@ static void parse_config(struct idigi_parameters_t *parms)
     else if (strcmp(name, "mac_addr")==0)
     {
        ret = convert_address_string(parms->mac_addr, value, MAC_ADDR_LENGTH);
-       if (ret < 0) 
+       if (ret < 0)
        {
            APP_DEBUG("config: MAC Address invalid\n");
            continue;
@@ -525,7 +525,7 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
 
     UNUSED_ARGUMENT(request_length);
 
-    if (first) 
+    if (first)
     {
         init_parameters(&idigi_params);
         parse_config(&idigi_params);

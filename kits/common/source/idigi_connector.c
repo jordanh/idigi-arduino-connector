@@ -36,13 +36,13 @@ typedef struct
     idigi_device_response_callback_t device_response;
 } idigi_connector_info_t;
 
-typedef struct 
+typedef struct
 {
     idigi_connector_data_t * user_data;
     idigi_data_service_put_request_t header;
 } idigi_connector_send_t;
 
-static idigi_connector_info_t idigi_info = 
+static idigi_connector_info_t idigi_info =
 {
     NULL, /* handle */
     NULL, /* status callback */
@@ -53,7 +53,7 @@ static idigi_connector_info_t idigi_info =
 #define IC_SEND_TIMEOUT_IN_MSEC 60000
 
 static idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
-                                                  void const * const request_data, size_t const request_length,
+                                                  void *  request_data, size_t const request_length,
                                                   void * const response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
@@ -76,7 +76,7 @@ static idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, 
     case idigi_class_data_service:
         status = app_data_service_handler(request_id.firmware_request, request_data, request_length, response_data, response_length);
         break;
-        
+
     case idigi_class_firmware:
         status = app_firmware_handler(request_id.firmware_request, request_data, request_length, response_data, response_length);
         break;
@@ -120,7 +120,7 @@ idigi_connector_error_t idigi_connector_start(idigi_status_callback_t status_cal
 
     UNUSED_PARAMETER(status_callback);
 
-    idigi_info.handle = idigi_init(app_idigi_callback);
+    idigi_info.handle = idigi_init((idigi_callback_t)app_idigi_callback);
     ASSERT_GOTO(idigi_info.handle != NULL, error);
 
     status = ic_create_thread();
@@ -144,7 +144,7 @@ idigi_connector_error_t idigi_register_device_request_callbacks(idigi_device_req
         goto done;
     }
 
-    if (idigi_info.device_request != NULL) 
+    if (idigi_info.device_request != NULL)
     {
         APP_DEBUG("idigi_register_device_request_callbacks: already registered once\n");
         status = idigi_connector_already_registered;
@@ -170,7 +170,7 @@ idigi_connector_error_t idigi_send_data(char const * const path, idigi_connector
         goto error;
     }
 
-    if (send_info == NULL) 
+    if (send_info == NULL)
     {
         APP_DEBUG("idigi_send_data: malloc failed\n");
         status = idigi_connector_resource_error;
@@ -192,7 +192,7 @@ idigi_connector_error_t idigi_send_data(char const * const path, idigi_connector
     {
         status = idigi_initiate_action(idigi_info.handle, idigi_initiate_data_service, &send_info->header, NULL);
 
-        if (status == idigi_success) 
+        if (status == idigi_success)
         {
             status = ic_get_event(IC_SEND_DATA_EVENT, IC_SEND_TIMEOUT_IN_MSEC);
             ASSERT_GOTO(status == idigi_connector_success, error);
