@@ -20,11 +20,11 @@
  *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  *
  * =======================================================================
- * Rountines which implement the IIK network interface.
+ * Rountines which implement the iDigi connector network interface.
  */
 /**
  * @file
- *  @brief Rountines which implement the IIK network interface.
+ *  @brief Rountines which implement the iDigi connector network interface.
  */
 #include "idigi_api.h"
 #include "platform.h"
@@ -65,7 +65,7 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
  * @brief   Send data to the iDigi server
  *
  * This routine sends data to the iDigi Device Cloud. This function must not block.
- * If it encounters EAGAIN or EWOULDBLOCK error, 0 bytes must be returned and the IIK 
+ * If it encounters EAGAIN or EWOULDBLOCK error, 0 bytes must be returned and the iDigi connector
  * will continue calling this function. If successful idigi_callback_continue is returned. 
  * If the data could not be sent idigi_callback_busy is returned, otherwise idigi_callback_abort is returned.
  *
@@ -92,7 +92,7 @@ static idigi_callback_status_t app_network_send(idigi_write_request_t const * co
  *
  * This routine reads a specified number of bytes from the iDigi Device Cloud.
  * This function blocks up to the timeout value specified. If no data is received
- * and the timeout has expired 0 bytes must be returned and IIK will continue 
+ * and the timeout has expired 0 bytes must be returned and iDigi connector will continue
  * calling this function.
  *
  * @param [in] read_data  Pointer to a idigi_read_request_t structure
@@ -100,7 +100,7 @@ static idigi_callback_status_t app_network_send(idigi_write_request_t const * co
  *
  * @retval idigi_callback_status_t
  *
- * @note When running in a multithreaded model this is where the IIK will
+ * @note When running in a multithreaded model this is where the iDigi connector will
  * relinquish control, the user should sleep until data is received up to the 
  * timeout given.
  *

@@ -290,11 +290,11 @@ int app_get_forced_error_vendor_id(void ** request_data, size_t request_length, 
 static int app_get_device_type(char ** type, size_t * size)
 {
 #error "Specify device type"
-    static const char const *device_type = "Linux Application"; 
+    static char const device_type[] = "Linux Application";
 
     /* Return pointer to device type. */
     *type = (char *)device_type;
-    *size = strlen(device_type);
+    *size = sizeof device_type -1;
 
     return 0;
 }
@@ -317,12 +317,11 @@ static int app_get_server_url(char ** url, size_t * size)
 {
 #error "Specify iDigi Server URL"
 
-    static const char const *idigi_server_url = "developer.idigi.com";
-    //static const char const *idigi_server_url = "test.idigi.com";
+    static char const []idigi_server_url = "developer.idigi.com";
 
     /* Return pointer to device type. */
     *url = (char *)idigi_server_url;
-    *size = strlen(idigi_server_url);
+    *size = sizeof idigi_server_url -1;
 
     return 0;
 }

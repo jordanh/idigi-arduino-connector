@@ -225,12 +225,12 @@
  *  {
  *  #error "Specify iDigi Server URL" // This #error must be removed to compile
  *      // Statically allocated string containing the sever URL
- *      static const char const *idigi_server_url = "developer.idigi.com";
+ *      static const char const idigi_server_url[] = "developer.idigi.com";
  *  
  *      // Fill in the pointer with the address of the URL in memory
  *      *url = (char *)idigi_server_url;
  *      // Fill in the size
- *      *size = strlen(idigi_server_url);
+ *      *size = sizeof idigi_server_url -1;
  *  
  *      return 0;
  *  }

@@ -31,7 +31,7 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-/* IIK Configuration routines */
+/* iDigi connector Configuration routines */
 
 #define MAX_INTERFACES      128
 #define DEVICE_ID_LENGTH    16
@@ -166,11 +166,11 @@ static int app_get_vendor_id(uint8_t ** id, size_t * size)
 static int app_get_device_type(char ** type, size_t * size)
 {
 #error "Specify device type"
-    static const char const *device_type = "Linux Application";
+    static char const device_type[] = "Linux Application";
 
     /* Return pointer to device type. */
     *type = (char *)device_type;
-    *size = strlen(device_type);
+    *size = sizeof device_type -1;
 
     return 0;
 }
@@ -178,11 +178,11 @@ static int app_get_device_type(char ** type, size_t * size)
 static int app_get_server_url(char ** url, size_t * size)
 {
 #error "Specify iDigi Server URL"
-    static const char const *idigi_server_url = "developer.idigi.com";
+    static char const idigi_server_url[] = "developer.idigi.com";
 
     /* Return pointer to device type. */
     *url = (char *)idigi_server_url;
-    *size = strlen(idigi_server_url);
+    *size = sizeof idigi_server_url -1;
 
     return 0;
 }
@@ -291,10 +291,10 @@ static unsigned int app_get_max_message_transactions(void)
     return IDIGI_MAX_MSG_TRANSACTIONS;
 }
 
-/* End of IIK configuration routines */
+/* End of iDigi connector configuration routines */
 
 /*
- * This routine is called when a configuration error is encountered by the IIK.
+ * This routine is called when a configuration error is encountered by the iDigi connector.
  * This is currently used as a debug tool for finding configuration errors.
  */
 void app_config_error(idigi_error_status_t * const error_data)

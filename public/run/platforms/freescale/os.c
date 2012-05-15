@@ -23,106 +23,82 @@
  *
  */
 
- /**
-  * @file
-  *  @brief Functions used by the iDigi connector to interface to the OS.
-  *
-  */
+#include <mqx.h>
+#include <bsp.h>
+#include <rtcs.h>
 #include "idigi_api.h"
 #include "platform.h"
 
-/**
- * @brief   Dynamically allocate memory
- *
- * Dynamically allocate memory, if you are not using malloc()
- * from the C library replace the malloc() call to an equivalent
- * call on your system.
- * 
- * @param [in] size  Number of bytes to allocate
- * 
- * @param [in] ptr  pointer to be filled in with the address of
- *                  the allocated memory
- *  
- * @retval 0  Memory was allocated
- * 
- * @retval -1  Memory was not allocated
- *
- * @see os_free
- * @see @ref malloc API Operating System Callback
- */
 int app_os_malloc(size_t const size, void ** ptr)
 {
-    UNUSED_ARGUMENT(size);
-    UNUSED_ARGUMENT(ptr);
-    return 0;
+    int status = -1;
+
+    *ptr = _mem_alloc(size);
+    if (*ptr != NULL)
+    {
+#ifdef DEBUG_MALLOC
+        APP_DEBUG ("os_malloc: ptr = [%x] size = [%d]\n", *ptr, size);
+#endif
+        status = 0;
+    }
+    else
+    {    
+        APP_DEBUG ("os_malloc: failed\n");
+    }
+
+    return status;
 }
 
-/**
- * @brief   Free Dynamically allocate memory.
- *
- * Free dynamically allocate memory, if you are not using 
- * free() from the C library replace the free() call to an 
- * equivalent call on your system. 
- * 
- * @param [in] ptr  pointer to memory to be freed
- *  
- * @retval none
- * 
- * @see os_malloc
- * @see @ref free API Operating System Callback
- */
 void app_os_free(void * const ptr)
 {
-    UNUSED_ARGUMENT(ptr);
+	unsigned int result;
+    ASSERT(ptr != NULL);
+
+#ifdef DEBUG_MALLOC
+    APP_DEBUG ("os_free: ptr = [%x]\n", ptr);
+#endif
+    
+    if (ptr != NULL)
+    {
+    	result = _mem_free(ptr);
+    	if (result)
+    	{
+    		APP_DEBUG("os_free: _mem_free failed [%d]\n");
+    	}
+    }
     return;
 }
 
-/**
- * @brief   Get the system time.
- *
- * Get the current system time in seconds, this is only used as a reference 
- * by the iDigi connector.
- *
- * 
- * @param [in] uptime   Current system time in seconds.
- *  
- * @retval 0 Able to get system time
- * 
- * @retval -1 System time unavailable
- * 
- * @see @ref uptime API Operating System Callback
- */
 int app_os_get_system_time(unsigned long * const uptime)
 {
-    UNUSED_ARGUMENT(uptime);
+    TIME_STRUCT curtime;
+    static start_system_up_time = -1;
+    _time_get(&curtime);
+    *uptime = curtime.SECONDS;
+
+    if (start_system_up_time == -1)
+    {
+    	start_system_up_time = curtime.SECONDS;
+    }
+    
+    /* Up time in seconds */
+    *uptime = (uint32_t)(curtime.SECONDS - start_system_up_time);
+
     return 0;
 }
 
-/**
- * @brief   Sleep or relinquish for other task execution.
- *
- * Sleep or relinquish to run other task. This is called
- * to let other task to be executed when idigi_run is called.
- * iDigi connector calls this callback if iDigi connector is busy and is not calling
- * receive callback
- *
- * @param [in] timeout_in_seconds  Maximum number in seconds to sleep
- *
- * @retval None
- *
- * @see @ref sleep API Operating System Callback
- */
 void app_os_sleep(unsigned int const timeout_in_seconds)
 {
-    UNUSED_ARGUMENT(timeout_in_seconds);
+	if (timeout_in_seconds == 0)	
+		_sched_yield();
+	else	
+        _time_delay(timeout_in_seconds * 1000);
+
     return;
 }
 
-/**
- * @cond DEV
- */
 idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
-                                        void * const request_data, size_t const request_length,
+                                        void const * const request_data, size_t const request_length,
                                         void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
@@ -139,7 +115,7 @@ idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
         break;
 
     case idigi_os_free:
-        app_os_free(request_data);
+        app_os_free((void *)request_data);
         status = idigi_callback_continue;
         break;
 
@@ -154,13 +130,11 @@ idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
         break;
 
     default:
+        APP_DEBUG("idigi_os_callback: unrecognized request [%d]\n", request);
         break;
     }
 
     return status;
 }
-/**
- * @endcond
- */
 
 

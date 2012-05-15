@@ -30,9 +30,9 @@
 int main (void)
 {
 
-    /* TODO: should start a thread to initialize and start IIK.
+    /* TODO: should start a thread to initialize and start iDigi connector.
      * idigi_init() and idigi_run should be called to initialize
-     * and start IIK.
+     * and start iDigi connector.
      */
 
     return 0;

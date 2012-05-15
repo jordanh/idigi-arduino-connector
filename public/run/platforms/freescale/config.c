@@ -22,14 +22,12 @@
  * =======================================================================
  *
  */
-#include <unistd.h>
-#include <malloc.h>
-#include <arpa/inet.h>
-#include <sys/ioctl.h>
-#include <net/if.h>
 
-#include "idigi_api.h"
-#include "platform.h"
+#include <psptypes.h>
+#include <ipcfg.h>
+#include <idigi_api.h>
+#include <platform.h>
+#include <bele.h>
 
 /* IIK Configuration routines */
 
@@ -38,13 +36,8 @@
 #define VENDOR_ID_LENGTH    4
 #define MAC_ADDR_LENGTH     6
 
-#define IDIGI_DEVICE_TYPE                          "IIK Linux Sample"
-#define IDIGI_CLOUD_URL                            "developer.idigi.com"
-#define IDIGI_TX_KEEPALIVE_IN_SECONDS              75
-#define IDIGI_RX_KEEPALIVE_IN_SECONDS              75
-#define IDIGI_WAIT_COUNT                           5
-#define IDIGI_VENDOR_ID                            0x00000000
-
+/* MAC address used in this sample */
+_enet_address device_mac_addr = {0x00, 0x40, 0x9d, 0x28, 0x29, 0x01};
 
 /*
  * Routine to get the IP address, you will need to modify this routine for your 
@@ -52,94 +45,42 @@
  */
 static int app_get_ip_address(uint8_t ** ip_address, size_t *size)
 {
-    int             fd = -1;
-    int            status=-1;
-    char            *buf = malloc(MAX_INTERFACES*sizeof(struct ifreq));
-    struct ifconf   conf;
-    unsigned int    entries = 0;
-    unsigned int    i;
-    static struct in_addr  ip_addr; /* Used to store the IP address */
+    IPCFG_IP_ADDRESS_DATA   ip_data;
+    static uint32_t val;
+    
+    ipcfg_get_ip(IPCFG_default_enet_device, &ip_data);
 
-    if (buf == NULL)
-    {
-        APP_DEBUG("get_ip_address malloc failed\n");
-        goto error;
-    }
-    conf.ifc_len = MAX_INTERFACES*sizeof(struct ifreq);
-    conf.ifc_buf = buf;
+    APP_DEBUG("get_ip_address: IP Address: %d.%d.%d.%d\n\n",IPBYTES(ip_data.ip));
 
-    fd = socket(AF_INET, SOCK_DGRAM, 0);
-    if(fd == -1)
-    {
-        perror("socket");
-        goto error;
-    }
+    *size       = sizeof ip_data.ip;
 
-    if( ioctl(fd, SIOCGIFCONF , &conf) == -1)
-    {
-        APP_DEBUG("get_ip_address: Error using ioctl SIOCGIFCONF.\n");
-        goto error;
-    }
-
-    entries = conf.ifc_len / sizeof(struct ifreq);
-
-    APP_DEBUG("get_ip_address: Looking for current device IP address: found [%d] entries\n", entries);
-
-    if (entries == 0)
-    {
-        goto error;
-    }
-    for( i = 0; i < entries; i++)
-    {
-        struct ifreq * req = &conf.ifc_req[i];
-        struct sockaddr_in * sa = (struct sockaddr_in *) &req->ifr_addr;
-
-        APP_DEBUG("get_ip_address: %d: Interface name [%s]\tIP Address [%s]\n", i+1, req->ifr_name, inet_ntoa(sa->sin_addr));
-        if (sa->sin_addr.s_addr != htonl(INADDR_LOOPBACK))
-        {
-            ip_addr = sa->sin_addr;
-            break;
-        }
-    }
-
-    /* Fill in the size and IP address */
-    *size       = sizeof ip_addr.s_addr;
-    *ip_address = (uint8_t *)&ip_addr.s_addr;
-    status = 0;
-
-error:
-    if (fd != -1)
-    {
-        close(fd);
-    }
-    if (buf != NULL)
-    {
-        free(buf);
-    }
-    return status;
+    StoreBE32((void * const)&val, ip_data.ip);
+    *ip_address = (uint8_t *)&val;
+    
+    return 0;
 }
-
-/* MAC address used in this sample */
-static uint8_t device_mac_addr[MAC_ADDR_LENGTH] = {0x00, 0x40, 0x9d, 0x43, 0x23, 0x17};
 
 static int app_get_mac_addr(uint8_t ** addr, size_t * size)
 {
-
-    *addr = device_mac_addr;
+	*addr = (uint8_t *)&device_mac_addr;
     *size = sizeof device_mac_addr;
-
+    
+    APP_DEBUG("get_mac_addr: MAC Address: %2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X\r\n", 
+    		device_mac_addr[0], device_mac_addr[1], device_mac_addr[2], 
+    		device_mac_addr[3], device_mac_addr[4], device_mac_addr[5]);
+    
     return 0;
 }
 
 static int app_get_device_id(uint8_t ** id, size_t * size)
 {
-    static uint8_t device_id[DEVICE_ID_LENGTH] = {0};
-    uint8_t * mac_addr;
-    size_t mac_size;
+    static uint8_t device_id[DEVICE_ID_LENGTH];
+    
+    APP_DEBUG("get_device_id: MAC Address: %2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X\r\n", 
+    		device_mac_addr[0], device_mac_addr[1], device_mac_addr[2], 
+    		device_mac_addr[3], device_mac_addr[4], device_mac_addr[5]);
 
     /* This sample uses the MAC address to format the device ID */
-    app_get_mac_addr(&mac_addr, &mac_size);
-
     device_id[8] = device_mac_addr[0];
     device_id[9] = device_mac_addr[1];
     device_id[10] = device_mac_addr[2];
@@ -156,8 +97,10 @@ static int app_get_device_id(uint8_t ** id, size_t * size)
 }
 static int app_get_vendor_id(uint8_t ** id, size_t * size)
 {
-    static const uint8_t device_vendor_id[VENDOR_ID_LENGTH] = {0x01, 0x00, 0x00, 0x1A};
-
+    static const uint8_t device_vendor_id[VENDOR_ID_LENGTH] = {0x01, 0x00, 0x00, 0x20};
+	
+    APP_DEBUG("get_vendor_id Vendor ID: %2.2X,%2.2X,%2.2X,%2.2X\r\n", 
+              device_vendor_id[0], device_vendor_id[1], device_vendor_id[2], device_vendor_id[3]);
 
     *id   = (uint8_t *)device_vendor_id;
     *size = sizeof device_vendor_id;
@@ -167,22 +110,30 @@ static int app_get_vendor_id(uint8_t ** id, size_t * size)
 
 static int app_get_device_type(char ** type, size_t * size)
 {
-    static char const device_type[] = "connect to idigi DVT";
+#ifdef TWR_K53N512
+    static char const *const device_type = "K53N512";
+#else
+    static char const *const device_type = "K60N512";
+#endif
+	
+    APP_DEBUG("get_device_type: Device Type %s\r\n", device_type);
 
     /* Return pointer to device type. */
     *type = (char *)device_type;
-    *size = sizeof device_type -1;
+    *size = strlen(device_type);
 
     return 0;
 }
 
 static int app_get_server_url(char ** url, size_t * size)
 {
-    static char const idigi_server_url[] = "idigi-e2e.sa.digi.com";
-
+    static char const *const idigi_server_url = "test.idigi.com";
+	
+    APP_DEBUG("get_server_url: Server URL %s\r\n", idigi_server_url);
+    
     /* Return pointer to device type. */
     *url = (char *)idigi_server_url;
-    *size = sizeof idigi_server_url -1;
+    *size = strlen(idigi_server_url);
 
     return 0;
 }
@@ -266,6 +217,11 @@ static idigi_service_supported_status_t app_get_data_service_support(void)
     return idigi_service_supported;
 }
 
+static idigi_service_supported_status_t app_get_file_system_support(void)
+{
+    return idigi_service_unsupported;
+}
+
 static idigi_service_supported_status_t app_get_remote_configuration_support(void)
 {
     return idigi_service_supported;
@@ -323,6 +279,7 @@ void app_config_error(idigi_error_status_t * const error_data)
                                              "idigi_config_error_status",
                                              "idigi_config_firmware_facility",
                                              "idigi_config_data_service",
+                                             "idigi_config_file_system",
                                               "idigi_config_max_transaction"};
 
     char const * network_request_string[] = { "idigi_network_connect",
@@ -350,6 +307,21 @@ void app_config_error(idigi_error_status_t * const error_data)
 
     char const * data_service_string[] = {"idigi_data_service_put_request",
                                           "idigi_data_service_device_request"};
+    char const * file_system_string[] = {"idigi_file_system_open",    
+                                       "idigi_file_system_read",    
+                                       "idigi_file_system_write",   
+                                       "idigi_file_system_lseek",   
+                                       "idigi_file_system_ftruncate",
+                                       "idigi_file_system_close",   
+                                       "idigi_file_system_rm",      
+                                       "idigi_file_system_stat",
+                                       "idigi_file_system_opendir", 
+                                       "idigi_file_system_readdir", 
+                                       "idigi_file_system_closedir",
+                                       "idigi_file_system_strerror",
+                                       "idigi_file_system_error",
+                                       "idigi_file_system_hash"};    
+
     switch (error_data->class_id)
     {
     case idigi_class_config:
@@ -376,6 +348,12 @@ void app_config_error(idigi_error_status_t * const error_data)
                      error_data->request_id.data_service_request,
                      error_status_string[error_data->status],error_data->status);
         break;
+    case idigi_class_file_system:
+           APP_DEBUG("idigi_error_status: File system - %s (%d)  status = %s (%d)\n",
+                        file_system_string[error_data->request_id.file_system_request],
+                        error_data->request_id.file_system_request,
+                        error_status_string[error_data->status],error_data->status);
+           break;
     default:
         APP_DEBUG("idigi_error_status: unsupport class_id = %d status = %d\n", error_data->class_id, error_data->status);
         break;
@@ -386,9 +364,9 @@ void app_config_error(idigi_error_status_t * const error_data)
  * Configuration callback routine.
  */
 idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
-                                              void * const request_data,
+                                              void const * const request_data,
                                               size_t const request_length,
-                                              void * response_data,
+                                              void * const response_data,
                                               size_t * const response_length)
 {
     idigi_callback_status_t status;
@@ -458,6 +436,11 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
 
     case idigi_config_data_service:
         *((idigi_service_supported_status_t *)response_data) = app_get_data_service_support();
+        ret = 0;
+        break;
+
+    case idigi_config_file_system:
+        *((idigi_service_supported_status_t *)response_data) = app_get_file_system_support();
         ret = 0;
         break;
 
