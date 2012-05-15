@@ -945,7 +945,7 @@ static idigi_callback_status_t app_process_file_close(idigi_file_request_t const
     return status;
 }
 
-idigi_callback_status_t app_file_system_handler(idigi_data_service_request_t const request,
+idigi_callback_status_t app_file_system_handler(idigi_file_system_request_t const request,
                                                 void const * const request_data, size_t const request_length,
                                                 void * const response_data, size_t * const response_length)
 {
