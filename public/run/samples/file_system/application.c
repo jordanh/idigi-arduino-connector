@@ -25,7 +25,7 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-extern idigi_callback_status_t app_file_system_handler(idigi_data_service_request_t const request,
+extern idigi_callback_status_t app_file_system_handler(idigi_file_system_request_t const request,
                                                   void const * const request_data, size_t const request_length,
                                                   void * const response_data, size_t * const response_length);
 
