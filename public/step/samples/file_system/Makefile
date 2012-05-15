@@ -39,7 +39,7 @@ OBJS = application.o $(PLATFORM_DIR)/file_system.o $(IDIGI_DIR)/idigi_api.o $(PL
 LIBS = -lc -lz
 
 ifeq ($(APP_ENABLE_MD5),true)
-LIBS += -lssl
+LIBS += -lcrypto
 endif
 
 SAMPLE = idigi
