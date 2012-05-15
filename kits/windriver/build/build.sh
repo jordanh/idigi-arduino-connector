@@ -2,11 +2,9 @@
 #
 #set -v
 rc=0
-BASE_DIR=$WORKSPACE/idigi
 TMP_DIR=../idigi-1.1
 OUTPUT_DIR=../release
 BASE_DIR=../../..
-
 
 function cleanup () 
 {
@@ -41,14 +39,16 @@ else
 fi
 make clean
 
-cd ../build
+cd ..
  
-# Tar up the library, copy into the RPM directory and buils
-#tar -pczf idigi-1.1.tar.gz idigi-1.1
-#cp idigi-1.1.tar.gz ~/rpmbuild/SOURCES/.
-#rpmbuild -ba ~/rpmbuild/SPECS/idigi.spec
+# Tar up the library: copy into the RPM directory and build
+tar -pczf rpm/SOURCES/idigi-1.1.tar.gz idigi-1.1
+
+# The RPM is build by default in the rpmbuild off the home directory for the user
+# you also need the RPM related packages.
+echo "RPM is build in ~/rpmbuild directory"
+rpmbuild -ba -vvv rpm/SPECS/idigi.spec
 
 # Copy the final RPM to the release directory
-
-
+cd build
 cleanup
