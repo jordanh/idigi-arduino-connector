@@ -49,6 +49,12 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
                                               void * response_data,
                                               size_t * const response_length);
 
+idigi_callback_status_t app_file_system_handler(idigi_file_system_request_t const request,
+                                                void const * const request_data, 
+                                                size_t const request_length,
+                                                void * const response_data, 
+                                                size_t * const response_length);
+
 int application_step(idigi_handle_t handle);
 void app_os_sleep(unsigned int const timeout_in_seconds);
 
