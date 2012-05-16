@@ -4,7 +4,7 @@
 Name:           idigi
 Version:        1.1
 Release:        1%{?dist}
-Summary:        Library which are used to connect to the cloud 
+Summary:        Library which are used to connect to the cloud
 
 Group:         System Environment/Base
 License:       GPLv2
@@ -13,7 +13,7 @@ Source:        %{name}-%{version}.tar.gz
 BuildRoot:     %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Vendor:        Digi International Inc.
 
-%description   
+%description
 Library routines used to connect to the Digi cloud
 
 %changelog
@@ -36,6 +36,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 %{_libdir}/libidigi.so
+%{_includedir}/idigi_types.h
 %{_includedir}/idigi_connector.h
 
 

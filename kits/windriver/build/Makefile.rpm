@@ -21,20 +21,21 @@
 #
 # =======================================================================
 #CC = gcc
-PUBLIC_HEADER_DIR=./public/include 
+LOCAL_HEADER_DIR=../include
+PUBLIC_HEADER_DIR=./public/include
 PLATFORM_HEADER_DIR=./public/run/platforms/linux
 
 vpath %.c ./public ./private ./public/run/platforms/linux
 vpath %.h ./public/include ./public/run/platforms/linux
 
-SRC  = idigi_api.c os.c network.c config.c idigi_connector.c os_support.c
+SRC  = idigi_api.c os.c network_ssl.c config.c file_system.c idigi_connector.c os_support.c
 OBJ  = $(SRC:.c=.o)
 OUT  = libidigi.so
 DEPS = idigi_api.h os_support.h platform.h
 
 INCDIRS=-I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_HEADER_DIR)
 
-CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL -g
+CFLAGS += $(DFLAGS) -DAPP_ENABLE_MD5 -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL -g
 CFLAGS += -fPIC -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE $(INCDIRS)
 
 %.o: %.c $(DEPS)
@@ -52,6 +53,7 @@ install:
 	mkdir -p $(DESTDIR)/usr/include
 	cp $(OUT) $(DESTDIR)/usr/lib
 	cp idigi_connector.h $(DESTDIR)/usr/include
+	cp ./public/include/idigi_types.h $(DESTDIR)/usr/include
 
 
 

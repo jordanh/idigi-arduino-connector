@@ -10,7 +10,8 @@ PROJECT_DIR=~/WindRiver/workspace/WRLinux-Platform_prj
 
 f=$(pwd)
 
-# Build and copy over the source RPM
+# Build and copy over the source RPM, note: if you update the spec
+# file manually copy it into ${PROJECT_DIR}/dist/idigi/idigi.spec
 cd build
 ./build.sh
 cp ~/rpmbuild/SRPMS/idigi-1.1-1.fc13.src.rpm ${PROJECT_DIR}/packages

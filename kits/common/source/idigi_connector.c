@@ -82,6 +82,10 @@ static idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, 
         break;
 #endif
 
+    case idigi_class_file_system:
+        status = app_file_system_handler(request_id.file_system_request, request_data, request_length, response_data, response_length);
+        break;
+
     default:
         /* not supported */
         break;
