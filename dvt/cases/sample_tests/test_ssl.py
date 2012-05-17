@@ -12,7 +12,7 @@ DISCONNECT_REQUEST = \
 </sci_request>"""
 
 good_ca_cert_src = './dvt/cases/test_files/idigi-ca-cert-public.crt'
-good_ca_cert_dst = './public/include/idigi-ca-cert-public.crt'
+good_ca_cert_dst = './public/certificates/idigi-ca-cert-public.crt'
 bad_ca_cert_src  = './dvt/cases/test_files/intruder-ca-cert.crt'
 
 class SSLTestCase(iik_testcase.TestCase):
