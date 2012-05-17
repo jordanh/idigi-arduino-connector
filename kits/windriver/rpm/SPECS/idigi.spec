@@ -32,13 +32,14 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-# If it isn't in the file list, it won't be put in the package
+# If it isn't in this file list, it won't be put in the package
 %files
 %defattr(-,root,root,-)
 %{_libdir}/libidigi.so
 %{_includedir}/idigi_types.h
 %{_includedir}/idigi_connector.h
-
+%{_sysconfdir}/idigi.conf
+%{_sysconfdir}/idigi-ca-cert-public.crt
 
 #%post -p /sbin/ldconfig
 #%postun -p /sbin/ldconfig

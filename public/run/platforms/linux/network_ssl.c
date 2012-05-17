@@ -38,9 +38,6 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-#define APP_SSL_CA_CERT   "./public/include/idigi-ca-cert-public.crt"
-//#define APP_SSL_CA_CERT   "../../../include/idigi-ca-cert-public.crt"
-
 typedef struct
 {
     int sfd;
@@ -167,7 +164,7 @@ static int app_connect_to_server(int fd, char const * const host_name, size_t le
         ret = connect(fd, (struct sockaddr *)&sin, sizeof sin);
         if (ret < 0)
         {
-            switch (errno) 
+            switch (errno)
             {
             case EAGAIN:
             case EINPROGRESS:
@@ -240,7 +237,7 @@ static int app_load_certificate_and_key(SSL_CTX * const ctx)
 
     {
         ret = SSL_CTX_load_verify_locations(ctx, APP_SSL_CA_CERT, NULL);
-        if (ret != 1) 
+        if (ret != 1)
         {
             APP_DEBUG("Failed to load CA cert %d\n", ret);
             ERR_print_errors_fp(stderr);
@@ -271,19 +268,19 @@ error:
 
 static void app_free_ssl_info(app_ssl_t * const ssl_ptr)
 {
-    if (ssl_ptr->ssl != NULL) 
+    if (ssl_ptr->ssl != NULL)
     {
         SSL_free(ssl_ptr->ssl);
         ssl_ptr->ssl = NULL;
     }
 
-    if (ssl_ptr->ctx != NULL) 
+    if (ssl_ptr->ctx != NULL)
     {
         SSL_CTX_free(ssl_ptr->ctx);
         ssl_ptr->ctx = NULL;
     }
 
-    if (ssl_ptr->sfd != -1) 
+    if (ssl_ptr->sfd != -1)
     {
         close(ssl_ptr->sfd);
         ssl_ptr->sfd = -1;
@@ -319,12 +316,12 @@ static int app_ssl_connect(app_ssl_t * const ssl_ptr)
     SSL_library_init();
     OpenSSL_add_all_algorithms();
     SSL_load_error_strings();
-    ssl_ptr->ctx = SSL_CTX_new(TLSv1_client_method());    
+    ssl_ptr->ctx = SSL_CTX_new(TLSv1_client_method());
     if (ssl_ptr->ctx == NULL)
     {
         ERR_print_errors_fp(stderr);
         goto error;
-    } 
+    }
 
     ssl_ptr->ssl = SSL_new(ssl_ptr->ctx);
     if (ssl_ptr->ssl == NULL)
@@ -344,7 +341,7 @@ static int app_ssl_connect(app_ssl_t * const ssl_ptr)
         goto error;
     }
 
-    if (app_verify_server_certificate(ssl_ptr->ssl) != X509_V_OK) 
+    if (app_verify_server_certificate(ssl_ptr->ssl) != X509_V_OK)
         goto error;
 
     ret = 0;
@@ -370,7 +367,7 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
         APP_DEBUG("Failed to connect to %s\n", host_name);
         goto error;
     }
-    
+
     if (app_is_connect_complete(ssl_info.sfd) < 0)
         goto error;
 
@@ -479,7 +476,7 @@ static idigi_callback_status_t app_network_close(idigi_network_handle_t * const 
     app_ssl_t * const ssl_ptr = (app_ssl_t *)handle;
 
     /* send close notify to peer */
-    if (SSL_shutdown(ssl_ptr->ssl) == 0) 
+    if (SSL_shutdown(ssl_ptr->ssl) == 0)
         SSL_shutdown(ssl_ptr->ssl);  /* wait for peer's close notify */
 
     app_free_ssl_info(ssl_ptr);
