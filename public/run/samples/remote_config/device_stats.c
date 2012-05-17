@@ -32,8 +32,6 @@
 
 #define DEVICE_STATS_TIME_STRING_LENGTH 25
 
-extern int app_os_get_system_time(unsigned long * const uptime);
-
 typedef struct {
     time_t curtime;
     int32_t signed_integer;
@@ -42,7 +40,7 @@ typedef struct {
 
 device_stats_config_data_t device_stats_config_data = {0, -10, "\0"};
 
-idigi_callback_status_t app_device_stats_group_init(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
+idigi_callback_status_t app_device_stats_group_init(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
 
     remote_group_session_t * const session_ptr = response->user_context;
@@ -72,7 +70,7 @@ idigi_callback_status_t app_device_stats_group_init(idigi_remote_group_request_t
     return idigi_callback_continue;
 }
 
-idigi_callback_status_t app_device_stats_group_get(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
+idigi_callback_status_t app_device_stats_group_get(idigi_remote_group_request_t const * const  request, idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     remote_group_session_t * const session_ptr = response->user_context;
@@ -105,7 +103,7 @@ idigi_callback_status_t app_device_stats_group_get(idigi_remote_group_request_t 
     return status;
 }
 
-idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
+idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
 

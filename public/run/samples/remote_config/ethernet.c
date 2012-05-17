@@ -36,11 +36,6 @@
 #include "remote_config.h"
 #include "remote_config_cb.h"
 
-#define MAX_INTERFACES      5
-
-#define ETHERNET_NO_MEMORY_HINT            "Memory"
-
-#define ETHERNET_IPV4_ADDR_SIZE 4
 #define ETHERNET_IPV4_STRING_LENGTH 16
 #define ETHERNET_DNS_FQDN_LENGTH    128
 
@@ -78,12 +73,12 @@ ethernet_config_data_t ethernet_config_data = {0, 0, 0, ethernet_duplex_auto, "\
 
 int ethernet_configuration_init(void)
 {
+    #define MAX_INTERFACES      5
+
     int             fd = -1;
-    int            status=-1;
+    int             status=-1;
     char            *buf = malloc(MAX_INTERFACES*sizeof(struct ifreq));
     struct ifconf   conf;
-    unsigned int    entries = 0;
-    unsigned int    i;
 
     ethernet_config_data_t * const ethernet_ptr = &ethernet_config_data;
 
@@ -92,6 +87,7 @@ int ethernet_configuration_init(void)
         APP_DEBUG("get_ip_address malloc failed\n");
         goto error;
     }
+
     conf.ifc_len = MAX_INTERFACES*sizeof(struct ifreq);
     conf.ifc_buf = buf;
 
@@ -108,42 +104,44 @@ int ethernet_configuration_init(void)
         goto error;
     }
 
-    entries = conf.ifc_len / sizeof(struct ifreq);
-
-    APP_DEBUG("get_ip_address: Looking for current device IP address: found [%d] entries\n", entries);
-
-    if (entries == 0)
     {
-        goto error;
-    }
-    for( i = 0; i < entries; i++)
-    {
-        struct ifreq * req = &conf.ifc_req[i];
-        struct sockaddr_in * sa = (struct sockaddr_in *) &req->ifr_addr;
+        unsigned int entries = conf.ifc_len / sizeof(struct ifreq);
+        unsigned int i;
 
-        APP_DEBUG("get_ip_address: %d: Interface name [%s]\tIP Address [%s]\n", i+1, req->ifr_name, inet_ntoa(sa->sin_addr));
-        if (sa->sin_addr.s_addr != htonl(INADDR_LOOPBACK))
+        APP_DEBUG("get_ip_address: Looking for current device IP address: found [%d] entries\n", entries);
+
+        if (entries == 0)
         {
-            ethernet_ptr->ip_address = sa->sin_addr.s_addr;
-            status = 0;
-            break;
-        }
-    }
-
-
-    {
-        struct ifreq * req = &conf.ifc_req[i];
-        struct sockaddr_in * sa = (struct sockaddr_in *) &req->ifr_addr;
-
-        if( ioctl(fd, SIOCGIFNETMASK , req) == -1)
-        {
-            perror("get_ip_address: Error using ioctl SIOCGIFNETMASK");
-            status = -1;
             goto error;
         }
+        for( i = 0; i < entries; i++)
+        {
+            struct ifreq * req = &conf.ifc_req[i];
+            struct sockaddr_in * sa = (struct sockaddr_in *) &req->ifr_addr;
 
-        APP_DEBUG("get_ip_address: IP Address [%s]\n", inet_ntoa(sa->sin_addr));
-        ethernet_ptr->subnet = sa->sin_addr.s_addr;
+            APP_DEBUG("get_ip_address: %d: Interface name [%s]\tIP Address [%s]\n", i+1, req->ifr_name, inet_ntoa(sa->sin_addr));
+            if (sa->sin_addr.s_addr != htonl(INADDR_LOOPBACK))
+            {
+                ethernet_ptr->ip_address = sa->sin_addr.s_addr;
+                status = 0;
+                break;
+            }
+        }
+
+        {
+            struct ifreq * req = &conf.ifc_req[i];
+            struct sockaddr_in * sa = (struct sockaddr_in *) &req->ifr_addr;
+
+            if( ioctl(fd, SIOCGIFNETMASK , req) == -1)
+            {
+                perror("get_ip_address: Error using ioctl SIOCGIFNETMASK");
+                status = -1;
+                goto error;
+            }
+
+            APP_DEBUG("get_ip_address: IP Address [%s]\n", inet_ntoa(sa->sin_addr));
+            ethernet_ptr->subnet = sa->sin_addr.s_addr;
+        }
     }
 
 error:
@@ -164,7 +162,7 @@ void ethernet_get_ip_address(unsigned char ** addr, size_t * size)
     *size = sizeof ethernet_config_data.ip_address;
 }
 
-idigi_callback_status_t app_ethernet_group_init(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
+idigi_callback_status_t app_ethernet_group_init(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
     remote_group_session_t * const session_ptr = response->user_context;
     void * ptr;
@@ -173,10 +171,10 @@ idigi_callback_status_t app_ethernet_group_init(idigi_remote_group_request_t * r
     UNUSED_ARGUMENT(request);
     ASSERT(session_ptr != NULL);
 
-    if (app_os_malloc(sizeof *ethernet_ptr, &ptr) != 0)
+    ptr = malloc(sizeof *ethernet_ptr);
+    if (ptr == NULL)
     {
-        response->error_id = idigi_global_error_load_fail;
-        response->element_data.error_hint = ETHERNET_NO_MEMORY_HINT;
+        response->error_id = idigi_global_error_memory_fail;
         goto done;
     }
 
@@ -206,7 +204,7 @@ done:
     return idigi_callback_continue;
 }
 
-idigi_callback_status_t app_ethernet_group_get(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
+idigi_callback_status_t app_ethernet_group_get(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
@@ -250,7 +248,7 @@ idigi_callback_status_t app_ethernet_group_get(idigi_remote_group_request_t * re
     return status;
 }
 
-idigi_callback_status_t app_ethernet_group_set(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
+idigi_callback_status_t app_ethernet_group_set(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
@@ -311,7 +309,7 @@ idigi_callback_status_t app_ethernet_group_set(idigi_remote_group_request_t * re
     return status;
 }
 
-idigi_callback_status_t app_ethernet_group_end(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
+idigi_callback_status_t app_ethernet_group_end(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
 
     remote_group_session_t * const session_ptr = response->user_context;
@@ -371,19 +369,19 @@ idigi_callback_status_t app_ethernet_group_end(idigi_remote_group_request_t * re
 done:
     if (ethernet_ptr != NULL)
     {
-        app_os_free(ethernet_ptr);
+        free(ethernet_ptr);
     }
     return idigi_callback_continue;
 }
 
-void app_ethernet_group_cancel(void * context)
+void app_ethernet_group_cancel(void *const  context)
 {
     remote_group_session_t * const session_ptr = context;
 
     if (session_ptr != NULL)
     {
 
-        app_os_free(session_ptr->group_context);
+        free(session_ptr->group_context);
     }
 
 }

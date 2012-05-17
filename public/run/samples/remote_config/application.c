@@ -36,7 +36,7 @@ extern idigi_callback_status_t app_remote_config_handler(idigi_remote_config_req
 
 
 idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
-                                    void * const request_data, size_t const request_length,
+                                    void const * const request_data, size_t const request_length,
                                     void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t   status = idigi_callback_continue;
@@ -65,13 +65,9 @@ idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_r
     return status;
 }
 
-extern void remote_config_set(void);
-
 int application_run(idigi_handle_t handle)
 {
     UNUSED_ARGUMENT(handle);
-
-//    remote_config_set();
 
     return 0;
 }

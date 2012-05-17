@@ -58,7 +58,10 @@ extern idigi_callback_status_t app_file_system_handler(idigi_file_system_request
                                                 size_t * const response_length);
 
 extern int application_run(idigi_handle_t handle);
+
 extern idigi_callback_status_t app_os_sleep(unsigned int const timeout_in_seconds);
+extern idigi_callback_status_t app_os_get_system_time(unsigned long * const uptime);
+
 
 #define APP_SSL_CA_CERT   "./public/certificates/idigi-ca-cert-public.crt"
 

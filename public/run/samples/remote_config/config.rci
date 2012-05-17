@@ -59,7 +59,6 @@ group state debug_info "Debug info on IC thread"
     element stacktop "Stack begin" type 0xhex access  read_only 
     element stacksize "Stack size" type hex32 access  read_only 
     element stackbottom "Stack end" type 0xhex access  read_only 
-    element usedmem "Allocated memory used" type uint32 access  read_only 
 
 # State configuration for GPS
 # Must setup the following group in order for GPS shown in iDigi Cloud.

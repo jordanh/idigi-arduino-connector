@@ -31,39 +31,36 @@ typedef struct {
     void * group_context;
 } remote_group_session_t;
 
-extern int app_os_malloc(size_t const size, void ** ptr);
-extern void app_os_free(void * const ptr);
+extern idigi_callback_status_t app_serial_group_init(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
+extern idigi_callback_status_t app_serial_group_get(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
+extern idigi_callback_status_t app_serial_group_set(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
+extern idigi_callback_status_t app_serial_group_end(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
+extern void app_serial_group_cancel(void * const context);
 
-extern idigi_callback_status_t app_serial_group_init(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
-extern idigi_callback_status_t app_serial_group_get(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
-extern idigi_callback_status_t app_serial_group_set(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
-extern idigi_callback_status_t app_serial_group_end(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
-extern void app_serial_group_cancel(void * context);
+extern idigi_callback_status_t app_ethernet_group_init(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
+extern idigi_callback_status_t app_ethernet_group_get(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
+extern idigi_callback_status_t app_ethernet_group_set(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
+extern idigi_callback_status_t app_ethernet_group_end(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
+extern void app_ethernet_group_cancel(void * const context);
 
-extern idigi_callback_status_t app_ethernet_group_init(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
-extern idigi_callback_status_t app_ethernet_group_get(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
-extern idigi_callback_status_t app_ethernet_group_set(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
-extern idigi_callback_status_t app_ethernet_group_end(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
-extern void app_ethernet_group_cancel(void * context);
+extern idigi_callback_status_t app_device_stats_group_init(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
+extern idigi_callback_status_t app_device_stats_group_get(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
+extern idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
 
-extern idigi_callback_status_t app_device_stats_group_init(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
-extern idigi_callback_status_t app_device_stats_group_get(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
-extern idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
+extern idigi_callback_status_t app_device_info_group_init(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
+extern idigi_callback_status_t app_device_info_group_get(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
+extern idigi_callback_status_t app_device_info_group_set(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
+extern idigi_callback_status_t app_device_info_group_end(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
+extern void app_device_info_group_cancel(void * const context);
 
-extern idigi_callback_status_t app_device_info_group_init(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
-extern idigi_callback_status_t app_device_info_group_get(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
-extern idigi_callback_status_t app_device_info_group_set(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
-extern idigi_callback_status_t app_device_info_group_end(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
-extern void app_device_info_group_cancel(void * context);
+extern idigi_callback_status_t app_debug_info_group_get(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
+extern idigi_callback_status_t app_gps_stats_group_get(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
 
-extern idigi_callback_status_t app_debug_info_group_get(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
-extern idigi_callback_status_t app_gps_stats_group_get(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
+extern idigi_callback_status_t app_system_group_get(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
+extern idigi_callback_status_t app_system_group_set(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
 
-extern idigi_callback_status_t app_system_group_get(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
-extern idigi_callback_status_t app_system_group_set(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
-
-extern idigi_callback_status_t app_device_security_group_get(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
-extern idigi_callback_status_t app_device_security_group_set(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response);
+extern idigi_callback_status_t app_device_security_group_get(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
+extern idigi_callback_status_t app_device_security_group_set(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
 
 
 #endif /* REMOTE_CONFIG_CB_H_ */

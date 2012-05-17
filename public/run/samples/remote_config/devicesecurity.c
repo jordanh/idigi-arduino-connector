@@ -36,8 +36,6 @@ typedef enum {
     device_security_password_type,
 } device_security_type_t;
 
-extern int app_os_get_system_time(unsigned long * const uptime);
-
 typedef struct {
     device_security_type_t identity_verification_form;
     char password[DEVICESECURITY_PASSWORD_MAX_LENGTH];
@@ -46,7 +44,7 @@ typedef struct {
 device_security_data_t device_security_data = {device_security_simple_type, "\0"};
 
 
-idigi_callback_status_t app_device_security_group_get(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
+idigi_callback_status_t app_device_security_group_get(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
@@ -73,7 +71,7 @@ idigi_callback_status_t app_device_security_group_get(idigi_remote_group_request
     return status;
 }
 
-idigi_callback_status_t app_device_security_group_set(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
+idigi_callback_status_t app_device_security_group_set(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
 

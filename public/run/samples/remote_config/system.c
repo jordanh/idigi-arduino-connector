@@ -41,7 +41,7 @@ typedef struct {
 system_data_t system_config_data = {"\0", "\0", "\0"};
 
 
-idigi_callback_status_t app_system_group_get(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
+idigi_callback_status_t app_system_group_get(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     system_data_t * const system_ptr = &system_config_data;
@@ -67,7 +67,7 @@ idigi_callback_status_t app_system_group_get(idigi_remote_group_request_t * requ
     return status;
 }
 
-idigi_callback_status_t app_system_group_set(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
+idigi_callback_status_t app_system_group_set(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
 

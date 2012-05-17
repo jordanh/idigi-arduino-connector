@@ -39,8 +39,6 @@ typedef struct {
 
 thread_info_t idigiThreadInfo = {NULL, NULL, 0, "\0"};
 
-extern size_t total_malloc_size;
-
 void idigiThreadStackInit(void)
 {
     pthread_attr_t Attributes;
@@ -66,7 +64,7 @@ void idigiThreadStackInit(void)
     return;
 }
 
-idigi_callback_status_t app_debug_info_group_get(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
+idigi_callback_status_t app_debug_info_group_get(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
 
     ASSERT(response->element_data.element_value != NULL);
@@ -89,9 +87,6 @@ idigi_callback_status_t app_debug_info_group_get(idigi_remote_group_request_t * 
     case idigi_state_debug_info_stackbottom:
         response->element_data.element_value->integer_unsigned_value =  (uint32_t)idigiThreadInfo.stackbottom;
         break;
-    case idigi_state_debug_info_usedmem:
-        response->element_data.element_value->integer_unsigned_value =  total_malloc_size;
-
     }
     return idigi_callback_continue;
 }

@@ -36,7 +36,7 @@ typedef struct {
 
 static gps_location_t gps_data = { 45.01049, -93.254674 };
 
-idigi_callback_status_t app_gps_stats_group_get(idigi_remote_group_request_t * request, idigi_remote_group_response_t * response)
+idigi_callback_status_t app_gps_stats_group_get(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
