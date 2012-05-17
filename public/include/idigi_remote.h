@@ -24,7 +24,7 @@
  */
 /**
  * @file
- *  @brief IC remote configuration definitions and structures
+ *  @brief iDigi connector remote configuration definitions and structures
  *
  */
 #ifndef _IDIGI_REMOTE_H

@@ -200,7 +200,7 @@ static idigi_callback_status_t app_process_session_cancel(void * context)
 }
 
 idigi_callback_status_t app_remote_config_handler(idigi_remote_config_request_t const request,
-                                                      void * const request_data, size_t const request_length,
+                                                      void const * const request_data, size_t const request_length,
                                                       void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;

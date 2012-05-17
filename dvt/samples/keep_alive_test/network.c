@@ -197,7 +197,7 @@ done:
  * calling this function.
  */
 static idigi_callback_status_t app_network_send(idigi_write_request_t const * const write_data,
-                                            size_t * sent_length)
+                                            size_t * const sent_length)
 {
     idigi_callback_status_t rc = idigi_callback_continue;
     int ccode;
@@ -247,7 +247,7 @@ static idigi_callback_status_t app_network_send(idigi_write_request_t const * co
  * function must not block. If it encounters EAGAIN or EWOULDBLOCK error, 0 
  * bytes must be returned and IIK will continue calling this function.
  */
-static idigi_callback_status_t app_network_receive(idigi_read_request_t * read_data, size_t * read_length)
+static idigi_callback_status_t app_network_receive(idigi_read_request_t const * const read_data, size_t * const read_length)
 {
     idigi_callback_status_t rc = idigi_callback_continue;
     struct timeval timeout;
@@ -365,7 +365,7 @@ static int app_server_reboot(void)
  *  Callback routine to handle all networking related calls.
  */
 idigi_callback_status_t app_network_handler(idigi_network_request_t const request,
-                                            void * const request_data, size_t const request_length,
+                                            void const * const request_data, size_t const request_length,
                                             void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
@@ -376,20 +376,20 @@ idigi_callback_status_t app_network_handler(idigi_network_request_t const reques
     switch (request)
     {
     case idigi_network_connect:
-        status = app_network_connect((char *)request_data, request_length, (idigi_network_handle_t **)response_data);
+        status = app_network_connect(request_data, request_length, response_data);
         *response_length = sizeof(idigi_network_handle_t);
         break;
 
     case idigi_network_send:
-        status = app_network_send((idigi_write_request_t *)request_data, (size_t *)response_data);
+        status = app_network_send(request_data, response_data);
         break;
 
     case idigi_network_receive:
-        status = app_network_receive((idigi_read_request_t *)request_data, (size_t *)response_data);
+        status = app_network_receive(request_data, response_data);
         break;
 
     case idigi_network_close:
-        status = app_network_close((idigi_network_handle_t *)request_data);
+        status = app_network_close((idigi_network_handle_t * const)request_data);
         break;
 
     case idigi_network_disconnected:
@@ -403,7 +403,7 @@ idigi_callback_status_t app_network_handler(idigi_network_request_t const reques
         break;
 
     default:
-        APP_DEBUG("idigi_network_callback: unrecognized callback request [%d]\n", request);
+        APP_DEBUG("app_network_handler: unrecognized callback request [%d]\n", request);
         break;
 
     }

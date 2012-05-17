@@ -34,7 +34,7 @@
 
 
 /**
- * IIK version number
+ * iDigi connector version number
  *
  * Note current version number denotes:  1.1.0.0
  *                                       | | | |
@@ -80,28 +80,28 @@
  * @{ 
  */
  /** 
- * Status returned by IIK API calls.
+ * Status returned by iDigi connector API calls.
  */
 typedef enum {
    idigi_success,               /**< No error. */
-   idigi_init_error,            /**< IIK was not initialized. */
-   idigi_configuration_error,   /**< IIK was aborted by callback function. */
+   idigi_init_error,            /**< iDigi connector was not initialized. */
+   idigi_configuration_error,   /**< iDigi connector was aborted by callback function. */
    idigi_invalid_data_size,     /**< Callback returned configuration with invalid size. */
    idigi_invalid_data_range,    /**< Callback returned configuration that is out of range. */
-   idigi_invalid_payload_packet, /**< IIK received invalid payload message. */
-   idigi_keepalive_error,       /**< IIK did not receive keepalive messages. Server may be offline. */
+   idigi_invalid_payload_packet, /**< iDigi connector received invalid payload message. */
+   idigi_keepalive_error,       /**< iDigi connector did not receive keepalive messages. Server may be offline. */
    idigi_server_overload,       /**< Server overload. */
    idigi_bad_version,           /**< Server rejected version number. */
-   idigi_invalid_packet,        /**< IIK received unrecognized or unexpected message. */
+   idigi_invalid_packet,        /**< iDigi connector received unrecognized or unexpected message. */
    idigi_exceed_timeout,        /**< Callback exceeded timeout value before it returned. */
-   idigi_unsupported_security,  /**< IIK received a packet with unsupported security. */
+   idigi_unsupported_security,  /**< iDigi connector received a packet with unsupported security. */
    idigi_invalid_data,          /**< Callback returned invalid data. Callback may return a NULL data. */
-   idigi_server_disconnected,   /**< Server disconnected IIK. */
-   idigi_connect_error,         /**< IIK was unable to connect to the iDigi server. The callback for connect failed. */
+   idigi_server_disconnected,   /**< Server disconnected iDigi connector. */
+   idigi_connect_error,         /**< iDigi connector was unable to connect to the iDigi server. The callback for connect failed. */
    idigi_receive_error,         /**< Unable to receive message from the iDigi server. The callback for receive failed. */
    idigi_send_error,            /**< Unable to send message to the iDigi server. The callback for send failed. */
    idigi_close_error,           /**< Unable to disconnect the connection. The callback for close failed. */
-   idigi_device_terminated,     /**< IIK was terminated by user via idigi_initiate_action call. */
+   idigi_device_terminated,     /**< iDigi connector was terminated by user via idigi_initiate_action call. */
    idigi_service_busy,          /**< Someone else is using the same service or the device is busy. */
    idigi_invalid_response,      /**< Received invalid response from the server. */
    idigi_no_resource            /**< Lack of resource */
@@ -137,7 +137,7 @@ typedef enum {
 */
 /**
 * Service supported status which is used in the application's callback
-* telling IIK whether application supports a service or not.
+* telling iDigi connector whether application supports a service or not.
 * @see @ref firmware_support
 * @see @ref data_service_support
 */
@@ -314,7 +314,7 @@ typedef enum {
 #if (IDIGI_VERSION < IDIGI_VERSION_1100)
     idigi_data_service_send_complete, /**< Deprecated. Used to indicate the completion of earlier initiate_action() call to send data to the cloud */
     idigi_data_service_response,  /**< Deprecated. Used to indicate the device cloud response for the current operation */
-    idigi_data_service_error, /**< Deprecated. Used to indicate the error either from the device cloud or from the IIK while processing the message */
+    idigi_data_service_error, /**< Deprecated. Used to indicate the error either from the device cloud or from the iDigi connector while processing the message */
 #endif
     idigi_data_service_put_request, /**< Indicates data service request related to send data to the device cloud */
     idigi_data_service_device_request /**< Indicates data service request related to receive data from device cloud */
@@ -331,7 +331,7 @@ typedef enum {
 * Request IDs used in idigi_initiate_action()
 */
 typedef enum {
-    idigi_initiate_terminate,               /**< Terminates and stops IIK from running. */
+    idigi_initiate_terminate,               /**< Terminates and stops iDigi connector from running. */
     idigi_initiate_data_service            /**< Initiates the action to send data to device cloud, the data will be stored in a file on the cloud. */
 } idigi_initiate_request_t;
 /**
@@ -358,12 +358,12 @@ typedef enum {
 * @{
 */
 /**
-* Return status from IIK callback
+* Return status from iDigi connector callback
 */
 typedef enum  {
     idigi_callback_continue,        /**< Continues with no error */
     idigi_callback_busy,            /**< Callback is busy */
-    idigi_callback_abort,           /**< Aborts IIK. IIK will try reconnecting to iDigi Cloud
+    idigi_callback_abort,           /**< Aborts iDigi connector. iDigi connector will try reconnecting to iDigi Cloud
                                          if @ref idigi_step or @ref idigi_run is called again. */
     idigi_callback_unrecognized     /**< Unsupported callback request */
 } idigi_callback_status_t;
@@ -441,7 +441,7 @@ typedef union {
 */
 /**
 *
-* IIK Handle type that is used throughout IIK APIs, this is used by the application
+* iDigi connector Handle type that is used throughout iDigi connector APIs, this is used by the application
 * to store context information about a connections, for example this could
 * be used to store a file descriptor or a pointer to a structure.
 */
@@ -456,12 +456,12 @@ typedef union {
 */
 /**
 * Error status structure for @ref idigi_config_error_status callback which
-* is called when IIK encounters an error.
+* is called when iDigi connector encounters an error.
 * @see idigi_config_request_t
 */
 typedef struct  {
-    idigi_class_t class_id;         /**< Class ID which IIK encounters error with */
-    idigi_request_t request_id;     /**< Request ID which IIK encounters error with */
+    idigi_class_t class_id;         /**< Class ID which iDigi connector encounters error with */
+    idigi_request_t request_id;     /**< Request ID which iDigi connector encounters error with */
     idigi_status_t status;          /**< Error status */
 } idigi_error_status_t;
 /**
@@ -479,7 +479,7 @@ typedef struct  {
     idigi_network_handle_t * network_handle;    /**< Pointer to network handle associated with a connection through the idigi_network_connect callback */
     uint8_t const * buffer;                     /**< Pointer to data to be sent */
     size_t length;                              /**< Number of bytes of data to be sent */
-    unsigned int timeout;                       /**< Timeout value in seconds which callback must return. This allows IIK to maintenance keepalive process and send process. */
+    unsigned int timeout;                       /**< Timeout value in seconds which callback must return. This allows iDigi connector to maintenance keepalive process and send process. */
 } idigi_write_request_t;
 /**
 * @}
@@ -497,7 +497,7 @@ typedef struct  {
     idigi_network_handle_t * network_handle;    /**< Pointer to network handle associated with a connection through the idigi_network_connect callback */
     uint8_t * buffer;                           /**< Pointer to memory where callback writes recieved data to */
     size_t length;                              /**< Number of bytes to be received */
-    unsigned int timeout;                       /**< Timeout value in seconds which callback must return. This allows IIK to maintenance keepalive process and send process. */
+    unsigned int timeout;                       /**< Timeout value in seconds which callback must return. This allows iDigi connector to maintenance keepalive process and send process. */
 } idigi_read_request_t;
 /**
 * @}
@@ -512,7 +512,7 @@ typedef struct  {
 * @ref idigi_firmware_description, @ref idigi_firmware_name_spec, and @ref idigi_firmware_target_reset callbacks.
 */
 typedef struct {
-    unsigned int timeout;   /**< Timeout value which callback must return control back to IIK in seconds */
+    unsigned int timeout;   /**< Timeout value which callback must return control back to iDigi connector in seconds */
     uint8_t target;         /**< Target number */
 } idigi_fw_config_t;
 /**
@@ -528,7 +528,7 @@ typedef struct {
 * is called when server requests firmware download.
 */
 typedef struct {
-    unsigned int timeout;       /**< Timeout value which callback must return control back to IIK in seconds */
+    unsigned int timeout;       /**< Timeout value which callback must return control back to iDigi connector in seconds */
     uint32_t version;           /**< Reserved */
     uint32_t code_size;         /**< size of the code that is ready to be sent to the target */
     char * desc_string;         /**< Reserved */
@@ -546,10 +546,10 @@ typedef struct {
 */
 /**
 * Firmware download image data structure for idigi_firmware_binary_block callback which
-* is called when IIK receives a block of image data for firmware download.
+* is called when iDigi connector receives a block of image data for firmware download.
 */
 typedef struct {
-    unsigned int timeout;   /**< Timeout value which callback must return control back to IIK in seconds */
+    unsigned int timeout;   /**< Timeout value which callback must return control back to iDigi connector in seconds */
     uint32_t offset;        /**< Offset value where this particular block of image data fits into the download */
     uint8_t * data;         /**< Pointer binary image data */
     size_t length;          /**< Length of binary image data in bytes */
@@ -569,7 +569,7 @@ typedef struct {
 * sending all image data.
 */
 typedef struct {
-    unsigned int timeout;   /**< Timeout value which callback must return control back to IIK in seconds */
+    unsigned int timeout;   /**< Timeout value which callback must return control back to iDigi connector in seconds */
     uint32_t code_size;     /**< Code size of the entire image data sent */
     uint32_t checksum;      /**< CRC-32 value computed from offset 0 to code size. If it's 0, no checksum is required */
     uint8_t target;         /**< Target number of which firmware download request for */
@@ -604,7 +604,7 @@ typedef struct {
 * is called when server aborts firmware download process.
 */
 typedef struct {
-    unsigned int timeout;       /**< Timeout value which callback must return control back to IIK in seconds */
+    unsigned int timeout;       /**< Timeout value which callback must return control back to iDigi connector in seconds */
     idigi_fw_status_t status;   /**< Abort reason or status */
     uint8_t target;             /**< Target number of which firmware download request for */
 } idigi_fw_download_abort_t;
@@ -1423,8 +1423,8 @@ typedef struct
  /**
  * @defgroup idigi_callback_t Application-defined callback
  *@{ 
- * idigi_callback_t: IIK Application-defined callback, this is the general purpose
- * callback used throughout the IIK.
+ * idigi_callback_t: iDigi connector Application-defined callback, this is the general purpose
+ * callback used throughout the iDigi connector.
  *
  */
  /** 
@@ -1447,25 +1447,25 @@ typedef idigi_callback_status_t (* idigi_callback_t) (idigi_class_t const class_
 * @}
 */
  /**
- * @defgroup idigi_init Initialize the IIK.
+ * @defgroup idigi_init Initialize the iDigi connector.
  *@{ 
  * @b Include: idigi_api.h
  */
 /**
  *
  * This API is called once upon startup to allocate and 
- * initialize the IIK. It takes the application-defined callback 
- * function as an argument; this callback is used by the IIK to 
+ * initialize the iDigi connector. It takes the application-defined callback
+ * function as an argument; this callback is used by the iDigi connector to
  * communicate with the application. This function must be 
- * called before all other IIK APIs. The idigi_callback_t is 
+ * called before all other iDigi connector APIs. The idigi_callback_t is
  * defined below. 
  *
  * @param [in] callback  Callback function that is used to 
- *        interface between the application and the IIK.
+ *        interface between the application and the iDigi connector.
  *
- * @retval NULL   Error was found and the IIK is unable to 
+ * @retval NULL   Error was found and the iDigi connector is unable to
  *         initialize.
- * @retval "Not NULL"  Handle used for subsequent IIK calls.
+ * @retval "Not NULL"  Handle used for subsequent iDigi connector calls.
  *
  * Example Usage:
  * @code
@@ -1485,13 +1485,13 @@ idigi_handle_t idigi_init(idigi_callback_t const callback);
  * @b Include: idigi_api.h
  */
 /**
- * @brief   Run a portion of the IIK.
+ * @brief   Run a portion of the iDigi connector.
  *
- * This function is called to start and run the IIK. This
+ * This function is called to start and run the iDigi connector. This
  * function performs a sequence of operations or events and 
  * returns control back to the caller. This allows a caller to
  * perform other tasks, especially in single-threaded system.
- * A caller must call this API again to continue IIK operations.
+ * A caller must call this API again to continue iDigi connector operations.
  * The connection is already terminated when idigi_step returns
  * an error, idigi_step will try reconnecting to the iDigi
  * Device Cloud if it's called again. The idigi_step performs
@@ -1506,24 +1506,24 @@ idigi_handle_t idigi_init(idigi_callback_t const callback);
  * @param [in] handle  Handle returned from idigi_init
  *
  * @retval idigi_success                No error. 
- * @retval idigi_init_error             IIK was not initialized. 
- * @retval idigi_configuration_error    IIK was aborted by callback function. 
+ * @retval idigi_init_error             iDigi connector was not initialized.
+ * @retval idigi_configuration_error    iDigi connector was aborted by callback function.
  * @retval idigi_invalid_data_size      Callback returned configuration with invalid size.
  * @retval idigi_invalid_data_range     Callback returned configuration that is out of range.
- * @retval idigi_invalid_payload_packet IIK received invalid payload message. 
- * @retval idigi_keepalive_error        IIK did not receive keepalive messages. Server may be offline. 
+ * @retval idigi_invalid_payload_packet iDigi connector received invalid payload message.
+ * @retval idigi_keepalive_error        iDigi connector did not receive keepalive messages. Server may be offline.
  * @retval idigi_server_overload        Server overload. 
  * @retval idigi_bad_version            Server rejected version number. 
- * @retval idigi_invalid_packet         IIK received unrecognized or unexpected message. 
+ * @retval idigi_invalid_packet         iDigi connector received unrecognized or unexpected message.
  * @retval idigi_exceed_timeout         Callback exceeded timeout value before it returned. 
- * @retval idigi_unsupported_security   IIK received a packet with unsupported security. 
+ * @retval idigi_unsupported_security   iDigi connector received a packet with unsupported security.
  * @retval idigi_invalid_data           Callback returned invalid data. Callback may return a NULL data. 
- * @retval idigi_server_disconnected    Server disconnected IIK. 
- * @retval idigi_connect_error          IIK was unable to connect to the iDigi server. The callback for connect failed. 
+ * @retval idigi_server_disconnected    Server disconnected iDigi connector.
+ * @retval idigi_connect_error          iDigi connector was unable to connect to the iDigi server. The callback for connect failed.
  * @retval idigi_receive_error          Unable to receive message from the iDigi server. The callback for receive failed. 
  * @retval idigi_send_error             Unable to send message to the iDigi server. The callback for send failed. 
  * @retval idigi_close_error            Unable to disconnect the connection. The callback for close failed. 
- * @retval idigi_device_terminated      IIK was terminated by user via idigi_initiate_action call. 
+ * @retval idigi_device_terminated      iDigi connector was terminated by user via idigi_initiate_action call.
  *
  * Example Usage:
  * @code
@@ -1547,34 +1547,34 @@ idigi_status_t idigi_step(idigi_handle_t const handle);
  * @b Include: idigi_api.h
  */
 /**
- * @brief   Run the IIK, this function does not return and is used in a 
+ * @brief   Run the iDigi connector, this function does not return and is used in a
  * multithreaded environment.
  *
  * This function is similar to idigi_step except it doesn't 
- * return control back to caller unless IIK encounters an error.
+ * return control back to caller unless iDigi connector encounters an error.
  * This function should be executed as a separate thread.
  * 
  * @param [in] handle  Handle returned from idigi_init
  *
  * @retval idigi_success                No error. 
- * @retval idigi_init_error             IIK was not initialized. 
- * @retval idigi_configuration_error    IIK was aborted by callback function. 
+ * @retval idigi_init_error             iDigi connector was not initialized.
+ * @retval idigi_configuration_error    iDigi connector was aborted by callback function.
  * @retval idigi_invalid_data_size      Callback returned configuration with invalid size.
  * @retval idigi_invalid_data_range     Callback returned configuration that is out of range.
- * @retval idigi_invalid_payload_packet IIK received invalid payload message. 
- * @retval idigi_keepalive_error        IIK did not receive keepalive messages. Server may be offline. 
+ * @retval idigi_invalid_payload_packet iDigi connector received invalid payload message.
+ * @retval idigi_keepalive_error        iDigi connector did not receive keepalive messages. Server may be offline.
  * @retval idigi_server_overload        Server overload. 
  * @retval idigi_bad_version            Server rejected version number. 
- * @retval idigi_invalid_packet         IIK received unrecognized or unexpected message. 
+ * @retval idigi_invalid_packet         iDigi connector received unrecognized or unexpected message.
  * @retval idigi_exceed_timeout         Callback exceeded timeout value before it returned. 
- * @retval idigi_unsupported_security   IIK received a packet with unsupported security. 
+ * @retval idigi_unsupported_security   iDigi connector received a packet with unsupported security.
  * @retval idigi_invalid_data           Callback returned invalid data. Callback may return a NULL data. 
- * @retval idigi_server_disconnected    Server disconnected IIK. 
- * @retval idigi_connect_error          IIK was unable to connect to the iDigi server. The callback for connect failed. 
+ * @retval idigi_server_disconnected    Server disconnected iDigi connector.
+ * @retval idigi_connect_error          iDigi connector was unable to connect to the iDigi server. The callback for connect failed.
  * @retval idigi_receive_error          Unable to receive message from the iDigi server. The callback for receive failed. 
  * @retval idigi_send_error             Unable to send message to the iDigi server. The callback for send failed. 
  * @retval idigi_close_error            Unable to disconnect the connection. The callback for close failed. 
- * @retval idigi_device_terminated      IIK was terminated by user via idigi_initiate_action call. 
+ * @retval idigi_device_terminated      iDigi connector was terminated by user via idigi_initiate_action call.
  *
  * Example Usage:
  * @code
@@ -1599,24 +1599,24 @@ idigi_status_t idigi_run(idigi_handle_t const handle);
  * @b Include: idigi_api.h
  */
 /** 
- * @brief   Request IIK to perform an action.
+ * @brief   Request iDigi connector to perform an action.
  *
- * This function is called to request IIK to perform an action. 
+ * This function is called to request iDigi connector to perform an action.
  * This is used to initiate the send data from the device to the
- * iDigi Device Cloud and to terminate the IIK library.
+ * iDigi Device Cloud and to terminate the iDigi connector library.
  *  
  * @param [in] handle  Handle returned from idigi_init 
  *  
  * @param [in] request  Request action (one of the following):
  *                      @li @b idigi_initiate_terminate:
- *                          Terminates and stops IIK from running. It closes the connection to the
+ *                          Terminates and stops iDigi connector from running. It closes the connection to the
  *                          iDigi server and frees all allocated
  *                          memory. If the application is using
  *                          idigi_step, the next call to
- *                          idigi_step will terminate the IIK.
+ *                          idigi_step will terminate the iDigi connector.
  *                          If caller is using idigi_run,
  *                          idigi_run will terminate and return.
- *                           Once IIK is terminated, IIK cannot
+ *                           Once iDigi connector is terminated, iDigi connector cannot
  *                           restart unless idigi_init is
  *                           called  again.
  * 
@@ -1641,11 +1641,11 @@ idigi_status_t idigi_run(idigi_handle_t const handle);
  *                          This is NULL.
  *
  * @retval idigi_success  No error
- * @retval idigi_init_error           IIK was not initialized or not connected to the iDigi.
- * @retval idigi_configuration_error  Callback aborted IIK.
+ * @retval idigi_init_error           iDigi connector was not initialized or not connected to the iDigi.
+ * @retval idigi_configuration_error  Callback aborted iDigi connector.
  * @retval idigi_invalid_data         Invalid parameter
  * @retval idigi_no_resource          Insufficient memory
- * @retval idigi_service_busy         IIK is busy
+ * @retval idigi_service_busy         iDigi connector is busy
  *
  * Example Usage:
  * @code

@@ -20,7 +20,7 @@
  *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  *
  * =======================================================================
- * Rountines which implement the IIK network callbacks.
+ * Rountines which implement the iDigi connector network callbacks.
  */
 #include <stdio.h>
 #include <string.h>
@@ -45,7 +45,7 @@ typedef struct
     SSL * ssl;
 } app_ssl_t;
 
-static int app_dns_resolve_name(char const * const domain_name, in_addr_t * ip_addr)
+static int app_dns_resolve_name(char const * const domain_name, in_addr_t * const ip_addr)
 {
     int ret = -1;
     struct addrinfo *res_list;
@@ -68,7 +68,7 @@ static int app_dns_resolve_name(char const * const domain_name, in_addr_t * ip_a
         }
     }
 
-    /* loop over all returned results and look for a V4 IP address */
+    /* loop over all returned results and look for a IPv4 address */
     for (res = res_list; res; res = res->ai_next)
     {
         if (res->ai_family == PF_INET)
@@ -222,7 +222,7 @@ static int get_user_passwd(char * buf, int size, int rwflag, void * password)
   UNUSED_ARGUMENT(rwflag);
   UNUSED_ARGUMENT(password);
 
-  ASSERT_GOTO(copy_bytes > 0, error);
+  ASSERT_GOTO(copy_bytes >= 0, error);
   memcpy(buf, passwd, copy_bytes);
   buf[copy_bytes] = '\0';
 
@@ -441,7 +441,7 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t * read_d
         FD_ZERO(&read_set);
         FD_SET(ssl_ptr->sfd, &read_set);
 
-        /* Blocking point for IIK */
+        /* Blocking point for iDigi connector */
         ready = select(ssl_ptr->sfd + 1, &read_set, NULL, NULL, &timeout);
         if (ready == 0)
         {
@@ -502,7 +502,7 @@ static int app_server_reboot(void)
  *  Callback routine to handle all networking related calls.
  */
 idigi_callback_status_t app_network_handler(idigi_network_request_t const request,
-                                            void * const request_data, size_t const request_length,
+                                            void const * const request_data, size_t const request_length,
                                             void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
@@ -540,7 +540,7 @@ idigi_callback_status_t app_network_handler(idigi_network_request_t const reques
         break;
 
     default:
-        APP_DEBUG("idigi_network_callback: unrecognized callback request [%d]\n", request);
+        APP_DEBUG("app_network_handler: unrecognized callback request [%d]\n", request);
         break;
     }
 

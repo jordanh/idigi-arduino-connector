@@ -438,7 +438,7 @@ enum cc_connection_info {
                 /* callback for phone number for WAN connection type */
                 idigi_request_t const request_id = {idigi_config_phone_number};
                 size_t length = 0;
-                uint8_t * phone = NULL;
+                char * phone = NULL;
 
                 status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &phone, &length);
                 if (status != idigi_callback_continue)
@@ -456,7 +456,7 @@ enum cc_connection_info {
                     goto error;
                 }
 #else
-                uint8_t const phone[] = IDIGI_WAN_PHONE_NUMBER_DIALED;
+                char const phone[] = IDIGI_WAN_PHONE_NUMBER_DIALED;
                 size_t const length = sizeof phone -1;
 #endif
                 idigi_debug("send_connection_report: phone number = %.*s\n", length, phone);

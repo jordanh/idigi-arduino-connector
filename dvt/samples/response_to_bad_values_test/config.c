@@ -42,7 +42,7 @@
 #define VENDOR_ID_LENGTH    4
 #define MAC_ADDR_LENGTH     6
 
-char const * error_status_string[] = {"idigi_success", "idigi_init_error",
+static char const * error_status_string[] = {"idigi_success", "idigi_init_error",
                                       "idigi_configuration_error",
                                       "idigi_invalid_data_size",
                                       "idigi_invalid_data_range",
@@ -63,7 +63,7 @@ char const * error_status_string[] = {"idigi_success", "idigi_init_error",
                                       "idigi_service_busy",
                                       "idigi_invalid_response"};
 
-char const * config_request_string[] = { "idigi_config_device_id",
+static char const * config_request_string[] = { "idigi_config_device_id",
                                          "idigi_config_vendor_id",
                                          "idigi_config_device_type",
                                          "idigi_config_server_url",
@@ -81,19 +81,19 @@ char const * config_request_string[] = { "idigi_config_device_id",
                                          "idigi_config_file_system",
                                          "idigi_config_max_transaction"};
 
-char const * network_request_string[] = { "idigi_network_connect",
+static char const * network_request_string[] = { "idigi_network_connect",
                                           "idigi_network_send",
                                           "idigi_network_receive",
                                           "idigi_network_close"
                                           "idigi_network_disconnected",
                                           "idigi_network_reboot"};
 
-char const * os_request_string[] = { "idigi_os_malloc",
+static char const * os_request_string[] = { "idigi_os_malloc",
                                      "idigi_os_free",
                                      "idigi_os_system_up_time",
                                      "idigi_os_sleep"};
 
-char const * firmware_request_string[] = {"idigi_firmware_target_count",
+static char const * firmware_request_string[] = {"idigi_firmware_target_count",
                                           "idigi_firmware_version",
                                           "idigi_firmware_code_size",
                                           "idigi_firmware_description",
@@ -104,7 +104,7 @@ char const * firmware_request_string[] = {"idigi_firmware_target_count",
                                           "idigi_firmware_download_abort",
                                           "idigi_firmware_target_reset"};
 
-char const * data_service_string[] = {"idigi_data_service_put_request",
+static char const * data_service_string[] = {"idigi_data_service_put_request",
                                       "idigi_data_service_device_request"};
 
 char python_file_buffer[256];
@@ -485,12 +485,12 @@ void write_python_result_file(char *file_buffer)
  * This routine is called when a configuration error is encountered by the IIK.
  * This is currently used as a debug tool for finding configuration errors.
  */
-void app_config_error(idigi_error_status_t * const error_data)
+void app_config_error(idigi_error_status_t const * const error_data)
 {
     switch (error_data->class_id)
     {
     case idigi_class_config:
-        APP_DEBUG("idigi_error_status: Config - %s (%d)  status = %s (%d)\n", config_request_string[error_data->request_id.config_request],
+        APP_DEBUG("app_config_error: Config - %s (%d)  status = %s (%d)\n", config_request_string[error_data->request_id.config_request],
                    error_data->request_id.config_request, error_status_string[error_data->status],error_data->status);
         snprintf(python_file_buffer, sizeof(python_file_buffer), "%s,%s,",
                  config_request_string[error_data->request_id.config_request], 
@@ -498,27 +498,27 @@ void app_config_error(idigi_error_status_t * const error_data)
         write_python_result_file(python_file_buffer);
         break;
     case idigi_class_network:
-        APP_DEBUG("idigi_error_status: Network - %s (%d)  status = %s (%d)\n", network_request_string[error_data->request_id.network_request],
+        APP_DEBUG("app_config_error: Network - %s (%d)  status = %s (%d)\n", network_request_string[error_data->request_id.network_request],
                      error_data->request_id.network_request, error_status_string[error_data->status],error_data->status);
         break;
     case idigi_class_operating_system:
-        APP_DEBUG("idigi_error_status: Operating System - %s (%d)  status = %s (%d)\n", os_request_string[error_data->request_id.os_request],
+        APP_DEBUG("app_config_error: Operating System - %s (%d)  status = %s (%d)\n", os_request_string[error_data->request_id.os_request],
                      error_data->request_id.os_request, error_status_string[error_data->status],error_data->status);
         break;
     case idigi_class_firmware:
-        APP_DEBUG("idigi_error_status: Firmware facility - %s (%d)  status = %s (%d)\n",
+        APP_DEBUG("app_config_error: Firmware facility - %s (%d)  status = %s (%d)\n",
                      firmware_request_string[error_data->request_id.firmware_request],
                      error_data->request_id.firmware_request,
                      error_status_string[error_data->status],error_data->status);
         break;
     case idigi_class_data_service:
-        APP_DEBUG("idigi_error_status: Data service - %s (%d)  status = %s (%d)\n",
+        APP_DEBUG("app_config_error: Data service - %s (%d)  status = %s (%d)\n",
                      data_service_string[error_data->request_id.data_service_request],
                      error_data->request_id.data_service_request,
                      error_status_string[error_data->status],error_data->status);
         break;
     default:
-        APP_DEBUG("idigi_error_status: unsupport class_id = %d status = %d\n", error_data->class_id, error_data->status);
+        APP_DEBUG("app_config_error: unsupport class_id = %d status = %d\n", error_data->class_id, error_data->status);
         break;
     }
 }
@@ -527,7 +527,7 @@ void app_config_error(idigi_error_status_t * const error_data)
  * Configuration callback routine.
  */
 idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
-                                              void * const request_data,
+                                              void const * const request_data,
                                               size_t const request_length,
                                               void * response_data,
                                               size_t * const response_length)
@@ -541,67 +541,67 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
     {
     case idigi_config_device_id:
         APP_DEBUG("app_config_handler:idigi_config_device_id\n");
-        ret = app_get_device_id((uint8_t **)response_data, response_length);
+        ret = app_get_device_id(response_data, response_length);
         break;
 
     case idigi_config_mac_addr:
         APP_DEBUG("app_config_handler:idigi_config_mac_addr\n");
-        ret = app_get_mac_addr((uint8_t **)response_data, response_length);
+        ret = app_get_mac_addr(response_data, response_length);
         break;
 
     case idigi_config_vendor_id:
         APP_DEBUG("app_config_handler:idigi_config_vendor_id\n");
-        ret = app_get_vendor_id((uint8_t **)response_data, response_length);
+        ret = app_get_vendor_id(response_data, response_length);
         break;
 
     case idigi_config_device_type:
         APP_DEBUG("app_config_handler:idigi_config_vendor_id\n"); 
-        ret = app_get_device_type((char **)response_data, response_length);
+        ret = app_get_device_type(response_data, response_length);
         break;
 
     case idigi_config_server_url:
         APP_DEBUG("app_config_handler:idigi_config_server_url\n");
-        ret = app_get_server_url((char **)response_data, response_length);
+        ret = app_get_server_url(response_data, response_length);
         break;
 
     case idigi_config_connection_type:
         APP_DEBUG("app_config_handler:idigi_config_connection_type\n");
-        ret = app_get_connection_type((idigi_connection_type_t **)response_data);
+        ret = app_get_connection_type(response_data);
         break;
 
     case idigi_config_link_speed:
         APP_DEBUG("app_config_handler:idigi_config_link_speed\n");
-        ret = app_get_link_speed((uint32_t **)response_data, response_length);
+        ret = app_get_link_speed(response_data, response_length);
         break;
 
     case idigi_config_phone_number:
         APP_DEBUG("app_config_handler:idigi_config_phone_number\n");
-        ret = app_get_phone_number((uint8_t **)response_data, response_length);
+        ret = app_get_phone_number(response_data, response_length);
         break;
 
     case idigi_config_tx_keepalive:
         APP_DEBUG("app_config_handler:idigi_config_tx_keepalive\n");
-        ret = app_get_tx_keepalive_interval((uint16_t **)response_data, response_length);
+        ret = app_get_tx_keepalive_interval(response_data, response_length);
         break;
 
     case idigi_config_rx_keepalive:
         APP_DEBUG("app_config_handler:idigi_config_rx_keepalive\n");
-        ret = app_get_rx_keepalive_interval((uint16_t **)response_data, response_length);
+        ret = app_get_rx_keepalive_interval(response_data, response_length);
         break;
 
     case idigi_config_wait_count:
         APP_DEBUG("app_config_handler:idigi_config_wait_count\n");
-        ret = app_get_wait_count((uint16_t **)response_data, response_length);
+        ret = app_get_wait_count(response_data, response_length);
         break;
 
     case idigi_config_ip_addr:
         APP_DEBUG("app_config_handler:idigi_config_ip_addr\n");
-        ret = app_get_ip_address((uint8_t **)response_data, response_length);
+        ret = app_get_ip_address(response_data, response_length);
         break;
 
     case idigi_config_error_status:
         APP_DEBUG("app_config_handler:idigi_config_error_status\n");
-        app_config_error((idigi_error_status_t *)request_data);
+        app_config_error(request_data);
         ret = 0;
         break;
 

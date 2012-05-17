@@ -27,10 +27,6 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-extern idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
-                                    void * const request_data, size_t const request_length,
-                                    void * response_data, size_t * const response_length);
-
 static void * idigi_run_thread(void * arg)
 {
     idigi_status_t status = idigi_success;
@@ -39,7 +35,7 @@ static void * idigi_run_thread(void * arg)
 
     while (status == idigi_success)
     {
-        status = idigi_run((idigi_handle_t)arg);
+        status = idigi_run(arg);
 
         if (status == idigi_receive_error ||
             status == idigi_send_error ||
@@ -63,9 +59,9 @@ static void * application_run_thread(void * arg)
 {
     int status;
 
-    APP_DEBUG("idigi_run thread starts\n");
+    APP_DEBUG("application_run thread starts\n");
 
-    status = application_run((idigi_handle_t)arg);
+    status = application_run(arg);
 
     APP_DEBUG("application_run thread exits %d\n", status);
 
@@ -80,21 +76,21 @@ int main (void)
     idigi_handle_t idigi_handle;
 
     APP_DEBUG("Start iDigi\n");
-    idigi_handle = idigi_init((idigi_callback_t) app_idigi_callback);
+    idigi_handle = idigi_init(app_idigi_callback);
+
     if (idigi_handle != NULL)
     {
-        int ccode;
-        ccode = pthread_create(&idigi_thread, NULL, idigi_run_thread, idigi_handle);
+        int ccode = pthread_create(&idigi_thread, NULL, idigi_run_thread, idigi_handle);
         if (ccode != 0)
         {
-            APP_DEBUG("thread_create() error on idigi_process_thread %d\n", ccode);
+            APP_DEBUG("thread_create() error on idigi_run_thread %d\n", ccode);
             goto done;
         }
 
         ccode = pthread_create(&application_thread, NULL, application_run_thread, idigi_handle);
         if (ccode != 0)
         {
-            APP_DEBUG("thread_create() error on idigi_process_thread %d\n", ccode);
+            APP_DEBUG("thread_create() error on application_run_thread %d\n", ccode);
             goto done;
         }
 

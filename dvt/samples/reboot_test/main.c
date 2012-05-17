@@ -29,9 +29,6 @@
 #include <unistd.h>
 #include <errno.h>
 
-extern idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
-                                    void * const request_data, size_t const request_length,
-                                    void * response_data, size_t * const response_length);
 
 extern unsigned int put_file_active_count;
 
@@ -170,7 +167,7 @@ void * idigi_run_thread(void * arg)
 
     while (idigi_run_thread_status == idigi_success)
     {
-        idigi_run_thread_status = idigi_run((idigi_handle_t)arg);
+        idigi_run_thread_status = idigi_run(arg);
         if (idigi_run_thread_status == idigi_receive_error ||
             idigi_run_thread_status == idigi_send_error ||
             idigi_run_thread_status == idigi_connect_error)
@@ -199,7 +196,7 @@ void * application_run_thread(void * arg)
 
     APP_DEBUG("application_run_thread starts\n");
 
-    status = application_run((idigi_handle_t)arg);
+    status = application_run(arg);
 
     APP_DEBUG("application_run thread exits %d\n", status);
     APP_DEBUG("\napplication_run_thread:\n");
@@ -221,7 +218,7 @@ int main (void)
     int rc = 0;
 
     APP_DEBUG("Start iDigi\n");
-    idigi_handle = idigi_init((idigi_callback_t) app_idigi_callback);
+    idigi_handle = idigi_init(app_idigi_callback);
     if (idigi_handle != NULL)
     {
         int ccode;

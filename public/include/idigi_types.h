@@ -25,7 +25,7 @@
 
 /**
  * @file
- *  @brief Types required by the IIK
+ *  @brief Types required by the iDigi connector
  *
  */
 
@@ -101,7 +101,7 @@
 * @{
 */
 /**
- * Used to reference a network session and is passed into IIK API calls. This 
+ * Used to reference a network session and is passed into iDigi connector API calls. This
  * type is defined as an int and is used by the application to keep track of and identify sessions.
  * Application may define this to different type for its own network reference in idigi_type.h
  */
@@ -120,7 +120,7 @@ typedef int idigi_network_handle_t;
 * @{
 */
 /**
- * Debug output from the IIK, Writes a formatted string to stdout, expanding the format 
+ * Debug output from the iDigi connector, Writes a formatted string to stdout, expanding the format
  * tags with the value of the argument list arg.  This function behaves exactly as 
  * printf except that the variable argument list is passed as a va_list instead of a 
  * succession of arguments.

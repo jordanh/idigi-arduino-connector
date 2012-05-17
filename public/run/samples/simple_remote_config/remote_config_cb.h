@@ -26,9 +26,30 @@
 #ifndef REMOTE_CONFIG_CB_H_
 #define REMOTE_CONFIG_CB_H_
 
-extern int app_os_malloc(size_t const size, void ** ptr);
-extern void app_os_free(void * const ptr);
+#include "remote_config.h"
 
+extern idigi_callback_status_t app_keepalive_session_start(idigi_remote_group_response_t * const response);
 
+extern idigi_callback_status_t app_keepalive_session_end(idigi_remote_group_response_t * const response);
+
+extern idigi_callback_status_t app_keepalive_action_start(idigi_remote_group_request_t const * const request,
+                                                        idigi_remote_group_response_t * const response);
+
+extern idigi_callback_status_t app_keepalive_action_end(idigi_remote_group_request_t const * const request,
+                                                      idigi_remote_group_response_t * const response);
+
+extern idigi_callback_status_t app_keepalive_group_init(idigi_remote_group_request_t const * const request,
+                                                 idigi_remote_group_response_t * const response);
+
+extern idigi_callback_status_t app_keepalive_group_set(idigi_remote_group_request_t const * const request,
+                                                 idigi_remote_group_response_t * const response);
+
+extern idigi_callback_status_t app_keepalive_group_get(idigi_remote_group_request_t const * const request,
+                                                 idigi_remote_group_response_t * const response);
+
+extern idigi_callback_status_t app_keepalive_group_end(idigi_remote_group_request_t const * const request,
+                                                 idigi_remote_group_response_t * const response);
+
+extern void app_keepalive_session_cancel(void * const context);
 
 #endif /* REMOTE_CONFIG_CB_H_ */

@@ -122,7 +122,7 @@ void app_os_sleep(unsigned int const timeout_in_seconds)
  * @cond DEV
  */
 idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
-                                        void * const request_data, size_t const request_length,
+                                        void const * const request_data, size_t const request_length,
                                         void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
@@ -134,17 +134,17 @@ idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
     switch (request)
     {
     case idigi_os_malloc:
-        ret    = app_os_malloc(*((size_t *)request_data), (void **)response_data);
+        ret    = app_os_malloc(*((size_t *)request_data), response_data);
         status = (ret == 0) ? idigi_callback_continue : idigi_callback_busy;
         break;
 
     case idigi_os_free:
-        app_os_free(request_data);
+        app_os_free((void * const)request_data);
         status = idigi_callback_continue;
         break;
 
     case idigi_os_system_up_time:
-        ret    = app_os_get_system_time((unsigned long *)response_data);
+        ret    = app_os_get_system_time(response_data);
         status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
         break;
 

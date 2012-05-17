@@ -26,30 +26,12 @@
 //#include <unistd.h>
 #include <stdio.h>
 #include "idigi_api.h"
+#include "platform.h"
 
 #define APP_DEBUG  printf
 
-extern idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
-                                    void * const request_data, size_t const request_length,
-                                    void * response_data, size_t * const response_length);
-
-idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
-                           void * const request_data, size_t const request_length,
-                           void * response_data, size_t * const response_length);
-
-
-idigi_callback_status_t app_network_handler(idigi_network_request_t const request,
-                         void * const request_data, size_t const request_length,
-                         void * response_data, size_t * const response_length);
-
-idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
-                                              void * const request_data,
-                                              size_t const request_length,
-                                              void * response_data,
-                                              size_t * const response_length);
-
 idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
-                                    void * const request_data, size_t const request_length,
+                                    void const * const request_data, size_t const request_length,
                                     void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t   status = idigi_callback_continue;

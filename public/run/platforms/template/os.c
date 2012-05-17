@@ -43,18 +43,18 @@
  * @param [in] ptr  pointer to be filled in with the address of
  *                  the allocated memory
  *  
- * @retval 0  Memory was allocated
+ * @retval idigi_callback_continue  Memory was allocated.
  * 
- * @retval -1  Memory was not allocated
+ * @retval idigi_callback_abort     Memory was not allocated and abort iDigi connector.
  *
  * @see os_free
  * @see @ref malloc API Operating System Callback
  */
-int app_os_malloc(size_t const size, void ** ptr)
+idigi_callback_status_t app_os_malloc(size_t const size, void ** ptr)
 {
     UNUSED_ARGUMENT(size);
     UNUSED_ARGUMENT(ptr);
-    return 0;
+    return idigi_callback_continue;
 }
 
 /**
@@ -86,16 +86,16 @@ void app_os_free(void * const ptr)
  * 
  * @param [in] uptime   Current system time in seconds.
  *  
- * @retval 0 Able to get system time
+ * @retval idigi_callback_continue Able to get system time
  * 
- * @retval -1 System time unavailable
+ * @retval idigi_callback_abort    System time unavailable and abort iDigi connector.
  * 
  * @see @ref uptime API Operating System Callback
  */
-int app_os_get_system_time(unsigned long * const uptime)
+idigi_callback_status_t app_os_get_system_time(unsigned long * const uptime)
 {
     UNUSED_ARGUMENT(uptime);
-    return 0;
+    return idigi_callback_continue;
 }
 
 /**
@@ -108,25 +108,25 @@ int app_os_get_system_time(unsigned long * const uptime)
  *
  * @param [in] timeout_in_seconds  Maximum number in seconds to sleep
  *
- * @retval None
+ * @retval idigi_callback_continue  It successfully sleeps or relinquishes for other task execution.
+ * @retval idigi_callback_abort     Unable to sleep or relinquish for other task execution and abort iDigi connector.
  *
  * @see @ref sleep API Operating System Callback
  */
-void app_os_sleep(unsigned int const timeout_in_seconds)
+idigi_callback_status_t app_os_sleep(unsigned int const timeout_in_seconds)
 {
     UNUSED_ARGUMENT(timeout_in_seconds);
-    return;
+    return idigi_callback_continue;
 }
 
 /**
  * @cond DEV
  */
 idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
-                                        void * const request_data, size_t const request_length,
+                                        void const * const request_data, size_t const request_length,
                                         void * response_data, size_t * const response_length)
 {
-    idigi_callback_status_t status = idigi_callback_continue;
-    int ret;
+    idigi_callback_status_t status;
 
     UNUSED_ARGUMENT(request_length);
     UNUSED_ARGUMENT(response_length);
@@ -134,18 +134,16 @@ idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
     switch (request)
     {
     case idigi_os_malloc:
-        ret    = app_os_malloc(*((size_t *)request_data), (void **)response_data);
-        status = (ret == 0) ? idigi_callback_continue : idigi_callback_busy;
+        status    = app_os_malloc(*((size_t *)request_data), response_data);
         break;
 
     case idigi_os_free:
-        app_os_free(request_data);
+        app_os_free((void * const)request_data);
         status = idigi_callback_continue;
         break;
 
     case idigi_os_system_up_time:
-        ret    = app_os_get_system_time((unsigned long *)response_data);
-        status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
+        status    = app_os_get_system_time(response_data);
         break;
 
     case idigi_os_sleep:

@@ -36,10 +36,10 @@ extern int unlink (const char *name);
 extern void clear_stack_size(void);
 
 extern idigi_callback_status_t app_data_service_handler(idigi_data_service_request_t const request,
-                                                  void const * request_data, size_t const request_length,
+                                                  void const * const request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length);
 extern idigi_callback_status_t app_firmware_handler(idigi_firmware_request_t const request,
-                                                  void * const request_data, size_t const request_length,
+                                                  void const * const request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length);
 
 extern idigi_status_t send_put_request(idigi_handle_t handle, char * const filename, char * const content);
@@ -181,7 +181,7 @@ forcedErrorInfo_t forcedErrorTable[] =
 }; 
 
 idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
-                                    void * const request_data, size_t const request_length,
+                                    void const * const request_data, size_t const request_length,
                                     void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t   status = idigi_callback_continue;
@@ -192,7 +192,7 @@ idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_r
     case idigi_class_config:
         if (forcedErrorTable[request_id.config_request].initiate_test == true && forcedErrorTable[request_id.config_request].fptr != 0)
         {
-            status = forcedErrorTable[request_id.config_request].fptr(request_data, request_length, response_data, response_length);
+            status = forcedErrorTable[request_id.config_request].fptr((void **)request_data, request_length, response_data, response_length);
             forcedErrorTable[request_id.config_request].initiate_test = false;
         }
         else

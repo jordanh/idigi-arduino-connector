@@ -23,11 +23,9 @@
  *
  */
 
+#include <stdlib.h>
 #include "idigi_api.h"
 #include "platform.h"
-
-extern int app_os_malloc(size_t const size, void ** ptr);
-extern void app_os_free(void * const ptr);
 
 /* supported target name */
 static char const device_request_target[] = "myTarget";
@@ -79,8 +77,8 @@ static idigi_callback_status_t app_process_device_request(idigi_data_service_msg
         {
             void * ptr;
 
-            int const ccode = app_os_malloc(sizeof *client_device_request, &ptr);
-            if (ccode != 0 || ptr == NULL)
+            ptr = malloc(sizeof *client_device_request);
+            if (ptr == NULL)
             {
                 /* no memeory so cancel this request */
                 APP_DEBUG("app_process_device_request: malloc fails for device request on session %p\n", server_device_request->device_handle);
@@ -175,7 +173,7 @@ static idigi_callback_status_t app_process_device_response(idigi_data_service_ms
     if (client_device_request->length_in_bytes == 0)
     {   /* done */
         device_request_active_count--;
-        app_os_free(client_device_request);
+        free(client_device_request);
     }
 
 error:
@@ -194,13 +192,13 @@ static idigi_callback_status_t app_process_device_error(idigi_data_service_msg_r
                 client_device_request->device_handle, error_code);
 
     device_request_active_count--;
-    app_os_free(client_device_request);
+    free(client_device_request);
 
     return idigi_callback_continue;
 }
 
 idigi_callback_status_t app_data_service_handler(idigi_data_service_request_t const request,
-                                                      void const * request_data, size_t const request_length,
+                                                      void const * const request_data, size_t const request_length,
                                                       void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;

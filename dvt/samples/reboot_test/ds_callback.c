@@ -32,9 +32,6 @@
 
 #define INITIAL_WAIT_COUNT      4
 
-extern int app_os_malloc(size_t const size, void ** ptr);
-extern void app_os_free(void * const ptr);
-
 #define DS_FILE_NAME_LEN  20
 
 typedef struct
@@ -64,8 +61,8 @@ idigi_status_t send_put_request(idigi_handle_t handle, char * const filename, ch
     {
         void * ptr;
 
-        int const is_ok = app_os_malloc(sizeof *user, &ptr);
-        if (is_ok < 0|| ptr == NULL)
+        ptr = malloc(sizeof *user);
+        if (ptr == NULL)
         {
             /* no memeory stop IIK */
             APP_DEBUG("send_put_request: malloc fails\n");
@@ -91,7 +88,7 @@ idigi_status_t send_put_request(idigi_handle_t handle, char * const filename, ch
     }
     else
     {
-        app_os_free(user);
+        free(user);
     }
 
 done:
@@ -165,7 +162,7 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
                 }
 
                 /* should be done now */
-                app_os_free(user);
+                free(user);
                 put_file_active_count--;
                 reboot_state = no_reboot_received;
                 delay_receive_state = no_delay_receive;
@@ -177,7 +174,7 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
 
                 ASSERT(user != NULL);
                 APP_DEBUG("app_put_request_handler: type_error for putting %s file\n", user->file_path);
-                app_os_free(user);
+                free(user);
                 put_file_active_count--;
             }
             break;
@@ -286,7 +283,7 @@ idigi_callback_status_t app_device_request_handler(void const * request_data, si
 }
 
 idigi_callback_status_t app_data_service_handler(idigi_data_service_request_t const request,
-                                                  void const * request_data, size_t const request_length,
+                                                  void const * const request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;

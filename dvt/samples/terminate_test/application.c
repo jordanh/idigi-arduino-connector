@@ -33,10 +33,10 @@ extern idigi_status_t idigi_run_thread_status;
 
 
 extern idigi_callback_status_t app_data_service_handler(idigi_data_service_request_t const request,
-                                                  void const * request_data, size_t const request_length,
+                                                  void const * const request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length);
 extern idigi_callback_status_t app_firmware_handler(idigi_firmware_request_t const request,
-                                                  void * const request_data, size_t const request_length,
+                                                  void const * const request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length);
 
 extern idigi_status_t send_put_request(idigi_handle_t handle, int index);
@@ -44,7 +44,7 @@ extern idigi_status_t send_file(idigi_handle_t handle, int index, char * const f
                                 char * const content, size_t content_length);
 
 idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
-                                    void * const request_data, size_t const request_length,
+                                    void const * const request_data, size_t const request_length,
                                     void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t   status = idigi_callback_continue;

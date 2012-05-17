@@ -76,8 +76,7 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
  *
  * @see @ref send API Network Callback
  */
-static idigi_callback_status_t app_network_send(idigi_write_request_t const * const write_data,
-                                            size_t * sent_length)
+static idigi_callback_status_t app_network_send(idigi_write_request_t const * const write_data, size_t * const sent_length)
 {
     idigi_callback_status_t rc = idigi_callback_continue;
 
@@ -106,7 +105,7 @@ static idigi_callback_status_t app_network_send(idigi_write_request_t const * co
  *
  * @see @ref receive API Network Callback
  */
-static idigi_callback_status_t app_network_receive(idigi_read_request_t * read_data, size_t * read_length)
+static idigi_callback_status_t app_network_receive(idigi_read_request_t const * const read_data, size_t * const read_length)
 {
     idigi_callback_status_t rc = idigi_callback_continue;
 
@@ -126,7 +125,7 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t * read_d
  *
  * @see @ref close API Network Callback
  */
-static idigi_callback_status_t app_network_close(idigi_network_handle_t * const fd)
+static idigi_callback_status_t app_network_close(idigi_network_handle_t const * const fd)
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
@@ -138,54 +137,51 @@ static idigi_callback_status_t app_network_close(idigi_network_handle_t * const 
 /**
  * @cond DEV
  */
-static int app_server_disconnected(void)
+static idigi_callback_status_t app_server_disconnected(void)
 {
-    return 0;
+    return idigi_callback_continue;
 }
 
-static int app_server_reboot(void)
+static idigi_callback_status_t app_server_reboot(void)
 {
     /* should not return from rebooting the system */
-    return 0;
+    return idigi_callback_continue;
 }
 
 /*
  *  Callback routine to handle all networking related calls.
  */
 idigi_callback_status_t app_network_handler(idigi_network_request_t const request,
-                                            void * const request_data, size_t const request_length,
+                                            void const * const request_data, size_t const request_length,
                                             void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    int ret;
 
     switch (request)
     {
     case idigi_network_connect:
-        status = app_network_connect((char *)request_data, request_length, (idigi_network_handle_t **)response_data);
+        status = app_network_connect(request_data, request_length, response_data);
         *response_length = sizeof(idigi_network_handle_t);
         break;
 
     case idigi_network_send:
-        status = app_network_send((idigi_write_request_t *)request_data, (size_t *)response_data);
+        status = app_network_send(request_data, response_data);
         break;
 
     case idigi_network_receive:
-        status = app_network_receive((idigi_read_request_t *)request_data, (size_t *)response_data);
+        status = app_network_receive(request_data, response_data);
         break;
 
     case idigi_network_close:
-        status = app_network_close((idigi_network_handle_t *)request_data);
+        status = app_network_close(request_data);
         break;
 
     case idigi_network_disconnected:
-       ret = app_server_disconnected();
-       status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
+       status = app_server_disconnected();
        break;
 
     case idigi_network_reboot:
-        ret = app_server_reboot();
-        status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
+        status = app_server_reboot();
         break;
 
     default:

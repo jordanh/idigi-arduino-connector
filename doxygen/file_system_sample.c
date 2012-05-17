@@ -259,11 +259,6 @@
  * <td>samples/device_request</td>
  * </tr>
  * <tr>
- * <td>file_system.c</td>
- * <td>Application callbacks for file system</td>
- * <td>samples/file_system</td>
- * </tr>
- * <tr>
  * <td>file_system.py</td>
  * <td>Python script to write, read, and list a file</td>
  * <td>samples/file_system</td>
@@ -272,6 +267,11 @@
  * <td>idigi_api.c</td>
  * <td>Code for the iDigi connector </td>
  * <td>private</td>
+ * </tr>
+ * <tr>
+ * <td>file_system.c</td>
+ * <td>Application callbacks for file system</td>
+ * <td>platforms/<i>my_platforme</i></td>
  * </tr>
  * <tr>
  * <td>os.c</td>

@@ -25,7 +25,7 @@
  */
  /**
   * @file
-  *  @brief IIK configuration options
+  *  @brief iDigi connector configuration options
   *
   */
 #ifndef __IDIGI_CONFIG_H_
@@ -36,7 +36,7 @@
 * @defgroup idigi_config_options iDigi Configuration Options
 * @{
 *
-* @brief Defines the major blocks of functionality used in the IIK
+* @brief Defines the major blocks of functionality used in the iDigi connector
 */
 
 /**
@@ -47,7 +47,7 @@
 #define IDIGI_LITTLE_ENDIAN
 
 /**
- * When defined, IIK private library includes debug support.  IIK state and debug data will be displayed using the
+ * When defined, iDigi connector private library includes debug support.  iDigi connector state and debug data will be displayed using the
  * @ref USER_DEBUG_VPRINTF tags.  Macro error testing is compiled and implemented using the
  * @ref ASSERT macro.
  *
@@ -69,7 +69,7 @@
 #define IDIGI_DEBUG
 
 /**
- * When defined, IIK private library includes the @ref firmware_download "Firmware Download Service".
+ * When defined, iDigi connector private library includes the @ref firmware_download "Firmware Download Service".
  *
  * To disable the @ref firmware_download "Firmware Download Service" feature, change this line in idigi_config.h:
  *
@@ -94,7 +94,7 @@
 #define IDIGI_NO_COMPRESSION
 #if (!defined (IDIGI_NO_COMPRESSION) || defined(DIGI_REQUIRED_TO_GENERATE_INTERNAL_DOCUMENATION))
 /**
- * When defined, the IIK includes the @ref zlib "compression" support used with the @ref data_service.
+ * When defined, the iDigi connector includes the @ref zlib "compression" support used with the @ref data_service.
  *
  * By default, compression support is disabled.  To enable Optional Data Compression Support, change this line in idigi_config.h:
  * By default, optional @ref zlib "compression" support is disabled.
@@ -139,7 +139,7 @@
 #endif
 
 /**
- * If defined, IIK includes the @ref data_service.
+ * If defined, iDigi connector includes the @ref data_service.
  * To disable the @ref data_service feature, change this line in idigi_config.h:
  *
  * @code
@@ -164,7 +164,7 @@
 #define IDIGI_NO_FILE_SYSTEM
 #if (!defined (IDIGI_NO_FILE_SYSTEM) || defined(DIGI_REQUIRED_TO_GENERATE_INTERNAL_DOCUMENATION))
 /**
- * If defined, IIK includes the @ref file_system.
+ * If defined, iDigi connector includes the @ref file_system.
  * To enable the @ref file_system feature change this line in idigi_config.h:
  *
  * @code
@@ -185,7 +185,7 @@
 
 /**
  * This is used to define the maximum content length in bytes of an element's value for the remote_configuration _service,
- * IC includes the remote_configuration_service that allows user remote configuration, control, and information
+ * iDigi connector includes the remote_configuration_service that allows user remote configuration, control, and information
  * exchange between a device and iDigi Cloud.
  * To disable the remote_configuration feature, define this to 0 in idigi_config.h:
  *
@@ -217,7 +217,7 @@
  *  is uncompiled and the hard-coded values are used instead:
  *
  * @code
- *     #define IDIGI_DEVICE_TYPE                          "IIK Linux Sample"
+ *     #define IDIGI_DEVICE_TYPE                          "iDigi connector Linux Sample"
  *     #define IDIGI_CLOUD_URL                            "developer.idigi.com"
  *     #define IDIGI_TX_KEEPALIVE_IN_SECONDS              75
  *     #define IDIGI_RX_KEEPALIVE_IN_SECONDS              75
@@ -232,7 +232,7 @@
  *     #define IDIGI_FILE_SYSTEM_SUPPORT
  * @endcode
  *
- * This option is useful for reducing the IIK code space for those applications that are sensitive to memory usage.  The following
+ * This option is useful for reducing the iDigi connector code space for those applications that are sensitive to memory usage.  The following
  * table describes the each define and the callback cross reference:
  *
  * @htmlonly
@@ -319,7 +319,7 @@
  * @see @ref idigi_config_device_type
  * @see @ref app_get_device_type
  */
-#define IDIGI_DEVICE_TYPE                             "IIK Linux Sample"
+#define IDIGI_DEVICE_TYPE                             "iDigi connector Linux Sample"
 
 /**
  * When defined, this string hardcode for the @ref server_url instead of the application framework

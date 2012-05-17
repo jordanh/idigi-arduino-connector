@@ -206,7 +206,7 @@ static idigi_callback_status_t app_firmware_reset(idigi_fw_config_t const * cons
 }
 
 idigi_callback_status_t app_firmware_handler(idigi_firmware_request_t const request,
-                                                  void * const request_data, size_t const request_length,
+                                                  void const * const request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;

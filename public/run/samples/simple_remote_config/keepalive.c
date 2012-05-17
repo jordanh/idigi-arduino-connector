@@ -55,7 +55,7 @@ idigi_callback_status_t app_keepalive_session_end(idigi_remote_group_response_t 
     return idigi_callback_continue;
 }
 
-idigi_callback_status_t app_keepalive_action_start(idigi_remote_group_request_t * const request,
+idigi_callback_status_t app_keepalive_action_start(idigi_remote_group_request_t const * const request,
                                                         idigi_remote_group_response_t * const response)
 {
     /* nothing to do here since we only have one group */
@@ -65,7 +65,7 @@ idigi_callback_status_t app_keepalive_action_start(idigi_remote_group_request_t 
     return idigi_callback_continue;
 }
 
-idigi_callback_status_t app_keepalive_action_end(idigi_remote_group_request_t * const request,
+idigi_callback_status_t app_keepalive_action_end(idigi_remote_group_request_t const * const request,
                                                       idigi_remote_group_response_t * const response)
 {
     /* nothing to do here since we only have one group */
@@ -75,7 +75,7 @@ idigi_callback_status_t app_keepalive_action_end(idigi_remote_group_request_t * 
     return idigi_callback_continue;
 }
 
-idigi_callback_status_t app_keepalive_group_init(idigi_remote_group_request_t * const request,
+idigi_callback_status_t app_keepalive_group_init(idigi_remote_group_request_t const * const request,
                                                  idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
@@ -101,7 +101,7 @@ idigi_callback_status_t app_keepalive_group_init(idigi_remote_group_request_t * 
     return status;
 }
 
-idigi_callback_status_t app_keepalive_group_set(idigi_remote_group_request_t * const request,
+idigi_callback_status_t app_keepalive_group_set(idigi_remote_group_request_t const * const request,
                                                  idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
@@ -128,7 +128,7 @@ idigi_callback_status_t app_keepalive_group_set(idigi_remote_group_request_t * c
 
 }
 
-idigi_callback_status_t app_keepalive_group_get(idigi_remote_group_request_t * const request,
+idigi_callback_status_t app_keepalive_group_get(idigi_remote_group_request_t const * const request,
                                                  idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
@@ -156,7 +156,7 @@ idigi_callback_status_t app_keepalive_group_get(idigi_remote_group_request_t * c
 
 }
 
-idigi_callback_status_t app_keepalive_group_end(idigi_remote_group_request_t * const request,
+idigi_callback_status_t app_keepalive_group_end(idigi_remote_group_request_t const * const request,
                                                  idigi_remote_group_response_t * const response)
 {
    keepalive_data_t * const keepalive = response->user_context;
@@ -178,7 +178,7 @@ idigi_callback_status_t app_keepalive_group_end(idigi_remote_group_request_t * c
 
 }
 
-void app_keepalive_session_cancel(void * context)
+void app_keepalive_session_cancel(void * const context)
 {
     ASSERT(context != NULL);
 

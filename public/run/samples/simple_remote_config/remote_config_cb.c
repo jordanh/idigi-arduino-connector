@@ -25,27 +25,11 @@
 #include "idigi_config.h"
 #include "idigi_api.h"
 #include "platform.h"
-#include "remote_config.h"
+#include "remote_config_cb.h"
 
-
-idigi_callback_status_t app_keepalive_session_start(idigi_remote_group_response_t * const response);
-idigi_callback_status_t app_keepalive_session_end(idigi_remote_group_response_t * const response);
-idigi_callback_status_t app_keepalive_action_start(idigi_remote_group_request_t * const request,
-                                                        idigi_remote_group_response_t * const response);
-idigi_callback_status_t app_keepalive_action_end(idigi_remote_group_request_t * const request,
-                                                      idigi_remote_group_response_t * const response);
-idigi_callback_status_t app_keepalive_group_init(idigi_remote_group_request_t * const request,
-                                                 idigi_remote_group_response_t * const response);
-idigi_callback_status_t app_keepalive_group_set(idigi_remote_group_request_t * const request,
-                                                 idigi_remote_group_response_t * const response);
-idigi_callback_status_t app_keepalive_group_get(idigi_remote_group_request_t * const request,
-                                                 idigi_remote_group_response_t * const response);
-idigi_callback_status_t app_keepalive_group_end(idigi_remote_group_request_t * const request,
-                                                 idigi_remote_group_response_t * const response);
-void app_keepalive_session_cancel(void * context);
 
 idigi_callback_status_t app_remote_config_handler(idigi_remote_config_request_t const request,
-                                                      void * const request_data, size_t const request_length,
+                                                      void const * const request_data, size_t const request_length,
                                                       void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
@@ -75,7 +59,7 @@ idigi_callback_status_t app_remote_config_handler(idigi_remote_config_request_t 
         break;
     case idigi_remote_config_group_process:
     {
-        idigi_remote_group_request_t * const remote_request = request_data;
+        idigi_remote_group_request_t const * const remote_request = request_data;
 
         if (remote_request->action == idigi_remote_action_set)
         {
@@ -88,7 +72,7 @@ idigi_callback_status_t app_remote_config_handler(idigi_remote_config_request_t 
         break;
     }
     case idigi_remote_config_session_cancel:
-        app_keepalive_session_cancel(request_data);
+        app_keepalive_session_cancel((void * const)request_data);
         break;
     default:
         ASSERT(0);

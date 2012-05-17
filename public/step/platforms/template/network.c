@@ -162,16 +162,16 @@ idigi_callback_status_t app_network_handler(idigi_network_request_t const reques
     switch (request)
     {
     case idigi_network_connect:
-        status = app_network_connect((char *)request_data, request_length, (idigi_network_handle_t **)response_data);
+        status = app_network_connect((char *)request_data, request_length, response_data);
         *response_length = sizeof(idigi_network_handle_t);
         break;
 
     case idigi_network_send:
-        status = app_network_send((idigi_write_request_t *)request_data, (size_t *)response_data);
+        status = app_network_send((idigi_write_request_t *)request_data, response_data);
         break;
 
     case idigi_network_receive:
-        status = app_network_receive((idigi_read_request_t *)request_data, (size_t *)response_data);
+        status = app_network_receive((idigi_read_request_t *)request_data, response_data);
         break;
 
     case idigi_network_close:
