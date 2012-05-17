@@ -26,6 +26,7 @@
 #include "idigi_api.h"
 #include "platform.h"
 #include "os_support.h"
+#include "data_service.h"
 
 typedef struct
 {
@@ -100,7 +101,7 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
     idigi_callback_status_t status = idigi_callback_abort;
     idigi_data_service_device_request_t * const server_device_request = request_data->service_context;
     idigi_data_service_block_t * const server_data = request_data->server_data;
-    idigi_connector_info_t * const app_callbacks = idigi_get_app_callbacks();
+    idigi_connector_callbacks_t * const app_callbacks = idigi_get_app_callbacks();
 
     if (app_callbacks->device_request != NULL)
     {
@@ -167,7 +168,7 @@ static idigi_callback_status_t process_device_response(idigi_data_service_msg_re
 {
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_data_service_block_t * const client_data = response_data->client_data;
-    idigi_connector_info_t * const app_callbacks = idigi_get_app_callbacks();
+    idigi_connector_callbacks_t * const app_callbacks = idigi_get_app_callbacks();
 
     UNUSED_ARGUMENT(request_data);
     if (app_callbacks->device_response != NULL)
@@ -217,7 +218,7 @@ static idigi_callback_status_t process_device_error(idigi_data_service_msg_reque
     idigi_data_service_block_t * error_data = request_data->server_data;
     idigi_msg_error_t const error_code = *((idigi_msg_error_t *)error_data->data);
     idigi_connector_request_t * const connector_request = response_data->user_context;
-    idigi_connector_info_t * const app_callbacks = idigi_get_app_callbacks();
+    idigi_connector_callbacks_t * const app_callbacks = idigi_get_app_callbacks();
 
     APP_DEBUG("process_device_error: target %s error %d from server\n", request_data->server_data, error_code);
 

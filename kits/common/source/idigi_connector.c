@@ -27,6 +27,7 @@
 #include "platform.h"
 #include "idigi_connector.h"
 #include "os_support.h"
+#include "data_service.h"
 
 typedef struct
 {
@@ -34,7 +35,7 @@ typedef struct
     idigi_app_send_data_t data_ptr;
 } idigi_connector_send_t;
 
-static idigi_connector_info_t idigi_callback_list =
+static idigi_connector_callbacks_t idigi_callback_list =
 {
     NULL, /* status callback */
     NULL, /* device request */
@@ -209,7 +210,7 @@ error:
     return result;
 }
 
-idigi_connector_info_t * idigi_get_app_callbacks(void)
+idigi_connector_callbacks_t * idigi_get_app_callbacks(void)
 {
     return &idigi_callback_list;
 }
