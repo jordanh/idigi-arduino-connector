@@ -51,8 +51,17 @@ static uint_32 start_network(void)
     while(!ipcfg_get_link_active(ENET_DEVICE)) {};
     APP_DEBUG("Cable connected\n");
 
+#if (defined IDIGI_USE_STATIC_IP)
+    ip_data.ip = IDIGI_DEVICE_IPADDR;
+    ip_data.mask = IDIGI_DEVICE_IPMASK;
+    ip_data.gateway = IDIGI_DEVICE_GATEWAY;
+
+    APP_DEBUG("Setting static IP address ... ");
+    result = ipcfg_bind_staticip (ENET_DEVICE, &ip_data);
+#else
     APP_DEBUG("Contacting DHCP server ... ");
     result = ipcfg_bind_dhcp_wait(ENET_DEVICE, FALSE, &ip_data);
+#endif
     if (result != IPCFG_ERROR_OK) 
     {
         APP_DEBUG("\nRTCS failed to bind interface with IPv4, error = %X", result);
