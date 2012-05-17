@@ -120,7 +120,7 @@ static idigi_callback_status_t app_get_mac_addr(uint8_t const ** addr, size_t * 
 #error "Specify device MAC address for LAN connection"
     #define MAC_ADDR_LENGTH     6
 
-    static uint8_t const device_mac_addr[MAC_ADDR_LENGTH] = {0x78, 0xE7, 0xD1, 0x84, 0x47, 0x82};
+    static uint8_t const device_mac_addr[MAC_ADDR_LENGTH] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
     *addr = device_mac_addr;
     *size = sizeof device_mac_addr;
@@ -165,7 +165,7 @@ static idigi_callback_status_t app_get_vendor_id(uint8_t const ** id, size_t * c
 #error  "Specify vendor id"
     #define VENDOR_ID_LENGTH    4
 
-    static uint8_t const device_vendor_id[VENDOR_ID_LENGTH] = {0x01, 0x00, 0x00, 0x01};
+    static uint8_t const device_vendor_id[VENDOR_ID_LENGTH] = {0x00, 0x00, 0x00, 0x00};
 
     *id   =  device_vendor_id;
     *size = sizeof device_vendor_id;
@@ -188,7 +188,7 @@ static idigi_callback_status_t app_get_device_type(char const ** type, size_t * 
 static idigi_callback_status_t app_get_server_url(char const ** url, size_t * const size)
 {
 #error "Specify iDigi Server URL"
-    static  char const idigi_server_url[] = "10.52.18.75";
+    static  char const idigi_server_url[] = "developer.idigi.com";
 
     /* Return pointer to device type. */
     *url = idigi_server_url;
