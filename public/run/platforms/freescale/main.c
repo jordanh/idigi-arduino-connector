@@ -56,6 +56,7 @@ static uint_32 start_network(void)
     ip_data.mask = IDIGI_DEVICE_IPMASK;
     ip_data.gateway = IDIGI_DEVICE_GATEWAY;
 
+    ipcfg_add_dns_ip(ENET_DEVICE, IDIGI_DNS_SERVER_IPADDR);
     APP_DEBUG("Setting static IP address ... ");
     result = ipcfg_bind_staticip (ENET_DEVICE, &ip_data);
 #else
