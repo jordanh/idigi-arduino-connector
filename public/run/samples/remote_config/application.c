@@ -26,6 +26,10 @@
 #include "platform.h"
 #include "remote_config.h"
 
+#if (!defined IDIGI_RCI_MAXIMUM_CONTENT_LENGTH) || (IDIGI_RCI_MAXIMUM_CONTENT_LENGTH <= 0)
+#error "Must define IDIGI_RCI_MAXIMUM_CONTENT_LENGTH > 0 in idigi_config.h"
+#endif
+
 
 extern idigi_callback_status_t app_firmware_handler(idigi_firmware_request_t const request,
                                                   void const * const request_data, size_t const request_length,
