@@ -317,7 +317,7 @@ static int app_get_server_url(char ** url, size_t * size)
 {
 #error "Specify iDigi Server URL"
 
-    static char const []idigi_server_url = "developer.idigi.com";
+    static char const idigi_server_url[] = "developer.idigi.com";
 
     /* Return pointer to device type. */
     *url = (char *)idigi_server_url;
