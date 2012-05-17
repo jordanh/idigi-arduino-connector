@@ -28,7 +28,7 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-static char const event_list[] =
+static char const * event_list[] =
 {
     "idigi_send"
 };

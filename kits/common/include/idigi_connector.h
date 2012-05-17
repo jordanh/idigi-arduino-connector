@@ -53,7 +53,11 @@ typedef enum
     idigi_connector_resource_error,
     idigi_connector_event_error,
     idigi_connector_failed_to_create_thread,
-    idigi_connector_network_error
+    idigi_connector_network_error,
+    idigi_connector_compression_error,
+    idigi_connector_timeout,
+    idigi_connector_session_error,
+    idigi_connector_service_unavailable
 } idigi_connector_error_t;
 
 /**

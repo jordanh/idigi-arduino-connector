@@ -30,6 +30,20 @@
 #include <stdlib.h>
 #include "idigi_connector.h"
 
+typedef struct
+{
+    idigi_status_callback_t status_callback;
+    idigi_device_request_callback_t device_request;
+    idigi_device_response_callback_t device_response;
+} idigi_connector_info_t;
+
+typedef struct
+{
+    void * next_data;
+    size_t bytes_remaining;
+    idigi_connector_error_t error;
+} idigi_app_send_data_t;
+
 #define IC_SEND_DATA_EVENT 0
 #define IC_MAX_NUM_EVENTS  1
 
@@ -37,11 +51,11 @@ idigi_connector_error_t ic_create_event(int const event);
 idigi_connector_error_t ic_set_event(int const event);
 idigi_connector_error_t ic_get_event(int const event, unsigned long timeout);
 idigi_connector_error_t ic_create_thread(void);
-
-void idigi_connector_thread(unsigned long initial_data);
-
 void ic_free(void *ptr);
 void *ic_malloc(size_t size);
+
+void idigi_connector_thread(unsigned long initial_data);
+extern idigi_connector_info_t * idigi_get_app_callbacks(void);
 
 #define UNUSED_PARAMETER(x)     ((void)x)
 
