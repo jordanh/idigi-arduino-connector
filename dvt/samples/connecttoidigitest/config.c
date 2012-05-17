@@ -178,7 +178,7 @@ static int app_get_device_type(char ** type, size_t * size)
 
 static int app_get_server_url(char ** url, size_t * size)
 {
-    static char const idigi_server_url[] = "idigi-e2e.sa.digi.com";
+    static char const idigi_server_url[] = "test.idigi.com";
 
     /* Return pointer to device type. */
     *url = (char *)idigi_server_url;
