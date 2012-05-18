@@ -33,7 +33,7 @@
 
 static int gWait = 0;
 
-extern int app_os_malloc(size_t const size, void ** ptr);
+extern idigi_callback_status_t app_os_malloc(size_t const size, void ** ptr);
 extern void app_os_free(void * const ptr);
 extern int firmware_download_started;
 
@@ -69,8 +69,8 @@ idigi_status_t send_file(idigi_handle_t handle, int index, char * const filename
     {
         void * ptr;
 
-        int const is_ok = app_os_malloc(sizeof *user, &ptr);
-        if (is_ok < 0|| ptr == NULL)
+        idigi_callback_status_t const is_ok = app_os_malloc(sizeof *user, &ptr);
+        if (is_ok != idigi_callback_continue || ptr == NULL)
         {
             /* no memeory stop IIK */
             APP_DEBUG("send_put_request: malloc fails\n");
@@ -307,8 +307,8 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
     {
         void * ptr;
 
-        int const ccode = app_os_malloc(sizeof *client_device_request, &ptr);
-        if (ccode != 0 || ptr == NULL)
+        idigi_callback_status_t const ccode = app_os_malloc(sizeof *client_device_request, &ptr);
+        if (ccode != idigi_callback_continue || ptr == NULL)
         {
             /* no memeory stop IIK */
             APP_DEBUG("process_device_request: malloc fails for device request on session %p\n", server_device_request->device_handle);

@@ -128,7 +128,6 @@ static idigi_callback_status_t app_firmware_download_complete(idigi_fw_download_
 
     {
         #define FW_KEEP_ALIVE_TIMEOUT   36
-        extern int app_os_get_system_time(unsigned long * const uptime);
         static unsigned long start_time = 0;
         unsigned long curent_time = 0;
 

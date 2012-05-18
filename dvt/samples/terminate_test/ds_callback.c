@@ -32,8 +32,7 @@
 
 terminate_flag_t terminate_flag = device_request_idle;
 
-extern int app_os_get_system_time(unsigned long * const uptime);
-extern int app_os_malloc(size_t const size, void ** ptr);
+extern idigi_callback_status_t app_os_malloc(size_t const size, void ** ptr);
 extern void app_os_free(void * const ptr);
 extern int firmware_download_started;
 extern idigi_handle_t idigi_handle;
@@ -73,8 +72,8 @@ idigi_status_t send_file(idigi_handle_t handle, int index, char * const filename
     {
         void * ptr;
 
-        int const is_ok = app_os_malloc(sizeof *user, &ptr);
-        if (is_ok < 0|| ptr == NULL)
+        idigi_callback_status_t const is_ok = app_os_malloc(sizeof *user, &ptr);
+        if (is_ok != idigi_callback_continue|| ptr == NULL)
         {
             /* no memeory stop IIK */
             APP_DEBUG("send_put_request: malloc fails\n");

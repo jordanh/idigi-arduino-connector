@@ -42,9 +42,6 @@ unsigned long delay_receive_time = 0;
 reboot_state_t reboot_state = no_reboot_received;
 int reboot_errno = 0;
 
-
-int app_os_get_system_time(unsigned long * const uptime);
-
 static int app_dns_resolve_name(char const * const domain_name, in_addr_t * const ip_addr)
 {
     int ret = -1;
