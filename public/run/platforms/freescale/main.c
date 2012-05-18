@@ -31,6 +31,7 @@ static void idigi_status(idigi_connector_error_t const status, char const * cons
 
 static uint_32 start_network(void)
 {
+    _enet_address mac_addr = IDIGI_MAC_ADDRESS;
     IPCFG_IP_ADDRESS_DATA ip_data;
     uint_32 result = RTCS_create();
 
@@ -40,7 +41,7 @@ static uint_32 start_network(void)
         goto error;
     }
 
-    result = ipcfg_init_device (ENET_DEVICE, device_mac_addr);
+    result = ipcfg_init_device (ENET_DEVICE, mac_addr);
     if (result != RTCS_OK)
     {
         APP_DEBUG("Failed to initialize Ethernet device, error = %X", result);

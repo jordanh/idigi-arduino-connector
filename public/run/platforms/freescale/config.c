@@ -29,16 +29,6 @@
 #include <platform.h>
 #include <bele.h>
 
-/* IIK Configuration routines */
-
-#define MAX_INTERFACES      128
-#define DEVICE_ID_LENGTH    16
-#define VENDOR_ID_LENGTH    4
-#define MAC_ADDR_LENGTH     6
-
-/* MAC address used in this sample */
-_enet_address device_mac_addr = {0x00, 0x40, 0x9d, 0x28, 0x29, 0x01};
-
 /*
  * Routine to get the IP address, you will need to modify this routine for your 
  * platform.
@@ -47,58 +37,66 @@ static int app_get_ip_address(uint8_t ** ip_address, size_t *size)
 {
     IPCFG_IP_ADDRESS_DATA   ip_data;
     static uint32_t val;
-    
+
     ipcfg_get_ip(IPCFG_default_enet_device, &ip_data);
 
-    APP_DEBUG("get_ip_address: IP Address: %d.%d.%d.%d\n\n",IPBYTES(ip_data.ip));
+    APP_DEBUG("get_ip_address: IP Address: %d.%d.%d.%d\n\n", IPBYTES(ip_data.ip));
 
     *size       = sizeof ip_data.ip;
 
-    StoreBE32((void * const)&val, ip_data.ip);
+    StoreBE32(&val, ip_data.ip);
     *ip_address = (uint8_t *)&val;
-    
+
     return 0;
 }
 
 static int app_get_mac_addr(uint8_t ** addr, size_t * size)
 {
-	*addr = (uint8_t *)&device_mac_addr;
-    *size = sizeof device_mac_addr;
-    
-    APP_DEBUG("get_mac_addr: MAC Address: %2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X\r\n", 
-    		device_mac_addr[0], device_mac_addr[1], device_mac_addr[2], 
-    		device_mac_addr[3], device_mac_addr[4], device_mac_addr[5]);
-    
-    return 0;
+    static _enet_address mac_address = {0};
+    int const result = ipcfg_get_mac(IPCFG_default_enet_device, mac_address) ? 0 : -1;
+
+    *addr = (uint8_t *)&mac_address;
+    *size = sizeof mac_address;
+
+    APP_DEBUG("get_mac_addr: MAC Address: %2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X\r\n",
+            mac_address[0], mac_address[1], mac_address[2],
+            mac_address[3], mac_address[4], mac_address[5]);
+
+    return result;
 }
 
 static int app_get_device_id(uint8_t ** id, size_t * size)
 {
+    #define DEVICE_ID_LENGTH    16
+    _enet_address mac_address = {0};
+    int const result = ipcfg_get_mac(IPCFG_default_enet_device, mac_address) ? 0 : -1;
     static uint8_t device_id[DEVICE_ID_LENGTH];
-    
-    APP_DEBUG("get_device_id: MAC Address: %2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X\r\n", 
-    		device_mac_addr[0], device_mac_addr[1], device_mac_addr[2], 
-    		device_mac_addr[3], device_mac_addr[4], device_mac_addr[5]);
+
+    APP_DEBUG("get_device_id: MAC Address: %2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X\r\n",
+            mac_address[0], mac_address[1], mac_address[2],
+            mac_address[3], mac_address[4], mac_address[5]);
 
     /* This sample uses the MAC address to format the device ID */
-    device_id[8] = device_mac_addr[0];
-    device_id[9] = device_mac_addr[1];
-    device_id[10] = device_mac_addr[2];
+    device_id[8] = mac_address[0];
+    device_id[9] = mac_address[1];
+    device_id[10] = mac_address[2];
     device_id[11] = 0xFF;
     device_id[12] = 0xFF;
-    device_id[13] = device_mac_addr[3];
-    device_id[14] = device_mac_addr[4];
-    device_id[15] = device_mac_addr[5];
+    device_id[13] = mac_address[3];
+    device_id[14] = mac_address[4];
+    device_id[15] = mac_address[5];
 
     *id   = device_id;
     *size = sizeof device_id;
 
-    return 0;
+    return result;
 }
+
 static int app_get_vendor_id(uint8_t ** id, size_t * size)
 {
+    #define VENDOR_ID_LENGTH    4
     static const uint8_t device_vendor_id[VENDOR_ID_LENGTH] = {0x01, 0x00, 0x00, 0x20};
-	
+
     APP_DEBUG("get_vendor_id Vendor ID: %2.2X,%2.2X,%2.2X,%2.2X\r\n", 
               device_vendor_id[0], device_vendor_id[1], device_vendor_id[2], device_vendor_id[3]);
 
@@ -243,7 +241,7 @@ static unsigned int app_get_max_message_transactions(void)
 void app_config_error(idigi_error_status_t * const error_data)
 {
 
-    char const * error_status_string[] = {"idigi_success", "idigi_init_error",
+    static char const * error_status_string[] = {"idigi_success", "idigi_init_error",
                                           "idigi_configuration_error",
                                           "idigi_invalid_data_size",
                                           "idigi_invalid_data_range",
@@ -264,7 +262,7 @@ void app_config_error(idigi_error_status_t * const error_data)
                                           "idigi_service_busy",
                                           "idigi_invalid_response"};
 
-    char const * config_request_string[] = { "idigi_config_device_id",
+    static char const * config_request_string[] = { "idigi_config_device_id",
                                              "idigi_config_vendor_id",
                                              "idigi_config_device_type",
                                              "idigi_config_server_url",
@@ -282,19 +280,19 @@ void app_config_error(idigi_error_status_t * const error_data)
                                              "idigi_config_file_system",
                                               "idigi_config_max_transaction"};
 
-    char const * network_request_string[] = { "idigi_network_connect",
+    static char const * network_request_string[] = { "idigi_network_connect",
                                               "idigi_network_send",
                                               "idigi_network_receive",
                                               "idigi_network_close"
                                               "idigi_network_disconnected",
                                               "idigi_network_reboot"};
 
-    char const * os_request_string[] = { "idigi_os_malloc",
+    static char const * os_request_string[] = { "idigi_os_malloc",
                                          "idigi_os_free",
                                          "idigi_os_system_up_time",
                                          "idigi_os_sleep"};
 
-    char const * firmware_request_string[] = {"idigi_firmware_target_count",
+    static char const * firmware_request_string[] = {"idigi_firmware_target_count",
                                               "idigi_firmware_version",
                                               "idigi_firmware_code_size",
                                               "idigi_firmware_description",
@@ -305,9 +303,9 @@ void app_config_error(idigi_error_status_t * const error_data)
                                               "idigi_firmware_download_abort",
                                               "idigi_firmware_target_reset"};
 
-    char const * data_service_string[] = {"idigi_data_service_put_request",
+    static char const * data_service_string[] = {"idigi_data_service_put_request",
                                           "idigi_data_service_device_request"};
-    char const * file_system_string[] = {"idigi_file_system_open",    
+    static char const * file_system_string[] = {"idigi_file_system_open",    
                                        "idigi_file_system_read",    
                                        "idigi_file_system_write",   
                                        "idigi_file_system_lseek",   

@@ -14,7 +14,6 @@
 
 #define ENET_DEVICE 0
 
-extern _enet_address device_mac_addr;
 extern void Main_task(uint_32);
 extern void idigi_connector_thread(unsigned long initial_data);
 #endif /* __main_h_ */
