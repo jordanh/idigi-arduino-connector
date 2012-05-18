@@ -28,7 +28,7 @@ PLATFORM_HEADER_DIR=./public/run/platforms/linux
 vpath %.c ./public ./private ./public/run/platforms/linux
 vpath %.h ./public/include ./public/run/platforms/linux
 
-SRC  = idigi_api.c os.c network_ssl.c config.c file_system.c idigi_connector.c os_support.c
+SRC  = idigi_api.c os.c network_ssl.c config.c file_system.c idigi_connector.c os_support.c data_service.c
 OBJ  = $(SRC:.c=.o)
 OUT  = libidigi.so
 DEPS = idigi_api.h idigi_config.h os_support.h platform.h

@@ -220,7 +220,8 @@ static idigi_callback_status_t process_device_error(idigi_data_service_msg_reque
     idigi_connector_request_t * const connector_request = response_data->user_context;
     idigi_connector_callbacks_t * const app_callbacks = idigi_get_app_callbacks();
 
-    APP_DEBUG("process_device_error: target %s error %d from server\n", request_data->server_data, error_code);
+    /*APP_DEBUG("process_device_error: target %s error %d from server\n", request_data->server_data, error_code);*/
+    APP_DEBUG("process_device_error\n");
 
     if (app_callbacks->device_response != NULL)
     {

@@ -29,7 +29,7 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-static sem_t sem_array[IC_MAX_NUM_EVENTS]; 
+static sem_t sem_array[IC_MAX_NUM_EVENTS];
 
 idigi_connector_error_t ic_create_event(int const event)
 {
@@ -37,6 +37,8 @@ idigi_connector_error_t ic_create_event(int const event)
     int ret;
 
     ASSERT_GOTO(event < IC_MAX_NUM_EVENTS, error);
+
+    APP_DEBUG("ic_create_event event [%d]\n", event);
 
     ret = sem_init(&sem_array[event], 0, 0);
     ASSERT_GOTO(ret == 0, error);
@@ -56,7 +58,11 @@ idigi_connector_error_t ic_get_event(int const event, unsigned long timeout_ms)
     wait_time.tv_sec  = timeout_ms/1000;
     wait_time.tv_nsec = (timeout_ms%1000)*1000000;
 
-    ret = sem_timedwait(&sem_array[event], &wait_time);
+
+    APP_DEBUG("ic_get_event event [%d] sec=[%d] nsec=[%d]\n", event, (int)wait_time.tv_sec, (int)wait_time.tv_nsec);
+
+    /*ret = sem_timedwait(&sem_array[event], &wait_time);    */
+    ret = sem_wait(&sem_array[event]);
     ASSERT_GOTO(ret == 0, error);
 
     status = idigi_connector_success;
@@ -70,6 +76,8 @@ idigi_connector_error_t ic_set_event(int const event)
     int ret;
 
     ASSERT_GOTO(event < IC_MAX_NUM_EVENTS, error);
+
+    APP_DEBUG("ic_set_event [%d]\n", event);
 
     ret = sem_post(&sem_array[event]);
     ASSERT_GOTO(ret == 0, error);
@@ -108,8 +116,6 @@ idigi_connector_error_t ic_create_thread(void)
         APP_DEBUG("thread_create() error on idigi_process_thread %d\n", ccode);
         goto error;
     }
-
-    pthread_join(idigi_thread, NULL);
 
 error:
 
