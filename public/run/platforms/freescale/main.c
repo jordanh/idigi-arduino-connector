@@ -24,12 +24,7 @@ TASK_TEMPLATE_STRUCT MQX_template_list[] =
    {0,           0,           0,     0,   0,      0,                 }
 };
 
-static void idigi_status(idigi_connector_error_t const status, char const * const status_message)
-{
-    APP_DEBUG("Got an event from iDigi Connector %d[%s]\n", status, status_message);
-}
-
-static uint_32 start_network(void)
+static uint_32 network_start(void)
 {
     _enet_address mac_addr = IDIGI_MAC_ADDRESS;
     IPCFG_IP_ADDRESS_DATA ip_data;
@@ -95,15 +90,15 @@ error:
 
 void Main_task(uint_32 initial_data)
 {
-    uint_32 const result = start_network();
+    uint_32 const result = network_start();
 
     if (result == RTCS_OK)
     {
-        idigi_connector_error_t const status = idigi_connector_start(idigi_status);
+        int const status = application_start();
 
-        if (status != idigi_connector_success)
+        if (status != 0)
         {
-            APP_DEBUG("idigi_connector_start failed %d\n", status);
+            APP_DEBUG("application_start failed %d\n", status);
         }
     }
 

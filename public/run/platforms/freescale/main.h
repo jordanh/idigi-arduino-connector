@@ -16,5 +16,6 @@
 
 extern void Main_task(uint_32);
 extern void idigi_connector_thread(unsigned long initial_data);
+extern int application_start(void);
 #endif /* __main_h_ */
 
