@@ -4,7 +4,6 @@
 *
 ****************************************************************************/
 #include "main.h"
-#include "idigi_api.h"
 #include "platform.h"
 #include "os_support.h"
 #include "idigi_config.h"

@@ -26,6 +26,8 @@
 #ifndef _PLATFORM_H
 #define _PLATFORM_H
 
+#include "idigi_api.h"
+
 #define APP_DEBUG   _io_printf
 
 #define UNUSED_ARGUMENT(x)     ((void)x)
