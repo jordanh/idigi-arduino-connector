@@ -56,7 +56,7 @@ size_t device_response_callback(char const * const target, idigi_connector_data_
 {
     static char rsp_string[] = "iDigi Connector device response!\n";
     size_t const len = sizeof rsp_string;
-    size_t const bytes_to_copy = 0;
+    size_t const bytes_to_copy = (len < response_data->length_in_bytes) ? len : response_data->length_in_bytes;
 
     APP_DEBUG("devcie_response_callback: target [%s]\n", target);
     if (response_data->error != idigi_connector_success)
@@ -65,7 +65,6 @@ size_t device_response_callback(char const * const target, idigi_connector_data_
         goto error;
     }
 
-    bytes_to_copy = (len < response_data->length_in_bytes) ? len : response_data->length_in_bytes;
     memcpy(response_data->data_ptr, rsp_string, bytes_to_copy);
     response_data->flags = IDIGI_FLAG_LAST_DATA;
 

@@ -7,6 +7,7 @@
 #include "idigi_api.h"
 #include "platform.h"
 #include "os_support.h"
+#include "idigi_config.h"
 
 #if !BSPCFG_ENABLE_IO_SUBSYSTEM
 #error This application requires BSPCFG_ENABLE_IO_SUBSYSTEM defined non-zero in user_config.h. Please recompile BSP with this option.
