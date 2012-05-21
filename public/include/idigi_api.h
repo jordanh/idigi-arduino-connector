@@ -1283,7 +1283,7 @@ typedef struct
 */
 typedef struct 
 {
-    void                    * errnum;       /**< Application defined error token.*/
+    void const * errnum;                    /**< Application defined error token.*/
     idigi_file_error_status_t error_status; /**< Error status of @ref idigi_file_error_status_t type */
 
 } idigi_file_error_data_t;

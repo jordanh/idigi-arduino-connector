@@ -78,9 +78,9 @@ typedef struct
 
 #define FILE_OPCODE_BYTES           1
 
-static char file_str_etoolong[] = "File path too long";
-static char file_str_invalid_offset[] = "Invalid offset";
-static char file_str_request_format_error[] = "Request format error";
+static const char file_str_etoolong[] = "File path too long";
+static const char file_str_invalid_offset[] = "Invalid offset";
+static const char file_str_request_format_error[] = "Request format error";
 
 #define FsIsBitSet(flag, bit)  (((flag) & (bit)) == (bit))
 #define FsBitSet(flag, bit)    ((flag) |= (bit))
@@ -211,7 +211,7 @@ static idigi_callback_status_t call_file_system_user(idigi_data_t * const idigi_
     msg_session_t * const session = service_request->session;
     file_system_context_t * const context = session->service_context;
     idigi_file_response_t * const response = response_data;
-    void * const old_errnum = context->error.errnum;
+    void const * const old_errnum = context->error.errnum;
     idigi_msg_error_t  msg_error = idigi_msg_error_none;
     size_t response_length_in = response_length;
     idigi_callback_status_t status;
