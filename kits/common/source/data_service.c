@@ -256,17 +256,16 @@ static idigi_callback_status_t process_send_data_request(idigi_data_service_msg_
     if (app_dptr != NULL)
     {
         idigi_data_service_block_t * const message = put_response->client_data;
-        size_t bytes_to_copy = message->length_in_bytes;
 
-        if (app_dptr->bytes_remaining < bytes_to_copy)
+        if (app_dptr->bytes_remaining < message->length_in_bytes)
         {
-            bytes_to_copy = app_dptr->bytes_remaining;
+            message->length_in_bytes = app_dptr->bytes_remaining;
             message->flags = IDIGI_MSG_LAST_DATA;
         }
 
-        memcpy(message->data, app_dptr->next_data, bytes_to_copy);
-        app_dptr->bytes_remaining += bytes_to_copy;
-        app_dptr->next_data = ((char *)app_dptr->next_data) + bytes_to_copy;
+        memcpy(message->data, app_dptr->next_data, message->length_in_bytes);
+        app_dptr->bytes_remaining -= message->length_in_bytes;
+        app_dptr->next_data = ((char *)app_dptr->next_data) + message->length_in_bytes;
         put_response->message_status = idigi_msg_error_none;
     }
     else

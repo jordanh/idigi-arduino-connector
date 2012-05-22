@@ -59,44 +59,37 @@ static boolean dns_resolve_name(char const * const name, _ip_address * const ip_
 
 static boolean set_socket_options(int const fd)
 {
+    #define SOCKET_BUFFER_SIZE 512
+    #define SOCKET_TIMEOUT_MSEC 1000
     boolean success = FALSE;
+    uint_32 option = TRUE;
 
+    if(setsockopt(fd, SOL_TCP, OPT_RECEIVE_NOWAIT, &option, sizeof option) != RTCS_OK)
     {
-        boolean option = TRUE;
-
-        if(setsockopt(fd, SOL_TCP, OPT_RECEIVE_NOWAIT, &option, sizeof option) != RTCS_OK)
-        {
-            APP_DEBUG("set_non_blocking_socket: setsockopt OPT_RECEIVE_NOWAIT failed");
-            goto error;
-        }
+        APP_DEBUG("set_non_blocking_socket: setsockopt OPT_RECEIVE_NOWAIT failed");
+        goto error;
     }
 
-    #define SOCKET_BUFFER_SIZE              512
-    #define SOCKET_TIMEOUT_MSEC             1000
-
+    /* Reduce buffer size of socket to save memory */
+    option = SOCKET_BUFFER_SIZE;
+    if (setsockopt(socket_fd, SOL_TCP, OPT_TBSIZE, &option, sizeof option) != RTCS_OK)
     {
-        uint_32 option = SOCKET_BUFFER_SIZE;
+        APP_DEBUG("network_connect: setsockopt OPT_TBSIZE failed\n");
+        goto error;
+    }
 
-        /* Reduce buffer size of socket to save memory */
-        if (setsockopt(socket_fd, SOL_TCP, OPT_TBSIZE, &option, sizeof option) != RTCS_OK)
-        {
-            APP_DEBUG("network_connect: setsockopt OPT_TBSIZE failed\n");
-            goto error;
-        }
+    if (setsockopt(socket_fd, SOL_TCP, OPT_RBSIZE, &option, sizeof option) != RTCS_OK)
+    {
+        APP_DEBUG("network_connect: setsockopt OPT_RBSIZE failed\n");
+        goto error;
+    }
 
-        if (setsockopt(socket_fd, SOL_TCP, OPT_RBSIZE, &option, sizeof option) != RTCS_OK)
-        {
-            APP_DEBUG("network_connect: setsockopt OPT_RBSIZE failed\n");
-            goto error;
-        }
-
-        /* set a socket timeout */
-        option = SOCKET_TIMEOUT_MSEC;
-        if (setsockopt(socket_fd, SOL_TCP, OPT_TIMEWAIT_TIMEOUT, &option, sizeof option) != RTCS_OK)
-        {
-            APP_DEBUG("network_connect: setsockopt OPT_TIMEWAIT_TIMEOUT failed\n");
-            goto error;
-        }
+    /* set a socket timeout */
+    option = SOCKET_TIMEOUT_MSEC;
+    if (setsockopt(socket_fd, SOL_TCP, OPT_TIMEWAIT_TIMEOUT, &option, sizeof option) != RTCS_OK)
+    {
+        APP_DEBUG("network_connect: setsockopt OPT_TIMEWAIT_TIMEOUT failed\n");
+        goto error;
     }
 
     success = TRUE;
@@ -126,7 +119,7 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
             goto done;
         }
 
-        ASSERT(set_socket_options(socket_fd));
+        set_socket_options(socket_fd);
 
         {
             struct sockaddr_in sin = {0};
