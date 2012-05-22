@@ -37,8 +37,8 @@
 #include <assert.h>
 #include <stddef.h>
 
-#if __STDC_VERSION__ >= 199901L
-  #if !(defined IDIGI_HAVE_STDINT_HEADER)
+#if !(defined IDIGI_HAVE_STDINT_HEADER)
+  #if __STDC_VERSION__ >= 199901L
     /* If the compiler is C99 complaint, then we have stdint.h. */
     #define IDIGI_HAVE_STDINT_HEADER
   #endif
