@@ -69,6 +69,7 @@ typedef struct
 
 #define IDIGI_FILE_TRUNC            0x01
 #define IDIGI_LSEEK_DONE            0x02
+#define IDIGI_FILE_ERROR_HINT       0x80
 
 #define FILE_STATE_NONE             0
 #define FILE_STATE_READDIR_DONE     1
@@ -77,7 +78,9 @@ typedef struct
 
 #define FILE_OPCODE_BYTES           1
 
-static const char file_str_etoolong[] = "File name too long";
+static const char file_str_etoolong[] = "File path too long";
+static const char file_str_invalid_offset[] = "Invalid offset";
+static const char file_str_request_format_error[] = "Request format error";
 
 #define FsIsBitSet(flag, bit)  (((flag) & (bit)) == (bit))
 #define FsBitSet(flag, bit)    ((flag) |= (bit))
@@ -92,6 +95,9 @@ static const char file_str_etoolong[] = "File name too long";
 #define FileLseekDone(context)    FsIsBitSet(context->flags, IDIGI_LSEEK_DONE)
 #define FileSetLseekDone(context) FsBitSet(context->flags, IDIGI_LSEEK_DONE) 
 
+#define FileHasErrorHint(context) FsIsBitSet(context->flags, IDIGI_FILE_ERROR_HINT) 
+#define FileSetErrorHint(context) FsBitSet(context->flags, IDIGI_FILE_ERROR_HINT) 
+
 #define FileSetState(context, s) (context->state = s)
 #define FileGetState(context)    (context->state)
 
@@ -105,8 +111,7 @@ static void set_file_system_service_error(msg_service_request_t * const service_
 }
 
 static void format_file_error_msg(idigi_data_t * const idigi_ptr,
-                                  msg_service_request_t * const service_request,
-                                  char const * const hint)
+                                  msg_service_request_t * const service_request)
 {
      /* 1st message so let's parse message-start packet:
       *
@@ -145,15 +150,17 @@ static void format_file_error_msg(idigi_data_t * const idigi_ptr,
      message_store_u8(fs_error_response, error_code, error_code);
 
      service_data->length_in_bytes = header_bytes;
+     MsgSetLastData(service_data->flags);
 
-     if (hint != NULL)
+     if (context->error.errnum == NULL)
+         goto done;
+
+     if (FileHasErrorHint(context))
      {
-        error_hint_len = MIN_VALUE(strlen(hint) + 1, buffer_size);
-        memcpy(fs_error_response + header_bytes, hint, error_hint_len);
-        fs_error_response[header_bytes + error_hint_len -1] = '\0';
+        error_hint_len = MIN_VALUE(strlen(context->error.errnum), buffer_size);
+        memcpy(fs_error_response + header_bytes, context->error.errnum, error_hint_len);
      }
      else
-     if (context->error.errnum != NULL)
      {
         idigi_file_data_response_t response;
         size_t response_length = sizeof response;
@@ -204,7 +211,7 @@ static idigi_callback_status_t call_file_system_user(idigi_data_t * const idigi_
     msg_session_t * const session = service_request->session;
     file_system_context_t * const context = session->service_context;
     idigi_file_response_t * const response = response_data;
-    void * const old_errnum = context->error.errnum;
+    void const * const old_errnum = context->error.errnum;
     idigi_msg_error_t  msg_error = idigi_msg_error_none;
     size_t response_length_in = response_length;
     idigi_callback_status_t status;
@@ -358,7 +365,13 @@ static idigi_callback_status_t call_file_opendir_user(idigi_data_t * const idigi
     {
         context->handle = response.handle;
         if (context->handle == NULL)
-            context->error.error_status = idigi_file_path_not_found;
+        {
+            idigi_request_t request_id;
+            request_id.file_system_request = idigi_file_system_opendir;
+
+            context->error.error_status = idigi_file_user_cancel;
+            notify_error_status(idigi_ptr->callback, idigi_class_file_system, request_id, idigi_invalid_data);
+        }
     }
 
     return status;
@@ -652,6 +665,8 @@ static size_t parse_file_path(file_system_context_t * const context,
     {
         ASSERT(idigi_false);
         context->error.error_status = idigi_file_request_format_error;
+        context->error.errnum = file_str_request_format_error;
+        FileSetErrorHint(context);
     }
 
     return path_len;
@@ -734,17 +749,20 @@ static idigi_callback_status_t set_file_position(idigi_data_t * const idigi_ptr,
 
     if (ret == -1 || (uint32_t) ret < context->data.f.offset)
     {
-        context->error.error_status = idigi_file_invalid_parameter;
-        goto done;
+        ret = -1;
+        goto error;
     }
 
     status = call_file_lseek_user(idigi_ptr, service_request, (long int ) context->data.f.offset, IDIGI_SEEK_SET, &ret);
     if (status == idigi_callback_busy || !fileOperationSuccess(status, context))
         goto done;
 
+error:
     if (ret == -1)
     {
         context->error.error_status = idigi_file_invalid_parameter;
+        context->error.errnum = file_str_invalid_offset;
+        FileSetErrorHint(context);
     }
 
 done:
@@ -841,7 +859,7 @@ close_file:
         if (!MsgIsStart(service_data->flags))
             set_file_system_service_error(service_request, idigi_msg_error_cancel);
         else
-            format_file_error_msg(idigi_ptr, service_request, NULL);
+            format_file_error_msg(idigi_ptr, service_request);
     }
 
 done:
@@ -886,7 +904,7 @@ static idigi_callback_status_t process_file_response_nodata(idigi_data_t * const
     }
     else
     {
-        format_file_error_msg(idigi_ptr, service_request, NULL);
+        format_file_error_msg(idigi_ptr, service_request);
     }
     return idigi_callback_continue;
 }
@@ -1073,6 +1091,9 @@ static size_t parse_file_ls_header(file_system_context_t * const context,
             default:
                 ASSERT(idigi_false);
                 context->error.error_status = idigi_file_request_format_error;
+                context->error.errnum = file_str_request_format_error;
+                FileSetErrorHint(context);
+
                 len = 0;
         }
     }
@@ -1191,6 +1212,8 @@ static idigi_callback_status_t file_store_path(idigi_data_t * const idigi_ptr,
     {
         ASSERT(idigi_false);
         context->error.error_status = idigi_file_out_of_memory;
+        context->error.errnum = file_str_etoolong;
+        FileSetErrorHint(context);
         goto done;
     }
 
@@ -1261,7 +1284,6 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
     file_system_context_t * const context = session->service_context;
     msg_service_data_t    * const service_data = service_request->need_data;
     idigi_callback_status_t status = idigi_callback_continue;
-    const char * error_hint = NULL;
 
     if ((context->error.error_status != idigi_file_noerror) || (FileGetState(context) == FILE_STATE_CLOSING))
        goto close_dir;
@@ -1291,7 +1313,8 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
             if ((file_path_len + header_len + hash_len) > buffer_size)
             {
                 context->error.error_status = idigi_file_out_of_memory;
-                error_hint = file_str_etoolong;
+                context->error.errnum = file_str_etoolong;
+                FileSetErrorHint(context);
                 ASSERT_GOTO(idigi_false, close_dir);
             }
 
@@ -1345,7 +1368,8 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
                 if ((context->data.d.path_len + file_path_len) > IDIGI_MAX_PATH_LENGTH)
                 {
                     context->error.error_status = idigi_file_out_of_memory;
-                    error_hint = file_str_etoolong;
+                    context->error.errnum = file_str_etoolong;
+                    FileSetErrorHint(context);
                     ASSERT_GOTO(idigi_false, close_dir);
                 }
                 /* strcat file name to after directory path */
@@ -1397,11 +1421,7 @@ close_dir:
             set_file_system_service_error(service_request, idigi_msg_error_cancel);
         else
         {
-            if ((context->error.error_status == idigi_file_out_of_memory) && 
-                (context->error.errnum == NULL))
-            error_hint = file_str_etoolong;
-
-            format_file_error_msg(idigi_ptr, service_request, error_hint);
+            format_file_error_msg(idigi_ptr, service_request);
         }
     }
 done:
@@ -1480,6 +1500,8 @@ static idigi_callback_status_t file_system_request_callback(idigi_data_t * const
     {
         /* don't support request in >1 message */
         context->error.error_status = idigi_file_request_format_error;
+        context->error.errnum = file_str_request_format_error;
+        FileSetErrorHint(context);
         ASSERT_GOTO(idigi_false, done);
     }
 
@@ -1503,6 +1525,9 @@ static idigi_callback_status_t file_system_request_callback(idigi_data_t * const
 
         default:
             context->error.error_status = idigi_file_request_format_error;
+            context->error.errnum = file_str_request_format_error;
+            FileSetErrorHint(context);
+
             ASSERT_GOTO(idigi_false, done);
     }
 

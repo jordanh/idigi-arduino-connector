@@ -31,166 +31,137 @@
 #include <idigi_types.h>
 #include <platform.h>
 
-#define SOCKET_BUFFER_SIZE              512
-#define SOCKET_TIMEOUT_MSEC             1000
-
 static int socket_fd = RTCS_SOCKET_ERROR;
-    
-static int dns_resolve_name(char const * const name, _ip_address * ip_addr)
+
+static boolean dns_resolve_name(char const * const name, _ip_address * const ip_addr)
 {
-    char tries = 0;
-    boolean result;
-    
+    boolean result = FALSE;
+    size_t tries = 3;
+
     APP_DEBUG("dns_resolve_name: DNS Address : %d.%d.%d.%d\n",
-    		   IPBYTES(ipcfg_get_dns_ip(IPCFG_default_enet_device,0)));
+        IPBYTES(ipcfg_get_dns_ip(IPCFG_default_enet_device, 0)));
 
+    #define ONE_SECOND_DELAY    1000
     /* Try three times to get name */
-    while(tries < 3)
+    do
     {
-        APP_DEBUG("dns_resolve_name: %s\n", name);
+        result = RTCS_resolve_ip_address((char_ptr)name, ip_addr, NULL, 0);
 
-        result = RTCS_resolve_ip_address( (char_ptr)name, ip_addr, NULL, 0);
-        if (result == TRUE)
-        {
-            return 1;
-        }
-        else
-        {
-            APP_DEBUG("Failed - name not resolved\n");
-        }
-        tries++;
-        _time_delay(1000);
-    }
+        if (result) break;
 
-    return 0;
+        APP_DEBUG("Failed - name not resolved\n");
+        _time_delay(ONE_SECOND_DELAY);
+
+    } while (--tries > 0);
+
+    return result;
 }
 
-static boolean set_blocking_socket(int fd, boolean const block)
+static boolean set_socket_options(int const fd)
 {
-    uint_32  error;
-    uint_32  option;
+    #define SOCKET_BUFFER_SIZE 512
+    #define SOCKET_TIMEOUT_MSEC 1000
+    boolean success = FALSE;
+    uint_32 option = TRUE;
 
-    option = (block == FALSE);
-    error = setsockopt(fd, SOL_TCP, OPT_RECEIVE_NOWAIT, &option, sizeof(option));
-    if(error != RTCS_OK)
+    if(setsockopt(fd, SOL_TCP, OPT_RECEIVE_NOWAIT, &option, sizeof option) != RTCS_OK)
     {
-        APP_DEBUG("open_socket: setsockopt OPT_RECEIVE_NOWAIT failed");
-        return FALSE;
+        APP_DEBUG("set_non_blocking_socket: setsockopt OPT_RECEIVE_NOWAIT failed");
+        goto error;
     }
-    return TRUE;
+
+    /* Reduce buffer size of socket to save memory */
+    option = SOCKET_BUFFER_SIZE;
+    if (setsockopt(socket_fd, SOL_TCP, OPT_TBSIZE, &option, sizeof option) != RTCS_OK)
+    {
+        APP_DEBUG("network_connect: setsockopt OPT_TBSIZE failed\n");
+        goto error;
+    }
+
+    if (setsockopt(socket_fd, SOL_TCP, OPT_RBSIZE, &option, sizeof option) != RTCS_OK)
+    {
+        APP_DEBUG("network_connect: setsockopt OPT_RBSIZE failed\n");
+        goto error;
+    }
+
+    /* set a socket timeout */
+    option = SOCKET_TIMEOUT_MSEC;
+    if (setsockopt(socket_fd, SOL_TCP, OPT_TIMEWAIT_TIMEOUT, &option, sizeof option) != RTCS_OK)
+    {
+        APP_DEBUG("network_connect: setsockopt OPT_TIMEWAIT_TIMEOUT failed\n");
+        goto error;
+    }
+
+    success = TRUE;
+
+error:
+    return success;
 }
 
 static idigi_callback_status_t app_network_connect(char const * const host_name, size_t const length, idigi_network_handle_t ** network_handle)
 {
-    idigi_callback_status_t rc = idigi_callback_abort;
+    idigi_callback_status_t status = idigi_callback_abort;
     sockaddr_in addr;
-    int opt=1, result;
-    unsigned int option;
-    unsigned long error;
 
     if (socket_fd == RTCS_SOCKET_ERROR)
     {
-        int ccode;
         _ip_address ip_addr;
-        struct sockaddr_in sin;
-        char *ip_address = (char *)&ip_addr;
-        
+
         if (!dns_resolve_name(host_name, &ip_addr))
-        {
-            APP_DEBUG("network_connect: Error resolving IP address for %s using DNS Server at %d.%d.%d.%d\n\n",
-            		   host_name, IPBYTES(ipcfg_get_dns_ip(IPCFG_default_enet_device,0)));
-            goto done;
-        }
-        
-        APP_DEBUG("network_connect: Resolved IP Address: %d.%d.%d.%d\n\n", ip_address[3], ip_address[2], ip_address[1], ip_address[0]);
+            goto error;
+
+        APP_DEBUG("network_connect: Resolved IP Address: %d.%d.%d.%d\n\n", IPBYTES(ip_addr));
 
         socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-        if (socket_fd >= 0)
+        if (socket_fd == RTCS_SOCKET_ERROR)
         {
-            int enabled = 1;
-
-            if (!set_blocking_socket(socket_fd, FALSE))
-            {
-                APP_DEBUG("network_connect: set non-blocking failed\n");
-                goto done;
-            }
-
-            /* Reduce buffer size of socket to save memory */
-            option = SOCKET_BUFFER_SIZE;
-            if (setsockopt(socket_fd, SOL_TCP, OPT_TBSIZE, &option, sizeof(option)) != RTCS_OK)
-            {
-                APP_DEBUG("network_connect: setsockopt OPT_TBSIZE failed\n");
-                goto done;
-            }
-            
-            if (setsockopt(socket_fd, SOL_TCP, OPT_RBSIZE, &option, sizeof(option)) != RTCS_OK)
-            {
-                APP_DEBUG("network_connect: setsockopt OPT_RBSIZE failed\n");
-                goto done;
-            }
-
-            /* set a socket timeout */
-            option = SOCKET_TIMEOUT_MSEC;
-            if (setsockopt(socket_fd, SOL_TCP, OPT_TIMEWAIT_TIMEOUT, &option, sizeof(option)) != RTCS_OK)
-            {
-                APP_DEBUG("network_connect: setsockopt OPT_TIMEWAIT_TIMEOUT failed\n");
-                goto done;
-            }
-
-            if (setsockopt(socket_fd, SOL_SOCKET, OPT_KEEPALIVE, (char*)&enabled, sizeof(enabled)) < 0)
-            {
-            	APP_DEBUG("network_connect: setsockopt OPT_KEEPALIVE failed\n");
-                goto done;
-            }
-        }
-        else
-        {
-        	APP_DEBUG("Could not open socket\n");
+            APP_DEBUG("Could not open socket\n");
             goto done;
         }
 
-        memset((char *)&addr, 0, sizeof(addr));
+        set_socket_options(socket_fd);
 
-        /* Allow binding to any address */
-        addr.sin_family      = AF_INET;
-        addr.sin_port        = 0;
-        addr.sin_addr.s_addr = INADDR_ANY;
-        error = bind(socket_fd, &addr, sizeof(addr));
-        if (error != RTCS_OK)
         {
-        	APP_DEBUG("Error in binding socket %08x\n",error);
-            goto done;
-        }
-      
-        APP_DEBUG("Connecting to %s...\n", host_name); 
+            struct sockaddr_in sin = {0};
 
-        /* Connect to device */
-        addr.sin_port        = IDIGI_PORT;
-        addr.sin_addr.s_addr = ip_addr;
-        error = connect(socket_fd, &addr, sizeof(addr));
-        if (error != RTCS_OK)
-        {
-            if (errno != EAGAIN && errno != MQX_EINPROGRESS)
+            /* Allow binding to any address */
+            addr.sin_family      = AF_INET;
+            addr.sin_port        = 0;
+            addr.sin_addr.s_addr = INADDR_ANY;
+
+            if (bind(socket_fd, &addr, sizeof addr) != RTCS_OK)
             {
-                APP_DEBUG("network_connect: connect() failed %08x\n",error);
-                goto done;
+                APP_DEBUG("Error in binding socket %08x\n", errno);
+                goto error;
+            }
+
+            APP_DEBUG("Connecting to %s...\n", host_name);
+
+            /* Connect to device */
+            addr.sin_port        = IDIGI_PORT;
+            addr.sin_addr.s_addr = ip_addr;
+            if (connect(socket_fd, &addr, sizeof addr) != RTCS_OK)
+            {
+                if (errno != EAGAIN && errno != MQX_EINPROGRESS)
+                {
+                    APP_DEBUG("network_connect: connect() failed %d\n", errno);
+                    goto error;
+                }
             }
         }
     }
 
     *network_handle = &socket_fd;
-    rc = idigi_callback_continue;
+    status = idigi_callback_continue;
     APP_DEBUG("network_connect: connected to [%.*s] server\n", length, host_name);
+    goto done;
+
+error:
+    shutdown(socket_fd, FLAG_ABORT_CONNECTION);
+    socket_fd = RTCS_SOCKET_ERROR;
 
 done:
-    if ((rc == idigi_callback_abort) && (socket_fd >= 0))
-    {
-    	/* Close socket */
-        shutdown(socket_fd, FLAG_ABORT_CONNECTION);
-        socket_fd = -1;
-    }
-
-    return rc;
+    return status;
 }
 
 /*
@@ -199,111 +170,89 @@ done:
  * calling this function.
  */
 static idigi_callback_status_t app_network_send(idigi_write_request_t const * const write_data,
-                                                size_t * sent_length)
+                                                size_t * const sent_length)
 {
-    idigi_callback_status_t rc = idigi_callback_continue;
-    uint32_t ccode;
+    idigi_callback_status_t status = idigi_callback_continue;
+    uint32_t bytes_sent;
 
-    ccode = send(*write_data->network_handle, (char _PTR_)write_data->buffer,
-                 write_data->length, 0);
-
-    if (ccode == RTCS_ERROR)
+    bytes_sent = send(*write_data->network_handle, (char _PTR_)write_data->buffer, write_data->length, 0);
+    if (bytes_sent == RTCS_ERROR)
     {
-        ccode = RTCS_geterror(*write_data->network_handle);
-        rc = idigi_callback_abort;
-        APP_DEBUG("network_send: send() failed RTCS error [%d]", ccode);
+        status = idigi_callback_abort;
+        APP_DEBUG("network_send: send() failed RTCS error [%d]", RTCS_geterror(*write_data->network_handle));
     }
     else
     {
-        *sent_length = ccode;
-        if (*sent_length == 0)
-        {
-    	    rc = idigi_callback_busy;
-        }
+        *sent_length = bytes_sent;
+        if (bytes_sent == 0)
+            status = idigi_callback_busy;
     }
 
-    return rc;
+    return status;
 }
 
 /*
- * This routine reads a specified number of bytes from the iDigi server.  This 
- * function must not block. If it encounters EAGAIN or EWOULDBLOCK error, 0 
+ * This routine reads a specified number of bytes from the iDigi server.  This
+ * function must not block. If it encounters EAGAIN or EWOULDBLOCK error, 0
  * bytes must be returned and IIK will continue calling this function.
  */
-static idigi_callback_status_t app_network_receive(idigi_read_request_t * read_data, size_t * read_length)
+static idigi_callback_status_t app_network_receive(idigi_read_request_t const * const read_data, size_t * const read_length)
 {
-    idigi_callback_status_t rc = idigi_callback_continue;
-    int_32 ccode;
-    
-    ccode = recv(*read_data->network_handle, (char *)read_data->buffer, (int)read_data->length, 0);
-    if (ccode == RTCS_ERROR)
+    idigi_callback_status_t status = idigi_callback_continue;
+    uint_32 bytes_read;
+
+    *read_length = 0;
+    bytes_read = recv(*read_data->network_handle, (char *)read_data->buffer, (int)read_data->length, 0);
+    if (bytes_read == RTCS_ERROR)
     {
         if (errno == EAGAIN)
-        {
-            rc = idigi_callback_busy;
-        }
+            status = idigi_callback_busy;
         else
         {
-            ccode = RTCS_geterror(*read_data->network_handle);
-        	APP_DEBUG("network_receive: Error, recv() failed RTCS error [%d]", ccode);
-            *read_length = (size_t)0;
-            rc = idigi_callback_abort;
-            
-            //Time Delay task to allow to see printf
-            _time_delay(5000);
+            APP_DEBUG("network_receive: Error, recv() failed RTCS error [%d]", RTCS_geterror(*read_data->network_handle));
+            status = idigi_callback_abort;
         }
     }
     else
     {
-#if 0
-    	APP_DEBUG("network_receive: Received %ld bytes of data.\r\n", ccode);
-#endif
-        *read_length = (size_t)ccode;
-        if (*read_length == 0)
-        {
-        	rc = idigi_callback_busy;
-        }
+        *read_length = bytes_read;
+        if (bytes_read == 0)
+            status = idigi_callback_busy;
     }
 
-    return rc;
+    return status;
 }
 
 static idigi_callback_status_t app_network_close(idigi_network_handle_t * const fd)
 {
-    uint32_t rtn;
-
-    if (*fd != socket_fd)
-    {
-    	APP_DEBUG("network_close: mismatch on network handles: callback [%d] != local [%d]\n",
-              *fd, socket_fd);
-        ASSERT(0);
-    }
+    ASSERT(*fd == socket_fd);
 
     // Note: this does a graceful close - like linger
-    rtn = shutdown(*fd, FLAG_CLOSE_TX);
-    if (rtn != RTCS_OK)
+    if (shutdown(*fd, FLAG_CLOSE_TX) != RTCS_OK)
     {
-    	APP_DEBUG("network_close: failed, code = %d", rtn);
+        APP_DEBUG("network_close: failed, code = %d", errno);
     }
-    
+
     socket_fd = RTCS_SOCKET_ERROR;
 
+error:
     return idigi_callback_continue;
 }
 
-static int app_server_disconnected(void)
+static idigi_callback_status_t app_server_disconnected(void)
 {
-
     APP_DEBUG("Disconnected from server\n");
-    return 0;
+    /* if idigi_run or idigi_step is called again,
+    * it will reconnect to iDigi Cloud.
+    */
+    return idigi_callback_continue;
 }
 
-static int app_server_reboot(void)
+static idigi_callback_status_t app_server_reboot(void)
 {
-
     APP_DEBUG("Reboot from server\n");
-    
-    return 0;
+    /* should not return from rebooting the system */
+    return idigi_callback_continue;
 }
 
 /*
@@ -313,46 +262,42 @@ idigi_callback_status_t app_network_handler(idigi_network_request_t const reques
                                             void const * const request_data, size_t const request_length,
                                             void * const response_data, size_t * const response_length)
 {
-    idigi_callback_status_t status = idigi_callback_continue;
-    int ret;
+    idigi_callback_status_t status;
 
     UNUSED_ARGUMENT(request_length);
 
     switch (request)
     {
-    case idigi_network_connect:
-        status = app_network_connect((char *)request_data, request_length, (idigi_network_handle_t **)response_data);
-        *response_length = sizeof(idigi_network_handle_t);
-        break;
+        case idigi_network_connect:
+            status = app_network_connect(request_data, request_length, response_data);
+            *response_length = sizeof(idigi_network_handle_t);
+            break;
 
-    case idigi_network_send:
-        status = app_network_send((idigi_write_request_t *)request_data, (size_t *)response_data);
-        break;
+        case idigi_network_send:
+            status = app_network_send(request_data, response_data);
+            break;
 
-    case idigi_network_receive:
-        status = app_network_receive((idigi_read_request_t *)request_data, (size_t *)response_data);
-        break;
+        case idigi_network_receive:
+            status = app_network_receive(request_data, response_data);
+            break;
 
-    case idigi_network_close:
-        status = app_network_close((idigi_network_handle_t *)request_data);
-        break;
+        case idigi_network_close:
+            status = app_network_close((idigi_network_handle_t * const)request_data);
+            break;
 
-    case idigi_network_disconnected:
-       ret = app_server_disconnected();
-       status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
-       break;
+        case idigi_network_disconnected:
+            status = app_server_disconnected();
+            break;
 
-    case idigi_network_reboot:
-        ret = app_server_reboot();
-        status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
-        break;
+        case idigi_network_reboot:
+            status = app_server_reboot();
+            break;
 
-    default:
-        APP_DEBUG("idigi_network_callback: unrecognized callback request [%d]\n", request);
-        break;
-
+        default:
+            APP_DEBUG("app_network_handler: unrecognized callback request [%d]\n", request);
+            status = idigi_callback_unrecognized;
+            break;
     }
 
     return status;
 }
-

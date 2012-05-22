@@ -1462,9 +1462,10 @@
  *      <p><b><i>- error_status</i></b> - [IN] Error status of @endhtmlonly @ref idigi_file_error_status_t @htmlonly type
  *                                        . 
  *      <p><b><i>- errnum</i></b> - [IN] Used as an input for an error description string. 
- *   <p><b><i>data_ptr</i></b> - Pointer to memory where the callback writes an error description string.
+ *   <p><b><i>data_ptr</i></b> - Pointer to memory where the callback writes an error description.
+ *                               The error description is not a nul-terminated string.
  *   <p><b><i>size_in_bytes</i></b> - [IN] Size of the memory buffer. 
- *                                      [OUT] Length of the error description string, including ending '\0'.
+ *                                    [OUT] Length of the error description string.
  * </td></tr>
  * <tr>
  * <td>response_length</td>

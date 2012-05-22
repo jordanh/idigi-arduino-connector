@@ -4,9 +4,9 @@
 *
 ****************************************************************************/
 #include "main.h"
-#include "idigi_api.h"
 #include "platform.h"
 #include "os_support.h"
+#include "idigi_config.h"
 
 #if !BSPCFG_ENABLE_IO_SUBSYSTEM
 #error This application requires BSPCFG_ENABLE_IO_SUBSYSTEM defined non-zero in user_config.h. Please recompile BSP with this option.
@@ -24,13 +24,9 @@ TASK_TEMPLATE_STRUCT MQX_template_list[] =
    {0,           0,           0,     0,   0,      0,                 }
 };
 
-static void idigi_status(idigi_connector_error_t const status, char const * const status_message)
+static uint_32 network_start(void)
 {
-    APP_DEBUG("Got an event from iDigi Connector %d[%s]\n", status, status_message);
-}
-
-static uint_32 start_network(void)
-{
+    _enet_address mac_addr = IDIGI_MAC_ADDRESS;
     IPCFG_IP_ADDRESS_DATA ip_data;
     uint_32 result = RTCS_create();
 
@@ -40,7 +36,7 @@ static uint_32 start_network(void)
         goto error;
     }
 
-    result = ipcfg_init_device (ENET_DEVICE, device_mac_addr);
+    result = ipcfg_init_device (ENET_DEVICE, mac_addr);
     if (result != RTCS_OK)
     {
         APP_DEBUG("Failed to initialize Ethernet device, error = %X", result);
@@ -94,15 +90,15 @@ error:
 
 void Main_task(uint_32 initial_data)
 {
-    uint_32 const result = start_network();
+    uint_32 const result = network_start();
 
     if (result == RTCS_OK)
     {
-        idigi_connector_error_t const status = idigi_connector_start(idigi_status);
+        int const status = application_start();
 
-        if (status != idigi_connector_success)
+        if (status != 0)
         {
-            APP_DEBUG("idigi_connector_start failed %d\n", status);
+            APP_DEBUG("application_start failed %d\n", status);
         }
     }
 

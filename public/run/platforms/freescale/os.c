@@ -24,25 +24,20 @@
  */
 
 #include <mqx.h>
-#include <bsp.h>
-#include <rtcs.h>
 #include "idigi_api.h"
 #include "platform.h"
 
-int app_os_malloc(size_t const size, void ** ptr)
+idigi_callback_status_t app_os_malloc(size_t const size, void ** ptr)
 {
-    int status = -1;
+    idigi_callback_status_t status = idigi_callback_abort;
 
     *ptr = _mem_alloc(size);
     if (*ptr != NULL)
     {
-#ifdef DEBUG_MALLOC
-        APP_DEBUG ("os_malloc: ptr = [%x] size = [%d]\n", *ptr, size);
-#endif
-        status = 0;
+        status = idigi_callback_continue;
     }
     else
-    {    
+    {
         APP_DEBUG ("os_malloc: failed\n");
     }
 
@@ -51,58 +46,50 @@ int app_os_malloc(size_t const size, void ** ptr)
 
 void app_os_free(void * const ptr)
 {
-	unsigned int result;
     ASSERT(ptr != NULL);
-
-#ifdef DEBUG_MALLOC
-    APP_DEBUG ("os_free: ptr = [%x]\n", ptr);
-#endif
-    
     if (ptr != NULL)
     {
-    	result = _mem_free(ptr);
-    	if (result)
-    	{
-    		APP_DEBUG("os_free: _mem_free failed [%d]\n");
-    	}
+        unsigned int const result = _mem_free(ptr);
+
+        if (result)
+        {
+            APP_DEBUG("os_free: _mem_free failed [%d]\n");
+        }
     }
+
     return;
 }
 
-int app_os_get_system_time(unsigned long * const uptime)
+idigi_callback_status_t app_os_get_system_time(unsigned long * const uptime)
 {
     TIME_STRUCT curtime;
-    static start_system_up_time = -1;
+    static unsigned long start_system_up_time = 0;
+
     _time_get(&curtime);
-    *uptime = curtime.SECONDS;
-
-    if (start_system_up_time == -1)
-    {
-    	start_system_up_time = curtime.SECONDS;
-    }
-    
+    if (start_system_up_time == 0)
+        start_system_up_time = curtime.SECONDS;
+ 
     /* Up time in seconds */
-    *uptime = (uint32_t)(curtime.SECONDS - start_system_up_time);
+    *uptime = curtime.SECONDS - start_system_up_time;
 
-    return 0;
+    return idigi_callback_continue;
 }
 
-void app_os_sleep(unsigned int const timeout_in_seconds)
+idigi_callback_status_t app_os_sleep(unsigned int const timeout_in_seconds)
 {
-	if (timeout_in_seconds == 0)	
-		_sched_yield();
-	else	
+    if (timeout_in_seconds == 0)
+        _sched_yield();
+    else
         _time_delay(timeout_in_seconds * 1000);
 
-    return;
+    return idigi_callback_continue;
 }
 
 idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
                                         void const * const request_data, size_t const request_length,
-                                        void * response_data, size_t * const response_length)
+                                        void * const response_data, size_t * const response_length)
 {
-    idigi_callback_status_t status = idigi_callback_continue;
-    int ret;
+    idigi_callback_status_t status;
 
     UNUSED_ARGUMENT(request_length);
     UNUSED_ARGUMENT(response_length);
@@ -110,31 +97,31 @@ idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
     switch (request)
     {
     case idigi_os_malloc:
-        ret    = app_os_malloc(*((size_t *)request_data), (void **)response_data);
-        status = (ret == 0) ? idigi_callback_continue : idigi_callback_busy;
+        status = app_os_malloc(*((size_t *)request_data), response_data);
         break;
 
     case idigi_os_free:
-        app_os_free((void *)request_data);
+        app_os_free((void * const)request_data);
         status = idigi_callback_continue;
         break;
 
     case idigi_os_system_up_time:
-        ret    = app_os_get_system_time((unsigned long *)response_data);
-        status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
+        status = app_os_get_system_time(response_data);
         break;
 
     case idigi_os_sleep:
-        app_os_sleep(*((unsigned int *)request_data));
-        status = idigi_callback_continue;
+        status = app_os_sleep(*((unsigned int *)request_data));
         break;
 
     default:
-        APP_DEBUG("idigi_os_callback: unrecognized request [%d]\n", request);
+        APP_DEBUG("app_os_handler: unrecognized request [%d]\n", request);
+        status = idigi_callback_unrecognized;
         break;
     }
 
     return status;
 }
+
+
 
 

@@ -26,6 +26,8 @@
 #ifndef _PLATFORM_H
 #define _PLATFORM_H
 
+#include "idigi_api.h"
+
 #define APP_DEBUG   _io_printf
 
 #define UNUSED_ARGUMENT(x)     ((void)x)
@@ -46,6 +48,6 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
                                               size_t * const response_length);
 
 int application_run(idigi_handle_t handle);
-void app_os_sleep(unsigned int const timeout_in_seconds);
+idigi_callback_status_t app_os_sleep(unsigned int const timeout_in_seconds);
 
 #endif /* _PLATFORM_H */

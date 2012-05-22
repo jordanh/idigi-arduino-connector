@@ -28,6 +28,7 @@
 #include "idigi_connector.h"
 #include "os_support.h"
 #include "data_service.h"
+#include "idigi_config.h"
 
 typedef struct
 {
@@ -66,19 +67,23 @@ static idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, 
         status = app_network_handler(request_id.network_request, request_data, request_length, response_data, response_length);
         break;
 
+#if (defined IDIGI_DATA_SERVICE)
     case idigi_class_data_service:
         status = app_data_service_handler(request_id.firmware_request, request_data, request_length, response_data, response_length);
         break;
+#endif
 
-#ifdef NOT_READY
+#if (defined IDIGI_FIRMWARE_SERVICE)
     case idigi_class_firmware:
         status = app_firmware_handler(request_id.firmware_request, request_data, request_length, response_data, response_length);
         break;
 #endif
 
+#if (defined IDIGI_FILE_SYSTEM)
     case idigi_class_file_system:
         status = app_file_system_handler(request_id.file_system_request, request_data, request_length, response_data, response_length);
         break;
+#endif
 
     default:
         /* not supported */
