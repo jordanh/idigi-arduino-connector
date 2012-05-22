@@ -40,22 +40,22 @@ idigi_callback_status_t app_remote_config_handler(idigi_remote_config_request_t 
     switch (request)
     {
     case idigi_remote_config_session_start:
-        status = app_keepalive_session_start(response_data);
+        status = app_system_session_start(response_data);
         break;
     case idigi_remote_config_session_end:
-        status = app_keepalive_session_end(response_data);
+        status = app_system_session_end(response_data);
         break;
     case idigi_remote_config_action_start:
-        status = app_keepalive_action_start(request_data, response_data);
+        status = app_system_action_start(request_data, response_data);
         break;
     case idigi_remote_config_action_end:
-        status = app_keepalive_action_end(request_data, response_data);
+        status = app_system_action_end(request_data, response_data);
         break;
     case idigi_remote_config_group_start:
-        status = app_keepalive_group_init(request_data, response_data);
+        status = app_system_group_init(request_data, response_data);
         break;
     case idigi_remote_config_group_end:
-        status = app_keepalive_group_end(request_data, response_data);
+        status = app_system_group_end(request_data, response_data);
         break;
     case idigi_remote_config_group_process:
     {
@@ -63,16 +63,16 @@ idigi_callback_status_t app_remote_config_handler(idigi_remote_config_request_t 
 
         if (remote_request->action == idigi_remote_action_set)
         {
-            status = app_keepalive_group_set(request_data, response_data);
+            status = app_system_group_set(request_data, response_data);
         }
         else
         {
-            status = app_keepalive_group_get(request_data, response_data);
+            status = app_system_group_get(request_data, response_data);
         }
         break;
     }
     case idigi_remote_config_session_cancel:
-        app_keepalive_session_cancel((void * const)request_data);
+        app_system_session_cancel((void * const)request_data);
         break;
     default:
         ASSERT(0);

@@ -149,7 +149,7 @@ static idigi_callback_status_t process_device_request(idigi_data_t * const idigi
 
     {
         /* pass data to the callback */
-        idigi_request_t const request_id = {idigi_data_service_device_request};
+        idigi_request_t request_id;
         idigi_data_service_msg_request_t request_data;
         idigi_data_service_msg_response_t response_data;
         idigi_data_service_block_t server_data;
@@ -178,6 +178,7 @@ static idigi_callback_status_t process_device_request(idigi_data_t * const idigi
         response_data.message_status = idigi_msg_error_none;
         response_data.client_data = NULL;
 
+        request_id.data_service_request = idigi_data_service_device_request;
         status = idigi_callback(idigi_ptr->callback, idigi_class_data_service, request_id,
                                 &request_data, sizeof request_data, &response_data, &response_data_length);
 
@@ -247,7 +248,7 @@ static idigi_callback_status_t process_device_response(idigi_data_t * const idig
     size_t const header_length = isFirstResponse ? record_bytes(ds_device_response_header) : 0;
     uint8_t * const data_ptr = service_data->data_ptr;
 
-    idigi_request_t const request_id = {idigi_data_service_device_request};
+    idigi_request_t request_id;
     idigi_data_service_msg_request_t request_data;
     idigi_data_service_msg_response_t response_data;
     idigi_data_service_device_request_t device_request;
@@ -272,6 +273,7 @@ static idigi_callback_status_t process_device_response(idigi_data_t * const idig
     client_data.length_in_bytes = service_data->length_in_bytes - header_length;
     client_data.flags = 0;
 
+    request_id.data_service_request = idigi_data_service_device_request;
     status = idigi_callback(idigi_ptr->callback, idigi_class_data_service, request_id,
                             &request_data, sizeof request_data, &response_data, &response_data_length);
 
@@ -324,7 +326,7 @@ static idigi_callback_status_t process_device_error(idigi_data_t * const idigi_p
     idigi_callback_status_t status;
     msg_session_t * const session = service_request->session;
     data_service_context_t * const device_request_service = session->service_context;
-    idigi_request_t const request_id = {idigi_data_service_device_request};
+    idigi_request_t request_id;
 
     idigi_data_service_msg_request_t request_data;
     idigi_data_service_msg_response_t response_data;
@@ -349,6 +351,7 @@ static idigi_callback_status_t process_device_error(idigi_data_t * const idigi_p
     response_data.message_status = idigi_msg_error_none;
     response_data.client_data = NULL;
 
+    request_id.data_service_request = idigi_data_service_device_request;
     status = idigi_callback(idigi_ptr->callback, idigi_class_data_service, request_id,
                                         &request_data, sizeof request_data,
                                         &response_data, &response_data_length);

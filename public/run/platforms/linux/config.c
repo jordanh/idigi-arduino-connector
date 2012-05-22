@@ -314,6 +314,43 @@ static idigi_callback_status_t app_get_max_message_transactions(unsigned int * c
     return idigi_callback_continue;
 }
 
+static idigi_callback_status_t app_get_device_id_method(idigi_device_id_method_t * const method)
+{
+
+    *method = idigi_auto_device_id_method;
+
+    return idigi_callback_continue;
+}
+
+static idigi_callback_status_t app_get_imei_number(uint8_t * const imei_number, size_t * size)
+{
+    /* Each nibble corresponds a decimal digits.
+     * Most upper nibble must be 0.
+     */
+    char  const app_imei_number[] = "000000-00-000000-0";
+    int i = sizeof app_imei_number -1;
+    int index = *size -1;
+
+    while (i > 0)
+    {
+        int n = 0;
+
+        imei_number[index] = 0;
+
+        while (n < 2 && i > 0)
+        {
+            i--;
+            if (app_imei_number[i] != '-')
+            {
+                imei_number[index] += ((app_imei_number[i] - '0') << (n * 4));
+                n++;
+            }
+        }
+        index--;
+    }
+    return idigi_callback_continue;
+}
+
 /* End of iDigi connector configuration routines */
 
 /*
@@ -544,6 +581,14 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
     case idigi_config_max_transaction:
         status = app_get_max_message_transactions(response_data);
         break;
+
+    case idigi_config_device_id_method:
+        status = app_get_device_id_method(response_data);
+        break;
+
+     case idigi_config_imei_number:
+         status = app_get_imei_number(response_data, response_length);
+         break;
 
     default:
         APP_DEBUG("app_config_callback: unknown configuration request= %d\n", request);

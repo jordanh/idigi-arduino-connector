@@ -432,8 +432,9 @@ enum fw_info {
 
             if (status == idigi_callback_continue && (fw_ptr->desc_length + fw_ptr->spec_length) > (FW_ID_STRING_LENGTH -1))
             {
-                idigi_request_t const request_id = {idigi_firmware_description};
+                idigi_request_t request_id;
 
+                request_id.firmware_request = idigi_firmware_description;
                 idigi_ptr->error_code = idigi_invalid_data_size;
                 idigi_debug("process_fw_info_request: description length = %lu + name spec length = %lu\n",
                                         (unsigned long int)fw_ptr->desc_length, (unsigned long int)fw_ptr->spec_length);
@@ -715,9 +716,10 @@ enum fw_binary_ack {
 
     if ((fw_ptr->target != request_data.target) || (length < record_bytes(fw_binary_block)))
     {
-        idigi_request_t const request_id = {idigi_firmware_download_request};
+        idigi_request_t request_id;
         fw_abort_status_t fw_status;
 
+        request_id.firmware_request = idigi_firmware_download_request;
         idigi_debug("process_fw_binary_block: invalid target or message length\n");
         fw_status.error_status = fw_invalid_msg;
         status = send_fw_abort(fw_ptr, request_data.target, fw_error_opcode, fw_status);
@@ -870,9 +872,10 @@ enum fw_complete_response {
         (fw_ptr->update_started == idigi_false) ||
         (fw_ptr->target != request_data.target))
     {
-        idigi_request_t const request_id = {idigi_firmware_download_complete};
+        idigi_request_t request_id;
         fw_abort_status_t  fw_status;
 
+        request_id.firmware_request = idigi_firmware_download_complete;
         idigi_debug("process_fw_complete: invalid message length\n");
         fw_status.error_status = fw_invalid_msg;
         status = send_fw_abort(fw_ptr, request_data.target, fw_error_opcode, fw_status);
@@ -1002,8 +1005,9 @@ enum fw_target_list{
                 /* get max count of targets that fit into the response buffer */
                 if (fw_ptr->target_count > max_targets)
                 {
-                    idigi_request_t const request_id = {idigi_firmware_target_count};
+                    idigi_request_t request_id;
 
+                    request_id.firmware_request = idigi_firmware_target_count;
                     status = idigi_callback_abort;
                     notify_error_status(idigi_ptr->callback, idigi_class_firmware, request_id, idigi_invalid_data_range);
                     goto done;

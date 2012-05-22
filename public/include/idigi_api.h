@@ -176,13 +176,33 @@ typedef enum {
     idigi_config_file_system,       /**< Requesting callback to return whether file system is supported or not. */
     idigi_config_remote_configuration,  /**< Requesting callback to return whether remote configuration is supported or not. */
 #if (IDIGI_VERSION >= IDIGI_VERSION_1100)
-    idigi_config_max_transaction    /**< Requesting callback to obtain maximum messaging sessions supported by client. */
+    idigi_config_max_transaction,    /**< Requesting callback to obtain maximum messaging sessions supported by client. */
 #endif
+    idigi_config_device_id_method,    /**< Requesting callback to obtain method on how device id is generated */
+    idigi_config_imei_number          /**< Requesting callback to return IMEI number */
 } idigi_config_request_t;
 /**
 * @}
 */
 
+/**
+* @defgroup idigi_device_id_method_t Device ID Method Types
+* @{
+*/
+/**
+ * Device ID method returned by the application's callback for @ref idigi_config_device_id_method callback.
+ */
+typedef enum {
+    idigi_auto_device_id_method,                  /**< Callback returns this type telling iDigi connector to
+                                                       generate the device ID from MAC address (See @ref idigi_config_mac_addr callback)
+                                                       for LAN connection type or for IMEI number (See @ref idigi_imei_number callback)
+                                                       for WAN connection type. See @ref @ref connection_type callback.
+                                                       @note iDigi connector will not call @ref idigi_config_device_id callback. */
+    idigi_manual_device_id_method                 /**< Callback returns this type telling iDigi connector to retrieve device ID from @ref idigi_config_device_id callback */
+} idigi_device_id_method_t;
+/**
+* @}
+*/
 
 /**
 * @defgroup idigi_network_request_t Network Request IDs

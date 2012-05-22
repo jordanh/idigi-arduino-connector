@@ -62,7 +62,7 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
         break;
 
     case idigi_callback_unrecognized:
-       idigi_debug("idigi_callback : callback returns unrecognized request for request=%d class_id = %d which iDigi requires for this version\n",
+       idigi_debug("idigi_callback : callback returns unrecognized request for request=%d class_id = %d\n",
                         request_id.config_request, class_id);
         break;
     case idigi_callback_abort:
@@ -72,7 +72,9 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
     {
         /* callback returns invalid return code */
         idigi_error_status_t err_status ;
-        idigi_request_t const err_id = {idigi_config_error_status};
+        idigi_request_t err_id;
+
+        err_id.config_request = idigi_config_error_status;
 
         err_status.class_id = class_id;
         err_status.request_id = request_id;
@@ -92,8 +94,9 @@ static void notify_error_status(idigi_callback_t const callback, idigi_class_t c
 {
 #if defined(IDIGI_DEBUG)
     idigi_error_status_t err_status;
-    idigi_request_t const request_id = {idigi_config_error_status};
+    idigi_request_t request_id;
 
+    request_id.config_request = idigi_config_error_status;
     err_status.class_id = class_number;
     err_status.request_id = request_number;
     err_status.status = status;
@@ -113,9 +116,10 @@ static idigi_callback_status_t get_system_time(idigi_data_t * const idigi_ptr, u
 {
     size_t  length;
     idigi_callback_status_t status;
-    idigi_request_t const request_id = {idigi_os_system_up_time};
+    idigi_request_t request_id;
 
     /* Call callback to get system up time in second */
+    request_id.os_request = idigi_os_system_up_time;
     status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_operating_system, request_id, uptime, &length);
     if (status == idigi_callback_abort || status == idigi_callback_unrecognized)
     {
@@ -160,8 +164,9 @@ static idigi_callback_status_t malloc_data(idigi_data_t * const idigi_ptr, size_
 
 static void free_data(idigi_data_t * const idigi_ptr, void * const ptr)
 {
-    idigi_request_t const request_id = {idigi_os_free};
+    idigi_request_t request_id;
 
+    request_id.os_request = idigi_os_free;
     idigi_callback_no_response(idigi_ptr->callback, idigi_class_operating_system, request_id, ptr, 0);
     del_malloc_stats(ptr);
 
@@ -174,8 +179,10 @@ static void sleep_timeout(idigi_data_t * const idigi_ptr)
     if (idigi_ptr->receive_packet.free_packet_buffer == NULL &&
         idigi_ptr->receive_packet.total_length == 0)
     {
-        idigi_request_t const request_id = {idigi_os_sleep};
+        idigi_request_t request_id;
         unsigned int const timeout = idigi_ptr->receive_packet.timeout;
+
+        request_id.os_request = idigi_os_sleep;
         idigi_callback_no_response(idigi_ptr->callback, idigi_class_operating_system, request_id, &timeout, sizeof timeout);
     }
 

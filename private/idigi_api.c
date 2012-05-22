@@ -53,6 +53,54 @@
 #endif
 #include "layer.h"
 
+static idigi_callback_status_t get_device_id_method(idigi_data_t * const idigi_ptr, idigi_device_id_method_t * method)
+{
+    idigi_callback_status_t status = idigi_callback_continue;
+
+#if (IDIGI_VERSION >= 0x1020000UL)
+
+#if (defined IDIGI_DEVICE_ID_METHOD)
+    UNUSED_PARAMETER(idigi_ptr);
+    *method = IDIGI_DEVICE_ID_METHOD;
+#else
+    idigi_request_t request_id;
+    size_t length = sizeof idigi_ptr->device_id_method;
+
+    request_id.config_request = idigi_config_device_id_method;
+    status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &idigi_ptr->device_id_method, &length);
+    switch (status)
+    {
+    case idigi_callback_continue:
+        switch (idigi_ptr->device_id_method)
+        {
+        case idigi_auto_device_id_method:
+        case idigi_manual_device_id_method:
+            break;
+        default:
+            idigi_debug("get_device_id_method: callback invalid device id method %d\n", idigi_ptr->device_id_method);
+            notify_error_status(idigi_ptr->callback, idigi_class_config, request_id, idigi_invalid_data);
+            status = idigi_callback_abort;
+        }
+        break;
+    case idigi_callback_unrecognized:
+        idigi_ptr->device_id_method = idigi_manual_device_id_method;
+        status = idigi_callback_continue;
+        break;
+
+    default:
+        break;
+    }
+
+    *method = idigi_ptr->device_id_method;
+#endif
+
+#else
+    UNUSED_PARAMETER(idigi_ptr);
+    *method = idigi_manual_device_id_method;
+#endif
+
+    return status;
+}
 idigi_handle_t idigi_init(idigi_callback_t const callback)
 {
 
@@ -60,7 +108,6 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
     idigi_callback_status_t status = idigi_callback_abort;
     idigi_status_t error_status = idigi_success;
     unsigned int i;
-
 
     static const struct {
         idigi_config_request_t request;
@@ -73,10 +120,17 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
 #if !defined(IDIGI_DEVICE_TYPE)
             {idigi_config_device_type, 1, DEVICE_TYPE_LENGTH},
 #endif
-            {idigi_config_device_id, DEVICE_ID_LENGTH, DEVICE_ID_LENGTH}
+            {idigi_config_device_id, DEVICE_ID_LENGTH, DEVICE_ID_LENGTH}  /* must be last one */
     };
 
+    size_t config_request_count = asizeof(idigi_config_request_ids);
+
     ASSERT_GOTO(callback != NULL, done);
+
+    idigi_debug("iDigi Connector v%d.%d.%d.%d\n", (IDIGI_VERSION & 0xFF000000) >> 24,
+                                                (IDIGI_VERSION & 0xFF0000) >> 16,
+                                                (IDIGI_VERSION & 0xFF00) >> 8,
+                                                (IDIGI_VERSION & 0xFF) >> 24);
 
     {
         void * handle;
@@ -102,8 +156,25 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
     idigi_handle->active_state = idigi_device_started;
     idigi_handle->error_code = idigi_success;
 
+    {
+        idigi_device_id_method_t device_id_method;
+        status = get_device_id_method(idigi_handle, &device_id_method);
+
+        if (status != idigi_callback_continue)
+        {
+            goto error;
+        }
+        if (device_id_method != idigi_manual_device_id_method)
+        {
+            /* skip device_id callback
+             * (last entry in the idigi_config_request_ids)
+             */
+            config_request_count--;
+        }
+    }
+
     /* get device id, vendor id, & device type */
-    for (i=0; i < asizeof(idigi_config_request_ids); i++)
+    for (i=0; i < config_request_count; i++)
     {
         size_t length = 0;
         void * data;
@@ -132,7 +203,10 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
             ASSERT(idigi_false);
             break;
         }
+
+
         request_id.config_request = idigi_config_request_ids[i].request;
+
         status = idigi_callback_no_request_data(idigi_handle->callback, idigi_class_config, request_id, &data, &length);
 
         *store_at = data;
@@ -156,8 +230,10 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
             if (idigi_config_request_ids[i].request == idigi_config_device_type)
             {
                 idigi_handle->device_type_length = length;
+                break;
             }
 #endif
+
             break;
         case idigi_callback_abort:
         case idigi_callback_unrecognized:

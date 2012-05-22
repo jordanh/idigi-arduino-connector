@@ -296,6 +296,10 @@ typedef struct idigi_data {
     uint16_t wait_count;
 #endif
 
+#if (!defined IDIGI_DEVICE_ID_METHOD)
+    idigi_device_id_method_t device_id_method;
+#endif
+
 } idigi_data_t;
 
 #endif /* IDIGI_DEF_H_ */

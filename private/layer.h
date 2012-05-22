@@ -361,6 +361,10 @@ static idigi_callback_status_t layer_get_supported_facilities(idigi_data_t * con
             {
                 break;
             }
+            else if (status == idigi_callback_unrecognized)
+            {
+                facility_enable = idigi_service_unsupported;
+            }
             idigi_debug("initialize_facilities: callback %s  %d facility\n", facility_enable ? "supports" : "unsupports", request_id);
         }
 
@@ -717,6 +721,172 @@ done:
     return status;
 }
 
+#if (IDIGI_VERSION >= 0x1020000UL)
+static idigi_bool_t check_digit_array(uint8_t * const digits, size_t length)
+{
+    idigi_bool_t isDigit = idigi_true;
+    size_t i;
+
+    for (i=0; i < length; i++)
+    {
+        unsigned char const up_digit = (digits[i] >> 4) & 0xF;
+        unsigned char const lo_digit = digits[i] & 0x0F;
+
+        if (up_digit > 9 || lo_digit > 9)
+        {
+            isDigit = idigi_false;
+            break;
+        }
+    }
+
+    return isDigit;
+}
+
+static idigi_callback_status_t get_imei_device_id(idigi_data_t * const idigi_ptr, uint8_t * const device_id)
+{
+#define IDIGI_GSM_IMEI_LENGTH 8
+
+    idigi_callback_status_t status = idigi_callback_continue;
+    idigi_request_t request_id;
+    idigi_status_t error_code;
+    uint8_t imei_number[IDIGI_GSM_IMEI_LENGTH];
+    size_t length = sizeof imei_number;
+
+    request_id.config_request = idigi_config_imei_number;
+    status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &imei_number, &length);
+
+    switch (status)
+    {
+    case idigi_callback_continue:
+        #define IDIGI_IMEI_DEVICE_ID_PREFIX 0x01
+
+        if (length != IDIGI_GSM_IMEI_LENGTH)
+        {
+            error_code = idigi_invalid_data_size;
+            goto error;
+        }
+
+        idigi_debug_hexvalue("get_imei_device_id: imei number ", imei_number, IDIGI_GSM_IMEI_LENGTH);
+        if (check_digit_array(imei_number, length) != idigi_true)
+        {
+            error_code = idigi_invalid_data;
+            goto error;
+        }
+
+        device_id[1] = IDIGI_IMEI_DEVICE_ID_PREFIX;
+
+        break;
+
+    case idigi_callback_abort:
+    case idigi_callback_unrecognized:
+        idigi_ptr->error_code = idigi_configuration_error;
+        status = idigi_callback_abort;
+        goto done;
+
+    case idigi_callback_busy:
+        goto done;
+    }
+
+    {
+        size_t const offset = DEVICE_ID_LENGTH - length;
+        memcpy((device_id + offset), imei_number, offset);
+    }
+
+    goto done;
+
+error:
+    idigi_ptr->error_code = error_code;
+    notify_error_status(idigi_ptr->callback, idigi_class_config, request_id, idigi_ptr->error_code);
+    status = idigi_callback_abort;
+
+done:
+    return status;
+}
+#endif
+
+static idigi_callback_status_t build_device_id(idigi_data_t * const idigi_ptr, uint8_t * const edp_device_id)
+{
+
+    idigi_callback_status_t status = idigi_callback_continue;
+    idigi_device_id_method_t method;
+
+#if (IDIGI_VERSION >= 0x1020000UL)
+
+    #if (defined IDIGI_DEVICE_ID_METHOD)
+        /* if IDIGI_DEVICE_ID_METHOD is idigi_manual_device_id_method,
+         * IC should already call device_id callback in idigi_init.
+         */
+        method = IDIGI_DEVICE_ID_METHOD;
+    #else
+        method = idigi_ptr->device_id_method;
+    #endif
+
+#else
+    method = idigi_manual_device_id_method;
+#endif
+
+
+    if (method == idigi_manual_device_id_method)
+    {
+        ASSERT(idigi_ptr->device_id != NULL);
+        memcpy(edp_device_id, idigi_ptr->device_id, DEVICE_ID_LENGTH);
+    }
+
+#if (IDIGI_VERSION >= 0x1020000UL)
+    else
+    {
+        uint8_t connection_type;
+
+        status = get_connection_type(idigi_ptr, &connection_type);
+        if (status != idigi_callback_continue)
+        {
+            goto done;
+        }
+
+        {
+            int i;
+
+            for (i=0; i < DEVICE_ID_LENGTH; i++)
+                edp_device_id[i] = 0;
+
+        }
+
+        switch (connection_type)
+        {
+        case ethernet_type:
+        {
+            uint8_t * mac_addr;
+
+            status = get_mac_addr(idigi_ptr, &mac_addr);
+            if (status != idigi_callback_continue)
+            {
+                goto done;
+            }
+
+            edp_device_id[8] = mac_addr[0];
+            edp_device_id[9] = mac_addr[1];
+            edp_device_id[10] = mac_addr[2];
+            edp_device_id[11] = 0xFF;
+            edp_device_id[12] = 0xFF;
+            edp_device_id[13] = mac_addr[3];
+            edp_device_id[14] = mac_addr[4];
+            edp_device_id[15] = mac_addr[5];
+            break;
+        }
+        case ppp_over_modem_type:
+            status = get_imei_device_id(idigi_ptr, edp_device_id);
+            break;
+
+        }
+    }
+done:
+#endif
+    idigi_debug_hexvalue("security layer: send device ID", edp_device_id, DEVICE_ID_LENGTH);
+
+    return status;
+}
+
+
 static idigi_callback_status_t security_layer(idigi_data_t * const idigi_ptr)
 {
 enum {
@@ -784,7 +954,6 @@ enum {
         size_t const device_id_message_size = record_bytes(edp_device_id);
         uint8_t * edp_device_id = start_ptr;
 
-        idigi_debug_hexvalue("security layer: send device ID", idigi_ptr->device_id, DEVICE_ID_LENGTH);
         /*
          * packet format:
          *  ----------------------------------------------
@@ -794,7 +963,12 @@ enum {
          *  ----------------------------------------------
         */
         message_store_u8(edp_device_id, opcode, SECURITY_OPER_DEVICE_ID);
-        message_store_array(edp_device_id, id, idigi_ptr->device_id, DEVICE_ID_LENGTH);
+
+        status = build_device_id(idigi_ptr, (edp_device_id + field_named_data(edp_device_id, id, offset)));
+        if (status != idigi_callback_continue)
+        {
+            goto done;
+        }
 
         status = initiate_send_packet(idigi_ptr, edp_header, device_id_message_size,
                                     E_MSG_MT2_TYPE_PAYLOAD, release_packet_buffer,

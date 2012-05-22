@@ -198,7 +198,7 @@ static idigi_bool_t rci_scan_enum(char const * const input, idigi_element_value_
     return error;
 }
 
-static idigi_bool_t rci_callback(rci_t * const rci, idigi_remote_config_request_t const config_request)
+static idigi_bool_t rci_callback(rci_t * const rci, idigi_remote_config_request_t const remote_config_request)
 {
     idigi_bool_t callback_complete = idigi_true;
     idigi_remote_group_response_t * response_data = &rci->shared.response;
@@ -234,7 +234,9 @@ static idigi_bool_t rci_callback(rci_t * const rci, idigi_remote_config_request_
     {
         /* TODO: This is not the actual routine to call, this is only for local testing -ASK */
         extern idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id, void * const request_data, size_t const request_length, void * response_data, size_t * const response_length);
-        idigi_request_t const request = {config_request};
+        idigi_request_t request;
+
+        request.remote_config_request = remote_config_request;
         idigi_callback_status_t const status = app_idigi_callback(idigi_class_remote_config_service, request, request_data, request_length, response_data, &response_length);
 
         switch (status)

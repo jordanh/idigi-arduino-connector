@@ -28,28 +28,28 @@
 
 #include "remote_config.h"
 
-extern idigi_callback_status_t app_keepalive_session_start(idigi_remote_group_response_t * const response);
+extern idigi_callback_status_t app_system_session_start(idigi_remote_group_response_t * const response);
 
-extern idigi_callback_status_t app_keepalive_session_end(idigi_remote_group_response_t * const response);
+extern idigi_callback_status_t app_system_session_end(idigi_remote_group_response_t * const response);
 
-extern idigi_callback_status_t app_keepalive_action_start(idigi_remote_group_request_t const * const request,
+extern idigi_callback_status_t app_system_action_start(idigi_remote_group_request_t const * const request,
                                                         idigi_remote_group_response_t * const response);
 
-extern idigi_callback_status_t app_keepalive_action_end(idigi_remote_group_request_t const * const request,
+extern idigi_callback_status_t app_system_action_end(idigi_remote_group_request_t const * const request,
                                                       idigi_remote_group_response_t * const response);
 
-extern idigi_callback_status_t app_keepalive_group_init(idigi_remote_group_request_t const * const request,
+extern idigi_callback_status_t app_system_group_init(idigi_remote_group_request_t const * const request,
                                                  idigi_remote_group_response_t * const response);
 
-extern idigi_callback_status_t app_keepalive_group_set(idigi_remote_group_request_t const * const request,
+extern idigi_callback_status_t app_system_group_set(idigi_remote_group_request_t const * const request,
                                                  idigi_remote_group_response_t * const response);
 
-extern idigi_callback_status_t app_keepalive_group_get(idigi_remote_group_request_t const * const request,
+extern idigi_callback_status_t app_system_group_get(idigi_remote_group_request_t const * const request,
                                                  idigi_remote_group_response_t * const response);
 
-extern idigi_callback_status_t app_keepalive_group_end(idigi_remote_group_request_t const * const request,
+extern idigi_callback_status_t app_system_group_end(idigi_remote_group_request_t const * const request,
                                                  idigi_remote_group_response_t * const response);
 
-extern void app_keepalive_session_cancel(void * const context);
+extern void app_system_session_cancel(void * const context);
 
 #endif /* REMOTE_CONFIG_CB_H_ */

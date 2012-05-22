@@ -322,25 +322,25 @@
  * time() function:
  *
  * @code
- * int app_os_get_system_time(unsigned long * const uptime)
+ * idigi_callback_status_t app_os_get_system_time(unsigned long * const uptime)
  * {
  *    time((time_t *)uptime);
  *
- *    return 0;
+ *    return idigi_callback_continue;
  * }
  * @endcode
  *
  * However, a platform that does not support POSIX time() might port this function as such:
  *
  * @code
- * int app_os_get_system_time(unsigned long * const uptime)
+ * idigi_callback_status_t app_os_get_system_time(unsigned long * const uptime)
  * {
  *    // Note mysys_GetTickTime() returns the system up time in milliseconds
  *    extern unsigned long mysys_GetTickTime(void);
  *
  *    *uptime = mysys_GetTickTime()/1000;
  *
- *    return 0;
+ *    return idigi_callback_continue;
  * }
  * @endcode
  *

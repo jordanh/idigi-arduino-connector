@@ -221,7 +221,7 @@
  * For example, app_get_server_url() is the routine used to retrieve the iDigi Device Cloud URL
  * and is shown below.
  * @code
- *  static int app_get_server_url(char ** url, size_t * size)
+ *  static idigi_callback_status_t app_get_server_url(char ** url, size_t * size)
  *  {
  *  #error "Specify iDigi Server URL" // This #error must be removed to compile
  *      // Statically allocated string containing the sever URL
@@ -232,7 +232,7 @@
  *      // Fill in the size
  *      *size = sizeof idigi_server_url -1;
  *  
- *      return 0;
+ *      return idigi_callback_continue;
  *  }
  * @endcode
  *
@@ -276,7 +276,7 @@
  *
  * @code
  * // Initialize the iDigi connector with the application callback
- * idigi_handle = idigi_init((idigi_callback_t) app_idigi_callback);
+ * idigi_handle = idigi_init(app_idigi_callback);
  * @endcode
  *
  * and placed in location capable of starting a network client.
@@ -294,7 +294,7 @@
  *     APP_DEBUG("idigi_run thread starts\n");
  * 
  *     // Run the iDigi connector, this will only return on an iDigi connector abort
- *     status = idigi_run((idigi_handle_t)arg);
+ *     status = idigi_run(arg);
  * 
  *     APP_DEBUG("idigi_run thread exits %d\n", status);
  * 

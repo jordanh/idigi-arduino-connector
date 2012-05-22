@@ -138,10 +138,11 @@ static idigi_callback_status_t get_ip_addr(idigi_data_t * const idigi_ptr, uint8
     idigi_callback_status_t status;
 
     uint8_t * ip_addr = NULL;
-    idigi_request_t const request_id = {idigi_config_ip_addr};
+    idigi_request_t request_id;
     size_t length;
 
   /* Get IP address */
+    request_id.config_request = idigi_config_ip_addr;
     status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &ip_addr, &length);
     if (status != idigi_callback_continue)
     {
@@ -223,16 +224,17 @@ static idigi_callback_status_t get_connection_type(idigi_data_t * const idigi_pt
         *connection_type = ppp_over_modem_type;
         break;
     }
-    idigi_debug("get_connection_type: connection type = %d\n", IDIGI_CONNECTION_TYPE);
+    idigi_debug("get_connection_type: connection type (IDIGI_CONNECTION_TYPE) = %d\n", IDIGI_CONNECTION_TYPE);
     return idigi_callback_continue;
 
 #else
     idigi_callback_status_t status;
-    idigi_request_t const request_id = {idigi_config_connection_type};
+    idigi_request_t request_id;
     idigi_status_t error_code = idigi_success;
     idigi_connection_type_t * type = NULL;
 
     /* callback for connection type */
+    request_id.config_request = idigi_config_connection_type;
     status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &type, NULL);
     switch (status)
     {
@@ -275,20 +277,19 @@ static idigi_callback_status_t get_connection_type(idigi_data_t * const idigi_pt
 #endif
 }
 
-static idigi_callback_status_t get_mac_addr(idigi_data_t * const idigi_ptr, uint8_t * const mac_addr)
+static idigi_callback_status_t get_mac_addr(idigi_data_t * const idigi_ptr, uint8_t ** const mac_addr)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    idigi_request_t const request_id = {idigi_config_mac_addr};
+    idigi_request_t request_id;
     size_t length = 0;
-    uint8_t * mac;
 
     /* callback for MAC addr for LAN connection type */
-    status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &mac, &length);
+    request_id.config_request = idigi_config_mac_addr;
+    status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, mac_addr, &length);
 
     switch (status)
     {
     case idigi_callback_continue:
-        ASSERT(mac != NULL);
         if (length != MAC_ADDR_LENGTH)
         {
             /* bad connection type */
@@ -296,11 +297,8 @@ static idigi_callback_status_t get_mac_addr(idigi_data_t * const idigi_ptr, uint
             notify_error_status(idigi_ptr->callback, idigi_class_config, request_id, idigi_ptr->error_code);
             status = idigi_callback_abort;
         }
-        else
-        {
-            idigi_debug_hexvalue("get_mac_addr: MAC address", mac, MAC_ADDR_LENGTH);
-            memcpy(mac_addr, mac, MAC_ADDR_LENGTH);
-        }
+        idigi_debug_hexvalue("get_mac_addr: MAC address", *mac_addr, MAC_ADDR_LENGTH);
+
         break;
     case idigi_callback_abort:
     case idigi_callback_unrecognized:
@@ -390,12 +388,16 @@ enum cc_connection_info {
 
         if (type == ethernet_type)
         {
+            uint8_t * mac;
+            uint8_t * report_ptr = connection_report + cc_ptr->report_length;
+
             /* let's get MAC address for LAN connection type */
-            status = get_mac_addr(idigi_ptr, connection_report + cc_ptr->report_length);
+            status = get_mac_addr(idigi_ptr, &mac);
             if (status != idigi_callback_continue)
             {
                 goto error;
             }
+            memcpy(report_ptr, mac, MAC_ADDR_LENGTH);
             cc_ptr->report_length += MAC_ADDR_LENGTH;
         }
         else
@@ -408,11 +410,12 @@ enum cc_connection_info {
 
 #else
             /* callback for Link speed for WAN connection type */
-            idigi_request_t const request_id = {idigi_config_link_speed};
+            idigi_request_t request_id;
             /* set for invalid size to cause an error if callback doesn't set it */
             size_t length = sizeof(uint16_t);
             uint32_t * speed = NULL;
 
+            request_id.config_request = idigi_config_link_speed;
             status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &speed, &length);
             if (status != idigi_callback_continue)
             {
@@ -436,10 +439,11 @@ enum cc_connection_info {
             {
 #if !defined(IDIGI_WAN_PHONE_NUMBER_DIALED)
                 /* callback for phone number for WAN connection type */
-                idigi_request_t const request_id = {idigi_config_phone_number};
+                idigi_request_t request_id;
                 size_t length = 0;
                 char * phone = NULL;
 
+                request_id.config_request = idigi_config_phone_number;
                 status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &phone, &length);
                 if (status != idigi_callback_continue)
                 {

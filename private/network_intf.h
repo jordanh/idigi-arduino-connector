@@ -167,7 +167,7 @@ static int send_buffer(idigi_data_t * const idigi_ptr, uint8_t * const buffer, s
 
     idigi_callback_status_t status;
     idigi_write_request_t write_data;
-    idigi_request_t const request_id = {idigi_network_send};
+    idigi_request_t request_id;
     size_t length_written = 0;
     size_t size;
 
@@ -177,6 +177,7 @@ static int send_buffer(idigi_data_t * const idigi_ptr, uint8_t * const buffer, s
     write_data.network_handle = idigi_ptr->network_handle;
 
     size = sizeof length_written;
+    request_id.network_request = idigi_network_send;
     status = idigi_callback(idigi_ptr->callback, idigi_class_network, request_id, &write_data, sizeof write_data, &length_written, &size);
     switch (status)
     {
@@ -405,9 +406,10 @@ static void release_receive_packet(idigi_data_t * const idigi_ptr, uint8_t const
 static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffer, size_t const length)
 {
     int bytes_received = 0;
-    idigi_request_t const request_id = {idigi_network_receive};
+    idigi_request_t request_id;
 
     /* Call callback to receive data from server */
+    request_id.network_request = idigi_network_receive;
 
     if (!idigi_ptr->network_busy)
     {
@@ -657,9 +659,10 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
                 default:
                 {
                     /* tell caller we have unexpected packet message */
-                    idigi_request_t const request_id = {idigi_network_receive};
+                    idigi_request_t request_id;
                     idigi_debug("receive_packet: error type 0x%x\n", (unsigned) type_val);
                     idigi_ptr->error_code = idigi_invalid_packet;
+                    request_id.network_request = idigi_network_receive;
                     notify_error_status(idigi_ptr->callback, idigi_class_network, request_id, idigi_invalid_packet);
                 }
             }
@@ -689,9 +692,10 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
                  */
                 if (packet_length != 0)
                 {
-                    idigi_request_t const request_id = {idigi_network_receive};
+                    idigi_request_t request_id;
                     idigi_debug("idigi_get_receive_packet: Invalid payload\n");
                     idigi_ptr->error_code = idigi_invalid_payload_packet;
+                    request_id.network_request = idigi_network_receive;
                     notify_error_status(idigi_ptr->callback, idigi_class_network, request_id, idigi_invalid_payload_packet);
                 }
             }
@@ -760,9 +764,9 @@ static idigi_callback_status_t connect_server(idigi_data_t * const idigi_ptr, ch
 {
     idigi_callback_status_t status;
     size_t length = sizeof *idigi_ptr->network_handle;
-    idigi_request_t const request_id = {idigi_network_connect};
+    idigi_request_t request_id;
 
-
+    request_id.network_request = idigi_network_connect;
     status = idigi_callback(idigi_ptr->callback, idigi_class_network, request_id, server_url, server_url_length, &idigi_ptr->network_handle, &length);
     switch (status)
     {
@@ -800,8 +804,9 @@ static idigi_callback_status_t close_server(idigi_data_t * const idigi_ptr)
 
     if (idigi_ptr->network_connected)
     {
-        idigi_request_t const request_id = {idigi_network_close};
+        idigi_request_t request_id;
 
+        request_id.network_request = idigi_network_close;
         status = idigi_callback_no_response(idigi_ptr->callback, idigi_class_network, request_id, idigi_ptr->network_handle, sizeof *idigi_ptr->network_handle);
         switch (status)
         {

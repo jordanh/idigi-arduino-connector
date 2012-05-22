@@ -487,6 +487,8 @@
  */
 #define IDIGI_REMOTE_CONFIGURATION_SUPPORT
 
+#define IDIGI_DEVICE_ID_METHOD idigi_auto_device_id_method
+
 #endif
 
 /**
