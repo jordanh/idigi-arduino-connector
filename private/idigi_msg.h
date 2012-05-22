@@ -791,7 +791,16 @@ static void msg_send_complete(idigi_data_t * const idigi_ptr, uint8_t const * co
         /* update session state */
         if (MsgIsLastData(dblock->status_flag))
         {
-            session->current_state = MsgIsRequest(dblock->status_flag) ? msg_state_receive : msg_state_delete;
+            if (MsgIsRequest(dblock->status_flag))
+            {
+                session->current_state = msg_state_receive;
+            }
+            else
+            {
+                idigi_msg_data_t * const msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
+
+                msg_delete_session(idigi_ptr, msg_ptr, session);
+            }
             goto done;
         }
 
