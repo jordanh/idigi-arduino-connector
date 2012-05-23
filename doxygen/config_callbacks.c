@@ -24,6 +24,8 @@
  *  -# @ref file_system_support
  *  -# @ref rci_support
  *  -# @ref max_msg_transactions
+ *  -# @ref device_id_method
+ *  -# @ref imei_number
  *
  * @section device_id Device ID
  * Returns a unique Device ID used to identify the device.
@@ -1383,4 +1385,177 @@
  *
  * @endcode
  *
+ * @section device_id_method Device ID Method
+ * Returns device ID method on how to obtain device ID.
+ *
+ * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
+ * and implemented in the @b Platform function app_get_device_id_method() in config.c.
+ *
+ * @see @ref add_your_device_to_the_cloud "Adding your Device to the iDigi Device Cloud"
+ * @see app_get_device_id()
+ *
+ * @htmlonly
+ * <table class="apitable">
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
+ * <tr>
+ * <th>class_id</th>
+ * <td>@endhtmlonly @ref idigi_class_config @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <th>request_id</th>
+ * <td>@endhtmlonly @ref idigi_config_device_id_method @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <th>request_data</th>
+ * <td>N/A </td>
+ * </tr>
+ * <tr>
+ * <th>request_length</th>
+ * <td> N/A</td>
+ * </tr>
+ * <tr>
+ * <th>response_data</th>
+ * <td> Pointer to memory where callback writes <i> <b> idigi_auto_device_id_method </b> </i>or
+ *      <i> <b> idigi_manual_device_id_method. </b> </i> @endhtmlonly
+ *                          - @ref idigi_auto_device_id_method to generate device ID from
+ *                                  - @ref mac_address callback for @ref idigi_lan_connection_type or  
+ *                                  - @ref imei_number callback for @ref idigi_wan_connection_type
+ *                                  .
+ *                          - @ref idigi_manual_device_id_method to obtain device ID from
+ *                                  @ref device_id callback
+ *                          .
+ *  @htmlonly Note: The @endhtmlonly @ref device_id @htmlonly callback will not be called 
+ *  if <i> <b> idigi_auto_device_id_method </b> </i> is returned.
+ * </td>
+ * </tr>
+ * <tr>
+ * <th>response_length</th>
+ * <td>Pointer to memory which contains the size of the response_data</td>
+ * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
+ * <tr>
+ * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
+ * <td>Callback successfully returned device ID method</td></tr>
+ * <tr>
+ * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
+ * <td>Callback was unable to get device ID method and callback aborted iDigi connector</td>
+ * </tr>
+ * </table>
+ * @endhtmlonly
+ *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id == idigi_class_config && request_id.config_request == idigi_config_device_id_method)
+ *     {
+ *         idigi_device_id_method_t * const device_id_method = response_data;
+ *
+ *         *device_id_method = idigi_auto_device_id_method;
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ *
+ * @endcode
+ *
+ * @section imei_number IMEI number
+ * Returns IMEI number for generating device ID. This is called if @ref device_id_method callback 
+ * returns @ref idigi_auto_device_id_method for @ref idigi_wan_connection_type connection type.
+ *
+ * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
+ * and implemented in the @b Platform function app_get_imei_number() in config.c.
+ *
+ * @see @ref add_your_device_to_the_cloud "Adding your Device to the iDigi Device Cloud"
+ * @see app_get_device_id()
+ * @see @ref device_id_method for device ID Method
+ * @see @ref connection_type for connection type.
+ *
+ * @htmlonly
+ * <table class="apitable">
+ * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
+ * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
+ * <tr>
+ * <th>class_id</th>
+ * <td>@endhtmlonly @ref idigi_class_config @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <th>request_id</th>
+ * <td>@endhtmlonly @ref idigi_config_imei_number @htmlonly</td>
+ * </tr>
+ * <tr>
+ * <th>request_data</th>
+ * <td>N/A </td>
+ * </tr>
+ * <tr>
+ * <th>request_length</th>
+ * <td> N/A</td>
+ * </tr>
+ * <tr>
+ * <th>response_data</th>
+ * <td> Callback writes 14 IMEI decimal digits plus 1 check digit. Each nibble
+ *      corresponds a decimal digit and most upper nibble must be 0. <td>
+ * </tr>
+ * <tr>
+ * <th>response_length</th>
+ * <td>Pointer to memory which contains the size of the response_data</td>
+ * </tr>
+ * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
+ * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
+ * <tr>
+ * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
+ * <td>Callback successfully returned IMEI number</td></tr>
+ * <tr>
+ * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
+ * <td>Callback was unable to get device ID method and callback aborted iDigi connector</td>
+ * </tr>
+ * </table>
+ * @endhtmlonly
+ *
+ * Example:
+ *
+ * @code
+ *
+ * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
+ *                              void * const request_data, size_t const request_length,
+ *                              void * response_data, size_t * const response_length)
+ * {
+ *
+ *     if (class_id == idigi_class_config && request_id.config_request == idigi_config_imei_number)
+ *     {
+ *             /* Each nibble corresponds a decimal digit.
+ *              * Most upper nibble must be 0.
+ *              */
+ *             char  const app_imei_number[] = "000000-00-000000-0";
+ *             int i = sizeof app_imei_number -1;
+ *             int index = *size -1;
+ * 
+ *             while (i > 0)
+ *             {
+ *                 int n = 0;
+ * 
+ *                 imei_number[index] = 0;
+ * 
+ *                 while (n < 2 && i > 0)
+ *                 {
+ *                     i--;
+ *                     if (app_imei_number[i] != '-')
+ *                     {
+ *                         imei_number[index] += ((app_imei_number[i] - '0') << (n * 4));
+ *                         n++;
+ *                     }
+ *                 }
+ *                 index--;
+ *             }
+ *     }
+ *     return idigi_callback_continue;
+ * }
+ *
+ * @endcode
  */

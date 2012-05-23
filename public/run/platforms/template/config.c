@@ -64,7 +64,7 @@ static idigi_callback_status_t app_get_ip_address(uint8_t const ** ip_address, s
  * This routine assigns a pointer to the MAC address of the device in *mac_address along
  * with the size.
  *
- * @param [out] addr  Pointer to memory containing IP address
+ * @param [out] mac_address  Pointer to memory containing IP address
  * @param [out] size Size of the MAC address in bytes (6 bytes).
  *
  * @retval idigi_callback_continue  MAC address was successfully returned
@@ -434,7 +434,7 @@ static idigi_callback_status_t app_get_wait_count(uint16_t const ** count, size_
  * If firmware update is not supported, callback for idigi_class_firmware
  * class will not be executed.
  *
- * @retval [out] isSupported  Pointer memory where callback writes idigi_service_supported if firmware update is supported or
+ * @param [out] isSupported  Pointer memory where callback writes idigi_service_supported if firmware update is supported or
  *                            idigi_service_unsupported  if firmware update is not supported.
  *
  * @retval idigi_callback_continue  The firmware update support was successfully returned.
@@ -460,7 +460,7 @@ static idigi_callback_status_t app_get_firmware_support(idigi_service_supported_
  * This routine tells iDigi Connector whether the data service facility is supported or not.
  * If you plan on sending data to/from the iDigi server set this to idigi_service_supported.
  *
- * @retval [out] isSupported  Pointer memory where callback writes idigi_service_supported if data service is supported or
+ * @param [out] isSupported  Pointer memory where callback writes idigi_service_supported if data service is supported or
  *                            idigi_service_unsupported  if data service is not supported.
  *
  * @retval idigi_callback_continue  The data service support was successfully returned.
@@ -487,7 +487,7 @@ static idigi_callback_status_t app_get_data_service_support(idigi_service_suppor
  * This routine tells iDigi Connector whether the file system facility is supported or not.
  * If you plan to access device files from the iDigi server set this to idigi_service_supported.
  *
- * @retval [out] isSupported  Pointer memory where callback writes idigi_service_supported if file system is supported or
+ * @param [out] isSupported  Pointer memory where callback writes idigi_service_supported if file system is supported or
  *                            idigi_service_unsupported  if file system is not supported.
  *
  * @retval idigi_callback_continue  The file system support was successfully returned.
@@ -515,7 +515,7 @@ static idigi_callback_status_t app_get_file_system_support(idigi_service_support
  * If you plan on accessing device data configurations through iDigi server set
  * this to idigi_service_supported.
  *
- * @retval [out] isSupported  Pointer memory where callback writes idigi_service_supported if the remote configuration is supported or
+ * @param [out] isSupported  Pointer memory where callback writes idigi_service_supported if the remote configuration is supported or
  *                            idigi_service_unsupported  if the remote configuration is not supported.
  *
  * @retval idigi_callback_continue  The remote configuration support was successfully returned.
@@ -539,7 +539,7 @@ static idigi_service_supported_status_t app_get_remote_configuration_support(idi
  * This routine tells iDigi Connector the maximum simultaneous transactions for data service
  * to receive messages from iDigi Cloud.
  *
- * @retval [out] transCount  Pointer memory where callback writes the maximum simultaneous transaction.
+ * @param [out] transCount  Pointer memory where callback writes the maximum simultaneous transaction.
  *                           Writes 0 for unlimited transactions.
  *
  * @retval idigi_callback_continue  The maximum simultaneous transactions was successfully returned.
@@ -558,6 +558,80 @@ static idigi_callback_status_t app_get_max_message_transactions(unsigned int * c
 
     *transCount = IDIGI_MAX_MSG_TRANSACTIONS;
 
+    return idigi_callback_continue;
+}
+
+/**
+ * @brief   Get device id method
+ *
+ * This routine tells iDigi Connector how to obtain a device ID.
+ *
+ * @param [out] method  Pointer memory where callback writes:
+ *                      @li @a @b digi_auto_device_id_method: to generate device ID from
+ *                             - @ref mac_address callback for @ref idigi_lan_connection_type connection type or
+ *                             - @ref imei_number callback for @ref idigi_wan_connection_type connection type.
+ *                      @li @a @b idigi_manual_device_id_method: to obtain device ID from @ref device_id callback.
+ *
+ * @retval idigi_callback_continue  The device ID method was successfully returned.
+ * @retval idigi_callback_abort     Could not get the device ID method and abort iDigi connector.
+ *
+ * @see @ref connection_type API Callback
+ *
+ * @note This routine is not needed if you define @b IDIGI_DEVICE_ID_METHOD configuration in @ref idigi_config.h.
+ * See @ref idigi_config_data_options
+ */
+static idigi_callback_status_t app_get_device_id_method(idigi_device_id_method_t * const method)
+{
+
+    *method = idigi_auto_device_id_method;
+
+    return idigi_callback_continue;
+}
+
+/**
+ * @brief   Get IMEI number
+ *
+ * This routine returns IMEI number. This routine is called when @ref device_id_method callback returns
+ * @ref idigi_auto_device_id_method for WAN connection type.
+ *
+ * @param [out] imei_number  Pointer memory where callback writes 14 IMEI decimal digits plus one check digit.
+ *                           Each nibble corresponds a decimal digit and most upper nibble must be 0.
+ * @param [out] size         Size of the imei_number in bytes
+ *
+ * @retval idigi_callback_continue  The IMEI number was successfully returned.
+ * @retval idigi_callback_abort     Could not get the IMEI number and abort iDigi connector.
+ *
+ * @see @ref device_id_method API Callback
+ * @see @ref connection_type API Callback
+ *
+ */
+static idigi_callback_status_t app_get_imei_number(uint8_t * const imei_number, size_t * size)
+{
+#error "Specify the IMEI number for WAN connection type if app_get_device_id_method returns idigi_auto_device_id_method"
+    /* Each nibble corresponds a decimal digit.
+     * Most upper nibble must be 0.
+     */
+    char  const app_imei_number[] = "000000-00-000000-0";
+    int i = sizeof app_imei_number -1;
+    int index = *size -1;
+
+    while (i > 0)
+    {
+        int n = 0;
+
+        imei_number[index] = 0;
+
+        while (n < 2 && i > 0)
+        {
+            i--;
+            if (app_imei_number[i] != '-')
+            {
+                imei_number[index] += ((app_imei_number[i] - '0') << (n * 4));
+                n++;
+            }
+        }
+        index--;
+    }
     return idigi_callback_continue;
 }
 
@@ -618,7 +692,10 @@ static void app_config_error(idigi_error_status_t const * const error_data)
                                              "idigi_config_firmware_facility",
                                              "idigi_config_data_service",
                                              "idigi_config_file_system",
-                                              "idigi_config_max_transaction"};
+                                             "idigi_config_remote_configuration",
+                                             "idigi_config_max_transaction",
+                                             "idigi_config_device_id_method",
+                                             "idigi_config_imei_number"};
 
     static char const * network_request_string[] = { "idigi_network_connect",
                                               "idigi_network_send",
@@ -806,6 +883,14 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
     case idigi_config_file_system:
         status = app_get_file_system_support(response_data);
         break;
+
+    case idigi_config_device_id_method:
+        status = app_get_device_id_method(response_data);
+        break;
+
+     case idigi_config_imei_number:
+         status = app_get_imei_number(response_data, response_length);
+         break;
 
     default:
         status = idigi_callback_unrecognized;

@@ -324,7 +324,8 @@ static idigi_callback_status_t app_get_device_id_method(idigi_device_id_method_t
 
 static idigi_callback_status_t app_get_imei_number(uint8_t * const imei_number, size_t * size)
 {
-    /* Each nibble corresponds a decimal digits.
+#error "Specify the IMEI number for WAN connection type if app_get_device_id_method returns idigi_auto_device_id_method"
+    /* Each nibble corresponds a decimal digit.
      * Most upper nibble must be 0.
      */
     char  const app_imei_number[] = "000000-00-000000-0";
@@ -381,24 +382,26 @@ static void app_config_error(idigi_error_status_t * const error_data)
                                                       "idigi_service_busy",
                                                       "idigi_invalid_response"};
 
-    static char const * const config_request_string[] = { "idigi_config_device_id",
-                                                         "idigi_config_vendor_id",
-                                                         "idigi_config_device_type",
-                                                         "idigi_config_server_url",
-                                                         "idigi_config_connection_type",
-                                                         "idigi_config_mac_addr",
-                                                         "idigi_config_link_speed",
-                                                         "idigi_config_phone_number",
-                                                         "idigi_config_tx_keepalive",
-                                                         "idigi_config_rx_keepalive",
-                                                         "idigi_config_wait_count",
-                                                         "idigi_config_ip_addr",
-                                                         "idigi_config_error_status",
-                                                         "idigi_config_firmware_facility",
-                                                         "idigi_config_data_service",
-                                                         "idigi_config_file_system",
-                                                         "idigi_config_remote_configuration",
-                                                         "idigi_config_max_transaction"};
+    static char const * config_request_string[] = { "idigi_config_device_id",
+                                                     "idigi_config_vendor_id",
+                                                     "idigi_config_device_type",
+                                                     "idigi_config_server_url",
+                                                     "idigi_config_connection_type",
+                                                     "idigi_config_mac_addr",
+                                                     "idigi_config_link_speed",
+                                                     "idigi_config_phone_number",
+                                                     "idigi_config_tx_keepalive",
+                                                     "idigi_config_rx_keepalive",
+                                                     "idigi_config_wait_count",
+                                                     "idigi_config_ip_addr",
+                                                     "idigi_config_error_status",
+                                                     "idigi_config_firmware_facility",
+                                                     "idigi_config_data_service",
+                                                     "idigi_config_file_system",
+                                                     "idigi_config_remote_configuration",
+                                                     "idigi_config_max_transaction",
+                                                     "idigi_config_device_id_method",
+                                                     "idigi_config_imei_number"};
 
     static char const * const network_request_string[] = { "idigi_network_connect",
                                                           "idigi_network_send",

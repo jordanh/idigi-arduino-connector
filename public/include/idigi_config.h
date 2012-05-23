@@ -487,6 +487,18 @@
  */
 #define IDIGI_REMOTE_CONFIGURATION_SUPPORT
 
+/**
+ * When defined, this string hardcode for the @ref device_id_method instead of the application framework
+ * function @ref app_get_device_id_method() (called via the @ref idigi_config_device_id_method @ref idigi_callback_t "callback" in config.c).
+ *
+ * @note There is no need to implement or port @ref app_get_device_id_method() when IDIGI_DEVICE_ID_METHOD is defined.  The
+ * values for this define are limited to @ref idigi_auto_device_id_method or @ref idigi_manual_device_id_method.
+ *
+ * @see @ref device_id_method
+ * @see @ref idigi_config_device_id_method
+ * @see @ref app_get_device_id_method()
+ * @see @ref idigi_device_id_method_t
+ */
 #define IDIGI_DEVICE_ID_METHOD idigi_auto_device_id_method
 
 #endif

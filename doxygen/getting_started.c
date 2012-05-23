@@ -126,9 +126,9 @@
  * @subsection add_define Add the defines
  *
  * The following define is required, and used to indicate that the version of
- * the iDigi connector is 1.1
+ * the iDigi connector is 1.2
  *
- * @li IDIGI_VERSION=0x1010000UL
+ * @li IDIGI_VERSION=0x1020000UL
  *
  * @subsection build_sample Build the sample
  *
@@ -261,6 +261,8 @@
  *  @li app_get_file_system_support()
  *  @li app_get_remote_configuration_support()
  *  @li app_get_max_message_transactions()
+ *  @li app_get_device_id_method()
+ *  @li app_get_imei_number()
  *  @li app_config_error()
  *
  * @note For information on using hard coded values instead of these configuration callbacks,
