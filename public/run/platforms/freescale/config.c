@@ -243,6 +243,15 @@ static idigi_callback_status_t app_get_max_message_transactions(unsigned int * c
     return idigi_callback_continue;
 }
 
+static idigi_callback_status_t app_get_device_id_method(idigi_device_id_method_t * const method)
+{
+
+    *method = idigi_auto_device_id_method;
+
+    return idigi_callback_continue;
+}
+
+
 /* End of IIK configuration routines */
 
 /*
@@ -273,7 +282,7 @@ void app_config_error(idigi_error_status_t * const error_data)
                                           "idigi_service_busy",
                                           "idigi_invalid_response"};
 
-    static char const * const config_request_string[] = { "idigi_config_device_id",
+    static char const * config_request_string[] = { "idigi_config_device_id",
                                              "idigi_config_vendor_id",
                                              "idigi_config_device_type",
                                              "idigi_config_server_url",
@@ -289,7 +298,10 @@ void app_config_error(idigi_error_status_t * const error_data)
                                              "idigi_config_firmware_facility",
                                              "idigi_config_data_service",
                                              "idigi_config_file_system",
-                                              "idigi_config_max_transaction"};
+                                             "idigi_config_remote_configuration",
+                                             "idigi_config_max_transaction",
+                                             "idigi_config_device_id_method",
+                                             "idigi_config_imei_number"};
 
     static char const * const network_request_string[] = { "idigi_network_connect",
                                               "idigi_network_send",
@@ -455,6 +467,10 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
 
     case idigi_config_max_transaction:
         status = app_get_max_message_transactions(response_data);
+        break;
+
+    case idigi_config_device_id_method:
+        status = app_get_device_id_method(response_data);
         break;
 
     default:

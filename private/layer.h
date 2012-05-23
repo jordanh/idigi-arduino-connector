@@ -778,10 +778,13 @@ static idigi_callback_status_t get_imei_device_id(idigi_data_t * const idigi_ptr
         break;
 
     case idigi_callback_abort:
-    case idigi_callback_unrecognized:
         idigi_ptr->error_code = idigi_configuration_error;
         status = idigi_callback_abort;
         goto done;
+
+    case idigi_callback_unrecognized:
+        error_code = idigi_configuration_error;
+        goto error;
 
     case idigi_callback_busy:
         goto done;
