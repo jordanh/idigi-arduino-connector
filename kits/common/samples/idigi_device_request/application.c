@@ -31,9 +31,6 @@ idigi_app_error_t device_request_callback(char const * const target, idigi_conne
         goto error;
     }
 
-    APP_DEBUG("device_request_callback: target [%s]\n", target);
-    APP_DEBUG("device_request_callback: length [%d]\n", request_data->length_in_bytes);
-
     if (request_data->length_in_bytes < sizeof buffer)
     {
         memcpy(buffer, request_data->data_ptr, request_data->length_in_bytes);
@@ -41,11 +38,11 @@ idigi_app_error_t device_request_callback(char const * const target, idigi_conne
     }
     else
     {
-        APP_DEBUG("devcie_request_callback: received more data than expected [%d]", request_data->length_in_bytes);
+        APP_DEBUG("devcie_request_callback: received more data than expected [%d]\n", request_data->length_in_bytes);
         goto error;
     }
 
-    APP_DEBUG("device_request_callback received [%s]\n", buffer);
+    APP_DEBUG("device_request_callback: received [%s] on target [%s]\n", buffer, target);
     status = idigi_app_success;
 
 error:
@@ -55,10 +52,9 @@ error:
 size_t device_response_callback(char const * const target, idigi_connector_data_t * const response_data)
 {
     static char rsp_string[] = "iDigi Connector device response!\n";
-    size_t const len = sizeof rsp_string;
+    size_t const len = sizeof rsp_string - 1;
     size_t const bytes_to_copy = (len < response_data->length_in_bytes) ? len : response_data->length_in_bytes;
 
-    APP_DEBUG("devcie_response_callback: target [%s]\n", target);
     if (response_data->error != idigi_connector_success)
     {
         APP_DEBUG("devcie_response_callback: error [%d]\n", response_data->error);
@@ -68,7 +64,7 @@ size_t device_response_callback(char const * const target, idigi_connector_data_
     memcpy(response_data->data_ptr, rsp_string, bytes_to_copy);
     response_data->flags = IDIGI_FLAG_LAST_DATA;
 
-    APP_DEBUG("device_response_callback sending response [%s]\n",  (char *)response_data->data_ptr);
+    APP_DEBUG("devcie_response_callback: target [%s], data- %s\n", target, rsp_string);
 
 error:
     return bytes_to_copy;
@@ -85,7 +81,7 @@ int application_start(void)
     ret = idigi_connector_start(idigi_status);
     if (ret != idigi_connector_success)
     {
-        APP_DEBUG("idigi_connector_start failed [%d]", ret);
+        APP_DEBUG("idigi_connector_start failed [%d]\n", ret);
         goto error;
     }
 
@@ -93,7 +89,7 @@ int application_start(void)
     ret = idigi_register_device_request_callbacks(device_request_callback, device_response_callback);
     if (ret != idigi_connector_success)
     {
-        APP_DEBUG("idigi_register_device_request_callbacks failed [%d]", ret);
+        APP_DEBUG("idigi_register_device_request_callbacks failed [%d]\n", ret);
         goto error;
     }
  

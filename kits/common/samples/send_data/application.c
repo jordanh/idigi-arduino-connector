@@ -28,15 +28,15 @@ int application_start(void)
     ret = idigi_connector_start(idigi_status);
     if (ret != idigi_connector_success)
     {
-        APP_DEBUG("idigi_connector_start failed [%d]", ret);
+        APP_DEBUG("idigi_connector_start failed [%d]\n", ret);
         goto error;
     }
 
-    APP_DEBUG("Sending data to cloud using idigi_send_data...");
+    APP_DEBUG("Sending data to cloud using idigi_send_data...\n");
     do
     {
         static idigi_connector_data_t ic_data = {0};
-        static char buffer[] = "iDigi Device application data!";
+        static char buffer[] = "iDigi Device application data!\n";
 
         #define WAIT_FOR_A_SECOND  1
         app_os_sleep(WAIT_FOR_A_SECOND);
@@ -49,11 +49,11 @@ int application_start(void)
 
     if (ret != idigi_connector_success)
     {
-        APP_DEBUG(" failed [%d]\n", ret);
+        APP_DEBUG("\nSend failed [%d]\n", ret);
         goto error;
     }
 
-    APP_DEBUG(" completed\n");
+    APP_DEBUG("\nSend completed\n");
     status = 0;
 
 error:
