@@ -73,9 +73,9 @@ typedef enum {
 typedef enum {
     idigi_element_type_string,              /**< Single line string */
     idigi_element_type_multiline_string,    /**< This type is used for a string that may be more
-                                               than one line. A “text area” is shown in the iDigi Device
+                                               than one line. A "text area" is shown in the iDigi Device
                                                Cloud that allows a user to form multiple lines by pressing enter. */
-    idigi_element_type_password,            /**< This Password type is same as string type except it’s shown “*”
+    idigi_element_type_password,            /**< This Password type is same as string type except it’s shown "*"
                                                 when a user types in characters in the iDigi Device Cloud. */
     idigi_element_type_int32,               /**< 32-bit signed integer value */
     idigi_element_type_uint32,              /**< 32-bit unsigned integer value */
@@ -84,8 +84,8 @@ typedef enum {
     idigi_element_type_float,               /**< Floating value. float.h is included. */
     idigi_element_type_enum,                /**< enum is used to define a set of allowed values for an element.
                                                 This is a pull-down menu shown in iDigi Device Cloud. */
-    idigi_element_type_on_off,              /**< “on” or “off “ value. An applciation's callback should use
-                                                 idigi_on value for “on”  or idigi_off value for “off”. See @ref idigi_on_off_t*/
+    idigi_element_type_on_off,              /**< "on" or "off" value. An applciation's callback should use
+                                                 idigi_on value for "on"  or idigi_off value for "off". See @ref idigi_on_off_t*/
     idigi_element_type_boolean,             /**< true or false value. An application's callback should use  idigi_boolean_true
                                                 value for true  or idigi_boolean_false value for false. See @ref idigi_boolean_t */
 
