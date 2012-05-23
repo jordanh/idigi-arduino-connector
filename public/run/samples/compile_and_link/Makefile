@@ -32,7 +32,7 @@ CFLAGS += -Wformat-y2k -Wold-style-definition -Wcast-align -Wformat-nonliteral -
 # CFLAGS += -Wjump-misses-init -Wtrampolines 
 CFLAGS += -Wno-error=padded -Wno-error=format-nonliteral
 
-CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL 
+CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1020000UL 
 CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -Os
 
 OBJS = main.o $(IDIGI_DIR)/idigi_api.o

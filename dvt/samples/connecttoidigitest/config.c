@@ -33,11 +33,6 @@
 
 /* IIK Configuration routines */
 
-#define MAX_INTERFACES      128
-#define DEVICE_ID_LENGTH    16
-#define VENDOR_ID_LENGTH    4
-#define MAC_ADDR_LENGTH     6
-
 #define IDIGI_DEVICE_TYPE                          "IIK Linux Sample"
 #define IDIGI_CLOUD_URL                            "developer.idigi.com"
 #define IDIGI_TX_KEEPALIVE_IN_SECONDS              75
@@ -45,13 +40,14 @@
 #define IDIGI_WAIT_COUNT                           5
 #define IDIGI_VENDOR_ID                            0x00000000
 
-
 /*
  * Routine to get the IP address, you will need to modify this routine for your 
  * platform.
  */
 static int app_get_ip_address(uint8_t ** ip_address, size_t *size)
 {
+#define MAX_INTERFACES      128
+
     int             fd = -1;
     int            status=-1;
     char            *buf = malloc(MAX_INTERFACES*sizeof(struct ifreq));
@@ -119,11 +115,14 @@ error:
     return status;
 }
 
-/* MAC address used in this sample */
-static uint8_t device_mac_addr[MAC_ADDR_LENGTH] = {0x00, 0x40, 0x9d, 0x43, 0x23, 0x17};
 
 static int app_get_mac_addr(uint8_t ** addr, size_t * size)
 {
+
+#define MAC_ADDR_LENGTH     6
+
+    /* MAC address used in this sample */
+    static uint8_t device_mac_addr[MAC_ADDR_LENGTH] = {0x00, 0x40, 0x9d, 0x43, 0x23, 0x17};
 
     *addr = device_mac_addr;
     *size = sizeof device_mac_addr;
@@ -133,6 +132,8 @@ static int app_get_mac_addr(uint8_t ** addr, size_t * size)
 
 static int app_get_device_id(uint8_t ** id, size_t * size)
 {
+#define DEVICE_ID_LENGTH    16
+
     static uint8_t device_id[DEVICE_ID_LENGTH] = {0};
     uint8_t * mac_addr;
     size_t mac_size;
@@ -140,14 +141,14 @@ static int app_get_device_id(uint8_t ** id, size_t * size)
     /* This sample uses the MAC address to format the device ID */
     app_get_mac_addr(&mac_addr, &mac_size);
 
-    device_id[8] = device_mac_addr[0];
-    device_id[9] = device_mac_addr[1];
-    device_id[10] = device_mac_addr[2];
+    device_id[8] = mac_addr[0];
+    device_id[9] = mac_addr[1];
+    device_id[10] = mac_addr[2];
     device_id[11] = 0xFF;
     device_id[12] = 0xFF;
-    device_id[13] = device_mac_addr[3];
-    device_id[14] = device_mac_addr[4];
-    device_id[15] = device_mac_addr[5];
+    device_id[13] = mac_addr[3];
+    device_id[14] = mac_addr[4];
+    device_id[15] = mac_addr[5];
 
     *id   = device_id;
     *size = sizeof device_id;
@@ -156,6 +157,8 @@ static int app_get_device_id(uint8_t ** id, size_t * size)
 }
 static int app_get_vendor_id(uint8_t ** id, size_t * size)
 {
+#define VENDOR_ID_LENGTH    4
+
     static const uint8_t device_vendor_id[VENDOR_ID_LENGTH] = {0x01, 0x00, 0x00, 0x1A};
 
 
@@ -278,6 +281,14 @@ static unsigned int app_get_max_message_transactions(void)
     return IDIGI_MAX_MSG_TRANSACTIONS;
 }
 
+static idigi_callback_status_t app_get_device_id_method(idigi_device_id_method_t * const method)
+{
+
+    *method = idigi_auto_device_id_method;
+
+    return idigi_callback_continue;
+}
+
 /* End of IIK configuration routines */
 
 /*
@@ -308,22 +319,26 @@ void app_config_error(idigi_error_status_t * const error_data)
                                           "idigi_service_busy",
                                           "idigi_invalid_response"};
 
-    char const * config_request_string[] = { "idigi_config_device_id",
-                                             "idigi_config_vendor_id",
-                                             "idigi_config_device_type",
-                                             "idigi_config_server_url",
-                                             "idigi_config_connection_type",
-                                             "idigi_config_mac_addr",
-                                             "idigi_config_link_speed",
-                                             "idigi_config_phone_number",
-                                             "idigi_config_tx_keepalive",
-                                             "idigi_config_rx_keepalive",
-                                             "idigi_config_wait_count",
-                                             "idigi_config_ip_addr",
-                                             "idigi_config_error_status",
-                                             "idigi_config_firmware_facility",
-                                             "idigi_config_data_service",
-                                              "idigi_config_max_transaction"};
+    static char const * config_request_string[] = { "idigi_config_device_id",
+                                                     "idigi_config_vendor_id",
+                                                     "idigi_config_device_type",
+                                                     "idigi_config_server_url",
+                                                     "idigi_config_connection_type",
+                                                     "idigi_config_mac_addr",
+                                                     "idigi_config_link_speed",
+                                                     "idigi_config_phone_number",
+                                                     "idigi_config_tx_keepalive",
+                                                     "idigi_config_rx_keepalive",
+                                                     "idigi_config_wait_count",
+                                                     "idigi_config_ip_addr",
+                                                     "idigi_config_error_status",
+                                                     "idigi_config_firmware_facility",
+                                                     "idigi_config_data_service",
+                                                     "idigi_config_file_system",
+                                                     "idigi_config_remote_configuration",
+                                                     "idigi_config_max_transaction",
+                                                     "idigi_config_device_id_method",
+                                                     "idigi_config_imei_number"};
 
     char const * network_request_string[] = { "idigi_network_connect",
                                               "idigi_network_send",
@@ -470,6 +485,11 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
         *((unsigned int *)response_data) = app_get_max_message_transactions();
         ret = 0;
         break;
+
+    case idigi_config_device_id_method:
+        status = app_get_device_id_method(response_data);
+        break;
+
     default:
         APP_DEBUG("idigi_config_callback: unknown configuration request= %d\n", request);
         break;

@@ -79,7 +79,10 @@ static char const * config_request_string[] = { "idigi_config_device_id",
                                          "idigi_config_firmware_facility",
                                          "idigi_config_data_service",
                                          "idigi_config_file_system",
-                                         "idigi_config_max_transaction"};
+                                         "idigi_config_remote_configuration",
+                                         "idigi_config_max_transaction",
+                                         "idigi_config_device_id_method",
+                                         "idigi_config_imei_number"};
 
 static char const * network_request_string[] = { "idigi_network_connect",
                                           "idigi_network_send",
@@ -479,6 +482,14 @@ void write_python_result_file(char *file_buffer)
     }
 }
 
+static idigi_callback_status_t app_get_device_id_method(idigi_device_id_method_t * const method)
+{
+
+    *method = idigi_auto_device_id_method;
+
+    return idigi_callback_continue;
+}
+
 /* End of IIK configuration routines */
 
 /*
@@ -632,6 +643,11 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
         *((unsigned int *)response_data) = app_get_max_message_transactions();
         ret = 0;
         break;
+
+    case idigi_config_device_id_method:
+        status = app_get_device_id_method(response_data);
+        break;
+
     default:
         APP_DEBUG("idigi_config_callback: unknown configuration request= %d\n", request);
         break;

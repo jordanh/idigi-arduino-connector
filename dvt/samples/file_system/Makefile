@@ -32,7 +32,7 @@ vpath $(PLATFORM_DIR)/%.c
 
 APP_ENABLE_MD5=true
 
-CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -Wno-missing-field-initializers -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL 
+CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -Wno-missing-field-initializers -pedantic -std=c99 -DIDIGI_VERSION=0x1020000UL 
 CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR)  -g -Os
 
 ifeq ($(APP_ENABLE_MD5),true)

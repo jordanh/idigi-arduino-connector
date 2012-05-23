@@ -57,7 +57,7 @@ APP_C_FILES=root.c application.c device_request.c idigi_api.c os.c network.c con
 APP_CC_FILES=
 APP_ASM_FILES=
 
-APP_C_FLAGS=-DIDIGI_VERSION=0x1010000UL
+APP_C_FLAGS=-DIDIGI_VERSION=0x1020000UL
 #APP_C_FLAGS=
 
 APP_CC_FLAGS=
