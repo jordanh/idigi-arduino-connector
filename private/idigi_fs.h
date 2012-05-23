@@ -174,7 +174,7 @@ static void format_file_error_msg(idigi_data_t * const idigi_ptr,
         }
         else
         {
-            error_hint_len = (uint8_t) response.size_in_bytes;
+            error_hint_len = response.size_in_bytes;
         }
      }
      message_store_u8(fs_error_response, error_hint_len, error_hint_len);
@@ -1064,7 +1064,7 @@ static size_t parse_file_ls_header(file_system_context_t * const context,
         data_ptr += len;
         len += header_len;
 
-        hash_alg = (idigi_file_hash_algorithm_t) *data_ptr;
+        hash_alg = *data_ptr;
 
         switch (hash_alg)
         {
@@ -1111,7 +1111,7 @@ static size_t format_file_ls_response_header(idigi_file_hash_algorithm_t const h
 
     message_store_u8(fs_ls_response, opcode,     fs_ls_response_opcode);
     message_store_u8(fs_ls_response, hash_alg,   hash_alg);
-    message_store_u8(fs_ls_response, hash_bytes, (uint8_t) hash_size);
+    message_store_u8(fs_ls_response, hash_bytes, hash_size);
 
     return record_bytes(fs_ls_response_header);
 }

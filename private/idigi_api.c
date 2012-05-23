@@ -44,7 +44,7 @@ static idigi_callback_status_t get_device_id_method(idigi_data_t * const idigi_p
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
-#if (IDIGI_VERSION >= 0x1020000UL)
+#if (IDIGI_VERSION >= IDIGI_VERSION_1200)
 
 #if (defined IDIGI_DEVICE_ID_METHOD)
     UNUSED_PARAMETER(idigi_ptr);

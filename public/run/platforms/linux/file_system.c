@@ -156,7 +156,7 @@ static idigi_callback_status_t app_process_file_strerror(idigi_file_data_respons
     size_t strerr_size = 0;
 
     idigi_file_error_data_t * error_data = response_data->error;
-    long int errnum = (long int) error_data->errnum;
+    long int errnum = (long int)error_data->errnum;
 
     if (errnum != 0)
     {

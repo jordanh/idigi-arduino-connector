@@ -332,9 +332,9 @@ static idigi_callback_status_t layer_get_supported_facilities(idigi_data_t * con
     {
         idigi_request_t const request_id = idigi_supported_facility_table[i].request_id;
         size_t length;
-        idigi_service_supported_status_t facility_enable = (request_id.config_request == (idigi_config_request_t)MANDATORY_FACILITY) ? idigi_service_supported : idigi_service_unsupported;
+        idigi_service_supported_status_t facility_enable = (request_id.config_request == MANDATORY_FACILITY) ? idigi_service_supported : idigi_service_unsupported;
 
-        if (request_id.config_request != (idigi_config_request_t)MANDATORY_FACILITY)
+        if (request_id.config_request != MANDATORY_FACILITY)
         {   /* this is optional facility so ask application whether it supports this facility */
             status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &facility_enable, &length);
             if (status == idigi_callback_abort)
@@ -708,7 +708,7 @@ done:
     return status;
 }
 
-#if (IDIGI_VERSION >= 0x1020000UL)
+#if (IDIGI_VERSION >= IDIGI_VERSION_1200)
 static idigi_bool_t check_digit_array(uint8_t * const digits, size_t length)
 {
     idigi_bool_t isDigit = idigi_true;
@@ -800,7 +800,7 @@ static idigi_callback_status_t build_device_id(idigi_data_t * const idigi_ptr, u
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_device_id_method_t method;
 
-#if (IDIGI_VERSION >= 0x1020000UL)
+#if (IDIGI_VERSION >= IDIGI_VERSION_1200)
 
     #if (defined IDIGI_DEVICE_ID_METHOD)
         /* if IDIGI_DEVICE_ID_METHOD is idigi_manual_device_id_method,
@@ -822,7 +822,7 @@ static idigi_callback_status_t build_device_id(idigi_data_t * const idigi_ptr, u
         memcpy(edp_device_id, idigi_ptr->device_id, DEVICE_ID_LENGTH);
     }
 
-#if (IDIGI_VERSION >= 0x1020000UL)
+#if (IDIGI_VERSION >= IDIGI_VERSION_1200)
     else
     {
         uint8_t connection_type;

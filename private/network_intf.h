@@ -329,7 +329,7 @@ static idigi_callback_status_t send_packet_process(idigi_data_t * const idigi_pt
             int error_code = -bytes_sent;
             ASSERT(error_code > idigi_success && error_code <= idigi_no_resource);
 
-            idigi_ptr->error_code = (idigi_status_t)error_code;
+            idigi_ptr->error_code = error_code;
             status = idigi_callback_abort;
             goto done;
         }
@@ -435,7 +435,7 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
             }
             else
             {
-                bytes_received = (int)length_read;
+                bytes_received = length_read;
             }
             goto done;
         }
@@ -445,7 +445,7 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
     /* check Tx keepalive timing */
     if (GET_TX_KEEPALIVE_INTERVAL(idigi_ptr) > 0)
     {
-        unsigned long const max_timeout = (unsigned long)(GET_TX_KEEPALIVE_INTERVAL(idigi_ptr) * GET_WAIT_COUNT(idigi_ptr));
+        unsigned long const max_timeout = (GET_TX_KEEPALIVE_INTERVAL(idigi_ptr) * GET_WAIT_COUNT(idigi_ptr));
 
         if (!valid_timing_limit(idigi_ptr, idigi_ptr->last_tx_keepalive_received_time, max_timeout))
         {
@@ -491,7 +491,7 @@ static idigi_callback_status_t receive_data_status(idigi_data_t * const idigi_pt
             int error_code = -read_length;
             ASSERT(error_code > idigi_success && error_code <= idigi_no_resource);
 
-            idigi_ptr->error_code = (idigi_status_t)error_code;
+            idigi_ptr->error_code = error_code;
             status = idigi_callback_abort;
             goto done;
         }

@@ -298,7 +298,7 @@ static idigi_callback_status_t send_fw_abort(idigi_firmware_data_t * const fw_pt
     idigi_callback_status_t status = idigi_callback_continue;
 
     uint8_t * fw_abort = GET_PACKET_DATA_POINTER(fw_ptr->response_buffer, PACKET_EDP_FACILITY_SIZE);
-    uint8_t abort_code = (uint8_t)abort_status.error_status;
+    uint8_t abort_code = abort_status.error_status;
 
     ASSERT(abort_status.error_status <= UCHAR_MAX);
 
@@ -309,7 +309,7 @@ static idigi_callback_status_t send_fw_abort(idigi_firmware_data_t * const fw_pt
         status = get_abort_status_code(abort_status.user_status);
 
         ASSERT(status.abort_status <= UCHAR_MAX);
-        abort_code = (uint8_t)status.abort_status;
+        abort_code = status.abort_status;
 
     }
 
@@ -555,7 +555,7 @@ enum fw_download_response {
     {
         idigi_debug("process_fw_download_request: invalid message length\n");
         abort_opcode = fw_error_opcode;
-        response_status = (idigi_fw_status_t)fw_invalid_msg;
+        response_status = fw_invalid_msg;
         goto error;
     }
 
@@ -935,7 +935,7 @@ static void send_discovery_packet_callback(idigi_data_t * const idigi_ptr, uint8
 {
     idigi_firmware_data_t * const fw_ptr = user_data;
     /* update fw download keepalive timing */
-    (void)get_system_time(idigi_ptr, &fw_ptr->last_fw_keepalive_sent_time);
+    get_system_time(idigi_ptr, &fw_ptr->last_fw_keepalive_sent_time);
     release_packet_buffer(idigi_ptr, packet, status, user_data);
 
 }
@@ -1040,7 +1040,7 @@ enum fw_target_list{
             idigi_fw_config_t request;
 
             /* get the current firmware version for this target */
-            request.target = (uint8_t)target_number;
+            request.target = target_number;
             /* call callback */
             status = get_fw_config(fw_ptr, idigi_firmware_version, &request, sizeof request, &version, NULL, fw_equal);
             if (status == idigi_callback_continue)
@@ -1094,7 +1094,7 @@ static idigi_callback_status_t fw_process(idigi_data_t * const idigi_ptr, void *
         status = fw_discovery(idigi_ptr, facility_data, edp_header, receive_timeout);
         if (status == idigi_callback_continue)
         {
-            (void)get_system_time(idigi_ptr, &fw_ptr->last_fw_keepalive_sent_time);
+            get_system_time(idigi_ptr, &fw_ptr->last_fw_keepalive_sent_time);
             fw_ptr->fw_keepalive_start = idigi_false;
             status = idigi_callback_busy;
         }

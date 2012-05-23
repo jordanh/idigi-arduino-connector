@@ -1608,9 +1608,9 @@ static idigi_callback_status_t msg_process_error(idigi_data_t * const idigi_ptr,
         if ((session->current_state != msg_state_delete) && (session->current_state != msg_state_send_error))
         {
             uint8_t const error_val = message_load_u8(error_packet, error_code);
-            idigi_msg_error_t const msg_error = (idigi_msg_error_t)error_val;
+            idigi_msg_error_t const msg_error = error_val;
 
-            ASSERT(error_val < (uint8_t)idigi_msg_error_count);
+            ASSERT(error_val < idigi_msg_error_count);
             status = msg_inform_error(idigi_ptr, session, msg_error);
             if (status != idigi_callback_busy)
                 msg_delete_session(idigi_ptr, msg_fac, session);

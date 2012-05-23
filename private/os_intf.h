@@ -88,7 +88,7 @@ static void notify_error_status(idigi_callback_t const callback, idigi_class_t c
     err_status.request_id = request_number;
     err_status.status = status;
 
-    (void)idigi_callback_no_response(callback, idigi_class_config, request_id, &err_status, sizeof err_status);
+    idigi_callback_no_response(callback, idigi_class_config, request_id, &err_status, sizeof err_status);
 #else
     UNUSED_PARAMETER(callback);
     UNUSED_PARAMETER(class_number);

@@ -45,8 +45,8 @@ void idigiThreadStackInit(void)
     idigiThreadInfo.stacktop = StackTop;
     idigiThreadInfo.stackbottom = (void *)((size_t)StackTop + StackSize);
     idigiThreadInfo.stacksize = StackSize;
-    sprintf(idigiThreadInfo.version, "%02x.%02x.%02x.%02x", (((int)IDIGI_VERSION_1100 >> 24) & 0xFF), (((int)IDIGI_VERSION_1100 >> 16) & 0xFF),
-                                                           (((int)IDIGI_VERSION_1100 >> 8) & 0xFF), ((int)IDIGI_VERSION_1100 & 0xFF));
+    sprintf(idigiThreadInfo.version, "%02x.%02x.%02x.%02x", (((int)IDIGI_VERSION >> 24) & 0xFF), (((int)IDIGI_VERSION >> 16) & 0xFF),
+                                                           (((int)IDIGI_VERSION >> 8) & 0xFF), ((int)IDIGI_VERSION & 0xFF));
 
     return;
 }
