@@ -610,8 +610,7 @@ static idigi_callback_status_t data_service_put_request_callback(idigi_data_t * 
     idigi_data_service_msg_response_t response_data;
     idigi_data_service_block_t user_data;
 
-    ASSERT_GOTO(context != NULL, error);
-    request_data.service_context = context->callback_context;
+    request_data.service_context = (context != NULL) ? context->callback_context : service_request->have_data;
     response_data.message_status = idigi_msg_error_none;
     user_data.flags = 0;
 
@@ -641,7 +640,8 @@ static idigi_callback_status_t data_service_put_request_callback(idigi_data_t * 
         break;
 
     case msg_service_type_free:
-        free_data(idigi_ptr, context);
+        if (context != NULL)
+            free_data(idigi_ptr, context);
         status = idigi_callback_continue;
         goto done;
 
@@ -656,6 +656,29 @@ done:
     return status;
 }
 
+static idigi_callback_status_t data_service_put_request_init(idigi_data_t * const idigi_ptr, msg_service_request_t * const service_request)
+{
+    msg_session_t * const session = service_request->session;
+    data_service_context_t * context = NULL;
+    void * data_ptr;
+    idigi_callback_status_t const ret = malloc_data(idigi_ptr, sizeof *context, &data_ptr);
+
+    if (ret != idigi_callback_continue)
+    {
+        set_data_service_error(service_request, idigi_msg_error_memory);
+        data_service_put_request_callback(idigi_ptr, service_request);
+        goto error;
+    }
+
+    context = data_ptr;
+    context->callback_context = service_request->have_data;
+    context->request_type = idigi_data_service_put_request;
+    session->service_context = context;
+
+error:
+    return idigi_callback_continue;
+}
+
 static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_ptr, msg_service_request_t * const service_request)
 {
     idigi_callback_status_t status = idigi_callback_abort;
@@ -668,13 +691,15 @@ static idigi_callback_status_t data_service_callback(idigi_data_t * const idigi_
 
     if (context == NULL) 
     {
-        status = data_service_device_request_callback(idigi_ptr, service_request);
+        idigi_msg_callback_t * const init_fn = (service_request->service_type == msg_service_type_pending_request) ? data_service_put_request_init : data_service_device_request_callback;
+
+        status = init_fn(idigi_ptr, service_request);
         goto done;
     }
 
     switch (context->request_type)
     {
-        case idigi_data_service_put_request:            
+        case idigi_data_service_put_request:
             status = data_service_put_request_callback(idigi_ptr, service_request);
             break;
 
@@ -709,45 +734,13 @@ static idigi_callback_status_t idigi_facility_data_service_init(idigi_data_t * c
 static idigi_status_t data_service_initiate(idigi_data_t * const idigi_ptr,  void const * request, void  * response)
 {
     idigi_status_t status = idigi_invalid_data;
-    data_service_context_t * context = NULL;
-    idigi_msg_error_t result;
 
     UNUSED_PARAMETER(response);
-    ASSERT_GOTO(request != NULL, done);
+    ASSERT_GOTO(request != NULL, error);
 
-    {
-        void * data_ptr;
-        idigi_callback_status_t const ret = malloc_data(idigi_ptr, sizeof *context, &data_ptr);
-
-        if (ret != idigi_callback_continue) 
-        {
-            status = idigi_no_resource;
-            goto done;
-        }
-        
-        context = data_ptr;
-        context->request_type = idigi_data_service_put_request;
-    }
-
-    {
-        msg_session_t * const session = msg_start_session(idigi_ptr, msg_service_id_data, &result);
-        if (session == NULL) 
-        {
-            status = (result == idigi_msg_error_memory) ? idigi_no_resource : idigi_service_busy;
-            goto error;
-        }
-    
-        context->callback_context = (void *)request; /* unconst */
-        session->service_context = context;
-    }
-
-    status = idigi_success;
-    goto done;
+    status = msg_initiate_request(idigi_ptr, request) ? idigi_success : idigi_service_busy;
 
 error:
-    free_data(idigi_ptr, context);
-
-done:
     return status;
 }
 
