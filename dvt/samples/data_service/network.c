@@ -115,7 +115,7 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
         {
             int enabled = 1;
 
-            if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (&enabled, sizeof(enabled)) < 0)
+            if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &enabled, sizeof(enabled)) < 0)
             {
                 perror("open_socket: setsockopt SO_KEEPALIVE failed");
             }
@@ -164,7 +164,7 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
     }
 
     {
-        struct timeval timeout = {30, 0};
+        struct timeval timeout = {0};
         fd_set read_set;
         fd_set write_set;
 
@@ -172,6 +172,7 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
         FD_SET(fd, &read_set);
         write_set = read_set;
 
+        timeout.tv_sec = 30;
         if (select(fd+1, &read_set, &write_set, NULL, &timeout) <= 0)
         {
             goto done;
