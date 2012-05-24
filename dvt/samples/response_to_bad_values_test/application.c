@@ -51,7 +51,7 @@ forcedErrorInfo_t forcedErrorTable[] =
         0,
         0
     },
-    {                                       
+    {
         idigi_config_device_type,
         true,
         app_get_forced_error_device_type,
@@ -65,7 +65,7 @@ forcedErrorInfo_t forcedErrorTable[] =
         0,
         0
     },
-    {                                       
+    {
         idigi_config_connection_type,
         false,
         0,
@@ -79,7 +79,7 @@ forcedErrorInfo_t forcedErrorTable[] =
         0,
         0
     },
-    {                                       
+    {
         idigi_config_link_speed,
         false,
         0,
@@ -156,7 +156,6 @@ forcedErrorInfo_t forcedErrorTable[] =
         0,
         0
     },
-#if (IDIGI_VERSION >= IDIGI_VERSION_1100)
     {
         idigi_config_max_transaction,
         false,
@@ -164,7 +163,21 @@ forcedErrorInfo_t forcedErrorTable[] =
         0,
         0
     },
-#endif
+    {
+        idigi_config_device_id_method,
+        false,
+        0,
+        0,
+        0
+    },
+    {
+        idigi_config_imei_number,
+        false,
+        0,
+        0,
+        0
+    }
+
 }; 
 
 idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,

@@ -469,15 +469,15 @@ void write_python_result_file(char *file_buffer)
     }
 }
 
-static idigi_callback_status_t app_get_device_id_method(idigi_device_id_method_t * const method)
+static int app_get_device_id_method(idigi_device_id_method_t * const method)
 {
 
     *method = idigi_auto_device_id_method;
 
-    return idigi_callback_continue;
+    return 0;
 }
 
-static idigi_callback_status_t app_get_imei_number(uint8_t * const imei_number, size_t * size)
+static int app_get_imei_number(uint8_t * const imei_number, size_t * size)
 {
 #error "Specify the IMEI number for WAN connection type if app_get_device_id_method returns idigi_auto_device_id_method"
     /* Each nibble corresponds a decimal digit.
@@ -504,7 +504,7 @@ static idigi_callback_status_t app_get_imei_number(uint8_t * const imei_number, 
         }
         index--;
     }
-    return idigi_callback_continue;
+    return 0;
 }
 
 /* End of IIK configuration routines */
@@ -662,11 +662,11 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
         break;
 
     case idigi_config_device_id_method:
-        status = app_get_device_id_method(response_data);
+        ret = app_get_device_id_method(response_data);
         break;
 
      case idigi_config_imei_number:
-         status = app_get_imei_number(response_data, response_length);
+         ret = app_get_imei_number(response_data, response_length);
          break;
 
     default:
