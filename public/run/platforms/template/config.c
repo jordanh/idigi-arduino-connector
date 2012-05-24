@@ -16,6 +16,9 @@
   *
   */
 #include <stdio.h>
+#include <ctype.h>
+
+#include "idigi_config.h"
 #include "idigi_api.h"
 #include "platform.h"
 
@@ -613,6 +616,7 @@ static idigi_callback_status_t app_get_imei_number(uint8_t * const imei_number, 
             i--;
             if (app_imei_number[i] != '-')
             {
+                ASSERT(isdigit(app_imei_number[i]));
                 imei_number[index] += ((app_imei_number[i] - '0') << (n * 4));
                 n++;
             }

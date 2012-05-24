@@ -18,6 +18,7 @@
 #include <net/if.h>
 #include "errno.h"
 
+#include "idigi_config.h"
 #include "idigi_api.h"
 #include "platform.h"
 #include "application.h"
@@ -498,6 +499,7 @@ static int app_get_imei_number(uint8_t * const imei_number, size_t * size)
             i--;
             if (app_imei_number[i] != '-')
             {
+                ASSERT(isdigit(app_imei_number[i]));
                 imei_number[index] += ((app_imei_number[i] - '0') << (n * 4));
                 n++;
             }

@@ -736,11 +736,12 @@ static idigi_callback_status_t get_imei_device_id(idigi_data_t * const idigi_ptr
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_request_t request_id;
     idigi_status_t error_code;
-    uint8_t imei_number[IDIGI_GSM_IMEI_LENGTH];
-    size_t length = sizeof imei_number;
+    size_t length = IDIGI_GSM_IMEI_LENGTH;
+    /* IMEI number is last 8 bytes of device_id */
+    uint8_t * imei_number = device_id + (DEVICE_ID_LENGTH - length);
 
     request_id.config_request = idigi_config_imei_number;
-    status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &imei_number, &length);
+    status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, imei_number, &length);
 
     switch (status)
     {
@@ -776,12 +777,12 @@ static idigi_callback_status_t get_imei_device_id(idigi_data_t * const idigi_ptr
     case idigi_callback_busy:
         goto done;
     }
-
+/*
     {
         size_t const offset = DEVICE_ID_LENGTH - length;
         memcpy((device_id + offset), imei_number, offset);
     }
-
+*/
     goto done;
 
 error:
