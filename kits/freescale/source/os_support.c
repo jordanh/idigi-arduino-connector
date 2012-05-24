@@ -22,8 +22,6 @@ static char const * event_list[] =
 
 static size_t const event_list_size = asizeof(event_list);
 
-#define SEND_EVENT_BIT  0x01    /* TBD */
-
 idigi_connector_error_t ic_create_event(int const event)
 {
     idigi_connector_error_t status = idigi_connector_event_error;
@@ -41,7 +39,7 @@ error:
     return status;
 }
 
-idigi_connector_error_t ic_get_event(int const event, unsigned long timeout_ms)
+idigi_connector_error_t ic_get_event(int const event, unsigned long const event_bit, unsigned long timeout_ms)
 {
     pointer event_ptr;
     idigi_connector_error_t status = idigi_connector_event_error;
@@ -53,13 +51,13 @@ idigi_connector_error_t ic_get_event(int const event, unsigned long timeout_ms)
         goto error;
     }
 
-    if (_event_wait_all(event_ptr, SEND_EVENT_BIT, timeout_ms) != MQX_OK)
+    if (_event_wait_all(event_ptr, event_bit, timeout_ms) != MQX_OK)
     {
         APP_DEBUG("Failed to wait on event %s\n", event_list[event]);
         goto error;
     }
 
-    if (_event_clear(event_ptr, SEND_EVENT_BIT) != MQX_OK)
+    if (_event_clear(event_ptr, event_bit) != MQX_OK)
     {
         APP_DEBUG("Failed to clear event %s\n", event_list[event]);
         goto error;
@@ -71,7 +69,7 @@ error:
     return status;
 }
 
-idigi_connector_error_t ic_set_event(int const event)
+idigi_connector_error_t ic_set_event(int const event, unsigned long const event_bit)
 {
     pointer event_ptr;
     idigi_connector_error_t status = idigi_connector_event_error;
@@ -83,7 +81,7 @@ idigi_connector_error_t ic_set_event(int const event)
         goto error;
     }
 
-    if (_event_set(event_ptr, SEND_EVENT_BIT) != MQX_OK)
+    if (_event_set(event_ptr, event_bit) != MQX_OK)
     {
         APP_DEBUG("Failed to clear event %s\n", event_list[event]);
         goto error;

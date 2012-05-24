@@ -27,8 +27,8 @@ typedef struct
 #define IC_MAX_NUM_EVENTS  1
 
 idigi_connector_error_t ic_create_event(int const event);
-idigi_connector_error_t ic_set_event(int const event);
-idigi_connector_error_t ic_get_event(int const event, unsigned long timeout);
+idigi_connector_error_t ic_set_event(int const event, unsigned long const event_bit);
+idigi_connector_error_t ic_get_event(int const event, unsigned long const event_bit, unsigned long timeout);
 idigi_connector_error_t ic_create_thread(void);
 void ic_free(void *ptr);
 void *ic_malloc(size_t size);
