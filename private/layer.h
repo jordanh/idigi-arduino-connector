@@ -991,7 +991,7 @@ enum {
         char const url_prefix[] = URL_PREFIX;
         size_t const prefix_length = sizeof url_prefix -1;
 
-        idigi_debug("security layer: send server url = %.*s\n", idigi_ptr->server_url_length, idigi_ptr->server_url);
+        idigi_debug("security layer: send server url = %.*s\n", (int)idigi_ptr->server_url_length, idigi_ptr->server_url);
 
         message_store_u8(edp_server_url, opcode, SECURITY_OPER_URL);
 
@@ -1131,7 +1131,7 @@ enum {
         edp_device_type += device_type_header_size;
         memcpy(edp_device_type, idigi_device_type, device_type_length);
 
-        idigi_debug("discovery layer: send device type = %.*s\n", device_type_length, idigi_device_type);
+        idigi_debug("discovery layer: send device type = %.*s\n", (int)device_type_length, idigi_device_type);
 
         status = initiate_send_packet(idigi_ptr, edp_header,
                                     (device_type_header_size + device_type_length),

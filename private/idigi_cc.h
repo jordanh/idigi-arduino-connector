@@ -450,7 +450,7 @@ enum cc_connection_info {
                 char const phone[] = IDIGI_WAN_PHONE_NUMBER_DIALED;
                 size_t const length = sizeof phone -1;
 #endif
-                idigi_debug("send_connection_report: phone number = %.*s\n", length, phone);
+                idigi_debug("send_connection_report: phone number = %.*s\n", (int)length, phone);
                 memcpy(connection_report+cc_ptr->report_length, phone, length);
                 cc_ptr->report_length += length;
             }

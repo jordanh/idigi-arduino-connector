@@ -140,7 +140,7 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
 
     *network_handle = &socket_fd;
     status = idigi_callback_continue;
-    APP_DEBUG("network_connect: connected to [%.*s] server\n", length, host_name);
+    APP_DEBUG("network_connect: connected to [%.*s] server\n", (int)length, host_name);
     goto done;
 
 error:
