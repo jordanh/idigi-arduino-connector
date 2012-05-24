@@ -116,12 +116,12 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
         {
             int enabled = 1;
 
-            if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (char*)&enabled, sizeof(enabled)) < 0)
+            if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &enabled, sizeof(enabled)) < 0)
             {
                 perror("open_socket: setsockopt SO_KEEPALIVE failed");
             }
 
-            if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char*)&enabled, sizeof(enabled)) < 0)
+            if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &enabled, sizeof(enabled)) < 0)
             {
                 perror("open_socket: setsockopt TCP_NODELAY failed");
             }
@@ -185,12 +185,12 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
             /* If we also got a "socket readable" we have an error. */
             if (FD_ISSET(fd, &read_set))
             {
-                APP_DEBUG("network_connect: error to connect to %.*s server\n", (int)length, host_name);
+                APP_DEBUG("network_connect: error to connect to %.*s server\n", length, host_name);
                 goto done;
             }
             *network_handle = &fd;
             rc = idigi_callback_continue;
-            APP_DEBUG("network_connect: connected to [%.*s] server\n", (int)length, host_name);
+            APP_DEBUG("network_connect: connected to [%.*s] server\n", length, host_name);
         }
     }
 
@@ -222,7 +222,7 @@ static idigi_callback_status_t app_network_send(idigi_write_request_t const * co
             perror("network_send: send() failed");
 
             do {
-                ccode = read(*write_data->network_handle, (char *)buffer, sizeof buffer);
+                ccode = read(*write_data->network_handle, buffer, sizeof buffer);
 
                 if (ccode == 0)
                 {
@@ -308,7 +308,7 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t const * 
         }
     }
 
-    ccode = read(*read_data->network_handle, (char *)read_data->buffer, (int)read_data->length);
+    ccode = read(*read_data->network_handle, read_data->buffer, read_data->length);
 
     if (ccode == 0)
     {
@@ -346,7 +346,7 @@ static idigi_callback_status_t app_network_close(idigi_network_handle_t * const 
     ling_opt.l_linger = 1;
     ling_opt.l_onoff  = 1;
 
-    if (setsockopt(*fd, SOL_SOCKET, SO_LINGER, (char*)&ling_opt, sizeof(ling_opt) ) < 0)
+    if (setsockopt(*fd, SOL_SOCKET, SO_LINGER, &ling_opt, sizeof(ling_opt) ) < 0)
     {
         perror("network close: setsockopt fails: ");
         if (errno == EAGAIN || errno == EWOULDBLOCK)

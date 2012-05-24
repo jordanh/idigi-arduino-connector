@@ -75,7 +75,7 @@ idigi_callback_status_t app_system_group_init(idigi_remote_group_request_t const
 
     printf("app_system_group_init\n");
 
-    ptr = malloc(sizeof *system, &ptr);
+    ptr = malloc(sizeof *system);
     if (ptr == NULL)
     {
         response->error_id = idigi_setting_system_error_no_memory;

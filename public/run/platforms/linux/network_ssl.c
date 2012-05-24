@@ -172,7 +172,7 @@ error:
 static int app_is_connect_complete(int fd)
 {
     int ret = -1;
-    struct timeval timeout = {2, 0};
+    struct timeval timeout = {0};
     fd_set read_set;
     fd_set write_set;
 
@@ -180,6 +180,7 @@ static int app_is_connect_complete(int fd)
     FD_SET(fd, &read_set);
     write_set = read_set;
 
+    timeout.tv_sec = 2;
     /* wait for 2 seconds to connect */
     if (select(fd+1, &read_set, &write_set, NULL, &timeout) <= 0)
         goto error;

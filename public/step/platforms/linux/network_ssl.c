@@ -86,14 +86,14 @@ static int app_setup_server_socket(void)
     {
         int enabled = 1;
 
-        if (setsockopt(sd, SOL_SOCKET, SO_KEEPALIVE, (char *)&enabled, sizeof enabled) < 0)
+        if (setsockopt(sd, SOL_SOCKET, SO_KEEPALIVE, &enabled, sizeof enabled) < 0)
         {
             perror("open_socket: setsockopt SO_KEEPALIVE failed");
             goto error;
         }
 
         enabled = 1;
-        if (setsockopt(sd, IPPROTO_TCP, TCP_NODELAY, (char *)&enabled, sizeof enabled) < 0)
+        if (setsockopt(sd, IPPROTO_TCP, TCP_NODELAY, &enabled, sizeof enabled) < 0)
         {
             perror("open_socket: setsockopt TCP_NODELAY failed");
             goto error;
@@ -172,7 +172,7 @@ error:
 static int app_is_connect_complete(int fd)
 {
     int ret = -1;
-    struct timeval timeout = {2, 0};
+    struct timeval timeout = {0};
     fd_set read_set;
     fd_set write_set;
 
@@ -180,6 +180,7 @@ static int app_is_connect_complete(int fd)
     FD_SET(fd, &read_set);
     write_set = read_set;
 
+    timeout.tv_sec = 2;
     /* wait for 2 seconds to connect */
     if (select(fd+1, &read_set, &write_set, NULL, &timeout) <= 0)
         goto error;
@@ -340,7 +341,7 @@ error:
 static idigi_callback_status_t app_network_connect(char const * const host_name, size_t const length, idigi_network_handle_t ** network_handle)
 {
     idigi_callback_status_t status = idigi_callback_abort;
-    static app_ssl_t ssl_info = {-1, NULL, NULL};
+    static app_ssl_t ssl_info = {0};
 
     ssl_info.sfd = app_setup_server_socket();
     if (ssl_info.sfd < 0)
@@ -372,13 +373,13 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
         }
     }
 
-    APP_DEBUG("network_connect: connected to [%.*s] server\n", (int)length, host_name);
+    APP_DEBUG("network_connect: connected to [%.*s] server\n", length, host_name);
     *network_handle = (idigi_network_handle_t *)&ssl_info;
     status = idigi_callback_continue;
     goto done;
 
 error:
-    APP_DEBUG("network_connect: error to connect to %.*s server\n", (int)length, host_name);
+    APP_DEBUG("network_connect: error to connect to %.*s server\n", length, host_name);
     app_free_ssl_info(&ssl_info);
 
 done:
@@ -389,7 +390,7 @@ done:
  * Send data to the iDigi server, this routine must not block.
  */
 static idigi_callback_status_t app_network_send(idigi_write_request_t const * const write_data,
-                                            size_t * sent_length)
+                                            size_t * const sent_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     app_ssl_t * const ssl_ptr = (app_ssl_t *)write_data->network_handle;
@@ -409,7 +410,7 @@ static idigi_callback_status_t app_network_send(idigi_write_request_t const * co
 /*
  * This routine reads a specified number of bytes from the iDigi server.
  */
-static idigi_callback_status_t app_network_receive(idigi_read_request_t * read_data, size_t * read_length)
+static idigi_callback_status_t app_network_receive(idigi_read_request_t const * const read_data, size_t * const read_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     app_ssl_t * const ssl_ptr = (app_ssl_t *)read_data->network_handle;
@@ -443,7 +444,7 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t * read_d
         }
     }
 
-    bytes_read = SSL_read(ssl_ptr->ssl, read_data->buffer, (int)read_data->length);
+    bytes_read = SSL_read(ssl_ptr->ssl, read_data->buffer, read_data->length);
     if (bytes_read <= 0)
     {
         /* EOF on input: the connection was closed. */
@@ -470,19 +471,19 @@ static idigi_callback_status_t app_network_close(idigi_network_handle_t * const 
     return status;
 }
 
-static int app_server_disconnected(void)
+static idigi_callback_status_t app_server_disconnected(void)
 {
 
     APP_DEBUG("Disconnected from server\n");
-    return 0;
+    return idigi_callback_continue;
 }
 
-static int app_server_reboot(void)
+static idigi_callback_status_t app_server_reboot(void)
 {
 
     APP_DEBUG("Reboot from server\n");
     /* should not return from rebooting the system */
-    return 0;
+    return idigi_callback_continue;
 }
 
 /*
@@ -493,41 +494,39 @@ idigi_callback_status_t app_network_handler(idigi_network_request_t const reques
                                             void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    int ret;
 
     UNUSED_ARGUMENT(request_length);
 
     switch (request)
     {
     case idigi_network_connect:
-        status = app_network_connect((char *)request_data, request_length, (idigi_network_handle_t **)response_data);
+        status = app_network_connect(request_data, request_length, response_data);
         *response_length = sizeof(idigi_network_handle_t);
         break;
 
     case idigi_network_send:
-        status = app_network_send((idigi_write_request_t *)request_data, (size_t *)response_data);
+        status = app_network_send(request_data, response_data);
         break;
 
     case idigi_network_receive:
-        status = app_network_receive((idigi_read_request_t *)request_data, (size_t *)response_data);
+        status = app_network_receive(request_data, response_data);
         break;
 
     case idigi_network_close:
-        status = app_network_close((idigi_network_handle_t *)request_data);
+        status = app_network_close((idigi_network_handle_t * const)request_data);
         break;
 
     case idigi_network_disconnected:
-       ret = app_server_disconnected();
-       status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
-       break;
+        status = app_server_disconnected();
+        break;
 
     case idigi_network_reboot:
-        ret = app_server_reboot();
-        status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
+        status = app_server_reboot();
         break;
 
     default:
         APP_DEBUG("app_network_handler: unrecognized callback request [%d]\n", request);
+        status = idigi_callback_unrecognized;
         break;
     }
 

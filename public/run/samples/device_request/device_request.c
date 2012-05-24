@@ -17,12 +17,12 @@
 /* supported target name */
 static char const device_request_target[] = "myTarget";
 
-static char device_response_data[] = "My device response data";
+static char const device_response_data[] = "My device response data";
 
 typedef struct device_request_handle {
     void * device_handle;
-    char * response_data;
-    char * target;
+    char const * response_data;
+    char const * target;
     size_t length_in_bytes;
 } device_request_handle_t;
 
@@ -78,7 +78,7 @@ static idigi_callback_status_t app_process_device_request(idigi_data_service_msg
         client_device_request->length_in_bytes = 0;
         client_device_request->response_data = NULL;
         client_device_request->device_handle = server_device_request->device_handle;
-        client_device_request->target = (char *)device_request_target;
+        client_device_request->target = device_request_target;
 
          /* setup the user_context for our device request data */
          response_data->user_context = client_device_request;
@@ -100,12 +100,12 @@ static idigi_callback_status_t app_process_device_request(idigi_data_service_msg
         if (client_device_request->target != NULL)
         {
             /* target is only available on 1st chunk of data */
-            APP_DEBUG("Device request data: received data = \"%.*s\" for target = \"%s\"\n", (int)server_data->length_in_bytes,
+            APP_DEBUG("Device request data: received data = \"%.*s\" for target = \"%s\"\n", server_data->length_in_bytes,
                     device_request_data, client_device_request->target);
         }
         else
         {
-            APP_DEBUG("Device request data: received data = \"%.*s\" for unknown target\n", (int)server_data->length_in_bytes,
+            APP_DEBUG("Device request data: received data = \"%.*s\" for unknown target\n", server_data->length_in_bytes,
                     device_request_data);
 
         }
@@ -140,7 +140,7 @@ static idigi_callback_status_t app_process_device_response(idigi_data_service_ms
         /* get number of bytes written to the client data buffer */
         size_t const bytes = (client_device_request->length_in_bytes < client_data->length_in_bytes) ? client_device_request->length_in_bytes : client_data->length_in_bytes;
 
-        APP_DEBUG("Device response data: send response data = %.*s\n", (int)bytes, client_device_request->response_data);
+        APP_DEBUG("Device response data: send response data = %.*s\n", bytes, client_device_request->response_data);
 
         /* let's copy the response data to service_response buffer */
         memcpy(client_data->data, client_device_request->response_data, bytes);

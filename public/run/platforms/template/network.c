@@ -112,7 +112,7 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t const * 
  *
  * @see @ref close API Network Callback
  */
-static idigi_callback_status_t app_network_close(idigi_network_handle_t const * const fd)
+static idigi_callback_status_t app_network_close(idigi_network_handle_t * const fd)
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
@@ -142,7 +142,7 @@ idigi_callback_status_t app_network_handler(idigi_network_request_t const reques
                                             void const * const request_data, size_t const request_length,
                                             void * response_data, size_t * const response_length)
 {
-    idigi_callback_status_t status = idigi_callback_continue;
+    idigi_callback_status_t status ;
 
     switch (request)
     {
@@ -160,7 +160,7 @@ idigi_callback_status_t app_network_handler(idigi_network_request_t const reques
         break;
 
     case idigi_network_close:
-        status = app_network_close(request_data);
+        status = app_network_close((idigi_network_handle_t * const)request_data);
         break;
 
     case idigi_network_disconnected:
@@ -172,6 +172,7 @@ idigi_callback_status_t app_network_handler(idigi_network_request_t const reques
         break;
 
     default:
+        status = idigi_callback_unrecognized;
         break;
 
     }

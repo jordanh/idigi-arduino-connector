@@ -265,7 +265,7 @@ typedef struct device_request_handle {
     void * session;
     char * response_data;
     size_t length_in_bytes;
-    char * target;
+    char const * target;
     unsigned int count;
 } device_request_handle_t;
 
@@ -315,22 +315,22 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
         if (strcmp(server_device_request->target, device_request_target) == 0)
         {
             /* testing regular process target */
-            client_device_request->target = (char *)device_request_target;
+            client_device_request->target = device_request_target;
         }
         else if (strcmp(server_device_request->target, device_request_not_handle_target) == 0)
         {
             /* testing to return not processed message */
-            client_device_request->target = (char *)device_request_not_handle_target;
+            client_device_request->target = device_request_not_handle_target;
         }
         else if (strcmp(server_device_request->target, device_request_invalid_response_target) == 0)
         {
             /* testing to return error in response callback */
-            client_device_request->target = (char *)device_request_invalid_response_target;
+            client_device_request->target = device_request_invalid_response_target;
         }
         else if (strcmp(server_device_request->target, device_request_invalid_response_target1) == 0)
         {
             /* testing to return error in response callback */
-            client_device_request->target = (char *)device_request_invalid_response_target1;
+            client_device_request->target = device_request_invalid_response_target1;
         }
         else if (strcmp(server_device_request->target, device_request_cancel_target) == 0)
         {
@@ -367,11 +367,11 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
 
 
     client_device_request->length_in_bytes += server_data->length_in_bytes;
-    APP_DEBUG("process_device_request: handle %p target = \"%s\" data length = %lu total length = %lu\n",
+    APP_DEBUG("process_device_request: handle %p target = \"%s\" data length = %zu total length = %zu\n",
                                  server_device_request->device_handle,
                                  client_device_request->target,
-                                 (unsigned long int)server_data->length_in_bytes,
-                                 (unsigned long int)client_device_request->length_in_bytes);
+                                 server_data->length_in_bytes,
+                                 client_device_request->length_in_bytes);
 
     if ((server_data->flags & IDIGI_MSG_LAST_DATA) == IDIGI_MSG_LAST_DATA)
     {   /* No more chunk. let's setup response data */
@@ -435,10 +435,10 @@ static idigi_callback_status_t process_device_response(idigi_data_service_msg_re
             goto error;
         }
 
-        APP_DEBUG("process_device_response: handle %p total length = %lu send_byte %lu\n",
+        APP_DEBUG("process_device_response: handle %p total length = %zu send_byte %zu\n",
                                     server_device_request->device_handle,
-                                    (unsigned long int)client_device_request->length_in_bytes,
-                                    (unsigned long int)bytes);
+                                    client_device_request->length_in_bytes,
+                                    bytes);
 
         /* let's copy the response data to service_response buffer */
         memcpy(client_data->data, client_device_request->response_data, bytes);

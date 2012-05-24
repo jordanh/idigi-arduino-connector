@@ -200,7 +200,7 @@ idigi_callback_status_t app_firmware_handler(idigi_firmware_request_t const requ
     case idigi_firmware_description:
         if (response_data != NULL)
         {
-            char ** description = (char **)response_data;
+            char ** description = response_data;
 
             *description = firmware_list[config->target].description;
             *response_length = strlen(firmware_list[config->target].description);
@@ -209,7 +209,7 @@ idigi_callback_status_t app_firmware_handler(idigi_firmware_request_t const requ
     case idigi_firmware_name_spec:
         if (response_data != NULL)
         {
-            char ** name_spec = (char **)response_data;
+            char ** name_spec = response_data;
 
             *name_spec = firmware_list[config->target].name_spec;
             *response_length = strlen(firmware_list[config->target].name_spec);

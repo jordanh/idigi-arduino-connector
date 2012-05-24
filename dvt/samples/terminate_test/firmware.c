@@ -28,8 +28,8 @@ typedef struct {
 /* list of all supported firmware target info */
 static firmware_list_t firmware_list[] = {
     /* version     code_size     name_spec          description */
-    {0x01000000, (uint32_t)-1, ".*\\.a",            "Library Image"}, /* any *.a files */
-    {0x00000100, (uint32_t)-1, ".*\\.[bB][iI][nN]", "Binary Image" }  /* any *.bin files */
+    {0x01000000, -1, ".*\\.a",            "Library Image"}, /* any *.a files */
+    {0x00000100, -1, ".*\\.[bB][iI][nN]", "Binary Image" }  /* any *.bin files */
 };
 static uint16_t firmware_list_count = asizeof(firmware_list);
 
@@ -203,14 +203,14 @@ idigi_callback_status_t app_firmware_handler(idigi_firmware_request_t const requ
     {
     case idigi_firmware_target_count:
     {
-        uint16_t * count = (uint16_t *)response_data;
+        uint16_t * count = response_data;
         /* return total number of firmware update targets */
         *count = firmware_list_count;
         break;
     }
     case idigi_firmware_version:
     {
-        uint32_t * version = (uint32_t *)response_data;
+        uint32_t * version = response_data;
         /* return the target version number */
         *version = firmware_list[config->target].version;
         break;
@@ -218,14 +218,14 @@ idigi_callback_status_t app_firmware_handler(idigi_firmware_request_t const requ
     case idigi_firmware_code_size:
     {
         /* Return the target code size */
-        uint32_t * code_size = (uint32_t *)response_data;
+        uint32_t * code_size = response_data;
         *code_size = firmware_list[config->target].code_size;
         break;
     }
     case idigi_firmware_description:
     {
         /* return pointer to firmware target description */
-        char ** description = (char **)response_data;
+        char ** description = response_data;
         *description = firmware_list[config->target].description;
         *response_length = strlen(firmware_list[config->target].description);
        break;
@@ -233,30 +233,29 @@ idigi_callback_status_t app_firmware_handler(idigi_firmware_request_t const requ
     case idigi_firmware_name_spec:
     {
         /* return pointer to firmware target description */
-        char ** name_spec = (char **)response_data;
+        char ** name_spec = response_data;
         *name_spec = firmware_list[config->target].name_spec;
         *response_length = strlen(firmware_list[config->target].name_spec);
         break;
     }
     case idigi_firmware_download_request:
-        status = app_firmware_download_request((idigi_fw_download_request_t *)request_data, (idigi_fw_status_t *)response_data);
+        status = app_firmware_download_request(request_data, response_data);
         break;
 
     case idigi_firmware_binary_block:
-        status = app_firmware_image_data((idigi_fw_image_data_t *) request_data, (idigi_fw_status_t *)response_data);
+        status = app_firmware_image_data( request_data, response_data);
         break;
 
     case idigi_firmware_download_complete:
-        status = app_firmware_download_complete((idigi_fw_download_complete_request_t *) request_data,
-                                  (idigi_fw_download_complete_response_t *) response_data);
+        status = app_firmware_download_complete(request_data, response_data);
         break;
 
     case idigi_firmware_download_abort:
-        status =  app_firmware_download_abort((idigi_fw_download_abort_t *) request_data);
+        status =  app_firmware_download_abort( request_data);
         break;
 
     case idigi_firmware_target_reset:
-        status =  app_firmware_reset((idigi_fw_config_t *) request_data);
+        status =  app_firmware_reset(request_data);
         break;
 
     }
