@@ -184,12 +184,12 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
             /* If we also got a "socket readable" we have an error. */
             if (FD_ISSET(fd, &read_set))
             {
-                APP_DEBUG("network_connect: error to connect to %.*s server\n", length, host_name);
+                APP_DEBUG("network_connect: error to connect to %.*s server\n", (int)length, host_name);
                 goto done;
             }
             *network_handle = &fd;
             rc = idigi_callback_continue;
-            APP_DEBUG("network_connect: connected to [%.*s] server\n", length, host_name);
+            APP_DEBUG("network_connect: connected to [%.*s] server\n", (int)length, host_name);
         }
     }
 

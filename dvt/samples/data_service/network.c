@@ -115,12 +115,12 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
         {
             int enabled = 1;
 
-            if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (char*)&enabled, sizeof(enabled)) < 0)
+            if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (&enabled, sizeof(enabled)) < 0)
             {
                 perror("open_socket: setsockopt SO_KEEPALIVE failed");
             }
 
-            if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char*)&enabled, sizeof(enabled)) < 0)
+            if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &enabled, sizeof(enabled)) < 0)
             {
                 perror("open_socket: setsockopt TCP_NODELAY failed");
             }
