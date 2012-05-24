@@ -373,13 +373,13 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
         }
     }
 
-    APP_DEBUG("network_connect: connected to [%.*s] server\n", length, host_name);
+    APP_DEBUG("network_connect: connected to [%.*s] server\n", (int)length, host_name);
     *network_handle = (idigi_network_handle_t *)&ssl_info;
     status = idigi_callback_continue;
     goto done;
 
 error:
-    APP_DEBUG("network_connect: error to connect to %.*s server\n", length, host_name);
+    APP_DEBUG("network_connect: error to connect to %.*s server\n", (int)length, host_name);
     app_free_ssl_info(&ssl_info);
 
 done:
