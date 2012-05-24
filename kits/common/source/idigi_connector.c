@@ -149,6 +149,7 @@ done:
 
 idigi_connector_error_t idigi_send_data(char const * const path, idigi_connector_data_t * const device_data, char const * const content_type)
 {
+    static unsigned long send_event_block = 0;
     idigi_connector_error_t result = idigi_connector_network_error;
     idigi_connector_send_t * const send_info = ic_malloc(sizeof(idigi_connector_send_t));
 
@@ -164,6 +165,26 @@ idigi_connector_error_t idigi_send_data(char const * const path, idigi_connector
         APP_DEBUG("idigi_send_data: malloc failed\n");
         result = idigi_connector_resource_error;
         goto error;
+    }
+
+    {
+        unsigned long available_bit = 0x80000000;
+
+        while (available_bit != 0)
+        {
+            if (!(send_event_block & available_bit))
+                break;
+            available_bit >>= 1;
+        }
+
+        send_event_block |= available_bit;
+        send_info->data_ptr.event_bit = available_bit;
+        if (available_bit == 0)
+        {
+            APP_DEBUG("idigi_send_data: Exceeded maximum of 32 sessions active at a time\n");
+            result = idigi_connector_resource_error;
+            goto error;
+        }
     }
 
     /* we are storing some stack variables here, need to block until we get a response */
@@ -184,7 +205,7 @@ idigi_connector_error_t idigi_send_data(char const * const path, idigi_connector
 
         if (status == idigi_success)
         {
-            result = ic_get_event(IC_SEND_DATA_EVENT, IC_SEND_TIMEOUT_IN_MSEC);
+            result = ic_get_event(IC_SEND_DATA_EVENT, send_info->data_ptr.event_bit, IC_SEND_TIMEOUT_IN_MSEC);
             ASSERT_GOTO(result == idigi_connector_success, error);
             result = send_info->data_ptr.error;
         }
@@ -196,7 +217,10 @@ idigi_connector_error_t idigi_send_data(char const * const path, idigi_connector
 
 error:
     if (send_info != NULL)
+    {
+        send_event_block &= ~send_info->data_ptr.event_bit;
         ic_free(send_info);
+    }
 
     return result;
 }

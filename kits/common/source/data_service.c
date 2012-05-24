@@ -229,7 +229,7 @@ static idigi_callback_status_t process_device_error(idigi_data_service_msg_reque
 static void send_data_completed(idigi_app_send_data_t * const app_dptr, idigi_connector_error_t const error_code)
 {
     app_dptr->error = error_code;
-    ic_set_event(IC_SEND_DATA_EVENT);
+    ic_set_event(IC_SEND_DATA_EVENT, app_dptr->event_bit);
 }
 
 static idigi_callback_status_t process_send_data_request(idigi_data_service_msg_request_t const * const request_data,

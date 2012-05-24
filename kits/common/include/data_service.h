@@ -20,6 +20,7 @@ typedef struct
 {
     void * next_data;
     size_t bytes_remaining;
+    unsigned long event_bit;
     idigi_connector_error_t error;
 } idigi_app_send_data_t;
 
