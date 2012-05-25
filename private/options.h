@@ -13,7 +13,7 @@
 #define OPTIONS_H_
 
 /*
- * The defines in this file are included to allow compatibility with IIK v1.0 application makefiles
+ * The defines in this file are included to allow compatibility with iDigi Connector v1.0 application makefiles
  */
 
 #if defined(_LITTLE_ENDIAN)

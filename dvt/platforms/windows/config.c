@@ -20,7 +20,7 @@
 #include "platform.h"
 
 
-/* IIK Configuration routines */
+/* iDigi Connector Configuration routines */
 
 //#define IDIGI_MAX_INTERFACES 128
 #define IDIGI_DEVICE_ID_LENGTH    16
@@ -317,10 +317,10 @@ static bool get_data_service_support(void)
     return true;
 }
 
-/* End of IIK configuration routines */
+/* End of iDigi Connector configuration routines */
 
 /*
- * This routine is called when a configuration error is encountered by the IIK.
+ * This routine is called when a configuration error is encountered by the iDigi Connector.
  * This is currently used as a debug tool for finding configuration errors.
  */
 static bool idigi_config_error(idigi_error_status_t * const error_data)

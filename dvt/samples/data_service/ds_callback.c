@@ -59,7 +59,7 @@ idigi_status_t send_file(idigi_handle_t handle, int index, char * const filename
         idigi_callback_status_t const is_ok = app_os_malloc(sizeof *user, &ptr);
         if (is_ok != idigi_callback_continue || ptr == NULL)
         {
-            /* no memeory stop IIK */
+            /* no memeory stop iDigi Connector */
             APP_DEBUG("send_put_request: malloc fails\n");
             status = idigi_no_resource;
             goto done;
@@ -297,7 +297,7 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
         idigi_callback_status_t const ccode = app_os_malloc(sizeof *client_device_request, &ptr);
         if (ccode != idigi_callback_continue || ptr == NULL)
         {
-            /* no memeory stop IIK */
+            /* no memeory stop iDigi Connector */
             APP_DEBUG("process_device_request: malloc fails for device request on session %p\n", server_device_request->device_handle);
             response_data->message_status = idigi_msg_error_memory;
             goto done;

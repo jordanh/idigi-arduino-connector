@@ -185,7 +185,7 @@ static idigi_callback_status_t app_firmware_reset(idigi_fw_config_t const * cons
 
     if (put_file_active_count > 0)
     {
-        /* let's terminate IIK and free all memory used in IIK.
+        /* let's terminate iDigi Connector and free all memory used in iDigi Connector.
          *
          */
         idigi_initiate_action(idigi_handle, idigi_initiate_terminate, NULL, NULL);

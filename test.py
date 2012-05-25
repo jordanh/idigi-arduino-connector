@@ -10,7 +10,7 @@
 #
 # ***************************************************************************
 #
-# Build the IIK test harness
+# Build the iDigi Connector test harness
 #
 import commands
 import sys
@@ -146,7 +146,7 @@ def generate_id(api):
 
 def start_iik(executable, tty=False):
     """
-    Starts an IIK session in given path with given executable name.
+    Starts an iDigi Connector session in given path with given executable name.
     """
     if tty:
         os.system('/usr/bin/script -q -f -c "%s"' % (executable))
@@ -403,7 +403,7 @@ def build_template(description, cflags):
     print '>>> [%s] Finished [%s]' % (description, test_script)
 
 def main():
-    parser = argparse.ArgumentParser(description="IIK TestCase",
+    parser = argparse.ArgumentParser(description="iDigi Connector TestCase",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('--username', action='store', type=str, default='iikdvt')

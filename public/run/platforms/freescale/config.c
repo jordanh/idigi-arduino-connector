@@ -239,10 +239,10 @@ static idigi_callback_status_t app_get_device_id_method(idigi_device_id_method_t
 }
 
 
-/* End of IIK configuration routines */
+/* End of iDigi Connector configuration routines */
 
 /*
- * This routine is called when a configuration error is encountered by the IIK.
+ * This routine is called when a configuration error is encountered by the iDigi Connector.
  * This is currently used as a debug tool for finding configuration errors.
  */
 void app_config_error(idigi_error_status_t * const error_data)

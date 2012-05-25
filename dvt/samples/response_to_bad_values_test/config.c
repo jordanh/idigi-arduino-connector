@@ -23,7 +23,7 @@
 #include "platform.h"
 #include "application.h"
 
-/* IIK Configuration routines */
+/* iDigi Connector Configuration routines */
 
 #define MAX_INTERFACES      128
 #define DEVICE_ID_LENGTH    16
@@ -509,10 +509,10 @@ static int app_get_imei_number(uint8_t * const imei_number, size_t * size)
     return 0;
 }
 
-/* End of IIK configuration routines */
+/* End of iDigi Connector configuration routines */
 
 /*
- * This routine is called when a configuration error is encountered by the IIK.
+ * This routine is called when a configuration error is encountered by the iDigi Connector.
  * This is currently used as a debug tool for finding configuration errors.
  */
 void app_config_error(idigi_error_status_t const * const error_data)

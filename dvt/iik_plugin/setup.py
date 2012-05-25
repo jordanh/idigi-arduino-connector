@@ -11,7 +11,7 @@ setup(
     version='0.3',
     author='Andrew Tolbert',
     author_email = 'atolber@digi.com',
-    description = 'Plugin to pass in iDigi Credentials and Device ID to IIK Tests.',
+    description = 'Plugin to pass in iDigi Credentials and Device ID to iDigi Connector Tests.',
     license = 'For Digi Internal Use Only',
     py_modules = ['iik_plugin', 'build_plugin', 'build_utils',
                   'idigi_ws_api', 'configuration', 

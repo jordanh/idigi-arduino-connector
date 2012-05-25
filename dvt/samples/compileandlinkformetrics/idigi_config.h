@@ -24,7 +24,7 @@
 #endif
 
 #ifdef USE_THE_DEFINES
-#define IDIGI_DEVICE_TYPE                          "IIK Linux Sample"
+#define IDIGI_DEVICE_TYPE                          "iDigi Connector Linux Sample"
 #define IDIGI_CLOUD_URL                            "developer.idigi.com" 
 #define IDIGI_TX_KEEPALIVE_IN_SECONDS              75 
 #define IDIGI_RX_KEEPALIVE_IN_SECONDS              75 

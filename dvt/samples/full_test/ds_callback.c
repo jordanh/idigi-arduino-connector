@@ -356,7 +356,7 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
 
         if (target_info == NULL)
         {
-            /* no memeory stop IIK */
+            /* no memeory stop iDigi Connector */
             APP_DEBUG("process_device_request: unknown target %s\n", request_info->target);
             goto cancel;
         }

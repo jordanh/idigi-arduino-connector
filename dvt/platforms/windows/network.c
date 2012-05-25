@@ -184,7 +184,7 @@ done:
 
 /*
  * Send data to the iDigi server, this routine must not block.  If it encounters
- * EAGAIN or EWOULDBLOCK error, 0 bytes must be returned and IIK will continue
+ * EAGAIN or EWOULDBLOCK error, 0 bytes must be returned and iDigi Connector will continue
  * calling this function.
  */
 static idigi_callback_status_t network_send(idigi_write_request_t const * const write_data,
@@ -216,7 +216,7 @@ static idigi_callback_status_t network_send(idigi_write_request_t const * const 
 /*
  * This routine reads a specified number of bytes from the iDigi server.  This 
  * function must not block. If it encounters EAGAIN or EWOULDBLOCK error, 0 
- * bytes must be returned and IIK will continue calling this function.
+ * bytes must be returned and iDigi Connector will continue calling this function.
  */
 static idigi_callback_status_t network_receive(idigi_read_request_t * read_data, size_t * read_length)
 {
@@ -233,7 +233,7 @@ static idigi_callback_status_t network_receive(idigi_read_request_t * read_data,
     FD_ZERO(&read_set);
     FD_SET(*read_data->network_handle, &read_set);
 
-    /* Blocking point for IIK */
+    /* Blocking point for iDigi Connector */
     ccode = select(*read_data->network_handle+1, &read_set, NULL, NULL, &timeout);
     if (ccode == SOCKET_ERROR)
     {

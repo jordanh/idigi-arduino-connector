@@ -54,7 +54,7 @@ idigi_status_t send_put_request(idigi_handle_t handle, char * const filename, ch
         int const is_ok = app_os_malloc(sizeof *user, &ptr);
         if (is_ok < 0|| ptr == NULL)
         {
-            /* no memeory stop IIK */
+            /* no memeory stop iDigi Connector */
             APP_DEBUG("send_put_request: malloc fails\n");
             status = idigi_no_resource;
             goto done;

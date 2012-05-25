@@ -66,7 +66,7 @@ static void * idigi_run_thread(void * arg)
  
      printf("idigi_run thread starts\n");
  
-     /* Run the IIK, this will only return on an IIK abort */
+     /* Run the iDigi Connector, this will only return on an iDigi Connector abort */
      status = idigi_run((idigi_handle_t) arg);
  
      printf("idigi_run thread exits %d\n", status);

@@ -12,7 +12,7 @@
 
  /**
   * @file
-  *  @brief Functions used by the IIK to interface to the OS.
+  *  @brief Functions used by the iDigi Connector to interface to the OS.
   *
   */
 #include <malloc.h>

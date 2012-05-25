@@ -35,7 +35,7 @@ int main (void)
     {
         idigi_status_t status;
         /*
-         * Example of using idigi_step(), we run a portion of the IIK then run
+         * Example of using idigi_step(), we run a portion of the iDigi Connector then run
          * a portion of the users application.
          */
         status = idigi_step(idigi_handle);

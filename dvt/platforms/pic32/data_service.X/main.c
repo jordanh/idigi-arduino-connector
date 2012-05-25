@@ -77,7 +77,7 @@ int main(void){
         }
         // Until IP Address is assigned, attempt to retrieve IP.
         if(ip_assigned){
-            // Initialize IIK, if status is terminated, connection was
+            // Initialize iDigi Connector, if status is terminated, connection was
             // previously terminated.  Recreate.
             if(handle == NULL || status == idigi_device_terminated){
                 if(status == idigi_device_terminated){

@@ -18,9 +18,9 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-/* IIK Configuration routines */
+/* iDigi Connector Configuration routines */
 
-#define IDIGI_DEVICE_TYPE                          "IIK Linux Sample"
+#define IDIGI_DEVICE_TYPE                          "iDigi Connector Linux Sample"
 #define IDIGI_CLOUD_URL                            "developer.idigi.com"
 #define IDIGI_TX_KEEPALIVE_IN_SECONDS              75
 #define IDIGI_RX_KEEPALIVE_IN_SECONDS              75
@@ -276,10 +276,10 @@ static idigi_callback_status_t app_get_device_id_method(idigi_device_id_method_t
     return idigi_callback_continue;
 }
 
-/* End of IIK configuration routines */
+/* End of iDigi Connector configuration routines */
 
 /*
- * This routine is called when a configuration error is encountered by the IIK.
+ * This routine is called when a configuration error is encountered by the iDigi Connector.
  * This is currently used as a debug tool for finding configuration errors.
  */
 void app_config_error(idigi_error_status_t * const error_data)

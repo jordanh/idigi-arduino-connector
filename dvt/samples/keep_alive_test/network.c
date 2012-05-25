@@ -263,7 +263,7 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t const * 
     FD_ZERO(&read_set);
     FD_SET(*read_data->network_handle, &read_set);
 
-    /* Blocking point for IIK */
+    /* Blocking point for iDigi Connector */
     ccode = select(*read_data->network_handle+1, &read_set, NULL, NULL, &timeout);
     if (ccode < 0)
     {

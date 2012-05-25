@@ -194,7 +194,7 @@ static int send_buffer(idigi_data_t * const idigi_ptr, uint8_t * const buffer, s
 
 static void release_packet_buffer(idigi_data_t * const idigi_ptr, uint8_t const * const packet, idigi_status_t const status, void * const user_data)
 {
-    /* this is called when IIK is done sending or after get_packet_buffer()
+    /* this is called when iDigi Connector is done sending or after get_packet_buffer()
      * is called to release idigi_ptr->send_packet.packet_buffer.buffer.
      *
      */

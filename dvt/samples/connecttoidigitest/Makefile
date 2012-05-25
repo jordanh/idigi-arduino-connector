@@ -12,11 +12,11 @@
 CC = gcc
 
 
-IIK_DIR=../../..
-IDIGI_DIR=$(IIK_DIR)/private
-PUBLIC_HEADER_DIR=$(IIK_DIR)/public/include
-PLATFORM_DIR=$(IIK_DIR)/public/run/platforms/linux
-SCRIPTS_DIR=$(IIK_DIR)/dvt/scripts
+IDIGICONNECTOR_DIR=../../..
+IDIGI_DIR=$(IDIGICONNECTOR_DIR)/private
+PUBLIC_HEADER_DIR=$(IDIGICONNECTOR_DIR)/public/include
+PLATFORM_DIR=$(IDIGICONNECTOR_DIR)/public/run/platforms/linux
+SCRIPTS_DIR=$(IDIGICONNECTOR_DIR)/dvt/scripts
 
 vpath $(IDIGI_DIR)/%.c
 vpath $(PLATFORM_DIR)/%.c

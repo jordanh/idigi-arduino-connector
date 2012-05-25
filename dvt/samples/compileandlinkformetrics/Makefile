@@ -15,11 +15,11 @@ CXX     = $(CROSS_COMPILE)g++
 STRIP   = $(CROSS_COMPILE)strip
 AR      = $(CROSS_COMPILE)ar
 
-IIK_DIR=../../..
-IDIGI_DIR=$(IIK_DIR)/private
-PUBLIC_HEADER_DIR=$(IIK_DIR)/public/include
-PLATFORM_DIR=$(IIK_DIR)/public/run/platforms/linux
-DVT_DIR=$(IIK_DIR)/dvt
+IDIGICONNECTOR_DIR=../../..
+IDIGI_DIR=$(IDIGICONNECTOR_DIR)/private
+PUBLIC_HEADER_DIR=$(IDIGICONNECTOR_DIR)/public/include
+PLATFORM_DIR=$(IDIGICONNECTOR_DIR)/public/run/platforms/linux
+DVT_DIR=$(IDIGICONNECTOR_DIR)/dvt
 SCRIPTS_DIR=$(DVT_DIR)/scripts
 
 vpath $(IDIGI_DIR)/%.c
