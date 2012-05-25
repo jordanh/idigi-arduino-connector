@@ -114,7 +114,6 @@ static idigi_callback_status_t app_process_group(idigi_remote_config_request_t c
         if (request->group.id <= asizeof (remote_setting_table))
         {
             group_ptr = &remote_setting_table[request->group.id];
-            session_ptr->group_context = group_ptr;
         }
         else
         {
@@ -125,7 +124,6 @@ static idigi_callback_status_t app_process_group(idigi_remote_config_request_t c
         if (request->group.id <= asizeof (remote_state_table))
         {
             group_ptr = &remote_state_table[request->group.id];
-            session_ptr->group_context = group_ptr;
         }
         else
         {
