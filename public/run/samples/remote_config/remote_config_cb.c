@@ -170,7 +170,7 @@ static idigi_callback_status_t app_process_session_cancel(void * const context)
         remote_group_cancel_cb_t callback = group_ptr->cancel_cb;
 
         callback(context);
-//        free(context);
+        free(context);
     }
     return status;
 }
