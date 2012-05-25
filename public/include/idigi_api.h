@@ -11,7 +11,7 @@
  */
  /**
   * @file
-  *  @brief Functions and prototypes for iDigi Integration kit
+  *  @brief Functions and prototypes for iDigi Connector
   *         public API
   *
   */
