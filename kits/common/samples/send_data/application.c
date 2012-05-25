@@ -42,8 +42,8 @@ int application_start(void)
         app_os_sleep(WAIT_FOR_A_SECOND);
 
         ic_data.data_ptr = buffer;
-        ic_data.length_in_bytes = (sizeof buffer) - 1;
-        ret = idigi_send_data("sample.txt", &ic_data, NULL);
+        ic_data.length_in_bytes = sizeof buffer - 1;
+        ret = idigi_send_data("test/test.txt", &ic_data, NULL);
 
     } while (ret == idigi_connector_init_error);
 
