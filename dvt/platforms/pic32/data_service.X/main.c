@@ -83,7 +83,7 @@ int main(void){
                 if(status == idigi_device_terminated){
                     free(handle);
                 }
-                // Initialize iDigi Integration Kit.
+                // Initialize iDigi Connector.
                 handle = idigi_init((idigi_callback_t) idigi_callback);
             }
             // Process next iDigi step.
