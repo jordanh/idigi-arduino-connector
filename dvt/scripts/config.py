@@ -64,6 +64,13 @@ def update_idigi_config_h(header_file, config):
       update_field(config, line, "vendor_id", False)
     elif 'IDIGI_MSG_MAX_TRANSACTION' in line:
       update_field(config, line, "max_transaction", False)
+    elif '#define IDIGI_NO_FILE_SYSTEM' in line:
+      # Don't append IDIGI_NO_FILE_SYSTEM if device.file_system = true
+      if config.has_option('device', 'file_system'):
+        if not config.getboolean('device', 'file_system'):
+          new_lines.append(line)
+      else:
+          new_lines.append(line)
     else:
       new_lines.append(line)
 
