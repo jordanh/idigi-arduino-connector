@@ -63,6 +63,12 @@ idigi_connector_error_t ic_get_event(int const event, unsigned long const event_
         goto error;
     }
 
+    if (_event_close(event_ptr) != MQX_OK)
+    {
+        APP_DEBUG("Failed to close event %s\n", event_list[event]);
+        goto error;
+    }
+
     status = idigi_connector_success;
 
 error:
@@ -84,6 +90,12 @@ idigi_connector_error_t ic_set_event(int const event, unsigned long const event_
     if (_event_set(event_ptr, event_bit) != MQX_OK)
     {
         APP_DEBUG("Failed to clear event %s\n", event_list[event]);
+        goto error;
+    }
+
+    if (_event_close(event_ptr) != MQX_OK)
+    {
+        APP_DEBUG("Failed to close event %s\n", event_list[event]);
         goto error;
     }
 
