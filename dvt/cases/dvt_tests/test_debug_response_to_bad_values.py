@@ -2,17 +2,14 @@ import os
 import time
 import iik_testcase
 
-#indices of test_table
-EXPECTED_RESPONSE = 0
-
-#              EXPECTED_RESPONSE
+# Expected errors encountered.
 test_table = [
-              ["idigi_config_vendor_id,idigi_invalid_data_size,terminated\n"],
-              ["idigi_config_device_type,idigi_invalid_data_size,terminated\n"],
-              ["idigi_config_device_id,idigi_invalid_data_size,terminated\n"],
-              ["idigi_config_server_url,idigi_invalid_data_range,terminated\n"],
-              ["idigi_config_rx_keepalive,idigi_invalid_data_range,terminated\n"],
-              ["idigi_config_ip_addr,idigi_invalid_data_size,terminated\n"],  
+              "idigi_config_vendor_id,idigi_invalid_data_size,terminated\n",
+              "idigi_config_device_type,idigi_invalid_data_size,terminated\n",
+              "idigi_config_device_id,idigi_invalid_data_size,terminated\n",
+              "idigi_config_server_url,idigi_invalid_data_range,terminated\n",
+              "idigi_config_rx_keepalive,idigi_invalid_data_range,terminated\n",
+              "idigi_config_ip_addr,idigi_invalid_data_size,terminated\n",  
 ]
 
 class ResponseToBadValuesDvtTestCase(iik_testcase.TestCase):
@@ -30,20 +27,22 @@ class ResponseToBadValuesDvtTestCase(iik_testcase.TestCase):
             f = open(filename, 'r')
             self.log.info("Successfully opened %s" % filename)
             lines = f.readlines()
-            numLines = len(lines)
             f.close()
         except IOError:
             self.log.info("Failure opening file %s" % filename)  
             errors = errors + 1
 
-        index = 0
+        if len(lines) < len(test_table):
+            self.fail("Not as many lines (%d) as expected (%d) in %s.  File Content: %s" \
+                % (len(lines), len(test_table), filename, lines)) 
 
+        index = 0
         for test in test_table:
             line = lines[index] 
-            if line == test[EXPECTED_RESPONSE]:
-                self.log.info("Successfully compared %s" % test[EXPECTED_RESPONSE])
+            if line == test:
+                self.log.info("Successfully compared %s" % test)
             else:
-                self.log.info("Error comparing line %s with test_table %s" % (line, test[EXPECTED_RESPONSE]))
+                self.log.info("Error comparing line %s with test_table %s" % (line, test))
                 errors = errors + 1
             index += 1
 

@@ -474,7 +474,7 @@ void write_python_result_file(char *file_buffer)
 static int app_get_device_id_method(idigi_device_id_method_t * const method)
 {
 
-    *method = idigi_auto_device_id_method;
+    *method = idigi_manual_device_id_method;
 
     return 0;
 }
