@@ -36,8 +36,8 @@ static idigi_callback_status_t app_get_ip_address(uint8_t const ** ip_address, s
     struct ifconf   conf;
     static struct in_addr  ip_addr; /* Used to store the IP address */
 
-/* Remove this //#error statement once you modify this routine to return the correct IP address */
-//#error "Specify device IP address. Set size to 4 (bytes) for IPv4 or 16 (bytes) for IPv6"
+/* Remove this #error statement once you modify this routine to return the correct IP address */
+#error "Specify device IP address. Set size to 4 (bytes) for IPv4 or 16 (bytes) for IPv6"
 
     if (buf == NULL)
     {
@@ -106,7 +106,7 @@ error:
 
 static idigi_callback_status_t app_get_mac_addr(uint8_t const ** addr, size_t * const size)
 {
-//#error "Specify device MAC address for LAN connection"
+#error "Specify device MAC address for LAN connection"
     #define MAC_ADDR_LENGTH     6
 
     static uint8_t const device_mac_addr[MAC_ADDR_LENGTH] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -119,7 +119,7 @@ static idigi_callback_status_t app_get_mac_addr(uint8_t const ** addr, size_t * 
 
 static idigi_callback_status_t app_get_device_id(uint8_t const ** id, size_t * const size)
 {
-//#error  "Specify device id"
+#error  "Specify device id"
 
     #define DEVICE_ID_LENGTH    16
 
@@ -151,7 +151,7 @@ static idigi_callback_status_t app_get_device_id(uint8_t const ** id, size_t * c
 
 static idigi_callback_status_t app_get_vendor_id(uint8_t const ** id, size_t * const size)
 {
-//#error  "Specify vendor id"
+#error  "Specify vendor id"
     #define VENDOR_ID_LENGTH    4
 
     static uint8_t const device_vendor_id[VENDOR_ID_LENGTH] = {0x00, 0x00, 0x00, 0x00};
@@ -164,7 +164,7 @@ static idigi_callback_status_t app_get_vendor_id(uint8_t const ** id, size_t * c
 
 static idigi_callback_status_t app_get_device_type(char const ** type, size_t * const size)
 {
-//#error "Specify device type"
+#error "Specify device type"
     static char const device_type[] = "Linux Application";
 
     /* Return pointer to device type. */
@@ -176,7 +176,7 @@ static idigi_callback_status_t app_get_device_type(char const ** type, size_t * 
 
 static idigi_callback_status_t app_get_server_url(char const ** url, size_t * const size)
 {
-//#error "Specify iDigi Server URL"
+#error "Specify iDigi Server URL"
     static  char const idigi_server_url[] = "developer.idigi.com";
 
     /* Return pointer to device type. */
@@ -188,7 +188,7 @@ static idigi_callback_status_t app_get_server_url(char const ** url, size_t * co
 
 static idigi_callback_status_t app_get_connection_type(idigi_connection_type_t const ** type)
 {
-//#error "Specify LAN or WAN connection type"
+#error "Specify LAN or WAN connection type"
 
     /* Return pointer to connection type */
     static idigi_connection_type_t const device_connection_type = idigi_lan_connection_type;
@@ -200,7 +200,7 @@ static idigi_callback_status_t app_get_connection_type(idigi_connection_type_t c
 
 static idigi_callback_status_t app_get_link_speed(uint32_t ** const speed, size_t * const size)
 {
-//#error "Specify link speed for WAN connection type"
+#error "Specify link speed for WAN connection type"
     UNUSED_ARGUMENT(speed);
     UNUSED_ARGUMENT(size);
 
@@ -209,7 +209,7 @@ static idigi_callback_status_t app_get_link_speed(uint32_t ** const speed, size_
 
 static idigi_callback_status_t app_get_phone_number(char ** const number, size_t * const size)
 {
-//#error "Specify phone number dialed for WAN connection type"
+#error "Specify phone number dialed for WAN connection type"
     /*
      * Return pointer to phone number for WAN connection type.
      */
@@ -223,7 +223,7 @@ static idigi_callback_status_t app_get_phone_number(char ** const number, size_t
 /* This keep alive is sent from the server to the device */
 static idigi_callback_status_t app_get_tx_keepalive_interval(uint16_t const ** interval, size_t * const size)
 {
-//#error "Specify server to device TX keepalive interval in seconds"
+#error "Specify server to device TX keepalive interval in seconds"
 
 #define DEVICE_TX_KEEPALIVE_INTERVAL_IN_SECONDS     90
     /* Return pointer to Tx keepalive interval in seconds */
@@ -239,7 +239,7 @@ static idigi_callback_status_t app_get_tx_keepalive_interval(uint16_t const ** i
 /* This keep alive is sent from the device to the server  */
 static idigi_callback_status_t app_get_rx_keepalive_interval(uint16_t const ** interval, size_t * const size)
 {
-//#error "Specify server to device RX keepalive interval in seconds"
+#error "Specify server to device RX keepalive interval in seconds"
 #define DEVICE_RX_KEEPALIVE_INTERVAL_IN_SECONDS     60
     /* Return pointer to Rx keepalive interval in seconds */
     static uint16_t const device_rx_keepalive_interval = DEVICE_RX_KEEPALIVE_INTERVAL_IN_SECONDS;
@@ -252,7 +252,7 @@ static idigi_callback_status_t app_get_rx_keepalive_interval(uint16_t const ** i
 
 static idigi_callback_status_t app_get_wait_count(uint16_t const ** count, size_t * const size)
 {
-//#error "Specify the number of times that not receiving keepalive messages from server is allowed"
+#error "Specify the number of times that not receiving keepalive messages from server is allowed"
 #define DEVICE_WAIT_COUNT     5
     /*
      * Return pointer to wait count (number of times not receiving Tx keepalive
@@ -313,7 +313,7 @@ static idigi_callback_status_t app_get_device_id_method(idigi_device_id_method_t
 
 static idigi_callback_status_t app_get_imei_number(uint8_t * const imei_number, size_t * size)
 {
-//#error "Specify the IMEI number for WAN connection type if app_get_device_id_method returns idigi_auto_device_id_method"
+#error "Specify the IMEI number for WAN connection type if app_get_device_id_method returns idigi_auto_device_id_method"
     /* Each nibble corresponds a decimal digit.
      * Most upper nibble must be 0.
      */
