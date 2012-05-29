@@ -20,6 +20,9 @@ memory_usage.txt
 archive
 output
 
+# Doxygen Generated Docs
+docs
+
 # Ignore compiled java class files and build/dist folders
 *.class
 build
