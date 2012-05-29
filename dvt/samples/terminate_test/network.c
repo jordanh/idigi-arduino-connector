@@ -1,26 +1,13 @@
 /*
- *  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
+ * Copyright (c) 2012 Digi International Inc.,
+ * All rights not expressly granted are reserved.
  *
- *  This software contains proprietary and confidential information of Digi
- *  International Inc.  By accepting transfer of this copy, Recipient agrees
- *  to retain this software in confidence, to prevent disclosure to others,
- *  and to make no use of this software other than that for which it was
- *  delivered.  This is an unpublished copyrighted work of Digi International
- *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
- *  prohibited.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- *  Restricted Rights Legend
- *
- *  Use, duplication, or disclosure by the Government is subject to
- *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
- *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
- *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
- *  Restricted Rights at 48 CFR 52.227-19, as applicable.
- *
- *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
- *
+ * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
- * Rountines which implement the IIK network callbacks.
  */
 #include <stdio.h>
 #include <string.h>
@@ -129,12 +116,12 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
         {
             int enabled = 1;
 
-            if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (char*)&enabled, sizeof(enabled)) < 0)
+            if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &enabled, sizeof(enabled)) < 0)
             {
                 perror("open_socket: setsockopt SO_KEEPALIVE failed");
             }
 
-            if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char*)&enabled, sizeof(enabled)) < 0)
+            if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &enabled, sizeof(enabled)) < 0)
             {
                 perror("open_socket: setsockopt TCP_NODELAY failed");
             }
@@ -235,7 +222,7 @@ static idigi_callback_status_t app_network_send(idigi_write_request_t const * co
             perror("network_send: send() failed");
 
             do {
-                ccode = read(*write_data->network_handle, (char *)buffer, sizeof buffer);
+                ccode = read(*write_data->network_handle, buffer, sizeof buffer);
 
                 if (ccode == 0)
                 {
@@ -307,7 +294,7 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t const * 
         FD_ZERO(&read_set);
         FD_SET(*read_data->network_handle, &read_set);
 
-        /* Blocking point for IIK */
+        /* Blocking point for iDigi Connector */
         ccode = select(*read_data->network_handle+1, &read_set, NULL, NULL, &timeout);
         if (ccode < 0)
         {
@@ -321,7 +308,7 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t const * 
         }
     }
 
-    ccode = read(*read_data->network_handle, (char *)read_data->buffer, (int)read_data->length);
+    ccode = read(*read_data->network_handle, read_data->buffer, read_data->length);
 
     if (ccode == 0)
     {
@@ -359,7 +346,7 @@ static idigi_callback_status_t app_network_close(idigi_network_handle_t * const 
     ling_opt.l_linger = 1;
     ling_opt.l_onoff  = 1;
 
-    if (setsockopt(*fd, SOL_SOCKET, SO_LINGER, (char*)&ling_opt, sizeof(ling_opt) ) < 0)
+    if (setsockopt(*fd, SOL_SOCKET, SO_LINGER, &ling_opt, sizeof(ling_opt) ) < 0)
     {
         perror("network close: setsockopt fails: ");
         if (errno == EAGAIN || errno == EWOULDBLOCK)

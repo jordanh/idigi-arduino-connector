@@ -1,26 +1,13 @@
 /*
- *  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
+ * Copyright (c) 2011, 2012 Digi International Inc.,
+ * All rights not expressly granted are reserved.
  *
- *  This software contains proprietary and confidential information of Digi
- *  International Inc.  By accepting transfer of this copy, Recipient agrees
- *  to retain this software in confidence, to prevent disclosure to others,
- *  and to make no use of this software other than that for which it was
- *  delivered.  This is an unpublished copyrighted work of Digi International
- *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
- *  prohibited.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- *  Restricted Rights Legend
- *
- *  Use, duplication, or disclosure by the Government is subject to
- *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
- *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
- *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
- *  Restricted Rights at 48 CFR 52.227-19, as applicable.
- *
- *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
- *
+ * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
- *
  */
 
 /* The data security coding schemes (a.k.a. encryption types)... */
@@ -167,7 +154,7 @@ static int send_buffer(idigi_data_t * const idigi_ptr, uint8_t * const buffer, s
 
     idigi_callback_status_t status;
     idigi_write_request_t write_data;
-    idigi_request_t const request_id = {idigi_network_send};
+    idigi_request_t request_id;
     size_t length_written = 0;
     size_t size;
 
@@ -177,6 +164,7 @@ static int send_buffer(idigi_data_t * const idigi_ptr, uint8_t * const buffer, s
     write_data.network_handle = idigi_ptr->network_handle;
 
     size = sizeof length_written;
+    request_id.network_request = idigi_network_send;
     status = idigi_callback(idigi_ptr->callback, idigi_class_network, request_id, &write_data, sizeof write_data, &length_written, &size);
     switch (status)
     {
@@ -206,7 +194,7 @@ static int send_buffer(idigi_data_t * const idigi_ptr, uint8_t * const buffer, s
 
 static void release_packet_buffer(idigi_data_t * const idigi_ptr, uint8_t const * const packet, idigi_status_t const status, void * const user_data)
 {
-    /* this is called when IIK is done sending or after get_packet_buffer()
+    /* this is called when iDigi Connector is done sending or after get_packet_buffer()
      * is called to release idigi_ptr->send_packet.packet_buffer.buffer.
      *
      */
@@ -341,7 +329,7 @@ static idigi_callback_status_t send_packet_process(idigi_data_t * const idigi_pt
             int error_code = -bytes_sent;
             ASSERT(error_code > idigi_success && error_code <= idigi_no_resource);
 
-            idigi_ptr->error_code = (idigi_status_t)error_code;
+            idigi_ptr->error_code = error_code;
             status = idigi_callback_abort;
             goto done;
         }
@@ -405,9 +393,10 @@ static void release_receive_packet(idigi_data_t * const idigi_ptr, uint8_t const
 static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffer, size_t const length)
 {
     int bytes_received = 0;
-    idigi_request_t const request_id = {idigi_network_receive};
+    idigi_request_t request_id;
 
     /* Call callback to receive data from server */
+    request_id.network_request = idigi_network_receive;
 
     if (!idigi_ptr->network_busy)
     {
@@ -446,7 +435,7 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
             }
             else
             {
-                bytes_received = (int)length_read;
+                bytes_received = length_read;
             }
             goto done;
         }
@@ -456,7 +445,7 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
     /* check Tx keepalive timing */
     if (GET_TX_KEEPALIVE_INTERVAL(idigi_ptr) > 0)
     {
-        unsigned long const max_timeout = (unsigned long)(GET_TX_KEEPALIVE_INTERVAL(idigi_ptr) * GET_WAIT_COUNT(idigi_ptr));
+        unsigned long const max_timeout = (GET_TX_KEEPALIVE_INTERVAL(idigi_ptr) * GET_WAIT_COUNT(idigi_ptr));
 
         if (!valid_timing_limit(idigi_ptr, idigi_ptr->last_tx_keepalive_received_time, max_timeout))
         {
@@ -502,7 +491,7 @@ static idigi_callback_status_t receive_data_status(idigi_data_t * const idigi_pt
             int error_code = -read_length;
             ASSERT(error_code > idigi_success && error_code <= idigi_no_resource);
 
-            idigi_ptr->error_code = (idigi_status_t)error_code;
+            idigi_ptr->error_code = error_code;
             status = idigi_callback_abort;
             goto done;
         }
@@ -657,9 +646,10 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
                 default:
                 {
                     /* tell caller we have unexpected packet message */
-                    idigi_request_t const request_id = {idigi_network_receive};
+                    idigi_request_t request_id;
                     idigi_debug("receive_packet: error type 0x%x\n", (unsigned) type_val);
                     idigi_ptr->error_code = idigi_invalid_packet;
+                    request_id.network_request = idigi_network_receive;
                     notify_error_status(idigi_ptr->callback, idigi_class_network, request_id, idigi_invalid_packet);
                 }
             }
@@ -689,9 +679,10 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
                  */
                 if (packet_length != 0)
                 {
-                    idigi_request_t const request_id = {idigi_network_receive};
+                    idigi_request_t request_id;
                     idigi_debug("idigi_get_receive_packet: Invalid payload\n");
                     idigi_ptr->error_code = idigi_invalid_payload_packet;
+                    request_id.network_request = idigi_network_receive;
                     notify_error_status(idigi_ptr->callback, idigi_class_network, request_id, idigi_invalid_payload_packet);
                 }
             }
@@ -760,9 +751,9 @@ static idigi_callback_status_t connect_server(idigi_data_t * const idigi_ptr, ch
 {
     idigi_callback_status_t status;
     size_t length = sizeof *idigi_ptr->network_handle;
-    idigi_request_t const request_id = {idigi_network_connect};
+    idigi_request_t request_id;
 
-
+    request_id.network_request = idigi_network_connect;
     status = idigi_callback(idigi_ptr->callback, idigi_class_network, request_id, server_url, server_url_length, &idigi_ptr->network_handle, &length);
     switch (status)
     {
@@ -800,8 +791,9 @@ static idigi_callback_status_t close_server(idigi_data_t * const idigi_ptr)
 
     if (idigi_ptr->network_connected)
     {
-        idigi_request_t const request_id = {idigi_network_close};
+        idigi_request_t request_id;
 
+        request_id.network_request = idigi_network_close;
         status = idigi_callback_no_response(idigi_ptr->callback, idigi_class_network, request_id, idigi_ptr->network_handle, sizeof *idigi_ptr->network_handle);
         switch (status)
         {

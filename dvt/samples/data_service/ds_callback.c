@@ -1,26 +1,13 @@
 /*
- *  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
+ * Copyright (c) 2012 Digi International Inc.,
+ * All rights not expressly granted are reserved.
  *
- *  This software contains proprietary and confidential information of Digi
- *  International Inc.  By accepting transfer of this copy, Recipient agrees
- *  to retain this software in confidence, to prevent disclosure to others,
- *  and to make no use of this software other than that for which it was
- *  delivered.  This is an unpublished copyrighted work of Digi International
- *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
- *  prohibited.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- *  Restricted Rights Legend
- *
- *  Use, duplication, or disclosure by the Government is subject to
- *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
- *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
- *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
- *  Restricted Rights at 48 CFR 52.227-19, as applicable.
- *
- *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
- *
+ * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
- *
  */
 #include <stdlib.h>
 #include <stdbool.h>
@@ -72,7 +59,7 @@ idigi_status_t send_file(idigi_handle_t handle, int index, char * const filename
         idigi_callback_status_t const is_ok = app_os_malloc(sizeof *user, &ptr);
         if (is_ok != idigi_callback_continue || ptr == NULL)
         {
-            /* no memeory stop IIK */
+            /* no memeory stop iDigi Connector */
             APP_DEBUG("send_put_request: malloc fails\n");
             status = idigi_no_resource;
             goto done;
@@ -278,7 +265,7 @@ typedef struct device_request_handle {
     void * session;
     char * response_data;
     size_t length_in_bytes;
-    char * target;
+    char const * target;
     unsigned int count;
 } device_request_handle_t;
 
@@ -310,7 +297,7 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
         idigi_callback_status_t const ccode = app_os_malloc(sizeof *client_device_request, &ptr);
         if (ccode != idigi_callback_continue || ptr == NULL)
         {
-            /* no memeory stop IIK */
+            /* no memeory stop iDigi Connector */
             APP_DEBUG("process_device_request: malloc fails for device request on session %p\n", server_device_request->device_handle);
             response_data->message_status = idigi_msg_error_memory;
             goto done;
@@ -328,22 +315,22 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
         if (strcmp(server_device_request->target, device_request_target) == 0)
         {
             /* testing regular process target */
-            client_device_request->target = (char *)device_request_target;
+            client_device_request->target = device_request_target;
         }
         else if (strcmp(server_device_request->target, device_request_not_handle_target) == 0)
         {
             /* testing to return not processed message */
-            client_device_request->target = (char *)device_request_not_handle_target;
+            client_device_request->target = device_request_not_handle_target;
         }
         else if (strcmp(server_device_request->target, device_request_invalid_response_target) == 0)
         {
             /* testing to return error in response callback */
-            client_device_request->target = (char *)device_request_invalid_response_target;
+            client_device_request->target = device_request_invalid_response_target;
         }
         else if (strcmp(server_device_request->target, device_request_invalid_response_target1) == 0)
         {
             /* testing to return error in response callback */
-            client_device_request->target = (char *)device_request_invalid_response_target1;
+            client_device_request->target = device_request_invalid_response_target1;
         }
         else if (strcmp(server_device_request->target, device_request_cancel_target) == 0)
         {
@@ -380,11 +367,11 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
 
 
     client_device_request->length_in_bytes += server_data->length_in_bytes;
-    APP_DEBUG("process_device_request: handle %p target = \"%s\" data length = %lu total length = %lu\n",
+    APP_DEBUG("process_device_request: handle %p target = \"%s\" data length = %zu total length = %zu\n",
                                  server_device_request->device_handle,
                                  client_device_request->target,
-                                 (unsigned long int)server_data->length_in_bytes,
-                                 (unsigned long int)client_device_request->length_in_bytes);
+                                 server_data->length_in_bytes,
+                                 client_device_request->length_in_bytes);
 
     if ((server_data->flags & IDIGI_MSG_LAST_DATA) == IDIGI_MSG_LAST_DATA)
     {   /* No more chunk. let's setup response data */
@@ -448,10 +435,10 @@ static idigi_callback_status_t process_device_response(idigi_data_service_msg_re
             goto error;
         }
 
-        APP_DEBUG("process_device_response: handle %p total length = %lu send_byte %lu\n",
+        APP_DEBUG("process_device_response: handle %p total length = %zu send_byte %zu\n",
                                     server_device_request->device_handle,
-                                    (unsigned long int)client_device_request->length_in_bytes,
-                                    (unsigned long int)bytes);
+                                    client_device_request->length_in_bytes,
+                                    bytes);
 
         /* let's copy the response data to service_response buffer */
         memcpy(client_data->data, client_device_request->response_data, bytes);

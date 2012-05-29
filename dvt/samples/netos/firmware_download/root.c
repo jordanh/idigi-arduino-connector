@@ -1,39 +1,13 @@
 /*
- *  Copyright (c) 1996-2007 Digi International Inc., All Rights Reserved
+ * Copyright (c) 2012 Digi International Inc.,
+ * All rights not expressly granted are reserved.
  *
- *  This software contains proprietary and confidential information of Digi
- *  International Inc.  By accepting transfer of this copy, Recipient agrees
- *  to retain this software in confidence, to prevent disclosure to others,
- *  and to make no use of this software other than that for which it was
- *  delivered.  This is an unpublished copyrighted work of Digi International
- *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
- *  prohibited.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- *  Restricted Rights Legend
- *
- *  Use, duplication, or disclosure by the Government is subject to
- *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
- *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
- *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
- *  Restricted Rights at 48 CFR 52.227-19, as applicable.
- *
- *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
- *
- * Description.
+ * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
- *  applicationStart() is the entry point for user applications.  This
- *  This function will be called after the kernel has started and the
- *  TCP/IP stack has loaded.  applicationTcpDown() is called periodically
- *  after the kernel has started while the system is waiting for the
- *  TCP/IP stack to start.  
- *
- *
- *
- *
- * Edit Date/Ver   Edit Description
- * ==============  =======================================================
- *
- *
  */
 
 
@@ -91,7 +65,7 @@ static void * idigi_run_thread(void * arg)
  
      printf("idigi_run thread starts\n");
  
-     /* Run the IIK, this will only return on an IIK abort */
+     /* Run the iDigi Connector, this will only return on an iDigi Connector abort */
      status = idigi_run((idigi_handle_t) arg);
  
      printf("idigi_run thread exits %d\n", status);

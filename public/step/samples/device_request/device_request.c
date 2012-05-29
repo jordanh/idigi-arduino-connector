@@ -1,26 +1,13 @@
 /*
- *  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
+ * Copyright (c) 2011, 2012 Digi International Inc.,
+ * All rights not expressly granted are reserved.
  *
- *  This software contains proprietary and confidential information of Digi
- *  International Inc.  By accepting transfer of this copy, Recipient agrees
- *  to retain this software in confidence, to prevent disclosure to others,
- *  and to make no use of this software other than that for which it was
- *  delivered.  This is an unpublished copyrighted work of Digi International
- *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
- *  prohibited.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- *  Restricted Rights Legend
- *
- *  Use, duplication, or disclosure by the Government is subject to
- *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
- *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
- *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
- *  Restricted Rights at 48 CFR 52.227-19, as applicable.
- *
- *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
- *
+ * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
- *
  */
 #include <stdlib.h>
 #include "idigi_api.h"
@@ -29,12 +16,12 @@
 /* supported target name */
 static char const device_request_target[] = "myTarget";
 
-static char device_response_data[] = "My device response data";
+static char const device_response_data[] = "My device response data";
 
 typedef struct device_request_handle {
     void * device_handle;
-    char * response_data;
-    char * target;
+    char const * response_data;
+    char const * target;
     size_t length_in_bytes;
 } device_request_handle_t;
 

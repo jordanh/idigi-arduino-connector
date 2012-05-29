@@ -1,26 +1,13 @@
 /*
- *  Copyright (c) 2012 Digi International Inc., All Rights Reserved
+ * Copyright (c) 2012 Digi International Inc.,
+ * All rights not expressly granted are reserved.
  *
- *  This software contains proprietary and confidential information of Digi
- *  International Inc.  By accepting transfer of this copy, Recipient agrees
- *  to retain this software in confidence, to prevent disclosure to others,
- *  and to make no use of this software other than that for which it was
- *  delivered.  This is an unpublished copyrighted work of Digi International
- *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
- *  prohibited.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- *  Restricted Rights Legend
- *
- *  Use, duplication, or disclosure by the Government is subject to
- *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
- *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
- *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
- *  Restricted Rights at 48 CFR 52.227-19, as applicable.
- *
- *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
- *
+ * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
- *
  */
 #include <stdlib.h>
 #include <main.h>
@@ -34,8 +21,6 @@ static char const * event_list[] =
 };
 
 static size_t const event_list_size = asizeof(event_list);
-
-#define SEND_EVENT_BIT  0x01    /* TBD */
 
 idigi_connector_error_t ic_create_event(int const event)
 {
@@ -54,7 +39,7 @@ error:
     return status;
 }
 
-idigi_connector_error_t ic_get_event(int const event, unsigned long timeout_ms)
+idigi_connector_error_t ic_get_event(int const event, unsigned long const event_bit, unsigned long timeout_ms)
 {
     pointer event_ptr;
     idigi_connector_error_t status = idigi_connector_event_error;
@@ -66,13 +51,13 @@ idigi_connector_error_t ic_get_event(int const event, unsigned long timeout_ms)
         goto error;
     }
 
-    if (_event_wait_all(event_ptr, SEND_EVENT_BIT, timeout_ms) != MQX_OK)
+    if (_event_wait_all(event_ptr, event_bit, timeout_ms) != MQX_OK)
     {
         APP_DEBUG("Failed to wait on event %s\n", event_list[event]);
         goto error;
     }
 
-    if (_event_clear(event_ptr, SEND_EVENT_BIT) != MQX_OK)
+    if (_event_clear(event_ptr, event_bit) != MQX_OK)
     {
         APP_DEBUG("Failed to clear event %s\n", event_list[event]);
         goto error;
@@ -84,7 +69,7 @@ error:
     return status;
 }
 
-idigi_connector_error_t ic_set_event(int const event)
+idigi_connector_error_t ic_set_event(int const event, unsigned long const event_bit)
 {
     pointer event_ptr;
     idigi_connector_error_t status = idigi_connector_event_error;
@@ -96,7 +81,7 @@ idigi_connector_error_t ic_set_event(int const event)
         goto error;
     }
 
-    if (_event_set(event_ptr, SEND_EVENT_BIT) != MQX_OK)
+    if (_event_set(event_ptr, event_bit) != MQX_OK)
     {
         APP_DEBUG("Failed to clear event %s\n", event_list[event]);
         goto error;

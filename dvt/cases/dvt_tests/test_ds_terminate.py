@@ -153,7 +153,7 @@ class TerminateTestCase(iik_testcase.TestCase):
     
         """ Sends a firmware update to teminate iik """
     
-        self.log.info("***** Updating Firmware to terminate IIK *****")
+        self.log.info("***** Updating Firmware to terminate iDigi connector *****")
 
         # delete the file that sample is going to send for
         # the reboot result.

@@ -1,31 +1,22 @@
 /*
- *  Copyright (c) 2012 Digi International Inc., All Rights Reserved
+ * Copyright (c) 2011, 2012 Digi International Inc.,
+ * All rights not expressly granted are reserved.
  *
- *  This software contains proprietary and confidential information of Digi
- *  International Inc.  By accepting transfer of this copy, Recipient agrees
- *  to retain this software in confidence, to prevent disclosure to others,
- *  and to make no use of this software other than that for which it was
- *  delivered.  This is an unpublished copyrighted work of Digi International
- *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
- *  prohibited.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- *  Restricted Rights Legend
- *
- *  Use, duplication, or disclosure by the Government is subject to
- *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
- *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
- *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
- *  Restricted Rights at 48 CFR 52.227-19, as applicable.
- *
- *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
- *
+ * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
- *
  */
 #include "idigi_config.h"
 #include "idigi_api.h"
 #include "platform.h"
 #include "remote_config_cb.h"
+
+#if (!defined IDIGI_RCI_MAXIMUM_CONTENT_LENGTH) || (IDIGI_RCI_MAXIMUM_CONTENT_LENGTH <= 0)
+#error "Must define IDIGI_RCI_MAXIMUM_CONTENT_LENGTH > 0 in idigi_config.h"
+#endif
 
 
 idigi_callback_status_t app_remote_config_handler(idigi_remote_config_request_t const request,
@@ -40,22 +31,22 @@ idigi_callback_status_t app_remote_config_handler(idigi_remote_config_request_t 
     switch (request)
     {
     case idigi_remote_config_session_start:
-        status = app_keepalive_session_start(response_data);
+        status = app_system_session_start(response_data);
         break;
     case idigi_remote_config_session_end:
-        status = app_keepalive_session_end(response_data);
+        status = app_system_session_end(response_data);
         break;
     case idigi_remote_config_action_start:
-        status = app_keepalive_action_start(request_data, response_data);
+        status = app_system_action_start(request_data, response_data);
         break;
     case idigi_remote_config_action_end:
-        status = app_keepalive_action_end(request_data, response_data);
+        status = app_system_action_end(request_data, response_data);
         break;
     case idigi_remote_config_group_start:
-        status = app_keepalive_group_init(request_data, response_data);
+        status = app_system_group_init(request_data, response_data);
         break;
     case idigi_remote_config_group_end:
-        status = app_keepalive_group_end(request_data, response_data);
+        status = app_system_group_end(request_data, response_data);
         break;
     case idigi_remote_config_group_process:
     {
@@ -63,16 +54,16 @@ idigi_callback_status_t app_remote_config_handler(idigi_remote_config_request_t 
 
         if (remote_request->action == idigi_remote_action_set)
         {
-            status = app_keepalive_group_set(request_data, response_data);
+            status = app_system_group_set(request_data, response_data);
         }
         else
         {
-            status = app_keepalive_group_get(request_data, response_data);
+            status = app_system_group_get(request_data, response_data);
         }
         break;
     }
     case idigi_remote_config_session_cancel:
-        app_keepalive_session_cancel((void * const)request_data);
+        app_system_session_cancel((void * const)request_data);
         break;
     default:
         ASSERT(0);

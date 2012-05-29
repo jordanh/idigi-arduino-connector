@@ -1,26 +1,13 @@
 /*
- *  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
+ * Copyright (c) 2012 Digi International Inc.,
+ * All rights not expressly granted are reserved.
  *
- *  This software contains proprietary and confidential information of Digi
- *  International Inc.  By accepting transfer of this copy, Recipient agrees
- *  to retain this software in confidence, to prevent disclosure to others,
- *  and to make no use of this software other than that for which it was
- *  delivered.  This is an unpublished copyrighted work of Digi International
- *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
- *  prohibited.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- *  Restricted Rights Legend
- *
- *  Use, duplication, or disclosure by the Government is subject to
- *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
- *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
- *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
- *  Restricted Rights at 48 CFR 52.227-19, as applicable.
- *
- *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
- *
+ * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
- *
  */
 #if (IDIGI_VERSION >= 0x1010000UL)
   #include "idigi_config.h"
@@ -53,6 +40,54 @@
 #endif
 #include "layer.h"
 
+static idigi_callback_status_t get_device_id_method(idigi_data_t * const idigi_ptr, idigi_device_id_method_t * method)
+{
+    idigi_callback_status_t status = idigi_callback_continue;
+
+#if (IDIGI_VERSION >= IDIGI_VERSION_1200)
+
+#if (defined IDIGI_DEVICE_ID_METHOD)
+    UNUSED_PARAMETER(idigi_ptr);
+    *method = IDIGI_DEVICE_ID_METHOD;
+#else
+    idigi_request_t request_id;
+    size_t length = sizeof idigi_ptr->device_id_method;
+
+    request_id.config_request = idigi_config_device_id_method;
+    status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &idigi_ptr->device_id_method, &length);
+    switch (status)
+    {
+    case idigi_callback_continue:
+        switch (idigi_ptr->device_id_method)
+        {
+        case idigi_auto_device_id_method:
+        case idigi_manual_device_id_method:
+            break;
+        default:
+            idigi_debug("get_device_id_method: callback invalid device id method %d\n", idigi_ptr->device_id_method);
+            notify_error_status(idigi_ptr->callback, idigi_class_config, request_id, idigi_invalid_data);
+            status = idigi_callback_abort;
+        }
+        break;
+    case idigi_callback_unrecognized:
+        idigi_ptr->device_id_method = idigi_manual_device_id_method;
+        status = idigi_callback_continue;
+        break;
+
+    default:
+        break;
+    }
+
+    *method = idigi_ptr->device_id_method;
+#endif
+
+#else
+    UNUSED_PARAMETER(idigi_ptr);
+    *method = idigi_manual_device_id_method;
+#endif
+
+    return status;
+}
 idigi_handle_t idigi_init(idigi_callback_t const callback)
 {
 
@@ -60,7 +95,6 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
     idigi_callback_status_t status = idigi_callback_abort;
     idigi_status_t error_status = idigi_success;
     unsigned int i;
-
 
     static const struct {
         idigi_config_request_t request;
@@ -73,10 +107,17 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
 #if !defined(IDIGI_DEVICE_TYPE)
             {idigi_config_device_type, 1, DEVICE_TYPE_LENGTH},
 #endif
-            {idigi_config_device_id, DEVICE_ID_LENGTH, DEVICE_ID_LENGTH}
+            {idigi_config_device_id, DEVICE_ID_LENGTH, DEVICE_ID_LENGTH}  /* must be last one */
     };
 
+    size_t config_request_count = asizeof(idigi_config_request_ids);
+
     ASSERT_GOTO(callback != NULL, done);
+
+    idigi_debug("iDigi Connector v%d.%d.%d.%d\n", (IDIGI_VERSION & 0xFF000000) >> 24,
+                                                (IDIGI_VERSION & 0xFF0000) >> 16,
+                                                (IDIGI_VERSION & 0xFF00) >> 8,
+                                                (IDIGI_VERSION & 0xFF) >> 24);
 
     {
         void * handle;
@@ -102,8 +143,25 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
     idigi_handle->active_state = idigi_device_started;
     idigi_handle->error_code = idigi_success;
 
+    {
+        idigi_device_id_method_t device_id_method;
+        status = get_device_id_method(idigi_handle, &device_id_method);
+
+        if (status != idigi_callback_continue)
+        {
+            goto error;
+        }
+        if (device_id_method != idigi_manual_device_id_method)
+        {
+            /* skip device_id callback
+             * (last entry in the idigi_config_request_ids)
+             */
+            config_request_count--;
+        }
+    }
+
     /* get device id, vendor id, & device type */
-    for (i=0; i < asizeof(idigi_config_request_ids); i++)
+    for (i=0; i < config_request_count; i++)
     {
         size_t length = 0;
         void * data;
@@ -132,7 +190,10 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
             ASSERT(idigi_false);
             break;
         }
+
+
         request_id.config_request = idigi_config_request_ids[i].request;
+
         status = idigi_callback_no_request_data(idigi_handle->callback, idigi_class_config, request_id, &data, &length);
 
         *store_at = data;
@@ -156,8 +217,10 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
             if (idigi_config_request_ids[i].request == idigi_config_device_type)
             {
                 idigi_handle->device_type_length = length;
+                break;
             }
 #endif
+
             break;
         case idigi_callback_abort:
         case idigi_callback_unrecognized:

@@ -38,7 +38,7 @@ class TerminateTestCase(iik_testcase.TestCase):
     
         """ Sends an asynchronous firmware update to teminate iik """
     
-        self.log.info("***** Updating Firmware to terminate IIK *****")
+        self.log.info("***** Updating Firmware to terminate iDigi connector *****")
         monitor = DeviceConnectionMonitor(self.api, self.device_config.device_id)
 
         try:

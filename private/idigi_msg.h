@@ -1,26 +1,13 @@
 /*
- *  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
+ * Copyright (c) 2011, 2012 Digi International Inc.,
+ * All rights not expressly granted are reserved.
  *
- *  This software contains proprietary and confidential information of Digi
- *  International Inc.  By accepting transfer of this copy, Recipient agrees
- *  to retain this software in confidence, to prevent disclosure to others,
- *  and to make no use of this software other than that for which it was
- *  delivered.  This is an unpublished copyrighted work of Digi International
- *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
- *  prohibited.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- *  Restricted Rights Legend
- *
- *  Use, duplication, or disclosure by the Government is subject to
- *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
- *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
- *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
- *  Restricted Rights at 48 CFR 52.227-19, as applicable.
- *
- *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
- *
+ * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
- *
  */
 
 #if (defined IDIGI_COMPRESSION)
@@ -136,7 +123,8 @@ typedef enum
     msg_service_type_need_data,
     msg_service_type_have_data,
     msg_service_type_error,
-    msg_service_type_free
+    msg_service_type_free,
+    msg_service_type_pending_request
 } msg_service_type_t;
 
 typedef enum
@@ -265,6 +253,7 @@ typedef struct
         msg_session_t * current;
     } session;
     unsigned int last_assigned_id;
+    void const * pending_service_request;
 } idigi_msg_data_t;
 
 static msg_session_t * msg_find_session(idigi_msg_data_t const * const msg_ptr, unsigned int const id, idigi_bool_t const client_owned)
@@ -791,7 +780,16 @@ static void msg_send_complete(idigi_data_t * const idigi_ptr, uint8_t const * co
         /* update session state */
         if (MsgIsLastData(dblock->status_flag))
         {
-            session->current_state = MsgIsRequest(dblock->status_flag) ? msg_state_receive : msg_state_delete;
+            if (MsgIsRequest(dblock->status_flag))
+            {
+                session->current_state = msg_state_receive;
+            }
+            else
+            {
+                idigi_msg_data_t * const msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
+
+                msg_delete_session(idigi_ptr, msg_ptr, session);
+            }
             goto done;
         }
 
@@ -1085,27 +1083,63 @@ done:
     return status;
 }
 
-static msg_session_t * msg_start_session(idigi_data_t * const idigi_ptr, uint16_t const service_id, idigi_msg_error_t * const result)
+#if (defined IDIGI_DATA_SERVICE)
+static idigi_bool_t msg_initiate_request(idigi_data_t * const idigi_ptr, void const * const service_context)
 {
-    static idigi_bool_t const client_owned = idigi_true;
+    idigi_bool_t success = idigi_false;
     idigi_msg_data_t * const msg_ptr = get_facility_data(idigi_ptr, E_MSG_FAC_MSG_NUM);
-    msg_session_t * session = NULL;
 
     ASSERT_GOTO(msg_ptr != NULL, error);
-    session = msg_create_session(idigi_ptr, msg_ptr, service_id, client_owned, result);
-    if (session != NULL)
+    if (msg_ptr->pending_service_request == NULL)
     {
-        *result = msg_initialize_data_block(session, msg_ptr->capabilities[msg_capability_server].window_size, msg_block_state_send_request);
-        if (*result != idigi_msg_error_none)
+        msg_ptr->pending_service_request = service_context;
+        success = idigi_true;
+    }
+
+error:
+    return success;
+}
+
+static void msg_start_session(idigi_data_t * const idigi_ptr, idigi_msg_data_t * const msg_ptr)
+{
+    static idigi_bool_t const client_owned = idigi_true;
+    idigi_msg_error_t result = idigi_msg_error_none;
+    msg_session_t * const session = msg_create_session(idigi_ptr, msg_ptr, msg_service_id_data, client_owned, &result);
+
+    if (session == NULL)
+        goto error;
+
+    result = msg_initialize_data_block(session, msg_ptr->capabilities[msg_capability_server].window_size, msg_block_state_send_request);
+    if (result != idigi_msg_error_none)
+    {
+        msg_delete_session(idigi_ptr, msg_ptr, session);
+        goto error;
+    }
+
+    {
+        idigi_msg_callback_t * const cb_fn = msg_ptr->service_cb[msg_service_id_data];
+
+        if (cb_fn != NULL)
         {
-            msg_delete_session(idigi_ptr, msg_ptr, session);
-            session = NULL;
+            msg_service_request_t service_data;
+
+            service_data.session = session;
+            service_data.service_type = msg_service_type_pending_request;
+            service_data.have_data = (void *)msg_ptr->pending_service_request;
+            service_data.error_value = result;
+
+            cb_fn(idigi_ptr, &service_data);
+            if (service_data.error_value != idigi_msg_error_none)
+                msg_delete_session(idigi_ptr, msg_ptr, session);
+
+            msg_ptr->pending_service_request = NULL;
         }
     }
 
 error:
-    return session;
+    return;
 }
+#endif
 
 static idigi_callback_status_t msg_send_ack(idigi_data_t * const idigi_ptr, idigi_msg_data_t * const msg_ptr, msg_session_t * const session)
 {
@@ -1574,9 +1608,9 @@ static idigi_callback_status_t msg_process_error(idigi_data_t * const idigi_ptr,
         if ((session->current_state != msg_state_delete) && (session->current_state != msg_state_send_error))
         {
             uint8_t const error_val = message_load_u8(error_packet, error_code);
-            idigi_msg_error_t const msg_error = (idigi_msg_error_t)error_val;
+            idigi_msg_error_t const msg_error = error_val;
 
-            ASSERT(error_val < (uint8_t)idigi_msg_error_count);
+            ASSERT(error_val < idigi_msg_error_count);
             status = msg_inform_error(idigi_ptr, session, msg_error);
             if (status != idigi_callback_busy)
                 msg_delete_session(idigi_ptr, msg_fac, session);
@@ -1615,6 +1649,11 @@ static idigi_callback_status_t msg_process_pending(idigi_data_t * const idigi_pt
     idigi_callback_status_t status = idigi_callback_continue;
 
     if (msg_ptr->session_locked) goto done;
+
+#if (defined IDIGI_DATA_SERVICE)
+    if (msg_ptr->pending_service_request != NULL)
+        msg_start_session(idigi_ptr, msg_ptr);
+#endif
 
     msg_ptr->session_locked = idigi_true;
     if (msg_ptr->session.current == NULL)
@@ -1826,8 +1865,9 @@ static idigi_callback_status_t msg_init_facility(idigi_data_t * const idigi_ptr,
         msg_ptr->capabilities[msg_capability_client].max_transactions = IDIGI_MSG_MAX_TRANSACTION;
         #else
         {
-            idigi_request_t const request_id = {idigi_config_max_transaction};
+            idigi_request_t request_id;
 
+            request_id.config_request = idigi_config_max_transaction;
             status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id,
                                                     &msg_ptr->capabilities[msg_capability_client].max_transactions, NULL);
             if (status != idigi_callback_continue && status != idigi_callback_unrecognized)

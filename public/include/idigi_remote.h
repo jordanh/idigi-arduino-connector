@@ -1,26 +1,13 @@
 /*
- *  Copyright (c) 2012 Digi International Inc., All Rights Reserved
+ * Copyright (c) 2012 Digi International Inc.,
+ * All rights not expressly granted are reserved.
  *
- *  This software contains proprietary and confidential information of Digi
- *  International Inc.  By accepting transfer of this copy, Recipient agrees
- *  to retain this software in confidence, to prevent disclosure to others,
- *  and to make no use of this software other than that for which it was
- *  delivered.  This is an unpublished copyrighted work of Digi International
- *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
- *  prohibited.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- *  Restricted Rights Legend
- *
- *  Use, duplication, or disclosure by the Government is subject to
- *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
- *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
- *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
- *  Restricted Rights at 48 CFR 52.227-19, as applicable.
- *
- *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
- *
+ * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
- *
  */
 /**
  * @file
@@ -73,9 +60,9 @@ typedef enum {
 typedef enum {
     idigi_element_type_string,              /**< Single line string */
     idigi_element_type_multiline_string,    /**< This type is used for a string that may be more
-                                               than one line. A “text area” is shown in the iDigi Device
+                                               than one line. A "text area" is shown in the iDigi Device
                                                Cloud that allows a user to form multiple lines by pressing enter. */
-    idigi_element_type_password,            /**< This Password type is same as string type except it’s shown “*”
+    idigi_element_type_password,            /**< This Password type is same as string type except it’s shown "*"
                                                 when a user types in characters in the iDigi Device Cloud. */
     idigi_element_type_int32,               /**< 32-bit signed integer value */
     idigi_element_type_uint32,              /**< 32-bit unsigned integer value */
@@ -84,8 +71,8 @@ typedef enum {
     idigi_element_type_float,               /**< Floating value. float.h is included. */
     idigi_element_type_enum,                /**< enum is used to define a set of allowed values for an element.
                                                 This is a pull-down menu shown in iDigi Device Cloud. */
-    idigi_element_type_on_off,              /**< “on” or “off “ value. An applciation's callback should use
-                                                 idigi_on value for “on”  or idigi_off value for “off”. See @ref idigi_on_off_t*/
+    idigi_element_type_on_off,              /**< "on" or "off" value. An applciation's callback should use
+                                                 idigi_on value for "on"  or idigi_off value for "off". See @ref idigi_on_off_t*/
     idigi_element_type_boolean,             /**< true or false value. An application's callback should use  idigi_boolean_true
                                                 value for true  or idigi_boolean_false value for false. See @ref idigi_boolean_t */
 

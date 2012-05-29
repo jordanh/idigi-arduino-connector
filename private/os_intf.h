@@ -1,26 +1,13 @@
 /*
- *  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
+ * Copyright (c) 2011 Digi International Inc.,
+ * All rights not expressly granted are reserved.
  *
- *  This software contains proprietary and confidential information of Digi
- *  International Inc.  By accepting transfer of this copy, Recipient agrees
- *  to retain this software in confidence, to prevent disclosure to others,
- *  and to make no use of this software other than that for which it was
- *  delivered.  This is an unpublished copyrighted work of Digi International
- *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
- *  prohibited.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- *  Restricted Rights Legend
- *
- *  Use, duplication, or disclosure by the Government is subject to
- *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
- *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
- *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
- *  Restricted Rights at 48 CFR 52.227-19, as applicable.
- *
- *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
- *
+ * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
- *
  */
 #include "debug.h"
 
@@ -62,7 +49,7 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
         break;
 
     case idigi_callback_unrecognized:
-       idigi_debug("idigi_callback : callback returns unrecognized request for request=%d class_id = %d which iDigi requires for this version\n",
+       idigi_debug("idigi_callback : callback returns unrecognized request for request=%d class_id = %d\n",
                         request_id.config_request, class_id);
         break;
     case idigi_callback_abort:
@@ -72,7 +59,9 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
     {
         /* callback returns invalid return code */
         idigi_error_status_t err_status ;
-        idigi_request_t const err_id = {idigi_config_error_status};
+        idigi_request_t err_id;
+
+        err_id.config_request = idigi_config_error_status;
 
         err_status.class_id = class_id;
         err_status.request_id = request_id;
@@ -92,13 +81,14 @@ static void notify_error_status(idigi_callback_t const callback, idigi_class_t c
 {
 #if defined(IDIGI_DEBUG)
     idigi_error_status_t err_status;
-    idigi_request_t const request_id = {idigi_config_error_status};
+    idigi_request_t request_id;
 
+    request_id.config_request = idigi_config_error_status;
     err_status.class_id = class_number;
     err_status.request_id = request_number;
     err_status.status = status;
 
-    (void)idigi_callback_no_response(callback, idigi_class_config, request_id, &err_status, sizeof err_status);
+    idigi_callback_no_response(callback, idigi_class_config, request_id, &err_status, sizeof err_status);
 #else
     UNUSED_PARAMETER(callback);
     UNUSED_PARAMETER(class_number);
@@ -113,9 +103,10 @@ static idigi_callback_status_t get_system_time(idigi_data_t * const idigi_ptr, u
 {
     size_t  length;
     idigi_callback_status_t status;
-    idigi_request_t const request_id = {idigi_os_system_up_time};
+    idigi_request_t request_id;
 
     /* Call callback to get system up time in second */
+    request_id.os_request = idigi_os_system_up_time;
     status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_operating_system, request_id, uptime, &length);
     if (status == idigi_callback_abort || status == idigi_callback_unrecognized)
     {
@@ -160,8 +151,9 @@ static idigi_callback_status_t malloc_data(idigi_data_t * const idigi_ptr, size_
 
 static void free_data(idigi_data_t * const idigi_ptr, void * const ptr)
 {
-    idigi_request_t const request_id = {idigi_os_free};
+    idigi_request_t request_id;
 
+    request_id.os_request = idigi_os_free;
     idigi_callback_no_response(idigi_ptr->callback, idigi_class_operating_system, request_id, ptr, 0);
     del_malloc_stats(ptr);
 
@@ -174,8 +166,10 @@ static void sleep_timeout(idigi_data_t * const idigi_ptr)
     if (idigi_ptr->receive_packet.free_packet_buffer == NULL &&
         idigi_ptr->receive_packet.total_length == 0)
     {
-        idigi_request_t const request_id = {idigi_os_sleep};
+        idigi_request_t request_id;
         unsigned int const timeout = idigi_ptr->receive_packet.timeout;
+
+        request_id.os_request = idigi_os_sleep;
         idigi_callback_no_response(idigi_ptr->callback, idigi_class_operating_system, request_id, &timeout, sizeof timeout);
     }
 

@@ -68,7 +68,7 @@ group state gps_stats "GPS"
     error invalid_lat "Invalid latitude value"
     error invalid_long "Invalid longitude value"
 
-# iDigi Manager Pro queries this system setting to display the information unser root folder
+# iDigi Manager Pro queries this system setting to display the information in root folder
 group setting system "System"
     element contact "Contact" type string max 63
     element location "Location" type string max 63

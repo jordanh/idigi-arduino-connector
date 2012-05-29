@@ -1,26 +1,13 @@
 /*
- *  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
+ * Copyright (c) 2011, 2012 Digi International Inc.,
+ * All rights not expressly granted are reserved.
  *
- *  This software contains proprietary and confidential information of Digi
- *  International Inc.  By accepting transfer of this copy, Recipient agrees
- *  to retain this software in confidence, to prevent disclosure to others,
- *  and to make no use of this software other than that for which it was
- *  delivered.  This is an unpublished copyrighted work of Digi International
- *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
- *  prohibited.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- *  Restricted Rights Legend
- *
- *  Use, duplication, or disclosure by the Government is subject to
- *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
- *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
- *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
- *  Restricted Rights at 48 CFR 52.227-19, as applicable.
- *
- *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
- *
+ * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
- * Rountines which implement the iDigi connector network callbacks.
  */
 #include <stdio.h>
 #include <string.h>
@@ -120,12 +107,12 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
         {
             int enabled = 1;
 
-            if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (char*)&enabled, sizeof(enabled)) < 0)
+            if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &enabled, sizeof(enabled)) < 0)
             {
                 perror("open_socket: setsockopt SO_KEEPALIVE failed");
             }
 
-            if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char*)&enabled, sizeof(enabled)) < 0)
+            if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &enabled, sizeof(enabled)) < 0)
             {
                 perror("open_socket: setsockopt TCP_NODELAY failed");
             }
@@ -153,7 +140,7 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
             sin.sin_port   = htons(IDIGI_PORT);
             sin.sin_family = AF_INET;
 
-            if (connect(fd, (struct sockaddr *)&sin, sizeof(sin)) < 0)
+            if (connect(fd, &sin, sizeof(sin)) < 0)
             {
                 switch (errno)
                 {
@@ -169,13 +156,14 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
     }
 
     {
-        struct timeval timeout = {30, 0};
+        struct timeval timeout = {0};
         fd_set read_set;
         fd_set write_set;
 
         FD_ZERO(&read_set);
         FD_SET(fd, &read_set);
         write_set = read_set;
+        timeout.tv_sec = 30;
 
         if (select(fd+1, &read_set, &write_set, NULL, &timeout) <= 0)
         {
@@ -217,8 +205,7 @@ static idigi_callback_status_t app_network_send(idigi_write_request_t const * co
                                             size_t * const sent_length)
 {
     idigi_callback_status_t rc = idigi_callback_continue;
-    int const bytes_sent = write(*write_data->network_handle, (char *)write_data->buffer,
-                                 write_data->length);
+    int const bytes_sent = write(*write_data->network_handle, write_data->buffer, write_data->length);
     if (bytes_sent < 0)
     {
         if (errno == EAGAIN)
@@ -245,7 +232,7 @@ static idigi_callback_status_t app_network_send(idigi_write_request_t const * co
 static idigi_callback_status_t app_network_receive(idigi_read_request_t const * const read_data, size_t * const read_length)
 {
     idigi_callback_status_t rc = idigi_callback_continue;
-    struct timeval timeout = {read_data->timeout, 0};
+    struct timeval timeout = {0};
     fd_set read_set;
     int ccode;
 
@@ -254,6 +241,7 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t const * 
     FD_ZERO(&read_set);
     FD_SET(*read_data->network_handle, &read_set);
 
+    timeout.tv_sec = read_data->timeout;
     /* Blocking point for iDigi connector */
     ccode = select((*read_data->network_handle)+1, &read_set, NULL, NULL, &timeout);
     if (ccode < 0)
@@ -266,7 +254,7 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t const * 
         rc = idigi_callback_busy;
         goto done;
     }
-    ccode = read(*read_data->network_handle, (char *)read_data->buffer, (int)read_data->length);
+    ccode = read(*read_data->network_handle, read_data->buffer, read_data->length);
 
     if (ccode == 0)
     {
@@ -300,9 +288,12 @@ done:
 static idigi_callback_status_t app_network_close(idigi_network_handle_t * const fd)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    struct linger const ling_opt = {1,1};
+    struct linger ling_opt;
 
-    if (setsockopt(*fd, SOL_SOCKET, SO_LINGER, (char*)&ling_opt, sizeof(ling_opt) ) < 0)
+    ling_opt.l_onoff = 1;
+    ling_opt.l_linger = 1;
+
+    if (setsockopt(*fd, SOL_SOCKET, SO_LINGER, &ling_opt, sizeof(ling_opt) ) < 0)
     {
         perror("network close: setsockopt fails: ");
         if (errno == EAGAIN)

@@ -1,33 +1,22 @@
 /*
- *  Copyright (c) 2012 Digi International Inc., All Rights Reserved
+ * Copyright (c) 2011, 2012 Digi International Inc.,
+ * All rights not expressly granted are reserved.
  *
- *  This software contains proprietary and confidential information of Digi
- *  International Inc.  By accepting transfer of this copy, Recipient agrees
- *  to retain this software in confidence, to prevent disclosure to others,
- *  and to make no use of this software other than that for which it was
- *  delivered.  This is an unpublished copyrighted work of Digi International
- *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
- *  prohibited.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- *  Restricted Rights Legend
- *
- *  Use, duplication, or disclosure by the Government is subject to
- *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
- *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
- *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
- *  Restricted Rights at 48 CFR 52.227-19, as applicable.
- *
- *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
- *
+ * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
- *
  */
 #include <unistd.h>
 #include <malloc.h>
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
+#include <ctype.h>
 
+#include "idigi_config.h"
 #include "idigi_api.h"
 #include "platform.h"
 
@@ -314,6 +303,45 @@ static idigi_callback_status_t app_get_max_message_transactions(unsigned int * c
     return idigi_callback_continue;
 }
 
+static idigi_callback_status_t app_get_device_id_method(idigi_device_id_method_t * const method)
+{
+
+    *method = idigi_auto_device_id_method;
+
+    return idigi_callback_continue;
+}
+
+static idigi_callback_status_t app_get_imei_number(uint8_t * const imei_number, size_t * size)
+{
+#error "Specify the IMEI number for WAN connection type if app_get_device_id_method returns idigi_auto_device_id_method"
+    /* Each nibble corresponds a decimal digit.
+     * Most upper nibble must be 0.
+     */
+    char  const app_imei_number[] = "000000-00-000000-0";
+    int i = sizeof app_imei_number -1;
+    int index = *size -1;
+
+    while (i > 0)
+    {
+        int n = 0;
+
+        imei_number[index] = 0;
+
+        while (n < 2 && i > 0)
+        {
+            i--;
+            if (app_imei_number[i] != '-')
+            {
+                ASSERT(isdigit(app_imei_number[i]));
+                imei_number[index] += ((app_imei_number[i] - '0') << (n * 4));
+                n++;
+            }
+        }
+        index--;
+    }
+    return idigi_callback_continue;
+}
+
 /* End of iDigi connector configuration routines */
 
 /*
@@ -344,24 +372,26 @@ static void app_config_error(idigi_error_status_t * const error_data)
                                                       "idigi_service_busy",
                                                       "idigi_invalid_response"};
 
-    static char const * const config_request_string[] = { "idigi_config_device_id",
-                                                         "idigi_config_vendor_id",
-                                                         "idigi_config_device_type",
-                                                         "idigi_config_server_url",
-                                                         "idigi_config_connection_type",
-                                                         "idigi_config_mac_addr",
-                                                         "idigi_config_link_speed",
-                                                         "idigi_config_phone_number",
-                                                         "idigi_config_tx_keepalive",
-                                                         "idigi_config_rx_keepalive",
-                                                         "idigi_config_wait_count",
-                                                         "idigi_config_ip_addr",
-                                                         "idigi_config_error_status",
-                                                         "idigi_config_firmware_facility",
-                                                         "idigi_config_data_service",
-                                                         "idigi_config_file_system",
-                                                         "idigi_config_remote_configuration",
-                                                         "idigi_config_max_transaction"};
+    static char const * config_request_string[] = { "idigi_config_device_id",
+                                                     "idigi_config_vendor_id",
+                                                     "idigi_config_device_type",
+                                                     "idigi_config_server_url",
+                                                     "idigi_config_connection_type",
+                                                     "idigi_config_mac_addr",
+                                                     "idigi_config_link_speed",
+                                                     "idigi_config_phone_number",
+                                                     "idigi_config_tx_keepalive",
+                                                     "idigi_config_rx_keepalive",
+                                                     "idigi_config_wait_count",
+                                                     "idigi_config_ip_addr",
+                                                     "idigi_config_error_status",
+                                                     "idigi_config_firmware_facility",
+                                                     "idigi_config_data_service",
+                                                     "idigi_config_file_system",
+                                                     "idigi_config_remote_configuration",
+                                                     "idigi_config_max_transaction",
+                                                     "idigi_config_device_id_method",
+                                                     "idigi_config_imei_number"};
 
     static char const * const network_request_string[] = { "idigi_network_connect",
                                                           "idigi_network_send",
@@ -544,6 +574,14 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
     case idigi_config_max_transaction:
         status = app_get_max_message_transactions(response_data);
         break;
+
+    case idigi_config_device_id_method:
+        status = app_get_device_id_method(response_data);
+        break;
+
+     case idigi_config_imei_number:
+         status = app_get_imei_number(response_data, response_length);
+         break;
 
     default:
         APP_DEBUG("app_config_callback: unknown configuration request= %d\n", request);

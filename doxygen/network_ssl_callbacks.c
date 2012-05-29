@@ -334,7 +334,7 @@
  *         }
  *     }
  *
- *     bytes_read = SSL_read(ssl_ptr->ssl, read_data->buffer, (int)read_data->length);
+ *     bytes_read = SSL_read(ssl_ptr->ssl, read_data->buffer, )read_data->length);
  *     if (bytes_read <= 0)
  *     {
  *         /* EOF on input: the connection was closed. */

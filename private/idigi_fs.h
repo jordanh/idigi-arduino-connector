@@ -1,26 +1,13 @@
 /*
- *  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
+ * Copyright (c) 2012 Digi International Inc.,
+ * All rights not expressly granted are reserved.
  *
- *  This software contains proprietary and confidential information of Digi
- *  International Inc.  By accepting transfer of this copy, Recipient agrees
- *  to retain this software in confidence, to prevent disclosure to others,
- *  and to make no use of this software other than that for which it was
- *  delivered.  This is an unpublished copyrighted work of Digi International
- *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
- *  prohibited.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- *  Restricted Rights Legend
- *
- *  Use, duplication, or disclosure by the Government is subject to
- *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
- *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
- *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
- *  Restricted Rights at 48 CFR 52.227-19, as applicable.
- *
- *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
- *
+ * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
- *
  */
 
 typedef enum
@@ -187,7 +174,7 @@ static void format_file_error_msg(idigi_data_t * const idigi_ptr,
         }
         else
         {
-            error_hint_len = (uint8_t) response.size_in_bytes;
+            error_hint_len = response.size_in_bytes;
         }
      }
      message_store_u8(fs_error_response, error_hint_len, error_hint_len);
@@ -1077,7 +1064,7 @@ static size_t parse_file_ls_header(file_system_context_t * const context,
         data_ptr += len;
         len += header_len;
 
-        hash_alg = (idigi_file_hash_algorithm_t) *data_ptr;
+        hash_alg = *data_ptr;
 
         switch (hash_alg)
         {
@@ -1124,7 +1111,7 @@ static size_t format_file_ls_response_header(idigi_file_hash_algorithm_t const h
 
     message_store_u8(fs_ls_response, opcode,     fs_ls_response_opcode);
     message_store_u8(fs_ls_response, hash_alg,   hash_alg);
-    message_store_u8(fs_ls_response, hash_bytes, (uint8_t) hash_size);
+    message_store_u8(fs_ls_response, hash_bytes, hash_size);
 
     return record_bytes(fs_ls_response_header);
 }

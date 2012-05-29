@@ -1,31 +1,17 @@
-
 /*
- *  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
+ * Copyright (c) 2011, 2012 Digi International Inc.,
+ * All rights not expressly granted are reserved.
  *
- *  This software contains proprietary and confidential information of Digi
- *  International Inc.  By accepting transfer of this copy, Recipient agrees
- *  to retain this software in confidence, to prevent disclosure to others,
- *  and to make no use of this software other than that for which it was
- *  delivered.  This is an unpublished copyrighted work of Digi International
- *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
- *  prohibited.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- *  Restricted Rights Legend
- *
- *  Use, duplication, or disclosure by the Government is subject to
- *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
- *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
- *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
- *  Restricted Rights at 48 CFR 52.227-19, as applicable.
- *
- *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
- *
+ * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
- *
  */
  /**
   * @file
-  *  @brief Functions and prototypes for iDigi Integration kit
+  *  @brief Functions and prototypes for iDigi Connector
   *         public API
   *
   */
@@ -42,6 +28,7 @@
  *                                    0x01010000UL
  */
 #define IDIGI_VERSION_1100   0x01010000UL
+#define IDIGI_VERSION_1200   0x01020000UL
 
 #include "idigi_types.h"
 
@@ -175,14 +162,32 @@ typedef enum {
     idigi_config_data_service,      /**< Requesting callback to return whether data service is supported or not. */
     idigi_config_file_system,       /**< Requesting callback to return whether file system is supported or not. */
     idigi_config_remote_configuration,  /**< Requesting callback to return whether remote configuration is supported or not. */
-#if (IDIGI_VERSION >= IDIGI_VERSION_1100)
-    idigi_config_max_transaction    /**< Requesting callback to obtain maximum messaging sessions supported by client. */
-#endif
+    idigi_config_max_transaction,    /**< Requesting callback to obtain maximum messaging sessions supported by client. */
+    idigi_config_device_id_method,    /**< Requesting callback to obtain method on how device id is generated */
+    idigi_config_imei_number          /**< Requesting callback to return IMEI number */
 } idigi_config_request_t;
 /**
 * @}
 */
 
+/**
+* @defgroup idigi_device_id_method_t Device ID Method Types
+* @{
+*/
+/**
+ * Device ID method returned by the application's callback for @ref idigi_config_device_id_method callback.
+ */
+typedef enum {
+    idigi_auto_device_id_method,                  /**< Callback returns this type telling iDigi connector to
+                                                       generate the device ID from MAC address (See @ref idigi_config_mac_addr callback)
+                                                       for LAN connection type or for IMEI number (See @ref idigi_config_imei_number callback)
+                                                       for WAN connection type. See @ref connection_type callback.
+                                                       @note iDigi connector will not call @ref idigi_config_device_id callback. */
+    idigi_manual_device_id_method                 /**< Callback returns this type telling iDigi connector to retrieve device ID from @ref idigi_config_device_id callback */
+} idigi_device_id_method_t;
+/**
+* @}
+*/
 
 /**
 * @defgroup idigi_network_request_t Network Request IDs

@@ -22,7 +22,7 @@
  *
  * @section intro Introduction
  *
- * The iDigi Integration Kit (iDigi connector) is a software development package used to
+ * The iDigi Connector is a software development package used to
  * communicate and exchange information between a device and the iDigi Device
  * Cloud. iDigi supports application to device data interaction (messaging),
  * application & device data storage, and remote management of devices. Devices
@@ -210,9 +210,9 @@
  * includes the sources that implement the @ref api_overview "iDigi connector public API".  The public Application Framework includes a
  * set of sample applications used for demonstration purposes.
  *
- * @note The private partition should be treated as a black box and never used, changed, debugged or referenced directly.  It's recommended
+ * @note For forward compatibility the private partition should be treated as a black box and never changed or referenced directly.  It's recommended
  * after completing the @ref getting_started process that this private partition be converted into a library.   Note the term
- * "iDigi connector library" is used synonymously for the "iDigi connector private partition".
+ * "iDigi Connector library" is used synonymously for the "iDigi Connector private partition".
  *
  * @subsection DirectoryStructure Directory Structure
  *
@@ -278,7 +278,7 @@
  * The iDigi connector is split into two separate partitions, a private partition and a public Application Framework.
  *
  * The private partition (iDigi connector Library) includes source code that implements the @ref api_overview "iDigi connector public API", plus all the internal code used to implement the
- * iDigi Cloud protocol.  This private partition should be treated as a black box and never used, changed, debugged or referenced directly.
+ * iDigi Cloud protocol.  For forward compatibility this private partition should be treated as a black box and never changed or referenced directly.
  *
  * The public Application Framework partition is further divided in two: a Platform and Sample section.  The Platform section is related to system
  * specific porting dependencies (i.e., fleshing out @ref os_callbacks "operating system" calls, @ref network_callbacks "networking", @ref config_callbacks "system configuration").  The Sample section contains an application
@@ -322,25 +322,25 @@
  * time() function:
  *
  * @code
- * int app_os_get_system_time(unsigned long * const uptime)
+ * idigi_callback_status_t app_os_get_system_time(unsigned long * const uptime)
  * {
  *    time((time_t *)uptime);
  *
- *    return 0;
+ *    return idigi_callback_continue;
  * }
  * @endcode
  *
  * However, a platform that does not support POSIX time() might port this function as such:
  *
  * @code
- * int app_os_get_system_time(unsigned long * const uptime)
+ * idigi_callback_status_t app_os_get_system_time(unsigned long * const uptime)
  * {
  *    // Note mysys_GetTickTime() returns the system up time in milliseconds
  *    extern unsigned long mysys_GetTickTime(void);
  *
  *    *uptime = mysys_GetTickTime()/1000;
  *
- *    return 0;
+ *    return idigi_callback_continue;
  * }
  * @endcode
  *

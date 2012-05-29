@@ -307,7 +307,7 @@
  *           size_t * return_bytes_read = (size_t *)response_data;
  *          int bytes_received;
  *
- *          bytes_received = recv(*read_data->network_handle, (char *)read_data->buffer, (int)read_data->length, 0);
+ *          bytes_received = read(*read_data->network_handle, read_data->buffer, read_data->length);
  *          if (bytes_received == 0)
  *          {
  *              /* EOF on input: the connection was closed. */
@@ -395,7 +395,7 @@
  *
  *     if (class_id == idigi_class_network && request_id.network_request == idigi_network_close)
  *     {
- *          idigi_network_handle_t * const fd = (idigi_network_handle_t *)request_data;
+ *          idigi_network_handle_t * const fd = request_data;
  *          if (close(*fd) < 0)
  *          {
  *              perror("close() failed");

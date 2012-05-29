@@ -1,27 +1,14 @@
 /*
-*  Copyright (c) 2012 Digi International Inc., All Rights Reserved
-*
-*  This software contains proprietary and confidential information of Digi
-*  International Inc.  By accepting transfer of this copy, Recipient agrees
-*  to retain this software in confidence, to prevent disclosure to others,
-*  and to make no use of this software other than that for which it was
-*  delivered.  This is an unpublished copyrighted work of Digi International
-*  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
-*  prohibited.
-*
-*  Restricted Rights Legend
-*
-*  Use, duplication, or disclosure by the Government is subject to
-*  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
-*  Technical Data and Computer Software clause at DFARS 252.227-7031 or
-*  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
-*  Restricted Rights at 48 CFR 52.227-19, as applicable.
-*
-*  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
-*
-* =======================================================================
-*
-*/
+ * Copyright (c) 2012 Digi International Inc.,
+ * All rights not expressly granted are reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
+ * =======================================================================
+ */
 
 #include "idigi_api.h"
 #include "platform.h"
@@ -242,7 +229,7 @@ static idigi_callback_status_t process_device_error(idigi_data_service_msg_reque
 static void send_data_completed(idigi_app_send_data_t * const app_dptr, idigi_connector_error_t const error_code)
 {
     app_dptr->error = error_code;
-    ic_set_event(IC_SEND_DATA_EVENT);
+    ic_set_event(IC_SEND_DATA_EVENT, app_dptr->event_bit);
 }
 
 static idigi_callback_status_t process_send_data_request(idigi_data_service_msg_request_t const * const request_data,
@@ -256,17 +243,16 @@ static idigi_callback_status_t process_send_data_request(idigi_data_service_msg_
     if (app_dptr != NULL)
     {
         idigi_data_service_block_t * const message = put_response->client_data;
-        size_t bytes_to_copy = message->length_in_bytes;
 
-        if (app_dptr->bytes_remaining < bytes_to_copy)
+        if (app_dptr->bytes_remaining < message->length_in_bytes)
         {
-            bytes_to_copy = app_dptr->bytes_remaining;
+            message->length_in_bytes = app_dptr->bytes_remaining;
             message->flags = IDIGI_MSG_LAST_DATA;
         }
 
-        memcpy(message->data, app_dptr->next_data, bytes_to_copy);
-        app_dptr->bytes_remaining += bytes_to_copy;
-        app_dptr->next_data = ((char *)app_dptr->next_data) + bytes_to_copy;
+        memcpy(message->data, app_dptr->next_data, message->length_in_bytes);
+        app_dptr->bytes_remaining -= message->length_in_bytes;
+        app_dptr->next_data = ((char *)app_dptr->next_data) + message->length_in_bytes;
         put_response->message_status = idigi_msg_error_none;
     }
     else

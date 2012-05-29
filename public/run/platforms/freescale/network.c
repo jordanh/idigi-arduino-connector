@@ -1,26 +1,13 @@
 /*
- *  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
+ * Copyright (c) 2012 Digi International Inc.,
+ * All rights not expressly granted are reserved.
  *
- *  This software contains proprietary and confidential information of Digi
- *  International Inc.  By accepting transfer of this copy, Recipient agrees
- *  to retain this software in confidence, to prevent disclosure to others,
- *  and to make no use of this software other than that for which it was
- *  delivered.  This is an unpublished copyrighted work of Digi International
- *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
- *  prohibited.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- *  Restricted Rights Legend
- *
- *  Use, duplication, or disclosure by the Government is subject to
- *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
- *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
- *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
- *  Restricted Rights at 48 CFR 52.227-19, as applicable.
- *
- *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
- *
+ * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
- * Rountines which implement the IIK network callbacks.
  */
 #include <mqx.h>
 #include <bsp.h>
@@ -59,44 +46,37 @@ static boolean dns_resolve_name(char const * const name, _ip_address * const ip_
 
 static boolean set_socket_options(int const fd)
 {
+    #define SOCKET_BUFFER_SIZE 512
+    #define SOCKET_TIMEOUT_MSEC 1000
     boolean success = FALSE;
+    uint_32 option = TRUE;
 
+    if(setsockopt(fd, SOL_TCP, OPT_RECEIVE_NOWAIT, &option, sizeof option) != RTCS_OK)
     {
-        boolean option = TRUE;
-
-        if(setsockopt(fd, SOL_TCP, OPT_RECEIVE_NOWAIT, &option, sizeof option) != RTCS_OK)
-        {
-            APP_DEBUG("set_non_blocking_socket: setsockopt OPT_RECEIVE_NOWAIT failed");
-            goto error;
-        }
+        APP_DEBUG("set_non_blocking_socket: setsockopt OPT_RECEIVE_NOWAIT failed");
+        goto error;
     }
 
-    #define SOCKET_BUFFER_SIZE              512
-    #define SOCKET_TIMEOUT_MSEC             1000
-
+    /* Reduce buffer size of socket to save memory */
+    option = SOCKET_BUFFER_SIZE;
+    if (setsockopt(socket_fd, SOL_TCP, OPT_TBSIZE, &option, sizeof option) != RTCS_OK)
     {
-        uint_32 option = SOCKET_BUFFER_SIZE;
+        APP_DEBUG("network_connect: setsockopt OPT_TBSIZE failed\n");
+        goto error;
+    }
 
-        /* Reduce buffer size of socket to save memory */
-        if (setsockopt(socket_fd, SOL_TCP, OPT_TBSIZE, &option, sizeof option) != RTCS_OK)
-        {
-            APP_DEBUG("network_connect: setsockopt OPT_TBSIZE failed\n");
-            goto error;
-        }
+    if (setsockopt(socket_fd, SOL_TCP, OPT_RBSIZE, &option, sizeof option) != RTCS_OK)
+    {
+        APP_DEBUG("network_connect: setsockopt OPT_RBSIZE failed\n");
+        goto error;
+    }
 
-        if (setsockopt(socket_fd, SOL_TCP, OPT_RBSIZE, &option, sizeof option) != RTCS_OK)
-        {
-            APP_DEBUG("network_connect: setsockopt OPT_RBSIZE failed\n");
-            goto error;
-        }
-
-        /* set a socket timeout */
-        option = SOCKET_TIMEOUT_MSEC;
-        if (setsockopt(socket_fd, SOL_TCP, OPT_TIMEWAIT_TIMEOUT, &option, sizeof option) != RTCS_OK)
-        {
-            APP_DEBUG("network_connect: setsockopt OPT_TIMEWAIT_TIMEOUT failed\n");
-            goto error;
-        }
+    /* set a socket timeout */
+    option = SOCKET_TIMEOUT_MSEC;
+    if (setsockopt(socket_fd, SOL_TCP, OPT_TIMEWAIT_TIMEOUT, &option, sizeof option) != RTCS_OK)
+    {
+        APP_DEBUG("network_connect: setsockopt OPT_TIMEWAIT_TIMEOUT failed\n");
+        goto error;
     }
 
     success = TRUE;
@@ -126,7 +106,7 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
             goto done;
         }
 
-        ASSERT(set_socket_options(socket_fd));
+        set_socket_options(socket_fd);
 
         {
             struct sockaddr_in sin = {0};
@@ -160,7 +140,7 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
 
     *network_handle = &socket_fd;
     status = idigi_callback_continue;
-    APP_DEBUG("network_connect: connected to [%.*s] server\n", length, host_name);
+    APP_DEBUG("network_connect: connected to [%.*s] server\n", (int)length, host_name);
     goto done;
 
 error:
@@ -173,7 +153,7 @@ done:
 
 /*
  * Send data to the iDigi server, this routine must not block.  If it encounters
- * EAGAIN or EWOULDBLOCK error, 0 bytes must be returned and IIK will continue
+ * EAGAIN or EWOULDBLOCK error, 0 bytes must be returned and iDigi Connector will continue
  * calling this function.
  */
 static idigi_callback_status_t app_network_send(idigi_write_request_t const * const write_data,
@@ -201,7 +181,7 @@ static idigi_callback_status_t app_network_send(idigi_write_request_t const * co
 /*
  * This routine reads a specified number of bytes from the iDigi server.  This
  * function must not block. If it encounters EAGAIN or EWOULDBLOCK error, 0
- * bytes must be returned and IIK will continue calling this function.
+ * bytes must be returned and iDigi Connector will continue calling this function.
  */
 static idigi_callback_status_t app_network_receive(idigi_read_request_t const * const read_data, size_t * const read_length)
 {

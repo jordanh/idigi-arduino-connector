@@ -40,7 +40,7 @@
 
 NETOS_DIR= /cygdrive/f/74/netos/netos
 WIN_NETOS_DIR =f:/74/netos/netos
-IIK_DIR= ../../../../../..
+IDIGICONNECTOR_DIR= ../../../../../..
 
 
 OBJDIR=./objs
@@ -50,14 +50,14 @@ BUILD_ROM_IMAGE= 0
 
 APP_DESCRIPTION="Connect to iDigi"
 
-vpath %.c .. $(IIK_DIR)/private $(IIK_DIR)/public/dvt/platforms/netos
+vpath %.c .. $(IDIGICONNECTOR_DIR)/private $(IDIGICONNECTOR_DIR)/public/dvt/platforms/netos
 
 APP_C_FILES=root.c idigi_api.c os.c network.c config.c application.c
 
 APP_CC_FILES=
 APP_ASM_FILES=
 
-APP_C_FLAGS=-DIDIGI_VERSION=0x1010000UL
+APP_C_FLAGS=-DIDIGI_VERSION=0x1020000UL
 #APP_C_FLAGS=
 
 APP_CC_FLAGS=
@@ -67,8 +67,8 @@ APP_INCDIRS= -I..
 APP_INCDIRS+= -I../../../../h/usb_host
 APP_INCDIRS+= -I../../../bsp/devices/common/wifimac
 APP_INCDIRS+= -I../../../usb_host_drivers/WiFi_USB
-APP_INCDIRS+= -I$(IIK_DIR)/public/include
-APP_INCDIRS+= -I$(IIK_DIR)/public/dvt/platforms/netos
+APP_INCDIRS+= -I$(IDIGICONNECTOR_DIR)/public/include
+APP_INCDIRS+= -I$(IDIGICONNECTOR_DIR)/public/dvt/platforms/netos
 
 # All libraries needed for this examples:
 APP_LIBS = $(NETOS_LIBPATH)/libfilesys.a \

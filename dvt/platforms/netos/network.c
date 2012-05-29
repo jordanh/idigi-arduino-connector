@@ -1,26 +1,13 @@
 /*
- *  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
+ * Copyright (c) 2012 Digi International Inc.,
+ * All rights not expressly granted are reserved.
  *
- *  This software contains proprietary and confidential information of Digi
- *  International Inc.  By accepting transfer of this copy, Recipient agrees
- *  to retain this software in confidence, to prevent disclosure to others,
- *  and to make no use of this software other than that for which it was
- *  delivered.  This is an unpublished copyrighted work of Digi International
- *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
- *  prohibited.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- *  Restricted Rights Legend
- *
- *  Use, duplication, or disclosure by the Government is subject to
- *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
- *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
- *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
- *  Restricted Rights at 48 CFR 52.227-19, as applicable.
- *
- *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
- *
+ * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
- * Rountines which implement the IIK network callbacks.
  */
 #include <stdio.h>
 #include <string.h>
@@ -191,7 +178,7 @@ done:
 
 /*
  * Send data to the iDigi server, this routine must not block.  If it encounters
- * EAGAIN or EWOULDBLOCK error, 0 bytes must be returned and IIK will continue
+ * EAGAIN or EWOULDBLOCK error, 0 bytes must be returned and iDigi Connector will continue
  * calling this function.
  */
 static idigi_callback_status_t network_send(idigi_write_request_t const * const write_data,
@@ -222,7 +209,7 @@ static idigi_callback_status_t network_send(idigi_write_request_t const * const 
 /*
  * This routine reads a specified number of bytes from the iDigi server.  This 
  * function must not block. If it encounters EAGAIN or EWOULDBLOCK error, 0 
- * bytes must be returned and IIK will continue calling this function.
+ * bytes must be returned and iDigi Connector will continue calling this function.
  */
 static idigi_callback_status_t network_receive(idigi_read_request_t * read_data, size_t * read_length)
 {
@@ -239,7 +226,7 @@ static idigi_callback_status_t network_receive(idigi_read_request_t * read_data,
     FD_ZERO(&read_set);
     FD_SET(*read_data->network_handle, &read_set);
 
-    /* Blocking point for IIK */
+    /* Blocking point for iDigi Connector */
     ccode = select(*read_data->network_handle+1, &read_set, NULL, NULL, &timeout);
     if (ccode < 0)
     {

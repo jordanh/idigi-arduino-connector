@@ -27,8 +27,8 @@
  * // list of all supported firmware target info
  * static firmware_list_t firmware_list[] = {
  *   // version     code_size     name_spec            description
- *   {  0x01000000, (uint32_t)-1, ".*\\.a",            "Library Image"}, // any .a image
- *   {  0x00000100, (uint32_t)-1, ".*\\.[bB][iI][nN]", "Binary Image" }  // any .bin image
+ *   {  0x01000000, -1, ".*\\.a",            "Library Image"}, // any .a image
+ *   {  0x00000100, -1, ".*\\.[bB][iI][nN]", "Binary Image" }  // any .bin image
  * };
  * @endcode
  *
@@ -124,7 +124,7 @@
  *
  * The following defines are used in this sample:
  *
- * @li -DIDIGI_VERSION=0x1010000UL (indicates version 1.1 of the iDigi connector)
+ * @li -DIDIGI_VERSION=0x1020000UL (indicates version 1.1 of the iDigi connector)
  *
  * @section running Running
  *

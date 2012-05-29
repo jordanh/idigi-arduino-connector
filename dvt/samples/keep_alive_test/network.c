@@ -1,26 +1,13 @@
 /*
- *  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
+ * Copyright (c) 2012 Digi International Inc.,
+ * All rights not expressly granted are reserved.
  *
- *  This software contains proprietary and confidential information of Digi
- *  International Inc.  By accepting transfer of this copy, Recipient agrees
- *  to retain this software in confidence, to prevent disclosure to others,
- *  and to make no use of this software other than that for which it was
- *  delivered.  This is an unpublished copyrighted work of Digi International
- *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
- *  prohibited.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- *  Restricted Rights Legend
- *
- *  Use, duplication, or disclosure by the Government is subject to
- *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
- *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
- *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
- *  Restricted Rights at 48 CFR 52.227-19, as applicable.
- *
- *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
- *
+ * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
- * Rountines which implement the IIK network callbacks.
  */
 #include <stdio.h>
 #include <string.h>
@@ -43,74 +30,82 @@ int dvt_send_keepalive_count = 0;
 int dvt_fw_keepalive_count = 0;
 int dvt_fw_complete_called = 0;
 
-static int app_dns_resolve_name(char const * const domain_name, in_addr_t * ip_addr)
+static int app_dns_resolve_name(char const * const domain_name, in_addr_t * const ip_addr)
 {
-    int rc=-1;
-    struct addrinfo *res0, *res, hint;
-    int error;
+    int ret = -1;
+    struct addrinfo *res_list;
+    struct addrinfo *res;
 
     if ((domain_name == NULL) || (ip_addr == NULL))
-    {
         goto done;
+
+    {
+        struct addrinfo hint = {0};
+        int error;
+
+        hint.ai_socktype = SOCK_STREAM;
+        hint.ai_family   = AF_INET;
+        error = getaddrinfo(domain_name, NULL, &hint, &res_list);
+        if (error != 0)
+        {
+            APP_DEBUG("dns_resolve_name: DNS resolution failed for [%s]\n", domain_name);
+            goto done;
+        }
     }
 
-    memset(&hint, 0, sizeof(hint));
-    hint.ai_socktype = SOCK_STREAM;
-    hint.ai_family   = AF_INET;
-    error = getaddrinfo(domain_name, NULL, &hint, &res0);
-    if (error != 0)
-    {
-        APP_DEBUG("dns_resolve_name: DNS resolution failed for [%s]\n", domain_name);
-        goto done;
-    }
-
-    /* loop over all returned results and look for a V4 IP address */
-    for (res = res0; res; res = res->ai_next)
+    /* loop over all returned results and look for a IPv4 address */
+    for (res = res_list; res; res = res->ai_next)
     {
         if (res->ai_family == PF_INET)
         {
-            *ip_addr = ((struct sockaddr_in*)res->ai_addr)->sin_addr.s_addr;
-            APP_DEBUG("dns_resolve_name: ip address = [%s]\n", inet_ntoa(((struct sockaddr_in*)res->ai_addr)->sin_addr));
-            rc = 0;
+            struct in_addr const ipv4_addr = ((struct sockaddr_in*)res->ai_addr)->sin_addr;
+
+            *ip_addr = ipv4_addr.s_addr;
+            APP_DEBUG("dns_resolve_name: ip address = [%s]\n", inet_ntoa(ipv4_addr));
+            ret = 0;
             break;
         }
     }
 
-    freeaddrinfo(res0);
+    freeaddrinfo(res_list);
+
 done:
-    return rc;
+    return ret;
 }
 
 static idigi_callback_status_t app_network_connect(char const * const host_name, size_t const length, idigi_network_handle_t ** network_handle)
 {
     idigi_callback_status_t rc = idigi_callback_abort;
-    struct timeval timeout = {1, 0};
-    int opt=1, result;
-    fd_set read_set;
-    fd_set write_set;
     static int fd = -1;
 
     if (fd == -1)
     {
-        int ccode;
-        char server_name[64];
         in_addr_t ip_addr;
-        struct sockaddr_in sin;
 
-        strncpy(server_name, host_name, length);
-        server_name[length] = '\0';
-
-        /*
-         * Check if it's a dotted-notation IP address, if it's a domain name,
-         * attempt to resolve it.
-         */
-        ip_addr = inet_addr(server_name);
-        if (ip_addr == INADDR_NONE)
         {
-            if (app_dns_resolve_name(server_name, &ip_addr) != 0)
+            char server_name[64];
+
+            if (length >= asizeof(server_name))
             {
-                APP_DEBUG("network_connect: Can't resolve DNS for %s\n", server_name);
+                APP_DEBUG("app_connect_to_server: server name length [%zu]\n", length);
                 goto done;
+            }
+
+            memcpy(server_name, host_name, length);
+            server_name[length] = '\0';
+
+            /*
+             * Check if it's a dotted-notation IP address, if it's a domain name,
+             * attempt to resolve it.
+             */
+            ip_addr = inet_addr(server_name);
+            if (ip_addr == INADDR_NONE)
+            {
+                if (app_dns_resolve_name(server_name, &ip_addr) != 0)
+                {
+                    APP_DEBUG("network_connect: Can't resolve DNS for %s\n", server_name);
+                    goto done;
+                }
             }
         }
 
@@ -119,12 +114,12 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
         {
             int enabled = 1;
 
-            if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (char*)&enabled, sizeof(enabled)) < 0)
+            if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &enabled, sizeof(enabled)) < 0)
             {
                 perror("open_socket: setsockopt SO_KEEPALIVE failed");
             }
 
-            if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char*)&enabled, sizeof(enabled)) < 0)
+            if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &enabled, sizeof(enabled)) < 0)
             {
                 perror("open_socket: setsockopt TCP_NODELAY failed");
             }
@@ -135,50 +130,67 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
             goto done;
         }
 
-        if (ioctl(fd, FIONBIO, &opt) < 0)
         {
-            perror("ioctl: FIONBIO failed");
-            goto done;
+            int opt=1;
+
+            if (ioctl(fd, FIONBIO, &opt) < 0)
+            {
+                perror("ioctl: FIONBIO failed");
+                goto done;
+            }
         }
 
-        memset((char *)&sin, 0, sizeof(sin));
-        memcpy(&sin.sin_addr, &ip_addr, sizeof sin.sin_addr);
-        sin.sin_port   = htons(IDIGI_PORT);
-        sin.sin_family = AF_INET;
-        ccode = connect(fd, (struct sockaddr *)&sin, sizeof(sin));
-        if (ccode < 0)
         {
-            if (errno != EAGAIN && errno != EINPROGRESS && errno != EWOULDBLOCK)
+            struct sockaddr_in sin = {0};
+
+            memcpy(&sin.sin_addr, &ip_addr, sizeof sin.sin_addr);
+            sin.sin_port   = htons(IDIGI_PORT);
+            sin.sin_family = AF_INET;
+
+            if (connect(fd, (struct sockaddr *)&sin, sizeof(sin)) < 0)
             {
-                perror("network_connect: connect() failed");
-                goto done;
+                switch (errno)
+                {
+                case EAGAIN:
+                case EINPROGRESS:
+                    break;
+                default:
+                    perror("network_connect: connect() failed");
+                    goto done;
+                }
             }
         }
     }
 
-    FD_ZERO(&read_set);
-    FD_SET(fd, &read_set);
-    write_set = read_set;
-
-    result = select(fd+1, &read_set, &write_set, NULL, &timeout);
-    if (result <= 0)
     {
-        goto done;
-    }
+        struct timeval timeout = {0};
+        fd_set read_set;
+        fd_set write_set;
 
-    /* Check whether the socket is now writable (connection succeeded). */
-    if (FD_ISSET(fd, &write_set))
-    {
-        /* We expect "socket writable" when the connection succeeds. */
-        /* If we also got a "socket readable" we have an error. */
-        if (FD_ISSET(fd, &read_set))
+        FD_ZERO(&read_set);
+        FD_SET(fd, &read_set);
+        write_set = read_set;
+
+        timeout.tv_sec = 30;
+        if (select(fd+1, &read_set, &write_set, NULL, &timeout) <= 0)
         {
-            APP_DEBUG("network_connect: error to connect to %.*s server\n", (int)length, host_name);
             goto done;
         }
-        *network_handle = &fd;
-        rc = idigi_callback_continue;
-        APP_DEBUG("network_connect: connected to [%.*s] server\n", (int)length, host_name);
+
+        /* Check whether the socket is now writable (connection succeeded). */
+        if (FD_ISSET(fd, &write_set))
+        {
+            /* We expect "socket writable" when the connection succeeds. */
+            /* If we also got a "socket readable" we have an error. */
+            if (FD_ISSET(fd, &read_set))
+            {
+                APP_DEBUG("network_connect: error to connect to %.*s server\n", (int)length, host_name);
+                goto done;
+            }
+            *network_handle = &fd;
+            rc = idigi_callback_continue;
+            APP_DEBUG("network_connect: connected to [%.*s] server\n", (int)length, host_name);
+        }
     }
 
 done:
@@ -191,11 +203,6 @@ done:
     return rc;
 }
 
-/*
- * Send data to the iDigi server, this routine must not block.  If it encounters
- * EAGAIN or EWOULDBLOCK error, 0 bytes must be returned and IIK will continue
- * calling this function.
- */
 static idigi_callback_status_t app_network_send(idigi_write_request_t const * const write_data,
                                             size_t * const sent_length)
 {
@@ -223,11 +230,10 @@ static idigi_callback_status_t app_network_send(idigi_write_request_t const * co
         }
     }
 
-    ccode = send(*write_data->network_handle, (char *)write_data->buffer,
-                 write_data->length, 0);
+    ccode = send(*write_data->network_handle, write_data->buffer,write_data->length, 0);
     if (ccode < 0) 
     {
-        if ((errno == EAGAIN) || (errno == EWOULDBLOCK))
+        if (errno == EAGAIN)
         {
             rc = idigi_callback_busy;
         }
@@ -242,11 +248,6 @@ static idigi_callback_status_t app_network_send(idigi_write_request_t const * co
     return rc;
 }
 
-/*
- * This routine reads a specified number of bytes from the iDigi server.  This 
- * function must not block. If it encounters EAGAIN or EWOULDBLOCK error, 0 
- * bytes must be returned and IIK will continue calling this function.
- */
 static idigi_callback_status_t app_network_receive(idigi_read_request_t const * const read_data, size_t * const read_length)
 {
     idigi_callback_status_t rc = idigi_callback_continue;
@@ -262,19 +263,19 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t const * 
     FD_ZERO(&read_set);
     FD_SET(*read_data->network_handle, &read_set);
 
-    /* Blocking point for IIK */
+    /* Blocking point for iDigi Connector */
     ccode = select(*read_data->network_handle+1, &read_set, NULL, NULL, &timeout);
     if (ccode < 0)
     {
         goto done;
     }
 
-    if (!FD_ISSET(*read_data->network_handle, &read_set))
+    if (ccode == 0)
     {
         rc = idigi_callback_busy;
         goto done;
     }
-    ccode = recv(*read_data->network_handle, (char *)read_data->buffer, (int)read_data->length, 0);
+    ccode = recv(*read_data->network_handle, read_data->buffer, read_data->length, 0);
 
     if (ccode == 0)
     {
@@ -287,7 +288,7 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t const * 
     {
         /* An error of some sort occurred: handle it appropriately. */
         err = errno;
-        if (err == EAGAIN || err == EWOULDBLOCK)
+        if (err == EAGAIN)
         {
             rc = idigi_callback_busy;
         }
@@ -308,7 +309,7 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t const * 
             if (mt_type == MT_TYPE_KEEP_ALIVE)
             {
                 APP_DEBUG("Discarding tx keepalive receive packet\n");
-                ccode = recv(*read_data->network_handle, buffer, (int)read_data->length, 0);
+                ccode = recv(*read_data->network_handle, buffer, read_data->length, 0);
                 goto done;
             }
         }
@@ -328,10 +329,10 @@ static idigi_callback_status_t app_network_close(idigi_network_handle_t * const 
     ling_opt.l_linger = 1;
     ling_opt.l_onoff  = 1;
 
-    if (setsockopt(*fd, SOL_SOCKET, SO_LINGER, (char*)&ling_opt, sizeof(ling_opt) ) < 0)
+    if (setsockopt(*fd, SOL_SOCKET, SO_LINGER, &ling_opt, sizeof(ling_opt) ) < 0)
     {
         perror("network close: setsockopt fails: ");
-        if (errno == EAGAIN || errno == EWOULDBLOCK)
+        if (errno == EAGAIN)
         {
             status = idigi_callback_busy;
         }
@@ -346,19 +347,19 @@ static idigi_callback_status_t app_network_close(idigi_network_handle_t * const 
     return status;
 }
 
-static int app_server_disconnected(void)
+static idigi_callback_status_t app_server_disconnected(void)
 {
 
     APP_DEBUG("Disconnected from server\n");
-    return 0;
+    return idigi_callback_continue;
 }
 
-static int app_server_reboot(void)
+static idigi_callback_status_t app_server_reboot(void)
 {
 
     APP_DEBUG("Reboot from server\n");
     /* should not return from rebooting the system */
-    return 0;
+    return idigi_callback_continue;
 }
 
 /*
@@ -368,8 +369,7 @@ idigi_callback_status_t app_network_handler(idigi_network_request_t const reques
                                             void const * const request_data, size_t const request_length,
                                             void * response_data, size_t * const response_length)
 {
-    idigi_callback_status_t status = idigi_callback_continue;
-    int ret;
+    idigi_callback_status_t status;
 
     UNUSED_ARGUMENT(request_length);
 
@@ -393,17 +393,16 @@ idigi_callback_status_t app_network_handler(idigi_network_request_t const reques
         break;
 
     case idigi_network_disconnected:
-       ret = app_server_disconnected();
-       status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
-       break;
+        status = app_server_disconnected();
+        break;
 
     case idigi_network_reboot:
-        ret = app_server_reboot();
-        status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
+        status = app_server_reboot();
         break;
 
     default:
         APP_DEBUG("app_network_handler: unrecognized callback request [%d]\n", request);
+        status = idigi_callback_unrecognized;
         break;
 
     }
