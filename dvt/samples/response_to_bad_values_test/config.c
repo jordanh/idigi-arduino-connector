@@ -16,6 +16,7 @@
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
+#include <ctype.h>
 #include "errno.h"
 
 #include "idigi_config.h"

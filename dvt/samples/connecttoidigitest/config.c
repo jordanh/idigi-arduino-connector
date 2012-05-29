@@ -14,6 +14,7 @@
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
+#include <ctype.h>
 
 #include "idigi_api.h"
 #include "platform.h"
