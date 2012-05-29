@@ -1,0 +1,64 @@
+/*
+ *  Copyright (c) 1996-2011 Digi International Inc., All Rights Reserved
+ *
+ *  This software contains proprietary and confidential information of Digi
+ *  International Inc.  By accepting transfer of this copy, Recipient agrees
+ *  to retain this software in confidence, to prevent disclosure to others,
+ *  and to make no use of this software other than that for which it was
+ *  delivered.  This is an unpublished copyrighted work of Digi International
+ *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
+ *  prohibited.
+ *
+ *  Restricted Rights Legend
+ *
+ *  Use, duplication, or disclosure by the Government is subject to
+ *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
+ *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
+ *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
+ *  Restricted Rights at 48 CFR 52.227-19, as applicable.
+ *
+ *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
+ *
+ * =======================================================================
+ *
+ */
+
+#ifndef _PLATFORM_H
+#define _PLATFORM_H
+
+// #define DEBUG_MALLOC
+
+#define APP_DEBUG   _io_printf
+
+#define FLASH_DOWNLOAD_BUFFER_SIZE 2048
+
+#define PUT_REQUEST_BUFFER_SIZE 512
+#define DEVICE_REQUEST_BUFFER_SIZE 512
+
+#define USE_NEW_DEVICE_REQUEST_CALLBACK
+
+#define UNUSED_ARGUMENT(x)     ((void)x)
+
+typedef size_t (* device_request_callback_function_t)(char const * const target,
+                                                      void const * const reqest_data, size_t const request_bytes,
+                                                      void * const response_data, size_t const max_response_bytes);
+
+/* Callbacks for this platform */
+idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
+                           void const * const request_data, size_t const request_length,
+                           void * const response_data, size_t * const response_length);
+
+idigi_callback_status_t app_network_handler(idigi_network_request_t const request,
+                         void const * const request_data, size_t const request_length,
+                         void * const response_data, size_t * const response_length);
+
+idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
+                                              void const * const request_data,
+                                              size_t const request_length,
+                                              void * const response_data,
+                                              size_t * const response_length);
+
+int application_run(idigi_handle_t handle);
+void app_os_sleep(unsigned int const timeout_in_seconds);
+
+#endif /* _PLATFORM_H */
