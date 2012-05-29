@@ -76,7 +76,8 @@ sample_tests = {
     'connect_on_ssl'    : ('test_ssl.py',),
     'firmware_download' : ('test_firmware.py',),
     'send_data'         : ('test_send_data.py',),
-    'device_request'    : ('test_device_request.py',)
+    'device_request'    : ('test_device_request.py',),
+    'file_system'       : ('test_file_system.py',),
 }
 run_sample  = TestType('run_sample', 'public/run/samples/', 
                        'dvt/cases/sample_tests', sample_tests)
@@ -262,16 +263,16 @@ def run_test(test, test_list, execution_type, base_src_dir, base_script_dir,
 
         # Sleep 5 seconds to allow device to do it's initialization (push data for example)
         time.sleep(5)
-        pid = commands.getoutput('pidof -s %s' % idigi_path)
-        if pid == '':
-            raise Exception(">>> [%s] idigi [%s] not running dir=[%s]" % (description, execution_type, src_dir))
-
-        if not connected:
-            raise Exception("Device %s was not connected after 10 seconds." % device_id)
-
-        print '>>> [%s] Started idigi [%s]-[%s]' % (description, execution_type, src_dir)
 
         try:
+            pid = commands.getoutput('pidof -s %s' % idigi_path)
+            if pid == '':
+                raise Exception(">>> [%s] idigi [%s] not running dir=[%s]" % (description, execution_type, src_dir))
+
+            if not connected:
+                raise Exception("Device %s was not connected after 10 seconds." % device_id)
+
+            print '>>> [%s] Started idigi [%s]-[%s]' % (description, execution_type, src_dir)
             for test_script in test_list:
                 # skip the test if script filename starts with 'test_nodebug'
                 if debug_on and test_script.find('test_nodebug') == 0:
