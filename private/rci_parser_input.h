@@ -21,86 +21,6 @@ static void state_call(rci_t * const rci, rci_parser_state_t const call_state)
     state_call_return(rci, call_state, rci->parser.state.current);
 }
 
-static rci_command_t find_rci_command(rci_string_t const * const tag)
-{
-    static char const * const rci_command[] = {
-        RCI_SET_SETTING,
-        RCI_SET_STATE,
-        RCI_QUERY_SETTING,
-        RCI_QUERY_STATE
-    };
-    size_t i;
-    rci_command_t result = rci_command_unknown;
-      
-    CONFIRM(rci_command_set_state == (rci_command_set_setting + 1));
-    CONFIRM(rci_command_query_setting == (rci_command_set_state + 1));
-    CONFIRM(rci_command_query_state == (rci_command_query_setting + 1));
-    
-    for (i = 0; i < asizeof(rci_command); i++)
-    {
-        if (cstr_equals_rcistr(rci_command[i], tag))
-        {
-            result = (rci_command_t) (rci_command_set_setting + i);
-            break;
-        }
-    }
-    
-    return result;
-}
-
-static rci_string_t const * find_attribute_value(rci_attribute_list_t const * const attribute, char const * const name)
-{
-    rci_string_t const * result = NULL;
-    size_t i;
-        
-    for (i = 0; i < attribute->count; i++)
-    {
-        rci_attribute_t const * const pair = &attribute->pair[i];
-        
-        if (cstr_equals_rcistr(name, &pair->name))
-        {
-            result = &pair->value;
-            break;
-        }
-    }
-    
-    return result;
-}
-
-static unsigned int find_group(idigi_group_t const * const group, size_t const count, rci_string_t const * const tag)
-{
-    int result = INVALID_ID;
-    size_t i;
-    
-    for (i = 0; i < count; i++)
-    {
-        if (cstr_equals_rcistr(group[i].name, tag))
-        {
-            result = i;
-            break;
-        }
-    }
-    
-    return result;
-}
-
-static unsigned int find_element(idigi_group_t const * const group, rci_string_t const * const tag)
-{
-    int result = INVALID_ID;
-    size_t i;
-    
-    for (i = 0; i < group->elements.count; i++)
-    {
-        if (cstr_equals_rcistr(group->elements.data[i].name, tag))
-        {
-            result = i;
-            break;
-        }
-    }
-    
-    return result;
-}
-
 static void rci_error(rci_t * const rci, unsigned int const id, char const * const description, char const * const hint)
 {
     rci->shared.response.error_id = id;
@@ -112,14 +32,25 @@ static void rci_error(rci_t * const rci, unsigned int const id, char const * con
 }
 
 #if defined RCI_PARSER_USES_DESCRIPTIONS
-#define get_rci_global_error(id)   idigi_rci_errors[(id) - idigi_rci_error_OFFSET]
+#define get_rci_global_error(rci, id)   idigi_rci_errors[(id) - idigi_rci_error_OFFSET]
+static char * get_rci_group_error(rci_t * const rci, unsigned int const id)
+{
+    idigi_group_t const * const group = get_current_group(rci);
+    unsigned int const index = (id - idigi_global_error_OFFSET);
+    
+    ASSERT(id >= idigi_global_error_OFFSET);
+    ASSERT(index < group->errors->count);
+        
+    return group->errors->description[index];
+}
 #else
-#define get_rci_global_error(id)   ((void) (id), NULL)
+#define get_rci_global_error(rci, id)   ((void) (rci), (void) (id), NULL)
+#define get_rci_group_error(rci, id)    ((void) (rci), (void) (id), NULL)
 #endif
 
 static void rci_global_error(rci_t * const rci, unsigned int const id, char const * const hint)
 {
-    char const * const description = get_rci_global_error(id);
+    char const * const description = get_rci_global_error(rci, id);
     
     rci_error(rci, id, description, hint);
 }
@@ -132,9 +63,8 @@ static void rci_group_error(rci_t * const rci, unsigned int const id, char const
     }
     else
     {
-        char const * const description = NULL;
+        char const * const description = get_rci_group_error(rci, id);
     
-        /* subtract offset to find index */
         rci_error(rci, id, description, hint);
     }
 }
@@ -187,18 +117,20 @@ static idigi_bool_t rci_scan_enum(char const * const input, idigi_element_value_
 
 static idigi_bool_t rci_callback(rci_t * const rci, idigi_remote_config_request_t const remote_config_request)
 {
-    idigi_bool_t callback_complete = idigi_true;
+    idigi_bool_t callback_complete;
     idigi_remote_group_response_t * response_data = &rci->shared.response;
     size_t response_length = sizeof *response_data;
-    idigi_remote_group_request_t * request_data;
-    size_t request_length;
+    idigi_remote_group_request_t * request_data = NULL;
+    size_t request_length = 0;
+    idigi_request_t request;
 
-    switch (config_request)
+    request.remote_config_request = remote_config_request;
+
+    switch (remote_config_request)
     {
+    UNHANDLED_CASES_ARE_NEEDED;
     case idigi_remote_config_session_start:
     case idigi_remote_config_session_end:
-        request_data = NULL;
-        request_length = 0;
         break;
         
     case idigi_remote_config_action_start:
@@ -209,45 +141,142 @@ static idigi_bool_t rci_callback(rci_t * const rci, idigi_remote_config_request_
         request_data = &rci->shared.request;
         request_length = sizeof *request_data;
         break;
-        
+
     case idigi_remote_config_session_cancel:
-        request_data = NULL;
-        request_length = 0;
         response_data = NULL;
         response_length = 0;
         break;
     }
         
     {
-        /* TODO: This is not the actual routine to call, this is only for local testing -ASK */
-        extern idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id, void * const request_data, size_t const request_length, void * response_data, size_t * const response_length);
-        idigi_request_t request;
-
-        request.remote_config_request = remote_config_request;
-        idigi_callback_status_t const status = app_idigi_callback(idigi_class_remote_config_service, request, request_data, request_length, response_data, &response_length);
+        idigi_callback_status_t const status = idigi_callback(rci->service_data->idigi_ptr->callback, idigi_class_remote_config_service, request, request_data, request_length, response_data, &response_length);
 
         switch (status)
         {
         case idigi_callback_abort:
             rci->status = rci_status_error;
+            callback_complete = idigi_true;
             break;
             
         case idigi_callback_continue:
+            callback_complete = idigi_true;
             break;
             
         case idigi_callback_busy:
-            rci->callback.config_request = config_request;
+            rci->callback.config_request = remote_config_request;
             rci->callback.status = status;
             callback_complete = idigi_false;
             break;
             
         default:
+            callback_complete = idigi_false;
             ASSERT(idigi_false);
             break;
         }
-
-        return callback_complete;
     }
+
+    return callback_complete;
+}
+
+typedef void (*rci_action_t)(rci_t * const rci);
+
+static void rci_action_unary_group(rci_t * const rci)
+{
+    rci->traversal.state = rci_traversal_state_one_group_start;
+    state_call(rci, rci_parser_state_traversal);
+}
+
+static void rci_action_start_group(rci_t * const rci)
+{
+    rci->output.tag = &rci->shared.string.tag;
+    rci->output.attribute = NULL;
+
+    rci->output.type = rci_output_type_start_tag;
+    state_call(rci, rci_parser_state_output);
+}
+
+static idigi_bool_t rci_process_group_tag(rci_t * const rci, rci_action_t const rci_action)
+{
+    idigi_bool_t success;
+    
+    rci->shared.request.group.id = find_group_id(rci, &rci->shared.string.tag);
+    if (rci->shared.request.group.id == INVALID_ID)
+    {
+        rci_global_error(rci, idigi_rci_error_bad_group, RCI_NO_HINT);
+        goto error;
+    }
+
+    {
+        rci_string_t const * const index = find_attribute_value(&rci->shared.attribute, RCI_INDEX);
+        
+        if (index == NULL)
+        {
+            rci->shared.request.group.index = 1;
+        }
+        else
+        {
+            idigi_group_t const * const group = get_current_group(rci);
+            
+            if (!rcistr_to_uint(index, &rci->shared.request.group.index) || (rci->shared.request.group.index > group->instances))
+            {
+                rci_global_error(rci, idigi_rci_error_bad_index, RCI_NO_HINT);
+                goto error;
+            }
+        }
+    }
+        
+    if (!rci_callback(rci, idigi_remote_config_group_start))
+        goto error;
+    
+    rci_action(rci);
+    success = idigi_true;
+    goto done;
+    
+error:
+    success = idigi_false;
+    
+done:
+    return success;    
+}
+
+static void rci_action_unary_element(rci_t * const rci)
+{
+    rci->traversal.state = rci_traversal_state_one_element_start;
+    state_call(rci, rci_parser_state_traversal);
+}
+
+static void rci_action_start_element(rci_t * const rci)
+{
+    rci->output.tag = &rci->shared.string.tag;
+    rci->output.attribute = NULL;
+
+    rci->output.type = rci_output_type_start_tag;
+    state_call(rci, rci_parser_state_output);
+    
+    rci->input.send_content = idigi_true;
+}
+
+static idigi_bool_t rci_process_element_tag(rci_t * const rci, rci_action_t const rci_action)
+{
+    idigi_bool_t success;
+
+    ASSERT(!have_element_id(rci));
+    set_element_id(rci, find_element_id(rci, &rci->shared.string.tag));
+    if (!have_element_id(rci))
+    {
+        rci_global_error(rci, idigi_rci_error_bad_element, RCI_NO_HINT);
+        goto error;
+    }
+
+    rci_action(rci);
+    success = idigi_true;
+    goto done;
+    
+error:
+    success = idigi_false;
+    
+done:
+    return success;    
 }
 
 static idigi_bool_t rci_handle_unary_tag(rci_t * const rci)
@@ -256,6 +285,7 @@ static idigi_bool_t rci_handle_unary_tag(rci_t * const rci)
 
     switch (rci->input.command)
     {
+    UNHANDLED_CASES_ARE_NEEDED
     case rci_command_unseen:
         rci_global_error(rci, idigi_rci_error_parser_error, RCI_NO_HINT);
         goto error;
@@ -265,6 +295,7 @@ static idigi_bool_t rci_handle_unary_tag(rci_t * const rci)
         rci->input.command = find_rci_command(&rci->shared.string.tag);
         switch (rci->input.command)
         {
+        UNHANDLED_CASES_ARE_NEEDED
         case rci_command_unknown:
             rci_global_error(rci, idigi_rci_error_bad_command, RCI_NO_HINT);
             goto error;
@@ -278,6 +309,15 @@ static idigi_bool_t rci_handle_unary_tag(rci_t * const rci)
 
         case rci_command_query_setting:
         case rci_command_query_state:
+            switch (rci->input.command)
+            {
+            UNHANDLED_CASES_ARE_INVALID
+            case rci_command_set_setting:   rci->shared.request.action = idigi_remote_action_set;   rci->shared.request.group.type = idigi_remote_group_setting;    break;
+            case rci_command_set_state:     rci->shared.request.action = idigi_remote_action_set;   rci->shared.request.group.type = idigi_remote_group_state;      break;
+            case rci_command_query_setting: rci->shared.request.action = idigi_remote_action_query; rci->shared.request.group.type = idigi_remote_group_setting;    break;
+            case rci_command_query_state:   rci->shared.request.action = idigi_remote_action_query; rci->shared.request.group.type = idigi_remote_group_state;      break;
+            }
+
             rci->traversal.state = rci_traversal_state_all_groups_start;
             state_call(rci, rci_parser_state_traversal);
             break;
@@ -297,57 +337,10 @@ static idigi_bool_t rci_handle_unary_tag(rci_t * const rci)
             
     case rci_command_query_setting:
     case rci_command_query_state:
-        if (rci->shared.request.group.id == INVALID_ID)
-        {
-            idigi_group_table_t const * const table = (idigi_group_table + rci->shared.request.group.type);
-            size_t const count = table->count;
-            
-            rci->shared.request.group.id = find_group(table->groups, count, &rci->shared.string.tag);
-            if (rci->shared.request.group.id == INVALID_ID)
-            {
-                rci_global_error(rci, idigi_rci_error_bad_group, RCI_NO_HINT);
-                goto error;
-            }
-
-            {
-                rci_string_t const * const index = find_attribute_value(&rci->shared.attribute, RCI_INDEX);
-                idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
-                
-                if (index == NULL)
-                {
-                    rci->shared.request.group.index = 1;
-                }
-                else
-                {
-                    if (!rcistr_to_uint(index, &rci->shared.request.group.index) || (rci->shared.request.group.index > group->instances))
-                    {
-                        rci_global_error(rci, idigi_rci_error_bad_index, RCI_NO_HINT);
-                        goto error;
-                    }
-                }
-                
-                continue_parsing = rci_callback(rci, idigi_remote_config_group_start);
-                    
-                rci->traversal.state = rci_traversal_state_one_group_start;
-                state_call(rci, rci_parser_state_traversal);
-            }
-        }
+        if (have_group_id(rci))
+            rci_process_element_tag(rci, rci_action_unary_element);
         else
-        {
-            idigi_group_table_t const * const table = (idigi_group_table + rci->shared.request.group.type);
-            idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
-
-            ASSERT(rci->shared.request.element.id == INVALID_ID);
-            rci->shared.request.element.id = find_element(group, &rci->shared.string.tag);
-            if (rci->shared.request.element.id == INVALID_ID)
-            {
-                rci_global_error(rci, idigi_rci_error_bad_element, RCI_NO_HINT);
-                goto error;
-            }
-
-            rci->traversal.state = rci_traversal_state_one_element_start;
-            state_call(rci, rci_parser_state_traversal);
-        }   
+            rci_process_group_tag(rci, rci_action_unary_group);
         break;
         
     case rci_command_unknown:
@@ -371,6 +364,7 @@ static idigi_bool_t rci_handle_start_tag(rci_t * const rci)
     
     switch (rci->input.command)
     {
+    UNHANDLED_CASES_ARE_NEEDED
     case rci_command_unseen:
         if (cstr_equals_rcistr(RCI_REQUEST, &rci->shared.string.tag))
         {
@@ -409,11 +403,11 @@ static idigi_bool_t rci_handle_start_tag(rci_t * const rci)
         {
             switch (rci->input.command)
             {
+            UNHANDLED_CASES_ARE_INVALID
             case rci_command_set_setting:   rci->shared.request.action = idigi_remote_action_set;   rci->shared.request.group.type = idigi_remote_group_setting;    break;
             case rci_command_set_state:     rci->shared.request.action = idigi_remote_action_set;   rci->shared.request.group.type = idigi_remote_group_state;      break;
             case rci_command_query_setting: rci->shared.request.action = idigi_remote_action_query; rci->shared.request.group.type = idigi_remote_group_setting;    break;
             case rci_command_query_state:   rci->shared.request.action = idigi_remote_action_query; rci->shared.request.group.type = idigi_remote_group_state;      break;
-            default:                        ASSERT(idigi_false);                                                                                                    break;
             }
 
             continue_parsing = rci_callback(rci, idigi_remote_config_action_start);
@@ -430,67 +424,10 @@ static idigi_bool_t rci_handle_start_tag(rci_t * const rci)
     case rci_command_set_state:
     case rci_command_query_setting:
     case rci_command_query_state:
-        if (rci->shared.request.group.id == INVALID_ID)
-        {
-            idigi_group_table_t const * const table = (idigi_group_table + rci->shared.request.group.type);
-            size_t const count = table->count;
-            
-            rci->shared.request.group.id = find_group(table->groups, count, &rci->shared.string.tag);
-            if (rci->shared.request.group.id == INVALID_ID)
-            {
-                rci_global_error(rci, idigi_rci_error_bad_group, RCI_NO_HINT);
-                goto error;
-            }
-            else
-            {
-                rci_string_t const * const index = find_attribute_value(&rci->shared.attribute, RCI_INDEX);
-                idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
-                
-                if (index == NULL)
-                {
-                    rci->shared.request.group.index = 1;
-                }
-                else
-                {
-                    if (!rcistr_to_uint(index, &rci->shared.request.group.index) || (rci->shared.request.group.index > group->instances))
-                    {
-                        rci_global_error(rci, idigi_rci_error_bad_index, RCI_NO_HINT);
-                        goto error;
-                    }
-                }
-
-                continue_parsing = rci_callback(rci, idigi_remote_config_group_start);
-
-                rci->output.tag = &rci->shared.string.tag;
-                rci->output.attribute = NULL;
-
-                rci->output.type = rci_output_type_start_tag;
-                state_call(rci, rci_parser_state_output);
-            }
-        }
+        if (have_group_id(rci))
+            rci_process_element_tag(rci, rci_action_start_element);
         else
-        {
-            idigi_group_table_t const * const table = (idigi_group_table + rci->shared.request.group.type);
-            idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
-
-            ASSERT(rci->shared.request.element.id == INVALID_ID);
-            rci->shared.request.element.id = find_element(group, &rci->shared.string.tag);
-            if (rci->shared.request.element.id == INVALID_ID)
-            {
-                rci_global_error(rci, idigi_rci_error_bad_element, RCI_NO_HINT);
-                goto error;
-            }
-            else
-            {
-                rci->output.tag = &rci->shared.string.tag;
-                rci->output.attribute = NULL;
-
-                rci->output.type = rci_output_type_start_tag;
-                state_call(rci, rci_parser_state_output);
-                
-                rci->input.send_content = idigi_true;
-            }
-        }   
+            rci_process_group_tag(rci, rci_action_start_group);
         break;
 
     case rci_command_unknown:
@@ -513,9 +450,7 @@ static idigi_bool_t rci_handle_content(rci_t * const rci)
     idigi_bool_t continue_parsing = idigi_true;
 
     {
-        idigi_group_table_t const * const table = (idigi_group_table + rci->shared.request.group.type);
-        idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
-        idigi_group_element_t const * const element = (group->elements.data + rci->shared.request.element.id);
+        idigi_group_element_t const * const element = get_current_element(rci);
         idigi_element_value_type_t const type = element->type; 
         char const * const string_value = rci->shared.string.content.data;
         size_t const string_length = rci->shared.string.content.length;
@@ -530,6 +465,7 @@ static idigi_bool_t rci_handle_content(rci_t * const rci)
         
         switch (type)
         {
+        UNHANDLED_CASES_ARE_NEEDED
         case idigi_element_type_string:
         case idigi_element_type_multiline_string:
         case idigi_element_type_password:
@@ -581,6 +517,15 @@ static idigi_bool_t rci_handle_content(rci_t * const rci)
         }
     }
 
+    {
+        idigi_group_table_t const * const table = (idigi_group_table + rci->shared.request.group.type);
+        idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
+        idigi_group_element_t const * const element = (group->elements.data + rci->shared.request.element.id);
+
+        rci->shared.request.element.type = element->type;
+        rci->shared.request.element.value = &rci->shared.value;
+    }
+
     continue_parsing = rci_callback(rci, idigi_remote_config_group_process);
 
 done:
@@ -595,26 +540,29 @@ static idigi_bool_t rci_handle_end_tag(rci_t * const rci)
     
     rci->output.tag = &rci->shared.string.tag;
 
-    if (rci->shared.request.element.id == INVALID_ID)
+    if (have_element_id(rci))
+    {
+        set_element_id(rci, INVALID_ID);
+    }
+    else
     {
         idigi_remote_config_request_t config_request_id;
         
-        if (rci->shared.request.group.id != INVALID_ID)
+        if (have_group_id(rci))
         {
             config_request_id = idigi_remote_config_group_end;
             
-            rci->shared.request.element.id = INVALID_ID;
-            rci->shared.request.group.id = INVALID_ID;
+            set_group_id(rci, INVALID_ID);
         }
-        else if (rci->input.command != rci_command_unseen)
+        else if (rci->input.command != rci_command_header)
         {
             config_request_id = idigi_remote_config_action_end;
-            
-            rci->input.command = rci_command_unseen;
+            rci->input.command = rci_command_header;
         }
         else
         {
             config_request_id = idigi_remote_config_session_end;
+            rci->input.command = rci_command_unseen;
         }
 
         continue_parsing = rci_callback(rci, config_request_id);
@@ -639,7 +587,7 @@ static idigi_bool_t rci_parse_input_less_than_sign(rci_t * const rci)
         
     case rci_input_state_content_first:
     case rci_input_state_content:
-        if (rci->shared.request.element.id != INVALID_ID)
+        if (have_element_id(rci))
         {
             continue_parsing = rci_handle_content(rci);
         }
@@ -673,8 +621,13 @@ static idigi_bool_t rci_parse_input_greater_than_sign(rci_t * const rci)
         
     case rci_input_state_element_end_name:
         set_rcistr_length(rci, &rci->shared.string.tag);
-        rci->input.state = rci_input_state_element_tag_open;
         continue_parsing = rci_handle_end_tag(rci);
+        if (rci->input.command == rci_command_unseen)
+        {
+            continue_parsing = idigi_false;
+        }
+
+        rci->input.state = rci_input_state_element_tag_open;
         break;
     
     case rci_input_state_element_tag_close:

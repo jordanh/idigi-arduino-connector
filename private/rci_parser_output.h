@@ -192,6 +192,12 @@ static void rci_generate_output(rci_t * const rci)
             switch (rci->output.type)
             {
                 case rci_output_type_end_tag:
+                    if (rci->input.command == rci_command_unseen)
+                    {
+                        rci->status = rci_status_complete;
+                    }
+                    /* no break; */
+                    
                 case rci_output_type_start_tag:
                 case rci_output_type_unary:
                     rci->output.state = rci_output_state_none;
@@ -220,6 +226,8 @@ static void rci_generate_output(rci_t * const rci)
             }
             else
             {
+                rci->output.attribute->count = 0;
+                
                 switch (rci->output.type)
                 {
                     case rci_output_type_start_tag:
@@ -327,6 +335,7 @@ static void rci_generate_output(rci_t * const rci)
         case rci_output_state_content:
             switch (rci->shared.request.element.type)
             {
+            UNHANDLED_CASES_ARE_NEEDED
             case idigi_element_type_string:
             case idigi_element_type_multiline_string:
             case idigi_element_type_password:
@@ -360,22 +369,37 @@ static void rci_generate_output(rci_t * const rci)
             }
             if (overflow) break;
 
-            switch (rci->output.type)
+            if (rci->output.state == rci_output_state_content)
             {
-                case rci_output_type_start_tag:
+                switch (rci->output.type)
+                {
+                UNHANDLED_CASES_ARE_INVALID;
+                case rci_output_type_content:
                     rci->output.state = rci_output_state_none;
                     break;
                 case rci_output_type_three_tuple:
                     rci->output.state = rci_output_state_element_tag_open;
                     rci->output.type = rci_output_type_end_tag;
                     break;
-                default:
-                    ASSERT(idigi_false);
-                    break;
+                }
             }
             break;
         case rci_output_state_content_scan:
-            if (rci_output_non_entity_character(output, &remaining, rci->shared.value.string_value[rci->output.entity_scan_index]))
+            if (rci->shared.value.string_value[rci->output.entity_scan_index] == '\0')
+            {
+                switch (rci->output.type)
+                {
+                UNHANDLED_CASES_ARE_INVALID;
+                case rci_output_type_content:
+                    rci->output.state = rci_output_state_none;
+                    break;
+                case rci_output_type_three_tuple:
+                    rci->output.state = rci_output_state_element_tag_open;
+                    rci->output.type = rci_output_type_end_tag;
+                    break;
+                }
+            }
+            else if (rci_output_non_entity_character(output, &remaining, rci->shared.value.string_value[rci->output.entity_scan_index]))
             {
                 rci->output.entity_scan_index++;
             }
@@ -406,6 +430,11 @@ static void rci_generate_output(rci_t * const rci)
         }
     }
 
+    if (rci->output.state != rci_output_state_none)
+    {
+        rci->status = rci_status_flush_output;
+    }
+    
     output_debug_info(rci, RCI_DEBUG_SHOW_DIFFS);
 }
 

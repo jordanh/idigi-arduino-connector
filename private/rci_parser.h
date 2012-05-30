@@ -12,6 +12,10 @@
 
 #include "rci_parser_support.h"
 #include "rci_parser_debug.h"
+#include "rci_parser_command.h"
+#include "rci_parser_attribute.h"
+#include "rci_parser_group.h"
+#include "rci_parser_element.h"
 #include "rci_parser_entity.h"
 #include "rci_parser_input.h"
 #include "rci_parser_traversal.h"
@@ -26,12 +30,18 @@ static idigi_bool_t rci_action_session_start(rci_t * const rci, rci_service_data
 
     rci_set_buffer(&rci->buffer.input, &rci->service_data->input);
     rci_set_buffer(&rci->buffer.output, &rci->service_data->output);
+#if defined RCI_DEBUG
+    memset(rci->service_data->output.data, 0, rci->service_data->output.bytes);
+#endif
 
     rci->input.destination = rci_buffer_position(&rci->buffer.input);
 
     rci->shared.request.group.id = INVALID_ID;
     rci->shared.request.group.index = INVALID_INDEX;
     rci->shared.request.element.id = INVALID_ID;
+    
+    rci->shared.request.element.value = &rci->shared.value;
+    rci->shared.response.element_data.element_value = &rci->shared.value;
                        
     rci->status = rci_status_busy;
 
@@ -68,14 +78,17 @@ static idigi_bool_t rci_action_session_active(rci_t * const rci)
         
         case rci_status_more_input:
         {
-            /* reset input buffer pointers */
+            rci_set_buffer(&rci->buffer.input, &rci->service_data->input);
             rci->status = rci_status_busy;
             break;
         }
         
         case rci_status_flush_output:
         {
-            /* reset output buffer pointers */
+            rci_set_buffer(&rci->buffer.output, &rci->service_data->output);
+#if defined RCI_DEBUG
+            memset(rci->service_data->output.data, 0, rci->service_data->output.bytes);
+#endif
             rci->status = rci_status_busy;
             break;
         }
@@ -120,6 +133,11 @@ static rci_status_t rci_parser(idigi_data_t idigi_ptr, rci_session_t const actio
         case rci_session_lost:
             success = rci_action_session_lost(&rci);
             break;
+#if !defined RCI_DEBUG
+        default:
+            success = idigi_false;
+            break;
+#endif
         }
         
         ASSERT(success);
@@ -157,6 +175,21 @@ done:
     {
     case rci_status_busy:
     case rci_status_more_input:
+    case rci_status_internal_error:
+    case rci_status_error:
+        break;
+        
+    case rci_status_flush_output:
+    case rci_status_complete:
+        rci.service_data->output.bytes = rci_buffer_used(&rci.buffer.output);
+        break;        
+    }
+
+#if defined RCI_DEBUG       
+    switch (rci.status)
+    {
+    case rci_status_busy:
+    case rci_status_more_input:
     case rci_status_flush_output:
         break;
         
@@ -166,7 +199,8 @@ done:
         output_debug_info(&rci, RCI_DEBUG_SHOW_ALL);
         break;        
     }
-       
+#endif
+
     return rci.status;
 }
 

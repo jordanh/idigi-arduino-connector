@@ -19,6 +19,13 @@
 
 #define ROUND_UP(value, interval)   ((value) + -(value) % (interval))
 
+#if defined IDIGI_DEBUG
+#define UNHANDLED_CASES_ARE_NEEDED
+#else
+#define UNHANDLED_CASES_ARE_NEEDED  default: break;
+#endif
+#define UNHANDLED_CASES_ARE_INVALID default: ASSERT(idigi_false); break;
+
 static char const nul = '\0';
 
 static char const * const on_off_strings[] = {RCI_OFF, RCI_ON};
@@ -52,6 +59,7 @@ typedef struct
 
 typedef struct
 {
+    idigi_data_t * idigi_ptr;
     rci_service_buffer_t input;
     rci_service_buffer_t output;
 } rci_service_data_t;
@@ -105,6 +113,11 @@ typedef enum
     rci_traversal_state_one_group_element_data,
     rci_traversal_state_one_group_element_end,
     rci_traversal_state_one_group_end,
+    rci_traversal_state_indexed_group_start,
+    rci_traversal_state_indexed_group_element_start,
+    rci_traversal_state_indexed_group_element_data,
+    rci_traversal_state_indexed_group_element_end,
+    rci_traversal_state_indexed_group_end,
     rci_traversal_state_one_element_start,
     rci_traversal_state_one_element_data,
     rci_traversal_state_one_element_end
@@ -142,7 +155,6 @@ typedef enum
     rci_error_state_group_close,
     rci_error_state_command_close,
     rci_error_state_reply_close,
-    rci_error_state_complete
 } rci_error_state_t;
 
 typedef enum
@@ -304,6 +316,11 @@ static size_t rci_buffer_remaining(rci_buffer_t const * const buffer)
     return (buffer->end - buffer->current);
 }
 
+static size_t rci_buffer_used(rci_buffer_t const * const buffer)
+{
+    return (buffer->current - buffer->start);
+}
+
 static char * rci_buffer_position(rci_buffer_t const * const buffer)
 {
     return buffer->current;
@@ -375,4 +392,10 @@ static void rci_prep_reply(rci_t * const rci, rci_string_t * const tag, rci_attr
     rci->output.type = rci_output_type_start_tag;
 }
 
-
+static void rci_set_index_parameter(rci_t * const rci, int const index)
+{
+    rci->output.attribute->count = 1;
+    cstr_to_rci_string(RCI_INDEX, &rci->output.attribute->pair[0].name);
+    rci->output.attribute->pair[0].value.data = rci->input.storage;
+    rci->output.attribute->pair[0].value.length = sprintf(rci->input.storage, "%d", index);
+}

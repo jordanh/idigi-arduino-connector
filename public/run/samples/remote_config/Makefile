@@ -28,7 +28,9 @@ CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I. -I$(PUBLIC_HEADER_DIR) -I$
 #CFLAGS += -DIDIGI_RCI_MAXIMUM_CONTENT_LENGTH=256
 
 ifeq ($(RCI_DEBUG),true)
-CFLAGS += -DRCI_DEBUG
+CFLAGS += -DRCI_DEBUG -g -O0
+else
+CFLAGS += -Os
 endif
 
 LIBS = -lc -lz -lpthread
@@ -54,7 +56,7 @@ DEPS = $(OBJS:.o=.d)
 
 $(SAMPLE): $(OBJS)
 	$(CC) $(LDFLAGS) $^ $(LIBS) -o $@
-ifeq ($(RCI_DEBUG),true)
+ifeq ($(RCI_EXTRA),true)
 	$(OD) -dS $@ >$@.dis
 	awk -f size.awk idigi.map
 endif

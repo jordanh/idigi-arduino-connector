@@ -31,11 +31,7 @@ static void rci_generate_error(rci_t * const rci)
         
     case rci_error_state_error_open:
         cstr_to_rci_string(RCI_ERROR, &rci->error.tag);
-        rci->output.attribute->count = 1;
-        cstr_to_rci_string(RCI_INDEX, &rci->output.attribute->pair[0].name);
-        rci->output.attribute->pair[0].value.data = rci->input.storage;
-        rci->output.attribute->pair[0].value.length = sprintf(rci->input.storage, "%d", rci->shared.response.error_id);
-        
+        rci_set_index_parameter(rci, rci->shared.response.error_id);
         rci->output.type = rci_output_type_start_tag;
         
 #if defined RCI_PARSER_USES_DESCRIPTIONS
@@ -103,20 +99,9 @@ static void rci_generate_error(rci_t * const rci)
 
     case rci_error_state_command_close:
         {
-            char const * tag = NULL;
-
-            switch (rci->input.command)
-            {
-            case rci_command_set_setting:   tag = RCI_SET_SETTING;      break;
-            case rci_command_set_state:     tag = RCI_SET_STATE;        break;
-            case rci_command_query_setting: tag = RCI_QUERY_SETTING;    break;
-            case rci_command_query_state:   tag = RCI_QUERY_STATE;      break;
-            default:                        ASSERT(idigi_false);        break;
-            }
-             
             rci_callback(rci, idigi_remote_config_action_end);
 
-            cstr_to_rci_string(tag, &rci->error.tag);
+            set_rci_command_tag(rci->input.command, &rci->error.tag);
             rci->error.state = rci_error_state_reply_close;
         }
         break;
@@ -124,20 +109,14 @@ static void rci_generate_error(rci_t * const rci)
     case rci_error_state_reply_close:
         rci_callback(rci, idigi_remote_config_session_end);
 
-        cstr_to_rci_string(RCI_REQUEST, &rci->error.tag);
-        rci->error.state = rci_error_state_complete;
-        break;
+        rci->input.command = rci_command_unseen;
 
-    case rci_error_state_complete:
-        rci->status = rci_status_complete;
-        goto done;
+        cstr_to_rci_string(RCI_REQUEST, &rci->error.tag);
+        rci->error.state = rci_error_state_none;
         break;
     }
 
     state_call(rci, rci_parser_state_output);
-    
-done:
-    ;
 }
 
 
