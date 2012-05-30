@@ -103,9 +103,9 @@ static idigi_callback_status_t app_process_group(idigi_remote_config_request_t c
     idigi_callback_status_t status = idigi_callback_continue;
     remote_group_table_t * group_ptr = NULL;
     remote_group_cb_t callback;
-    remote_group_session_t * session_ptr = response->user_context;
+//    remote_group_session_t * session_ptr = response->user_context;
 
-    ASSERT(session_ptr != NULL);
+//    ASSERT(session_ptr != NULL);
 
     switch (request->group.type)
     {

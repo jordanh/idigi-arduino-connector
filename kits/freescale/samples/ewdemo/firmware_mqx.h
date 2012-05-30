@@ -1,47 +1,28 @@
-/**************************************************************************
-* 
-* Copyright 2005-2011 by Andrey Butok. Freescale Semiconductor, Inc.
-*
-***************************************************************************
-* This program is free software: you can redistribute it and/or modify
-* it under the terms of either the GNU General Public License 
-* Version 3 or later (the "GPL"), or the GNU Lesser General Public 
-* License Version 3 or later (the "LGPL").
-*
-* As a special exception, the copyright holders of the FNET project give you
-* permission to link the FNET sources with independent modules to produce an
-* executable, regardless of the license terms of these independent modules,
-* and to copy and distribute the resulting executable under terms of your 
-* choice, provided that you also meet, for each linked independent module,
-* the terms and conditions of the license of that module.
-* An independent module is a module which is not derived from or based 
-* on this library. 
-* If you modify the FNET sources, you may extend this exception 
-* to your version of the FNET sources, but you are not obligated 
-* to do so. If you do not wish to do so, delete this
-* exception statement from your version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* You should have received a copy of the GNU General Public License
-* and the GNU Lesser General Public License along with this program.
-* If not, see <http://www.gnu.org/licenses/>.
-*
-**********************************************************************/ /*!
-*
-* @file fapp_tftp.h
-*
-* @author Andrey Butok
-*
-* @date Dec-22-2011
-*
-* @version 0.1.14.0
-*
-* @brief FNET Shell Demo API.
-*
-***************************************************************************/
+
+/*
+ *  Copyright (c) 2012 Digi International Inc., All Rights Reserved
+ *
+ *  This software contains proprietary and confidential information of Digi
+ *  International Inc.  By accepting transfer of this copy, Recipient agrees
+ *  to retain this software in confidence, to prevent disclosure to others,
+ *  and to make no use of this software other than that for which it was
+ *  delivered.  This is an unpublished copyrighted work of Digi International
+ *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
+ *  prohibited.
+ *
+ *  Restricted Rights Legend
+ *
+ *  Use, duplication, or disclosure by the Government is subject to
+ *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
+ *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
+ *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
+ *  Restricted Rights at 48 CFR 52.227-19, as applicable.
+ *
+ *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
+ *
+ * =======================================================================
+ *
+ */
 
 #ifndef _FAPP_TFTP_H_
 

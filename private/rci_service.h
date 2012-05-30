@@ -55,7 +55,7 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
     ASSERT(service_request->have_data != NULL);
     ASSERT(service_request->need_data != NULL);
 
-    idigi_debug_printf("rci_service: service type: %d\n", service_request->service_type);
+    /* idigi_debug_printf("rci_service: service type: %d\n", service_request->service_type); */
 
     switch (service_request->service_type)
     {
@@ -82,6 +82,7 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
         {
             ccode = rci_parser(rci_session_active);
         }
+        /* idigi_debug_printf("rci_service: rci_parser returns %d\n", ccode); */
 
         switch (ccode)
         {
@@ -132,6 +133,7 @@ done:
     {
         set_rci_service_error(service_request, error_status);
     }
+
     return status;
 }
 

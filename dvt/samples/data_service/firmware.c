@@ -28,8 +28,8 @@ typedef struct {
 /* list of all supported firmware target info */
 static firmware_list_t firmware_list[] = {
     /* version     code_size     name_spec          description */
-    {0x01000000, (uint32_t)-1, ".*\\.a",            "Library Image"}, /* any *.a files */
-    {0x00000100, (uint32_t)-1, ".*\\.[bB][iI][nN]", "Binary Image" }  /* any *.bin files */
+    {0x01000000, -1, ".*\\.a",            "Library Image"}, /* any *.a files */
+    {0x00000100, -1, ".*\\.[bB][iI][nN]", "Binary Image" }  /* any *.bin files */
 };
 static uint16_t firmware_list_count = asizeof(firmware_list);
 

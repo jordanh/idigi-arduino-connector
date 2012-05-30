@@ -16,11 +16,18 @@
 #error This application requires BSP_DEFAULT_IO_CHANNEL to be not NULL. Please set corresponding BSPCFG_ENABLE_TTYx to non-zero in user_config.h and recompile BSP with this option.
 #endif
 
+#if !BSPCFG_ENABLE_FLASHX
+#error This application requires BSPCFG_ENABLE_FLASHX defined non-zero in user_config.h. Please recompile BSP with this option.
+#endif
+
 TASK_TEMPLATE_STRUCT MQX_template_list[] =
 { 
 /*  Task number, Entry point, Stack, Pri, String, Auto? */
    {MAIN_TASK, Main_task, 2048, 9, "main", MQX_AUTO_START_TASK},
    {IDIGI_CONNECTOR_TASK, idigi_connector_thread, 4096, 10, "iDigi_connector", 0},
+#if (defined IDIGI_FIRMWARE_SERVICE)
+    {IDIGI_FLASH_TASK, idigi_flash_task, 4096, 10, "iDigi_flash", 0},
+#endif
    {0,           0,           0,     0,   0,      0,                 }
 };
 

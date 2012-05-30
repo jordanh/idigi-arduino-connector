@@ -27,8 +27,6 @@ void idigi_debug_printf(char const * const format, ...)
 }
 
 #else
-void idigi_debug_printf(char const * const format, ...)
-{
-    (void) format;
-}
+typedef int dummy;
 #endif
+

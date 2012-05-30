@@ -122,17 +122,63 @@ void ic_free(void * ptr)
     }
 }
 
+unsigned long ic_create_task(unsigned long const index_number, unsigned long const parameter)
+{
+    uint32_t task_id;
+
+    task_id = _task_create(0, index_number, parameter);
+ 
+    return task_id;
+}
+
+unsigned long ic_destroy_task(unsigned long const task_id)
+{
+    unsigned long status;
+
+    status = _task_destroy(task_id);
+
+    return status;
+}
+
+void ic_software_reset(void)
+{
+    #define VECTKEY  0x05FA0000
+
+    // Issue a System Reset Request
+    SCB_AIRCR = VECTKEY | SCB_AIRCR_SYSRESETREQ_MASK;
+    
+    while (1);
+}
+
+void ic_watchdog_reset(void)
+{
+    /* Issue a watchdog */
+
+    /* disable all interrupts */
+    asm(" CPSID i");
+
+    /* Write 0xC520 to the unlock register */ WDOG_UNLOCK = 0xC520;
+ 
+    /* Followed by 0xD928 to complete the unlock */ WDOG_UNLOCK = 0xD928;
+ 
+    /* enable all interrupts */
+    asm(" CPSIE i");
+ 
+    /* Clear the WDOGEN bit to disable the watchdog */ //WDOG_STCTRLH &= ~WDOG_STCTRLH_WDOGEN_MASK;
+
+    WDOG_STCTRLH != WDOG_STCTRLH_WDOGEN_MASK;
+}
+
 idigi_connector_error_t ic_create_thread(void)
 {
     idigi_connector_error_t status = idigi_connector_success;
-    _task_id const connector_task_id = _task_create(0, IDIGI_CONNECTOR_TASK, 0);
 
-    if (connector_task_id == MQX_NULL_TASK_ID)
+    if (ic_create_task(IDIGI_CONNECTOR_TASK, 0) == MQX_NULL_TASK_ID)
     {
         APP_DEBUG("Failed to create IDIGI_CONNECTOR_TASK\n");
         status = idigi_connector_failed_to_create_thread;
     }
 
-error:
     return status;
 }
+
