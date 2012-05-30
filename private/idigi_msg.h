@@ -1658,6 +1658,7 @@ static idigi_callback_status_t msg_process_pending(idigi_data_t * const idigi_pt
         msg_ptr->session.current = msg_ptr->session.tail;
     msg_ptr->session_locked = idigi_false;
 
+    *receive_timeout = MAX_RECEIVE_TIMEOUT_IN_SECONDS;
     if (msg_ptr->session.current != NULL)
     {
         msg_session_t * const session = msg_ptr->session.current;
@@ -1670,7 +1671,6 @@ static idigi_callback_status_t msg_process_pending(idigi_data_t * const idigi_pt
         case msg_state_receive:
         case msg_state_wait_send_complete:
             msg_switch_session(msg_ptr, session);
-            *receive_timeout = MAX_RECEIVE_TIMEOUT_IN_SECONDS;
             break;
 
         case msg_state_get_data:
