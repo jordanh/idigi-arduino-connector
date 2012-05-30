@@ -11,10 +11,11 @@
  */
 #include <time.h>
 #include <stdlib.h>
+#include <malloc.h>
 #include "idigi_config.h"
 #include "idigi_api.h"
 #include "platform.h"
-#include "remote_config.h"
+#include "remote_config_cb.h"
 
 #define DEVICESECURITY_PASSWORD_MAX_LENGTH 135
 

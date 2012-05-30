@@ -32,6 +32,7 @@
 
 #include "idigi_types.h"
 
+#define asizeof(array)  (sizeof array/sizeof array[0])
 
  /**
  * @defgroup idigi_port_numbers iDigi Port Numbers

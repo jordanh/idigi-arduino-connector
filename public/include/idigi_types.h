@@ -82,7 +82,7 @@
 #endif
 
 #ifndef SIZE_MAX
-#define SIZE_MAX ((size_t)-1)
+#define SIZE_MAX  UINT32_MAX
 #endif
 
 #endif
@@ -99,51 +99,6 @@ typedef int idigi_network_handle_t;
 /**
 * @}
 */
-
-#if defined(IDIGI_DEBUG)
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-
-/**
-* @defgroup DEBUG_MACROS User Defined Debug Macros
-* @{
-*/
-/**
- * Debug output from the iDigi connector, Writes a formatted string to stdout, expanding the format
- * tags with the value of the argument list arg.  This function behaves exactly as
- * printf except that the variable argument list is passed as a va_list instead of a
- * succession of arguments.
- *
- * In the C library the prototype for vprintf is defined as vprintf(const char *format, va_list ap);
- *
- */
-#define USER_DEBUG_VPRINTF  vprintf
-
-/**
- *  Verify that the condition is true, otherwise halt the program.
- */
-#define ASSERT(cond)        assert(cond)
-#else
-#define ASSERT(cond)
-#endif
-/**
-* @}
-*/
-
-/**
- * Compile time assertion of functional state (limits, range checking, etc.)
- *
- *   Failure will emit a compiler-specific error
- *           gcc: 'duplicate case value'
- *   Example:
- *           CONFIRM(sizeof (int) == 4);
- *           CONFIRM(CHAR_BIT == 8);
- *           CONFIRM(ElementCount(array) == array_item_count);
- */
-#define CONFIRM(cond)           do { switch(0) {case 0: case (cond):;} } while (0)
-
-#define asizeof(array)  (sizeof array/sizeof array[0])
 
 
 #endif /* IDIGI_TYPES_H_ */

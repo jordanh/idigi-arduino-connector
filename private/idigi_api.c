@@ -14,7 +14,7 @@
 #else
   #include "options.h"
 #endif
-
+#include "idigi_debug.h"
 #include "idigi_api.h"
 #include "idigi_def.h"
 #include "chk_config.h"
@@ -25,7 +25,7 @@
 #if defined(IDIGI_FIRMWARE_SERVICE)
 #include "idigi_fw.h"
 #endif
-#if defined(IDIGI_DATA_SERVICE) || defined(IDIGI_FILE_SYSTEM) || defined(IDIGI_REMOTE_CONFIGURATION)
+#if defined(IDIGI_DATA_SERVICE) || defined(IDIGI_FILE_SYSTEM) || defined(IDIGI_RCI_SERVICE)
 #include "idigi_msg.h"
 #endif
 #if defined(IDIGI_DATA_SERVICE)
@@ -64,7 +64,7 @@ static idigi_callback_status_t get_device_id_method(idigi_data_t * const idigi_p
         case idigi_manual_device_id_method:
             break;
         default:
-            idigi_debug("get_device_id_method: callback invalid device id method %d\n", idigi_ptr->device_id_method);
+            idigi_debug_printf("get_device_id_method: callback invalid device id method %d\n", idigi_ptr->device_id_method);
             notify_error_status(idigi_ptr->callback, idigi_class_config, request_id, idigi_invalid_data);
             status = idigi_callback_abort;
         }
@@ -114,7 +114,7 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
 
     ASSERT_GOTO(callback != NULL, done);
 
-    idigi_debug("iDigi Connector v%d.%d.%d.%d\n", (IDIGI_VERSION & 0xFF000000) >> 24,
+    idigi_debug_printf("iDigi Connector v%d.%d.%d.%d\n", (IDIGI_VERSION & 0xFF000000) >> 24,
                                                 (IDIGI_VERSION & 0xFF0000) >> 16,
                                                 (IDIGI_VERSION & 0xFF00) >> 8,
                                                 (IDIGI_VERSION & 0xFF) >> 24);
@@ -254,7 +254,7 @@ error:
         request_id.config_request = idigi_config_request_ids[i].request;
         /* if error occurs, notify caller then exit the function.
          */
-        idigi_debug("idigi_init: base class_id request id = %d callback aborts\n", idigi_config_request_ids[i].request);
+        idigi_debug_printf("idigi_init: base class_id request id = %d callback aborts\n", idigi_config_request_ids[i].request);
         notify_error_status(callback, idigi_class_config, request_id, error_status);
     }
 

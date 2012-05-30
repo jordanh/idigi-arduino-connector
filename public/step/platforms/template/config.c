@@ -14,6 +14,7 @@
 
 #include "idigi_config.h"
 #include "idigi_api.h"
+#include "idigi_debug.h"
 #include "platform.h"
 
 static idigi_callback_status_t app_get_ip_address(uint8_t const ** ip_address, size_t * const size)

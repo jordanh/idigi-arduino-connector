@@ -15,6 +15,7 @@
 #include "idigi_api.h"
 #include "platform.h"
 #include "remote_config.h"
+#include "idigi_debug.h"
 
 #define SYSTEM_STRING_LENGTH 64
 

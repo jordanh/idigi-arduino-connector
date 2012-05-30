@@ -15,8 +15,8 @@
 #include <sys/ioctl.h>
 #include <net/if.h>
 #include <ctype.h>
-
 #include "idigi_config.h"
+#include "idigi_debug.h"
 #include "idigi_api.h"
 #include "platform.h"
 
@@ -339,6 +339,7 @@ static idigi_callback_status_t app_get_imei_number(uint8_t * const imei_number, 
         }
         index--;
     }
+
     return idigi_callback_continue;
 }
 
@@ -348,7 +349,7 @@ static idigi_callback_status_t app_get_imei_number(uint8_t * const imei_number, 
  * This routine is called when a configuration error is encountered by the iDigi connector.
  * This is currently used as a debug tool for finding configuration errors.
  */
-static void app_config_error(idigi_error_status_t * const error_data)
+static void app_config_error(idigi_error_status_t const * const error_data)
 {
 
     static char const * const error_status_string[] = {"idigi_success", "idigi_init_error",
@@ -551,7 +552,7 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
         break;
 
     case idigi_config_error_status:
-        app_config_error((idigi_error_status_t * const)request_data);
+        app_config_error(request_data);
         status = idigi_callback_continue;
         break;
 

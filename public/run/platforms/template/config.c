@@ -20,6 +20,7 @@
 
 #include "idigi_config.h"
 #include "idigi_api.h"
+#include "idigi_debug.h"
 #include "platform.h"
 
 /**
@@ -511,7 +512,8 @@ static idigi_callback_status_t app_get_file_system_support(idigi_service_support
  * @retval idigi_callback_continue  The remote configuration support was successfully returned.
  * @retval idigi_callback_abort     Could not get the remote configuration support and abort iDigi connector.
  *
- * @note @b IDIGI_RCI_MAXIMUM_CONTENT_LENGTH must be defined a non-zero length in @ref idigi_config.h idigi_remote.h.
+ * @note @b IDIGI_RCI_SERVICE must be defined in idigi_config.h
+ * @note @b IDIGI_RCI_MAXIMUM_CONTENT_LENGTH is used to define maximum length of an element including the name of element in @ref idigi_config.h.
  * @note This routine is not called if you define @b IDIGI_REMOTE_CONFIGURATION_SUPPORT configuration in @ref idigi_config.h.
  * @note This IDIGI_REMOTE_CONFIGURATION_SUPPORT indicates application supports remote configuration. See @ref idigi_config_data_options
  *

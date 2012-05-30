@@ -24,7 +24,7 @@ CFLAGS += -Wformat-y2k -Wold-style-definition -Wcast-align -Wformat-nonliteral -
 CFLAGS += -Wno-error=padded -Wno-error=format-nonliteral -Wno-unused-function
 
 CFLAGS += $(DFLAGS) -MD -Wall -Werror -Wextra -Wno-missing-field-initializers -pedantic -std=c99 -DIDIGI_VERSION=0x1020000UL 
-CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR) -I. -g
+CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I. -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR) -I. -g
 #CFLAGS += -DIDIGI_RCI_MAXIMUM_CONTENT_LENGTH=256
 
 ifeq ($(RCI_DEBUG),true)

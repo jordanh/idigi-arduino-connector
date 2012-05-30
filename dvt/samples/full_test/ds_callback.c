@@ -348,7 +348,6 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
     idigi_data_service_block_t * server_data = request_data->server_data;
 
     ASSERT(server_data != NULL);
-    ASSERT(service_device_request != NULL);
 
     if ((server_data->flags & IDIGI_MSG_FIRST_DATA) == IDIGI_MSG_FIRST_DATA)
     {

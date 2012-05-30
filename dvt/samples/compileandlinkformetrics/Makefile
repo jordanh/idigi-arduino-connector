@@ -33,10 +33,10 @@ LIBS = -lc -lz
 SAMPLE = idigi
 all: $(SAMPLE)
 
-CFLAGS += -Wl,-Map,$(SAMPLE).map -DIDIGI_DATA_SERVICE -DIDIGI_FIRMWARE_SERVICE -D____IDIGI_COMPRESSION -D___IDIGI_DEBUG -D___USE_THE_DEFINES
+CFLAGS += -Wl,-Map,$(SAMPLE).map
 
 main.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h Makefile
-$(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PUBLIC_HEADER_DIR)/idigi_config.h \
+$(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h ./idigi_config.h \
                         $(IDIGI_DIR)/chk_config.h $(IDIGI_DIR)/debug.h $(IDIGI_DIR)/ei_packet.h \
                         $(IDIGI_DIR)/idigi_cc.h $(IDIGI_DIR)/idigi_ds.h $(IDIGI_DIR)/idigi_fw.h \
                         $(IDIGI_DIR)/idigi_msg.h $(IDIGI_DIR)/layer.h $(IDIGI_DIR)/network_intf.h \

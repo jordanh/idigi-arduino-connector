@@ -658,6 +658,7 @@ INPUT                  = ./mainpage.c \
                          ./device_request.c \
                          ./rci_sample.c \
                          ./rci_tool.c \
+                         ./idigi_config.h \
                          ../public/run/platforms/template \
                          ../public/include
 

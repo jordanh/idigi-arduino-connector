@@ -69,7 +69,7 @@ enum cc_redirect_report {
 
     ASSERT(report_message_length == 0);
 
-    idigi_debug("Connection Control: send redirect_report\n");
+    idigi_debug_printf("Connection Control: send redirect_report\n");
 
     /* build and send redirect report
      *  ----------------------------------------------------
@@ -211,7 +211,7 @@ static idigi_callback_status_t get_connection_type(idigi_data_t * const idigi_pt
         *connection_type = ppp_over_modem_type;
         break;
     }
-    idigi_debug("get_connection_type: connection type (IDIGI_CONNECTION_TYPE) = %d\n", IDIGI_CONNECTION_TYPE);
+    idigi_debug_printf("get_connection_type: connection type (IDIGI_CONNECTION_TYPE) = %d\n", IDIGI_CONNECTION_TYPE);
     return idigi_callback_continue;
 
 #else
@@ -243,7 +243,7 @@ static idigi_callback_status_t get_connection_type(idigi_data_t * const idigi_pt
             error_code = idigi_invalid_data;
             break;
         }
-        idigi_debug("get_connection_type: connection type = %d\n", *type);
+        idigi_debug_printf("get_connection_type: connection type = %d\n", *type);
         break;
     case idigi_callback_abort:
     case idigi_callback_unrecognized:
@@ -323,7 +323,7 @@ enum cc_connection_info {
     uint8_t * connection_report;
     size_t avail_length;
 
-    idigi_debug("Connection Control: send connection report\n");
+    idigi_debug_printf("Connection Control: send connection report\n");
 
     /* Build Connection report
      *  -------------------------------------------------------
@@ -393,7 +393,7 @@ enum cc_connection_info {
 
 #if defined(IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND)
             message_store_be32(connection_info, link_speed, IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND);
-            idigi_debug("send_connection_report: link_speed = %d\n", IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND);
+            idigi_debug_printf("send_connection_report: link_speed = %d\n", IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND);
 
 #else
             /* callback for Link speed for WAN connection type */
@@ -419,7 +419,7 @@ enum cc_connection_info {
                 goto error;
             }
             message_store_be32(connection_info, link_speed, *speed);
-            idigi_debug("send_connection_report: link_speed = %d\n", *speed);
+            idigi_debug_printf("send_connection_report: link_speed = %d\n", *speed);
 #endif
             cc_ptr->report_length += field_named_data(connection_info, link_speed, size);
 
@@ -450,7 +450,7 @@ enum cc_connection_info {
                 char const phone[] = IDIGI_WAN_PHONE_NUMBER_DIALED;
                 size_t const length = sizeof phone -1;
 #endif
-                idigi_debug("send_connection_report: phone number = %.*s\n", (int)length, phone);
+                idigi_debug_printf("send_connection_report: phone number = %.*s\n", (int)length, phone);
                 memcpy(connection_report+cc_ptr->report_length, phone, length);
                 cc_ptr->report_length += length;
             }
@@ -481,7 +481,7 @@ static idigi_callback_status_t process_connection_control(idigi_data_t * const i
     UNUSED_PARAMETER(cc_ptr);
 
     /* server either disconnects or reboots us */
-    idigi_debug("process_connection_control: Connection request %d\n", request);
+    idigi_debug_printf("process_connection_control: Connection request %d\n", request);
 
     {
         idigi_request_t request_id;
@@ -518,7 +518,7 @@ enum cc_redirect_url {
     size_t const prefix_len = sizeof URL_PREFIX -1;
     uint8_t i;
 
-    idigi_debug("process_redirect:  redirect to new destination\n");
+    idigi_debug_printf("process_redirect:  redirect to new destination\n");
     /* Redirect to new destination:
      * iDigi will close connection and connect to new destination. If connect
      * to new destination fails, this function will returns SUCCESS to try
@@ -539,7 +539,7 @@ enum cc_redirect_url {
 
     if (url_count == 0)
     {   /* nothing to redirect */
-        idigi_debug("cc_process_redirect: redirect with no url specified\n");
+        idigi_debug_printf("cc_process_redirect: redirect with no url specified\n");
         goto done;
     }
     ASSERT(url_count <= CC_REDIRECT_SERVER_COUNT);
@@ -660,7 +660,7 @@ static idigi_callback_status_t cc_process(idigi_data_t * const idigi_ptr, void *
             status = process_connection_control(idigi_ptr, cc_ptr, idigi_network_reboot);
             break;
         default:
-            idigi_debug("idigi_cc_process: unsupported opcode %u\n", opcode);
+            idigi_debug_printf("idigi_cc_process: unsupported opcode %u\n", opcode);
             break;
         }
     }

@@ -74,7 +74,7 @@ static idigi_facility_init_t const idigi_supported_facility_table[] = {
     #endif
 #endif
 
-#if (IDIGI_RCI_MAXIMUM_CONTENT_LENGTH > 0)
+#if (defined IDIGI_RCI_SERVICE)
     #if defined(IDIGI_REMOTE_CONFIGURATION_SUPPORT)
         {{MANDATORY_FACILITY}, idigi_facility_rci_service_init, idigi_facility_rci_service_delete, idigi_facility_rci_service_cleanup, msg_discovery, msg_process}
     #else
@@ -339,7 +339,7 @@ static idigi_callback_status_t layer_get_supported_facilities(idigi_data_t * con
             status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &facility_enable, &length);
             if (status == idigi_callback_abort)
             {
-                idigi_debug("initialize_facilities: callback returns %d on facility= %d\n", status, request_id.config_request);
+                idigi_debug_printf("initialize_facilities: callback returns %d on facility= %d\n", status, request_id.config_request);
                 idigi_ptr->error_code = idigi_configuration_error;
                 status = idigi_callback_abort;
                 break;
@@ -352,7 +352,7 @@ static idigi_callback_status_t layer_get_supported_facilities(idigi_data_t * con
             {
                 facility_enable = idigi_service_unsupported;
             }
-            idigi_debug("initialize_facilities: callback %s  %d facility\n", facility_enable ? "supports" : "unsupports", request_id);
+            idigi_debug_printf("initialize_facilities: callback %s  %d facility\n", facility_enable ? "supports" : "unsupports", request_id);
         }
 
         if (facility_enable != idigi_service_unsupported)
@@ -494,7 +494,7 @@ enum {
 
     case  communication_send_version:
 
-        idigi_debug("communication layer: Send MT Version\n");
+        idigi_debug_printf("communication layer: Send MT Version\n");
         status = send_version(idigi_ptr, E_MSG_MT2_TYPE_VERSION, EDP_MT_VERSION);
 
         if (status == idigi_callback_continue)
@@ -515,7 +515,7 @@ enum {
             uint16_t type;
             uint8_t  response_code;
 
-            idigi_debug("communication layer: receive Mt version\n");
+            idigi_debug_printf("communication layer: receive Mt version\n");
             /*
              * MT version response packet format:
              *  ---------------
@@ -597,10 +597,10 @@ enum {
         init_param(2, E_MSG_MT2_TYPE_KA_WAIT,        GET_WAIT_COUNT(idigi_ptr));
 #undef  init_param
 
-        idigi_debug("communication layer: send keepalive params \n");
-        idigi_debug("communication layer: Rx keepalive parameter = %d\n", keepalive_parameters[0].value);
-        idigi_debug("communication layer: Tx keepalive parameter = %d\n", keepalive_parameters[1].value);
-        idigi_debug("communication layer: Wait Count parameter = %d\n", keepalive_parameters[2].value);
+        idigi_debug_printf("communication layer: send keepalive params \n");
+        idigi_debug_printf("communication layer: Rx keepalive parameter = %d\n", keepalive_parameters[0].value);
+        idigi_debug_printf("communication layer: Tx keepalive parameter = %d\n", keepalive_parameters[1].value);
+        idigi_debug_printf("communication layer: Wait Count parameter = %d\n", keepalive_parameters[2].value);
 
         packet = get_packet_buffer(idigi_ptr, E_MSG_MT2_MSG_NUM, &ptr, NULL);
         ptr = (uint8_t *)packet;
@@ -651,7 +651,7 @@ enum {
     switch (idigi_ptr->layer_state)
     {
     case initialization_send_protocol_version:
-        idigi_debug("initialization layer: send protocol version\n");
+        idigi_debug_printf("initialization layer: send protocol version\n");
         status = send_version(idigi_ptr, E_MSG_MT2_TYPE_PAYLOAD, EDP_PROTOCOL_VERSION);
         if (status == idigi_callback_continue)
         {
@@ -667,7 +667,7 @@ enum {
         if (status == idigi_callback_continue)
         {
             ASSERT(edp_header != NULL);
-            idigi_debug("initialization layer: receive protocol version\n");
+            idigi_debug_printf("initialization layer: receive protocol version\n");
             /*
              *  version response packet format:
              *  ---------------------------------------
@@ -914,7 +914,7 @@ enum {
         size_t const edp_security_size = record_bytes(edp_security);
         uint8_t * edp_security = start_ptr;
 
-        idigi_debug("Security layer: send security form\n");
+        idigi_debug_printf("Security layer: send security form\n");
 
         /*
          * packet format:
@@ -992,7 +992,7 @@ enum {
         char const url_prefix[] = URL_PREFIX;
         size_t const prefix_length = sizeof url_prefix -1;
 
-        idigi_debug("security layer: send server url = %.*s\n", (int)idigi_ptr->server_url_length, idigi_ptr->server_url);
+        idigi_debug_printf("security layer: send server url = %.*s\n", (int)idigi_ptr->server_url_length, idigi_ptr->server_url);
 
         message_store_u8(edp_server_url, opcode, SECURITY_OPER_URL);
 
@@ -1077,7 +1077,7 @@ enum {
         {
             ASSERT(sizeof IDIGI_VENDOR_ID == VENDOR_ID_LENGTH);
             message_store_be32(edp_vendor_msg, vendor_id, IDIGI_VENDOR_ID);
-            idigi_debug("discovery layer: send vendor id = 0x%X\n", IDIGI_VENDOR_ID);
+            idigi_debug_printf("discovery layer: send vendor id = 0x%X\n", IDIGI_VENDOR_ID);
         }
 #endif
 
@@ -1132,7 +1132,7 @@ enum {
         edp_device_type += device_type_header_size;
         memcpy(edp_device_type, idigi_device_type, device_type_length);
 
-        idigi_debug("discovery layer: send device type = %.*s\n", (int)device_type_length, idigi_device_type);
+        idigi_debug_printf("discovery layer: send device type = %.*s\n", (int)device_type_length, idigi_device_type);
 
         status = initiate_send_packet(idigi_ptr, edp_header,
                                     (device_type_header_size + device_type_length),
@@ -1174,7 +1174,7 @@ enum {
         size_t const discovery_complete_message_size = record_bytes(edp_discovery_complete);
         uint8_t * edp_discovery_complete = start_ptr;
 
-        idigi_debug("discovery layer: send complete\n");
+        idigi_debug_printf("discovery layer: send complete\n");
         message_store_u8(edp_discovery_complete, security_coding, SECURITY_PROTO_NONE);
         message_store_u8(edp_discovery_complete, opcode, DISC_OP_INITCOMPLETE);
 
@@ -1246,7 +1246,7 @@ enum {
             ASSERT_GOTO(payload == DISC_OP_PAYLOAD, error);
             ASSERT_GOTO(length > PACKET_EDP_PROTOCOL_SIZE, error);
 
-            idigi_debug("idigi_facility_layer: receive data facility = 0x%04x\n", message_load_be16(edp_protocol, facility));
+            idigi_debug_printf("idigi_facility_layer: receive data facility = 0x%04x\n", message_load_be16(edp_protocol, facility));
             /* adjust the length for facility process */
             length -= PACKET_EDP_PROTOCOL_SIZE;
             message_store_be16(edp_header, length, length);

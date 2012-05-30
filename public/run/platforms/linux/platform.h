@@ -14,6 +14,7 @@
 #define _PLATFORM_H
 
 #include <stdio.h>
+#include "idigi_debug.h"
 
 #define APP_DEBUG   printf
 

@@ -1248,12 +1248,12 @@
  * implemented for remote configuration. This callback allows application to enable
  * or disable remote configuration capability during runtime.
  *
- * @note If @ref IDIGI_RCI_MAXIMUM_CONTENT_LENGTH configuration is defined zero in @ref idigi_config.h, this callback 
+ * @note If @ref IDIGI_RCI_SERVICE is not defined in @ref idigi_config.h, this callback 
  * will not be called and remote configuration is not supported. IC does not include remote configuration.
  *
- * @note If @ref IDIGI_REMOTE_CONFIGURATION_SUPPORT is defined in @ref idigi_config.h, this callback is not needed.
- * It enables remote configuration capability. See @ref idigi_config_data_options. IDIGI_REMOTE_CONFIGURATION_SUPPORT
- * must be defined a non-zero value.
+ * @note If @ref IDIGI_RCI_SERVICE is defined in @ref idigi_config.h, this callback is not needed.
+ * It enables remote configuration capability. See @ref idigi_config_data_options. 
+ * @see IDIGI_REMOTE_CONFIGURATION_SUPPORT
  *
  *
  * @htmlonly

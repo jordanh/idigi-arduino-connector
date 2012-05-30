@@ -9,15 +9,14 @@
  * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
  */
-#include "idigi_config.h"
 #include "idigi_api.h"
 #include "platform.h"
+#include "idigi_debug.h"
 #include "remote_config_cb.h"
 
-#if (!defined IDIGI_RCI_MAXIMUM_CONTENT_LENGTH) || (IDIGI_RCI_MAXIMUM_CONTENT_LENGTH <= 0)
-#error "Must define IDIGI_RCI_MAXIMUM_CONTENT_LENGTH > 0 in idigi_config.h"
+#if !defined IDIGI_RCI_SERVICE
+#error "Must define IDIGI_RCI_SERVICE in idigi_config.h to run this sample"
 #endif
-
 
 idigi_callback_status_t app_remote_config_handler(idigi_remote_config_request_t const request,
                                                       void const * const request_data, size_t const request_length,

@@ -50,11 +50,15 @@ idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
     switch (request)
     {
     case idigi_os_malloc:
-        status    = app_os_malloc(*((size_t *)request_data), response_data);
+        {
+            size_t const * const bytes = request_data;
+
+            status    = app_os_malloc(*bytes, response_data);
+        }
         break;
 
     case idigi_os_free:
-        app_os_free((void * const)request_data);
+        app_os_free((void *)request_data);
         status = idigi_callback_continue;
         break;
 
@@ -63,7 +67,11 @@ idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
         break;
 
     case idigi_os_sleep:
-        status = app_os_sleep(*((unsigned int *)request_data));
+        {
+            unsigned int const * const seconds = request;
+
+            status = app_os_sleep(*seconds);
+        }
         break;
 
     default:

@@ -97,7 +97,7 @@ static idigi_bool_t rci_action_session_lost(rci_t * const rci)
 }
 
 
-static rci_status_t rci_parser(rci_session_t const action, ...)
+static rci_status_t rci_parser(idigi_data_t idigi_ptr, rci_session_t const action, ...)
 {
     static rci_t rci;
 

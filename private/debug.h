@@ -10,20 +10,7 @@
  * =======================================================================
  */
 
-static void idigi_debug(char const * const format, ...)
-{
-#if defined(IDIGI_DEBUG)
-    va_list args;
-
-    va_start(args, format);
-    USER_DEBUG_VPRINTF(format, args);
-    va_end(args);
-#else
-    (void) format;
-#endif
-}
-
-#if defined(IDIGI_DEBUG)
+#if 0
 
 typedef struct malloc_stats{
     void const * ptr;
@@ -86,23 +73,25 @@ static void del_malloc_stats(void const * const ptr)
 
     ASSERT(pMalloc != NULL);
 }
+#endif
 
+#if defined(IDIGI_DEBUG)
 void idigi_debug_hexvalue(char * label, uint8_t * buff, int length)
 {
     int i;
 
-    idigi_debug("%s = ", label);
+    idigi_debug_printf("%s = ", label);
     for (i=0; i<length; i++)
     {
-        idigi_debug(" %02X", buff[i]);
+        idigi_debug_printf(" %02X", buff[i]);
     }
-    idigi_debug("\n");
+    idigi_debug_printf("\n");
 }
 
 
 #else
-#define add_malloc_stats(ptr, size)
-#define del_malloc_stats(ptr)
 #define idigi_debug_hexvalue(label, start, length)
 #endif
 
+#define add_malloc_stats(ptr, size)
+#define del_malloc_stats(ptr)

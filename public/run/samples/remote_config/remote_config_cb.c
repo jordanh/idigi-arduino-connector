@@ -9,16 +9,15 @@
  * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
  */
+#include <malloc.h>
 #include "idigi_config.h"
 #include "idigi_api.h"
 #include "platform.h"
-#include "remote_config.h"
 #include "remote_config_cb.h"
 
-#if (!defined IDIGI_RCI_MAXIMUM_CONTENT_LENGTH) || (IDIGI_RCI_MAXIMUM_CONTENT_LENGTH <= 0)
-#error "Must define IDIGI_RCI_MAXIMUM_CONTENT_LENGTH > 0 in idigi_config.h"
+#if !defined IDIGI_RCI_SERVICE
+#error "Must define IDIGI_RCI_SERVICE in idigi_config.h to run this sample"
 #endif
-
 
 typedef idigi_callback_status_t(* remote_group_cb_t) (idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
 typedef void (* remote_group_cancel_cb_t) (void * const context);

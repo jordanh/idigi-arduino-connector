@@ -82,7 +82,7 @@ static idigi_callback_status_t initiate_send_packet(idigi_data_t * const idigi_p
 
     if (idigi_ptr->send_packet.total_length > 0)
     {
-        idigi_debug("initiate_send_packet: unable to trigger another send since previous data is still pending\n");
+        idigi_debug_printf("initiate_send_packet: unable to trigger another send since previous data is still pending\n");
         status = idigi_callback_busy;
         goto done;
     }
@@ -244,7 +244,7 @@ static uint8_t * get_packet_buffer(idigi_data_t * const idigi_ptr, uint16_t cons
     }
     else
     {
-        idigi_debug("get packet buffer: send pending\n");
+        idigi_debug_printf("get packet buffer: send pending\n");
     }
     if (data_ptr != NULL)
     {
@@ -278,7 +278,7 @@ static idigi_callback_status_t rx_keepalive_process(idigi_data_t * const idigi_p
         goto done;
     }
 
-    idigi_debug("rx_keepalive_process: time to send Rx keepalive\n");
+    idigi_debug_printf("rx_keepalive_process: time to send Rx keepalive\n");
 
     status = initiate_send_packet(idigi_ptr, idigi_ptr->rx_keepalive_packet, 0, E_MSG_MT2_TYPE_KA_KEEPALIVE, NULL, NULL);
 
@@ -417,7 +417,7 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
         {
         case idigi_callback_abort:
         case idigi_callback_unrecognized:
-            idigi_debug("receive_buffer: callback returns abort\n");
+            idigi_debug_printf("receive_buffer: callback returns abort\n");
             bytes_received = -idigi_receive_error;
             /* fall thru */
         case idigi_callback_busy:
@@ -463,7 +463,7 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
              */
             bytes_received = -idigi_keepalive_error;
             notify_error_status(idigi_ptr->callback, idigi_class_network, request_id, idigi_keepalive_error);
-            idigi_debug("idigi_receive: keepalive fails\n");
+            idigi_debug_printf("idigi_receive: keepalive fails\n");
         }
     }
 
@@ -647,7 +647,7 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
                 {
                     /* tell caller we have unexpected packet message */
                     idigi_request_t request_id;
-                    idigi_debug("receive_packet: error type 0x%x\n", (unsigned) type_val);
+                    idigi_debug_printf("receive_packet: error type 0x%x\n", (unsigned) type_val);
                     idigi_ptr->error_code = idigi_invalid_packet;
                     request_id.network_request = idigi_network_receive;
                     notify_error_status(idigi_ptr->callback, idigi_class_network, request_id, idigi_invalid_packet);
@@ -680,7 +680,7 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
                 if (packet_length != 0)
                 {
                     idigi_request_t request_id;
-                    idigi_debug("idigi_get_receive_packet: Invalid payload\n");
+                    idigi_debug_printf("idigi_get_receive_packet: Invalid payload\n");
                     idigi_ptr->error_code = idigi_invalid_payload_packet;
                     request_id.network_request = idigi_network_receive;
                     notify_error_status(idigi_ptr->callback, idigi_class_network, request_id, idigi_invalid_payload_packet);

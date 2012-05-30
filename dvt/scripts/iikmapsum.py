@@ -32,7 +32,7 @@ MEMORY_USAGE_FILE = '../../memory_usage.txt'
 def check_release_build():
     global buildOptions
     global buildTypeString
-    config_file_name = "../../../public/include/idigi_config.h"
+    config_file_name = "./idigi_config.h"
 
     isDebug = False
     isCompression = False

@@ -63,7 +63,8 @@ APP_C_FLAGS=-DIDIGI_VERSION=0x1020000UL
 APP_CC_FLAGS=
 APP_ASM_FLAGS=
 
-APP_INCDIRS= -I..
+APP_INCDIRS= -I.
+APP_INCDIRS+= -I..
 APP_INCDIRS+= -I../../../../h/usb_host
 APP_INCDIRS+= -I../../../bsp/devices/common/wifimac
 APP_INCDIRS+= -I../../../usb_host_drivers/WiFi_USB

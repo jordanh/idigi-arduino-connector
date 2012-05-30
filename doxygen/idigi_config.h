@@ -52,7 +52,7 @@
  * @see USER_DEBUG_VPRINTF
  * @see ASSERT
  */
-#define IDIGI_DEBUG
+//#define IDIGI_DEBUG
 
 /**
  * When defined, iDigi connector private library includes the @ref firmware_download "Firmware Download Service".
@@ -170,23 +170,37 @@
 #endif
 
 /**
- * This is used to define the maximum content length in bytes of an element's value for the remote_configuration _service,
- * iDigi connector includes the remote_configuration_service that allows user remote configuration, control, and information
+ * If defined, iDigi connector includes the @ref rci_service.
+ * To enable the @ref rci_service feature change this line in idigi_config.h:
+ *
+ * @code
+ * #define IDIGI_NO_RCI_SERVICE
+ * @endcode
+ *
+ * To this:
+ * @code
+ * #define IDIGI_RCI_SERVICE
+ * @endcode
+ *
+ * @see @ref rci_service_support
+ * @see @ref app_get_remote_configuration_support()
+ * @see @ref IDIGI_RCI_MAXIMUM_CONTENT_LENGTH
+ */
+#define IDIGI_RCI_SERVICE
+
+/**
+ * This is used to define the maximum content length in bytes of an element's value for the @ref rci_service,
+ * iDigi connector includes the @ref rci_service that allows user remote configuration, control, and information
  * exchange between a device and iDigi Cloud.
- * To disable the remote_configuration feature, define this to 0 in idigi_config.h:
+ * See @ref IDIGI_RCI_SERVICE to enable or disable the service.
  *
  * @code
  * #define IDIGI_RCI_MAXIMUM_CONTENT_LENGTH 256
  * @endcode
  *
- * To this:
- * @code
- * #define IDIGI_RCI_MAXIMUM_CONTENT_LENGTH  0
- * @endcode
- *
- * @see @ref app_get_remote_configuration_support()
+ * @see @ref IDIGI_RCI_SERVICE
  */
-#define IDIGI_RCI_MAXIMUM_CONTENT_LENGTH    0
+#define IDIGI_RCI_MAXIMUM_CONTENT_LENGTH    256
 /**
  * @}*/
 

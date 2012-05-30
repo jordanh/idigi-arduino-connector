@@ -198,7 +198,7 @@ void print_error(int error_no, char * const error_message)
     perror("Error:");
     perror(error_message);
 
-    ASSERT(false);
+    ASSERT(0);
 }
 int main (void)
 {

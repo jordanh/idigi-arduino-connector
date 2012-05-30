@@ -280,7 +280,7 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
     idigi_data_service_block_t * server_data = request_data->server_data;
 
     ASSERT(server_data != NULL);
-    ASSERT(service_device_request != NULL);
+    ASSERT(server_device_request != NULL);
 
     if (gWait < INITIAL_WAIT_COUNT + 4)
     {
@@ -404,7 +404,6 @@ static idigi_callback_status_t process_device_response(idigi_data_service_msg_re
 
     ASSERT(response_data->client_data != NULL);
     ASSERT(client_device_request != NULL); /* we use user_context for our client_device_request */
-    ASSERT(server_device_request->device_handle != client_device_request->device_handle);
 
     if (client_device_request->target == device_request_invalid_response_target)
     {

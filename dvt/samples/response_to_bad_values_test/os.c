@@ -147,9 +147,12 @@ idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
     switch (request)
     {
     case idigi_os_malloc:
-        status    = app_os_malloc(*((size_t *)request_data), response_data);
-        break;
+    {
+        size_t const * const bytes = request_data;
 
+        status    = app_os_malloc(*bytes, response_data);
+        break;
+    }
     case idigi_os_free:
         app_os_free((void * const)request_data);
         status = idigi_callback_continue;
@@ -160,9 +163,12 @@ idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
         break;
 
     case idigi_os_sleep:
-        status = app_os_sleep(*((unsigned int *)request_data));
-        break;
+    {
+        unsigned int const * const seconds = request_data;
 
+        status = app_os_sleep(*seconds);
+        break;
+    }
     default:
         APP_DEBUG("idigi_os_callback: unrecognized request [%d]\n", request);
         status = idigi_callback_unrecognized;

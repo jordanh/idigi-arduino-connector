@@ -13,6 +13,9 @@
 #ifndef REMOTE_CONFIG_CB_H_
 #define REMOTE_CONFIG_CB_H_
 
+#include "remote_config.h"
+#include "idigi_debug.h"
+
 typedef struct {
     unsigned int group_table_id;
     void * group_context;

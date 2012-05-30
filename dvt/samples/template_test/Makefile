@@ -25,9 +25,9 @@ vpath $(PLATFORM_DIR)/%.c
 
 # CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1020000UL 
 CFLAGS += $(DFLAGS) -Wall -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1020000UL 
-CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR)  -g -Os
+CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I. -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR)  -g -Os
 
-OBJS = main.o $(IDIGI_DIR)/idigi_api.o $(PLATFORM_DIR)/os.o $(PLATFORM_DIR)/network.o $(PLATFORM_DIR)/config.o
+OBJS = main.o $(IDIGI_DIR)/idigi_api.o $(PLATFORM_DIR)/os.o $(PLATFORM_DIR)/network.o $(PLATFORM_DIR)/config.o $(PLATFORM_DIR)/debug.o
 LIBS = -lc -lz -lpthread
 
 SAMPLE = idigi
@@ -38,7 +38,7 @@ CFLAGS += -Wl,-Map,$(SAMPLE).map
 main.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h
 ds_callback: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h
 firmware: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h
-$(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PUBLIC_HEADER_DIR)/idigi_config.h $(IDIGI_DIR)/idigi_def.h $(IDIGI_DIR)/bele.h
+$(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h ./idigi_config.h $(IDIGI_DIR)/idigi_def.h $(IDIGI_DIR)/bele.h
 
 $(OBJS): *.c $(IDIGI_DIR)/*.c $(PLATFORM_DIR)/*.c
 

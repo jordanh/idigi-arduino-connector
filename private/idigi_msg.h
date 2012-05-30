@@ -388,7 +388,7 @@ static msg_session_t * msg_create_session(idigi_data_t * const idigi_ptr, idigi_
 
         if ((max_transactions != unlimited_transactions) && (active_transactions >= max_transactions))
         {
-            idigi_debug("msg_create_session: active transactions %d > max transactions %d\n", active_transactions, max_transactions);
+            idigi_debug_printf("msg_create_session: active transactions %d > max transactions %d\n", active_transactions, max_transactions);
             ASSERT(client_owned); /* server should not send more than client's max transactions */
             goto done;
         }
@@ -1618,7 +1618,7 @@ static idigi_callback_status_t msg_process_error(idigi_data_t * const idigi_ptr,
     }
     else
     {
-        idigi_debug("msg_process_error: unable to find session id = %d\n", session_id);
+        idigi_debug_printf("msg_process_error: unable to find session id = %d\n", session_id);
     }
 
     return status;
@@ -1714,7 +1714,7 @@ static idigi_callback_status_t msg_process_pending(idigi_data_t * const idigi_pt
 
         default:
             status = idigi_callback_abort;
-            idigi_debug("Failed %X, state%d\n", session, session->current_state);
+            idigi_debug_printf("Failed %X, state%d\n", session, session->current_state);
             ASSERT_GOTO(idigi_false, done);
             break;
         }
@@ -1761,7 +1761,7 @@ static idigi_callback_status_t msg_process(idigi_data_t * const idigi_ptr, void 
                 break;
 
             default:
-                idigi_debug("msg_process: Invalid opcode\n");
+                idigi_debug_printf("msg_process: Invalid opcode\n");
                 break;
         }
     }
@@ -1897,7 +1897,7 @@ done:
     return status;
 }
 
-#if (IDIGI_RCI_MAXIMUM_CONTENT_LENGTH > 0)
+#if (defined IDIGI_RCI_SERVICE)
 #include "rci_service.h"
 #endif
 

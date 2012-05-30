@@ -23,6 +23,7 @@
 #include "idigi_api.h"
 #include "platform.h"
 #include "idigi_config.h"
+#include "idigi_debug.h"
 
 #if !defined IDIGI_FILE_SYSTEM 
 #error "Replace IDIGI_NO_FILE_SYSTEM with IDIGI_FILE_SYSTEM in idigi_config.h to run this sample" 
@@ -293,7 +294,7 @@ static idigi_callback_status_t app_process_file_hash(idigi_file_path_request_t c
     UNUSED_ARGUMENT(request_data);
 
     // app_process_file_hash() should not be called if APP_ENABLE_MD5 is not defined
-    ASSERT(0)
+    ASSERT(0);
 
     memset(response_data->data_ptr, 0, response_data->size_in_bytes);
     return idigi_callback_continue;
