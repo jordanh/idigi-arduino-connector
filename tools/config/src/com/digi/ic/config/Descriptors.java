@@ -26,12 +26,12 @@ public class Descriptors {
     private final String password;
     private final String deviceType;
     private String vendorId;
-    private final String fwVersion;
+    private final long fwVersion;
     private Boolean callDeleteFlag;
 
     public Descriptors(final String username, final String password,
                        final String vendorId, final String deviceType, 
-                       final String version) {
+                       final long version) {
         this.username = username;
         this.password = password;
         this.deviceType = deviceType;
@@ -262,7 +262,7 @@ public class Descriptors {
         ConfigGenerator.debug_log("Uploading description:" + descName);
 
         if (callDeleteFlag) {
-            String target = String.format("/ws/DeviceMetaData?condition=dvVendorId=%s and dmDeviceType=\'%s\' and dmVersion=%s",
+            String target = String.format("/ws/DeviceMetaData?condition=dvVendorId=%s and dmDeviceType=\'%s\' and dmVersion=%d",
                                             vendorId, deviceType, fwVersion);
 
             String response = sendCloudData(target.replace(" ", "%20"),
@@ -276,7 +276,7 @@ public class Descriptors {
         String message = "<DeviceMetaData>";
         message += tagMessageSegment("dvVendorId", vendorId);
         message += tagMessageSegment("dmDeviceType", deviceType);
-        message += tagMessageSegment("dmVersion", fwVersion);
+        message += tagMessageSegment("dmVersion", String.format("%d", fwVersion));
         message += tagMessageSegment("dmName", descName);
         message += tagMessageSegment("dmData", replaceXmlEntities(buffer));
         message += "</DeviceMetaData>";

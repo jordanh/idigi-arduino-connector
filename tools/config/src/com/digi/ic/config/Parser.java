@@ -116,12 +116,12 @@ public class Parser {
 
         } catch (IOException e) {
             ConfigGenerator.log("Parser IOException");
-            errorFoundLog(e.getMessage());
-            throw new IOException("Error found in file: " + fileName);
+            String errorMsg = "Error found in file: " + fileName + "\n" + errorFoundLog(e.getMessage());
+            throw new IOException(errorMsg);
 
         } catch (Exception e) {
-            errorFoundLog(e.getMessage());
-            throw new IOException("Error found in file:" + fileName);
+            String errorMsg = "Error found in file: " + fileName + "\n" + errorFoundLog(e.getMessage());
+            throw new IOException(errorMsg);
         }
 
         finally {
@@ -130,16 +130,17 @@ public class Parser {
 
     }
 
-    private static void errorFoundLog(String str) {
-        ConfigGenerator.log(str);
+    private static String errorFoundLog(String str) {
+        String message = str + "\n";
 
         if (str.indexOf("<group>") != -1)
-            ConfigGenerator.log("Error found in line " + groupLineNumber);
+            message += "Error found in line " + groupLineNumber;
         else if (str.indexOf("<element>") != -1)
-            ConfigGenerator.log("Error found in line " + elementLineNumber);
+            message += "Error found in line " + elementLineNumber;
         else
-            ConfigGenerator.log("Error found in line " + tokenScanner.getLineNumber());
+            message += "Error found in line " + tokenScanner.getLineNumber();
 
+        return message;
     }
 
     private final static Pattern ALPHACHARACTERS = Pattern.compile("\\w+");

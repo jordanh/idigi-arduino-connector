@@ -28,6 +28,19 @@ public class ConfigGenerator {
     public final static String FIRMWARE_VERSION = "firmwareVersion";
     public final static String CONFIG_FILENAME = "configFileName";
 
+    private static String serverName = SERVER_NAME;
+    private static String vendorId;
+
+    private static String deviceType;
+    private static long fwVersion;
+    private static String username;
+    private static String password;
+    private static String filename;
+    private static String argumentLog;
+    private static String directoryPath;
+    private static boolean noErrorDescription;
+    private static boolean verboseOption;
+    
     private static void usage() {
         String className = ConfigGenerator.class.getName();
 
@@ -105,7 +118,7 @@ public class ConfigGenerator {
                 .format(
                         "\t%-16s \t= Device type string with quotes(i.e. \"device type\")",
                         DEVICE_TYPE));
-        log(String.format("\t%-16s \t= firmware version number in decimal",
+        log(String.format("\t%-16s \t= firmware version (i.e. 1.0.0.0)",
                 FIRMWARE_VERSION));
         log(String.format("\t%-16s \t= iDigi Connector Configration file",
                 CONFIG_FILENAME));
@@ -176,6 +189,32 @@ public class ConfigGenerator {
 
     }
 
+    private boolean getDottedFwVersion(String arg) {
+        
+        String[] versions = arg.split("\\.");
+        int length = versions.length;
+        
+        if (length == 0 || length > 4) return false;
+        
+        for (String ver : versions)
+        {
+            int vnumber;
+            try {
+                vnumber = Integer.parseInt(ver);
+            } catch (Exception e) {
+                try {
+                    vnumber = Integer.parseInt(ver, 16);
+                } catch (Exception err) {
+                    return false;
+                }
+            }
+            length--;
+            fwVersion += (vnumber << (8 * length));
+        }
+
+        return true;
+    }
+    
     private void toArgument(int argNumber, String arg) {
         try {
             switch (argNumber) {
@@ -204,11 +243,31 @@ public class ConfigGenerator {
                 break;
             case 3:
                 /* firmware version */
-                fwVersion = arg;
-                Scanner fwVersionScan = new Scanner(fwVersion);
-                if (!fwVersionScan.hasNextInt()) {
-                    throw new Exception("Invalid f/w version: " + arg);
+                
+                Scanner fwVersionScan = new Scanner(arg);
+                
+                /* see whether it's decimal firmware version number */
+                if (!fwVersionScan.hasNextLong()) {
+                    /* check hex number */
+                    if (arg.startsWith("0x"))
+                    {
+                        try {
+                            fwVersion = Integer.parseInt(arg.substring(2), 16);
+                        } catch (Exception e) {
+                            throw new Exception("Invalid F/W Version (non-hexadecimal): " + arg);
+                        }
+                    }
+                    /* check dotted format */
+                    else if (!getDottedFwVersion(arg))
+                    {
+                        throw new Exception("Invalid F/W Version (non-digit or exceed maximum number of digits): " + arg);
+                    }
+                } else {
+                    fwVersion = fwVersionScan.nextLong();
                 }
+                
+                debug_log(String.format("FW version: %s = %d", arg, fwVersion));
+                
                 argumentLog += " " + arg;
                 break;
 
@@ -322,17 +381,5 @@ public class ConfigGenerator {
         }
     }
 
-    private static String serverName = SERVER_NAME;
-    private static String vendorId;
-
-    private static String deviceType;
-    private static String fwVersion;
-    private static String username;
-    private static String password;
-    private static String filename;
-    private static String argumentLog;
-    private static String directoryPath;
-    private static boolean noErrorDescription;
-    private static boolean verboseOption;
 
 }
