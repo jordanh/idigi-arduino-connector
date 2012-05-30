@@ -196,7 +196,7 @@ static idigi_callback_status_t app_process_file_msg_error(idigi_file_error_reque
                                                           idigi_file_response_t * const response_data)
 {
     UNUSED_ARGUMENT(request_data);
-    APP_DEBUG("Message Error %d\n", (int) request_data->message_status);
+    APP_DEBUG("Message Error %d\n", request_data->message_status);
 
     // All application resources, used in the session, must be released in this callback
     if (response_data->user_context != NULL)
@@ -281,7 +281,7 @@ static idigi_callback_status_t app_process_file_msg_error(idigi_file_error_reque
 {
     UNUSED_ARGUMENT(request_data);
     UNUSED_ARGUMENT(response_data);
-    APP_DEBUG("Message Error %d\n", (int) request_data->message_status);
+    APP_DEBUG("Message Error %d\n", request_data->message_status);
 
     // All application resources, used in the session, must be released in this callback
     return idigi_callback_continue;

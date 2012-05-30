@@ -1562,7 +1562,7 @@
  * {
  *     UNUSED_ARGUMENT(response_data);
  *
- *     APP_DEBUG("Message Error %d\n", (int) request_data->message_status);
+ *     APP_DEBUG("Message Error %d\n", request_data->message_status);
  *
  *    // All session resources must be released in this callback
  *    return idigi_callback_continue;

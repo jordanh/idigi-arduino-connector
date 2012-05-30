@@ -957,7 +957,8 @@ static idigi_callback_status_t process_file_put_request(idigi_data_t * const idi
 
             if (context->handle == NULL)
             {
-                char const * path = (char const *) data_ptr + FILE_OPCODE_BYTES;
+                char const * path = service_data->data_ptr;
+                path += FILE_OPCODE_BYTES;
                 int open_flags = IDIGI_O_WRONLY | IDIGI_O_CREAT;
 
                 if (FileNeedTrunc(context))
