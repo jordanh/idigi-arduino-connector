@@ -37,7 +37,7 @@ idigi_status_t send_put_request(idigi_handle_t handle)
 #define BUFFER_SIZE 64
 
 idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t const request,
-                                                  void const * request_data, size_t const request_length,
+                                                  void const * const request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;

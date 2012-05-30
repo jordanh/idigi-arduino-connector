@@ -25,5 +25,9 @@ void idigi_debug_printf(char const * const format, ...)
     vprintf(format, args);
     va_end(args);
 }
+#else
+
+typedef int dummy;
 
 #endif
+

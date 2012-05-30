@@ -13,7 +13,7 @@
 #define __IDIGI_CONFIG_H_
 
 #define IDIGI_LITTLE_ENDIAN
-#define IDIGI_DEBUG
+/* #define IDIGI_DEBUG */
 #define IDIGI_FIRMWARE_SERVICE
 /* #define IDIGI_COMPRESSION */
 /* #define IDIGI_DATA_SERVICE */

@@ -31,8 +31,8 @@ typedef struct {
 /* list of all supported firmware target info */
 static firmware_list_t firmware_list[] = {
     /* version     code_size     name_spec          description */
-    {0x01000000, (uint32_t)-1, ".*\\.[tT][xX][tT]", "Text File"}, /* any *.a files */
-    {0x00000100, (uint32_t)-1, ".*\\.[bB][iI][nN]", "Binary Image" }  /* any *.bin files */
+    {0x01000000, -1, ".*\\.[tT][xX][tT]", "Text File"}, /* any *.a files */
+    {0x00000100, -1, ".*\\.[bB][iI][nN]", "Binary Image" }  /* any *.bin files */
 };
 static uint16_t firmware_list_count = asizeof(firmware_list);
 
@@ -186,7 +186,7 @@ static idigi_callback_status_t firmware_reset(idigi_fw_config_t const * const re
 }
 
 idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t const request,
-                                                  void * const request_data, size_t const request_length,
+                                                  void const * const request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;

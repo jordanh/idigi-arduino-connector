@@ -26,9 +26,4 @@ void idigi_debug_printf(char const * const format, ...)
     va_end(args);
 }
 
-#else
-void idigi_debug_printf(char const * const format, ...)
-{
-    (void) format;
-}
 #endif
