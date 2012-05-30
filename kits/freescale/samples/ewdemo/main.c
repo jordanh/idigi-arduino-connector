@@ -28,7 +28,7 @@ TASK_TEMPLATE_STRUCT MQX_template_list[] =
 /*  Task number, Entry point, Stack, Pri, String, Auto? */
    {MAIN_TASK, Main_task, 2048, 9, "main", MQX_AUTO_START_TASK},
    {IDIGI_CONNECTOR_TASK, idigi_connector_thread, 4096, 9, "iDigi_connector", 0},
-   {IDIGI_FLASH_TASK,     idigi_flash_task,     2048,  10, "idigi_flash",     0,},
+   {IDIGI_FLASH_TASK,     idigi_flash_task,     2048,   8, "idigi_flash",     0,},
    {ADC_TASK,             ADC_Task,              400,  10, "ADC",             0,},
    {ACCEL_TASK,           Accel_Task,            400,  10, "Accelerometer",   0,},
    {IDIGI_LED_TASK,       idigi_led_task,       1024,  10, "idigi_led",       0,},
