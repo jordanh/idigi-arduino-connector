@@ -19,6 +19,8 @@
 #ifndef IDIGI_TYPES_H_
 #define IDIGI_TYPES_H_
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <limits.h>
 #include <assert.h>
