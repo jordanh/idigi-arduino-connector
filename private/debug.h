@@ -91,6 +91,12 @@ void idigi_debug_hexvalue(char * label, uint8_t * buff, int length)
 
 #else
 #define idigi_debug_hexvalue(label, start, length)
+
+static void idigi_debug_printf(char const * const format, ...)
+{
+    (void) format;
+}
+
 #endif
 
 #define add_malloc_stats(ptr, size)

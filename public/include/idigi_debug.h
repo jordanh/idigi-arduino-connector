@@ -36,11 +36,6 @@ void idigi_debug_printf(char const * const format, ...);
 #define ASSERT(cond)        assert(cond)
 #else
 
-static void idigi_debug_printf(char const * const format, ...)
-{
-    (void) format;
-}
-
 #define ASSERT(cond)
 #endif
 /**

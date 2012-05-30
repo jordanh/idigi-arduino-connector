@@ -68,7 +68,7 @@ idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
 
     case idigi_os_sleep:
         {
-            unsigned int const * const seconds = request;
+            unsigned int const * const seconds = request_data;
 
             status = app_os_sleep(*seconds);
         }
