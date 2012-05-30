@@ -160,13 +160,14 @@ def run_test(test, test_list, execution_type, base_src_dir, base_script_dir,
     device_location = None
     try:
         sandbox_dir = sandbox(base_dir)
-
-        for (f, s, r) in replace_list:
-            config.replace_string(os.path.join(sandbox_dir, f), s, r)
-
-        (device_id, mac_addr, device_location) = generate_id(api)
         src_dir        = os.path.join(sandbox_dir, base_src_dir)
         test_dir       = os.path.join(sandbox_dir, base_script_dir)
+        idigi_config   = os.path.join(src_dir, 'idigi_config.h')
+
+        for (s, r) in replace_list:
+            config.replace_string(idigi_config, s, r)
+
+        (device_id, mac_addr, device_location) = generate_id(api)
         if test =='compile_and_link':
             config.replace_string(os.path.join(src_dir, 'Makefile'), 
                 'c99', 'c89')
@@ -184,8 +185,7 @@ def run_test(test, test_list, execution_type, base_src_dir, base_script_dir,
                 SAMPLE_PLATFORM_STEP_DIR), mac_addr)
 
         if update_config_header:
-            config.update_config_header(
-                os.path.join(sandbox_dir, 'public/include/idigi_config.h'), 
+            config.update_config_header(idigi_config, 
                 os.path.join(test_dir, 'config.ini'))
  
         if gcov is True and test != 'compile_and_link':
@@ -441,37 +441,31 @@ def main():
     if args.configuration == 'default' or args.configuration == 'all':
         print "============ Default ============="
         run_tests('%s_%s' % (args.descriptor, 'Default'), '.', True, api, cflags, 
-        [('public/include/idigi_config.h', 'IDIGI_NO_FILE_SYSTEM', 'IDIGI_FILE_SYSTEM')], 
         tty=args.tty, test_name=args.test_name, test_type=args.test_type)
 
     if args.configuration == 'nodebug' or args.configuration == 'all':
         print "============ No Debug ============="
         run_tests('%s_%s' % (args.descriptor, 'Release'), '.', False, api, cflags, 
-        [('public/include/idigi_config.h', 'IDIGI_DEBUG', 'IDIGI_NO_DEBUG'),
-         ('public/include/idigi_config.h', 'IDIGI_NO_FILE_SYSTEM', 'IDIGI_FILE_SYSTEM')], 
+        [('IDIGI_DEBUG', 'IDIGI_NO_DEBUG')], 
          tty=args.tty, test_name=args.test_name, test_type=args.test_type)
 
     if args.configuration == 'compression' or args.configuration == 'all':
         print "============ Compression On ============="
         run_tests('%s_%s' % (args.descriptor, 'Compression'), '.', False, api, cflags,
-        [('public/include/idigi_config.h', 'IDIGI_NO_COMPRESSION', 
-         'IDIGI_COMPRESSION'), 
-         ('public/include/idigi_config.h', 'IDIGI_NO_FILE_SYSTEM', 'IDIGI_FILE_SYSTEM'),
-         ('public/include/idigi_config.h', 'IDIGI_DEBUG', 'IDIGI_NO_DEBUG')], 
+        [('IDIGI_NO_COMPRESSION', 'IDIGI_COMPRESSION'), 
+         ('IDIGI_DEBUG', 'IDIGI_NO_DEBUG')], 
          tty=args.tty, test_name=args.test_name, test_type=args.test_type)
 
     if args.configuration == 'debug' or args.configuration == 'all':
         print "============ Debug On ============="
         run_tests('%s_%s' % (args.descriptor, 'Debug'), '.', True, api, cflags, 
-        [('public/include/idigi_config.h', 'IDIGI_NO_DEBUG', 'IDIGI_DEBUG'),
-         ('public/include/idigi_config.h', 'IDIGI_NO_FILE_SYSTEM', 'IDIGI_FILE_SYSTEM')], 
+        [('IDIGI_NO_DEBUG', 'IDIGI_DEBUG'),], 
          tty=args.tty, gcov=args.gcov, test_name=args.test_name, 
          test_type=args.test_type)
 
     if args.configuration == 'config_header' or args.configuration == 'all':
         print "============ Configurations in idigi_config.h ============="
         run_tests('%s_%s' % (args.descriptor, 'idigiconfig'), '.', True, api, cflags,
-        [('public/include/idigi_config.h', 'IDIGI_NO_FILE_SYSTEM', 'IDIGI_FILE_SYSTEM')],
         update_config_header=True, tty=args.tty, test_name=args.test_name, 
         test_type=args.test_type)
 

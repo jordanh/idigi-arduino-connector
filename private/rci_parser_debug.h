@@ -45,33 +45,35 @@ static char const * boolean_as_string(idigi_bool_t const value)
 
 static char const * character_as_string(int const value)
 {
-    static char storage[sizeof "\0xFF"][2];
+    static char storage[sizeof "0xFF"][2];
     static size_t index;
     static size_t const count = asizeof(storage);
-    char const * result;
+    char * result;
     
-    if (isprint(value))
+    switch (value)
     {
-        switch (value)
+    case '\0':  result = "\\0"; break;
+    case '\r':  result = "\\r"; break;
+    case '\n':  result = "\\n"; break;
+    case '\t':  result = "\\t"; break;
+    case '\f':  result = "\\f"; break;
+    default:
+        result = storage[index];
+        index++;
+        if (index == count) index = 0;
+
+        if (isprint(value))
         {
-        case '\r':  result = "\r"; goto done; break;
-        case '\n':  result = "\n"; goto done; break;
-        case '\t':  result = "\t"; goto done; break;
-        case '\f':  result = "\f"; goto done; break;
+            result[0] = value;
+            result[1] = '\0';
         }
-
-        sprintf(storage[index], "%c", value);
+        else
+        {
+            unsigned char const byte = value;
+            sprintf(result, "0x%02x", byte);
+        }
+        break;
     }
-    else
-    {
-        sprintf(storage[index], "0x%02x", value);
-    }
-    
-    result = storage[index];
-    index++;
-    if (index == count) index = 0;
-
-done:
 
     return result;
 }
@@ -178,6 +180,11 @@ static char const * rci_traversal_state_t_as_string(rci_traversal_state_t const 
         enum_to_case(rci_traversal_state_one_group_element_data);
         enum_to_case(rci_traversal_state_one_group_element_end);
         enum_to_case(rci_traversal_state_one_group_end);
+        enum_to_case(rci_traversal_state_indexed_group_start);
+        enum_to_case(rci_traversal_state_indexed_group_element_start);
+        enum_to_case(rci_traversal_state_indexed_group_element_data);
+        enum_to_case(rci_traversal_state_indexed_group_element_end);
+        enum_to_case(rci_traversal_state_indexed_group_end);
         enum_to_case(rci_traversal_state_one_element_start);
         enum_to_case(rci_traversal_state_one_element_data);
         enum_to_case(rci_traversal_state_one_element_end);
@@ -301,7 +308,6 @@ static char const * rci_error_state_t_as_string(rci_error_state_t const value)
         enum_to_case(rci_error_state_group_close);
         enum_to_case(rci_error_state_command_close);
         enum_to_case(rci_error_state_reply_close);
-	    enum_to_case(rci_error_state_complete);
     }
     return result;
 }
@@ -310,7 +316,7 @@ static void output_buffer_diff(char const * const name, void const * const curre
 {
     if (memcmp(current, previous, bytes) != 0)
     {
-        char const * current_buffer = current;
+        unsigned char const * current_buffer = current;
         size_t remaining = bytes;
         
         printf("%s\n", name);
@@ -318,14 +324,19 @@ static void output_buffer_diff(char const * const name, void const * const curre
         {
             size_t const bytes_per_line = 16;
             size_t const bytes_this_line = (remaining < bytes_per_line) ? remaining : bytes_per_line;
+            size_t const bytes_extra = (bytes_per_line - bytes_this_line);
             size_t i;
             
             printf("%p: ", current_buffer);
             for (i = 0; i < bytes_this_line; i++)
             {
-                int const byte = current_buffer[i];
+                unsigned char const byte = current_buffer[i];
                 
                 printf("%02x ", byte);
+            }
+            for (i = 0; i < bytes_extra; i++)
+            {
+                printf("   ");
             }
             for (i = 0; i < bytes_this_line; i++)
             {
@@ -451,7 +462,8 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
     
     previous = *current;
     step++;
-    ASSERT(step < 1000);
+    ASSERT(step < 500);
+    fflush(stdout);
 }
 
 #endif

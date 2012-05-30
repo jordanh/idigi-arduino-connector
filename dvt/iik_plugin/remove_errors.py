@@ -5,4 +5,3 @@ import sys
 
 if __name__ == "__main__":
     setup_platform(*sys.argv[1:])
-    update_config_header('%s/%s' % (sys.argv[2], '../../../include/idigi_config.h'), '%s/%s' % (sys.argv[1], 'config.ini'))
