@@ -1110,11 +1110,6 @@ static void msg_start_session(idigi_data_t * const idigi_ptr, idigi_msg_data_t *
         goto error;
 
     result = msg_initialize_data_block(session, msg_ptr->capabilities[msg_capability_server].window_size, msg_block_state_send_request);
-    if (result != idigi_msg_error_none)
-    {
-        msg_delete_session(idigi_ptr, msg_ptr, session);
-        goto error;
-    }
 
     {
         idigi_msg_callback_t * const cb_fn = msg_ptr->service_cb[msg_service_id_data];
@@ -1131,10 +1126,10 @@ static void msg_start_session(idigi_data_t * const idigi_ptr, idigi_msg_data_t *
             cb_fn(idigi_ptr, &service_data);
             if (service_data.error_value != idigi_msg_error_none)
                 msg_delete_session(idigi_ptr, msg_ptr, session);
-
-            msg_ptr->pending_service_request = NULL;
         }
     }
+
+    msg_ptr->pending_service_request = NULL;
 
 error:
     return;
@@ -1246,6 +1241,9 @@ static idigi_callback_status_t msg_pass_service_data(idigi_data_t * const idigi_
         status = msg_call_service_layer(idigi_ptr, session, msg_service_type_have_data);
     }
 
+    if (status == idigi_callback_abort)
+        goto error;
+
     if (status == idigi_callback_continue)
     {
         MsgClearStart(dblock->status_flag);
@@ -1285,18 +1283,18 @@ static idigi_callback_status_t msg_pass_service_data(idigi_data_t * const idigi_
             else
                 session->current_state = msg_state_receive;
         }
+    }
 
-        if (MsgIsDoubleBuf(dblock->status_flag))
+    if (MsgIsDoubleBuf(dblock->status_flag))
+    {
+        ASSERT_GOTO(session->service_layer_data.need_data != NULL, error);
+        session->saved_state = session->current_state;
+
+        if (MsgIsSendNow(session->service_layer_data.need_data->flags))
         {
-            ASSERT_GOTO(session->service_layer_data.need_data != NULL, error);
-            session->saved_state = session->current_state;
+            idigi_callback_status_t const send_status = msg_process_send_data(idigi_ptr, session);
 
-            if (MsgIsSendNow(session->service_layer_data.need_data->flags))
-            {
-                idigi_callback_status_t const send_status = msg_process_send_data(idigi_ptr, session);
-
-                ASSERT_GOTO(send_status != idigi_callback_abort, error);
-            }
+            ASSERT_GOTO(send_status != idigi_callback_abort, error);
         }
     }
 
@@ -1796,6 +1794,8 @@ static idigi_callback_status_t msg_cleanup_all_sessions(idigi_data_t * const idi
 
         session = next_session;
     }
+
+    msg_ptr->pending_service_request = NULL;
 
 error:
     return status;
