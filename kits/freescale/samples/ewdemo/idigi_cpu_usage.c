@@ -66,10 +66,9 @@ void init_cpu_usage(void)
 	    total_loop1 += elapsed_loop1;
 	}
 	  
-	cpu_usage_baseline = total_loop1 / 5;
+	// cpu_usage_baseline = total_loop1 / 5;
 	  
-	if (cpu_usage_baseline > 0x270664) // Something is wrong, set to known good value
-        cpu_usage_baseline = 0x270664;
+	cpu_usage_baseline = 0x270664;  // For consistency, set to known good value       
 }
 
 void idigi_cpu_usage(unsigned long initial_data)
