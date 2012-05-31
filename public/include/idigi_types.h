@@ -19,18 +19,23 @@
 #ifndef IDIGI_TYPES_H_
 #define IDIGI_TYPES_H_
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
 #include <assert.h>
 #include <stddef.h>
 
-#if !(defined IDIGI_HAVE_STDINT_HEADER)
-  #if __STDC_VERSION__ >= 199901L
-    /* If the compiler is C99 complaint, then we have stdint.h. */
+#if __STDC_VERSION__ >= 199901L
+  /* If the compiler is C99 complaint, then we have stdint.h. */
+  #define IDIGI_HAVE_STDINT_HEADER
+#endif
+
+#if (defined __MWERKS__) && (defined __MQX__)
+  #if (!defined IDIGI_HAVE_STDINT_HEADER)
     #define IDIGI_HAVE_STDINT_HEADER
   #endif
+#else
+  #include <stdio.h>
 #endif
 
 #if defined IDIGI_HAVE_STDINT_HEADER

@@ -17,6 +17,7 @@
 #include <idigi_api.h>
 #include <idigi_types.h>
 #include <platform.h>
+#include <idigi_debug.h>
 
 static int socket_fd = RTCS_SOCKET_ERROR;
 
@@ -206,6 +207,9 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t const * 
         if (bytes_read == 0)
             status = idigi_callback_busy;
     }
+
+    if (*read_length == 0)
+        _time_delay(1);
 
     return status;
 }

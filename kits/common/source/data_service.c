@@ -14,6 +14,7 @@
 #include "platform.h"
 #include "os_support.h"
 #include "data_service.h"
+#include "idigi_debug.h"
 
 typedef struct
 {

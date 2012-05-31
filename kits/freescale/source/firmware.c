@@ -9,9 +9,9 @@
 * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
 * =======================================================================
 */
+#include "main.h"
 #include "idigi_api.h"
 #include "platform.h"
-#include "main.h"
 
 typedef struct {
     uint32_t    version;

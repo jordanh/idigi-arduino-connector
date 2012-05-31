@@ -13,6 +13,7 @@
 #include <mqx.h>
 #include "idigi_api.h"
 #include "platform.h"
+#include "idigi_debug.h"
 
 idigi_callback_status_t app_os_malloc(size_t const size, void ** ptr)
 {
