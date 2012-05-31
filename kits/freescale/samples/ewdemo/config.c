@@ -36,10 +36,6 @@
 #define VENDOR_ID_LENGTH    4
 #define MAC_ADDR_LENGTH     6
 
-/* MAC address used in this sample */
-_enet_address device_mac_addr = {0x00, 0x04, 0x9f, 0x01, 0x59, 0x14};
-_enet_address default_device_mac_addr = {0x00, 0x04, 0x9f, 0x01, 0x59, 0x14};
-
 /*
  * Routine to get the IP address, you will need to modify this routine for your 
  * platform.
