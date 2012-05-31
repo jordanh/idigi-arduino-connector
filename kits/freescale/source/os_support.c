@@ -39,6 +39,36 @@ error:
     return status;
 }
 
+idigi_connector_error_t ic_clear_event(int const event, unsigned long const event_bit)
+{
+    pointer event_ptr;
+    idigi_connector_error_t status = idigi_connector_event_error;
+
+    ASSERT_GOTO(event < event_list_size, error);
+    if (_event_open(event_list[event], &event_ptr) != MQX_OK)
+    {
+        APP_DEBUG("Failed to open event(get) %s\n", event_list[event]);
+        goto error;
+    }
+
+    if (_event_clear(event_ptr, event_bit) != MQX_OK)
+    {
+        APP_DEBUG("Failed to clear event %s\n", event_list[event]);
+        goto error;
+    }
+
+    if (_event_close(event_ptr) != MQX_OK)
+    {
+        APP_DEBUG("Failed to close event %s\n", event_list[event]);
+        goto error;
+    }
+
+    status = idigi_connector_success;
+
+error:
+    return status;
+}
+
 idigi_connector_error_t ic_get_event(int const event, unsigned long const event_bit, unsigned long timeout_ms)
 {
     pointer event_ptr;

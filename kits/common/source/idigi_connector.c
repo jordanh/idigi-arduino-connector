@@ -185,6 +185,9 @@ idigi_connector_error_t idigi_send_data(char const * const path, idigi_connector
             result = idigi_connector_resource_error;
             goto error;
         }
+
+        /* make sure none of the stale event is pending */
+        ic_clear_event(IC_SEND_DATA_EVENT, available_bit);
     }
 
     /* we are storing some stack variables here, need to block until we get a response */

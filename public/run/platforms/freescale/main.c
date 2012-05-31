@@ -16,7 +16,7 @@
 #error This application requires BSP_DEFAULT_IO_CHANNEL to be not NULL. Please set corresponding BSPCFG_ENABLE_TTYx to non-zero in user_config.h and recompile BSP with this option.
 #endif
 
-#if !BSPCFG_ENABLE_FLASHX
+#if !BSPCFG_ENABLE_FLASHX && (defined IDIGI_FIRMWARE_SERVICE)
 #error This application requires BSPCFG_ENABLE_FLASHX defined non-zero in user_config.h. Please recompile BSP with this option.
 #endif
 
