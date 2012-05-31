@@ -4,6 +4,7 @@
 *
 ****************************************************************************/
 #include "main.h"
+#include "idigi_config.h"
 #include "idigi_api.h"
 #include "platform.h"
 #include "idigi_connector.h"
@@ -50,7 +51,7 @@ static void idigi_status(idigi_connector_error_t const status, char const * cons
 static uint_32 start_network(void)
 {
 	IPCFG_IP_ADDRESS_DATA ip_data;
-	_enet_address enet_address;
+    _enet_address mac_addr;
     uint_32 result = RTCS_create();
 	
     if (result != RTCS_OK) 
@@ -58,12 +59,10 @@ static uint_32 start_network(void)
 		APP_DEBUG("RTCS failed to initialize, error = %X", result);
 		goto error;
 	}
-	
-    // ENET_get_mac_address (IPCFG_default_enet_device, IPCFG_default_ip_address, enet_address);
     
-    Flash_NVRAM_get_mac_address(enet_address);
+    Flash_NVRAM_get_mac_address(mac_addr);
 
-	result = ipcfg_init_device (ENET_DEVICE, enet_address);
+	result = ipcfg_init_device (ENET_DEVICE, mac_addr);
 	if (result != RTCS_OK) 
 	{
 		APP_DEBUG("Failed to initialize Ethernet device, error = %X", result);
@@ -74,8 +73,19 @@ static uint_32 start_network(void)
 	while(!ipcfg_get_link_active(ENET_DEVICE)) {};
 	APP_DEBUG("Cable connected\n");
 
+#if (defined IDIGI_USE_STATIC_IP)
+    ip_data.ip = IDIGI_DEVICE_IPADDR;
+    ip_data.mask = IDIGI_DEVICE_IPMASK;
+    ip_data.gateway = IDIGI_DEVICE_GATEWAY;
+
+    ipcfg_add_dns_ip(ENET_DEVICE, IDIGI_DNS_SERVER_IPADDR);
+    APP_DEBUG("Setting static IP address ... ");
+    result = ipcfg_bind_staticip (ENET_DEVICE, &ip_data);
+#else
 	APP_DEBUG("Contacting DHCP server ... ");
 	result = ipcfg_bind_dhcp_wait(ENET_DEVICE, FALSE, &ip_data);
+#endif
+
     if (result != IPCFG_ERROR_OK) 
     {
     	APP_DEBUG("\nRTCS failed to bind interface with IPv4, error = %X", result);

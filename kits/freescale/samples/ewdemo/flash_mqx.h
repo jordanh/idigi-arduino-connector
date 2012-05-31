@@ -27,16 +27,7 @@
 #ifndef FLASH_MQX_H_
 #define FLASH_MQX_H_
 
-extern _enet_address device_mac_addr;
-extern _enet_address default_device_mac_addr;
 extern MQX_FILE_PTR flash_file;
-
-/* iDigi defines */
-
-#define IDIGI_DEVICE_IPADDR  0x0A3412D2  
-#define IDIGI_DEVICE_IPMASK  0xFFFFFF00
-#define IDIGI_DEVICE_GATEWAY 0x0A341201
-#define IDIGI_DNS_SVR_IPADDR 0x0A34013E
 
 /* Defines for NVRAM Flash storage */
 

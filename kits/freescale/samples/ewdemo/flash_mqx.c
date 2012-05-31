@@ -30,10 +30,14 @@
 #include "ethernet.h"
 #include "pcb.h"
 #include "flash_mqx.h"
+#include "idigi_config.h"
 
 #ifndef APP_DEBUG
 #define APP_DEBUG   _io_printf
 #endif
+
+const _enet_address device_mac_addr = IDIGI_MAC_ADDRESS;
+const _enet_address default_device_mac_addr = IDIGI_DEFAULT_MAC_ADDRESS;
 
 struct fapp_params_flash fapp_params_current_config;
 
@@ -148,26 +152,31 @@ void _app_erase_flash_params(void)
 int _app_write_default_flash_params(void)
 {
     int len, result = 0;
+
+#ifdef IDIGI_USE_STATIC_IP    		
     unsigned long current_address;
     unsigned long current_netmask;
     unsigned long current_gateway;
     unsigned long current_dns;
-	   
+
     htonl(&current_address, IDIGI_DEVICE_IPADDR);
     htonl(&current_netmask, IDIGI_DEVICE_IPMASK);
     htonl(&current_gateway, IDIGI_DEVICE_GATEWAY);
-    htonl(&current_dns, IDIGI_DNS_SVR_IPADDR);
-	
+    htonl(&current_dns, IDIGI_DNS_SERVER_IPADDR);
+#endif
+    
     _app_setup_flash_params_address_for_writing();
     
     /* Get iDigi Default MAC Address */
     memcpy(&fapp_params_default_config.fnet_params.mac[0], (char *)device_mac_addr, sizeof device_mac_addr);
 
     /* Get other iDigi params */
+#ifdef IDIGI_USE_STATIC_IP
     fapp_params_default_config.fnet_params.address = current_address;
     fapp_params_default_config.fnet_params.netmask = current_netmask;
     fapp_params_default_config.fnet_params.gateway = current_gateway;
     fapp_params_default_config.fnet_params.dns = current_dns;
+#endif
     
     len = write(flash_file, (unsigned long *)&fapp_params_default_config, sizeof(struct fapp_params_flash));
     if (len != sizeof(struct fapp_params_flash))
@@ -206,11 +215,6 @@ void Flash_NVRAM_get_mac_address(_enet_address address)
 {
 	int result;
 	
-#if 0
-    _enet_address device_mac_addr = IDIGI_MAC_ADDRESS;
-    _enet_address default_device_mac_addr = IDIGI_DEFAULT_MAC_ADDRESS;
-#endif
-	
     /* Check signature. */
     if(strncmp( fnet_params->signature, FAPP_PARAMS_SIGNATURE, FAPP_PARAMS_SIGNATURE_SIZE ) != 0)
     {
@@ -225,6 +229,7 @@ void Flash_NVRAM_get_mac_address(_enet_address address)
     }
     else
     {
+#ifdef IDIGI_USE_STATIC_IP
         unsigned long current_address;
         unsigned long current_netmask;
         unsigned long current_gateway;
@@ -233,8 +238,8 @@ void Flash_NVRAM_get_mac_address(_enet_address address)
         htonl(&current_address, IDIGI_DEVICE_IPADDR);
         htonl(&current_netmask, IDIGI_DEVICE_IPMASK);
         htonl(&current_gateway, IDIGI_DEVICE_GATEWAY);
-        htonl(&current_dns, IDIGI_DNS_SVR_IPADDR);
-        
+        htonl(&current_dns, IDIGI_DNS_SERVER_IPADDR);
+#endif
         /* 
          * If the default device_mac_address is the same as the 
          * default_device_mac_address, use the bootloaders MAC address
@@ -256,11 +261,12 @@ void Flash_NVRAM_get_mac_address(_enet_address address)
                 memcpy(&fapp_params_current_config.fnet_params.mac[0], (char *)device_mac_addr, sizeof device_mac_addr);
 
                 /* Get other iDigi params */
+#ifdef IDIGI_USE_STATIC_IP
                 fapp_params_current_config.fnet_params.address = current_address;
                 fapp_params_current_config.fnet_params.netmask = current_netmask;
                 fapp_params_current_config.fnet_params.gateway = current_gateway;
                 fapp_params_current_config.fnet_params.dns = current_dns;
-            
+#endif
                 _app_erase_flash_params();
     
                 result = _app_write_flash_params((struct fapp_params_flash *) &fapp_params_current_config, sizeof(struct fapp_params_flash));
