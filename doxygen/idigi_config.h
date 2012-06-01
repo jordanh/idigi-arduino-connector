@@ -201,6 +201,21 @@
  * @see @ref IDIGI_RCI_SERVICE
  */
 #define IDIGI_RCI_MAXIMUM_CONTENT_LENGTH    256
+
+
+/**
+ * This is used to define the maximum file path length in bytes supported by the @ref file_system,
+ * including an ending '\0'.
+ * See @ref IDIGI_FILE_SYSTEM to enable or disable the service.
+ *
+ * @code
+ * #define IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH 256
+ * @endcode
+ *
+ * @see @ref IDIGI_FILE_SYSTEM
+ * @see idigi_file_system_readdir callback
+ */
+#define IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH   256
 /**
  * @}*/
 
@@ -473,6 +488,7 @@
  * @see @ref IDIGI_FILE_SYSTEM
  */
 #define IDIGI_FILE_SYSTEM_SUPPORT
+
 
 /**
  * When defined, this string hardcode for the remote_configuration_support instead of the application framework

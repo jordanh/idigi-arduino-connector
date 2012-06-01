@@ -1196,7 +1196,7 @@ static idigi_callback_status_t file_store_path(idigi_data_t * const idigi_ptr,
         path_len++;
     }
 
-    if (path_len >= IDIGI_MAX_PATH_LENGTH)
+    if (path_len >= IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH)
     {
         ASSERT(idigi_false);
         context->error.error_status = idigi_file_out_of_memory;
@@ -1205,7 +1205,7 @@ static idigi_callback_status_t file_store_path(idigi_data_t * const idigi_ptr,
         goto done;
     }
 
-    status = malloc_data(idigi_ptr, IDIGI_MAX_PATH_LENGTH, &ptr);
+    status = malloc_data(idigi_ptr, IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH, &ptr);
     if (status != idigi_callback_continue)
         goto done;
 
@@ -1330,7 +1330,7 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
             {
                 /* read next dir entry */
                 size_t const path_max = MIN_VALUE((buffer_size - (header_len + hash_len)),
-                                            (IDIGI_MAX_PATH_LENGTH - context->data.d.path_len));
+                                            (IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH - context->data.d.path_len));
             
                 status = call_file_readdir_user(idigi_ptr, service_request, file_path, path_max);
                 if (status == idigi_callback_busy)
@@ -1353,7 +1353,7 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
 
             if (FileGetState(context) < FILE_STATE_STAT_DONE)
             {
-                if ((context->data.d.path_len + file_path_len) > IDIGI_MAX_PATH_LENGTH)
+                if ((context->data.d.path_len + file_path_len) > IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH)
                 {
                     context->error.error_status = idigi_file_out_of_memory;
                     context->error.errnum = file_str_etoolong;

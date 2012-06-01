@@ -1081,20 +1081,6 @@ typedef struct
 */
 
 /**
-* @defgroup max_file_path_length Maximum path length
-* @{
-*/
-/**
- * Maximum path length of path in bytes, supported by file system.
- *
- * @see idigi_file_system_readdir callback
- */
-#define IDIGI_MAX_PATH_LENGTH   256
-/**
-* @}
-*/
-
-/**
 * @defgroup idigi_file_error_status_t File system error status
 * @{
 */
