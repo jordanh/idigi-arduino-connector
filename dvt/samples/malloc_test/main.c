@@ -275,7 +275,7 @@ void write_usage_file(char const * text)
     APP_DEBUG("Writing file %s\n", filename);
 
 #ifdef IDIGI_DATA_SERVICE
-        fprintf(fp, "DATA_SERVICE: MAX_USER %d, ", DS_MAX_USER);
+        fprintf(fp, "DATA_SERVICE: Put Requests %d, ", DS_MAX_USER);
 #endif
 
 #ifdef IDIGI_FILE_SYSTEM
