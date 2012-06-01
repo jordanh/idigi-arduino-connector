@@ -31,8 +31,6 @@ static idigi_connector_callbacks_t idigi_callback_list =
 
 static idigi_handle_t idigi_handle = NULL;
 
-#define IC_SEND_TIMEOUT_IN_MSEC 60000
-
 static idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
                                                   void *  request_data, size_t const request_length,
                                                   void * const response_data, size_t * const response_length)
@@ -208,6 +206,7 @@ idigi_connector_error_t idigi_send_data(char const * const path, idigi_connector
 
         if (status == idigi_success)
         {
+            #define IC_SEND_TIMEOUT_IN_MSEC 90000
             result = ic_get_event(IC_SEND_DATA_EVENT, send_info->data_ptr.event_bit, IC_SEND_TIMEOUT_IN_MSEC);
             ASSERT_GOTO(result == idigi_connector_success, error);
             result = send_info->data_ptr.error;
