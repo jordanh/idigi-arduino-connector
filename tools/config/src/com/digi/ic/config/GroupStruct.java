@@ -88,15 +88,10 @@ public class GroupStruct {
         errorMap.put(name, description);
     }
 
-    public boolean validate() {
-        boolean isValid = true;
-
+    public void validate() throws Exception{
         if (elements.isEmpty()) {
-            ConfigGenerator.log("No element specified");
-            isValid = false;
+            throw new Exception("No element specified");
         }
-
-        return isValid;
     }
 
 }

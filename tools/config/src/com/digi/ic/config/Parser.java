@@ -33,7 +33,7 @@ public class Parser {
                 }
 
                 if (token.equalsIgnoreCase("globalerror")) {
-                    ConfigData.addUserGroupError(getName(), getLongDescription());
+                    configData.addUserGroupError(getName(), getLongDescription());
                     isReadToken = true;
                     
                 } else if (token.equalsIgnoreCase("group")) {
@@ -73,8 +73,11 @@ public class Parser {
                         if (token.equalsIgnoreCase("element")) {
                             ElementStruct element = processElement();
 
-                            if (!element.validate()) {
-                                throw new Exception("Error in <element>: " + element.getName());
+                            try{
+                                element.validate();
+                            }
+                            catch(Exception e){
+                                throw new Exception("Error in <element>: " + element.getName() + "\n\t" + e.getMessage());
                             }
 
                             theGroup.addElement(element);
@@ -88,8 +91,11 @@ public class Parser {
                         }
                     }
 
-                    if (!theGroup.validate()) {
-                        throw new Exception("Error in <group>: " + theGroup.getName());
+                    try{
+                        theGroup.validate();
+                    }
+                    catch(Exception e){
+                        throw new Exception("Error in <group>: " + theGroup.getName() + "\n\t" + e.getMessage());
                     }
 
                     for (GroupStruct g : groupConfig) {
@@ -114,33 +120,26 @@ public class Parser {
             ConfigGenerator.log(e.toString());
             throw new NullPointerException();
 
-        } catch (IOException e) {
-            ConfigGenerator.log("Parser IOException");
-            String errorMsg = "Error found in file: " + fileName + "\n" + errorFoundLog(e.getMessage());
-            throw new IOException(errorMsg);
-
         } catch (Exception e) {
-            String errorMsg = "Error found in file: " + fileName + "\n" + errorFoundLog(e.getMessage());
-            throw new IOException(errorMsg);
+            throw new IOException(errorFoundLog(fileName, e.getMessage()));
         }
-
         finally {
             tokenScanner.close();
         }
 
     }
 
-    private static String errorFoundLog(String str) {
-        String message = str + "\n";
+    private static String errorFoundLog(String fileName, String str) {
+        String message = "Error found in " + fileName + ", line ";
 
         if (str.indexOf("<group>") != -1)
-            message += "Error found in line " + groupLineNumber;
+            message += groupLineNumber;
         else if (str.indexOf("<element>") != -1)
-            message += "Error found in line " + elementLineNumber;
+            message += elementLineNumber;
         else
-            message += "Error found in line " + tokenScanner.getLineNumber();
+            message += tokenScanner.getLineNumber();
 
-        return message;
+        return message + ": " + str;
     }
 
     private final static Pattern ALPHACHARACTERS = Pattern.compile("\\w+");

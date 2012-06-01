@@ -94,9 +94,9 @@ public class Descriptors {
          * 
          * We must offset the error_id for command errors.
          */
-        query_descriptors += getErrorDescriptors(ConfigData.getRciCommonErrorsIndex(), ConfigData.getRciCommonErrors())
-                             + getErrorDescriptors(ConfigData.getRciCommandErrorsIndex(), ConfigData.getRciCommandErrors())
-                             + getErrorDescriptors(ConfigData.getUserGlobalErrorsIndex(), ConfigData.getUserGlobalErrors());
+        query_descriptors += getErrorDescriptors(configData.getRciCommonErrorsIndex(), configData.getRciCommonErrors())
+                             + getErrorDescriptors(configData.getRciCommandErrorsIndex(), configData.getRciCommandErrors())
+                             + getErrorDescriptors(configData.getUserGlobalErrorsIndex(), configData.getUserGlobalErrors());
 
         String set_descriptors = String.format("<descriptor element=\"set_%s\" desc=\"Set %s\" format=\"all_%ss_groups\">\n",
                                                 config_type, desc, config_type);
@@ -107,9 +107,9 @@ public class Descriptors {
          * 
          * We must offset the error_id for command errors.
          */
-        set_descriptors += getErrorDescriptors(ConfigData.getRciCommonErrorsIndex(), ConfigData.getRciCommonErrors())
-                           + getErrorDescriptors(ConfigData.getRciCommandErrorsIndex(), ConfigData.getRciCommandErrors())
-                           + getErrorDescriptors(ConfigData.getUserGlobalErrorsIndex(), ConfigData.getUserGlobalErrors());
+        set_descriptors += getErrorDescriptors(configData.getRciCommonErrorsIndex(), configData.getRciCommonErrors())
+                           + getErrorDescriptors(configData.getRciCommandErrorsIndex(), configData.getRciCommandErrors())
+                           + getErrorDescriptors(configData.getUserGlobalErrorsIndex(), configData.getUserGlobalErrors());
 
         set_descriptors += "</descriptor>";
 
@@ -143,11 +143,11 @@ public class Descriptors {
              * 
              * We must offset the error id for group errors.
              */
-            query_descriptors += getErrorDescriptors(ConfigData.getRciCommonErrorsIndex(), ConfigData.getRciCommonErrors())
-                                 + getErrorDescriptors(ConfigData.getRciGroupErrorsIndex(), ConfigData.getRciGroupErrors())
-                                 + getErrorDescriptors( ConfigData.getUserGlobalErrorsIndex(), ConfigData.getUserGlobalErrors());
+            query_descriptors += getErrorDescriptors(configData.getRciCommonErrorsIndex(), configData.getRciCommonErrors())
+                                 + getErrorDescriptors(configData.getRciGroupErrorsIndex(), configData.getRciGroupErrors())
+                                 + getErrorDescriptors(configData.getUserGlobalErrorsIndex(), configData.getUserGlobalErrors());
 
-            query_descriptors += getErrorDescriptors(ConfigData.getAllErrorsSize() + 1, group.getErrors());
+            query_descriptors += getErrorDescriptors(configData.getAllErrorsSize() + 1, group.getErrors());
 
             query_descriptors += "</descriptor>";
         }
@@ -182,8 +182,8 @@ public class Descriptors {
             }
         }
 
-        descriptors += getErrorDescriptors(ConfigData.getRciCommonErrorsIndex(), ConfigData.getRciCommonErrors())
-                       + getErrorDescriptors(ConfigData.getRciGlobalErrorsIndex(), ConfigData.getRciGlobalErrors()) 
+        descriptors += getErrorDescriptors(configData.getRciCommonErrorsIndex(), configData.getRciCommonErrors())
+                       + getErrorDescriptors(configData.getRciGlobalErrorsIndex(), configData.getRciGlobalErrors()) 
                        + "</descriptor>";
 
         debug_log(descriptors);

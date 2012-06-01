@@ -144,12 +144,12 @@ public class FileGenerator {
 //        headerWriter.write(String.format("#ifndef %s\n#define %s\n\n",
 //                defineName, defineName));
 
-        writeDefineOptionHeader();
+        writeDefineOptionHeader(configData);
 
-        writeDefineRciParserStringsHeader();
+        writeDefineRciParserStringsHeader(configData);
 
         /* Write all global error enum in H file */
-        writeGlobalErrorHeader();
+        writeGlobalErrorHeader(configData);
 
         /* Write all group enum in H file */
         writeGroupHeader(configData);
@@ -157,7 +157,7 @@ public class FileGenerator {
 //        headerWriter.write(String.format("\n#endif /* %s */\n", defineName));
     }
 
-    private void writeDefineOptionHeader() throws IOException {
+    private void writeDefineOptionHeader(ConfigData configData) throws IOException {
 
         String headerString = "";
         String structString = "";
@@ -202,15 +202,15 @@ public class FileGenerator {
                 case ON_OFF:
                     headerString += DEFINE + RCI_PARSER_USES_ON_OFF;
                     /* must put before writing the defines and strings */
-                    ConfigData.getRciStrings().put("ON", "on");
-                    ConfigData.getRciStrings().put("OFF", "off");
+                    configData.getRciStrings().put("ON", "on");
+                    configData.getRciStrings().put("OFF", "off");
 
                     break;
                 case BOOLEAN:
                     headerString += DEFINE + RCI_PARSER_USES_BOOLEAN;
                     /* must put before writing the defines and strings */
-                    ConfigData.getRciStrings().put("TRUE", "true");
-                    ConfigData.getRciStrings().put("FALSE", "false");
+                    configData.getRciStrings().put("TRUE", "true");
+                    configData.getRciStrings().put("FALSE", "false");
                     break;
                 default:
                     if (stringDefine == null) {
@@ -233,7 +233,7 @@ public class FileGenerator {
         headerWriter.write(String.format("\nchar const %s[] = {\n",
                 IDIGI_REMOTE_ALL_STRING));
 
-        writeRemoteRciParserStrings();
+        writeRemoteRciParserStrings(configData);
 
         for (ConfigData.ConfigType type : ConfigData.ConfigType.values()) {
             LinkedList<GroupStruct> theConfig = null;
@@ -250,8 +250,8 @@ public class FileGenerator {
         headerWriter.write(" \'\\0\'\n};\n\n"); // end of IDIGI_REMOTE_ALL_STRING
     }
 
-    private void writeDefineRciParserStringsHeader() throws IOException {
-        LinkedHashMap<String, String> rciStrings = ConfigData.getRciStrings();
+    private void writeDefineRciParserStringsHeader(ConfigData configData) throws IOException {
+        LinkedHashMap<String, String> rciStrings = configData.getRciStrings();
 
         if (rciStrings.size() > 0) {
             headerWriter.write(String.format("extern char const %s[];\n\n", IDIGI_REMOTE_ALL_STRING));
@@ -264,8 +264,8 @@ public class FileGenerator {
         }
     }
 
-    private void writeRemoteRciParserStrings() throws IOException {
-        LinkedHashMap<String, String> rciStrings = ConfigData.getRciStrings();
+    private void writeRemoteRciParserStrings(ConfigData configData) throws IOException {
+        LinkedHashMap<String, String> rciStrings = configData.getRciStrings();
 
         for (String key : rciStrings.keySet()) {
             headerWriter.write(getCharString(rciStrings.get(key)));
@@ -349,15 +349,15 @@ public class FileGenerator {
 
     private void writeDefineGlobalErrors(ConfigData configData) throws IOException {
         if (!ConfigGenerator.excludeErrorDescription()) {
-            writeDefineErrors(GLOBAL_RCI_ERROR, ConfigData.getRciCommonErrors());
+            writeDefineErrors(GLOBAL_RCI_ERROR, configData.getRciCommonErrors());
 
-            writeDefineErrors(GLOBAL_RCI_ERROR, ConfigData.getRciGlobalErrors());
+            writeDefineErrors(GLOBAL_RCI_ERROR, configData.getRciGlobalErrors());
 
-            writeDefineErrors(GLOBAL_RCI_ERROR, ConfigData.getRciCommandErrors());
+            writeDefineErrors(GLOBAL_RCI_ERROR, configData.getRciCommandErrors());
 
-            writeDefineErrors(GLOBAL_RCI_ERROR, ConfigData.getRciGroupErrors());
+            writeDefineErrors(GLOBAL_RCI_ERROR, configData.getRciGroupErrors());
 
-            writeDefineErrors(GLOBAL_ERROR, ConfigData.getUserGlobalErrors());
+            writeDefineErrors(GLOBAL_ERROR, configData.getUserGlobalErrors());
         }
     }
 
@@ -370,15 +370,15 @@ public class FileGenerator {
 
     private void writeErrorsRemoteAllStrings(ConfigData configData) throws IOException {
         if (!ConfigGenerator.excludeErrorDescription()) {
-            writeLinkedHashMapStrings(ConfigData.getRciCommonErrors());
+            writeLinkedHashMapStrings(configData.getRciCommonErrors());
 
-            writeLinkedHashMapStrings(ConfigData.getRciGlobalErrors());
+            writeLinkedHashMapStrings(configData.getRciGlobalErrors());
 
-            writeLinkedHashMapStrings(ConfigData.getRciCommandErrors());
+            writeLinkedHashMapStrings(configData.getRciCommandErrors());
 
-            writeLinkedHashMapStrings(ConfigData.getRciGroupErrors());
+            writeLinkedHashMapStrings(configData.getRciGroupErrors());
 
-            writeLinkedHashMapStrings(ConfigData.getUserGlobalErrors());
+            writeLinkedHashMapStrings(configData.getUserGlobalErrors());
         }
     }
 
@@ -530,34 +530,34 @@ public class FileGenerator {
     private void writeGlobalErrorStructures(ConfigData configData) throws IOException {
         
         if (!ConfigGenerator.excludeErrorDescription()) {
-            int errorCount = ConfigData.getRciCommonErrors().size()
-                            + ConfigData.getRciGlobalErrors().size()
-                            + ConfigData.getRciCommandErrors().size()
-                            + ConfigData.getRciGroupErrors().size()
-                            + ConfigData.getUserGlobalErrors().size();
+            int errorCount = configData.getRciCommonErrors().size()
+                            + configData.getRciGlobalErrors().size()
+                            + configData.getRciCommandErrors().size()
+                            + configData.getRciGroupErrors().size()
+                            + configData.getUserGlobalErrors().size();
 
             if (errorCount > 0) {
                 headerWriter.write(String.format("static char const * const %ss[] = {\n", GLOBAL_RCI_ERROR));
                         
                 /* top-level all errors */
                 errorCount = writeErrorStructures(errorCount, GLOBAL_RCI_ERROR,
-                             ConfigData.getRciCommonErrors());
+                             configData.getRciCommonErrors());
 
                 /* top-level global errors */
                 errorCount = writeErrorStructures(errorCount, GLOBAL_RCI_ERROR,
-                             ConfigData.getRciGlobalErrors());
+                             configData.getRciGlobalErrors());
 
                 /* top-level command errors */
                 errorCount = writeErrorStructures(errorCount, GLOBAL_RCI_ERROR,
-                             ConfigData.getRciCommandErrors());
+                             configData.getRciCommandErrors());
 
                 /* top-level group errors */
                 errorCount = writeErrorStructures(errorCount, GLOBAL_RCI_ERROR,
-                             ConfigData.getRciGroupErrors());
+                             configData.getRciGroupErrors());
 
                 /* group global errors */
                 errorCount = writeErrorStructures(errorCount, GLOBAL_ERROR,
-                             ConfigData.getUserGlobalErrors());
+                             configData.getUserGlobalErrors());
 
                 headerWriter.write("};\n\n");
             }
@@ -720,18 +720,18 @@ public class FileGenerator {
         }
     }
 
-    private void writeGlobalErrorHeader() throws IOException {
+    private void writeGlobalErrorHeader(ConfigData configData) throws IOException {
 
         /* write typedef enum for rci errors */
         headerWriter.write("\n" + TYPEDEF_ENUM + " " + GLOBAL_RCI_ERROR + "_" + OFFSET_STRING + " = 1,\n");
 
-        writeErrorHeader(ConfigData.getRciCommonErrorsIndex(), GLOBAL_RCI_ERROR, ConfigData.getRciCommonErrors());
+        writeErrorHeader(configData.getRciCommonErrorsIndex(), GLOBAL_RCI_ERROR, configData.getRciCommonErrors());
 
-        writeErrorHeader(ConfigData.getRciGlobalErrorsIndex(), GLOBAL_RCI_ERROR, ConfigData.getRciGlobalErrors());
+        writeErrorHeader(configData.getRciGlobalErrorsIndex(), GLOBAL_RCI_ERROR, configData.getRciGlobalErrors());
 
-        writeErrorHeader(ConfigData.getRciCommandErrorsIndex(), GLOBAL_RCI_ERROR, ConfigData.getRciCommandErrors());
+        writeErrorHeader(configData.getRciCommandErrorsIndex(), GLOBAL_RCI_ERROR, configData.getRciCommandErrors());
 
-        writeErrorHeader(ConfigData.getRciGroupErrorsIndex(), GLOBAL_RCI_ERROR, ConfigData.getRciGroupErrors());
+        writeErrorHeader(configData.getRciGroupErrorsIndex(), GLOBAL_RCI_ERROR, configData.getRciGroupErrors());
 
         headerWriter.write(" " + GLOBAL_RCI_ERROR + "_" + COUNT_STRING + "\n} " + GLOBAL_RCI_ERROR + ID_T_STRING);
 
@@ -740,11 +740,11 @@ public class FileGenerator {
 
         headerWriter.write("\n" + TYPEDEF_ENUM + " " + enumName + " = " + GLOBAL_RCI_ERROR + "_" + COUNT_STRING + ",\n");
 
-        writeErrorHeader(1, GLOBAL_ERROR, ConfigData.getUserGlobalErrors());
+        writeErrorHeader(1, GLOBAL_ERROR, configData.getUserGlobalErrors());
 
         String endString = String.format(" %s_%s", GLOBAL_ERROR, COUNT_STRING);
 
-        if (ConfigData.getUserGlobalErrors().isEmpty()) {
+        if (configData.getUserGlobalErrors().isEmpty()) {
             endString += " = " + enumName;
         }
         endString += "\n} " + GLOBAL_ERROR + ID_T_STRING;

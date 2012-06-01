@@ -233,9 +233,7 @@ public class ElementStruct {
         return values;
     }
 
-    public boolean validate() {
-        boolean isValid = true;
-
+    public void validate() throws Exception {
         try {
             ElementType etype = ElementType.toElementType(type);
 
@@ -352,11 +350,8 @@ public class ElementStruct {
             }
             
         } catch (Exception e) {
-            ConfigGenerator.log(e.getMessage());
-            isValid = false;
+            throw e;
         }
-
-        return isValid;
     }
 
     private boolean isValidFloat(String str) {
