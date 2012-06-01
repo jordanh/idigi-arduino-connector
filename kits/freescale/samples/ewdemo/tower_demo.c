@@ -1,28 +1,14 @@
 /*
- *  Copyright (c) 1996-2012 Digi International Inc., All Rights Reserved
- *
- *  This software contains proprietary and confidential information of Digi
- *  International Inc.  By accepting transfer of this copy, Recipient agrees
- *  to retain this software in confidence, to prevent disclosure to others,
- *  and to make no use of this software other than that for which it was
- *  delivered.  This is an unpublished copyrighted work of Digi International
- *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
- *  prohibited.
- *
- *  Restricted Rights Legend
- *
- *  Use, duplication, or disclosure by the Government is subject to
- *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
- *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
- *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
- *  Restricted Rights at 48 CFR 52.227-19, as applicable.
- *
- *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
- *
- * =======================================================================
- *
- */
-
+* Copyright (c) 2012 Digi International Inc.,
+* All rights not expressly granted are reserved.
+*
+* This Source Code Form is subject to the terms of the Mozilla Public
+* License, v. 2.0. If a copy of the MPL was not distributed with this file,
+* You can obtain one at http://mozilla.org/MPL/2.0/.
+*
+* Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
+* =======================================================================
+*/
 #include <mqx.h>
 #include <lwevent.h>
 #include "tower_demo.h"
@@ -85,11 +71,64 @@ char cur_pot_data_int = -1, cur_pot_data_dec = -1;
 char cur_accel_data[3] = {-1, -1, -1};
 
 extern unsigned long cpu_usage, elapsed_loop1;
-extern char device_request_syslog_buffer[DEVICE_REQUEST_BUFFER_SIZE];
+char device_request_syslog_buffer[DEVICE_REQUEST_BUFFER_SIZE];
 
 unsigned long cpu_usage_baseline = 0;
 
 unsigned char ad_average_int, ad_average_dec, cur_ad_average_int = 99, cur_ad_average_dec = 99;
+
+/*
+ *  This function will initiate a put request to the iDigi cloud.
+ *
+ *  Parameters:
+ *      path            -- NUL terminated file path where user wants to store the data on the iDigi cloud.
+ *      data            -- Data to write to file on iDigi cloud.
+ *      content_type    -- NUL terminated content type (text/plain, text/xml, application/json, etc.
+ *      length_in_bytes -- Data length in put_request
+ *      flags           -- Indicates whether server should archive and/or append.
+ *
+ *  Return Value:
+ *      idigi_success
+ *      idigi_invalid_data      -- Indicates bad parameters
+ *      idigi_invalid_response  -- Indicates error response from iDigi cloud
+ */
+idigi_status_t idigi_initiate_put_request(char const * const path, char const * const data, char const * const content_type,
+		                                  size_t const length_in_bytes, unsigned int const flags) 
+{
+    idigi_connector_error_t ret;
+    int status=-1;
+    
+    do
+    {
+        static idigi_connector_data_t ic_data = {0};
+        //static char buffer[] = "iDigi Device application data!\n";
+
+        #define WAIT_FOR_A_SECOND  1
+        app_os_sleep(WAIT_FOR_A_SECOND);
+
+        ic_data.data_ptr = (char *)data;
+        ic_data.length_in_bytes = length_in_bytes;
+        ic_data.flags = flags;
+        ret = idigi_send_data(path, &ic_data, content_type);
+
+    } while (ret == idigi_connector_init_error);
+
+    if (ret != idigi_connector_success)
+    {
+        APP_DEBUG("\nSend failed [%d]\n", ret);
+        goto error;
+    }
+
+#ifdef DEBUG_PUT_REQUEST
+    APP_DEBUG("\nSend completed\n");
+#endif
+    
+    status = 0;
+
+error:
+    
+    return status;
+}
 
 /*
  * Adds a string to the syslog buffer to be sent to iDigi
@@ -504,7 +543,6 @@ void idigi_led_task(unsigned long initial_data)
     }	
 }
 
-#ifdef USE_NEW_DEVICE_REQUEST_CALLBACK
 size_t device_response_callback(char const * const target, idigi_connector_data_t * const response_data)
 {
     /* static char rsp_string[] = "iDigi Connector device response!\n"; */
@@ -557,35 +595,21 @@ size_t device_response_callback(char const * const target, idigi_connector_data_
 error:
     return bytes_to_copy;
 }
-#endif
 
-#ifdef USE_NEW_DEVICE_REQUEST_CALLBACK
 idigi_app_error_t device_request_callback(char const * const target, idigi_connector_data_t * const request_data)
-#else
-size_t idigi_handle_device_request(char const * const target, 
-                                         void const * const request_data, size_t const request_length, 
-                                         void * const response_data, size_t const response_length)
-#endif
 {
 	size_t bytes_to_send;
 	
-#ifdef USE_NEW_DEVICE_REQUEST_CALLBACK
     idigi_app_error_t status=idigi_app_success;
     idigi_status_t rc;
     char *data = (char *)request_data->data_ptr;
     data[request_data->length_in_bytes] = 0; // Nul Terminate
-#else
-    idigi_status_t status;
-	char *data = (char *)request_data;	
-	data[request_length] = 0; // Nul Terminate
-#endif
 
 	valid_leds_request = 0;
 	invalid_leds_request = 0;
 	valid_gpio_request = 0;
 	invalid_gpio_request = 0;
 
-#ifdef USE_NEW_DEVICE_REQUEST_CALLBACK
     snprintf(device_request_syslog_buffer, DEVICE_REQUEST_BUFFER_SIZE,"\"%.*s\" for target = \"%s\"\n",
     		 request_data->length_in_bytes,
              data, target);
@@ -595,7 +619,6 @@ size_t idigi_handle_device_request(char const * const target,
     
     if (rc)
 	    APP_DEBUG("device_request_callback: error adding to syslog buffer\n");
-#endif
     
 	if (strcmp(target, device_request_LEDS_target) == 0)
 	{   
@@ -652,42 +675,9 @@ size_t idigi_handle_device_request(char const * const target,
 		APP_DEBUG("idigi_handle_device_request: unknown target [%s]\n", target);
 	}
 
-#ifndef USE_NEW_DEVICE_REQUEST_CALLBACK
-	APP_DEBUG("app_idigi_handle_device_request: buf [%s] len [%d] target [%s]\n", data, request_length, target);
-
-	if (valid_leds_request)
-	{
-	    bytes_to_send = strlen(leds_callback_response_data);
-	    strncpy(response_data, leds_callback_response_data, response_length);
-	}
-	else if (invalid_leds_request)
-	{
-	    bytes_to_send = strlen(leds_callback_error_response_data);
-	    strncpy(response_data, leds_callback_error_response_data, response_length);
-	}
-	else if (valid_gpio_request)
-	{
-	    bytes_to_send = strlen(gpio_callback_response_data);
-	    strncpy(response_data, gpio_callback_response_data, response_length);
-	}
-	else if (invalid_gpio_request)
-	{
-	    bytes_to_send = strlen(gpio_callback_error_response_data);
-	    strncpy(response_data, gpio_callback_error_response_data, response_length);
-	}
-	else
-	{
-	    bytes_to_send = strlen(unknown_target_error_response_data);
-	    strncpy(response_data, unknown_target_error_response_data, response_length);
-	}
-	
-	return bytes_to_send;
-#else
     return status;
-#endif
 }
 
-// extern idigi_handle_t idigi_handle;
 extern int firmware_download_started;
 extern float num_ad_samples, ad_running_total, ad_running_average;
 extern int ad_sample_available;
@@ -699,21 +689,12 @@ void idigi_app_run_task(unsigned long initial_data)
     int a2d_failure_check = 0;
     idigi_connector_error_t ret;
 
-#ifdef USE_NEW_DEVICE_REQUEST_CALLBACK
     APP_DEBUG("idigi_app_run_task: calling idigi_register_device_request_callbacks\n");
     ret = idigi_register_device_request_callbacks(device_request_callback, device_response_callback);
     if (ret != idigi_connector_success)
     {
         APP_DEBUG("idigi_register_device_request_callbacks failed [%d]\n", ret);
-        // goto error;
     }
-#else
-    APP_DEBUG("idigi_app_run_task: calling idigi_register_device_request_callbacks\n");
-    if (idigi_register_device_request_callback((device_request_callback_function_t)idigi_handle_device_request))
-    {
-        APP_DEBUG("idigi_app_run_task: error creating %s", "idigi_handle_device_request callback");
-    }
-#endif
    
     _time_get_elapsed_ticks(&tickstart);
     

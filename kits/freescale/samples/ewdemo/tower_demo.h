@@ -1,37 +1,16 @@
+/*
+* Copyright (c) 2012 Digi International Inc.,
+* All rights not expressly granted are reserved.
+*
+* This Source Code Form is subject to the terms of the Mozilla Public
+* License, v. 2.0. If a copy of the MPL was not distributed with this file,
+* You can obtain one at http://mozilla.org/MPL/2.0/.
+*
+* Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
+* =======================================================================
+*/
 #ifndef _tower_demo_h_
 #define _tower_demo_h_
-/**HEADER********************************************************************
-*
-* Copyright (c) 2008 Freescale Semiconductor;
-* All Rights Reserved
-*
-* Copyright (c) 2004-2008 Embedded Access Inc.;
-* All Rights Reserved
-*
-***************************************************************************
-*
-* THIS SOFTWARE IS PROVIDED BY FREESCALE "AS IS" AND ANY EXPRESSED OR
-* IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-* OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-* IN NO EVENT SHALL FREESCALE OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-* STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-* IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
-* THE POSSIBILITY OF SUCH DAMAGE.
-*
-**************************************************************************
-*
-* $FileName: tower_demo.h$
-* $Version : 3.5.21.0$
-* $Date    : Dec-2-2009$
-*
-* Comments:
-*   The main configuration file for WEB_HVAC demo
-*
-*END************************************************************************/
 
 #include <mqx.h>
 #include <bsp.h>
@@ -40,6 +19,9 @@
 
 extern int idigi_malloc_failures, idigi_network_receive_failures, idigi_network_send_failures;
 extern int idigi_connect_to_idigi_successes, idigi_connect_to_idigi_failures;
+
+#define PUT_REQUEST_BUFFER_SIZE 512
+#define DEVICE_REQUEST_BUFFER_SIZE 512
 
 #define DEMO_DATA 0x0007E000
 #define MAC_DATA1 0x0007E004
