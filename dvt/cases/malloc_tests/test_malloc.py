@@ -137,7 +137,7 @@ class MallocTestCase(iik_testcase.TestCase):
         my_file_path  = my_dir + '/' + my_test_file
         my_ls_path   = my_dir
 
-        file_data = self.get_random_word(1000);
+        file_data = self.get_random_word(2048);
         put_data = base64.encodestring(file_data)[:-1]
 
         self.log.info("**** Malloc Test: File System")
@@ -189,7 +189,7 @@ class MallocTestCase(iik_testcase.TestCase):
         ok = self.invalid_target("invalid_target", 1600)
         if ok == "no_service":
             return
-        self.valid_target("data_target", 1024)
+        self.valid_target("data_target", 2048)
         self.valid_target("malloc_target", 100)
         
         
