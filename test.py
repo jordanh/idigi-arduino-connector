@@ -113,13 +113,20 @@ admin_tests = {
 admin_test  = TestType('admin_test',  'dvt/samples', 
                        'dvt/cases/admin_tests', admin_tests)
 
+malloc_tests = {'malloc_test'     : ('test_malloc.py',) 
+}
+malloc_test  = TestType('malloc_test',  'dvt/samples', 
+                       'dvt/cases/malloc_tests', malloc_tests)
+
 # Dictionary mapping Test Type name to it's instance.
-TESTS = dict((test.name,test) for test in [run_sample, step_sample, 
+TESTS = dict((test.name,test) for test in [run_sample, step_sample,
+                                           malloc_test,  
                                            dvt_test, admin_test, 
                                            keepalive_test])
 SAMPLE_TESTS = dict((test.name,test) for test in [run_sample, step_sample])
 
-DVT_TESTS = dict((test.name,test) for test in [dvt_test, admin_test, 
+DVT_TESTS = dict((test.name,test) for test in [malloc_test,
+                                           dvt_test, admin_test, 
                                            keepalive_test])
 
 def generate_id(api):
@@ -338,6 +345,16 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
     update_config_header=False, tty=False, gcov=False, test_type=None, 
     test_name=None):
 
+    test_modes = ([('IDIGI_FILE_SYSTEM', 'IDIGI_NO_FILE_SYSTEM'), 
+                   ('IDIGI_FIRMWARE_SERVICE', 'IDIGI_NO_FIRMWARE_SERVICE')],
+                  [('IDIGI_FILE_SYSTEM', 'IDIGI_NO_FILE_SYSTEM'), 
+                   ('IDIGI_FIRMWARE_SERVICE', 'IDIGI_NO_FIRMWARE_SERVICE'),
+                   ('DS_MAX_USER 1', 'DS_MAX_USER 0')],
+                  [('IDIGI_DATA_SERVICE', 'IDIGI_NO_DATA_SERVICE'), 
+                   ('IDIGI_FILE_SYSTEM', 'IDIGI_NO_FILE_SYSTEM')],
+                  [('IDIGI_DATA_SERVICE', 'IDIGI_NO_DATA_SERVICE'), 
+                   ('IDIGI_FIRMWARE_SERVICE', 'IDIGI_NO_FIRMWARE_SERVICE')])
+
     tests = TESTS
     # If test_type is defined, filter tests executed to the test_type.
     if test_type is not None:
@@ -370,11 +387,21 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
 
             for test_set in test_list:
                 sample = test_type.name.find('sample') != -1
+                more_modes = test_type.name.find('malloc') != -1
+
                 run_test(test_set, test_list[test_set], test, 
                     os.path.join(test_type.src_dir, test_set), 
                     test_type.script_dir, description, base_dir, debug_on, 
                     api, cflags, replace_list, update_config_header, tty, 
                     gcov, sample)
+                if more_modes:
+                    for test_mode in test_modes:
+                        new_replace_list = replace_list + test_mode
+                        run_test(test_set, test_list[test_set], test, 
+                        os.path.join(test_type.src_dir, test_set), 
+                        test_type.script_dir, description, base_dir, debug_on, 
+                        api, cflags, new_replace_list, update_config_header, tty, 
+                        gcov, sample)
 
 def clean_output(directory):
     for root, folders, files in os.walk(directory):
