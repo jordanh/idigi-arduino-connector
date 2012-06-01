@@ -127,7 +127,8 @@
  * <tr>
  * <th>request_data</th>
  * <td> [IN] pointer to @endhtmlonly @ref idigi_file_open_request_t @htmlonly structure:
- *   <p><b><i>path</i></b> - File path is a nul-terminated string.
+ *   <p><b><i>path</i></b> - File path is a nul-terminated string. 
+ *                          See @endhtmlonly @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly.
  *   <p><b><i>oflag</i></b> - Bitwise-inclusive OR of @endhtmlonly @ref file_open_flag_t @htmlonly.
  * </td></tr>
  * <tr>
@@ -736,6 +737,7 @@
  * <th>request_data</th>
  * <td> [IN] pointer to @endhtmlonly @ref idigi_file_path_request_t @htmlonly structure:
  *   <p><b><i>path</i></b> - File path is a nul-terminated string.
+ *                          See @endhtmlonly @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly.
  * </td></tr>
  * <tr>
  * <td>request_length</td>
@@ -839,6 +841,7 @@
  * <th>request_data</th>
  * <td> [IN] pointer to @endhtmlonly @ref idigi_file_path_request_t "Directory path request" @htmlonly structure:
  *   <p><b><i>path</i></b> - File path is a nul-terminated string.
+ *                          See @endhtmlonly @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly.
  * </td></tr>
  * <tr>
  * <td>request_length</td>
@@ -1229,6 +1232,7 @@
  * <th>request_data</th>
  * <td> [IN] pointer to @endhtmlonly @ref idigi_file_stat_request_t @htmlonly structure:
  *   <p><b><i>path</i></b> - File path is a nul-terminated string.
+ *                          See @endhtmlonly @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly.
  *   <p><b><i>hash_alg</i></b> - Suggested hash algorithm of @endhtmlonly @ref idigi_file_hash_algorithm_t @htmlonly type.
  * </td></tr>
  * <tr>
@@ -1364,6 +1368,7 @@
  * <th>request_data</th>
  * <td> [IN] pointer to @endhtmlonly @ref idigi_file_stat_request_t @htmlonly structure:
  *   <p><b><i>path</i></b> - File path is a nul-terminated string.
+ *                          See @endhtmlonly @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly.
  *   <p><b><i>hash_alg</i></b> - Hash algorithm @endhtmlonly @ref idigi_file_hash_md5 @htmlonly
  *                               or @endhtmlonly @ref idigi_file_hash_crc32 @htmlonly.
  * </td></tr>
