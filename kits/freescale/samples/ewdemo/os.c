@@ -91,14 +91,14 @@ int app_os_get_system_time(unsigned long * const uptime)
     return 0;
 }
 
-void app_os_sleep(unsigned int const timeout_in_seconds)
+idigi_callback_status_t app_os_sleep(unsigned int const timeout_in_seconds)
 {
 	if (timeout_in_seconds == 0)	
 		_sched_yield();
 	else	
         _time_delay(timeout_in_seconds * 1000);
 
-    return;
+    return idigi_callback_continue;
 }
 
 idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
