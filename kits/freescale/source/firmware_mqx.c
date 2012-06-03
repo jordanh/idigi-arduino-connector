@@ -218,9 +218,9 @@ int idigi_rx_handler_srec (unsigned char* data, unsigned long n)
                         	}
                         	
                         }
-                        
+#ifdef DEBUG_FLASH
                         APP_DEBUG("Writing to Flash [0x%x] bytes [%d]\n", PFLASH_BLOCK1_IMAGE_BASE + (address - flash_address_offset), (unsigned int)(srec.record.count - (2+type)));
-
+#endif
                         /* Setup address to write to */
                         fseek(flash_file, -PFLASH_BLOCK1_BASE + 4 + (address - flash_address_offset), IO_SEEK_END);
                         len = write(flash_file, ptr, (srec.record.count - (2+type)));
