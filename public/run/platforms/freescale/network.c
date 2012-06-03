@@ -19,6 +19,11 @@
 #include <platform.h>
 #include <idigi_debug.h>
 
+int idigi_network_receive_failures = 0;
+int idigi_network_send_failures = 0;
+int idigi_connect_to_idigi_successes = 0;
+int idigi_connect_to_idigi_failures = 0;
+
 static int socket_fd = RTCS_SOCKET_ERROR;
 
 static boolean dns_resolve_name(char const * const name, _ip_address * const ip_addr)
@@ -132,6 +137,7 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
             {
                 if (errno != EAGAIN && errno != MQX_EINPROGRESS)
                 {
+                    idigi_connect_to_idigi_failures ++;
                     APP_DEBUG("network_connect: connect() failed %d\n", errno);
                     goto error;
                 }
@@ -139,6 +145,7 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
         }
     }
 
+    idigi_connect_to_idigi_successes ++;
     *network_handle = &socket_fd;
     status = idigi_callback_continue;
     APP_DEBUG("network_connect: connected to [%.*s] server\n", (int)length, host_name);
@@ -168,6 +175,7 @@ static idigi_callback_status_t app_network_send(idigi_write_request_t const * co
     {
         status = idigi_callback_abort;
         APP_DEBUG("network_send: send() failed RTCS error [%d]", RTCS_geterror(*write_data->network_handle));
+        idigi_network_send_failures ++;
     }
     else
     {
@@ -199,6 +207,7 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t const * 
         {
             APP_DEBUG("network_receive: Error, recv() failed RTCS error [%d]", RTCS_geterror(*read_data->network_handle));
             status = idigi_callback_abort;
+            idigi_network_receive_failures ++;
         }
     }
     else
