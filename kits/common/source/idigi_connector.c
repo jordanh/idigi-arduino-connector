@@ -15,6 +15,7 @@
 #include "os_support.h"
 #include "data_service.h"
 #include "idigi_config.h"
+#include "idigi_def.h"
 
 typedef struct
 {
@@ -80,6 +81,7 @@ static idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, 
 void idigi_connector_thread(unsigned long initial_data)
 {
     idigi_status_t status = idigi_success;
+    idigi_data_t * idigi_ptr = (idigi_data_t *)idigi_handle;
 
     UNUSED_PARAMETER(initial_data);
 
@@ -91,10 +93,14 @@ void idigi_connector_thread(unsigned long initial_data)
 
         if (status == idigi_receive_error ||
             status == idigi_send_error ||
+            status == idigi_keepalive_error ||
             status == idigi_connect_error)
         {
             APP_DEBUG("idigi_connector_run returned %d..restarting\n", status);
             status = idigi_success; /* Network error: restart and reconnect to iDigi. */
+            
+            /* Update Keepalive time */
+            app_os_get_system_time(&idigi_ptr->last_tx_keepalive_received_time);
         }
     } while (status == idigi_success);
 
