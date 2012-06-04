@@ -86,7 +86,7 @@
  * -# @ref error
  * -# @ref element
  * -# @ref type
- * -# @ref enum
+ * -# @ref value
  * -# @ref min
  * -# @ref max
  * -# @ref access
@@ -301,7 +301,7 @@
  * </tr><tr>
  * <th>enum</th>
  * <td> enum is used to define a set of allowed values for an element. This is a 
- * pull-down menu shown in iDigi Cloud. See @endhtmlonly @ref enum @htmlonly to define set 
+ * pull-down menu shown in iDigi Cloud. See @endhtmlonly @ref value @htmlonly to define set 
  * of enum values for the element. <p> Note: min and max keywords will throw an error.</p></td>
  * </tr><tr>
  * <th>on_off</th>
@@ -355,14 +355,14 @@
  *
  * @endcode
  *
- * @subsection enum enum keyword
- * The @a @b enum is used to define a set of values for an element named in the @ref element
+ * @subsection value value keyword
+ * The @a @b value is used to define a set of values for an element named in the @ref element
  * with enum type (@ref type).  
  *
  * @htmlonly
  * <table class="apitable">
  * <tr> <th colspan="2" class="title">Syntax</th> </tr> 
- * <tr> <td colspan="2">@endhtmlonly @a @b enum \<name\> [description] [help_description] @htmlonly </td> </tr>
+ * <tr> <td colspan="2">@endhtmlonly @a @b value \<name\> [description] [help_description] @htmlonly </td> </tr>
  * <tr> <th colspan="2" class="title">Options</th> </tr> 
  * <tr>
  * <th>name</th>
@@ -386,11 +386,11 @@
  * Example:
  * @code
  *
- *       enum auto "Automatic"
- *       enum 1200
- *       enum 2400
- *       enum 9600
- *       enum 19200
+ *       value auto "Automatic"
+ *       value 1200
+ *       value 2400
+ *       value 9600
+ *       value 19200
  *
  *  The enumeration values:
  *      idigi_setting_serial_baud_auto
