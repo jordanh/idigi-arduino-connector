@@ -86,6 +86,10 @@ public class Parser {
                             theGroup.addError(getName(), getLongDescription());
                             isReadToken = true;
                             
+                        } else if (token.equalsIgnoreCase("#")) {
+                            tokenScanner.skipCommentLine();
+                            isReadToken = true;
+                            
                         } else {
                             break;
                         }
@@ -110,7 +114,10 @@ public class Parser {
                         /* end of file */
                         break;
                     }
-
+                } else if (token.equalsIgnoreCase("#")) {
+                    tokenScanner.skipCommentLine();
+                    isReadToken = true;
+                    
                 } else {
                     throw new Exception("Unrecogized keyword: " + token);
                 }
@@ -277,6 +284,9 @@ public class Parser {
                      * value: value <name> [description] [help description]
                      */
                     element.addValue(getName(), getDescription(), getLongDescription());
+                    
+                } else if (token.equalsIgnoreCase("#")) {
+                    tokenScanner.skipCommentLine();
                     
                 } else {
                     break;

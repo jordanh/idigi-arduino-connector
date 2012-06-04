@@ -43,16 +43,17 @@ public class TokenScanner {
                     String line = lineScanner.nextLine();
                     lineNumber++;
                     // ConfigGenerator.log("line " + lineNumber + ": " + line);
-                    if ((!line.startsWith("#")) && (line.length() > 0) && (line.split(" ").length > 0)) {
+                    if ((line.length() > 0) && (line.split(" ").length > 0)) {
                         tokenScanner = new Scanner(line);
                         break;
                     }
                 }
             }
 
-            if ((tokenScanner != null) && (tokenScanner.hasNext()))
+            if ((tokenScanner != null) && (tokenScanner.hasNext())) {
                 aWord = tokenScanner.next();
-
+            }
+            
             if (!lineScanner.hasNextLine()) {
                 break;
             }
@@ -85,7 +86,7 @@ public class TokenScanner {
                 String line = lineScanner.nextLine();
                 lineNumber++;
                 // ConfigGenerator.log("line " + lineNumber + ": " + line);
-                if (!line.startsWith("#") && line.length() > 0 && line.split(" ").length > 0) {
+                if ((line.length() > 0) && (line.split(" ").length > 0)) {
                     tokenScanner = new Scanner(line);
                     break;
                 }
@@ -143,6 +144,11 @@ public class TokenScanner {
         return lineNumber;
     }
 
+    public void skipCommentLine() {
+        tokenScanner.close();
+        tokenScanner = null;
+    }
+    
     public void close() {
         // ensure the underlying stream is always closed
         // this only has any effect if the item passed to the Scanner
