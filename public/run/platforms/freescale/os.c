@@ -15,6 +15,8 @@
 #include "platform.h"
 #include "idigi_debug.h"
 
+int idigi_malloc_failures = 0;
+
 idigi_callback_status_t app_os_malloc(size_t const size, void ** ptr)
 {
     idigi_callback_status_t status = idigi_callback_abort;
@@ -27,6 +29,7 @@ idigi_callback_status_t app_os_malloc(size_t const size, void ** ptr)
     else
     {
         APP_DEBUG ("os_malloc: failed\n");
+        idigi_malloc_failures ++;
     }
 
     return status;
