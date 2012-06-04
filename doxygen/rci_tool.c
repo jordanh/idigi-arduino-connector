@@ -91,6 +91,7 @@
  * -# @ref max
  * -# @ref access
  * -# @ref unit
+ * -# @ref comment
  *
  * @subsection globalerror  globalerror keyword
  * The @a @b globalerror is used to define the text in the iDigi Cloud when 
@@ -501,6 +502,20 @@
  * @code
  *
  *      element sys_up_time "System up time" type uint32 access read_only unit "seconds"
+ *
+ * @endcode
+ *
+ *
+ * @subsection comment  Comment Tag
+ * The @a @b # is used for comment. Any sequence of characters after # will be treated 
+ * as comment and will not be processed.
+ *
+ *
+ * Example:
+ * @code
+ *
+ *      # State configuration for GPS
+ *      # Must setup the following group in order for GPS shown in iDigi Cloud.
  *
  * @endcode
  *
