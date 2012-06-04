@@ -605,7 +605,7 @@ static idigi_callback_status_t app_process_file_readdir(idigi_file_request_t con
     {
         size_t const name_len = strlen(result->d_name);
 
-        APP_DEBUG("readdir_r returned directory %s\n", result->d_name);
+        APP_DEBUG("readdir_r returned directory entry name %s\n", result->d_name);
 
         if(name_len < response_data->size_in_bytes)
         {
@@ -615,7 +615,7 @@ static idigi_callback_status_t app_process_file_readdir(idigi_file_request_t con
         else
         {
             ASSERT(0);
-            APP_DEBUG("directory name too long\n");
+            APP_DEBUG("directory entry name too long\n");
             status = app_process_file_error(response_data->error, ENAMETOOLONG);
         }
     }
