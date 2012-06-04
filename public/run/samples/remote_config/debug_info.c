@@ -18,15 +18,13 @@
 
 
 typedef struct {
-    void * stacktop;
-    void * stackbottom;
     size_t stacksize;
-    char version[12];
+    unsigned int version;
 } thread_info_t;
 
-thread_info_t idigiThreadInfo = {NULL, NULL, 0, "\0"};
+static thread_info_t idigiThreadInfo = {0, IDIGI_VERSION};
 
-void idigiThreadStackInit(void)
+static void idigiThreadStackInit(void)
 {
     pthread_attr_t Attributes;
     void *StackTop;
@@ -42,11 +40,7 @@ void idigiThreadStackInit(void)
     /* Done with the attributes */
     pthread_attr_destroy (&Attributes);
 
-    idigiThreadInfo.stacktop = StackTop;
-    idigiThreadInfo.stackbottom = (void *)((size_t)StackTop + StackSize);
     idigiThreadInfo.stacksize = StackSize;
-    sprintf(idigiThreadInfo.version, "%02x.%02x.%02x.%02x", (((int)IDIGI_VERSION >> 24) & 0xFF), (((int)IDIGI_VERSION >> 16) & 0xFF),
-                                                           (((int)IDIGI_VERSION >> 8) & 0xFF), ((int)IDIGI_VERSION & 0xFF));
 
     return;
 }
@@ -56,23 +50,18 @@ idigi_callback_status_t app_debug_info_group_get(idigi_remote_group_request_t co
 
     ASSERT(response->element_data.element_value != NULL);
 
+    if (idigiThreadInfo.stacksize == 0)
+    {
+        idigiThreadStackInit();
+    }
+
     switch (request->element.id)
     {
     case idigi_state_debug_info_version:
-    {
-        char * ptr;
-        ptr = idigiThreadInfo.version;
-        response->element_data.element_value->string_value = ptr;
-        break;
-    }
-    case idigi_state_debug_info_stacktop:
-        response->element_data.element_value->integer_unsigned_value =  (uint32_t)idigiThreadInfo.stacktop;
+        response->element_data.element_value->integer_unsigned_value = idigiThreadInfo.version;
         break;
     case idigi_state_debug_info_stacksize:
         response->element_data.element_value->integer_unsigned_value =  idigiThreadInfo.stacksize;
-        break;
-    case idigi_state_debug_info_stackbottom:
-        response->element_data.element_value->integer_unsigned_value =  (uint32_t)idigiThreadInfo.stackbottom;
         break;
     }
     return idigi_callback_continue;
