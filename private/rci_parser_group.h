@@ -28,23 +28,23 @@
 #define get_group_id(rci)           (GROUP_VARIABLE(rci))
 #define have_group_id(rci)          (get_group_id(rci) != INVALID_ID)
 
-static unsigned int find_group_id(rci_t const * const rci, rci_string_t const * const tag)
+static void assign_group_id(rci_t * const rci, rci_string_t const * const tag)
 {
     idigi_group_table_t const * const table = (idigi_group_table + rci->shared.request.group.type);
     size_t const count = table->count;
-    int result = INVALID_ID;
+    int id = INVALID_ID;
     size_t i;
     
     for (i = 0; i < count; i++)
     {
         if (cstr_equals_rcistr(table->groups[i].name, tag))
         {
-            result = i;
+            id = i;
             break;
         }
     }
     
-    return result;
+    set_group_id(rci, id);
 }
 
 static idigi_group_t const * get_current_group(rci_t const * const rci)

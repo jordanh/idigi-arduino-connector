@@ -12,6 +12,8 @@
 
 #include "rci_parser_support.h"
 #include "rci_parser_debug.h"
+#include "rci_parser_buffer.h"
+#include "rci_parser_string.h"
 #include "rci_parser_command.h"
 #include "rci_parser_attribute.h"
 #include "rci_parser_group.h"
@@ -182,6 +184,20 @@ done:
     case rci_status_flush_output:
     case rci_status_complete:
         rci.service_data->output.bytes = rci_buffer_used(&rci.buffer.output);
+        break;        
+    }
+
+    switch (rci.status)
+    {
+    case rci_status_busy:
+    case rci_status_more_input:
+    case rci_status_flush_output:
+        break;
+        
+    case rci_status_internal_error:
+    case rci_status_error:
+    case rci_status_complete:
+        rci.service_data = NULL;
         break;        
     }
 

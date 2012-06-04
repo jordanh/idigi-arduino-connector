@@ -33,7 +33,7 @@ static void rci_traverse_data(rci_t * const rci)
         rci->shared.request.element.id = 0;
         
         rci->output.type = rci_output_type_start_tag;
-        rci->output.tag = &rci->shared.string.tag;
+        set_rci_command_tag(rci->input.command, &rci->output.tag);
         rci->traversal.state = rci_traversal_state_all_groups_group_start;
         break;
                 
@@ -46,9 +46,8 @@ static void rci_traverse_data(rci_t * const rci)
             idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
             
             rci->output.type = rci_output_type_start_tag;
-            rci->output.tag = &rci->traversal.tag;
-            cstr_to_rci_string(group->name, &rci->traversal.tag);
-            rci_set_index_parameter(rci, rci->shared.request.group.index);
+            cstr_to_rci_string(group->name, &rci->output.tag);
+            add_index_attribute(&rci->output.attribute, rci->shared.request.group.index);
         }
         
         switch (rci->traversal.state)
@@ -69,8 +68,7 @@ static void rci_traverse_data(rci_t * const rci)
             idigi_group_element_t const * const element = (group->elements.data + rci->shared.request.element.id);
             
             rci->output.type = rci_output_type_start_tag;
-            rci->output.tag = &rci->traversal.tag;
-            cstr_to_rci_string(element->name, &rci->traversal.tag);
+            cstr_to_rci_string(element->name, &rci->output.tag);
         }
         
         switch (rci->traversal.state)
@@ -120,8 +118,7 @@ static void rci_traverse_data(rci_t * const rci)
             idigi_group_element_t const * const element = (group->elements.data + rci->shared.request.element.id);
 
             rci->output.type = rci_output_type_end_tag;
-            rci->output.tag = &rci->traversal.tag;
-            cstr_to_rci_string(element->name, &rci->traversal.tag);
+            cstr_to_rci_string(element->name, &rci->output.tag);
         }
         
         switch (rci->traversal.state)
@@ -176,8 +173,7 @@ static void rci_traverse_data(rci_t * const rci)
             idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
 
             rci->output.type = rci_output_type_end_tag;
-            rci->output.tag = &rci->traversal.tag;
-            cstr_to_rci_string(group->name, &rci->traversal.tag);
+            cstr_to_rci_string(group->name, &rci->output.tag);
         }
 
         switch (rci->traversal.state)
@@ -226,9 +222,7 @@ static void rci_traverse_data(rci_t * const rci)
         
     case rci_traversal_state_all_groups_end:
         rci->output.type = rci_output_type_end_tag;
-        rci->output.tag = &rci->shared.string.tag;
-        
-        set_rci_command_tag(rci->input.command, rci->output.tag);
+        set_rci_command_tag(rci->input.command, &rci->output.tag);
         
         rci->input.command = rci_command_header;
         goto group_complete;

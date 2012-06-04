@@ -15,23 +15,16 @@ static void rci_generate_error(rci_t * const rci)
     switch (rci->error.state)
     {
     case rci_error_state_none:
-        /* unlikely case - have it be the one to come back around */
         if (rci->input.command == rci_command_unseen)
         {
-            rci_prep_reply(rci, &rci->error.tag, &rci->shared.attribute);
-            rci->error.state = rci_error_state_error_open;
-            break;
+            prep_rci_reply_data(rci);
         }
-        else
-        {
-            rci->output.tag = &rci->error.tag;
-            rci->output.attribute = &rci->shared.attribute;
-            /* no break; */
-        }
+        rci->error.state = rci_error_state_error_open;
+        break;
         
     case rci_error_state_error_open:
-        cstr_to_rci_string(RCI_ERROR, &rci->error.tag);
-        rci_set_index_parameter(rci, rci->shared.response.error_id);
+        cstr_to_rci_string(RCI_ERROR, &rci->output.tag);
+        add_index_attribute(&rci->output.attribute, rci->shared.response.error_id);
         rci->output.type = rci_output_type_start_tag;
         
 #if defined RCI_PARSER_USES_DESCRIPTIONS
@@ -42,6 +35,8 @@ static void rci_generate_error(rci_t * const rci)
         break;
             
     case rci_error_state_error_content:
+        clear_attributes(&rci->output.attribute);
+        
 #if defined RCI_PARSER_USES_DESCRIPTIONS
         output.content.data.counted_string = rci->output.description;
         rci->output.type = rci_output_type_content;
@@ -50,8 +45,7 @@ static void rci_generate_error(rci_t * const rci)
         break;
         
     case rci_error_state_error_close:
-        cstr_to_rci_string(RCI_ERROR, &rci->error.tag);
-        rci->output.attribute = NULL;
+        cstr_to_rci_string(RCI_ERROR, &rci->output.tag);
         rci->output.type = rci_output_type_end_tag;
         
         switch (rci->input.command)
@@ -76,7 +70,7 @@ static void rci_generate_error(rci_t * const rci)
             idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
             idigi_group_element_t const * const group_element = (group->elements.data + rci->shared.request.element.id);
 
-            cstr_to_rci_string(group_element->name, &rci->error.tag);
+            cstr_to_rci_string(group_element->name, &rci->output.tag);
             rci->shared.request.element.id = INVALID_ID;
 
             rci->error.state = rci_error_state_group_close;
@@ -90,7 +84,7 @@ static void rci_generate_error(rci_t * const rci)
 
             rci_callback(rci, idigi_remote_config_group_end);
 
-            cstr_to_rci_string(group->name, &rci->error.tag);
+            cstr_to_rci_string(group->name, &rci->output.tag);
             rci->shared.request.group.id = INVALID_ID;
 
             rci->error.state = rci_error_state_command_close;
@@ -101,7 +95,7 @@ static void rci_generate_error(rci_t * const rci)
         {
             rci_callback(rci, idigi_remote_config_action_end);
 
-            set_rci_command_tag(rci->input.command, &rci->error.tag);
+            set_rci_command_tag(rci->input.command, &rci->output.tag);
             rci->error.state = rci_error_state_reply_close;
         }
         break;
@@ -111,7 +105,7 @@ static void rci_generate_error(rci_t * const rci)
 
         rci->input.command = rci_command_unseen;
 
-        cstr_to_rci_string(RCI_REQUEST, &rci->error.tag);
+        cstr_to_rci_string(RCI_REQUEST, &rci->output.tag);
         rci->error.state = rci_error_state_none;
         break;
     }

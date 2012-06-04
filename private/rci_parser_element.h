@@ -30,26 +30,29 @@
 
 static unsigned int find_element_id_in_group(idigi_group_t const * const group, rci_string_t const * const tag)
 {
-    int result = INVALID_ID;
+    int id = INVALID_ID;
     size_t i;
     
     for (i = 0; i < group->elements.count; i++)
     {
         if (cstr_equals_rcistr(group->elements.data[i].name, tag))
         {
-            result = i;
+            id = i;
             break;
         }
     }
     
-    return result;
+    return id;
 }
 
-static unsigned int find_element_id(rci_t const * const rci, rci_string_t const * const tag)
+static void assign_element_id(rci_t * const rci, rci_string_t const * const tag)
 {
     ASSERT(have_group_id(rci));
- 
-    return find_element_id_in_group(get_current_group(rci), tag);
+    {
+        int const id = find_element_id_in_group(get_current_group(rci), tag);
+    
+        set_element_id(rci, id);
+    }
 }
 
 static idigi_group_element_t const * get_element_in_group(idigi_group_t const * const group, unsigned int const id)

@@ -10,6 +10,9 @@
  * =======================================================================
  */
 
+/* TODO: remove me -ASK */
+#define RCI_COMMENT "\x03" "!--"
+
 static void state_call_return(rci_t * const rci, rci_parser_state_t const call_state, rci_parser_state_t const return_state)
 {
     rci->parser.state.previous = return_state;
@@ -188,9 +191,7 @@ static void rci_action_unary_group(rci_t * const rci)
 
 static void rci_action_start_group(rci_t * const rci)
 {
-    rci->output.tag = &rci->shared.string.tag;
-    rci->output.attribute = NULL;
-
+    rci->output.tag = rci->shared.string.tag;
     rci->output.type = rci_output_type_start_tag;
     state_call(rci, rci_parser_state_output);
 }
@@ -199,8 +200,9 @@ static idigi_bool_t rci_process_group_tag(rci_t * const rci, rci_action_t const 
 {
     idigi_bool_t success;
     
-    rci->shared.request.group.id = find_group_id(rci, &rci->shared.string.tag);
-    if (rci->shared.request.group.id == INVALID_ID)
+    ASSERT(!have_group_id(rci));
+    assign_group_id(rci, &rci->shared.string.tag);
+    if (have_group_id(rci))
     {
         rci_global_error(rci, idigi_rci_error_bad_group, RCI_NO_HINT);
         goto error;
@@ -247,9 +249,7 @@ static void rci_action_unary_element(rci_t * const rci)
 
 static void rci_action_start_element(rci_t * const rci)
 {
-    rci->output.tag = &rci->shared.string.tag;
-    rci->output.attribute = NULL;
-
+    rci->output.tag = rci->shared.string.tag;
     rci->output.type = rci_output_type_start_tag;
     state_call(rci, rci_parser_state_output);
     
@@ -261,7 +261,7 @@ static idigi_bool_t rci_process_element_tag(rci_t * const rci, rci_action_t cons
     idigi_bool_t success;
 
     ASSERT(!have_element_id(rci));
-    set_element_id(rci, find_element_id(rci, &rci->shared.string.tag));
+    assign_element_id(rci, &rci->shared.string.tag);
     if (!have_element_id(rci))
     {
         rci_global_error(rci, idigi_rci_error_bad_element, RCI_NO_HINT);
@@ -376,7 +376,7 @@ static idigi_bool_t rci_handle_start_tag(rci_t * const rci)
                 
                 rci->input.command = rci_command_header;
                 
-                rci_prep_reply(rci, &rci->shared.string.tag, &rci->shared.attribute);
+                prep_rci_reply_data(rci);
                 state_call(rci, rci_parser_state_output);
             }
             else
@@ -412,9 +412,7 @@ static idigi_bool_t rci_handle_start_tag(rci_t * const rci)
 
             continue_parsing = rci_callback(rci, idigi_remote_config_action_start);
             
-            rci->output.tag = &rci->shared.string.tag;
-            rci->output.attribute = NULL;
-
+            rci->output.tag = rci->shared.string.tag;
             rci->output.type = rci_output_type_start_tag;
             state_call(rci, rci_parser_state_output);
         }
@@ -538,8 +536,6 @@ static idigi_bool_t rci_handle_end_tag(rci_t * const rci)
 {
     idigi_bool_t continue_parsing = idigi_true;
     
-    rci->output.tag = &rci->shared.string.tag;
-
     if (have_element_id(rci))
     {
         set_element_id(rci, INVALID_ID);
@@ -568,6 +564,7 @@ static idigi_bool_t rci_handle_end_tag(rci_t * const rci)
         continue_parsing = rci_callback(rci, config_request_id);
     }
                     
+    rci->output.tag = rci->shared.string.tag;
     rci->output.type = rci_output_type_end_tag;
     state_call(rci, rci_parser_state_output);
 
@@ -593,7 +590,11 @@ static idigi_bool_t rci_parse_input_less_than_sign(rci_t * const rci)
         }
         rci->input.state = rci_input_state_element_tag_name;
         break;
-    
+        
+    case rci_input_state_comment:
+        rci->input.hyphens = 0;
+        break;
+
     default:
         rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
         continue_parsing = idigi_false;
@@ -615,8 +616,15 @@ static idigi_bool_t rci_parse_input_greater_than_sign(rci_t * const rci)
         /* no break; */
         
     case rci_input_state_element_param_name:
-        rci->input.state = rci_input_state_content;
-        continue_parsing = rci_handle_start_tag(rci);
+        if (cstr_equals_rcistr(RCI_COMMENT, &rci->shared.string.tag))
+        {
+            rci->input.state = rci_input_state_comment;
+        }
+        else
+        {    
+            rci->input.state = rci_input_state_content;
+            continue_parsing = rci_handle_start_tag(rci);
+        }
         break;
         
     case rci_input_state_element_end_name:
@@ -634,12 +642,23 @@ static idigi_bool_t rci_parse_input_greater_than_sign(rci_t * const rci)
         rci->input.state = rci_input_state_element_tag_open;
         continue_parsing = rci_handle_unary_tag(rci);
         break;
-    
+
+    case rci_input_state_comment:
+        if (rci->input.hyphens == 2)
+        {
+            rci->input.state = rci_input_state_content;
+        }
+        rci->input.hyphens = 0;
+        break;
+
     default:
         rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
         continue_parsing = idigi_false;
         break;
     }
+
+    clear_rcistr(&rci->shared.string.tag);
+    clear_attributes(&rci->shared.attribute);
 
     return continue_parsing;
 }
@@ -669,6 +688,10 @@ static idigi_bool_t rci_parse_input_equals_sign(rci_t * const rci)
     case rci_input_state_content:
         break;
     
+    case rci_input_state_comment:
+        rci->input.hyphens = 0;
+        break;
+
     default:
         rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
         continue_parsing = idigi_false;
@@ -711,6 +734,10 @@ static idigi_bool_t rci_parse_input_slash(rci_t * const rci)
     case rci_input_state_content:
         break;
     
+    case rci_input_state_comment:
+        rci->input.hyphens = 0;
+        break;
+
     default:
         rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
         continue_parsing = idigi_false;
@@ -745,6 +772,10 @@ static idigi_bool_t rci_parse_input_quote(rci_t * const rci)
      case rci_input_state_content:
         break;
    
+    case rci_input_state_comment:
+        rci->input.hyphens = 0;
+        break;
+
     default:
         rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
         continue_parsing = idigi_false;
@@ -791,6 +822,10 @@ static idigi_bool_t rci_parse_input_whitespace(rci_t * const rci)
         continue_parsing = idigi_false;
         break;
 
+    case rci_input_state_comment:
+        rci->input.hyphens = 0;
+        break;
+
     default:
         break;
     }
@@ -825,6 +860,10 @@ static idigi_bool_t rci_parse_input_ampersand(rci_t * const rci)
         ASSERT(rci->input.entity.data == NULL);
         break;
         
+    case rci_input_state_comment:
+        rci->input.hyphens = 0;
+        break;
+
     default:
         rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
         continue_parsing = idigi_false;
@@ -863,9 +902,31 @@ static idigi_bool_t rci_parse_input_semicolon(rci_t * const rci)
     case rci_input_state_content:
         break;
     
+    case rci_input_state_comment:
+        rci->input.hyphens = 0;
+        break;
+
     default:
         rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
         continue_parsing = idigi_false;
+        break;
+    }
+
+    ASSERT(continue_parsing);
+    return continue_parsing;
+}
+
+static idigi_bool_t rci_parse_input_hyphen(rci_t * const rci)
+{
+    idigi_bool_t continue_parsing = idigi_true;
+    
+    switch (rci->input.state)
+    {
+    case rci_input_state_comment:
+        rci->input.hyphens++;
+        break;
+
+    default:
         break;
     }
 
@@ -916,6 +977,10 @@ static idigi_bool_t rci_parse_input_other(rci_t * const rci)
         continue_parsing = idigi_false;
         break;
         
+    case rci_input_state_comment:
+        rci->input.hyphens = 0;
+        break;
+
     default:
         break;
     }
@@ -984,6 +1049,10 @@ static void rci_parse_input(rci_t * const rci)
             continue_parsing = rci_parse_input_semicolon(rci);
             break;
         
+        case '-':
+            continue_parsing = rci_parse_input_hyphen(rci);
+            break;
+        
         default:
             continue_parsing = rci_parse_input_other(rci);
             break;
@@ -1009,7 +1078,7 @@ static void rci_parse_input(rci_t * const rci)
     {
         if (rci->parser.state.current == rci_parser_state_input)
         {
-            char const * const base = rci->shared.string.generic.data;
+            char const * const base = rcistr_data(&rci->shared.string.generic);
 
             if (ptr_in_buffer(&rci->buffer.input, base))
             {
@@ -1022,17 +1091,18 @@ static void rci_parse_input(rci_t * const rci)
                 }
 
                 memcpy(rci->input.storage, base, bytes);
+                
+                adjust_rci_string(rci, base, &rci->shared.string.generic);
                 {
                     size_t i;
                     
-                    adjust_rci_string(rci, base, &rci->shared.string.generic);
-                    for (i = 0; i < asizeof(rci->shared.attribute.pair); i++)
+                    for (i = 0; i < attribute_count(&rci->shared.attribute); i++)
                     {
-                        adjust_rci_string(rci, base, &rci->shared.attribute.pair[i].name);
-                        adjust_rci_string(rci, base, &rci->shared.attribute.pair[i].value);
+                        adjust_rci_string(rci, base, attribute_name(&rci->shared.attribute, i));
+                        adjust_rci_string(rci, base, attribute_value(&rci->shared.attribute, i));
                     }
-                    adjust_char_pointer(rci, base, &rci->input.destination);
                 }
+                adjust_char_pointer(rci, base, &rci->input.destination);
             }
         }
                 

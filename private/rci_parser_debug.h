@@ -158,6 +158,7 @@ static char const * rci_input_state_t_as_string(rci_input_state_t const value)
 	    enum_to_case(rci_input_state_content_first);
 	    enum_to_case(rci_input_state_content);
 	    enum_to_case(rci_input_state_content_escaping);
+	    enum_to_case(rci_input_state_comment);
     }
     return result;
 }
@@ -389,20 +390,30 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
     static rci_t previous;
     static rci_service_data_t service_data;
     static long unsigned int step;
+    idigi_bool_t show_service_data = (current->service_data != NULL);
     
     /* have we started a new session? */
-    if ((previous.service_data == NULL) && (current->service_data != NULL))
+    if (show_service_data)
     {
-        reassign_service_buffer(&service_data.input, &current->service_data->input);
-        reassign_service_buffer(&service_data.output, &current->service_data->output);
+        if (previous.service_data == NULL)
+        {
+            reassign_service_buffer(&service_data.input, &current->service_data->input);
+            reassign_service_buffer(&service_data.output, &current->service_data->output);
+        }
+    }
+    else
+    {
+        previous.service_data = NULL;
     }
 
     printf("STEP %lu:\n", step);
     
     output_pointer(service_data);
-
-    output_service_data_buffer(service_data->input);
-    output_service_data_buffer(service_data->output);
+    if (show_service_data)
+    {
+        output_service_data_buffer(service_data->input);
+        output_service_data_buffer(service_data->output);
+    }
 
     output_enum(rci_status_t, status);
 
@@ -416,6 +427,7 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
     output_enum(rci_parser_state_t, parser.state.previous);
 
     output_enum(rci_input_state_t, input.state);
+    output_unsigned_int(input.hyphens);
     output_character(input.character);
     output_pointer(input.destination);
     output_boolean(input.send_content);
@@ -423,12 +435,11 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
     output_rci_string(input.entity);
 
     output_enum(rci_traversal_state_t, traversal.state);
-    output_rci_string(traversal.tag);
         
     output_enum(rci_output_state_t, output.state);
     output_enum(rci_output_type_t, output.type);
-    output_pointer(output.tag);
-    output_pointer(output.attribute);
+    output_rci_string(output.tag);
+    output_rci_attribute_list(output.attribute);
     output_size(output.attribute_pair_index);
     output_size(output.entity_scan_index);
 
@@ -455,9 +466,12 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
     }
     output_rci_attribute_list(shared.attribute);
 
-    output_service_data_buffer_diff(input);
-    output_service_data_buffer_diff(output);
-
+    if (show_service_data)
+    {
+        output_service_data_buffer_diff(input);
+        output_service_data_buffer_diff(output);
+    }
+    
     /* TODO: output temporary transfer buffer */
     
     previous = *current;
