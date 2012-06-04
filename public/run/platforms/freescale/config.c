@@ -15,6 +15,11 @@
 #include <idigi_api.h>
 #include <platform.h>
 #include <bele.h>
+#include "idigi_config.h"
+
+extern idigi_callback_status_t app_get_vendor_id(uint8_t const ** const id, size_t * const size);
+extern idigi_callback_status_t app_get_device_type(char const ** const type, size_t * const size);
+extern idigi_callback_status_t app_custom_get_device_id(uint8_t const ** const id, size_t * const size);
 
 /*
  * Routine to get the IP address, you will need to modify this routine for your
@@ -51,6 +56,9 @@ static idigi_callback_status_t app_get_mac_addr(uint8_t const ** const addr, siz
 
 static idigi_callback_status_t app_get_device_id(uint8_t const ** const id, size_t * const size)
 {
+#if defined(IDIGI_CUSTOMIZE_GET_DEVICE_ID_METHOD)
+	return app_custom_get_device_id(id, size);
+#else	
     #define DEVICE_ID_LENGTH    16
     static uint8_t device_id[DEVICE_ID_LENGTH] = {0};
     _enet_address mac_address = {0};
@@ -74,37 +82,7 @@ static idigi_callback_status_t app_get_device_id(uint8_t const ** const id, size
     *size = sizeof device_id;
 
     return status;
-}
-
-static idigi_callback_status_t app_get_vendor_id(uint8_t const ** const id, size_t * const size)
-{
-    #define VENDOR_ID_LENGTH    4
-    static const uint8_t device_vendor_id[VENDOR_ID_LENGTH] = {0x00, 0x00, 0x00, 0x00};
-
-    APP_DEBUG("get_vendor_id Vendor ID: %2.2X,%2.2X,%2.2X,%2.2X\r\n",
-              device_vendor_id[0], device_vendor_id[1], device_vendor_id[2], device_vendor_id[3]);
-
-    *id = device_vendor_id;
-    *size = sizeof device_vendor_id;
-
-    return idigi_callback_continue;
-}
-
-static idigi_callback_status_t app_get_device_type(char const ** const type, size_t * const size)
-{
-#ifdef TWR_K53N512
-    static char const device_type[] = "K53N512";
-#else
-    static char const device_type[] = "K60N512";
 #endif
-
-    APP_DEBUG("get_device_type: Device Type %s\r\n", device_type);
-
-    /* Return pointer to device type. */
-    *type = device_type;
-    *size = strlen(device_type);
-
-    return idigi_callback_continue;
 }
 
 static idigi_callback_status_t app_get_server_url(char const ** const url, size_t * const size)
@@ -149,6 +127,7 @@ static idigi_callback_status_t app_get_phone_number(uint8_t const ** const numbe
     return idigi_callback_continue;
 }
 
+#if !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS)
 /* Keep alives are from the prospective of the server */
 /* This keep alive is sent from the server to the device */
 static idigi_callback_status_t app_get_tx_keepalive_interval(uint16_t const ** const interval, size_t * const size)
@@ -162,8 +141,9 @@ static idigi_callback_status_t app_get_tx_keepalive_interval(uint16_t const ** c
 
     return idigi_callback_continue;
 }
+#endif /* !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS) */
 
-
+#if !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
 /* This keep alive is sent from the device to the server  */
 static idigi_callback_status_t app_get_rx_keepalive_interval(uint16_t const ** const interval, size_t * const size)
 {
@@ -176,7 +156,9 @@ static idigi_callback_status_t app_get_rx_keepalive_interval(uint16_t const ** c
 
     return idigi_callback_continue;
 }
+#endif /* !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS) */
 
+#if !defined(IDIGI_WAIT_COUNT)
 static idigi_callback_status_t app_get_wait_count(uint16_t const ** const count, size_t * const size)
 {
 #define DEVICE_WAIT_COUNT     5
@@ -191,7 +173,7 @@ static idigi_callback_status_t app_get_wait_count(uint16_t const ** const count,
 
     return idigi_callback_continue;
 }
-
+#endif /* !defined(IDIGI_WAIT_COUNT) */
 
 static idigi_callback_status_t app_get_firmware_support(idigi_service_supported_status_t * const isSupported)
 {
@@ -390,15 +372,16 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
     case idigi_config_mac_addr:
         status = app_get_mac_addr(response_data, response_length);
         break;
-
+#if !defined(IDIGI_VENDOR_ID)
     case idigi_config_vendor_id:
         status = app_get_vendor_id(response_data, response_length);
         break;
-
+#endif
+#if !defined(IDIGI_DEVICE_TYPE)
     case idigi_config_device_type:
         status = app_get_device_type(response_data, response_length);
         break;
-
+#endif
     case idigi_config_server_url:
         status = app_get_server_url(response_data, response_length);
         break;
@@ -415,18 +398,21 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
         status = app_get_phone_number(response_data, response_length);
        break;
 
+#if !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS)
     case idigi_config_tx_keepalive:
         status = app_get_tx_keepalive_interval(response_data, response_length);
         break;
-
+#endif
+#if !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
     case idigi_config_rx_keepalive:
         status = app_get_rx_keepalive_interval(response_data, response_length);
         break;
-
+#endif
+#if !defined(IDIGI_WAIT_COUNT)
     case idigi_config_wait_count:
         status = app_get_wait_count(response_data, response_length);
         break;
-
+#endif
     case idigi_config_ip_addr:
         status = app_get_ip_address(response_data, response_length);
         break;
