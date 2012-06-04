@@ -214,7 +214,6 @@ idigi_connector_error_t idigi_send_data(char const * const path, idigi_connector
         {
             #define IC_SEND_TIMEOUT_IN_MSEC 90000
             result = ic_get_event(IC_SEND_DATA_EVENT, send_info->data_ptr.event_bit, IC_SEND_TIMEOUT_IN_MSEC);
-            ASSERT_GOTO(result == idigi_connector_success, error);
             result = send_info->data_ptr.error;
         }
         else
