@@ -19,7 +19,8 @@ public class RciParserStrings extends RciStrings {
                                         "INDEX", "index",
                                         "ID", "id",
                                         "HINT","hint",
-                                        "ERROR", "error"};
+                                        "ERROR", "error",
+                                        "RCI_COMMENT", "!--"};
 
     protected RciParserStrings() {
         super(rciParserStrings);
