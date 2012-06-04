@@ -15,14 +15,16 @@ f=$(pwd)
 cd build
 ./build.sh
 cp ~/rpmbuild/SRPMS/idigi-1.1-1.fc13.src.rpm ${PROJECT_DIR}/packages
-cp ../rpm/SOURCES/idigi-1.1.tar.gz ${PROJECT_DIR}/packages/.
+cp ~/rpmbuild/SOURCES/idigi-1.1.tar.gz ${PROJECT_DIR}/packages/.
 cp ../rpm/SPECS/idigi.spec ${PROJECT_DIR}/dist/idigi/.
 cd ${PROJECT_DIR}
 make -C build idigi.distclean
 make -C build idigi
 
-cd ${PROJECT_DIR}/export/RPMS/atom
+# Remove the old RPM
 rm /tftpboot/kontron_m2m/rootfs/*.rpm
+
+cd ${PROJECT_DIR}/export/RPMS/atom
 cp idigi-1.1-1.atom-*.rpm /tftpboot/kontron_m2m/rootfs/.
 cd ${f}
 

@@ -1,13 +1,26 @@
 /*
- * Copyright (c) 2012 Digi International Inc.,
- * All rights not expressly granted are reserved.
+ *  Copyright (c) 2012 Digi International Inc., All Rights Reserved
  *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this file,
- * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *  This software contains proprietary and confidential information of Digi
+ *  International Inc.  By accepting transfer of this copy, Recipient agrees
+ *  to retain this software in confidence, to prevent disclosure to others,
+ *  and to make no use of this software other than that for which it was
+ *  delivered.  This is an unpublished copyrighted work of Digi International
+ *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
+ *  prohibited.
  *
- * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
+ *  Restricted Rights Legend
+ *
+ *  Use, duplication, or disclosure by the Government is subject to
+ *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
+ *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
+ *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
+ *  Restricted Rights at 48 CFR 52.227-19, as applicable.
+ *
+ *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
+ *
  * =======================================================================
+ *
  */
 #include <stdlib.h>
 #include <semaphore.h>
@@ -34,12 +47,13 @@ idigi_connector_error_t ic_create_event(int const event)
 error:
     return status;
 }
-idigi_connector_error_t ic_get_event(int const event, unsigned long timeout_ms)
+idigi_connector_error_t ic_get_event(int const event, unsigned long const event_bit, unsigned long timeout_ms)
 {
     idigi_connector_error_t status=idigi_connector_event_error;
     struct timespec wait_time;
     int ret;
 
+    UNUSED_PARAMETER(event_bit);
     ASSERT_GOTO(event < IC_MAX_NUM_EVENTS, error);
 
     wait_time.tv_sec  = timeout_ms/1000;
@@ -57,11 +71,30 @@ error:
     return status;
 }
 
-idigi_connector_error_t ic_set_event(int const event)
+idigi_connector_error_t ic_set_event(int const event, unsigned long const event_bit)
 {
     idigi_connector_error_t status=idigi_connector_event_error;
     int ret;
 
+    UNUSED_PARAMETER(event_bit);
+    ASSERT_GOTO(event < IC_MAX_NUM_EVENTS, error);
+
+    APP_DEBUG("ic_set_event [%d]\n", event);
+
+    ret = sem_post(&sem_array[event]);
+    ASSERT_GOTO(ret == 0, error);
+
+    status = idigi_connector_success;
+error:
+    return status;
+}
+
+idigi_connector_error_t ic_clear_event(int const event, unsigned long const event_bit)
+{
+    idigi_connector_error_t status=idigi_connector_event_error;
+    int ret;
+
+    UNUSED_PARAMETER(event_bit);
     ASSERT_GOTO(event < IC_MAX_NUM_EVENTS, error);
 
     APP_DEBUG("ic_set_event [%d]\n", event);
@@ -91,11 +124,14 @@ void *idigi_run_thread(void * arg)
     return NULL;
 }
 
-idigi_connector_error_t ic_create_thread(void)
+unsigned long ic_create_task(unsigned long const index_number, unsigned long const parameter)
 {
     pthread_t idigi_thread;
-    idigi_status_t status = idigi_success;
+    int ret = 0;
     int ccode;
+
+    UNUSED_PARAMETER(index_number);
+    UNUSED_PARAMETER(parameter);
 
     ccode = pthread_create(&idigi_thread, NULL, idigi_run_thread, NULL);
     if (ccode != 0)
@@ -106,5 +142,12 @@ idigi_connector_error_t ic_create_thread(void)
 
 error:
 
-    return status;
+    return ret;
+}
+
+unsigned long ic_destroy_task(unsigned long const task_id)
+{
+    UNUSED_PARAMETER(task_id);
+
+    return 0;
 }

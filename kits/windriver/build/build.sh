@@ -25,7 +25,7 @@ cp -f ../source/*.* ${TMP_DIR}/public/.
 cp -f ../../common/source/*.* ${TMP_DIR}/public/.
 cp -f ../../common/include/*.* ${TMP_DIR}/public/.
 cp -f ../../common/include/idigi_connector.h ${TMP_DIR}/.
-cp -f ${BASE_DIR}/public/include/idigi-ca-cert-public.crt ${TMP_DIR}/.
+cp -f ${BASE_DIR}/public/certificates/idigi-ca-cert-public.crt ${TMP_DIR}/.
 cp -f ../config/*.* ${TMP_DIR}/.
 cp -f ../include/*.h ${TMP_DIR}/public/include/.
 cp -f ../include/platform.h ${TMP_DIR}/public/run/platforms/linux/.
