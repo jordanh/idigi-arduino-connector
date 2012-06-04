@@ -65,6 +65,7 @@ public class FileGenerator {
     private final BufferedWriter headerWriter;
     private String configType;
     private int prevRemoteStringLength;
+    private Boolean isFirstRemoteString;
 
     public FileGenerator(String directoryPath) throws IOException {
         if (directoryPath != null) {
@@ -92,6 +93,8 @@ public class FileGenerator {
                             + String.format(" * The version of %s tool was: %s */\n\n", className, ConfigGenerator.VERSION);
 
         headerWriter.write(note_string);
+        
+        isFirstRemoteString = true;
     }
 
     public void generateFile(ConfigData configData) throws Exception {
@@ -247,7 +250,7 @@ public class FileGenerator {
             }
         }
         writeErrorsRemoteAllStrings(configData);
-        headerWriter.write(" \'\\0\'\n};\n\n"); // end of IDIGI_REMOTE_ALL_STRING
+        headerWriter.write("\n};\n\n"); // end of IDIGI_REMOTE_ALL_STRING
     }
 
     private void writeDefineRciParserStringsHeader(ConfigData configData) throws IOException {
@@ -349,6 +352,8 @@ public class FileGenerator {
 
     private void writeDefineGlobalErrors(ConfigData configData) throws IOException {
         if (!ConfigGenerator.excludeErrorDescription()) {
+            writeDefineErrors(GLOBAL_ERROR, configData.getUserGlobalErrors());
+            
             writeDefineErrors(GLOBAL_RCI_ERROR, configData.getRciCommonErrors());
 
             writeDefineErrors(GLOBAL_RCI_ERROR, configData.getRciGlobalErrors());
@@ -357,7 +362,6 @@ public class FileGenerator {
 
             writeDefineErrors(GLOBAL_RCI_ERROR, configData.getRciGroupErrors());
 
-            writeDefineErrors(GLOBAL_ERROR, configData.getUserGlobalErrors());
         }
     }
 
@@ -370,6 +374,8 @@ public class FileGenerator {
 
     private void writeErrorsRemoteAllStrings(ConfigData configData) throws IOException {
         if (!ConfigGenerator.excludeErrorDescription()) {
+            writeLinkedHashMapStrings(configData.getUserGlobalErrors());
+            
             writeLinkedHashMapStrings(configData.getRciCommonErrors());
 
             writeLinkedHashMapStrings(configData.getRciGlobalErrors());
@@ -378,7 +384,6 @@ public class FileGenerator {
 
             writeLinkedHashMapStrings(configData.getRciGroupErrors());
 
-            writeLinkedHashMapStrings(configData.getUserGlobalErrors());
         }
     }
 
@@ -865,11 +870,22 @@ public class FileGenerator {
     private String getCharString(String string) {
         char[] characters = string.toCharArray();
 
-        String quote_char = " " + string.length() + ",";
-        for (char c : characters) {
-            quote_char += "\'" + c + "\',";
+        String quote_char = (isFirstRemoteString) ? "": ",\n";
+        
+        quote_char += " " + string.length() + ",";
+        isFirstRemoteString = false;
+
+        int length = characters.length;
+        
+        for (int i=0; i < length; i++)
+        {
+            quote_char += "\'" + characters[i] + "\'";
+            if (i < length-1) {
+                //last character
+                quote_char += ",";
+            }
+            
         }
-        quote_char += "\n";
 
         return quote_char;
     }
