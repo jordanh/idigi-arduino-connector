@@ -176,8 +176,8 @@ void ic_software_reset(void)
 
     // Issue a System Reset Request
     SCB_AIRCR = VECTKEY | SCB_AIRCR_SYSRESETREQ_MASK;
-    
-    while (1);
+
+    while (1) {}
 }
 
 void ic_watchdog_reset(void)
