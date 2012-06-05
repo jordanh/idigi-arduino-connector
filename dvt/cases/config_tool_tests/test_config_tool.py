@@ -34,4 +34,4 @@ def test_configurations():
         yield process_and_verify, test
 
 if __name__ == "__main__":
-    nose.main()
+    nose.run()
