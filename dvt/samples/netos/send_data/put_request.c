@@ -12,13 +12,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-//#include <errno.h>
 #include "idigi_api.h"
 #include "platform.h"
 
-static unsigned int sample_number;
-
-idigi_status_t send_put_request(idigi_handle_t handle) 
+idigi_status_t app_send_put_request(idigi_handle_t handle)
 {
     idigi_status_t status = idigi_success;
     static idigi_data_service_put_request_t header;
@@ -34,9 +31,8 @@ idigi_status_t send_put_request(idigi_handle_t handle)
 
     return status;
 }
-#define BUFFER_SIZE 64
 
-idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t const request,
+idigi_callback_status_t app_data_service_handler(idigi_data_service_request_t const request,
                                                   void const * const request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length)
 {
@@ -59,37 +55,37 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
         {
         case idigi_data_service_type_need_data:
             {
-                idigi_data_service_block_t * message = put_response->client_data;
-                char * dptr = message->data;
-                char buffer[BUFFER_SIZE];
-
-                snprintf(buffer, BUFFER_SIZE, "iDigi data service sample [%d]\n", sample_number);
+                idigi_data_service_block_t * const message = put_response->client_data;
+                char const buffer[] = "iDigi data service sample\n";
                 size_t const bytes = strlen(buffer);
 
-                memcpy(dptr, buffer, bytes);
-                message->length_in_bytes = bytes;
+                if (message->length_in_bytes > bytes)
+                    message->length_in_bytes = bytes;
+
+                memcpy(message->data, buffer, message->length_in_bytes);
                 message->flags = IDIGI_MSG_LAST_DATA | IDIGI_MSG_FIRST_DATA;
                 put_response->message_status = idigi_msg_error_none;
-                sample_number++;
             }
             break;
 
         case idigi_data_service_type_have_data:
             {
-                idigi_data_service_block_t * message = put_request->server_data;
-                uint8_t const * data = message->data;
-
+                idigi_data_service_block_t * const message = put_request->server_data;
+    
                 APP_DEBUG("Received %s response from server\n", ((message->flags & IDIGI_MSG_RESP_SUCCESS) != 0) ? "success" : "error");
                 if (message->length_in_bytes > 0) 
                 {
-                    APP_DEBUG("Server response %s\n", (char *)data);
+                    char * const data = message->data;
+    
+                    data[message->length_in_bytes] = '\0';
+                    APP_DEBUG("Server response %s\n", data);
                 }
             }
             break;
 
         case idigi_data_service_type_error:
             {
-                idigi_data_service_block_t * message = put_request->server_data;
+                idigi_data_service_block_t * const message = put_request->server_data;
                 idigi_msg_error_t const * const error_value = message->data;
 
                 APP_DEBUG("Data service error: %d\n", *error_value);
@@ -109,4 +105,6 @@ idigi_callback_status_t idigi_data_service_callback(idigi_data_service_request_t
 done:
     return status;
 }
+
+
 

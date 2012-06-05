@@ -16,53 +16,59 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-int os_malloc(size_t const size, void ** ptr)
+idigi_callback_status_t app_os_malloc(size_t const size, void ** ptr)
 {
-    int status=-1;
+    idigi_callback_status_t status = idigi_callback_abort;
 
     *ptr = malloc(size);
-    ASSERT(*ptr != NULL);
     if (*ptr != NULL)
     {
-        status = 0;
+        status = idigi_callback_continue;
+    }
+    else
+    {
+        APP_DEBUG("app_os_malloc: Failed to malloc\n");
     }
 
     return status;
 }
 
-void os_free(void * const ptr)
+void app_os_free(void * const ptr)
 {
-    ASSERT(ptr != NULL);
-
     if (ptr != NULL)
     {
         free(ptr);
     }
+    else
+    {
+        APP_DEBUG("app_os_free: called with NULL\n");
+    }
+
     return;
 }
 
 
-int os_get_system_time(uint32_t * const uptime)
+idigi_callback_status_t app_os_get_system_time(unsigned long * const uptime)
 {
     time((time_t *)uptime);
 
-    return 0;
+    return idigi_callback_continue;
 }
 
-void os_sleep(unsigned int const timeout_in_seconds)
+idigi_callback_status_t app_os_sleep(unsigned int const timeout_in_seconds)
 {
     unsigned int const timeout_in_milliseconds = timeout_in_seconds * 1000;
 
     tx_thread_sleep (NS_MILLISECONDS_TO_TICKS (timeout_in_milliseconds));
-    return;
+
+    return idigi_callback_continue;
 }
 
-idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
-                                        void * const request_data, size_t const request_length,
+idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
+                                        void const * const request_data, size_t const request_length,
                                         void * response_data, size_t * const response_length)
 {
-    idigi_callback_status_t status = idigi_callback_continue;
-    int ret;
+    idigi_callback_status_t status;
 
     UNUSED_ARGUMENT(request_length);
     UNUSED_ARGUMENT(response_length);
@@ -70,27 +76,33 @@ idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
     switch (request)
     {
     case idigi_os_malloc:
-        ret    = os_malloc(*((size_t *)request_data), (void **)response_data);
-        status = (ret == 0) ? idigi_callback_continue : idigi_callback_busy;
+        {
+            size_t const * const bytes = request_data;
+
+            status = app_os_malloc(*bytes, response_data);
+        }
         break;
 
     case idigi_os_free:
-        os_free(request_data);
+        app_os_free((void *)request_data);
         status = idigi_callback_continue;
         break;
 
     case idigi_os_system_up_time:
-        ret    = os_get_system_time((uint32_t *)response_data);
-        status = (ret == 0) ? idigi_callback_continue : idigi_callback_abort;
+        status = app_os_get_system_time(response_data);
         break;
 
     case idigi_os_sleep:
-        os_sleep(*((unsigned int *)request_data));
-        status = idigi_callback_continue;
+        {
+            unsigned int const * const seconds = request_data;
+
+            status = app_os_sleep(*seconds);
+        }
         break;
 
     default:
-        APP_DEBUG("idigi_os_callback: unrecognized request [%d]\n", request);
+        APP_DEBUG("app_os_handler: unrecognized request [%d]\n", request);
+        status = idigi_callback_unrecognized;
         break;
     }
 

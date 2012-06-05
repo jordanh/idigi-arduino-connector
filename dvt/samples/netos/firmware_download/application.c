@@ -12,11 +12,11 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-extern idigi_callback_status_t idigi_firmware_callback(idigi_firmware_request_t const request,
+extern idigi_callback_status_t app_firmware_handler(idigi_firmware_request_t const request,
                                                   void const * const request_data, size_t const request_length,
                                                   void * response_data, size_t * const response_length);
 
-idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
+idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
                                     void const * const request_data, size_t const request_length,
                                     void * response_data, size_t * const response_length)
 {
@@ -25,16 +25,16 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
     switch (class_id)
     {
     case idigi_class_config:
-        status = idigi_config_callback(request_id.config_request, request_data, request_length, response_data, response_length);
+        status = app_config_handler(request_id.config_request, request_data, request_length, response_data, response_length);
         break;
     case idigi_class_operating_system:
-        status = idigi_os_callback(request_id.os_request, request_data, request_length, response_data, response_length);
+        status = app_os_handler(request_id.os_request, request_data, request_length, response_data, response_length);
         break;
     case idigi_class_network:
-        status = idigi_network_callback(request_id.network_request, request_data, request_length, response_data, response_length);
+        status = app_network_handler(request_id.network_request, request_data, request_length, response_data, response_length);
         break;
     case idigi_class_firmware:
-        status = idigi_firmware_callback(request_id.firmware_request, request_data, request_length, response_data, response_length);
+        status = app_firmware_handler(request_id.firmware_request, request_data, request_length, response_data, response_length);
         break;
     default:
         /* not supported */
@@ -46,6 +46,9 @@ idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_reque
 int application_run(idigi_handle_t handle)
 {
     UNUSED_ARGUMENT(handle);
-
+    /* No application's thread here.
+     * Application has no other process.
+     * main() will start idigi_run() as a separate thread.
+     */
     return 0;
 }

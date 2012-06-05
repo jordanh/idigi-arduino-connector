@@ -40,7 +40,9 @@
 
 NETOS_DIR= /cygdrive/f/74/netos/netos
 WIN_NETOS_DIR =f:/74/netos/netos
-IDIGICONNECTOR_DIR= ../../../../../..
+IDIGI_DIR= ../../../../../private
+IDIGI_INC_DIR= ../../../../../public/include
+IDIGI_PLATFORM_DIR= ../../../../platforms/netos
 
 
 OBJDIR=./objs
@@ -50,14 +52,14 @@ BUILD_ROM_IMAGE= 0
 
 APP_DESCRIPTION="Compile and Link"
 
-vpath %.c .. $(IDIGICONNECTOR_DIR)/private $(IDIGICONNECTOR_DIR)/public/dvt/platforms/netos
+vpath %.c . .. $(IDIGI_DIR) $(IDIGI_PLATFORM_DIR)
 
-APP_C_FILES=root.c idigi_api.c
+APP_C_FILES=root.c idigi_api.c debug.c
 
 APP_CC_FILES=
 APP_ASM_FILES=
 
-APP_C_FLAGS=-DIDIGI_VERSION=0x1020000UL
+APP_C_FLAGS=-DIDIGI_VERSION=0x1020000UL -DIDIGI_HAVE_STDINT_HEADER
 #APP_C_FLAGS=
 
 APP_CC_FLAGS=
@@ -65,11 +67,9 @@ APP_ASM_FLAGS=
 
 APP_INCDIRS= -I.
 APP_INCDIRS+= -I..
-APP_INCDIRS+= -I../../../../h/usb_host
-APP_INCDIRS+= -I../../../bsp/devices/common/wifimac
-APP_INCDIRS+= -I../../../usb_host_drivers/WiFi_USB
-APP_INCDIRS+= -I$(IDIGICONNECTOR_DIR)/public/include
-APP_INCDIRS+= -I$(IDIGICONNECTOR_DIR)/public/dvt/platforms/netos
+APP_INCDIRS+= -I$(IDIGI_DIR)
+APP_INCDIRS+= -I$(IDIGI_INC_DIR)
+APP_INCDIRS+= -I$(IDIGI_PLATFORM_DIR)
 
 # All libraries needed for this examples:
 APP_LIBS = $(NETOS_LIBPATH)/libfilesys.a \

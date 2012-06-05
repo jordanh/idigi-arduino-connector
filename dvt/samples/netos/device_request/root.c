@@ -17,10 +17,7 @@
 #include <fservapi.h>
 
 #include <idigi_api.h>
-
-extern idigi_callback_status_t idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
-                                    void const * const request_data, size_t const request_length,
-                                    void * response_data, size_t * const response_length);
+#include "platform.h"
 
 
 /*
@@ -102,14 +99,14 @@ void applicationStart (void)
     idigi_handle_t idigi_handle;
 
     /* start FTP server */
-    naFtpDlInit(NA_FTP_DEF_USERS);
+    //naFtpDlInit(NA_FTP_DEF_USERS);
 
-    idigi_handle = idigi_init(idigi_callback);
+    idigi_handle = idigi_init(app_idigi_callback);
 
     if (idigi_handle == NULL)
         printf("idigi_init error\n"); 
-
-    idigi_run_thread(idigi_handle);
+    else
+        idigi_run_thread(idigi_handle);
 
 }
 

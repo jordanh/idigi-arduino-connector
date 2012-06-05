@@ -32,25 +32,43 @@ typedef uint32_t in_addr_t;
 
 #define MY_IFNAME   "eth0"
 
-#define MY_DEVICE_VENDOR_ID {0x01, 0x00, 0x01, 0x37}
+#define MY_DEVICE_VENDOR_ID {0x01, 0x00, 0x00, 0x23}
+#define MY_SERVER_URL       "test.idigi.com"
+#define MY_IMEI_NUMBER      "000000-00-000000-0"
+
+extern idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
+                                    void const * const request_data, size_t const request_length,
+                                    void * response_data, size_t * const response_length);
+
 
 /* Callbacks for this platform */
-extern idigi_callback_status_t idigi_os_callback(idigi_os_request_t const request,
-                           void * const request_data, size_t const request_length,
+extern idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
+                           void const * const request_data, size_t const request_length,
                            void * response_data, size_t * const response_length);
 
-
-idigi_callback_status_t idigi_network_callback(idigi_network_request_t const request,
-                         void * const request_data, size_t const request_length,
+extern idigi_callback_status_t app_network_handler(idigi_network_request_t const request,
+                         void const * const request_data, size_t const request_length,
                          void * response_data, size_t * const response_length);
 
-idigi_callback_status_t idigi_config_callback(idigi_config_request_t const request,
-                                              void * const request_data,
+extern idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
+                                              void const * const request_data,
                                               size_t const request_length,
                                               void * response_data,
                                               size_t * const response_length);
 
-int application_run(idigi_handle_t handle);
-void os_sleep(unsigned int const timeout_in_seconds);
+extern idigi_callback_status_t app_file_system_handler(idigi_file_system_request_t const request,
+                                                void const * const request_data,
+                                                size_t const request_length,
+                                                void * const response_data,
+                                                size_t * const response_length);
+
+extern int application_run(idigi_handle_t handle);
+
+extern idigi_callback_status_t app_os_sleep(unsigned int const timeout_in_seconds);
+extern idigi_callback_status_t app_os_get_system_time(unsigned long * const uptime);
+
+
+#define APP_SSL_CA_CERT   "./public/certificates/idigi-ca-cert-public.crt"
+
 
 #endif /* _PLATFORM_H */
