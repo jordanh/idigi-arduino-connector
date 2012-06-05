@@ -17,6 +17,10 @@
 #include "platform.h"
 #include "idigi_connector.h"
 
+#if !BSPCFG_ENABLE_GPIODEV
+#error This application requires BSPCFG_ENABLE_GPIODEV defined non-zero in user_config.h. Please recompile BSP with this option.
+#endif
+
 static LWGPIO_STRUCT led1;
 static LWGPIO_STRUCT led2;
 
