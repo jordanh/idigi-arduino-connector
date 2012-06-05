@@ -9,11 +9,12 @@
  * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
  */
-
-#include <stdio.h>
+#include <mqx.h>
+#include <bsp.h>
+#include <lwevent.h>
+#include <io_gpio.h>
 #include "platform.h"
 #include "idigi_connector.h"
-#include <io_gpio.h>
 
 static LWGPIO_STRUCT push_button;
 
@@ -47,20 +48,24 @@ int application_start(void)
 
     do
     {
+        #define WAIT_FOR_10_MSEC    10
         static idigi_connector_data_t ic_data = {0};
         static char buffer[] = "iDigi Device application data!\n";
 
         if (lwgpio_get_value(&push_button) == LWGPIO_VALUE_LOW)
         {
+            while (lwgpio_get_value(&push_button) == LWGPIO_VALUE_LOW)
+                _time_delay(WAIT_FOR_10_MSEC);
+
             APP_DEBUG("Sending data to cloud using idigi_send_data...\n");
             ic_data.data_ptr = buffer;
             ic_data.length_in_bytes = sizeof buffer - 1;
             ret = idigi_send_data("test/test.txt", &ic_data, NULL);
-            _time_delay(100);
         }
         else
         {
-            _time_delay(10);
+            _time_delay(WAIT_FOR_10_MSEC);
+            continue;
         }
 
         if (ret != idigi_connector_success)

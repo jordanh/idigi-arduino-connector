@@ -10,10 +10,12 @@
  * =======================================================================
  */
 
-#include <stdio.h>
+#include <mqx.h>
+#include <bsp.h>
+#include <lwevent.h>
+#include <io_gpio.h>
 #include "platform.h"
 #include "idigi_connector.h"
-#include <io_gpio.h>
 
 static LWGPIO_STRUCT led1;
 static LWGPIO_STRUCT led2;
@@ -28,7 +30,7 @@ static void idigi_status(idigi_connector_error_t const status, char const * cons
  */
 static void SetOutput(LWGPIO_STRUCT * led, boolean state)
 {
-    if (state == ON)
+    if (state)
         lwgpio_set_value(led, LWGPIO_VALUE_LOW); /* set pin to 0 */
     else
         lwgpio_set_value(led, LWGPIO_VALUE_HIGH); /* set pin to 1 */
@@ -45,8 +47,9 @@ static LWGPIO_STRUCT * GetLEDPin(char const * const ledString)
     else
     {
         APP_DEBUG("Unknown target [%s]\n", ledString);
-        goto error;
     }
+
+    return led;
 }
 
 static idigi_app_error_t device_request_callback(char const * const target, idigi_connector_data_t * const request_data)
@@ -63,7 +66,7 @@ static idigi_app_error_t device_request_callback(char const * const target, idig
     if (led != NULL)
     {
         char const * const stateStr = request_data->data_ptr;
-        boolean const state = (strcmp(stateStr, "ON") == 0) ? TRUE : FALSE;
+        boolean const state = (strstr(stateStr, "ON") == NULL) ? TRUE : FALSE;
 
         APP_DEBUG("Turning %s %s\n", state ? "ON" : "OFF", target);
         SetOutput(led, state);
@@ -77,8 +80,8 @@ error:
 static size_t device_response_callback(char const * const target, idigi_connector_data_t * const response_data)
 {
     LWGPIO_STRUCT * const led = GetLEDPin(target);
-    char const status[] = (led != NULL) ? "Success" : "Failed";
-    size_t bytes_to_copy = (sizeof status) - 1;
+    char const * const status = (led != NULL) ? "Success" : "Failed";
+    size_t bytes_to_copy = strlen(status);
 
     memcpy(response_data->data_ptr, status, bytes_to_copy);
     response_data->flags = IDIGI_FLAG_LAST_DATA;
