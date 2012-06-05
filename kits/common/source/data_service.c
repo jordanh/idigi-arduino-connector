@@ -185,7 +185,7 @@ static idigi_callback_status_t process_device_response(idigi_data_service_msg_re
         }
         else
         {
-            APP_DEBUG("process_device_response: app returned error\n", app_data.error);
+            APP_DEBUG("process_device_response: app returned error [%d]\n", app_data.error);
             client_data->flags = IDIGI_MSG_DATA_NOT_PROCESSED;
             free_connector_request(connector_request);
         }
@@ -272,7 +272,7 @@ static idigi_callback_status_t process_send_data_response(idigi_data_service_msg
     idigi_data_service_put_request_t const * const header = put_request->service_context;
     idigi_app_send_data_t * const app_dptr = (idigi_app_send_data_t * const)header->context;
     idigi_connector_error_t error_code;
-    
+
     if ((message->flags & IDIGI_MSG_RESP_SUCCESS) == IDIGI_MSG_RESP_SUCCESS)
     {
         error_code = idigi_connector_success;
@@ -304,7 +304,7 @@ static idigi_callback_status_t process_send_data_error(idigi_data_service_msg_re
 
     APP_DEBUG("Send data error: %d\n", *error_value);
     send_data_completed(app_dptr, error_code);
-    
+
     return idigi_callback_continue;
 }
 

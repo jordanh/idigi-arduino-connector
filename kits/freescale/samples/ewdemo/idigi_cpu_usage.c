@@ -36,7 +36,7 @@ void init_cpu_usage(void)
 	 * average size for the count in kernel_data->IDLE_LOOP1 after
 	 * 1 second has elapsed.
 	 */
-	  
+
 	for (i = 0; i < 5; i ++)
 	{
 	    kernel_data->IDLE_LOOP1 = 0;
@@ -51,10 +51,17 @@ void init_cpu_usage(void)
 	    elapsed_loop1 = kernel_data->IDLE_LOOP1 - initial_loop1;
 	    total_loop1 += elapsed_loop1;
 	}
-	  
-	// cpu_usage_baseline = total_loop1 / 5;
-	  
-	cpu_usage_baseline = 0x270664;  // For consistency, set to known good value       
+	
+	cpu_usage_baseline = total_loop1 / 5;
+	
+	APP_DEBUG("cpu_usage_baseline [%x]\n", cpu_usage_baseline);
+
+#ifdef TWR_K53N512
+	if (cpu_usage_baseline > 0x900000)
+	    cpu_usage_baseline = 0x7d547e;
+#else
+	cpu_usage_baseline = 0x270664;
+#endif
 }
 
 void idigi_cpu_usage(unsigned long initial_data)
@@ -95,6 +102,11 @@ void idigi_cpu_usage(unsigned long initial_data)
    	    if (elapsed_loop1 <= cpu_usage_baseline)
    	    {
    	   	    cpu_usage = 100 - ((elapsed_loop1 * 100)/cpu_usage_baseline);
+   	    }
+   	    else
+   	    {
+   	    	if (cpu_usage == 0)
+   	    	    cpu_usage = 6;
    	    }
 
 #ifdef DEBUG_CPU_USAGE

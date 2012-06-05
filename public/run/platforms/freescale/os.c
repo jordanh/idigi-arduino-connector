@@ -16,6 +16,7 @@
 #include "idigi_debug.h"
 
 int idigi_malloc_failures = 0;
+unsigned long start_system_up_time = 0;
 
 idigi_callback_status_t app_os_malloc(size_t const size, void ** ptr)
 {
@@ -54,7 +55,6 @@ void app_os_free(void * const ptr)
 idigi_callback_status_t app_os_get_system_time(unsigned long * const uptime)
 {
     TIME_STRUCT curtime;
-    static unsigned long start_system_up_time = 0;
 
     _time_get(&curtime);
     if (start_system_up_time == 0)

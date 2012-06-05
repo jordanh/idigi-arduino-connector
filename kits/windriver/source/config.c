@@ -21,7 +21,7 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-/* iDigi Connector Configuration routines */
+/* IIK Configuration routines */
 
 #define MAX_INTERFACES      128
 #define DEVICE_ID_LENGTH    16
@@ -276,10 +276,10 @@ static unsigned int app_get_max_message_transactions(void)
     return IDIGI_MAX_MSG_TRANSACTIONS;
 }
 
-/* End of iDigi Connector configuration routines */
+/* End of IIK configuration routines */
 
 /*
- * This routine is called when a configuration error is encountered by the iDigi Connector.
+ * This routine is called when a configuration error is encountered by the IIK.
  * This is currently used as a debug tool for finding configuration errors.
  */
 void app_config_error(idigi_error_status_t * const error_data)

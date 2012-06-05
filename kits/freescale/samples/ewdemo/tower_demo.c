@@ -154,8 +154,10 @@ void InitializeK60TowerDemo(void)
 {
     unsigned short reset_count;
     idigi_status_t rc;
-    
+
+#ifndef TWR_K53N512
 	disable_flash_cache();
+#endif
 
 	printf("\n\nKinetis TWR-K60N512 MQX %s Demo\n", _mqx_version);
 	
@@ -619,7 +621,7 @@ idigi_app_error_t device_request_callback(char const * const target, idigi_conne
     
     if (rc)
 	    APP_DEBUG("device_request_callback: error adding to syslog buffer\n");
-    
+
 	if (strcmp(target, device_request_LEDS_target) == 0)
 	{   
 	    if (strcmp(data, "fast") == 0)
@@ -862,7 +864,7 @@ void idigi_app_run_task(unsigned long initial_data)
                 seconds = seconds_since_reset % 60;
                 
 #ifdef TWR_K53N512
-                snprintf(put_request_buffer, BUFFER_SIZE, "Platform: Kinetis TWR-K53N512\n\nOS: MQX %s Build %s\n\n"
+                snprintf(put_temp_buffer, BUFFER_SIZE, "Platform: Kinetis TWR-K53N512\n\nOS: MQX %s Build %s\n\n"
 #else
                 snprintf(put_temp_buffer, BUFFER_SIZE, "Platform: Kinetis TWR-K60N512\n\nOS: MQX %s Build %s\n\n"
 #endif
