@@ -33,7 +33,7 @@ idigi_callback_status_t app_system_group_get(idigi_remote_group_request_t const 
     idigi_callback_status_t status = idigi_callback_continue;
     system_data_t * const system_ptr = &system_config_data;
 
-    ASSERT(request->element.type == idigi_element_type_password);
+    ASSERT(request->element.type == idigi_element_type_string);
 
     switch (request->element.id)
     {
@@ -63,7 +63,7 @@ idigi_callback_status_t app_system_group_set(idigi_remote_group_request_t const 
 
     UNUSED_ARGUMENT(response);
 
-    ASSERT(request->element.type == idigi_element_type_password);
+    ASSERT(request->element.type == idigi_element_type_string);
     ASSERT(strlen(request->element.value->string_value) < sizeof system_ptr->contact);
 
     switch (request->element.id)
