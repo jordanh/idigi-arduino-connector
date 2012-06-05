@@ -25,7 +25,7 @@
 #endif
 
 
-#if !BSPCFG_ENABLE_FLASHX
+#if !BSPCFG_ENABLE_FLASHX && (defined(IDIGI_FIRMWARE_SERVICE) || defined(BOOTLOADER_ENABLED))
 #error This application requires BSPCFG_ENABLE_FLASHX defined non-zero in user_config.h. Please recompile BSP with this option.
 #endif
 
@@ -35,7 +35,9 @@ TASK_TEMPLATE_STRUCT MQX_template_list[] =
 /*  Task number, Entry point, Stack, Pri, String, Auto? */
    {MAIN_TASK, Main_task, 2048, 9, "main", MQX_AUTO_START_TASK},
    {IDIGI_CONNECTOR_TASK, idigi_connector_thread, 4096, 9, "iDigi_connector", 0},
+#if (defined IDIGI_FIRMWARE_SERVICE)
    {IDIGI_FLASH_TASK,     idigi_flash_task,     2048,   8, "idigi_flash",     0,},
+#endif
    {ADC_TASK,             ADC_Task,              400,  10, "ADC",             0,},
    {ACCEL_TASK,           Accel_Task,            400,  10, "Accelerometer",   0,},
    {IDIGI_LED_TASK,       idigi_led_task,       1024,  10, "idigi_led",       0,},
@@ -57,7 +59,7 @@ static void idigi_status(idigi_connector_error_t const status, char const * cons
 static uint_32 start_network(void)
 {
 	IPCFG_IP_ADDRESS_DATA ip_data;
-    _enet_address mac_addr;
+    _enet_address mac_addr = IDIGI_MAC_ADDRESS;
     uint_32 result = RTCS_create();
 	
     if (result != RTCS_OK) 
@@ -65,8 +67,10 @@ static uint_32 start_network(void)
 		APP_DEBUG("RTCS failed to initialize, error = %X", result);
 		goto error;
 	}
-    
+
+#if (defined IDIGI_FIRMWARE_SERVICE) || (defined BOOTLOADER_ENABLED)
     Flash_NVRAM_get_mac_address(mac_addr);
+#endif
 
 	result = ipcfg_init_device (ENET_DEVICE, mac_addr);
 	if (result != RTCS_OK) 
