@@ -25,7 +25,7 @@
 #endif
 
 
-#if !BSPCFG_ENABLE_FLASHX && (defined(IDIGI_FIRMWARE_SERVICE) || defined(BOOTLOADER_ENABLED))
+#if !BSPCFG_ENABLE_FLASHX && (defined(IDIGI_FIRMWARE_SERVICE) || (BOOTLOADER_ENABLED == 1))
 #error This application requires BSPCFG_ENABLE_FLASHX defined non-zero in user_config.h. Please recompile BSP with this option.
 #endif
 
@@ -68,7 +68,7 @@ static uint_32 start_network(void)
 		goto error;
 	}
 
-#if (defined IDIGI_FIRMWARE_SERVICE) || (defined BOOTLOADER_ENABLED)
+#if (defined IDIGI_FIRMWARE_SERVICE) || (BOOTLOADER_ENABLED == 1)
     Flash_NVRAM_get_mac_address(mac_addr);
 #endif
 
