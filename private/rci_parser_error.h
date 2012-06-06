@@ -15,16 +15,18 @@ static void rci_generate_error(rci_t * const rci)
     switch (rci->error.state)
     {
     case rci_error_state_none:
-        if (rci->input.command == rci_command_unseen)
-        {
-            prep_rci_reply_data(rci);
-        }
         rci->error.state = rci_error_state_error_open;
+        if (rci->input.command != rci_command_unseen)
+        {
+            goto done;
+        }
+
+        prep_rci_reply_data(rci);
         break;
         
     case rci_error_state_error_open:
         cstr_to_rci_string(RCI_ERROR, &rci->output.tag);
-        add_index_attribute(&rci->output.attribute, rci->shared.response.error_id);
+        add_numeric_attribute(&rci->output.attribute, RCI_ID, rci->shared.response.error_id);
         rci->output.type = rci_output_type_start_tag;
         
 #if defined RCI_PARSER_USES_DESCRIPTIONS
@@ -105,12 +107,17 @@ static void rci_generate_error(rci_t * const rci)
 
         rci->input.command = rci_command_unseen;
 
-        cstr_to_rci_string(RCI_REQUEST, &rci->output.tag);
+        cstr_to_rci_string(RCI_REPLY, &rci->output.tag);
         rci->error.state = rci_error_state_none;
+        state_call_return(rci, rci_parser_state_output, rci_parser_state_input);
+        goto done;
         break;
     }
 
     state_call(rci, rci_parser_state_output);
+    
+done:
+    return;
 }
 
 

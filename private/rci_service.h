@@ -76,6 +76,7 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
             service_data->output.data = service_request->need_data->data_ptr;
             service_data->output.bytes = service_request->need_data->length_in_bytes;
             
+            idigi_debug_printf("rci_service.resquest: %d %.*s\n", service_data->input.bytes, service_data->input.bytes, service_data->input.data);
             ccode = rci_parser(rci_session_start, service_data);
         }
         else
@@ -89,7 +90,7 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
         case rci_status_complete:
             MsgSetLastData(service_request->need_data->flags);
             MsgSetSendNow(service_request->need_data->flags);
-            idigi_debug_printf("response: %d %.*s\n", service_data->output.bytes, service_data->output.bytes, service_data->output.data);
+            idigi_debug_printf("rci_service.response: %d %.*s\n", service_data->output.bytes, service_data->output.bytes, service_data->output.data);
             service_request->need_data->length_in_bytes = service_data->output.bytes;
             break;
 
@@ -102,6 +103,7 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
 
         case rci_status_flush_output:
             MsgSetSendNow(service_request->need_data->flags);
+            idigi_debug_printf("rci_service.response: %d %.*s\n", service_data->output.bytes, service_data->output.bytes, service_data->output.data);
             service_request->need_data->length_in_bytes = service_data->output.bytes;
             status = idigi_callback_busy;
             break;

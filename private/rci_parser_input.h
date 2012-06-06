@@ -27,7 +27,7 @@ static void state_call(rci_t * const rci, rci_parser_state_t const call_state)
 static void rci_error(rci_t * const rci, unsigned int const id, char const * const description, char const * const hint)
 {
     rci->shared.response.error_id = id;
-    rci->shared.response.element_data.error_hint = (char *)hint;
+    rci->shared.response.element_data.error_hint = hint;
     
     rci->error.description = description;
 
@@ -536,6 +536,7 @@ static idigi_bool_t rci_handle_end_tag(rci_t * const rci)
 {
     idigi_bool_t continue_parsing = idigi_true;
     
+    rci->output.tag = rci->shared.string.tag;
     if (have_element_id(rci))
     {
         set_element_id(rci, INVALID_ID);
@@ -557,6 +558,7 @@ static idigi_bool_t rci_handle_end_tag(rci_t * const rci)
         }
         else
         {
+            cstr_to_rci_string(RCI_REPLY, &rci->output.tag);
             config_request_id = idigi_remote_config_session_end;
             rci->input.command = rci_command_unseen;
         }
@@ -564,7 +566,6 @@ static idigi_bool_t rci_handle_end_tag(rci_t * const rci)
         continue_parsing = rci_callback(rci, config_request_id);
     }
                     
-    rci->output.tag = rci->shared.string.tag;
     rci->output.type = rci_output_type_end_tag;
     state_call(rci, rci_parser_state_output);
 
@@ -1104,9 +1105,9 @@ static void rci_parse_input(rci_t * const rci)
                 }
                 adjust_char_pointer(rci, base, &rci->input.destination);
             }
-        }
                 
-        rci->status = rci_status_more_input;
+            rci->status = rci_status_more_input;
+        }
     }
     
 done:

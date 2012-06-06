@@ -47,7 +47,7 @@ static idigi_bool_t rci_output_formatted(rci_buffer_t * const output, char const
         int const result = vsnprintf(rci_buffer_position(output), have, format, ap);
         size_t const need = (size_t) result;
         
-        ASSERT(result > 0);
+        ASSERT(result >= 0);
         overflow = (need > have);
         if (!overflow)
         {
@@ -378,6 +378,8 @@ static void rci_generate_output(rci_t * const rci)
             case idigi_element_type_fqdnv4:
             case idigi_element_type_fqdnv6:
             case idigi_element_type_datetime:
+                overflow = rci_output_data(output, rci->shared.value.string_value, strlen(rci->shared.value.string_value));
+                break;
             case idigi_element_type_enum:
                 overflow = rci_output_cstr(output, enum_value_to_cstr(rci, rci->shared.value.enum_value));
                 break;
