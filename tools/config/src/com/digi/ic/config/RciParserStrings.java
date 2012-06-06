@@ -20,7 +20,7 @@ public class RciParserStrings extends RciStrings {
                                         "ID", "id",
                                         "HINT","hint",
                                         "ERROR", "error",
-                                        "RCI_COMMENT", "!--",
+                                        "COMMENT", "!--",
                                         "DESC", "desc"};
 
     protected RciParserStrings() {
