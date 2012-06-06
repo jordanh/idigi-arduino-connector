@@ -101,15 +101,16 @@ idigi_status_t idigi_initiate_put_request(char const * const path, char const * 
     do
     {
         static idigi_connector_data_t ic_data = {0};
-        //static char buffer[] = "iDigi Device application data!\n";
-
-        #define WAIT_FOR_A_SECOND  1
-        app_os_sleep(WAIT_FOR_A_SECOND);
 
         ic_data.data_ptr = (char *)data;
         ic_data.length_in_bytes = length_in_bytes;
         ic_data.flags = flags;
         ret = idigi_send_data(path, &ic_data, content_type);
+        if (ret == idigi_connector_init_error)
+        {
+            #define WAIT_FOR_A_SECOND  1
+            app_os_sleep(WAIT_FOR_A_SECOND);
+        }
 
     } while (ret == idigi_connector_init_error);
 
@@ -842,19 +843,32 @@ void idigi_app_run_task(unsigned long initial_data)
     	    	/* Only send put request if data has changed from the last reading */
     	    	if (cur_pot_data_int != Sensor.pot_int ||
     	    	    cur_pot_data_dec != Sensor.pot_dec)
-    	    	{
-    	    		cur_pot_data_int = Sensor.pot_int;
-    	    		cur_pot_data_dec = Sensor.pot_dec;
-    	        	
-                    /* Send the Pot sample */
-                    snprintf(put_temp_buffer, BUFFER_SIZE, FREESCALE_DEMO_CONTROL_POT_FILE_FORMAT, cur_pot_data_int, cur_pot_data_dec);
+    	    	{	
+    	    	    /* Ignore any samples that are very close to the previous sample */
+    	    	    if ((cur_pot_data_int == Sensor.pot_int) &&
+    	    	       ((cur_pot_data_dec - Sensor.pot_dec < 2) ||
+    	    	        (Sensor.pot_dec - cur_pot_data_dec < 2)))
+    	    	    {
+#ifdef DEBUG_POTENTIOMETER
+    	        	    APP_DEBUG("Ignoring pot sample: cur_pot_data_int [%d]  Sensor.pot_int [%d] cur_pot_data_dec [%d] Sensor.pot_dec [%d]\n",
+    	        	               cur_pot_data_int, Sensor.pot_int, cur_pot_data_dec, Sensor.pot_dec);
+#endif
+    	    	    }
+    	    	    else
+    	    	    {    	        	
+    	        	    /* Send the Pot sample */
+    	        	    snprintf(put_temp_buffer, BUFFER_SIZE, FREESCALE_DEMO_CONTROL_POT_FILE_FORMAT, Sensor.pot_int, Sensor.pot_dec);
+    	        	    
+        	    	    cur_pot_data_int = Sensor.pot_int;
+        	    	    cur_pot_data_dec = Sensor.pot_dec;
 
-    	        	status = idigi_initiate_put_request(pot_file_path, put_temp_buffer, "text/plain", strlen(put_temp_buffer), 0);
+    	        	    status = idigi_initiate_put_request(pot_file_path, put_temp_buffer, "text/plain", strlen(put_temp_buffer), 0);
     	        	
-    	        	if (status)
-    	        	    APP_DEBUG("idigi_app_run_task: error putting to pot path\n");
+    	        	    if (status)
+    	        	        APP_DEBUG("idigi_app_run_task: error putting to pot path\n");
+    	    	    }
     	    	}
-        	    
+
                 // Send sysinfo put request            	
                 result = app_os_get_system_time((uint32_t *)&seconds_since_reset);
                 
