@@ -476,7 +476,6 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
     
     previous = *current;
     step++;
-    ASSERT(step < 500);
     fflush(stdout);
 }
 

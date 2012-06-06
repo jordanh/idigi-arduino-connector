@@ -30,7 +30,6 @@ static void rci_traverse_data(rci_t * const rci)
         
         rci->shared.request.group.id = 0;
         rci->shared.request.group.index = 1;
-        rci->shared.request.element.id = 0;
         
         rci->output.type = rci_output_type_start_tag;
         set_rci_command_tag(rci->input.command, &rci->output.tag);
@@ -42,12 +41,14 @@ static void rci_traverse_data(rci_t * const rci)
     case rci_traversal_state_indexed_group_start:
         rci_callback(rci, idigi_remote_config_group_start);
         
+        rci->shared.request.element.id = 0;
+
         {
             idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
             
             rci->output.type = rci_output_type_start_tag;
             cstr_to_rci_string(group->name, &rci->output.tag);
-            add_index_attribute(&rci->output.attribute, rci->shared.request.group.index);
+            add_numeric_attribute(&rci->output.attribute, RCI_INDEX, rci->shared.request.group.index);
         }
         
         switch (rci->traversal.state)
@@ -203,14 +204,16 @@ static void rci_traverse_data(rci_t * const rci)
                         else
                         {
                             rci->shared.request.group.id = next_group;
-                            rci->shared.request.group.index = 0; /* increments to 1-based starting value below */
+                            rci->shared.request.group.index = 1;
                             rci->traversal.state = rci_traversal_state_all_groups_group_start;
                         }
                     }
                 }
-
-                rci->shared.request.group.index++;
-                rci->shared.request.element.id = 0;
+                else
+                {
+                    rci->shared.request.group.index++;
+                    rci->traversal.state = (rci->traversal.state == rci_traversal_state_all_groups_group_end) ? rci_traversal_state_all_groups_group_start : rci_traversal_state_one_group_start;
+                }
             }
             break;
                    

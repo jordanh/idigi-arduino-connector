@@ -90,18 +90,18 @@ static void prep_rci_reply_data(rci_t * const rci)
     rci->output.type = rci_output_type_start_tag;
 }
 
-static void add_index_attribute(rci_attribute_list_t * const list, unsigned int const index)
+static void add_numeric_attribute(rci_attribute_list_t * const list, cstr_t const * const name, unsigned int const value)
 {
-#define  MAX_INDEX  "999"
-    static cstr_t storage[] = "n" MAX_INDEX;
-    int const digits_max = sizeof MAX_INDEX - 1;
+#define  MAX_NUMERIC_VALUE  "999"
+    static cstr_t storage[] = "n" MAX_NUMERIC_VALUE;
+    int const digits_max = sizeof MAX_NUMERIC_VALUE - 1;
     size_t const storage_available = digits_max;
-    int const digits_used = snprintf(storage + 1, storage_available, "%u", index);
+    int const digits_used = snprintf(storage + 1, storage_available, "%u", value);
     
     ASSERT((digits_used >= 1) && (digits_used <= digits_max));
     storage[0] = digits_used;
     
-    add_attribute(list, RCI_INDEX, storage);
+    add_attribute(list, name, storage);
 #undef  MAX_INDEX
 }
 
