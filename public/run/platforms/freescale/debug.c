@@ -22,7 +22,7 @@ void idigi_debug_printf(char const * const format, ...)
     va_list args;
 
     va_start(args, format);
-    vprintf(format, args);
+    _io_printf(format, args);
     va_end(args);
 }
 
