@@ -10,9 +10,6 @@
  * =======================================================================
  */
 
-/* TODO: remove me -ASK */
-#define RCI_COMMENT "\x03" "!--"
-
 static void state_call_return(rci_t * const rci, rci_parser_state_t const call_state, rci_parser_state_t const return_state)
 {
     rci->parser.state.previous = return_state;
