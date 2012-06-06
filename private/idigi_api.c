@@ -88,6 +88,25 @@ static idigi_callback_status_t get_device_id_method(idigi_data_t * const idigi_p
 
     return status;
 }
+
+static idigi_bool_t isValidVendorId(unsigned long const vendor_id)
+{
+#define MAX_VENDOR_ID_NUMBER 0xFE000000
+
+    idigi_bool_t isValid = idigi_false;
+
+    ASSERT(sizeof(unsigned long) == VENDOR_ID_LENGTH);
+
+    idigi_debug_printf("vendor id: 0x%X\n", vendor_id);
+
+    if (vendor_id > 0 && vendor_id < MAX_VENDOR_ID_NUMBER)
+    {
+        isValid = idigi_true;
+    }
+
+    return isValid;
+}
+
 idigi_handle_t idigi_init(idigi_callback_t const callback)
 {
 
@@ -221,6 +240,16 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
             }
 #endif
 
+#if !defined(IDIGI_VENDOR_ID)
+            if (idigi_config_request_ids[i].request == idigi_config_vendor_id)
+            {
+                if (isValidVendorId(LoadBE32(data)) == idigi_false)
+                {
+                    error_status = idigi_invalid_data;
+                    goto error;
+                }
+            }
+#endif
             break;
         case idigi_callback_abort:
         case idigi_callback_unrecognized:

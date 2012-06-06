@@ -71,16 +71,16 @@
  * @code
  *
  * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
- *                              void * const request_data, size_t const request_length,
+ *                              void const * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
  *
  *     if (class_id == idigi_class_operating_system && request_id.os_request == idigi_os_malloc)
  *     {
- *         size_t size = *(size_t *)request_data;
+ *         size_t * const size = request_data;
  *         void ** ptr = (void **)response_data;
  *
- *         *ptr = malloc(size);
+ *         *ptr = malloc(*size);
  *         if (*ptr == NULL)
  *         {
  *             return idigi_callback_abort;
@@ -144,7 +144,7 @@
  * @code
  *
  * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
- *                              void * const request_data, size_t const request_length,
+ *                              void const * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
  *
@@ -212,7 +212,7 @@
  * @code
  *
  * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
- *                              void * const request_data, size_t const request_length,
+ *                              void const * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
  *
@@ -280,7 +280,7 @@
  * @code
  *
  * idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id
- *                              void * const request_data, size_t const request_length,
+ *                              void const * const request_data, size_t const request_length,
  *                              void * response_data, size_t * const response_length)
  * {
  *

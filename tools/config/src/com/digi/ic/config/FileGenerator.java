@@ -312,7 +312,7 @@ public class FileGenerator {
                     for (String key : errorMap.keySet()) {
                         defineName = getDefineString(group.getName() + "_" + ERROR + "_" + key);
                         /* define name string index */
-                        headerWriter.write(getDefineStringIndex(defineName, key));
+                        headerWriter.write(getDefineStringIndex(defineName, errorMap.get(key)));
                     }
                 }
             }
@@ -336,7 +336,7 @@ public class FileGenerator {
             if ((!ConfigGenerator.excludeErrorDescription()) && (!group.getErrors().isEmpty())) {
                 LinkedHashMap<String, String> errorMap = group.getErrors();
                 for (String key : errorMap.keySet()) {
-                    headerWriter.write(getCharString(key));
+                    headerWriter.write(getCharString(errorMap.get(key)));
                 }
             }
         }
@@ -367,9 +367,8 @@ public class FileGenerator {
 
     private void writeLinkedHashMapStrings(LinkedHashMap<String, String> stringMap) throws IOException {
         for (String key : stringMap.keySet()) {
-            headerWriter.write(getCharString(key));
+            headerWriter.write(getCharString(stringMap.get(key)));
         }
-
     }
 
     private void writeErrorsRemoteAllStrings(ConfigData configData) throws IOException {
@@ -863,29 +862,42 @@ public class FileGenerator {
 
     private String getDefineStringIndex(String define_name, String string) {
         String str = DEFINE + define_name + " " + "(" + IDIGI_REMOTE_ALL_STRING + "+" + prevRemoteStringLength + ")\n";
-        prevRemoteStringLength += string.length() + 1;
+        if (string != null) {
+            prevRemoteStringLength += string.length();
+        }
+        prevRemoteStringLength++;
+        
         return str;
     }
 
     private String getCharString(String string) {
-        char[] characters = string.toCharArray();
-
+        
         String quote_char = (isFirstRemoteString) ? "": ",\n";
         
-        quote_char += " " + string.length() + ",";
         isFirstRemoteString = false;
-
-        int length = characters.length;
         
-        for (int i=0; i < length; i++)
-        {
-            quote_char += "\'" + characters[i] + "\'";
-            if (i < length-1) {
-                //last character
-                quote_char += ",";
-            }
+        if (string != null) {
             
+            char[] characters = string.toCharArray();
+    
+            quote_char += " " + string.length() + ",";
+    
+            int length = characters.length;
+            
+            for (int i=0; i < length; i++)
+            {
+                quote_char += "\'" + characters[i] + "\'";
+                if (i < length-1) {
+                    //last character
+                    quote_char += ",";
+                }
+                
+            }
         }
+        else {
+            quote_char += " 0";
+        }
+            
 
         return quote_char;
     }

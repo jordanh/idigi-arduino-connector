@@ -16,10 +16,6 @@
 
 #if defined(IDIGI_DEBUG)
 /**
-* @defgroup DEBUG_MACROS User Defined Debug Macros
-* @{
-*/
-/**
  * Debug output from the iDigi connector, Writes a formatted string to stdout, expanding the format
  * tags with the value of the argument list arg.  This function behaves exactly as
  * printf except that the variable argument list is passed as a va_list instead of a
@@ -31,16 +27,21 @@
 void idigi_debug_printf(char const * const format, ...);
 
 /**
+* @defgroup DEBUG_MACROS User Defined Debug Macros
+* @{
+*/
+/**
  *  Verify that the condition is true, otherwise halt the program.
  */
 #define ASSERT(cond)        assert(cond)
+/**
+* @}
+*/
+
 #else
 
 #define ASSERT(cond)
 #endif
-/**
-* @}
-*/
 
 /**
  * Compile time assertion of functional state (limits, range checking, etc.)

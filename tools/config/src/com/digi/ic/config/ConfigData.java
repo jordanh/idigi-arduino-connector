@@ -1,5 +1,6 @@
 package com.digi.ic.config;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -109,6 +110,11 @@ public class ConfigData {
         if ((userGlobalErrors.size() > 0) && (userGlobalErrors.getStrings().containsKey(name))) {
             throw new Exception("Duplicate <globalerror>: " + name);
         }
+        
+        if (description == null) {
+            throw new IOException("Missing globalerror description");
+      }
+
         userGlobalErrors.addStrings(name, description);
     }
 

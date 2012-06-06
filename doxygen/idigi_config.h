@@ -33,12 +33,13 @@
 #define IDIGI_LITTLE_ENDIAN
 
 /**
- * When defined, iDigi connector private library includes debug support.  iDigi connector state and debug data will be displayed using the
- * @ref USER_DEBUG_VPRINTF tags.  Macro error testing is compiled and implemented using the
+ * When defined, iDigi connector private library includes debug support.  iDigi connector state 
+ * and debug data will be displayed using the @ref idigi_debug_printf. See @ref debug_routine
+ * for its implementation. Macro error testing is compiled and implemented using the
  * @ref ASSERT macro.
  *
  * This debug feature can be eliminated in a product release, which will greatly reduce memory codespace and
- * RAM needs, by changing this line in idigi_config.h:
+ * RAM needs, by commenting this line out in idigi_config.h:
  *
  * @code
  * #define IDIGI_DEBUG
@@ -49,15 +50,17 @@
  * //#define IDIGI_DEBUG
  * @endcode
  *
- * @see USER_DEBUG_VPRINTF
+ * @see idigi_debug_printf
  * @see ASSERT
  */
-//#define IDIGI_DEBUG
+#define IDIGI_DEBUG
 
 /**
- * When defined, iDigi connector private library includes the @ref firmware_download "Firmware Download Service".
+ * When defined, iDigi connector private library includes the @ref firmware_download 
+ * "Firmware Download Service".
  *
- * To disable the @ref firmware_download "Firmware Download Service" feature, change this line in idigi_config.h:
+ * To disable the @ref firmware_download "Firmware Download Service" feature, comment 
+ * this line out in idigi_config.h:
  *
  * @code
  * #define IDIGI_FIRMWARE_SERVICE
@@ -72,43 +75,21 @@
  */
 #define IDIGI_FIRMWARE_SERVICE
 
-
 /**
- * This is a compilation convenience definition.  See @ref IDIGI_COMPRESSION.
+ * When defined, the iDigi connector includes the @ref zlib "compression" support used with the
+ * @ref data_service.
  *
- */
-#define IDIGI_NO_COMPRESSION
-#if (!defined (IDIGI_NO_COMPRESSION) || defined(DIGI_REQUIRED_TO_GENERATE_INTERNAL_DOCUMENATION))
-/**
- * When defined, the iDigi connector includes the @ref zlib "compression" support used with the @ref data_service.
- *
- * By default, compression support is disabled.  To enable Optional Data Compression Support, change this line in idigi_config.h:
+ * By default, compression support is disabled.  To enable Optional Data Compression Support, 
+ * change this line in idigi_config.h:
  * By default, optional @ref zlib "compression" support is disabled.
  *
- * To enable @ref zlib "compression", change the following from idigi_config.h:
+ * To enable @ref zlib "compression", uncomment the define in idigi_config.h:
  *
  * @code
- * #define IDIGI_NO_COMPRESSION
- * #if (!defined (IDIGI_NO_COMPRESSION) || defined(DIGI_REQUIRED_TO_GENERATE_INTERNAL_DOCUMENATION))
- *
- * ...
- *
- * #define IDIGI_COMPRESSION
- * #endif
+ * //#define IDIGI_COMPRESSION
  * @endcode
  *
  * To this:
- * @code
- * //#define IDIGI_NO_COMPRESSION
- * #if (!defined (IDIGI_NO_COMPRESSION) || defined(DIGI_REQUIRED_TO_GENERATE_INTERNAL_DOCUMENATION))
- *
- * ...
- *
- * #define IDIGI_COMPRESSION
- * #endif
- * @endcode
- *
- * Or just this:
  * @code
  * #define IDIGI_COMPRESSION
  * @endcode
@@ -118,15 +99,14 @@
  * @see @ref data_service
  * @see @ref IDIGI_DATA_SERVICE
  * @see @ref IDIGI_FILE_SYSTEM
- * @see @ref IDIGI_NO_COMPRESSION
+ * @see @ref IDIGI_RCI_SERVICE
  *
  */
 #define IDIGI_COMPRESSION
-#endif
 
 /**
  * If defined, iDigi connector includes the @ref data_service.
- * To disable the @ref data_service feature, change this line in idigi_config.h:
+ * To disable the @ref data_service feature, comment this line out in idigi_config.h:
  *
  * @code
  * #define IDIGI_DATA_SERVICE
@@ -139,52 +119,47 @@
  *
  * @see @ref data_service_support
  * @see @ref zlib
- * @see @ref IDIGI_NO_COMPRESSION
+ * @see @ref IDIGI_COMPRESSION
  */
 #define IDIGI_DATA_SERVICE
 
 /**
- * This is a compilation convenience definition.  See @ref IDIGI_FILE_SYSTEM.
- *
- */
-#define IDIGI_NO_FILE_SYSTEM
-#if (!defined (IDIGI_NO_FILE_SYSTEM) || defined(DIGI_REQUIRED_TO_GENERATE_INTERNAL_DOCUMENATION))
-/**
  * If defined, iDigi connector includes the @ref file_system.
- * To enable the @ref file_system feature change this line in idigi_config.h:
+ * To enable the @ref file_system feature comment this line out in idigi_config.h:
  *
- * @code
- * #define IDIGI_NO_FILE_SYSTEM
- * @endcode
- *
- * To this:
  * @code
  * #define IDIGI_FILE_SYSTEM
  * @endcode
  *
+ * To this:
+ * @code
+ * //#define IDIGI_FILE_SYSTEM
+ * @endcode
+ *
  * @see @ref file_system_support
  * @see @ref zlib
- * @see @ref IDIGI_NO_COMPRESSION
+ * @see @ref IDIGI_COMPRESSION
  */
 #define IDIGI_FILE_SYSTEM
-#endif
 
 /**
  * If defined, iDigi connector includes the @ref rci_service.
- * To enable the @ref rci_service feature change this line in idigi_config.h:
+ * To enable the @ref rci_service feature comment this line out in idigi_config.h:
  *
- * @code
- * #define IDIGI_NO_RCI_SERVICE
- * @endcode
- *
- * To this:
  * @code
  * #define IDIGI_RCI_SERVICE
  * @endcode
  *
- * @see @ref rci_service_support
+ * To this:
+ * @code
+ * // #define IDIGI_RCI_SERVICE
+ * @endcode
+ *
+ * @see @ref rci_service
  * @see @ref app_get_remote_configuration_support()
  * @see @ref IDIGI_RCI_MAXIMUM_CONTENT_LENGTH
+ * @see @ref zlib
+ * @see @ref IDIGI_COMPRESSION
  */
 #define IDIGI_RCI_SERVICE
 

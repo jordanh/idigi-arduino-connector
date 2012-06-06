@@ -11,6 +11,9 @@ public class ElementStruct {
     private final static int INT32_MAX_VALUE = 2147483647;
     private final static long UINT32_MAX_VALUE = 4294967295L;
 
+    private final static String BAD_MISSING_MIN_VALUE = "Bad or missing min value!";
+    private final static String BAD_MISSING_MAX_VALUE = "Bad or missing max value!";
+    
     private final String name;
     private final String description;
     private final String helpDescription;
@@ -91,8 +94,12 @@ public class ElementStruct {
         }
     }
 
-    public ElementStruct(String name, String description, String helpDescription) {
+    public ElementStruct(String name, String description, String helpDescription) throws IOException {
         this.name = name;
+        
+        if (description == null) {
+            throw new IOException("Missing element description");
+      }
         this.description = description;
         this.helpDescription = helpDescription;
         this.values = new LinkedList<ValueStruct>();
@@ -241,6 +248,10 @@ public class ElementStruct {
                 throw new Exception("Missing <type>!");
             }
 
+            if (!etype.minMaxSupport() && (min != null || max != null)) {
+                throw new Exception("\"" + type + "\" type should not have <min/max>!");
+            }
+
             switch (etype) {
             case ENUM:
                 if (values.isEmpty()) {
@@ -249,8 +260,12 @@ public class ElementStruct {
                 break;
 
             case FLOAT:
-                if ((!isValidFloat(min)) || (!isValidFloat(max))) {
-                    throw new Exception("Invalid float value!");
+                if (!isValidFloat(min)) {
+                    throw new Exception(BAD_MISSING_MIN_VALUE);
+                }
+                
+                if (!isValidFloat(max)) {
+                    throw new Exception(BAD_MISSING_MAX_VALUE);
                 }
 
                 if ((min != null) && (max != null)) {
@@ -274,8 +289,11 @@ public class ElementStruct {
                 if (etype == ElementType.XHEX) {
                     prefix = true;
                 }
-                if ((!isValidHex(min, prefix)) || (!isValidHex(max, prefix))) {
-                    throw new Exception("Invalid hex value!");
+                if (!isValidHex(min, prefix)) {
+                    throw new Exception(BAD_MISSING_MIN_VALUE);
+                }
+                if (!isValidHex(max, prefix)) {
+                    throw new Exception(BAD_MISSING_MAX_VALUE);
                 }
                 if ((min != null) && (max != null)) {
                     int index = 0;
@@ -302,14 +320,14 @@ public class ElementStruct {
                     try {
                         minValue = Long.parseLong(min);
                     } catch (NumberFormatException e) {
-                        throw new Exception("Invalid min value: " + min);
+                        throw new Exception(BAD_MISSING_MIN_VALUE);
                     }
                 }
                 if (max != null) {
                     try {
                         maxValue = Long.parseLong(max);
                     } catch (NumberFormatException e) {
-                        throw new Exception("Invalid max value: " + max);
+                        throw new Exception(BAD_MISSING_MAX_VALUE);
                     }
 
                 }
@@ -339,10 +357,6 @@ public class ElementStruct {
                 }
 
                 break;
-            }
-
-            if (!etype.minMaxSupport() && (min != null || max != null)) {
-                throw new Exception("\"" + type + "\" type should not have <min/max>!");
             }
 
             if (etype != ElementType.ENUM && !values.isEmpty()) {

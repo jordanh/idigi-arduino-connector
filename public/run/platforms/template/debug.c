@@ -9,17 +9,26 @@
  * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
  */
+ /**
+  * @file
+  *  @brief Debug routine for the iDigi Connector.
+  *
+  */
+
 #include "idigi_config.h"
 
 #if defined(IDIGI_DEBUG)
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-
 /**
  * @brief   iDigi connection debug printf
  *
  * iDigi connection uses this routine to display debug information when @ref IDIGI_DEBUG is defined.
+ * Debug output from the iDigi connector, Writes a formatted string to stdout, expanding the format
+ * tags with the value of the argument list arg.  This function behaves exactly as
+ * printf except that the variable argument list is passed as a va_list instead of a
+ * succession of arguments.
  *
  * @param [in] format Tells how to format the various arguments
  * @param [out] ...   A variable argument list of expressions whose values should be printed according
@@ -29,7 +38,6 @@
  *
  * @see @ref IDIGI_DEBUG
  */
-
 void idigi_debug_printf(char const * const format, ...)
 {
     va_list args;
@@ -38,6 +46,8 @@ void idigi_debug_printf(char const * const format, ...)
     vprintf(format, args);
     va_end(args);
 }
+
+
 #else
 
 typedef int dummy;

@@ -14,8 +14,8 @@
 #define CHK_CONFIG_H_
 
 #if defined(IDIGI_VENDOR_ID)
-#if (IDIGI_VENDOR_ID > 0xFFFFFFFF)
-    #error "Invalid IDIGI_VENDOR_ID 4byte vendor id in idigi_config.h"
+#if (IDIGI_VENDOR_ID > 0xFE000000) || (IDIGI_VENDOR_ID == 0)
+    #error "IDIGI_VENDOR_ID must be greater than 0 and less than 0xFE000000 in idigi_config.h"
 #endif
 #endif
 

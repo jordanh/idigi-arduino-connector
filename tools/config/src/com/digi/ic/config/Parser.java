@@ -119,7 +119,7 @@ public class Parser {
                     isReadToken = true;
                     
                 } else {
-                    throw new Exception("Unrecogized keyword: " + token);
+                    throw new Exception("Unrecognized keyword: " + token);
                 }
             }
         } catch (NullPointerException e) {

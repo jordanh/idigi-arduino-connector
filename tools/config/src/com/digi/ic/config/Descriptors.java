@@ -70,7 +70,12 @@ public class Descriptors {
         int errorId = id;
 
         for (String errorName : errorMap.keySet()) {
-            descriptor += String.format("<error_descriptor id=\"%d\" desc=\"%s\" />\n", errorId,  errorMap.get(errorName));
+            descriptor += String.format("<error_descriptor id=\"%d\" ", errorId);
+            if (errorMap.get(errorName) != null)
+                descriptor += String.format("desc=\"%s\" ", errorMap.get(errorName));
+            
+            descriptor += "/>\n";
+                
             errorId++;
         }
 
@@ -300,9 +305,9 @@ public class Descriptors {
 
         xmlFile.flush();
         xmlFile.close();
-
+*/
         ConfigGenerator.debug_log(str);
-*/        
+        
     }
 
 }

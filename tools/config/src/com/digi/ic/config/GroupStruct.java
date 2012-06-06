@@ -17,14 +17,14 @@ public class GroupStruct {
 
     public GroupStruct(String name, int count, String description,
             String helpDescription) throws IOException {
-        if (count < 0) {
+        if (count <= 0) {
             throw new IOException("Invalid instance count for the group: "
                     + name);
         }
 
         if (description == null) {
             throw new IOException("Missing group description");
-        }
+      }
 
         this.name = name;
         this.instances = count;
@@ -85,6 +85,9 @@ public class GroupStruct {
         if (errorMap.containsKey(name)) {
             throw new IOException("Duplicate <error>: " + name);
         }
+        if (description == null) {
+            throw new IOException("Missing error description");
+      }
         errorMap.put(name, description);
     }
 

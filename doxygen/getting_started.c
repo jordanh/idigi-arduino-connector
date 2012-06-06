@@ -10,7 +10,7 @@
  * These steps include:
  *   
  *          -# @ref step1
- *              -# @ref debug_macros
+ *              -# @ref debug_routine
  *          -# @ref step2
  *          -# @ref step3
  *              -# @ref idigi_initialization
@@ -54,10 +54,17 @@
  *
  * Note by default these are defined for a 32-bit machine.
  *  
- * @subsection debug_macros Implement the debug macros
- * The file public/include/idigi_types.h implements the two macros listed below, which are used to debug the iDigi connector.
+ * @subsection debug_routine Implement the debug routine and macro
  *
- *  @li @ref USER_DEBUG_VPRINTF
+ * Open the file debug.c and implement the @ref idigi_debug_printf. For the linux platform
+ * the file is located at public/run/platforms/linux/debug.c.  Click on the routine
+ * to see a description, then modify to operate with your platform. iDigi connector calls
+ * this routine to display any debug information when @ref IDIGI_DEBUG is defined 
+ * idigi_config.h.
+ * 
+ * The file public/include/idigi_debug.h implements the a macros listed below, which 
+ * are used to debug the iDigi connector.
+ *
  *  @li @ref ASSERT 
  * 
  * Review these definitions and modify these for your platform:
@@ -67,7 +74,7 @@
  *
  * @section step2 Step 2: Modify idigi_config.h
  *
- * Open the file public/include/idigi_config.h to configure processor endianess.  
+ * Open the file idigi_config.h in the sample directory to configure processor endianess.  
  * 
  * The iDigi connector defaults to little endian.  To reconfigure for big endian, comment out the @ref IDIGI_LITTLE_ENDIAN define.
  *
@@ -305,7 +312,6 @@
  * @endcode
  *
  * @note The idigi_init() call must successfully complete prior to any other iDigi connector call (i.e., idigi_run(), idigi_step()).
- *
  *
  * @section step6 Step 6: Setup your build environment
  *
