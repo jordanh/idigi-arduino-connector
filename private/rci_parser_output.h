@@ -393,7 +393,7 @@ static void rci_generate_output(rci_t * const rci)
                 overflow = rci_output_formatted(output, "%ld", rci->shared.value.integer_signed_value);
                 break;
             case idigi_element_type_uint32:
-                overflow = rci_output_formatted(output, "%lud", rci->shared.value.integer_signed_value);
+                overflow = rci_output_formatted(output, "%lu", rci->shared.value.integer_signed_value);
                 break;
             case idigi_element_type_hex32:
                 overflow = rci_output_formatted(output, "%lx", rci->shared.value.integer_signed_value);
