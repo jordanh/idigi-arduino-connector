@@ -81,7 +81,6 @@ static void clear_rcistr(rci_string_t * const string)
 
 static void set_rcistr_length(rci_t const * const rci, rci_string_t * const string)
 {
-    ASSERT(rcistr_length(string) == 0);
     string->length = (rci->input.destination - string->data);
 }
 
