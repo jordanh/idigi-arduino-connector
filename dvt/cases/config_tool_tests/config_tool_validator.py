@@ -10,7 +10,7 @@ INVALID_CHARACTER='.*Invalid character in the name:'
 
 #GLOBALERROR
 GLOBAL_NO_ERROR=NO_ERROR
-GLOBAL_DESCRIPTION_ERROR='.*Missing globalerror description'
+GLOBAL_DESCRIPTION_ERROR='.*Missing or bad globalerror description'
 GLOBAL_NO_DESCRIPTION=GLOBAL_DESCRIPTION_ERROR
 GLOBAL_UNRECOGNIZED_KEYWORD=UNRECOGNIZED_KEYWORD
 GLOBAL_BAD_DESCRIPTION=GLOBAL_DESCRIPTION_ERROR
@@ -22,7 +22,7 @@ GROUP_NO_ERROR=NO_ERROR
 GROUP_BAD_HELP='.*No element specified'
 GROUP_BAD_TYPE='.*Invalid setting or state keyword:'
 GROUP_BAD_COUNT='.*Invalid instance count for the group:'
-GROUP_DESCRIPTION_ERROR='.*Missing group description'
+GROUP_DESCRIPTION_ERROR='.*Missing or bad group description'
 GROUP_NO_DESCRIPTION=GROUP_DESCRIPTION_ERROR
 GROUP_BAD_DESCRIPTION=GROUP_DESCRIPTION_ERROR
 GROUP_BAD_NAME=GROUP_DESCRIPTION_ERROR
@@ -30,7 +30,7 @@ GROUP_NO_NAME=INVALID_CHARACTER
 
 #ERROR
 ERROR_NO_ERROR=NO_ERROR
-ERROR_DESCRIPTION_ERROR='.*Missing error description'
+ERROR_DESCRIPTION_ERROR='.*Missing or bad error description'
 ERROR_NO_DESCRIPTION=ERROR_DESCRIPTION_ERROR
 ERROR_BAD_NAME=ERROR_DESCRIPTION_ERROR
 ERROR_BAD_DESCRIPTION=ERROR_DESCRIPTION_ERROR
@@ -42,14 +42,14 @@ ELEMENT_NO_ERROR=NO_ERROR
 ELEMENT_INVALID_ACCESS_TYPE='.*Invalid access Type:'
 ELEMENT_INVALID_ELEMENT_TYPE='.*Invalid element Type:'
 ELEMENT_MIN_GREATER_MAX='.*Error min value > max value!'
-ELEMENT_DESCRIPTION_ERROR='.*Missing element description'
+ELEMENT_DESCRIPTION_ERROR='.*Missing or bad element description'
 ELEMENT_MISSING_MAX='.*Bad or missing max value!'
 ELEMENT_MISSING_MIN='.*Bad or missing min value!'
 ELEMENT_NEGATIVE_MIN='.*Invalid min or max value for type:'
 ELEMENT_MIN_MAX_NOT_SUPPORTED='.*type should not have <min/max>!'
 ELEMENT_ENUM_MISSING_VALUE='.*Missing <value>!'
 ELEMENT_ENUM_MISSING_TYPE='.*Missing type enum on element:'
-ELEMENT_NO_UNIT='.*No Unit'
+ELEMENT_NO_UNIT='.*Missing or bad unit description'
 ######ELEMENT_MAX_GREATER_MAX_CONTNET#########
 # Currently doesn't seem possible to enforce this in the 
 # ConfigGenerator. Could be possible in the future???
