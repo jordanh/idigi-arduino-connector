@@ -98,7 +98,7 @@ public class ElementStruct {
         this.name = name;
         
         if (description == null) {
-            throw new IOException("Missing element description");
+            throw new IOException("Missing or bad element description");
       }
         this.description = description;
         this.helpDescription = helpDescription;
@@ -198,10 +198,12 @@ public class ElementStruct {
     }
 
     public void setUnit(String theUnit) throws IOException {
-        if (unit == null)
-            unit = theUnit;
-        else
+        if (theUnit == null)
+            throw new IOException("Missing or bad unit description!");
+        else if (unit != null)
             throw new IOException("Duplicate unit: " + theUnit);
+        else
+            unit = theUnit;
     }
 
     public String getName() {

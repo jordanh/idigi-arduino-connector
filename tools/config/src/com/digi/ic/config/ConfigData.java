@@ -112,7 +112,7 @@ public class ConfigData {
         }
         
         if (description == null) {
-            throw new IOException("Missing globalerror description");
+            throw new IOException("Missing or bad globalerror description");
       }
 
         userGlobalErrors.addStrings(name, description);

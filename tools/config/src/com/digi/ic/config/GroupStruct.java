@@ -23,7 +23,7 @@ public class GroupStruct {
         }
 
         if (description == null) {
-            throw new IOException("Missing group description");
+            throw new IOException("Missing or bad group description");
       }
 
         this.name = name;
@@ -86,7 +86,7 @@ public class GroupStruct {
             throw new IOException("Duplicate <error>: " + name);
         }
         if (description == null) {
-            throw new IOException("Missing error description");
+            throw new IOException("Missing or bad error description");
       }
         errorMap.put(name, description);
     }

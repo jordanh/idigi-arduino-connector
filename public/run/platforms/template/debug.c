@@ -22,13 +22,11 @@
 #include <stdlib.h>
 #include <stdarg.h>
 /**
- * @brief   iDigi connection debug printf
+ * @brief iDigi connector debug
  *
- * iDigi connection uses this routine to display debug information when @ref IDIGI_DEBUG is defined.
  * Debug output from the iDigi connector, Writes a formatted string to stdout, expanding the format
- * tags with the value of the argument list arg.  This function behaves exactly as
- * printf except that the variable argument list is passed as a va_list instead of a
- * succession of arguments.
+ * tags with the value of the argument list arg.
+ * iDigi connector uses this routine to display debug information when @ref IDIGI_DEBUG is defined.
  *
  * @param [in] format Tells how to format the various arguments
  * @param [out] ...   A variable argument list of expressions whose values should be printed according
