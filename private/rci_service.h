@@ -32,28 +32,6 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
     ASSERT_GOTO(session != NULL, done);
 
     service_data = session->service_context;
-    if (service_data == NULL)
-    {
-        /* 1st time here so let's allocate service context memory for rci parser */
-        void * ptr;
-
-        status = malloc_data(idigi_ptr, sizeof *service_data, &ptr);
-        if (status != idigi_callback_continue)
-        {
-            if (status != idigi_callback_busy)
-            {
-                error_status = idigi_msg_error_cancel;
-            }
-            goto done;
-        }
-
-        service_data = ptr;
-        MsgSetStart(service_request->need_data->flags);
-    }
-
-    ASSERT(service_data != NULL);
-    ASSERT(service_request->have_data != NULL);
-    ASSERT(service_request->need_data != NULL);
 
     /* idigi_debug_printf("rci_service: service type: %d\n", service_request->service_type); */
 
@@ -63,28 +41,51 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
     case msg_service_type_have_data:
     {
         rci_status_t ccode;
+        rci_session_t parser_action = rci_session_active;
+        void * parser_data = NULL;
+
+        ASSERT_GOTO(service_request->have_data != NULL, done);
+        ASSERT_GOTO(service_request->need_data != NULL, done);
 
         if (session->service_context == NULL)
         {
-            session->service_context = service_data;
- 
-            service_data->idigi_ptr = idigi_ptr;
-            
-            service_data->input.data = service_request->have_data->data_ptr;
-            service_data->input.bytes = service_request->have_data->length_in_bytes;
+            /* 1st time here so let's allocate service context memory for rci parser */
+            void * ptr;
 
-            service_data->output.data = service_request->need_data->data_ptr;
-            service_data->output.bytes = service_request->need_data->length_in_bytes;
+            status = malloc_data(idigi_ptr, sizeof *service_data, &ptr);
+            if (status != idigi_callback_continue)
+            {
+                if (status != idigi_callback_busy)
+                {
+                    error_status = idigi_msg_error_cancel;
+                }
+                goto done;
+            }
+
+            service_data = ptr;
+            session->service_context = service_data;
             
-            idigi_debug_printf("rci_service.resquest: %d %.*s\n", service_data->input.bytes, service_data->input.bytes, service_data->input.data);
-            ccode = rci_parser(rci_session_start, service_data);
+            MsgSetStart(service_request->need_data->flags);
+            
+            idigi_debug_printf("rci_service.resquest: %d %.*s\n", service_request->have_data->length_in_bytes,
+                                                                  service_request->have_data->length_in_bytes,
+                                                                  service_request->have_data->data_ptr);
+            parser_action = rci_session_start;
+            parser_data = service_data;
         }
-        else
-        {
-            service_data->output.data = service_request->need_data->data_ptr;
-            service_data->output.bytes = service_request->need_data->length_in_bytes;
-            ccode = rci_parser(rci_session_active);
-        }
+
+        ASSERT(service_data != NULL);
+
+        service_data->idigi_ptr = idigi_ptr;
+
+        service_data->input.data = service_request->have_data->data_ptr;
+        service_data->input.bytes = service_request->have_data->length_in_bytes;
+
+        service_data->output.data = service_request->need_data->data_ptr;
+        service_data->output.bytes = service_request->need_data->length_in_bytes;
+
+        ccode = rci_parser(parser_action, parser_data);
+
         /* idigi_debug_printf("rci_service: rci_parser returns %d\n", ccode); */
 
         switch (ccode)

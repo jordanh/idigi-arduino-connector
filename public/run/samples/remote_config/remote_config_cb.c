@@ -51,7 +51,7 @@ static idigi_callback_status_t app_process_session_start(idigi_remote_group_resp
     void * ptr;
     remote_group_session_t * session_ptr;
 
-    APP_DEBUG("process_session_start\n");
+    APP_DEBUG("app_process_session_start\n");
 
     ptr = malloc(sizeof *session_ptr);
     if (ptr == NULL)
@@ -70,7 +70,8 @@ done:
 
 static idigi_callback_status_t app_process_session_end(idigi_remote_group_response_t * const response)
 {
-    APP_DEBUG("process_session_end\n");
+    APP_DEBUG("app_process_session_end\n");
+
     if (response->user_context != NULL)
     {
         free(response->user_context);
@@ -81,18 +82,20 @@ static idigi_callback_status_t app_process_session_end(idigi_remote_group_respon
 static idigi_callback_status_t app_process_action_start(idigi_remote_group_request_t const * const request,
                                                         idigi_remote_group_response_t * const response)
 {
+    APP_DEBUG("app_process_action_start\n");
+
     UNUSED_ARGUMENT(request);
     UNUSED_ARGUMENT(response);
-    APP_DEBUG("process_action_start\n");
     return idigi_callback_continue;
 }
 
 static idigi_callback_status_t app_process_action_end(idigi_remote_group_request_t const * const request,
                                                       idigi_remote_group_response_t * const response)
 {
+    APP_DEBUG("app_process_action_end\n");
+
     UNUSED_ARGUMENT(request);
     UNUSED_ARGUMENT(response);
-    APP_DEBUG("process_action_end\n");
     return idigi_callback_continue;
 }
 
@@ -103,9 +106,6 @@ static idigi_callback_status_t app_process_group(idigi_remote_config_request_t c
     idigi_callback_status_t status = idigi_callback_continue;
     remote_group_table_t * group_ptr = NULL;
     remote_group_cb_t callback;
-//    remote_group_session_t * session_ptr = response->user_context;
-
-//    ASSERT(session_ptr != NULL);
 
     switch (request->group.type)
     {
@@ -134,12 +134,15 @@ static idigi_callback_status_t app_process_group(idigi_remote_config_request_t c
     switch (request_id)
     {
     case idigi_remote_config_group_start:
+        APP_DEBUG("app_process_group_start\n");
         callback = group_ptr->init_cb;
         break;
     case idigi_remote_config_group_process:
+        APP_DEBUG("app_process_group_process\n");
         callback = (request->action == idigi_remote_action_set) ? group_ptr->set_cb : group_ptr->get_cb;
         break;
     case idigi_remote_config_group_end:
+        APP_DEBUG("app_process_group_end\n");
         callback = group_ptr->end_cb;
         break;
     default:
@@ -162,7 +165,7 @@ static idigi_callback_status_t app_process_session_cancel(void * const context)
     idigi_callback_status_t status = idigi_callback_continue;
     remote_group_session_t * session_ptr = context;
 
-    APP_DEBUG("process_session_cancel\n");
+    APP_DEBUG("app_process_session_cancel\n");
     if (session_ptr != NULL)
     {
         remote_group_table_t * const group_ptr = session_ptr->group_context;
