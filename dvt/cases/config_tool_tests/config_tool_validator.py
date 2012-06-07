@@ -407,14 +407,6 @@ def getElementTests():
             #If the type should error on negative value, change the error!
             if t in neg_error and 'negative_min' in desc:
                 error = ELEMENT_NEGATIVE_MIN
-#            #0xhex,hex32, and float are stupid and give a different error then others.
-#            if ('element_0xhex_missing_max') in desc or ('element_0xhex_missing_min' in desc) or (
-#                'element_hex32_missing_max') in desc or ('element_hex32_missing_min' in desc) or (
-#                'element_float_missing_max') in desc or ('element_float_missing_min' in desc):
-#                    error = ELEMENT_INVALID_TYPE_VALUE
-            #Because there are values appending after, it gives a different error
-            if 'element_enum_bad_unit' in desc:
-                error = ELEMENT_ENUM_MISSING_VALUE
             #It knows it should be type of enum becasue we append the values after it.
             #However, it still errors telling you to specify enum
             if 'element_enum_no_type' in desc:
