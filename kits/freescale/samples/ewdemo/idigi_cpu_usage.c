@@ -56,9 +56,15 @@ void init_cpu_usage(void)
 	
 	APP_DEBUG("cpu_usage_baseline [%x]\n", cpu_usage_baseline);
 
+/*
+ * I found using the results for the cpu_baseline were inconsistent
+ * and would lead to very different results after a reset or power cycle.
+ * These are the values I found to consistently result in a CPU
+ * utilization of 6 percent. 
+ */
+	
 #ifdef TWR_K53N512
-	if (cpu_usage_baseline > 0x900000)
-	    cpu_usage_baseline = 0x7d547e;
+	cpu_usage_baseline = 0x850dde;
 #else
 	cpu_usage_baseline = 0x270664;
 #endif
@@ -105,6 +111,10 @@ void idigi_cpu_usage(unsigned long initial_data)
    	    }
    	    else
    	    {
+   	    	/*
+   	    	 * Since the CPU utilization starts at 6 percent,
+   	    	 * We keep it at 6 percent when we get abnormal readings.
+   	    	 */
    	    	if (cpu_usage == 0)
    	    	    cpu_usage = 6;
    	    }
