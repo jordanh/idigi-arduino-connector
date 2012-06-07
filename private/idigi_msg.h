@@ -558,10 +558,10 @@ static idigi_msg_error_t msg_initialize_data_block(msg_session_t * const session
             session->out_dblock = session->in_dblock;
             ASSERT_GOTO(session->service_layer_data.have_data != NULL, error);
             session->service_layer_data.need_data = session->service_layer_data.have_data;
-            MsgClearRequest(session->out_dblock->status_flag);
             session->in_dblock = NULL;
             session->service_layer_data.have_data = NULL;
         }
+        MsgClearRequest(session->out_dblock->status_flag);
         /* intentional fall through */
 
     case msg_block_state_send_request:
@@ -1295,6 +1295,7 @@ static idigi_callback_status_t msg_pass_service_data(idigi_data_t * const idigi_
             idigi_callback_status_t const send_status = msg_process_send_data(idigi_ptr, session);
 
             ASSERT_GOTO(send_status != idigi_callback_abort, error);
+            session->service_layer_data.need_data->data_ptr = NULL;
         }
     }
 
@@ -1487,24 +1488,25 @@ static idigi_callback_status_t msg_process_start(idigi_data_t * const idigi_ptr,
 
             goto error;
         }
+        
         session->session_id = session_id;
+        if ((session->out_dblock != NULL) && request)
+        {
+            result = msg_initialize_data_block(session, msg_ptr->capabilities[msg_capability_client].window_size, msg_block_state_send_response);
+            if (result != idigi_msg_error_none)
+                goto error;
+        }
+        
+        result = msg_initialize_data_block(session, msg_ptr->capabilities[msg_capability_client].window_size, request ? msg_block_state_recv_request : msg_block_state_recv_response);
+        if (result != idigi_msg_error_none)
+            goto error;
+        
     }
     else
     {
         if (session->current_state == msg_state_send_error)
             goto done;
     }
-
-    if ((session->out_dblock != NULL) && request)
-    {
-        result = msg_initialize_data_block(session, msg_ptr->capabilities[msg_capability_client].window_size, msg_block_state_send_response);
-        if (result != idigi_msg_error_none)
-            goto error;
-    }
-
-    result = msg_initialize_data_block(session, msg_ptr->capabilities[msg_capability_client].window_size, request ? msg_block_state_recv_request : msg_block_state_recv_response);
-    if (result != idigi_msg_error_none)
-        goto error;
 
     {
         uint8_t const compression = message_load_u8(start_packet, compression_id);
