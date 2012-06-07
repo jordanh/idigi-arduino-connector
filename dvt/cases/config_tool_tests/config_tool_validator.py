@@ -10,10 +10,10 @@ INVALID_CHARACTER='.*Invalid character in the name:'
 
 #GLOBALERROR
 GLOBAL_NO_ERROR=NO_ERROR
-GLOBAL_NO_DESCRIPTION='.*Missing globalerror description'
+GLOBAL_DESCRIPTION_ERROR='.*Missing globalerror description'
+GLOBAL_NO_DESCRIPTION=GLOBAL_DESCRIPTION_ERROR
 GLOBAL_UNRECOGNIZED_KEYWORD=UNRECOGNIZED_KEYWORD
-GLOBAL_BAD_DESCRIPTION_INT=UNRECOGNIZED_KEYWORD
-GLOBAL_BAD_DESCRIPTION_STR=UNRECOGNIZED_KEYWORD
+GLOBAL_BAD_DESCRIPTION=GLOBAL_DESCRIPTION_ERROR
 GLOBAL_BAD_NAME=UNRECOGNIZED_KEYWORD
 GLOBAL_NO_NAME=INVALID_CHARACTER
 
@@ -32,7 +32,7 @@ GROUP_NO_NAME=INVALID_CHARACTER
 ERROR_NO_ERROR=NO_ERROR
 ERROR_NO_DESCRIPTION='.*Missing error description'
 ERROR_BAD_NAME=UNRECOGNIZED_KEYWORD
-ERROR_BAD_DESCRIPTION=UNRECOGNIZED_KEYWORD
+ERROR_BAD_DESCRIPTION=ERROR_NO_DESCRIPTION
 ERROR_NO_NAME=INVALID_CHARACTER
 
 #ELEMENT
@@ -83,10 +83,10 @@ globalerrorTests=[{'text':'globalerror load_fail "Unable to load configuration"'
                    'error':GLOBAL_NO_DESCRIPTION,
                    'description':'globalerror_no_description'},
                   {'text':'globalerror load_fail 1234',
-                   'error':GLOBAL_BAD_DESCRIPTION_INT,
+                   'error':GLOBAL_BAD_DESCRIPTION,
                    'description':'globalerror_bad_description_int'},
                   {'text':'globalerror load_fail DoesThisWork',
-                   'error':GLOBAL_BAD_DESCRIPTION_STR,
+                   'error':GLOBAL_BAD_DESCRIPTION,
                    'description':'globalerror_bad_description_no_quote'},
                   ]
 
@@ -402,11 +402,11 @@ def getElementTests():
             #If the type should error on negative value, change the error!
             if t in neg_error and 'negative_min' in desc:
                 error = ELEMENT_NEGATIVE_MIN
-            #0xhex,hex32, and float are stupid and give a different error then others.
-            if ('element_0xhex_missing_max') in desc or ('element_0xhex_missing_min' in desc) or (
-                'element_hex32_missing_max') in desc or ('element_hex32_missing_min' in desc) or (
-                'element_float_missing_max') in desc or ('element_float_missing_min' in desc):
-                    error = ELEMENT_INVALID_TYPE_VALUE
+#            #0xhex,hex32, and float are stupid and give a different error then others.
+#            if ('element_0xhex_missing_max') in desc or ('element_0xhex_missing_min' in desc) or (
+#                'element_hex32_missing_max') in desc or ('element_hex32_missing_min' in desc) or (
+#                'element_float_missing_max') in desc or ('element_float_missing_min' in desc):
+#                    error = ELEMENT_INVALID_TYPE_VALUE
             #Because there are values appending after, it gives a different error
             if 'element_enum_bad_unit' in desc:
                 error = ELEMENT_ENUM_MISSING_VALUE
