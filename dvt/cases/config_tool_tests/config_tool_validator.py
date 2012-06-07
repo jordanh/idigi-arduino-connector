@@ -57,7 +57,7 @@ ELEMENT_BAD_HELP_DESCRIPTION=ELEMENT_INVALID__ELEMENT_TYPE
 ELEMENT_NO_TYPE=ELEMENT_INVALID__ELEMENT_TYPE
 ELEMENT_BAD_TYPE=ELEMENT_INVALID__ELEMENT_TYPE
 ELEMENT_MISSING_TYPE=ELEMENT_INVALID__ELEMENT_TYPE
-ELEMENT_BAD_NAME=ELEMENT_INVALID__ELEMENT_TYPE
+ELEMENT_BAD_NAME=ELEMENT_MISSING_DESCRIPTION
 ELEMENT_WITH_MIN_ONLY=ELEMENT_INVALID_TYPE_VALUE
 ELEMENT_MAX_GREATER_MAX_CONTENT=ELEMENT_INVALID_TYPE_VALUE
 ELEMENT_NO_NAME=INVALID_CHARACTER
@@ -106,12 +106,9 @@ groupTests=[{'text':'group setting serial 2 "Serial Port"',
            {'text':'group setting serial 2 "Serial Port" 12345',
             'error':GROUP_BAD_HELP,
             'description':'group_bad_help_description_setting'},
-           {'text':'group setting 2 "Serial Port"',
+           {'text':'group setting "Serial Port"',
             'error':GROUP_NO_NAME,
             'description':'group_no_name_setting'},
-           {'text':'group serial 2 "Serial Port"',
-            'error':GROUP_NO_NAME,
-            'description':'group_no_name_state'},
            {'text':'group saywhat serial 2 "Serial Port"',
             'error':GROUP_BAD_TYPE,
             'description':'group_bad_type'},
