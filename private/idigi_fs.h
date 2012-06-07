@@ -131,7 +131,7 @@ static void format_file_error_msg(idigi_data_t * const idigi_ptr,
      if (error_code == idigi_file_user_cancel)
          goto done;
 
-     error_code -= idigi_file_user_cancel;
+     error_code -= idigi_file_unspec_error;
 
      message_store_u8(fs_error_response, opcode, fs_error_opcode);
      message_store_u8(fs_error_response, error_code, error_code);
