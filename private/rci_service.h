@@ -81,6 +81,8 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
         }
         else
         {
+            service_data->output.data = service_request->need_data->data_ptr;
+            service_data->output.bytes = service_request->need_data->length_in_bytes;
             ccode = rci_parser(rci_session_active);
         }
         /* idigi_debug_printf("rci_service: rci_parser returns %d\n", ccode); */
