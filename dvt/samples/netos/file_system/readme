@@ -1,0 +1,6 @@
+This is the port of the firmware_download sample to NET+OS 7.4
+
+The NET+OS directory in Makefile is f:/74/netos/netos, hange it 
+to your NET+OS directory.
+
+Note: ftruncate, stat, hash, and directory functions are not implemented
