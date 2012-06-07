@@ -1488,7 +1488,7 @@ static idigi_callback_status_t msg_process_start(idigi_data_t * const idigi_ptr,
 
             goto error;
         }
-        
+
         session->session_id = session_id;
         if ((session->out_dblock != NULL) && request)
         {
@@ -1496,16 +1496,22 @@ static idigi_callback_status_t msg_process_start(idigi_data_t * const idigi_ptr,
             if (result != idigi_msg_error_none)
                 goto error;
         }
-        
+
         result = msg_initialize_data_block(session, msg_ptr->capabilities[msg_capability_client].window_size, request ? msg_block_state_recv_request : msg_block_state_recv_response);
         if (result != idigi_msg_error_none)
             goto error;
-        
     }
     else
     {
         if (session->current_state == msg_state_send_error)
             goto done;
+
+        if (client_owned)
+        {
+            result = msg_initialize_data_block(session, msg_ptr->capabilities[msg_capability_client].window_size, request ? msg_block_state_recv_request : msg_block_state_recv_response);
+            if (result != idigi_msg_error_none)
+                goto error;
+        }
     }
 
     {
