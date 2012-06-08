@@ -32,8 +32,10 @@ typedef uint32_t in_addr_t;
 
 #define MY_IFNAME   "eth0"
 
-#define MY_DEVICE_VENDOR_ID {0x01, 0x00, 0x00, 0x23}
-#define MY_SERVER_URL       "test.idigi.com"
+/*#define MY_DEVICE_VENDOR_ID {0x01, 0x00, 0x00, 0x23}*/
+/*#define MY_SERVER_URL       "test.idigi.com"*/
+#define MY_DEVICE_VENDOR_ID {0x01, 0x00, 0x01, 0x37}
+#define MY_SERVER_URL       "developer.idigi.com"
 #define MY_IMEI_NUMBER      "000000-00-000000-0"
 
 extern idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,

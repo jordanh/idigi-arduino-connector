@@ -351,7 +351,7 @@ idigi_callback_status_t app_file_system_handler(idigi_file_system_request_t cons
         case idigi_file_system_ftruncate:
         default:
             APP_DEBUG("Unsupported file system request %d\n", request);
-            ((idigi_file_response_t *)response_data)->error->error_status = idigi_file_user_cancel;
+            status = app_process_file_error(((idigi_file_response_t *)response_data)->error, ENOTSUP);
     }
 
     return status;

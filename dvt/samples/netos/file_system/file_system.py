@@ -18,7 +18,7 @@ import httplib
 import base64
 import sys
 
-expected_content = "iDigi file system sample\n"
+expected_content = "iDigi file system sample content\n"
 
 test_file = "FLASH0/test_file.txt"
 get_path  = test_file
@@ -63,17 +63,23 @@ def PostMessage(username, password, device_id):
     # get the response
     statuscode, statusmessage, header = webservice.getreply()
     response_body = webservice.getfile().read()
+
+    webservice.close()
     
     # print the output to standard out
     if statuscode == 200:
         print '\nResponse:'
         print response_body
+
+        data_start = response_body.find('<data>')
+        data_end = response_body.find('</data>')
+
+        if data_start != -1 and data_end != -1:
+            data = response_body[data_start + len('<data>'):data_end]
+            print base64.b64decode(data)
     else:
         print '\nError: %d %s' %(statuscode, statusmessage)
         print response_body
-    
-    webservice.close()
-
 
 def main(argv):
     #process arguments
