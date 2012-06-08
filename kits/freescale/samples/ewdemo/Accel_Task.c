@@ -138,7 +138,7 @@ void Accel_Task(uint_32 data)
     }
 
     //Time delay
-     _time_delay(100);
+     _time_delay(10);
    }
 }
 
