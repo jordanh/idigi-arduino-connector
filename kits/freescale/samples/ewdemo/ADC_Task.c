@@ -110,12 +110,8 @@ void idigi_gpio_pulse_task(unsigned long initial_data)
             }
         }
         else
-        {       	
-            /* Set output low */
-            if (output_port)
-            {
-                ioctl(output_port, GPIO_IOCTL_WRITE_LOG0, NULL);
-            }
+        {
+            lwgpio_set_value(&pulse_gen_gpio, LWGPIO_VALUE_LOW); /* set pin to 0 */
  
         	ADC_sample_pulse_gen();
             ad_sample_available = 1;
@@ -170,7 +166,7 @@ void ADC_Task()
     }
    
     //Time Delay task to allow other tasks to run
-    _time_delay(500);
+    _time_delay(10);
   }
 }
 
