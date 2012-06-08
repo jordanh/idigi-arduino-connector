@@ -1,5 +1,5 @@
 # ***************************************************************************
-# Copyright (c) 2011, 2012 Digi International Inc.,
+# Copyright (c) 2012 Digi International Inc.,
 # All rights not expressly granted are reserved.
 # 
 # This Source Code Form is subject to the terms of the Mozilla Public
@@ -71,6 +71,13 @@ def PostMessage(username, password, device_id):
     if statuscode == 200:
         print '\nResponse:'
         print response_body
+
+        data_start = response_body.find('<data>')
+        data_end = response_body.find('</data>')
+
+        if data_start != -1 and data_end != -1:
+            data = response_body[data_start + len('<data>'):data_end]
+            print base64.b64decode(data)
     else:
         print '\nError: %d %s' %(statuscode, statusmessage)
         print response_body
