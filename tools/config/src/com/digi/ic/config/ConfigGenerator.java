@@ -1,15 +1,17 @@
 package com.digi.ic.config;
 
-import java.io.File;
 import java.io.BufferedReader;
-import java.io.IOException;
+import java.io.File;
 import java.io.InputStreamReader;
+import java.io.IOException;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
 public class ConfigGenerator {
 
     public final static String VERSION = "1.0.0.0";
+    
+    private final static long FIRMWARE_VERSION_MAX_VALUE = 4294967295L;
 
     private final static String NO_DESC_OPTION = "nodesc";
     private final static String HELP_OPTION = "help";
@@ -126,9 +128,9 @@ public class ConfigGenerator {
     }
 
     private void getPassword() {
-        BufferedReader userInput = new BufferedReader(new InputStreamReader(
-                System.in));
+        BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
 
+        
         System.out.print("Enter password: ");
 
         try {
@@ -141,6 +143,7 @@ public class ConfigGenerator {
             log("IO error!");
             System.exit(1);
         }
+
     }
 
     private static void toOption(String option) {
@@ -202,14 +205,10 @@ public class ConfigGenerator {
             try {
                 vnumber = Integer.parseInt(ver);
             } catch (Exception e) {
-                try {
-                    vnumber = Integer.parseInt(ver, 16);
-                } catch (Exception err) {
-                    return false;
-                }
+                return false;
             }
             length--;
-            fwVersion += (vnumber << (8 * length));
+            fwVersion += ((vnumber << (8 * length)) & FIRMWARE_VERSION_MAX_VALUE);
         }
 
         return true;
@@ -266,6 +265,14 @@ public class ConfigGenerator {
                     fwVersion = fwVersionScan.nextLong();
                 }
                 
+                if (fwVersion > FIRMWARE_VERSION_MAX_VALUE) {
+                    throw new Exception(String.format("Exceed maximum firmware version number %s > %d (0x%X, or %d.%d.%d.%d)", arg,
+                                                      FIRMWARE_VERSION_MAX_VALUE, FIRMWARE_VERSION_MAX_VALUE,
+                                                      ((FIRMWARE_VERSION_MAX_VALUE >> 24) & 0xFF),
+                                                      ((FIRMWARE_VERSION_MAX_VALUE >> 16) & 0xFF),
+                                                      ((FIRMWARE_VERSION_MAX_VALUE >> 8) & 0xFF),
+                                                      (FIRMWARE_VERSION_MAX_VALUE & 0xFF)));
+                }
                 debug_log(String.format("FW version: %s = %d", arg, fwVersion));
                 
                 argumentLog += " " + arg;
