@@ -45,7 +45,7 @@ TASK_TEMPLATE_STRUCT MQX_template_list[] =
    {IDIGI_BUTTON_TASK,    idigi_button_task,    2048,  10, "idigi_button",    0},
    {IDIGI_UTILITY_1,      idigi_utility_task1,   400,  10, "idigi_utility1",  0,},
    {IDIGI_UTILITY_2,      idigi_utility_task2,   400,  10, "idigi_utility2",  0 },
-   {IDIGI_APP_TASK,       idigi_app_run_task,   2000,  10,  "idigi_app_run",   0,},
+   {IDIGI_APP_TASK,       idigi_app_run_task,   2000,   9, "idigi_app_run",   0,},
    {IDIGI_GPIO_TASK,      idigi_gpio_pulse_task,1500,  10, "idigi_gpio",      0 },
    {IDIGI_CPU_USAGE_TASK, idigi_cpu_usage,       400,  10, "idigi_cpu",       0 },
    {0,                    0,                     0,    0,   0,      0,         }

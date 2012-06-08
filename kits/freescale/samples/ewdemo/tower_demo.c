@@ -158,9 +158,10 @@ void InitializeK60TowerDemo(void)
 
 #ifndef TWR_K53N512
 	disable_flash_cache();
+	APP_DEBUG("\n\nKinetis TWR-K60N512 MQX %s Demo\n", _mqx_version);
+#else
+	APP_DEBUG("\n\nKinetis TWR-K53N512 MQX %s Demo\n", _mqx_version);
 #endif
-
-	printf("\n\nKinetis TWR-K60N512 MQX %s Demo\n", _mqx_version);
 	
 	init_cpu_usage();
 
@@ -628,7 +629,9 @@ idigi_app_error_t device_request_callback(char const * const target, idigi_conne
 	    if (strcmp(data, "fast") == 0)
 	    {
 	    	valid_leds_request = 1;
+#ifdef DEBUG_DEVICE_REQUEST
 		    APP_DEBUG("idigi_handle_device_request: setting LED blink to fast\n");
+#endif
 		    led_blinkrate = 2;
     	    put_led_state = 1;
     	    snprintf(idigi_led_override, sizeof(idigi_led_override), "False");
@@ -636,16 +639,20 @@ idigi_app_error_t device_request_callback(char const * const target, idigi_conne
 	    else if (strcmp(data, "slow") == 0)
 	    {
 	    	valid_leds_request = 1;
-		    APP_DEBUG("idigi_handle_device_request: setting LED blink to slow\n");
-		    led_blinkrate = 1;
+#ifdef DEBUG_DEVICE_REQUEST		    
+	    	APP_DEBUG("idigi_handle_device_request: setting LED blink to slow\n");
+#endif
+	    	led_blinkrate = 1;
     	    put_led_state = 1;
     	    snprintf(idigi_led_override, sizeof(idigi_led_override), "False");
 	    }
 	    else if (strcmp(data, "stop") == 0)
 	    {
 	    	valid_leds_request = 1;
-		    APP_DEBUG("idigi_handle_device_request: setting LED blink to stop\n");
-		    led_blinkrate = 0;
+#ifdef DEBUG_DEVICE_REQUEST
+	    	APP_DEBUG("idigi_handle_device_request: setting LED blink to stop\n");
+#endif
+	    	led_blinkrate = 0;
     	    put_led_state = 1;
     	    snprintf(idigi_led_override, sizeof(idigi_led_override), "False");
 	    }
@@ -670,7 +677,9 @@ idigi_app_error_t device_request_callback(char const * const target, idigi_conne
         else
         {
         	valid_gpio_request = 1;
-	    	APP_DEBUG("idigi_handle_GPIO_device_request: valid GPIO setting [%d]\n", pulse_generator_rate);
+#ifdef DEBUG_DEVICE_REQUEST
+        	APP_DEBUG("idigi_handle_GPIO_device_request: valid GPIO setting [%d]\n", pulse_generator_rate);
+#endif
         }
 	}
 	else
@@ -692,7 +701,6 @@ void idigi_app_run_task(unsigned long initial_data)
     int a2d_failure_check = 0;
     idigi_connector_error_t ret;
 
-    APP_DEBUG("idigi_app_run_task: calling idigi_register_device_request_callbacks\n");
     ret = idigi_register_device_request_callbacks(device_request_callback, device_response_callback);
     if (ret != idigi_connector_success)
     {
