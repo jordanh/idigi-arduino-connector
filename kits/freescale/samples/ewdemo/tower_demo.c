@@ -594,7 +594,9 @@ size_t device_response_callback(char const * const target, idigi_connector_data_
 
     response_data->flags = IDIGI_FLAG_LAST_DATA;
 
+#ifdef DEBUG_DEVICE_REQUEST
     APP_DEBUG("device_response_callback: target [%s], data- %s\n", target, response_data->data_ptr);
+#endif
 
 error:
     return bytes_to_copy;
