@@ -16,7 +16,7 @@ cd build
 ./build.sh
 cp ~/rpmbuild/SRPMS/idigi-1.1-1.fc13.src.rpm ${PROJECT_DIR}/packages
 cp ~/rpmbuild/SOURCES/idigi-1.1.tar.gz ${PROJECT_DIR}/packages/.
-cp ../rpm/SPECS/idigi.spec ${PROJECT_DIR}/dist/idigi/.
+cp ../rpm/SPECS/idigi.spec ${PROJECT_DIR}/build/idigi-1.1/SPECS/.
 cd ${PROJECT_DIR}
 make -C build idigi.distclean
 make -C build idigi

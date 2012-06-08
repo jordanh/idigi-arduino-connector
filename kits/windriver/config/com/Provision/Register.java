@@ -1,4 +1,4 @@
-package com.Register;
+//package Provision;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -22,7 +22,7 @@ public class Register {
     public Register(String MacAddress) {
 
         this.MacAddress = MacAddress;
-        System.out.println("iDigi Cloud registering Device : " + MacAddress);
+        System.out.println("iDigi Registering Device : " + MacAddress);
         getUserName();
         getPassword();
         RegisterDevice();
@@ -54,7 +54,7 @@ public class Register {
                 connection.setDoOutput(true);
 
                 OutputStreamWriter request = new OutputStreamWriter(connection.getOutputStream());
-                System.out.println(message);
+                //System.out.println(message);
                 request.write(message);
                 request.close();
                 int responseCode = connection.getResponseCode();
@@ -129,11 +129,17 @@ public class Register {
         data        += ID_TAG_START + MacAddress + ID_TAG_END;
         data        += DEVICECORE_TAG_END;
 
-        //String data = "<DeviceCore><devMac>00:00:22:33:44:55</devMac></DeviceCore>";
-        System.out.println(data);
+        getVendorId();
 
+        //System.out.println(data);
         sendCloudData(REGISTER_PAGE, "POST", data);
 
+        try {
+            createConfigurationFile();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void getPassword() {
@@ -170,6 +176,26 @@ public class Register {
             System.out.println("IO error!");
             System.exit(1);
         }
+    }
+
+    private void createConfigurationFile() throws IOException {
+        String CONFIG_FILENAME = "idigi.conf";
+        BufferedWriter headerWriter;
+
+        headerWriter = new BufferedWriter(new FileWriter(CONFIG_FILENAME));
+
+        MacAddress = MacAddress.replace(":", "");
+
+        String config_string = "# iDigi configuration file\n\n"
+                            + String.format("# Vendor ID obtained from www.idigi.com\n")
+                            + String.format("vendor_id=%s\n\n", vendorId)
+                            + String.format("# Unique device ID\n")
+                            + String.format("mac_addr=%s \n\n", MacAddress)
+                            + String.format("# Location of the iDigi server\n")
+                            + String.format("server_url=developer.idigi.com\n\n");
+
+        headerWriter.write(config_string);
+        headerWriter.close();
     }
 
     public String getErrorMessage() {
