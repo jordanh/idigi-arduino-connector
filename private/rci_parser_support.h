@@ -205,7 +205,7 @@ typedef struct
     rci_service_data_t * service_data;
     rci_status_t status;
     struct {
-        idigi_remote_config_request_t config_request;
+        idigi_request_t request;
         idigi_callback_status_t status;
     } callback;
     struct {

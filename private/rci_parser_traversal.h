@@ -39,7 +39,7 @@ static void rci_traverse_data(rci_t * const rci)
     case rci_traversal_state_all_groups_group_start:
     case rci_traversal_state_one_group_start:
     case rci_traversal_state_indexed_group_start:
-        rci_callback(rci, idigi_remote_config_group_start);
+        trigger_rci_callback(rci, idigi_remote_config_group_start);
         
         rci->shared.request.element.id = 0;
 
@@ -70,7 +70,12 @@ static void rci_traverse_data(rci_t * const rci)
             
             rci->output.type = rci_output_type_start_tag;
             cstr_to_rci_string(element->name, &rci->output.tag);
+            
+            rci->shared.request.element.type = element->type;
+            rci->shared.request.element.value = NULL;
         }
+        
+        trigger_rci_callback(rci, idigi_remote_config_group_process);
         
         switch (rci->traversal.state)
         {
@@ -86,17 +91,6 @@ static void rci_traverse_data(rci_t * const rci)
     case rci_traversal_state_one_group_element_data:
     case rci_traversal_state_indexed_group_element_data:
     case rci_traversal_state_one_element_data:
-        {
-            idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
-            idigi_group_element_t const * const element = (group->elements.data + rci->shared.request.element.id);
-
-            rci->shared.request.element.type = element->type;
-            rci->shared.request.element.value = NULL;
-        }
-        
-        if (!rci_callback(rci, idigi_remote_config_group_process))
-            goto done;
-            
         switch (rci->traversal.state)
         {
         UNHANDLED_CASES_ARE_INVALID
@@ -168,7 +162,7 @@ static void rci_traverse_data(rci_t * const rci)
     case rci_traversal_state_all_groups_group_end:
     case rci_traversal_state_one_group_end:
     case rci_traversal_state_indexed_group_end:
-        rci_callback(rci, idigi_remote_config_group_end);
+        trigger_rci_callback(rci, idigi_remote_config_group_end);
 
         {
             idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);

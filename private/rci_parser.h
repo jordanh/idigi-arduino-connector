@@ -19,6 +19,7 @@
 #include "rci_parser_group.h"
 #include "rci_parser_element.h"
 #include "rci_parser_entity.h"
+#include "rci_parser_callback.h"
 #include "rci_parser_input.h"
 #include "rci_parser_traversal.h"
 #include "rci_parser_output.h"
@@ -146,9 +147,9 @@ static rci_status_t rci_parser(rci_session_t const action, ...)
         if (!success) goto done;
     }
 
-    if (rci.callback.status == idigi_callback_busy)
+    if ((rci.callback.status == idigi_callback_busy) && (rci.parser.state.current != rci_parser_state_output))
     {
-        if (!rci_callback(&rci, rci.callback.config_request))
+        if (!rci_callback(&rci))
             goto done;
     }
 

@@ -84,7 +84,7 @@ static void rci_generate_error(rci_t * const rci)
             idigi_group_table_t const * const table = (idigi_group_table + rci->shared.request.group.type);
             idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
 
-            rci_callback(rci, idigi_remote_config_group_end);
+            trigger_rci_callback(rci, idigi_remote_config_group_end);
 
             cstr_to_rci_string(group->name, &rci->output.tag);
             rci->shared.request.group.id = INVALID_ID;
@@ -95,7 +95,7 @@ static void rci_generate_error(rci_t * const rci)
 
     case rci_error_state_command_close:
         {
-            rci_callback(rci, idigi_remote_config_action_end);
+            trigger_rci_callback(rci, idigi_remote_config_action_end);
 
             set_rci_command_tag(rci->input.command, &rci->output.tag);
             rci->error.state = rci_error_state_reply_close;
@@ -103,7 +103,7 @@ static void rci_generate_error(rci_t * const rci)
         break;
 
     case rci_error_state_reply_close:
-        rci_callback(rci, idigi_remote_config_session_end);
+        trigger_rci_callback(rci, idigi_remote_config_session_end);
 
         rci->input.command = rci_command_unseen;
 

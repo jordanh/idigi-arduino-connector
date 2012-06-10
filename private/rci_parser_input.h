@@ -114,70 +114,6 @@ static idigi_bool_t rci_scan_enum(char const * const input, idigi_element_value_
 
     return error;
 }
-
-static idigi_bool_t rci_callback(rci_t * const rci, idigi_remote_config_request_t const remote_config_request)
-{
-    idigi_bool_t callback_complete;
-    idigi_remote_group_response_t * response_data = &rci->shared.response;
-    size_t response_length = sizeof *response_data;
-    idigi_remote_group_request_t * request_data = NULL;
-    size_t request_length = 0;
-    idigi_request_t request;
-
-    request.remote_config_request = remote_config_request;
-
-    switch (remote_config_request)
-    {
-    UNHANDLED_CASES_ARE_NEEDED;
-    case idigi_remote_config_session_start:
-    case idigi_remote_config_session_end:
-        break;
-        
-    case idigi_remote_config_action_start:
-    case idigi_remote_config_action_end:
-    case idigi_remote_config_group_start:
-    case idigi_remote_config_group_end:
-    case idigi_remote_config_group_process:
-        request_data = &rci->shared.request;
-        request_length = sizeof *request_data;
-        break;
-
-    case idigi_remote_config_session_cancel:
-        response_data = NULL;
-        response_length = 0;
-        break;
-    }
-        
-    {
-        idigi_callback_status_t const status = idigi_callback(rci->service_data->idigi_ptr->callback, idigi_class_remote_config_service, request, request_data, request_length, response_data, &response_length);
-
-        switch (status)
-        {
-        case idigi_callback_abort:
-            rci->status = rci_status_error;
-            callback_complete = idigi_true;
-            break;
-            
-        case idigi_callback_continue:
-            callback_complete = idigi_true;
-            break;
-            
-        case idigi_callback_busy:
-            rci->callback.config_request = remote_config_request;
-            rci->callback.status = status;
-            callback_complete = idigi_false;
-            break;
-            
-        default:
-            callback_complete = idigi_false;
-            ASSERT(idigi_false);
-            break;
-        }
-    }
-
-    return callback_complete;
-}
-
 typedef void (*rci_action_t)(rci_t * const rci);
 
 static void rci_action_unary_group(rci_t * const rci)
@@ -224,9 +160,8 @@ static idigi_bool_t rci_process_group_tag(rci_t * const rci, rci_action_t const 
         }
     }
         
-    if (!rci_callback(rci, idigi_remote_config_group_start))
-        goto error;
-    
+    trigger_rci_callback(rci, idigi_remote_config_group_start);
+   
     rci_action(rci);
     success = idigi_true;
     goto done;
@@ -250,6 +185,7 @@ static void rci_action_start_element(rci_t * const rci)
     rci->output.type = rci_output_type_start_tag;
     state_call(rci, rci_parser_state_output);
     
+    trigger_rci_callback(rci, idigi_remote_config_group_process);
     rci->input.send_content = idigi_true;
 }
 
@@ -369,7 +305,7 @@ static idigi_bool_t rci_handle_start_tag(rci_t * const rci)
             
             if ((version == NULL) || (cstr_equals_rcistr(RCI_VERSION_SUPPORTED, version)))
             {
-                continue_parsing = rci_callback(rci, idigi_remote_config_session_start);
+                trigger_rci_callback(rci, idigi_remote_config_session_start);
                 
                 rci->input.command = rci_command_header;
                 
@@ -407,7 +343,7 @@ static idigi_bool_t rci_handle_start_tag(rci_t * const rci)
             case rci_command_query_state:   rci->shared.request.action = idigi_remote_action_query; rci->shared.request.group.type = idigi_remote_group_state;      break;
             }
 
-            continue_parsing = rci_callback(rci, idigi_remote_config_action_start);
+            trigger_rci_callback(rci, idigi_remote_config_action_start);
             
             rci->output.tag = rci->shared.string.tag;
             rci->output.type = rci_output_type_start_tag;
@@ -521,7 +457,7 @@ static idigi_bool_t rci_handle_content(rci_t * const rci)
         rci->shared.request.element.value = &rci->shared.value;
     }
 
-    continue_parsing = rci_callback(rci, idigi_remote_config_group_process);
+    trigger_rci_callback(rci, idigi_remote_config_group_process);
 
 done:
 
@@ -560,7 +496,7 @@ static idigi_bool_t rci_handle_end_tag(rci_t * const rci)
             rci->input.command = rci_command_unseen;
         }
 
-        continue_parsing = rci_callback(rci, config_request_id);
+        trigger_rci_callback(rci, config_request_id);
     }
                     
     rci->output.type = rci_output_type_end_tag;
@@ -993,12 +929,8 @@ static void rci_parse_input(rci_t * const rci)
 
     if (rci->input.send_content)
     {
-        if (rci_callback(rci, idigi_remote_config_group_process))
-        {
-            rci_output_content(rci);
-            state_call(rci, rci_parser_state_output);
-            rci->input.send_content = idigi_false;
-        }
+        rci_output_content(rci);
+        rci->input.send_content = idigi_false;
         goto done;
     }
     

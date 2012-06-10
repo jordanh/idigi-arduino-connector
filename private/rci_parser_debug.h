@@ -417,7 +417,7 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
 
     output_enum(rci_status_t, status);
 
-    output_enum(idigi_remote_config_request_t, callback.config_request);
+    output_enum(idigi_remote_config_request_t, callback.request.remote_config_request);
     output_enum(idigi_callback_status_t, callback.status);
 
     output_rci_buffer(buffer.input);
