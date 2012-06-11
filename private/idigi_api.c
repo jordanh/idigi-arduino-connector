@@ -89,6 +89,7 @@ static idigi_callback_status_t get_device_id_method(idigi_data_t * const idigi_p
     return status;
 }
 
+#if !defined(IDIGI_VENDOR_ID)
 static idigi_bool_t isValidVendorId(unsigned long const vendor_id)
 {
 #define MAX_VENDOR_ID_NUMBER 0xFE000000
@@ -106,6 +107,7 @@ static idigi_bool_t isValidVendorId(unsigned long const vendor_id)
 
     return isValid;
 }
+#endif
 
 idigi_handle_t idigi_init(idigi_callback_t const callback)
 {

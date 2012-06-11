@@ -1,8 +1,7 @@
 package com.digi.ic.config;
 
-import java.io.BufferedReader;
+import java.io.Console;
 import java.io.File;
-import java.io.InputStreamReader;
 import java.io.IOException;
 import java.util.Scanner;
 import java.util.regex.Pattern;
@@ -128,21 +127,22 @@ public class ConfigGenerator {
     }
 
     private void getPassword() {
-        BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
-
         
-        System.out.print("Enter password: ");
-
-        try {
-            password = userInput.readLine();
-            if (password.isEmpty()) {
-                log("You must enter a password.\nPlease try again!");
-                System.exit(1);
-            }
-        } catch (IOException ioe) {
-            log("IO error!");
-            System.exit(1);
-        }
+      Console console = System.console();
+        
+      if (console == null) {
+          System.out.println("Couldn't get Console instance, maybe you're running this from within an IDE?");
+          System.exit(1);
+      }
+      
+      char passwordArray[] = console.readPassword("Enter password: ");
+      
+      if (passwordArray.length == 0) {
+          log("You must enter a password.\nPlease try again!");
+          System.exit(1);
+      }
+      
+      password = new String(passwordArray);
 
     }
 
@@ -187,6 +187,7 @@ public class ConfigGenerator {
             }
         } catch (Exception e) {
             log(e.getMessage());
+            usage();
             System.exit(1);
         }
 
