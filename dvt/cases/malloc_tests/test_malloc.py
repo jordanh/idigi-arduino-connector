@@ -152,8 +152,12 @@ class MallocTestCase(iik_testcase.TestCase):
             return
         
         # Parse request response 
+        self.log.info(file_get_response)
         dom = xml.dom.minidom.parseString(file_get_response)
         get_data = dom.getElementsByTagName("get_file")
+
+        if len(get_data) == 0:
+            self.fail("Response didn't contain \"get_file\" element: %s" % file_get_response)
 
         data =  b64decode(getText(get_data[0].getElementsByTagName("data")[0]))
         
@@ -165,7 +169,7 @@ class MallocTestCase(iik_testcase.TestCase):
         in_text = infile.read()
         infile.close()
 
-        self.log.info("!!! data len: \"%d\, in len: \"%d\"" %  (len(data), len(in_text)))
+        self.log.info("!!! data len: \"%d\", in len: \"%d\"" %  (len(data), len(in_text)))
 
         self.assertEqual(in_text, data,
             "get file error") 
