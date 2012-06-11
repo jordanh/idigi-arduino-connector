@@ -19,20 +19,18 @@
 
 #else
 
-static void reassign_service_buffer(rci_service_buffer_t * const dst, rci_service_buffer_t * const src)
+static void reassign_service_buffer(char * const storage, rci_service_buffer_t * const dst, rci_service_buffer_t * const src)
 {
-    if (dst->data != NULL)
-    {
-        free(dst->data);
-        dst->data = NULL;
-        dst->bytes = 0;
-    }
-    
     if ((src->data != NULL) && (src->bytes != 0))
     {
+        dst->data = storage;
         dst->bytes = src->bytes;
-        dst->data = calloc(1, dst->bytes);
-        ASSERT(dst->data != NULL);
+        memset(dst->data, 0, dst->bytes);
+    }
+    else
+    {
+        dst->data = NULL;
+        dst->bytes = 0;
     }
 }
 
@@ -388,6 +386,8 @@ static void output_buffer_diff(char const * const name, void const * const curre
 static void output_debug_info(rci_t const * const current, idigi_bool_t const show_all)
 {
     static rci_t previous;
+    static char input_service_data_storage[MSG_MAX_RECV_PACKET_SIZE];
+    static char output_service_data_storage[MSG_MAX_SEND_PACKET_SIZE];
     static rci_service_data_t service_data;
     static long unsigned int step;
     idigi_bool_t show_service_data = (current->service_data != NULL);
@@ -397,8 +397,8 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
     {
         if (previous.service_data == NULL)
         {
-            reassign_service_buffer(&service_data.input, &current->service_data->input);
-            reassign_service_buffer(&service_data.output, &current->service_data->output);
+            reassign_service_buffer(input_service_data_storage, &service_data.input, &current->service_data->input);
+            reassign_service_buffer(output_service_data_storage, &service_data.output, &current->service_data->output);
         }
     }
     else
