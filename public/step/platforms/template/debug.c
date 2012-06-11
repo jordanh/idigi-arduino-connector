@@ -24,9 +24,11 @@ void idigi_debug_printf(char const * const format, ...)
     va_start(args, format);
     vprintf(format, args);
     va_end(args);
+    fflush(stdout);
 }
 #else
 
+/* to avoid ISO C forbids an empty translation unit compiler error */
 typedef int dummy;
 
 #endif

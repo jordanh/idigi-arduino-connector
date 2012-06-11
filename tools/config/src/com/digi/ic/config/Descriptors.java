@@ -21,7 +21,6 @@ public class Descriptors {
     private final String SETTING_DESCRIPTOR_DESCRIPTION = "device configuration";
     private final String STATE_DESCRIPTOR_DESCRIPTION = "device state";
 
-//    private int xmlFileIndex;
     private final String username;
     private final String password;
     private final String deviceType;
@@ -158,9 +157,6 @@ public class Descriptors {
         }
         query_descriptors += "</format_define>\n</descriptor>\n";
 
-        debug_log(query_descriptors);
-        debug_log(set_descriptors);
-
         uploadDescriptor("descriptor/query_" + config_type, query_descriptors);
         uploadDescriptor("descriptor/set_" + config_type, set_descriptors);
     }
@@ -190,8 +186,6 @@ public class Descriptors {
         descriptors += getErrorDescriptors(configData.getRciCommonErrorsIndex(), configData.getRciCommonErrors())
                        + getErrorDescriptors(configData.getRciGlobalErrorsIndex(), configData.getRciGlobalErrors()) 
                        + "</descriptor>";
-
-        debug_log(descriptors);
 
         uploadDescriptor("descriptor", descriptors);
     }
@@ -252,7 +246,7 @@ public class Descriptors {
 
         startIndex += "<dvVendorId>".length();
         vendorId = response.substring(startIndex, response.indexOf("</dvVendorId>"));
-        ConfigGenerator.log("iDigi Cloud registered vendor ID: " + vendorId);
+        ConfigGenerator.log(String.format("iDigi Cloud registered vendor ID: 0x%X", Integer.parseInt(vendorId)));
     }
 
     private String tagMessageSegment(String tagName, String value) {
@@ -286,28 +280,11 @@ public class Descriptors {
         message += tagMessageSegment("dmData", replaceXmlEntities(buffer));
         message += "</DeviceMetaData>";
 
+        ConfigGenerator.debug_log(message);
+        
         String response = sendCloudData("/ws/DeviceMetaData", "POST", message);
         ConfigGenerator.debug_log("Created: " + vendorId + "/" + deviceType + "/" + descName);
         ConfigGenerator.debug_log(response);
-    }
-
-    private void debug_log(String str) throws IOException {
-        // debugging code
-
-/*        String filename = "descritor" + xmlFileIndex + ".xml";
-        xmlFileIndex++;
-
-        BufferedWriter xmlFile = new BufferedWriter(new FileWriter(filename));
-
-        xmlFile.write("<descriptors>");
-        xmlFile.write(str);
-        xmlFile.write("</descriptors>");
-
-        xmlFile.flush();
-        xmlFile.close();
-*/
-        ConfigGenerator.debug_log(str);
-        
     }
 
 }

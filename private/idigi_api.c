@@ -95,7 +95,7 @@ static idigi_bool_t isValidVendorId(unsigned long const vendor_id)
 
     idigi_bool_t isValid = idigi_false;
 
-    ASSERT(sizeof(unsigned long) == VENDOR_ID_LENGTH);
+    ASSERT(sizeof(uint32_t) == VENDOR_ID_LENGTH);
 
     idigi_debug_printf("vendor id: 0x%X\n", vendor_id);
 
