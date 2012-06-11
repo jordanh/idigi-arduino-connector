@@ -24,6 +24,8 @@ static void rci_traverse_data(rci_t * const rci)
         break;
         
     case rci_traversal_state_all_groups_start:
+        trigger_rci_callback(rci, idigi_remote_config_action_start);
+
         ASSERT(rci->shared.request.group.id == INVALID_ID);
         ASSERT(rci->shared.request.group.index == INVALID_INDEX);
         ASSERT(rci->shared.request.element.id == INVALID_ID);
@@ -170,24 +172,35 @@ static void rci_traverse_data(rci_t * const rci)
             rci->output.type = rci_output_type_end_tag;
             cstr_to_rci_string(group->name, &rci->output.tag);
         }
-
         switch (rci->traversal.state)
         {
         UNHANDLED_CASES_ARE_INVALID
-        case rci_traversal_state_all_groups_group_end:
-        case rci_traversal_state_one_group_end:
+        case rci_traversal_state_all_groups_group_end:  rci->traversal.state = rci_traversal_state_all_groups_group_advance;    break;
+        case rci_traversal_state_one_group_end:         rci->traversal.state = rci_traversal_state_one_group_advance;           break;
+        case rci_traversal_state_indexed_group_end:     rci->traversal.state = rci_traversal_state_indexed_group_advance;       break;
+        }
+        break;
+        
+    case rci_traversal_state_all_groups_group_advance:
+    case rci_traversal_state_one_group_advance:
+    case rci_traversal_state_indexed_group_advance:
+        switch (rci->traversal.state)
+        {
+        UNHANDLED_CASES_ARE_INVALID
+        case rci_traversal_state_all_groups_group_advance:
+        case rci_traversal_state_one_group_advance:
             {
                 idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
                 
                 /* group indicies are 1-based */
                 if (rci->shared.request.group.index == group->instances)
                 {
-                    if (rci->traversal.state == rci_traversal_state_one_group_end)
+                    if (rci->traversal.state == rci_traversal_state_one_group_advance)
                     {
                         goto group_complete;
                     }
 
-                    ASSERT(rci->traversal.state == rci_traversal_state_all_groups_group_end);
+                    ASSERT(rci->traversal.state == rci_traversal_state_all_groups_group_advance);
                     {
                         unsigned int const next_group = (rci->shared.request.group.id + 1);
                         
@@ -206,18 +219,21 @@ static void rci_traverse_data(rci_t * const rci)
                 else
                 {
                     rci->shared.request.group.index++;
-                    rci->traversal.state = (rci->traversal.state == rci_traversal_state_all_groups_group_end) ? rci_traversal_state_all_groups_group_start : rci_traversal_state_one_group_start;
+                    rci->traversal.state = (rci->traversal.state == rci_traversal_state_all_groups_group_advance) ? rci_traversal_state_all_groups_group_start : rci_traversal_state_one_group_start;
                 }
             }
+            goto done;
             break;
                    
-        case rci_traversal_state_indexed_group_end:
+        case rci_traversal_state_indexed_group_advance:
             goto group_complete;
             break;
         }
         break;
         
     case rci_traversal_state_all_groups_end:
+        trigger_rci_callback(rci, idigi_remote_config_action_end);
+
         rci->output.type = rci_output_type_end_tag;
         set_rci_command_tag(rci->input.command, &rci->output.tag);
         
@@ -243,7 +259,7 @@ complete:
     ASSERT(rci->shared.request.element.id == INVALID_ID);
     
 done:
-    ;
+    return;
 }
 
 

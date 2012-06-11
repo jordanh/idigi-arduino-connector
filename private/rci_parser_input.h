@@ -126,16 +126,17 @@ static void rci_action_start_group(rci_t * const rci)
 {
     rci->output.tag = rci->shared.string.tag;
     rci->output.type = rci_output_type_start_tag;
+    
+    add_numeric_attribute(&rci->output.attribute, RCI_INDEX, rci->shared.request.group.index);
+
     state_call(rci, rci_parser_state_output);
 }
 
-static idigi_bool_t rci_process_group_tag(rci_t * const rci, rci_action_t const rci_action)
+static void rci_process_group_tag(rci_t * const rci, rci_action_t const rci_action)
 {
-    idigi_bool_t success;
-    
     ASSERT(!have_group_id(rci));
     assign_group_id(rci, &rci->shared.string.tag);
-    if (have_group_id(rci))
+    if (!have_group_id(rci))
     {
         rci_global_error(rci, idigi_rci_error_bad_group, RCI_NO_HINT);
         goto error;
@@ -163,14 +164,9 @@ static idigi_bool_t rci_process_group_tag(rci_t * const rci, rci_action_t const 
     trigger_rci_callback(rci, idigi_remote_config_group_start);
    
     rci_action(rci);
-    success = idigi_true;
-    goto done;
     
 error:
-    success = idigi_false;
-    
-done:
-    return success;    
+    return;
 }
 
 static void rci_action_unary_element(rci_t * const rci)
@@ -185,14 +181,23 @@ static void rci_action_start_element(rci_t * const rci)
     rci->output.type = rci_output_type_start_tag;
     state_call(rci, rci_parser_state_output);
     
-    trigger_rci_callback(rci, idigi_remote_config_group_process);
-    rci->input.send_content = idigi_true;
+    switch (rci->input.command)
+    {
+    UNHANDLED_CASES_ARE_INVALID
+    case rci_command_set_setting:
+    case rci_command_set_state:
+        /* These are handled in the content parser */
+        break;
+
+    case rci_command_query_setting:
+    case rci_command_query_state:
+        trigger_rci_callback(rci, idigi_remote_config_group_process);
+        rci->input.send_content = idigi_true;
+    }
 }
 
-static idigi_bool_t rci_process_element_tag(rci_t * const rci, rci_action_t const rci_action)
+static void rci_process_element_tag(rci_t * const rci, rci_action_t const rci_action)
 {
-    idigi_bool_t success;
-
     ASSERT(!have_element_id(rci));
     assign_element_id(rci, &rci->shared.string.tag);
     if (!have_element_id(rci))
@@ -202,26 +207,18 @@ static idigi_bool_t rci_process_element_tag(rci_t * const rci, rci_action_t cons
     }
 
     rci_action(rci);
-    success = idigi_true;
-    goto done;
-    
+
 error:
-    success = idigi_false;
-    
-done:
-    return success;    
+    return;    
 }
 
-static idigi_bool_t rci_handle_unary_tag(rci_t * const rci)
+static void rci_handle_unary_tag(rci_t * const rci)
 {
-    idigi_bool_t continue_parsing = idigi_true;
-
     switch (rci->input.command)
     {
     UNHANDLED_CASES_ARE_NEEDED
     case rci_command_unseen:
         rci_global_error(rci, idigi_rci_error_parser_error, RCI_NO_HINT);
-        goto error;
         break;
         
     case rci_command_header:
@@ -231,13 +228,13 @@ static idigi_bool_t rci_handle_unary_tag(rci_t * const rci)
         UNHANDLED_CASES_ARE_NEEDED
         case rci_command_unknown:
             rci_global_error(rci, idigi_rci_error_bad_command, RCI_NO_HINT);
-            goto error;
             break;
             
+        case rci_command_unseen:
+        case rci_command_header:
         case rci_command_set_setting:
         case rci_command_set_state:
             rci_global_error(rci, idigi_rci_error_parser_error, RCI_NO_HINT);
-            goto error;
             break;
 
         case rci_command_query_setting:
@@ -254,18 +251,12 @@ static idigi_bool_t rci_handle_unary_tag(rci_t * const rci)
             rci->traversal.state = rci_traversal_state_all_groups_start;
             state_call(rci, rci_parser_state_traversal);
             break;
-            
-        case rci_command_unseen:
-        case rci_command_header:
-            ASSERT_GOTO(idigi_false, error);
-            break;
         }
         break;
         
     case rci_command_set_setting:
     case rci_command_set_state:
         rci_global_error(rci, idigi_rci_error_parser_error, RCI_NO_HINT);
-        goto error;
         break;
             
     case rci_command_query_setting:
@@ -278,23 +269,12 @@ static idigi_bool_t rci_handle_unary_tag(rci_t * const rci)
         
     case rci_command_unknown:
         rci_global_error(rci, idigi_rci_error_bad_command, RCI_NO_HINT);
-        goto error;
         break;
     }
-    goto done;
-    
-error:
-    continue_parsing = idigi_false;
-    
-done:   
-    ASSERT(continue_parsing || (rci->parser.state.current != rci_parser_state_input));
-    return continue_parsing;
 }
 
-static idigi_bool_t rci_handle_start_tag(rci_t * const rci)
+static void rci_handle_start_tag(rci_t * const rci)
 {
-    idigi_bool_t continue_parsing = idigi_true;
-    
     switch (rci->input.command)
     {
     UNHANDLED_CASES_ARE_NEEDED
@@ -315,13 +295,11 @@ static idigi_bool_t rci_handle_start_tag(rci_t * const rci)
             else
             {
                 rci_global_error(rci, idigi_rci_error_invalid_version, RCI_NO_HINT);
-                goto error;
             }
         }
         else
         {
             rci_global_error(rci, idigi_rci_error_bad_command, RCI_NO_HINT);
-            goto error;
         }
         break;
         
@@ -330,7 +308,6 @@ static idigi_bool_t rci_handle_start_tag(rci_t * const rci)
         if (rci->input.command == rci_command_unknown)
         {
             rci_global_error(rci, idigi_rci_error_bad_command, RCI_NO_HINT);
-            goto error;
         }
         else
         {
@@ -363,57 +340,53 @@ static idigi_bool_t rci_handle_start_tag(rci_t * const rci)
 
     case rci_command_unknown:
         rci_global_error(rci, idigi_rci_error_bad_command, RCI_NO_HINT);
-        goto error;
         break;
     }
-    goto done;
-    
-error:
-    continue_parsing = idigi_false;
-
-done:
-    ASSERT(continue_parsing || (rci->parser.state.current != rci_parser_state_input));
-    return continue_parsing;
 }
 
-static idigi_bool_t rci_handle_content(rci_t * const rci)
+static void rci_handle_content(rci_t * const rci)
 {
-    idigi_bool_t continue_parsing = idigi_true;
-
+    idigi_group_element_t const * const element = get_current_element(rci);
+    idigi_element_value_type_t const type = element->type; 
+    char const * const string_value = rci->shared.string.content.data;
+    size_t const string_length = rci->shared.string.content.length;
+    idigi_bool_t error;
+    
+    /* NUL-terminate the content as we know it is always followed by '<', that's how we got here. */
     {
-        idigi_group_element_t const * const element = get_current_element(rci);
-        idigi_element_value_type_t const type = element->type; 
-        char const * const string_value = rci->shared.string.content.data;
-        size_t const string_length = rci->shared.string.content.length;
-        idigi_bool_t error = idigi_true;
+        char * const writeable_string = (char *) string_value;
         
-        /* NUL-terminate the content as we know it is always followed by '<', that's how we got here. */
-        {
-            char * const writeable_string = (char *) string_value;
-            
-            writeable_string[string_length] = nul;
-        }
-        
+        writeable_string[string_length] = nul;
+    }
+    
+    switch (type)
+    {
+    UNHANDLED_CASES_ARE_NEEDED
+    case idigi_element_type_string:
+    case idigi_element_type_multiline_string:
+    case idigi_element_type_password:
+    case idigi_element_type_ipv4:
+    case idigi_element_type_fqdnv4:
+    case idigi_element_type_fqdnv6:
+    case idigi_element_type_datetime:
+        rci->shared.value.string_value = string_value;
+        error = idigi_false;
+        break;
+
+    case idigi_element_type_int32:
+    case idigi_element_type_uint32:
+    case idigi_element_type_hex32:
+    case idigi_element_type_0xhex:
+    case idigi_element_type_float:
         switch (type)
         {
-        UNHANDLED_CASES_ARE_NEEDED
-        case idigi_element_type_string:
-        case idigi_element_type_multiline_string:
-        case idigi_element_type_password:
-        case idigi_element_type_ipv4:
-        case idigi_element_type_fqdnv4:
-        case idigi_element_type_fqdnv6:
-        case idigi_element_type_datetime:
-            rci->shared.value.string_value = string_value;
-            error = idigi_false;
-            break;
-
+        UNHANDLED_CASES_ARE_INVALID
         case idigi_element_type_int32:
             error = rci_scan_formatted(string_value, "%ld", &rci->shared.value.integer_signed_value);
             break;
             
         case idigi_element_type_uint32:
-            error = rci_scan_formatted(string_value, "%lud", &rci->shared.value.integer_unsigned_value);
+            error = rci_scan_formatted(string_value, "%lu", &rci->shared.value.integer_unsigned_value);
             break;
             
         case idigi_element_type_hex32:
@@ -427,48 +400,37 @@ static idigi_bool_t rci_handle_content(rci_t * const rci)
         case idigi_element_type_float:
             error = rci_scan_formatted(string_value, "%f", &rci->shared.value.float_value);
             break;
-            
-        case idigi_element_type_enum:
-            error = rci_scan_enum(string_value, &element->value_limit->enum_value, &rci->shared.value.enum_value);
-            break;
-
-        case idigi_element_type_on_off:
-            error = rci_scan_enum(string_value, &on_off_enum, &rci->shared.value.enum_value);
-            break;
-
-        case idigi_element_type_boolean:
-            error = rci_scan_enum(string_value, &boolean_enum, &rci->shared.value.enum_value);
-            break;
         }
+        break;
         
-        if (error)
-        {
-            continue_parsing = idigi_false;
-            goto done;
-        }
+    case idigi_element_type_enum:
+        error = rci_scan_enum(string_value, &element->value_limit->enum_value, &rci->shared.value.enum_value);
+        break;
+
+    case idigi_element_type_on_off:
+        error = rci_scan_enum(string_value, &on_off_enum, &rci->shared.value.enum_value);
+        break;
+
+    case idigi_element_type_boolean:
+        error = rci_scan_enum(string_value, &boolean_enum, &rci->shared.value.enum_value);
+        break;
     }
-
+    
+    if (error)
     {
-        idigi_group_table_t const * const table = (idigi_group_table + rci->shared.request.group.type);
-        idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
-        idigi_group_element_t const * const element = (group->elements.data + rci->shared.request.element.id);
-
+        rci_global_error(rci, idigi_rci_error_bad_value, RCI_NO_HINT);
+    }
+    else
+    {
         rci->shared.request.element.type = element->type;
         rci->shared.request.element.value = &rci->shared.value;
+
+        trigger_rci_callback(rci, idigi_remote_config_group_process);
     }
-
-    trigger_rci_callback(rci, idigi_remote_config_group_process);
-
-done:
-
-    ASSERT(continue_parsing);
-    return continue_parsing;
 }
 
-static idigi_bool_t rci_handle_end_tag(rci_t * const rci)
+static void rci_handle_end_tag(rci_t * const rci)
 {
-    idigi_bool_t continue_parsing = idigi_true;
-    
     rci->output.tag = rci->shared.string.tag;
     if (have_element_id(rci))
     {
@@ -481,8 +443,6 @@ static idigi_bool_t rci_handle_end_tag(rci_t * const rci)
         if (have_group_id(rci))
         {
             config_request_id = idigi_remote_config_group_end;
-            
-            set_group_id(rci, INVALID_ID);
         }
         else if (rci->input.command != rci_command_header)
         {
@@ -501,15 +461,10 @@ static idigi_bool_t rci_handle_end_tag(rci_t * const rci)
                     
     rci->output.type = rci_output_type_end_tag;
     state_call(rci, rci_parser_state_output);
-
-    ASSERT(continue_parsing);
-    return continue_parsing;
 }
 
-static idigi_bool_t rci_parse_input_less_than_sign(rci_t * const rci)
+static void rci_parse_input_less_than_sign(rci_t * const rci)
 {
-    idigi_bool_t continue_parsing = idigi_true;
-    
     switch (rci->input.state)
     {
     case rci_input_state_element_tag_open:
@@ -520,7 +475,8 @@ static idigi_bool_t rci_parse_input_less_than_sign(rci_t * const rci)
     case rci_input_state_content:
         if (have_element_id(rci))
         {
-            continue_parsing = rci_handle_content(rci);
+            set_rcistr_length(rci, &rci->shared.string.content);
+            rci_handle_content(rci);
         }
         rci->input.state = rci_input_state_element_tag_name;
         break;
@@ -531,18 +487,12 @@ static idigi_bool_t rci_parse_input_less_than_sign(rci_t * const rci)
 
     default:
         rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
-        continue_parsing = idigi_false;
         break;
     }
-
-    ASSERT(continue_parsing);
-    return continue_parsing;
 }
 
-static idigi_bool_t rci_parse_input_greater_than_sign(rci_t * const rci)
+static void rci_parse_input_greater_than_sign(rci_t * const rci)
 {
-    idigi_bool_t continue_parsing = idigi_true;
-    
     switch (rci->input.state)
     {
     case rci_input_state_element_start_name:
@@ -556,51 +506,41 @@ static idigi_bool_t rci_parse_input_greater_than_sign(rci_t * const rci)
         }
         else
         {    
-            rci->input.state = rci_input_state_content;
-            continue_parsing = rci_handle_start_tag(rci);
+            rci_handle_start_tag(rci);
+            rci->input.state = rci_input_state_content_first;
         }
         break;
         
     case rci_input_state_element_end_name:
         set_rcistr_length(rci, &rci->shared.string.tag);
-        continue_parsing = rci_handle_end_tag(rci);
-        if (rci->input.command == rci_command_unseen)
-        {
-            continue_parsing = idigi_false;
-        }
-
+        rci_handle_end_tag(rci);
         rci->input.state = rci_input_state_element_tag_open;
         break;
     
     case rci_input_state_element_tag_close:
+        rci_handle_unary_tag(rci);
         rci->input.state = rci_input_state_element_tag_open;
-        continue_parsing = rci_handle_unary_tag(rci);
         break;
 
     case rci_input_state_comment:
         if (rci->input.hyphens == 2)
         {
-            rci->input.state = rci_input_state_content;
+            rci->input.state = rci_input_state_content_first;
         }
         rci->input.hyphens = 0;
         break;
 
     default:
         rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
-        continue_parsing = idigi_false;
         break;
     }
 
     clear_rcistr(&rci->shared.string.tag);
     clear_attributes(&rci->shared.attribute);
-
-    return continue_parsing;
 }
 
-static idigi_bool_t rci_parse_input_equals_sign(rci_t * const rci)
+static void rci_parse_input_equals_sign(rci_t * const rci)
 {
-    idigi_bool_t continue_parsing = idigi_true;
-    
     switch (rci->input.state)
     {
     case rci_input_state_element_param_equals:
@@ -614,7 +554,7 @@ static idigi_bool_t rci_parse_input_equals_sign(rci_t * const rci)
         break;
         
     case rci_input_state_content_first:
-        rci->shared.string.tag.data = rci->input.destination;
+        rci->shared.string.content.data = rci->input.destination;
         rci->input.state = rci_input_state_content;
         break;
 
@@ -628,18 +568,12 @@ static idigi_bool_t rci_parse_input_equals_sign(rci_t * const rci)
 
     default:
         rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
-        continue_parsing = idigi_false;
         break;
     }
-
-    ASSERT(continue_parsing);
-    return continue_parsing;
 }
 
-static idigi_bool_t rci_parse_input_slash(rci_t * const rci)
+static void rci_parse_input_slash(rci_t * const rci)
 {
-    idigi_bool_t continue_parsing = idigi_true;
-    
     switch (rci->input.state)
     {
     case rci_input_state_element_tag_name:
@@ -660,7 +594,7 @@ static idigi_bool_t rci_parse_input_slash(rci_t * const rci)
         break;
 
     case rci_input_state_content_first:
-        rci->shared.string.tag.data = rci->input.destination;
+        rci->shared.string.content.data = rci->input.destination;
         rci->input.state = rci_input_state_content;
         break;
 
@@ -674,18 +608,12 @@ static idigi_bool_t rci_parse_input_slash(rci_t * const rci)
 
     default:
         rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
-        continue_parsing = idigi_false;
         break;
     }
-
-    ASSERT(continue_parsing);
-    return continue_parsing;
 }
 
-static idigi_bool_t rci_parse_input_quote(rci_t * const rci)
+static void rci_parse_input_quote(rci_t * const rci)
 {
-    idigi_bool_t continue_parsing = idigi_true;
-    
     switch (rci->input.state)
     {
     case rci_input_state_element_param_quote:
@@ -699,7 +627,7 @@ static idigi_bool_t rci_parse_input_quote(rci_t * const rci)
         break;
         
     case rci_input_state_content_first:
-        rci->shared.string.tag.data = rci->input.destination;
+        rci->shared.string.content.data = rci->input.destination;
         rci->input.state = rci_input_state_content;
         break;
 
@@ -712,18 +640,12 @@ static idigi_bool_t rci_parse_input_quote(rci_t * const rci)
 
     default:
         rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
-        continue_parsing = idigi_false;
         break;
     }
-
-    ASSERT(continue_parsing);
-    return continue_parsing;
 }
 
-static idigi_bool_t rci_parse_input_whitespace(rci_t * const rci)
+static void rci_parse_input_whitespace(rci_t * const rci)
 {
-    idigi_bool_t continue_parsing = idigi_true;
-    
     switch (rci->input.state)
     {
     case rci_input_state_element_start_name:
@@ -753,7 +675,6 @@ static idigi_bool_t rci_parse_input_whitespace(rci_t * const rci)
     case rci_input_state_element_param_value_escaping:
 	case rci_input_state_content_escaping:
         rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
-        continue_parsing = idigi_false;
         break;
 
     case rci_input_state_comment:
@@ -763,15 +684,10 @@ static idigi_bool_t rci_parse_input_whitespace(rci_t * const rci)
     default:
         break;
     }
-
-    ASSERT(continue_parsing);
-    return continue_parsing;
 }
 
-static idigi_bool_t rci_parse_input_ampersand(rci_t * const rci)
+static void rci_parse_input_ampersand(rci_t * const rci)
 {
-    idigi_bool_t continue_parsing = idigi_true;
-    
     switch (rci->input.state)
     {
     case rci_input_state_element_param_value_first:
@@ -800,18 +716,12 @@ static idigi_bool_t rci_parse_input_ampersand(rci_t * const rci)
 
     default:
         rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
-        continue_parsing = idigi_false;
         break;
     }
-
-    ASSERT(continue_parsing);
-    return continue_parsing;
 }
 
-static idigi_bool_t rci_parse_input_semicolon(rci_t * const rci)
+static void rci_parse_input_semicolon(rci_t * const rci)
 {
-    idigi_bool_t continue_parsing = idigi_true;
-    
     switch (rci->input.state)
     {
     case rci_input_state_element_param_value_escaping:
@@ -828,7 +738,7 @@ static idigi_bool_t rci_parse_input_semicolon(rci_t * const rci)
         break;
 
     case rci_input_state_content_first:
-        rci->shared.string.tag.data = rci->input.destination;
+        rci->shared.string.content.data = rci->input.destination;
         rci->input.state = rci_input_state_content;
         break;
 
@@ -842,18 +752,12 @@ static idigi_bool_t rci_parse_input_semicolon(rci_t * const rci)
 
     default:
         rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
-        continue_parsing = idigi_false;
         break;
     }
-
-    ASSERT(continue_parsing);
-    return continue_parsing;
 }
 
-static idigi_bool_t rci_parse_input_hyphen(rci_t * const rci)
+static void rci_parse_input_hyphen(rci_t * const rci)
 {
-    idigi_bool_t continue_parsing = idigi_true;
-    
     switch (rci->input.state)
     {
     case rci_input_state_comment:
@@ -863,15 +767,10 @@ static idigi_bool_t rci_parse_input_hyphen(rci_t * const rci)
     default:
         break;
     }
-
-    ASSERT(continue_parsing);
-    return continue_parsing;
 }
 
-static idigi_bool_t rci_parse_input_other(rci_t * const rci)
+static void rci_parse_input_other(rci_t * const rci)
 {
-    idigi_bool_t continue_parsing = idigi_true;
-    
     switch (rci->input.state)
     {
     case rci_input_state_element_tag_name:
@@ -908,7 +807,6 @@ static idigi_bool_t rci_parse_input_other(rci_t * const rci)
 
     case rci_input_state_element_param_quote:
         rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
-        continue_parsing = idigi_false;
         break;
         
     case rci_input_state_comment:
@@ -918,15 +816,19 @@ static idigi_bool_t rci_parse_input_other(rci_t * const rci)
     default:
         break;
     }
-
-    ASSERT(continue_parsing);
-    return continue_parsing;
 }
 
 static void rci_parse_input(rci_t * const rci)
 {
     rci_buffer_t * const input = &rci->buffer.input;
 
+    if (rci->callback.request.remote_config_request == idigi_remote_config_group_end)
+    {
+        set_group_id(rci, INVALID_ID);
+        /* Set it to something else, so we don't overwrite it again */
+        rci->callback.request.remote_config_request = idigi_remote_config_session_cancel;
+    }
+    
     if (rci->input.send_content)
     {
         rci_output_content(rci);
@@ -934,63 +836,48 @@ static void rci_parse_input(rci_t * const rci)
         goto done;
     }
     
-    while ((rci_buffer_remaining(input) != 0) && (rci->parser.state.current == rci_parser_state_input))
+    while ((rci_buffer_remaining(input) != 0) && (rci->parser.state.current == rci_parser_state_input) && (rci->callback.status != idigi_callback_busy))
     {
-        idigi_bool_t continue_parsing;
-
         output_debug_info(rci, RCI_DEBUG_SHOW_DIFFS);
                 
         rci->input.character = rci_buffer_read(input);
         switch (rci->input.character)
         {
         case '<':
-            continue_parsing = rci_parse_input_less_than_sign(rci);
+            rci_parse_input_less_than_sign(rci);
             break;
-            
         case '>':
-            continue_parsing = rci_parse_input_greater_than_sign(rci);
+            rci_parse_input_greater_than_sign(rci);
             break;
-        
         case '=':
-            continue_parsing = rci_parse_input_equals_sign(rci);
+            rci_parse_input_equals_sign(rci);
             break;
-        
         case '/':
-            continue_parsing = rci_parse_input_slash(rci);
+            rci_parse_input_slash(rci);
             break;
-        
         case '"':
-            continue_parsing = rci_parse_input_quote(rci);
+            rci_parse_input_quote(rci);
             break;
-        
         case ' ':
         case '\t':
         case '\n':
         case '\r':
         case '\f':
-            continue_parsing = rci_parse_input_whitespace(rci);
+            rci_parse_input_whitespace(rci);
             break;
-        
         case '&':
-            continue_parsing = rci_parse_input_ampersand(rci);
+            rci_parse_input_ampersand(rci);
             break;
-        
         case ';':
-            continue_parsing = rci_parse_input_semicolon(rci);
+            rci_parse_input_semicolon(rci);
             break;
-        
         case '-':
-            continue_parsing = rci_parse_input_hyphen(rci);
+            rci_parse_input_hyphen(rci);
             break;
-        
         default:
-            continue_parsing = rci_parse_input_other(rci);
+            rci_parse_input_other(rci);
             break;
         }
-        
-        /* callback is busy */
-        if (!continue_parsing)
-            goto done;
         
         if (rci->input.character != nul)
         {
