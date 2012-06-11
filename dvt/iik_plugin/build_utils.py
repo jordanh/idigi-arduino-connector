@@ -43,6 +43,6 @@ def get_template_dirs():
     template_script_dir = os.path.join(sandbox_dir, TEMPLATE_SCRIPT_DIR)
     template_platform_dir = os.path.join(sandbox_dir, TEMPLATE_PLATFORM_DIR)
     template_test_dir = os.path.join(sandbox_dir, TEMPLATE_TEST_DIR)
-    idigi_config_path = os.path.join(sandbox_dir, './idigi_config.h')
+    idigi_config_path = os.path.join(template_test_dir, './idigi_config.h')
 
     return (sandbox_dir, template_script_dir, template_platform_dir, template_test_dir, idigi_config_path)
