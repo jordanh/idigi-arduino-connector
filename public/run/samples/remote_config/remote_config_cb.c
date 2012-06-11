@@ -134,15 +134,15 @@ static idigi_callback_status_t app_process_group(idigi_remote_config_request_t c
     switch (request_id)
     {
     case idigi_remote_config_group_start:
-        APP_DEBUG("app_process_group_start\n");
+        APP_DEBUG("app_process_group_start group_id = %d\n", request->group.id);
         callback = group_ptr->init_cb;
         break;
     case idigi_remote_config_group_process:
-        APP_DEBUG("app_process_group_process\n");
+        APP_DEBUG("app_process_group_process group_id = %d\n", request->group.id);
         callback = (request->action == idigi_remote_action_set) ? group_ptr->set_cb : group_ptr->get_cb;
         break;
     case idigi_remote_config_group_end:
-        APP_DEBUG("app_process_group_end\n");
+        APP_DEBUG("app_process_group_end group_id = %d\n", request->group.id);
         callback = group_ptr->end_cb;
         break;
     default:
