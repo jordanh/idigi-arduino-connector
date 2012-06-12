@@ -370,7 +370,15 @@ static void rci_handle_content(rci_t * const rci)
     case idigi_element_type_fqdnv6:
     case idigi_element_type_datetime:
         rci->shared.value.string_value = string_value;
-        error = idigi_false;
+        if (element->value_limit == NULL)
+        {
+            error = idigi_false;
+        }
+        else
+        {
+            idigi_element_value_string_t const * const limit = &element->value_limit->string_value;
+            error = (string_length >= limit->min_length_in_bytes) && (string_length <= limit->max_length_in_bytes);
+        }
         break;
 
     case idigi_element_type_int32:
@@ -400,6 +408,40 @@ static void rci_handle_content(rci_t * const rci)
         case idigi_element_type_float:
             error = rci_scan_formatted(string_value, "%f", &rci->shared.value.float_value);
             break;
+        }
+        
+        if (!error && (element->value_limit != NULL))
+        {
+            switch (type)
+            {
+            UNHANDLED_CASES_ARE_INVALID
+            case idigi_element_type_int32:
+                {
+                    idigi_element_value_signed_integer_t const * const limit = &element->value_limit->integer_signed_value;
+                    int32_t const value = rci->shared.value.integer_signed_value;
+                    
+                    error = (value >= limit->min_value) && (value <= limit->max_value);
+                    break;
+                }    
+            case idigi_element_type_uint32:
+            case idigi_element_type_hex32:
+            case idigi_element_type_0xhex:
+                {
+                    idigi_element_value_unsigned_integer_t const * const limit = &element->value_limit->integer_unsigned_value;
+                    uint32_t const value = rci->shared.value.integer_unsigned_value;
+                    
+                    error = (value >= limit->min_value) && (value <= limit->max_value);
+                    break;
+                }    
+            case idigi_element_type_float:
+                {
+                    idigi_element_value_float_t const * const limit = &element->value_limit->float_value;
+                    double const value = rci->shared.value.float_value;
+                    
+                    error = (value >= limit->min_value) && (value <= limit->max_value);
+                    break;
+                }    
+            }
         }
         break;
         
