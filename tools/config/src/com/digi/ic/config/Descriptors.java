@@ -36,6 +36,7 @@ public class Descriptors {
         this.deviceType = deviceType;
         this.fwVersion = version;
 
+        validateServerName();
         this.vendorId = vendorId;
         if (vendorId == null) getVendorId();
 
@@ -247,6 +248,10 @@ public class Descriptors {
         startIndex += "<dvVendorId>".length();
         vendorId = response.substring(startIndex, response.indexOf("</dvVendorId>"));
         ConfigGenerator.log(String.format("iDigi Cloud registered vendor ID: 0x%X", Integer.parseInt(vendorId)));
+    }
+
+    private void validateServerName() {
+        String response = sendCloudData("/ws/CheckStatus", "GET", null);
     }
 
     private String tagMessageSegment(String tagName, String value) {
