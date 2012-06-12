@@ -39,8 +39,6 @@ extern size_t total_malloc_size;
 extern size_t total_max_malloc_size;
 extern idigi_status_t idigi_run_thread_status;
 
-extern idigi_callback_status_t app_os_malloc(size_t const size, void ** ptr);
-extern void app_os_free(void * const ptr);
 extern void clear_stack_size(void);
 void write_usage_file(char const * text);
 

@@ -188,20 +188,17 @@ static idigi_callback_status_t app_process_file_strerror(idigi_file_data_respons
 #if defined APP_ENABLE_MD5
 static app_md5_ctx * app_allocate_md5_ctx(unsigned int const flags, idigi_file_error_data_t * const error_data)
 {
-    app_md5_ctx * ctx = NULL;
-    void * ptr;
-    idigi_callback_status_t const is_ok = app_os_malloc(sizeof *ctx, &ptr);
+    app_md5_ctx * ctx = malloc(sizeof *ctx);
 
-    if (is_ok == idigi_callback_continue && ptr != NULL)
+    if (ctx != NULL)
     {
-        ctx = ptr;
         ctx->flags = flags;
         ctx->fd    = -1;
     }
     else
     {
         app_process_file_error(error_data, ENOMEM);
-        APP_DEBUG("app_allocate_md5_ctx: app_os_malloc fails\n");
+        APP_DEBUG("app_allocate_md5_ctx: malloc fails\n");
     }
     return ctx;
 }
@@ -381,21 +378,18 @@ static idigi_callback_status_t app_process_file_opendir(idigi_file_path_request_
 
     if (dirp != NULL)
     {
-        void * ptr;
-        app_dir_data_t * dir_data;
+        app_dir_data_t * dir_data = malloc(sizeof *dir_data);
 
-        idigi_callback_status_t const is_ok = app_os_malloc(sizeof *dir_data, &ptr);
-        if (is_ok == idigi_callback_continue && ptr != NULL)
+        if (dir_data != NULL)
         {
-            dir_data = ptr;
             dir_data->dirp = dirp;
-            response_data->handle = ptr;
+            response_data->handle = dir_data;
 
             APP_DEBUG("opendir for %s returned %p\n", request_data->path, (void *) dirp);
         }
         else
         {
-            APP_DEBUG("app_process_file_opendir: app_os_malloc fails %s\n", request_data->path);
+            APP_DEBUG("app_process_file_opendir: malloc fails %s\n", request_data->path);
             status = app_process_file_error(response_data->error, ENOMEM);
             closedir(dirp);
         }

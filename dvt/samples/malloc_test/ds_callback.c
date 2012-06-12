@@ -57,20 +57,15 @@ idigi_status_t send_file(idigi_handle_t handle, int index, char * const filename
 
     idigi_status_t status = idigi_success;
     static char file_type[] = "text/plain";
-    ds_record_t * user;
 
+    ds_record_t * user = malloc(sizeof *user);
+
+    if (user == NULL)
     {
-        void * ptr;
-
-        idigi_callback_status_t const is_ok = app_os_malloc(sizeof *user, &ptr);
-        if (is_ok != idigi_callback_continue || ptr == NULL)
-        {
-            /* no memeory stop IIK */
-            APP_DEBUG("send_put_request: malloc fails\n");
-            status = idigi_no_resource;
-            goto done;
-        }
-        user = ptr;
+        /* no memeory stop IIK */
+        APP_DEBUG("send_put_request: malloc fails\n");
+        status = idigi_no_resource;
+        goto done;
     }
 
     sprintf(user->file_path, "%s", filename);
@@ -90,7 +85,7 @@ idigi_status_t send_file(idigi_handle_t handle, int index, char * const filename
     }
     else
     {
-        app_os_free(user);
+        free(user);
     }
 
 done:
@@ -198,7 +193,7 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
                 		   message->flags, user->file_path, (void *)user);
               /* should be done now */
                 ASSERT(user != NULL);
-                app_os_free(user);
+                free(user);
                 put_file_active_count--;
 
             }
@@ -209,7 +204,7 @@ idigi_callback_status_t app_put_request_handler(void const * request_data, size_
 
                 APP_DEBUG("app_put_request_handler (type_error): %s cancel this session %p\n", user->file_path, (void *)user);
                 ASSERT(user != NULL);
-                app_os_free(user);
+                free(user);
                 put_file_active_count--;
             }
             break;
@@ -272,8 +267,8 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
                 goto done;
             }
         }
-        ccode = app_os_malloc(sizeof *client_device_request, &ptr);
-        if (ccode != idigi_callback_continue || ptr == NULL)
+        client_device_request = malloc(sizeof *client_device_request);
+        if (client_device_request == NULL)
         {
             /* no memeory stop IIK */
             APP_DEBUG("process_device_request: malloc fails for device request on session %p\n", server_device_request->device_handle);
@@ -282,7 +277,6 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
         }
         put_request_size += sizeof *client_device_request;
 
-        client_device_request = ptr;
         client_device_request->length_in_bytes = 0;
         client_device_request->response_data = NULL;
         client_device_request->count = 0;
@@ -312,7 +306,7 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
         {
             /* testing to return unrecognized status */
             APP_DEBUG("process_device_request: unrecognized target = %s\n", server_device_request->target);
-            app_os_free(ptr);
+            free(ptr);
             device_request_active_count--;
             status = idigi_callback_unrecognized;
             goto done;
@@ -413,7 +407,7 @@ static idigi_callback_status_t process_device_response(idigi_data_service_msg_re
 error:
     /* done */
     device_request_active_count--;
-    app_os_free(client_device_request);
+    free(client_device_request);
 
 done:
     return status;
@@ -433,7 +427,7 @@ static idigi_callback_status_t process_device_error(idigi_data_service_msg_reque
                 server_device_request->device_handle, error_code);
 
     device_request_active_count--;
-    app_os_free(client_device_request);
+    free(client_device_request);
 
     return status;
 }
