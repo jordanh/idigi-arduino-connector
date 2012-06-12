@@ -1065,12 +1065,12 @@
  *     else
  *     {
  *         // valid entry
- *         size_t name_len = strlen(result->d_name) + 1;
+ *         size_t name_len = strlen(result->d_name);
  *         size_t buffer_size = response_data->size_in_bytes;
  * 
- *         if(name_len <= buffer_size)
+ *         if(name_len < buffer_size)
  *         {
- *             strcpy((char *) response_data->data_ptr, result->d_name);
+ *             memcpy(response_data->data_ptr, result->d_name, name_len + 1);
  *             response_data->size_in_bytes = name_len;
  *         }
  *         else

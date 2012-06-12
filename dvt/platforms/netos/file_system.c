@@ -94,12 +94,14 @@ static int app_convert_file_open_mode(int const oflag)
 #else
     int result = 0;
 
-    if (oflag & IDIGI_O_RDONLY) result |= O_RDONLY;
     if (oflag & IDIGI_O_WRONLY) result |= O_WRONLY;
     if (oflag & IDIGI_O_RDWR)   result |= O_RDWR;
     if (oflag & IDIGI_O_APPEND) result |= O_APPEND;
     if (oflag & IDIGI_O_CREAT)  result |= O_CREAT;
     if (oflag & IDIGI_O_TRUNC)  result |= O_TRUNC;
+
+    if ((oflag & (IDIGI_O_WRONLY | IDIGI_O_RDWR)) == 0)
+        result |= O_RDONLY;
 
     return result;
 #endif

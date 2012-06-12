@@ -1065,7 +1065,7 @@ static size_t parse_file_ls_header(file_system_context_t * const context,
         data_ptr += len;
         len += header_len;
 
-        hash_alg = *data_ptr;
+        hash_alg = (idigi_file_hash_algorithm_t) *data_ptr;
 
         switch (hash_alg)
         {
@@ -1208,6 +1208,8 @@ static idigi_callback_status_t file_store_path(idigi_data_t * const idigi_ptr,
     status = malloc_data(idigi_ptr, IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH, &ptr);
     if (status != idigi_callback_continue)
         goto done;
+
+    ASSERT(ptr != NULL);
 
     context->data.d.path = ptr;
     memcpy(context->data.d.path, path, path_len + 1);
@@ -1429,6 +1431,8 @@ static idigi_callback_status_t allocate_file_context(idigi_data_t * const idigi_
     status = malloc_data(idigi_ptr, sizeof *context, &ptr);
     if (status != idigi_callback_continue)
         goto done;
+    
+    ASSERT(ptr != NULL);
 
     context = ptr;
 

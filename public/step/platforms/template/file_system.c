@@ -115,12 +115,14 @@ static int app_convert_file_open_mode(int const oflag)
 #else
     int result = 0;
 
-    if (oflag & IDIGI_O_RDONLY) result |= O_RDONLY;
     if (oflag & IDIGI_O_WRONLY) result |= O_WRONLY;
     if (oflag & IDIGI_O_RDWR)   result |= O_RDWR;
     if (oflag & IDIGI_O_APPEND) result |= O_APPEND;
     if (oflag & IDIGI_O_CREAT)  result |= O_CREAT;
     if (oflag & IDIGI_O_TRUNC)  result |= O_TRUNC;
+
+    if ((oflag & (IDIGI_O_WRONLY | IDIGI_O_RDWR)) == 0)
+        result |= O_RDONLY;
 
     return result;
 #endif
@@ -421,7 +423,7 @@ static idigi_callback_status_t app_process_file_readdir(idigi_file_request_t con
 {
     idigi_callback_status_t status = idigi_callback_continue;
     app_dir_data_t * dir_data = request_data->handle;
-    struct dirent  * result;
+    struct dirent  * result = NULL;
 
     // Read next directory entry, skip "." and ".."
     int rc = readdir_r(dir_data->dirp, &dir_data->dir_entry, &result);
@@ -458,7 +460,7 @@ static idigi_callback_status_t app_process_file_readdir(idigi_file_request_t con
 
         if(name_len < response_data->size_in_bytes)
         {
-            strcpy(response_data->data_ptr, result->d_name);
+            memcpy(response_data->data_ptr, result->d_name, name_len + 1);
             response_data->size_in_bytes = name_len + 1;
         }
         else
