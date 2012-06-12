@@ -221,7 +221,7 @@ public class Descriptors {
             }
             reader.close();
             connection.disconnect();
-            
+
         } catch (Exception x) {
             ConfigGenerator.log("Failed to " + method + " " + target);
             System.err.println(x);
@@ -251,7 +251,7 @@ public class Descriptors {
     }
 
     private void validateServerName() {
-        String response = sendCloudData("/ws/CheckStatus", "GET", null);
+        sendCloudData("/ws/CheckStatus", "GET", null);
     }
 
     private String tagMessageSegment(String tagName, String value) {
