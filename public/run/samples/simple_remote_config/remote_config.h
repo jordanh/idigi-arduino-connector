@@ -10,6 +10,15 @@
 
 #define RCI_PARSER_USES_ERROR_DESCRIPTIONS
 #define RCI_PARSER_USES_STRINGS
+#define RCI_PARSER_USES_SIGNED_INTEGER
+#define RCI_PARSER_USES_UNSIGNED_INTEGER
+#define RCI_PARSER_USES_FLOATING_POINT
+#define RCI_PARSER_USES_ENUMERATIONS
+#define RCI_PARSER_USES_ON_OFF
+#define RCI_PARSER_USES_BOOLEAN
+
+#include "float.h"
+
 
 #include "idigi_remote.h"
 
@@ -34,6 +43,16 @@ extern char const idigi_remote_all_strings[];
 #define RCI_ERROR (idigi_remote_all_strings+116)
 #define RCI_COMMENT (idigi_remote_all_strings+122)
 #define RCI_DESC (idigi_remote_all_strings+126)
+
+extern char const idigi_remote_on_string[];
+extern char const idigi_remote_off_string[];
+extern char const idigi_remote_true_string[];
+extern char const idigi_remote_false_string[];
+
+#define RCI_ON (idigi_remote_on_string)
+#define RCI_OFF (idigi_remote_off_string)
+#define RCI_TRUE (idigi_remote_true_string)
+#define RCI_FALSE (idigi_remote_false_string)
 
 typedef enum {
  idigi_rci_error_OFFSET = 1,
@@ -90,6 +109,22 @@ typedef enum {
 #define IDIGI_RCI_ERROR_BAD_INDEX (idigi_remote_all_strings+261)
 #define IDIGI_RCI_ERROR_BAD_ELEMENT (idigi_remote_all_strings+271)
 #define IDIGI_RCI_ERROR_BAD_VALUE (idigi_remote_all_strings+283)
+
+char const idigi_remote_on_string[] = {
+        2, '0', 'n'
+};
+
+char const idigi_remote_off_string[] = {
+        3, '0', 'f', 'f'
+};
+
+char const idigi_remote_true_string[] = {
+        4, 't', 'r', 'u', 'e'
+};
+
+char const idigi_remote_false_string[] = {
+        5, 'f', 'a', 'l', 's', 'e'
+};
 
 char const idigi_remote_all_strings[] = {
  4,'q','u','o','t',

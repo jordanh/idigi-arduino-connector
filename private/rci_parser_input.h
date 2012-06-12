@@ -350,7 +350,7 @@ static void rci_handle_content(rci_t * const rci)
     idigi_element_value_type_t const type = element->type; 
     char const * const string_value = rci->shared.string.content.data;
     size_t const string_length = rci->shared.string.content.length;
-    idigi_bool_t error;
+    idigi_bool_t error = idigi_true;
     
     /* NUL-terminate the content as we know it is always followed by '<', that's how we got here. */
     {
