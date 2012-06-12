@@ -78,7 +78,7 @@ idigi_callback_status_t app_device_stats_group_get(idigi_remote_group_request_t 
     }
     case idigi_setting_device_stats_signed_integer:
         ASSERT(request->element.type == idigi_element_type_int32);
-        response->element_data.element_value->integer_signed_value = device_stats_ptr->signed_integer;
+        response->element_data.element_value->signed_integer_value = device_stats_ptr->signed_integer;
         break;
 
     default:
@@ -220,7 +220,7 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
     }
     case idigi_setting_device_stats_signed_integer:
         ASSERT(request->element.type == idigi_element_type_int32);
-        device_stats_ptr->signed_integer= request->element.value->integer_signed_value;
+        device_stats_ptr->signed_integer= request->element.value->signed_integer_value;
         break;
 
     default:

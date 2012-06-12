@@ -51,10 +51,12 @@ static idigi_bool_t cstr_equals_rcistr(cstr_t const * const cstr, rci_string_t c
     return cstr_equals_buffer(cstr, rcistr->data, rcistr->length);
 }
 
+#if (defined RCI_PARSER_USES_ENUMERATIONS) || (defined RCI_PARSER_USES_ON_OFF) || (defined RCI_PARSER_USES_BOOLEAN)
 static idigi_bool_t cstr_equals_str(cstr_t const * const cstr, char const * const str)
 {
     return cstr_equals_buffer(cstr, str, strlen(str));
 }
+#endif
 
 static idigi_bool_t rcistr_to_uint(rci_string_t const * const rcistr, unsigned int * const value)
 {

@@ -108,7 +108,7 @@ void print_remote_configurations(void)
 #endif
                 case idigi_element_type_int32:
                 {
-                    idigi_element_value_signed_integer_t const * const value_limit = &element_ptr->value_limit->integer_signed_value;
+                    idigi_element_value_signed_integer_t const * const value_limit = &element_ptr->value_limit->signed_integer_value;
                     if (value_limit->min_value != 0 || value_limit->max_value != 0)
                     {
                         fprintf(fp, " min = %d max = %d ", value_limit->min_value, value_limit->max_value);
@@ -117,7 +117,7 @@ void print_remote_configurations(void)
                 }
                 case idigi_element_type_uint32:
                 {
-                    idigi_element_value_unsigned_integer_t const * const value_limit = &element_ptr->value_limit->integer_unsigned_value;
+                    idigi_element_value_unsigned_integer_t const * const value_limit = &element_ptr->value_limit->unsigned_integer_value;
                     if (value_limit->min_value != 0 || value_limit->max_value != 0)
                     {
                         fprintf(fp, " min = %u max = %u ", value_limit->min_value, value_limit->max_value);
@@ -126,7 +126,7 @@ void print_remote_configurations(void)
                 }
                 case idigi_element_type_hex32:
                 {
-                    idigi_element_value_unsigned_integer_t const * const value_limit = &element_ptr->value_limit->integer_unsigned_value;
+                    idigi_element_value_unsigned_integer_t const * const value_limit = &element_ptr->value_limit->unsigned_integer_value;
                     if (value_limit->min_value != 0 || value_limit->max_value != 0)
                     {
                         fprintf(fp, " min = %X max = %X ", value_limit->min_value, value_limit->max_value);
@@ -135,7 +135,7 @@ void print_remote_configurations(void)
                 }
                 case idigi_element_type_0xhex:
                 {
-                    idigi_element_value_unsigned_integer_t const * const value_limit = &element_ptr->value_limit->integer_unsigned_value;
+                    idigi_element_value_unsigned_integer_t const * const value_limit = &element_ptr->value_limit->unsigned_integer_value;
                     if (value_limit->min_value != 0 ||  value_limit->max_value != 0)
                     {
                         fprintf(fp, " min = 0x%X max = 0x%X ", value_limit->min_value, value_limit->max_value);

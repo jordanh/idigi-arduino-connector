@@ -35,6 +35,7 @@ static idigi_bool_t rci_output_cstr(rci_buffer_t * const output, char const * co
     return rci_output_data(output, CSTR_DATA(cstr), CSTR_LEN(cstr));
 }
 
+#if (defined RCI_PARSER_USES_SIGNED_INTEGER) || (defined RCI_PARSER_USES_UNSIGNED_INTEGER) || (defined RCI_PARSER_USES_FLOATING_POINT)
 static idigi_bool_t rci_output_formatted(rci_buffer_t * const output, char const * const format, ...)
 {
     idigi_bool_t overflow;
@@ -60,6 +61,8 @@ static idigi_bool_t rci_output_formatted(rci_buffer_t * const output, char const
 
     return overflow;
 }
+#endif
+
 
 static void rci_output_character(rci_buffer_t * const output, int const value)
 {
@@ -91,6 +94,7 @@ static idigi_bool_t rci_output_entity_name(rci_buffer_t * const output, int cons
     return rci_output_cstr(output, name);
 }
 
+#if defined RCI_PARSER_USES_ENUMERATIONS
 static cstr_t const * enum_value_to_cstr(rci_t * const rci, unsigned int const value)
 {
     unsigned int const index = value;
@@ -106,7 +110,9 @@ static cstr_t const * enum_value_to_cstr(rci_t * const rci, unsigned int const v
         
     return result;
 }
+#endif
 
+#if defined RCI_PARSER_USES_ON_OFF
 static cstr_t const * on_off_value_to_cstr(idigi_on_off_t const value)
 {
     cstr_t const * result = NULL;
@@ -120,7 +126,9 @@ static cstr_t const * on_off_value_to_cstr(idigi_on_off_t const value)
     
     return result;
 }
+#endif
 
+#if defined RCI_PARSER_USES_BOOLEAN
 static cstr_t const * boolean_value_to_cstr(idigi_boolean_t const value)
 {
     cstr_t const * result = NULL;
@@ -134,6 +142,7 @@ static cstr_t const * boolean_value_to_cstr(idigi_boolean_t const value)
     
     return result;
 }
+#endif
 
 static void rci_generate_output(rci_t * const rci)
 {
@@ -368,42 +377,71 @@ static void rci_generate_output(rci_t * const rci)
             switch (rci->shared.request.element.type)
             {
             UNHANDLED_CASES_ARE_NEEDED
+#if defined RCI_PARSER_USES_STRINGS
             case idigi_element_type_string:
             case idigi_element_type_multiline_string:
             case idigi_element_type_password:
                 rci->output.state = rci_output_state_content_scan;
                 rci->output.entity_scan_index = 0;
                 break;
+#endif
+
+#if defined RCI_PARSER_USES_STRINGS
             case idigi_element_type_ipv4:
             case idigi_element_type_fqdnv4:
             case idigi_element_type_fqdnv6:
             case idigi_element_type_datetime:
                 overflow = rci_output_data(output, rci->shared.value.string_value, strlen(rci->shared.value.string_value));
                 break;
+#endif
+
+#if defined RCI_PARSER_USES_ENUMERATIONS
             case idigi_element_type_enum:
                 overflow = rci_output_cstr(output, enum_value_to_cstr(rci, rci->shared.value.enum_value));
                 break;
+#endif
+
+#if defined RCI_PARSER_USES_ON_OFF
             case idigi_element_type_on_off:
                 overflow = rci_output_cstr(output, on_off_value_to_cstr(rci->shared.value.on_off_value));
                 break;
+#endif
+
+#if defined RCI_PARSER_USES_BOOLEAN
             case idigi_element_type_boolean:
                 overflow = rci_output_cstr(output, boolean_value_to_cstr(rci->shared.value.boolean_value));
                 break;
+#endif
+
+#if defined RCI_PARSER_USES_SIGNED_INTEGER
             case idigi_element_type_int32:
-                overflow = rci_output_formatted(output, "%ld", rci->shared.value.integer_signed_value);
+                overflow = rci_output_formatted(output, "%ld", rci->shared.value.signed_integer_value);
                 break;
+#endif
+
+#if defined RCI_PARSER_USES_UNSIGNED_INTEGER
             case idigi_element_type_uint32:
-                overflow = rci_output_formatted(output, "%lu", rci->shared.value.integer_signed_value);
+                overflow = rci_output_formatted(output, "%lu", rci->shared.value.unsigned_integer_value);
                 break;
+#endif
+
+#if defined RCI_PARSER_USES_UNSIGNED_INTEGER
             case idigi_element_type_hex32:
-                overflow = rci_output_formatted(output, "%lx", rci->shared.value.integer_signed_value);
+                overflow = rci_output_formatted(output, "%lx", rci->shared.value.unsigned_integer_value);
                 break;
+#endif
+
+#if defined RCI_PARSER_USES_UNSIGNED_INTEGER
             case idigi_element_type_0xhex:
-                overflow = rci_output_formatted(output, "0x%lx", rci->shared.value.integer_signed_value);
+                overflow = rci_output_formatted(output, "0x%lx", rci->shared.value.unsigned_integer_value);
                 break;
+#endif
+
+#if defined RCI_PARSER_USES_FLOATING_POINT
             case idigi_element_type_float:
                 overflow = rci_output_formatted(output, "%f", rci->shared.value.float_value);
                 break;
+#endif
             }
             if (overflow) break;
 
@@ -423,6 +461,8 @@ static void rci_generate_output(rci_t * const rci)
             }
             break;
         case rci_output_state_content_scan:
+            idigi_debug_printf("rci_output_state_content_scan\n");
+#if defined RCI_PARSER_USES_STRINGS
             {
                 int const character = rci->shared.value.string_value[rci->output.entity_scan_index];
                 
@@ -450,8 +490,11 @@ static void rci_generate_output(rci_t * const rci)
                     rci->output.state = rci_output_state_content_entity;
                 }
             }
+#endif
             break;
         case rci_output_state_content_entity:
+            idigi_debug_printf("rci_output_state_content_entity\n");
+#if defined RCI_PARSER_USES_STRINGS
             {
                 int const entity = rci->shared.value.string_value[rci->output.entity_scan_index];
                 
@@ -461,6 +504,7 @@ static void rci_generate_output(rci_t * const rci)
                 rci->output.entity_scan_index++;
                 rci->output.state = rci_output_state_content_semicolon;
              }
+#endif
             break;
         case rci_output_state_content_semicolon:
             rci_output_character(output, ';');

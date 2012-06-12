@@ -100,35 +100,6 @@ typedef enum {
 * @}
 */
 
-/**
- * @defgroup idigi_on_off_t  iDigi on or off values
- * @{
- */
-/**
- * iDigi ON and OFF value types
- */
-typedef enum {
-    idigi_off,  /**< OFF */
-    idigi_on    /**< ON */
-} idigi_on_off_t;
-/**
-* @}
-*/
-
-/**
-* @defgroup idigi_boolean_t iDigi boolean type
-* @{
-*/
-/**
-* Boolean type
-*/
-typedef enum {
-    idigi_boolean_false,    /**< False */
-    idigi_boolean_true      /**< True */
-} idigi_boolean_t;
-/**
-* @}
-*/
 
 /**
 * @defgroup idigi_element_access_t iDigi remote configuration access types
@@ -146,58 +117,6 @@ typedef enum {
 * @}
 */
 
-#if defined(RCI_PARSER_USES_SIGNED_INTEGER)
-typedef struct {
-    int32_t min_value;
-    int32_t max_value;
-} idigi_element_value_signed_integer_t;
-#endif
-
-#if defined(RCI_PARSER_USES_UNSIGNED_INTEGER)
-typedef struct {
-    uint32_t min_value;
-    uint32_t max_value;
-} idigi_element_value_unsigned_integer_t;
-#endif
-
-#if defined(RCI_PARSER_USES_STRINGS)
-typedef struct {
-    size_t min_length_in_bytes;
-    size_t max_length_in_bytes;
-} idigi_element_value_string_t;
-#endif
-
-#if defined(RCI_PARSER_USES_ENUMERATIONS)
-typedef struct {
-    size_t count;
-    char const * const * value;
-} idigi_element_value_enum_t;
-#endif
-
-#if defined(RCI_PARSER_USES_FLOATING_POINT)
-typedef struct {
-    double min_value;
-    double max_value;
-} idigi_element_value_float_t;
-#endif
-
-typedef union {
-#if defined(RCI_PARSER_USES_UNSIGNED_INTEGER)
-    idigi_element_value_unsigned_integer_t integer_unsigned_value;
-#endif
-#if defined(RCI_PARSER_USES_SIGNED_INTEGER)
-    idigi_element_value_signed_integer_t integer_signed_value;
-#endif
-#if defined(RCI_PARSER_USES_STRINGS)
-    idigi_element_value_string_t string_value;
-#endif
-#if defined(RCI_PARSER_USES_ENUMERATIONS)
-    idigi_element_value_enum_t enum_value;
-#endif
-#if defined(RCI_PARSER_USES_FLOATING_POINT)
-    idigi_element_value_float_t float_value;
-#endif
-} idigi_element_value_limit_t;
 
 typedef struct {
     char const * name;
@@ -220,68 +139,6 @@ typedef struct {
     } errors;
 } idigi_group_t;
 
-/**
- * @defgroup idigi_element_value_t iDigi remote configuration element value union
- * @{
- */
-/**
- * Remote Configuration Element value
- */
-typedef union {
-#if defined(RCI_PARSER_USES_STRINGS)
-    char const * string_value;          /**< Pointer to a nul-terminated string for the following value types:
-                                             @htmlonly
-                                             <ul>
-                                             <li>@endhtmlonly @ref idigi_element_type_string @htmlonly</li>
-                                             <li>@endhtmlonly @ref idigi_element_type_multiline_string @htmlonly</li>
-                                             <li>@endhtmlonly @ref idigi_element_type_password @htmlonly</li>
-                                             <li>@endhtmlonly @ref idigi_element_type_ipv4 @htmlonly</li>
-                                             <li>@endhtmlonly @ref idigi_element_type_fqdnv4 @htmlonly</li>
-                                             <li>@endhtmlonly @ref idigi_element_type_fqdnv6 @htmlonly</li>
-                                             <li>@endhtmlonly @ref idigi_element_type_datetime @htmlonly</li>
-                                             </ul>
-                                             @endhtmlonly
-                                             Note: An application's callback must return the address of the pointer
-                                             to the string for idigi_remote_action_set.
-                                         */
-#endif
-
-#if defined(RCI_PARSER_USES_SIGNED_INTEGER)
-    int32_t integer_signed_value;       /**< Signed integer value for @ref idigi_element_type_int32 value type */
-#endif
-
-#if defined(RCI_PARSER_USES_UNSIGNED_INTEGER)
-    uint32_t integer_unsigned_value;    /**< Unsigned integer value for the following value types:
-                                             @htmlonly
-                                             <ul>
-                                             <li>@endhtmlonly @ref idigi_element_type_uint32 @htmlonly</li>
-                                             <li>@endhtmlonly @ref idigi_element_type_hex32 @htmlonly</li>
-                                             <li>@endhtmlonly @ref idigi_element_type_0xhex @htmlonly</li>
-                                             </ul>
-                                             @endhtmlonly
-                                           */
-#endif
-
-#if defined(RCI_PARSER_USES_FLOATING_POINT)
-    double float_value;                 /**< Floating point value for @ref idigi_element_type_float value type */
-#endif
-
-#if defined(RCI_PARSER_USES_ENUMERATIONS)
-    unsigned int enum_value;            /**< Enumeration value for @ref idigi_element_type_enum value type */
-#endif
-
-#if defined(RCI_PARSER_USES_ON_OFF)
-    idigi_on_off_t  on_off_value;       /**< @ref idigi_on for on or @ref idigi_off for Off value for @ref idigi_element_type_on_off value type */
-#endif
-
-#if defined(RCI_PARSER_USES_BOOLEAN)
-    idigi_boolean_t boolean_value;      /**< @ref idigi_boolean_true for true or @ref idigi_boolean_false for false value for @ref idigi_element_type_boolean value type */
-#endif
-
-} idigi_element_value_t;
-/**
-* @}
-*/
 
 /**
 * @defgroup idigi_remote_group_t iDigi remote configuration group

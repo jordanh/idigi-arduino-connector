@@ -24,7 +24,7 @@
 #define ROUND_UP(value, interval)   ((value) + -(value) % (interval))
 
 #if defined IDIGI_DEBUG
-#define UNHANDLED_CASES_ARE_NEEDED
+#define UNHANDLED_CASES_ARE_NEEDED  default: break;
 #else
 #define UNHANDLED_CASES_ARE_NEEDED  default: break;
 #endif
@@ -32,11 +32,15 @@
 
 static char const nul = '\0';
 
+#if defined RCI_PARSER_USES_ON_OFF
 static char const * const on_off_strings[] = {RCI_OFF, RCI_ON};
 static idigi_element_value_enum_t on_off_enum = { asizeof(on_off_strings), on_off_strings};
+#endif
 
+#if defined RCI_PARSER_USES_BOOLEAN
 static char const * const boolean_strings[] = {RCI_FALSE, RCI_TRUE};
 static idigi_element_value_enum_t boolean_enum = { asizeof(boolean_strings), boolean_strings};
+#endif
 
 typedef enum
 {

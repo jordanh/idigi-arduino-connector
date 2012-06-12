@@ -84,6 +84,7 @@ static void rci_output_content(rci_t * const rci)
     }
 }
 
+#if (defined RCI_PARSER_USES_SIGNED_INTEGER) || (defined RCI_PARSER_USES_UNSIGNED_INTEGER) || (defined RCI_PARSER_USES_FLOATING_POINT)
 static idigi_bool_t rci_scan_formatted(char const * const input, char const * const format, ...)
 {
     idigi_bool_t error;
@@ -96,7 +97,9 @@ static idigi_bool_t rci_scan_formatted(char const * const input, char const * co
 
     return error;
 }
+#endif
 
+#if (defined RCI_PARSER_USES_ENUMERATIONS) || (defined RCI_PARSER_USES_ON_OFF) || (defined RCI_PARSER_USES_BOOLEAN)
 static idigi_bool_t rci_scan_enum(char const * const input, idigi_element_value_enum_t const * const match, unsigned int * const result)
 {
     idigi_bool_t error = idigi_true;
@@ -114,6 +117,8 @@ static idigi_bool_t rci_scan_enum(char const * const input, idigi_element_value_
 
     return error;
 }
+#endif
+
 typedef void (*rci_action_t)(rci_t * const rci);
 
 static void rci_action_unary_group(rci_t * const rci)
@@ -362,6 +367,8 @@ static void rci_handle_content(rci_t * const rci)
     switch (type)
     {
     UNHANDLED_CASES_ARE_NEEDED
+
+#if defined RCI_PARSER_USES_STRINGS
     case idigi_element_type_string:
     case idigi_element_type_multiline_string:
     case idigi_element_type_password:
@@ -380,7 +387,9 @@ static void rci_handle_content(rci_t * const rci)
             error = (string_length >= limit->min_length_in_bytes) && (string_length <= limit->max_length_in_bytes);
         }
         break;
+#endif
 
+#if (defined RCI_PARSER_USES_SIGNED_INTEGER) || (defined RCI_PARSER_USES_UNSIGNED_INTEGER) || (defined RCI_PARSER_USES_FLOATING_POINT)
     case idigi_element_type_int32:
     case idigi_element_type_uint32:
     case idigi_element_type_hex32:
@@ -389,73 +398,96 @@ static void rci_handle_content(rci_t * const rci)
         switch (type)
         {
         UNHANDLED_CASES_ARE_INVALID
+
+#if defined RCI_PARSER_USES_SIGNED_INTEGER
         case idigi_element_type_int32:
-            error = rci_scan_formatted(string_value, "%ld", &rci->shared.value.integer_signed_value);
+            error = rci_scan_formatted(string_value, "%ld", &rci->shared.value.signed_integer_value);
             break;
+#endif
             
+#if defined RCI_PARSER_USES_UNSIGNED_INTEGER
         case idigi_element_type_uint32:
-            error = rci_scan_formatted(string_value, "%lu", &rci->shared.value.integer_unsigned_value);
+            error = rci_scan_formatted(string_value, "%lu", &rci->shared.value.unsigned_integer_value);
             break;
             
         case idigi_element_type_hex32:
-            error = rci_scan_formatted(string_value, "%lx", &rci->shared.value.integer_unsigned_value);
+            error = rci_scan_formatted(string_value, "%lx", &rci->shared.value.unsigned_integer_value);
             break;
             
         case idigi_element_type_0xhex:
-            error = rci_scan_formatted(string_value, "0x%lx", &rci->shared.value.integer_unsigned_value);
+            error = rci_scan_formatted(string_value, "0x%lx", &rci->shared.value.unsigned_integer_value);
             break;
+#endif
             
         case idigi_element_type_float:
+#if defined RCI_PARSER_USES_FLOATING_POINT
             error = rci_scan_formatted(string_value, "%f", &rci->shared.value.float_value);
+#endif
             break;
         }
+
         
         if (!error && (element->value_limit != NULL))
         {
             switch (type)
             {
             UNHANDLED_CASES_ARE_INVALID
+#if defined RCI_PARSER_USES_SIGNED_INTEGER
             case idigi_element_type_int32:
                 {
-                    idigi_element_value_signed_integer_t const * const limit = &element->value_limit->integer_signed_value;
-                    int32_t const value = rci->shared.value.integer_signed_value;
+                    idigi_element_value_signed_integer_t const * const limit = &element->value_limit->signed_integer_value;
+                    int32_t const value = rci->shared.value.signed_integer_value;
                     
                     error = (value >= limit->min_value) && (value <= limit->max_value);
-                    break;
-                }    
+                }
+                break;
+#endif
+
+#if defined RCI_PARSER_USES_UNSIGNED_INTEGER
             case idigi_element_type_uint32:
             case idigi_element_type_hex32:
             case idigi_element_type_0xhex:
                 {
-                    idigi_element_value_unsigned_integer_t const * const limit = &element->value_limit->integer_unsigned_value;
-                    uint32_t const value = rci->shared.value.integer_unsigned_value;
+                    idigi_element_value_unsigned_integer_t const * const limit = &element->value_limit->unsigned_integer_value;
+                    uint32_t const value = rci->shared.value.unsigned_integer_value;
                     
                     error = (value >= limit->min_value) && (value <= limit->max_value);
-                    break;
                 }    
+                break;
+#endif
+
+#if defined RCI_PARSER_USES_FLOATING_POINT
             case idigi_element_type_float:
                 {
                     idigi_element_value_float_t const * const limit = &element->value_limit->float_value;
                     double const value = rci->shared.value.float_value;
                     
                     error = (value >= limit->min_value) && (value <= limit->max_value);
-                    break;
-                }    
+                }
+                break;
+#endif
             }
         }
         break;
+#endif /* (defined RCI_PARSER_USES_SIGNED_INTEGER) || (defined RCI_PARSER_USES_UNSIGNED_INTEGER) || (defined RCI_PARSER_USES_FLOATING_POINT) */
         
+#if defined RCI_PARSER_USES_ENUMERATIONS
     case idigi_element_type_enum:
         error = rci_scan_enum(string_value, &element->value_limit->enum_value, &rci->shared.value.enum_value);
         break;
+#endif
 
+#if defined RCI_PARSER_USES_ON_OFF
     case idigi_element_type_on_off:
-        error = rci_scan_enum(string_value, &on_off_enum, &rci->shared.value.enum_value);
+        error = rci_scan_enum(string_value, &on_off_enum, &rci->shared.value.on_off_value);
         break;
+#endif
 
+#if defined RCI_PARSER_USES_BOOLEAN
     case idigi_element_type_boolean:
-        error = rci_scan_enum(string_value, &boolean_enum, &rci->shared.value.enum_value);
+        error = rci_scan_enum(string_value, &boolean_enum, &rci->shared.value.boolean_value);
         break;
+#endif
     }
     
     if (error)

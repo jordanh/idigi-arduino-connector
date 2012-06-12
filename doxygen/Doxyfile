@@ -659,6 +659,7 @@ INPUT                  = ./mainpage.c \
                          ./rci_sample.c \
                          ./rci_tool.c \
                          ./idigi_config.h \
+                         ./remote_config.h \
                          ../public/run/platforms/template \
                          ../public/include
 
@@ -1539,7 +1540,9 @@ PREDEFINED           = IDIGI_VERSION_1100 IDIGI_VERSION ENABLE_COMPILE_TIME_DATA
                        DIGI_REQUIRED_TO_GENERATE_INTERNAL_DOCUMENATION \
                        RCI_PARSER_USES_STRING RCI_PARSER_USES_SIGNED_INTEGER \
                        RCI_PARSER_USES_UNSIGNED_INTEGER RCI_PARSER_USES_FLOATING_POINT \
-                       RCI_PARSER_USES_ENUMERATIONS
+                       RCI_PARSER_USES_ENUMERATIONS RCI_PARSER_USES_BOOLEAN RCI_PARSER_USES_ON_OFF
+
+
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then 
 # this tag can be used to specify a list of macro names that should be expanded. 

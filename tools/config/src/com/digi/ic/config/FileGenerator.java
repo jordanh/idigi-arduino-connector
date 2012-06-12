@@ -48,6 +48,7 @@ public class FileGenerator {
     private final static String ENUM_STRING = "enum";
 
     private final static String ID_T_STRING = "_id_t;\n\n";
+    private final static String TYPEDEF_STRUCT = "\ntypedef struct {\n";
 
     /* Do not change these (if you do, you also need to update idigi_remote.h */
     private final static String RCI_PARSER_USES_ERROR_DESCRIPTIONS = "RCI_PARSER_USES_ERROR_DESCRIPTIONS\n";
@@ -147,8 +148,7 @@ public class FileGenerator {
 //        headerWriter.write(String.format("#ifndef %s\n#define %s\n\n",
 //                defineName, defineName));
 
-        writeDefineOptionHeader(configData);
-
+        writeDefinesAndStructures(configData);
         writeDefineRciParserStringsHeader(configData);
 
         /* Write all global error enum in H file */
@@ -160,17 +160,234 @@ public class FileGenerator {
 //        headerWriter.write(String.format("\n#endif /* %s */\n", defineName));
     }
 
-    private void writeDefineOptionHeader(ConfigData configData) throws IOException {
+    private void writeOnOffBooleanEnum() throws IOException {
+
+        String enumString = "";
+        
+        for (ElementStruct.ElementType type : ElementStruct.ElementType.values()) {
+            if (type.isSet()) {
+                switch (type) {
+                case ON_OFF:
+                    enumString += "\ntypedef enum {\n"
+                                    + "    idigi_off,\n"
+                                    + "    idigi_on\n"
+                                    + "} idigi_on_off_t;\n";
+                    break;
+                    
+                case BOOLEAN:
+                    enumString += "\ntypedef enum {\n"
+                                    + "    idigi_boolean_false,\n"
+                                    + "    idigi_boolean_true\n"
+                                    + "} idigi_boolean_t;\n";
+                    break;
+                    
+                default:
+                  break;
+                }
+            }
+        }
+
+        headerWriter.write(enumString);
+    }
+
+    private void writeElementLimitStruct() throws IOException {
 
         String headerString = "";
         String structString = "";
+        int optionCount = 0;
+        
+        Boolean isStringDefined = false;
+        Boolean isUnsignedIntegerDefined = false;
+        
+       
+        for (ElementStruct.ElementType type : ElementStruct.ElementType.values()) {
+            if (type.isSet()) {
+                switch (type) {
+                case UINT32:
+                case HEX32:
+                case XHEX:
+                    if (!isUnsignedIntegerDefined) {
+                        /* if not defined yet, then define it */
+                        structString += "    idigi_element_value_unsigned_integer_t unsigned_integer_value;\n";
+                        isUnsignedIntegerDefined = true;
+                        optionCount++;
+                    }
+                    break;
+                    
+                case INT32:
+                    structString += "    idigi_element_value_signed_integer_t signed_integer_value;\n";
+                    optionCount++;
+                    break;
+                    
+                case ENUM:
+                    structString += "    idigi_element_value_enum_t enum_value;\n";
+                    optionCount++;
+                    break;
+                    
+                case FLOAT:
+                    structString += "    idigi_element_value_float_t float_value;\n";
+                    optionCount++;
+                    break;
+                    
+                case ON_OFF:
+                   break;
+                    
+                case BOOLEAN:
+                    break;
+                    
+                default:
+                    if (!isStringDefined) {
+                        structString += "    idigi_element_value_string_t string_value;\n";
+                        isStringDefined = true;
+                        optionCount++;
+                    }
+                  break;
+                }
+            }
+        }
 
+        if (optionCount > 0) {
+            
+            if (optionCount > 1) 
+                headerString += "\n\n typedef union { ";
+            else 
+                headerString += "\n\n typedef struct {";
+            
+            headerString += structString + "} idigi_element_value_limit_t;\n";
+        } else {
+            headerString += "\n\n typedef void idigi_element_value_limit_t;\n";
+        }
+
+        headerWriter.write(headerString);
+    }
+
+    private void writeElementValueStruct() throws IOException {
+
+        String headerString = "";
+        String structString = "";
+        String elementValueStruct = "";
+        
+        int optionCount = 0;
+
+        Boolean isUnsignedIntegerDefined = false;
+        Boolean isStringDefined = false;
+        Boolean isEnumValueStructDefined = false;
+
+        for (ElementStruct.ElementType type : ElementStruct.ElementType.values()) {
+            if (type.isSet()) {
+                switch (type) {
+                case UINT32:
+                case HEX32:
+                case XHEX:
+                    if (!isUnsignedIntegerDefined) {
+                        /* if not defined yet, then define it */
+                        structString += TYPEDEF_STRUCT
+                            + "   uint32_t min_value;\n"
+                            + "   uint32_t max_value;\n"
+                            + "} idigi_element_value_unsigned_integer_t;\n";
+                        elementValueStruct += "    uint32_t unsigned_integer_value;\n";
+                        isUnsignedIntegerDefined = true;
+                        optionCount++;
+                    }
+                    break;
+                    
+                case INT32:
+                    structString += TYPEDEF_STRUCT
+                                    + "   int32_t min_value;\n"
+                                    + "   int32_t max_value;\n"
+                                    + "} idigi_element_value_signed_integer_t;\n";
+                    elementValueStruct += "    int32_t signed_integer_value;\n";
+                    optionCount++;
+                    break;
+                    
+                case ENUM:
+                    if (!isEnumValueStructDefined) {
+                        structString += TYPEDEF_STRUCT
+                                        + "    size_t count;\n"
+                                        + "    char const * const * value;\n"
+                                        + "} idigi_element_value_enum_t;\n";
+                        isEnumValueStructDefined = true;
+                    }
+                    elementValueStruct += "    unsigned int enum_value;\n";
+                    optionCount++;
+                    break;
+                    
+                case FLOAT:
+                    structString += TYPEDEF_STRUCT
+                                    + "    double min_value;\n"
+                                    + "    double max_value;\n"
+                                    + "} idigi_element_value_float_t;\n";
+                    elementValueStruct += "    double float_value;\n";
+                    optionCount++;
+                    break;
+                    
+                case ON_OFF:
+                    if (!isEnumValueStructDefined) {
+                        /* rci parser needs this structure for on/off type */
+                        structString += TYPEDEF_STRUCT
+                                        + "    size_t count;\n"
+                                        + "    char const * const * value;\n"
+                                        + "} idigi_element_value_enum_t;\n";
+                        isEnumValueStructDefined = true;
+                    }
+                    elementValueStruct += "    idigi_on_off_t  on_off_value;\n";
+                    optionCount++;
+                    break;
+                    
+                case BOOLEAN:
+                    if (!isEnumValueStructDefined) {
+                        /* rci parser needs this structure for boolean type */
+                        structString += TYPEDEF_STRUCT
+                                        + "    size_t count;\n"
+                                        + "    char const * const * value;\n"
+                                        + "} idigi_element_value_enum_t;\n";
+                        isEnumValueStructDefined = true;
+                    }
+                    elementValueStruct += "    idigi_boolean_t  boolean_value;\n";
+                    optionCount++;
+                    break;
+                    
+                default:
+                    if (!isStringDefined) {
+                        /* if not defined yet then define it */
+                        structString += TYPEDEF_STRUCT 
+                                        + "    size_t min_length_in_bytes;\n"
+                                        + "    size_t max_length_in_bytes;\n"
+                                        + "} idigi_element_value_string_t;\n";
+                        elementValueStruct += "    char const * string_value;\n";
+                        isStringDefined = true;
+                        optionCount++;
+                     }
+                    break;
+                }
+            }
+        }
+        
+        headerString += structString;
+        
+        if (optionCount > 1) {
+            headerString += "\n\ntypedef union {\n";
+        } else {
+            headerString += "\n\ntypedef struct {\n";
+        }
+        
+        headerString += elementValueStruct + "} idigi_element_value_t;\n";
+        
+        headerWriter.write(headerString);
+    }
+
+
+    private void writeDefineOptionHeader(ConfigData configData) throws IOException {
+
+        String headerString = "";
+        
         if (!ConfigGenerator.excludeErrorDescription()) {
             headerString += DEFINE + RCI_PARSER_USES_ERROR_DESCRIPTIONS;
         }
 
-        String stringDefine = null;
-        String uintDefine = null;
+        Boolean isUnsignedIntegerDefined = false;
+        Boolean isStringDefined = false;
+        
         String floatInclude = null;
 
         for (ElementStruct.ElementType type : ElementStruct.ElementType.values()) {
@@ -179,55 +396,67 @@ public class FileGenerator {
                 case UINT32:
                 case HEX32:
                 case XHEX:
-                    if (uintDefine == null) {
-                        uintDefine = DEFINE + RCI_PARSER_USES_UNSIGNED_INTEGER;
-                        headerString += uintDefine;
+                    if (!isUnsignedIntegerDefined) {
+                        /* if not defined yet, then define it */
+                        headerString += DEFINE + RCI_PARSER_USES_UNSIGNED_INTEGER;
+                        isUnsignedIntegerDefined = true;
                     }
                     break;
                     
                 case INT32:
                     headerString += DEFINE + RCI_PARSER_USES_SIGNED_INTEGER;
-                    structString += "typedef struct {\n"
-                                    + "   int32_t min_value;\n"
-                                    + "   int32_t max_value;\n"
-                                    + "} idigi_element_value_signed_integer_t\n";
-                    break;
+                     break;
                     
                 case ENUM:
                     headerString += DEFINE + RCI_PARSER_USES_ENUMERATIONS;
                     break;
                     
                 case FLOAT:
-                    headerString += DEFINE + RCI_PARSER_USES_FLOATING_POINT;
                     floatInclude = INCLUDE + FLOAT_HEADER;
-                    
+                    headerString += DEFINE + RCI_PARSER_USES_FLOATING_POINT;
                     break;
+                    
                 case ON_OFF:
                     headerString += DEFINE + RCI_PARSER_USES_ON_OFF;
                     /* must put before writing the defines and strings */
                     configData.getRciStrings().put("ON", "on");
                     configData.getRciStrings().put("OFF", "off");
-
                     break;
+                    
                 case BOOLEAN:
                     headerString += DEFINE + RCI_PARSER_USES_BOOLEAN;
                     /* must put before writing the defines and strings */
                     configData.getRciStrings().put("TRUE", "true");
                     configData.getRciStrings().put("FALSE", "false");
                     break;
+                    
                 default:
-                    if (stringDefine == null) {
-                        stringDefine = DEFINE + RCI_PARSER_USES_STRINGS;
-                        headerString += stringDefine;
+                    if (!isStringDefined) {
+                        /* if not defined yet then define it */
+                        headerString += DEFINE + RCI_PARSER_USES_STRINGS;
+                        isStringDefined = true;
                      }
                     break;
                 }
             }
         }
+        
+        
         if (floatInclude != null)
-            headerString += "\n" + floatInclude;
+            headerString += "\n\n" + floatInclude;
 
-        headerString += "\n" + INCLUDE + IDIGI_REMOTE_HEADER;
+        headerWriter.write(headerString);
+    }
+
+    private void writeDefinesAndStructures(ConfigData configData) throws IOException {
+
+
+        writeDefineOptionHeader(configData);
+        writeOnOffBooleanEnum();
+        writeElementValueStruct();
+        writeElementLimitStruct();
+        
+        String headerString = "\n\n" + INCLUDE + IDIGI_REMOTE_HEADER;
 
         headerWriter.write(headerString);
     }

@@ -58,10 +58,10 @@ idigi_callback_status_t app_debug_info_group_get(idigi_remote_group_request_t co
     switch (request->element.id)
     {
     case idigi_state_debug_info_version:
-        response->element_data.element_value->integer_unsigned_value = idigiThreadInfo.version;
+        response->element_data.element_value->unsigned_integer_value = idigiThreadInfo.version;
         break;
     case idigi_state_debug_info_stacksize:
-        response->element_data.element_value->integer_unsigned_value =  idigiThreadInfo.stacksize;
+        response->element_data.element_value->unsigned_integer_value =  idigiThreadInfo.stacksize;
         break;
     }
     return idigi_callback_continue;

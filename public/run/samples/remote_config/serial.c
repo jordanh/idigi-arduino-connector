@@ -134,13 +134,13 @@ idigi_callback_status_t app_serial_group_get(idigi_remote_group_request_t const 
         }
         break;
     case idigi_setting_serial_databits:
-        response->element_data.element_value->integer_signed_value = serial_ptr->databits;
+        response->element_data.element_value->signed_integer_value = serial_ptr->databits;
         break;
     case idigi_setting_serial_xbreak:
         response->element_data.element_value->on_off_value = (serial_ptr->xbreak_enable) ? idigi_on: idigi_off;
         break;
     case idigi_setting_serial_txbytes:
-        response->element_data.element_value->integer_unsigned_value = serial_txbytes[request->group.index-1];
+        response->element_data.element_value->unsigned_integer_value = serial_txbytes[request->group.index-1];
         break;
     default:
         ASSERT(0);
@@ -208,7 +208,7 @@ idigi_callback_status_t app_serial_group_set(idigi_remote_group_request_t const 
     }
     case idigi_setting_serial_databits:
         ASSERT(request->element.type == idigi_element_type_uint32);
-        serial_ptr->databits = request->element.value->integer_unsigned_value;
+        serial_ptr->databits = request->element.value->unsigned_integer_value;
         break;
     case idigi_setting_serial_xbreak:
         ASSERT(request->element.type == idigi_element_type_on_off);
