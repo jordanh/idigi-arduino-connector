@@ -458,7 +458,7 @@ done:
     return status;
 }
 
-static idigi_callback_status_t app_network_close(idigi_network_handle_t * const handle)
+static idigi_callback_status_t app_network_close(idigi_network_handle_t const * const handle)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     app_ssl_t * const ssl_ptr = (app_ssl_t *)handle;
@@ -513,7 +513,7 @@ idigi_callback_status_t app_network_handler(idigi_network_request_t const reques
         break;
 
     case idigi_network_close:
-        status = app_network_close((idigi_network_handle_t * const)request_data);
+        status = app_network_close(request_data);
         break;
 
     case idigi_network_disconnected:

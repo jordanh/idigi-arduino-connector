@@ -417,7 +417,7 @@ static msg_session_t * msg_create_session(idigi_data_t * const idigi_ptr, idigi_
     }
 
     {
-        void * ptr;
+        void * ptr = NULL;
         size_t const bytes_in_block = sizeof(msg_data_block_t);
         size_t const bytes_in_service_data = sizeof(msg_service_data_t);
         size_t const bytes_in_session = sizeof *session;
@@ -427,7 +427,7 @@ static msg_session_t * msg_create_session(idigi_data_t * const idigi_ptr, idigi_
         idigi_callback_status_t const status = malloc_data(idigi_ptr, total_bytes, &ptr);
         uint8_t * data_ptr = ptr;
 
-        if (status != idigi_callback_continue) goto done;
+        if ((status != idigi_callback_continue) || (ptr == NULL)) goto done;
         session = ptr;
         data_ptr += bytes_in_session;
 
@@ -1442,8 +1442,7 @@ static idigi_callback_status_t msg_process_start(idigi_data_t * const idigi_ptr,
     uint8_t * start_packet = ptr;
     unsigned flag = message_load_u8(start_packet, flags);
     uint16_t const session_id = message_load_be16(start_packet, transaction_id);
-    idigi_bool_t const request = MsgIsRequest(flag);
-    idigi_bool_t const client_owned = MsgIsFalse(request);
+    idigi_bool_t const client_owned = MsgIsFalse(MsgIsRequest(flag));
 
     session = msg_find_session(msg_ptr, session_id, client_owned);
     if (session == NULL)
@@ -1469,14 +1468,14 @@ static idigi_callback_status_t msg_process_start(idigi_data_t * const idigi_ptr,
         }
 
         session->session_id = session_id;
-        if ((session->out_dblock != NULL) && request)
+        if (session->out_dblock != NULL)
         {
             result = msg_initialize_data_block(session, msg_ptr->capabilities[msg_capability_client].window_size, msg_block_state_send_response);
             if (result != idigi_msg_error_none)
                 goto error;
         }
 
-        result = msg_initialize_data_block(session, msg_ptr->capabilities[msg_capability_client].window_size, request ? msg_block_state_recv_request : msg_block_state_recv_response);
+        result = msg_initialize_data_block(session, msg_ptr->capabilities[msg_capability_client].window_size, msg_block_state_recv_request);
         if (result != idigi_msg_error_none)
             goto error;
     }
@@ -1487,7 +1486,7 @@ static idigi_callback_status_t msg_process_start(idigi_data_t * const idigi_ptr,
 
         if (client_owned)
         {
-            result = msg_initialize_data_block(session, msg_ptr->capabilities[msg_capability_client].window_size, request ? msg_block_state_recv_request : msg_block_state_recv_response);
+            result = msg_initialize_data_block(session, msg_ptr->capabilities[msg_capability_client].window_size, msg_block_state_recv_response);
             if (result != idigi_msg_error_none)
                 goto error;
         }
@@ -1593,12 +1592,15 @@ static idigi_callback_status_t msg_process_error(idigi_data_t * const idigi_ptr,
         if ((session->current_state != msg_state_delete) && (session->current_state != msg_state_send_error))
         {
             uint8_t const error_val = message_load_u8(error_packet, error_code);
-            idigi_msg_error_t const msg_error = error_val;
 
-            ASSERT(error_val < idigi_msg_error_count);
-            status = msg_inform_error(idigi_ptr, session, msg_error);
-            if (status != idigi_callback_busy)
-                msg_delete_session(idigi_ptr, msg_fac, session);
+            ASSERT_GOTO(error_val < idigi_msg_error_count, error);
+            {
+                idigi_msg_error_t const msg_error = error_val;
+
+                status = msg_inform_error(idigi_ptr, session, msg_error);
+                if (status != idigi_callback_busy)
+                    msg_delete_session(idigi_ptr, msg_fac, session);
+            }
         }
     }
     else
@@ -1606,6 +1608,7 @@ static idigi_callback_status_t msg_process_error(idigi_data_t * const idigi_ptr,
         idigi_debug_printf("msg_process_error: unable to find session id = %d\n", session_id);
     }
 
+error:
     return status;
 }
 

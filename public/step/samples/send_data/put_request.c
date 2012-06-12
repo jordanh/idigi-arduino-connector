@@ -56,23 +56,24 @@ idigi_callback_status_t app_data_service_handler(idigi_data_service_request_t co
                                                   void * response_data, size_t * const response_length)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    idigi_data_service_msg_request_t const * const put_request = request_data;
-    idigi_data_service_msg_response_t * const put_response = response_data;
-    idigi_data_service_put_request_t const * const header = put_request->service_context;
-    client_data_t * const app_data = (client_data_t * const)header->context;
 
     UNUSED_ARGUMENT(request_length);
     UNUSED_ARGUMENT(response_length);
 
-    if ((put_request == NULL) || (put_response == NULL))
+    if ((put_request == NULL) || (put_response == NULL) || (put_request->service_context == NULL))
     {
          APP_DEBUG("Invalid request_data [%p] or response_data[%p]\n", request_data, response_data);
          goto done;
     }
 
-    ASSERT(app_data != NULL);
     if (request == idigi_data_service_put_request)
     {
+        idigi_data_service_msg_request_t const * const put_request = request_data;
+        idigi_data_service_msg_response_t * const put_response = response_data;
+        idigi_data_service_put_request_t const * const header = put_request->service_context;
+        client_data_t * const app_data = header->context;
+
+        ASSERT(app_data != NULL);
         switch (put_request->message_type)
         {
         case idigi_data_service_type_need_data:
