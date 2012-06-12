@@ -146,21 +146,26 @@ typedef enum {
 * @}
 */
 
+#if defined(RCI_PARSER_USES_SIGNED_INTEGER)
 typedef struct {
     int32_t min_value;
     int32_t max_value;
 } idigi_element_value_signed_integer_t;
+#endif
 
-
+#if defined(RCI_PARSER_USES_UNSIGNED_INTEGER)
 typedef struct {
     uint32_t min_value;
     uint32_t max_value;
 } idigi_element_value_unsigned_integer_t;
+#endif
 
+#if defined(RCI_PARSER_USES_STRINGS)
 typedef struct {
     size_t min_length_in_bytes;
     size_t max_length_in_bytes;
 } idigi_element_value_string_t;
+#endif
 
 #if defined(RCI_PARSER_USES_ENUMERATIONS)
 typedef struct {
@@ -177,9 +182,15 @@ typedef struct {
 #endif
 
 typedef union {
+#if defined(RCI_PARSER_USES_UNSIGNED_INTEGER)
     idigi_element_value_unsigned_integer_t integer_unsigned_value;
+#endif
+#if defined(RCI_PARSER_USES_SIGNED_INTEGER)
     idigi_element_value_signed_integer_t integer_signed_value;
+#endif
+#if defined(RCI_PARSER_USES_STRINGS)
     idigi_element_value_string_t string_value;
+#endif
 #if defined(RCI_PARSER_USES_ENUMERATIONS)
     idigi_element_value_enum_t enum_value;
 #endif
@@ -258,8 +269,15 @@ typedef union {
 #if defined(RCI_PARSER_USES_ENUMERATIONS)
     unsigned int enum_value;            /**< Enumeration value for @ref idigi_element_type_enum value type */
 #endif
+
+#if defined(RCI_PARSER_USES_ON_OFF)
     idigi_on_off_t  on_off_value;       /**< @ref idigi_on for on or @ref idigi_off for Off value for @ref idigi_element_type_on_off value type */
+#endif
+
+#if defined(RCI_PARSER_USES_BOOLEAN)
     idigi_boolean_t boolean_value;      /**< @ref idigi_boolean_true for true or @ref idigi_boolean_false for false value for @ref idigi_element_type_boolean value type */
+#endif
+
 } idigi_element_value_t;
 /**
 * @}
