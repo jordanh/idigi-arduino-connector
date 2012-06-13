@@ -1,0 +1,6 @@
+
+# iDigi Manager Pro queries this system setting to display the information in root folder
+group setting system "System"
+    element contact "Contact" type fqdnv4
+
+    

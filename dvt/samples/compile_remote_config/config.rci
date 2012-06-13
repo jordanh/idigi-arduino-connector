@@ -1,0 +1,10 @@
+
+# iDigi Manager Pro queries this system setting to display the information in root folder
+group setting system "System"
+    element contact "Contact" type string max 63
+    element location "Location" type string max 63
+    element description "Description" type string max 63
+    error invalid_length "Invalid Length"
+    error no_memory "Insufficient memory"
+
+    
