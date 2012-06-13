@@ -96,6 +96,7 @@ dvt_tests = {
                                      'test_disconnect.py'),
     'terminate_test'              : ('test_ds_terminate.py',),
     'response_to_bad_values_test' : ('test_debug_response_to_bad_values.py',),
+    'compile_remote_config'  : (),
 }
 dvt_test    = TestType('dvt_test', 'dvt/samples/', 'dvt/cases/dvt_tests',
                        dvt_tests)
@@ -376,14 +377,15 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
     for test in tests:
             test_type = tests[test]
             test_list = test_type.tests
+
             # If test_name is specified, filter test list to the test_name.
             if test_name is not None:
                 if test_list.has_key(test_name):
                     test_list = { test_name : test_list[test_name] }
                 else:
-                    print "Error: no tests found for %s with this test type."\
-                        % test_name
-                    return
+                    print "Error: no tests found for %s with this test type (%s)."\
+                        % (test_name, test_type.name)
+                    continue
 
             for test_set in test_list:
                 sample = test_type.name.find('sample') != -1
