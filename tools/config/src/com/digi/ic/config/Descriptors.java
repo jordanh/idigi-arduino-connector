@@ -239,7 +239,7 @@ public class Descriptors {
 
         int startIndex = response.indexOf("<dvVendorId>");
         if (startIndex == -1) {
-            ConfigGenerator.log(username + " has no vendor ID, so please create the vendor ID");
+            ConfigGenerator.log(username + " has no vendor ID. Refer \"Setup your iDigi Acount\" section of Getting started guide to obtain one");
             System.exit(1);
         }
 
