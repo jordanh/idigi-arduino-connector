@@ -68,9 +68,9 @@ group state gps_stats "GPS"
 
 # iDigi Manager Pro queries this system setting to display the information in root folder
 group setting system "System"
+    element description "Description" type string max 63
     element contact "Contact" type string max 63
     element location "Location" type string max 63
-    element description "Description" type string max 63
     error invalid_length "Invalid Length"
 
 # iDigi Manager Pro uses this devicesecurity setting for password authentication

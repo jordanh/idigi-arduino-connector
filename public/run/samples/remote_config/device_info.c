@@ -32,7 +32,7 @@ typedef struct {
     char syspwd[DEVICE_INFO_SYSPWD_LENGTH];
 } device_info_config_data_t;
 
-device_info_config_data_t device_info_config_data = {"ICC Product\0", "\0", "Digi International Inc.\0", "ICC Demo on Linux\n"
+device_info_config_data_t device_info_config_data = {"iDigi Connector Product\0", "\0", "Digi International Inc.\0", "iDigi Connector Demo on Linux\n"
         "with firmware ugrade, put service, device request and remote configuration supports\0", 102, "\0"};
 
 void print_device_info_desc(void)

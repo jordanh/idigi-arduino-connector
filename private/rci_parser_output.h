@@ -461,9 +461,19 @@ static void rci_generate_output(rci_t * const rci)
             }
             break;
         case rci_output_state_content_scan:
+
+            if (rci->shared.response.error_id != idigi_success)
+            {
+                /* TODO: Add error <desc>
+                 *
+                 */
+                rci->output.state = rci_output_state_none;
+            }
 #if defined RCI_PARSER_USES_STRINGS
+            else
             {
                 int const character = rci->shared.value.string_value[rci->output.entity_scan_index];
+
                 
                 if (character == '\0')
                 {
