@@ -26,8 +26,6 @@ static void rci_traverse_data(rci_t * const rci)
         
     case rci_traversal_state_all_groups_start:
 
-        if (table->count > 0)
-        {
         trigger_rci_callback(rci, idigi_remote_config_action_start);
 
         ASSERT(rci->shared.request.group.id == INVALID_ID);
@@ -39,12 +37,7 @@ static void rci_traverse_data(rci_t * const rci)
         
         rci->output.type = rci_output_type_start_tag;
         set_rci_command_tag(rci->input.command, &rci->output.tag);
-        rci->traversal.state = rci_traversal_state_all_groups_group_start;
-        }
-        else
-        {
-            rci->traversal.state = rci_traversal_state_all_groups_end;
-        }
+        rci->traversal.state = (table->count > 0) ? rci_traversal_state_all_groups_group_start : rci_traversal_state_all_groups_end;
         break;
                 
     case rci_traversal_state_all_groups_group_start:
