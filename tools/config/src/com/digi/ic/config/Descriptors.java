@@ -225,9 +225,9 @@ public class Descriptors {
             reader.close();
             connection.disconnect();
 
-        } catch (Exception x) {
-            ConfigGenerator.log("Error status: " + connection.getHeaderField(0));
-            System.err.println(x);
+        } catch (Exception e) {
+            ConfigGenerator.log(method + " " + target + " is failed!");
+            ConfigGenerator.log("Response status: " + connection.getHeaderField(0));
             System.exit(1);
         }
 
