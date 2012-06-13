@@ -14,7 +14,6 @@ static void rci_traverse_data(rci_t * const rci)
 {
     idigi_group_table_t const * const table = (idigi_group_table + rci->shared.request.group.type);
     
-    idigi_debug_printf("rci_traverse_data: rci->travesal.state = %d\n", rci->traversal.state);
     switch (rci->traversal.state)
     {
     UNHANDLED_CASES_ARE_NEEDED

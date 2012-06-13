@@ -461,7 +461,6 @@ static void rci_generate_output(rci_t * const rci)
             }
             break;
         case rci_output_state_content_scan:
-            idigi_debug_printf("rci_output_state_content_scan\n");
 #if defined RCI_PARSER_USES_STRINGS
             {
                 int const character = rci->shared.value.string_value[rci->output.entity_scan_index];
@@ -493,7 +492,6 @@ static void rci_generate_output(rci_t * const rci)
 #endif
             break;
         case rci_output_state_content_entity:
-            idigi_debug_printf("rci_output_state_content_entity\n");
 #if defined RCI_PARSER_USES_STRINGS
             {
                 int const entity = rci->shared.value.string_value[rci->output.entity_scan_index];

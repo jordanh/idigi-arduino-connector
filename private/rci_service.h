@@ -86,8 +86,6 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
 
         ccode = rci_parser(parser_action, parser_data);
 
-        /* idigi_debug_printf("rci_service: rci_parser returns %d\n", ccode); */
-
         switch (ccode)
         {
         case rci_status_complete:

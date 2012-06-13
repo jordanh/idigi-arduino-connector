@@ -24,6 +24,8 @@ static idigi_bool_t rci_callback(rci_t * const rci)
     idigi_remote_group_request_t * request_data = NULL;
     size_t request_length = 0;
 
+    response_data->error_id = idigi_success;
+
     switch (rci->callback.request.remote_config_request)
     {
     UNHANDLED_CASES_ARE_NEEDED;
@@ -45,7 +47,7 @@ static idigi_bool_t rci_callback(rci_t * const rci)
         response_length = 0;
         break;
     }
-        
+
     rci->callback.status = idigi_callback(rci->service_data->idigi_ptr->callback, idigi_class_remote_config_service, rci->callback.request, request_data, request_length, response_data, &response_length);
 
     switch (rci->callback.status)
