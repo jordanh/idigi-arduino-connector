@@ -5,6 +5,7 @@ import java.net.*;
 import java.util.*;
 
 import javax.xml.bind.DatatypeConverter;
+import javax.net.ssl.HttpsURLConnection;
 
 public class Descriptors {
 
@@ -193,15 +194,15 @@ public class Descriptors {
 
     private String sendCloudData(String target, String method, String message) {
         String response = "";
-        String cloud = "http://" + ConfigGenerator.getServerName() + target;
+        String cloud = "https://" + ConfigGenerator.getServerName() + target;
         String credential = username + ":" + password;
         String encodedCredential = DatatypeConverter.printBase64Binary(credential.getBytes());
-        HttpURLConnection connection = null;
+        HttpsURLConnection connection = null;
 
         try {
             URL url = new URL(cloud);
 
-            connection = (HttpURLConnection) url.openConnection();
+            connection = (HttpsURLConnection) url.openConnection();
             connection.setRequestMethod(method);
             connection.setRequestProperty("Content-Type", "text/xml");
             connection.setRequestProperty("Authorization", "Basic " + encodedCredential);
