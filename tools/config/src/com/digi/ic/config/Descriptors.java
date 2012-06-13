@@ -196,10 +196,12 @@ public class Descriptors {
         String cloud = "http://" + ConfigGenerator.getServerName() + target;
         String credential = username + ":" + password;
         String encodedCredential = DatatypeConverter.printBase64Binary(credential.getBytes());
+        HttpURLConnection connection = null;
 
         try {
             URL url = new URL(cloud);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod(method);
             connection.setRequestProperty("Content-Type", "text/xml");
             connection.setRequestProperty("Authorization", "Basic " + encodedCredential);
@@ -223,7 +225,7 @@ public class Descriptors {
             connection.disconnect();
 
         } catch (Exception x) {
-            ConfigGenerator.log("Failed to " + method + " " + target);
+            ConfigGenerator.log("Error status: " + connection.getHeaderField(0));
             System.err.println(x);
             System.exit(1);
         }
@@ -251,7 +253,7 @@ public class Descriptors {
     }
 
     private void validateServerName() {
-        sendCloudData("/ws/CheckStatus", "GET", null);
+        sendCloudData("/ws/UserInfo", "GET", null);
     }
 
     private String tagMessageSegment(String tagName, String value) {
