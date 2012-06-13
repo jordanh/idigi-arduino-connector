@@ -31,17 +31,17 @@ static void rci_error(rci_t * const rci, unsigned int const id, char const * con
     state_call(rci, rci_parser_state_error);
 }
 
-#if defined RCI_PARSER_USES_DESCRIPTIONS
+#if defined RCI_PARSER_USES_ERROR_DESCRIPTIONS
 #define get_rci_global_error(rci, id)   idigi_rci_errors[(id) - idigi_rci_error_OFFSET]
-static char * get_rci_group_error(rci_t * const rci, unsigned int const id)
+static char const * get_rci_group_error(rci_t * const rci, unsigned int const id)
 {
     idigi_group_t const * const group = get_current_group(rci);
     unsigned int const index = (id - idigi_global_error_OFFSET);
     
     ASSERT(id >= idigi_global_error_OFFSET);
-    ASSERT(index < group->errors->count);
+    ASSERT(index < group->errors.count);
         
-    return group->errors->description[index];
+    return group->errors.description[index];
 }
 #else
 #define get_rci_global_error(rci, id)   ((void) (rci), (void) (id), NULL)

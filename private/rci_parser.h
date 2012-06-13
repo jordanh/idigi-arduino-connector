@@ -120,7 +120,7 @@ static rci_status_t rci_parser(rci_session_t const action, ...)
     {
         idigi_bool_t success;
         va_list ap;
-            
+
         switch (action)
         {
         case rci_session_start:

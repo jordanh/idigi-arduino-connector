@@ -29,7 +29,7 @@ static void rci_generate_error(rci_t * const rci)
         add_numeric_attribute(&rci->output.attribute, RCI_ID, rci->shared.response.error_id);
         rci->output.type = rci_output_type_start_tag;
         
-#if defined RCI_PARSER_USES_DESCRIPTIONS
+#if defined RCI_PARSER_USES_ERROR_DESCRIPTIONS
         rci->error.state = rci_error_state_error_content;
 #else
         rci->error.state = rci_error_state_error_close;
@@ -39,8 +39,9 @@ static void rci_generate_error(rci_t * const rci)
     case rci_error_state_error_content:
         clear_attributes(&rci->output.attribute);
         
-#if defined RCI_PARSER_USES_DESCRIPTIONS
-        output.content.data.counted_string = rci->output.description;
+#if defined RCI_PARSER_USES_ERROR_DESCRIPTIONS
+        /* TODO: IDK this line */
+/*        output.content.data.counted_string = rci->output.description; */
         rci->output.type = rci_output_type_content;
         rci->error.state = rci_error_state_error_close;
 #endif
