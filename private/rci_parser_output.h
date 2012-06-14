@@ -460,6 +460,7 @@ static void rci_generate_output(rci_t * const rci)
                 }
             }
             break;
+#if defined(RCI_PARSER_USES_STRINGS)
         case rci_output_state_content_scan:
 
             if (rci->shared.response.error_id != idigi_success)
@@ -519,6 +520,7 @@ static void rci_generate_output(rci_t * const rci)
 
             rci->output.state = rci_output_state_content_scan;
             break;
+#endif
         }
 
         if (rci->output.state == rci_output_state_none)

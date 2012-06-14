@@ -390,11 +390,15 @@ static void rci_handle_content(rci_t * const rci)
 #endif
 
 #if (defined RCI_PARSER_USES_SIGNED_INTEGER) || (defined RCI_PARSER_USES_UNSIGNED_INTEGER) || (defined RCI_PARSER_USES_FLOATING_POINT)
+#if defined(RCI_PARSER_USES_UNSIGNED_INTEGER)
     case idigi_element_type_int32:
     case idigi_element_type_uint32:
     case idigi_element_type_hex32:
     case idigi_element_type_0xhex:
+#endif
+#if defined(RCI_PARSER_USES_FLOAT)
     case idigi_element_type_float:
+#endif
         switch (type)
         {
         UNHANDLED_CASES_ARE_INVALID
