@@ -250,7 +250,7 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
     if ((server_data->flags & IDIGI_MSG_FIRST_DATA) == IDIGI_MSG_FIRST_DATA)
     {
         void * ptr;
-        idigi_callback_status_t ccode;
+
         if (strcmp(server_device_request->target, request_terminate_target) == 0)
         {
             idigi_status_t ccode;
