@@ -32,7 +32,7 @@ idigi_callback_status_t app_system_session_start(idigi_remote_group_response_t *
 {
     /* nothing to do here since we only have one group */
     UNUSED_ARGUMENT(response);
-    printf("app_system_session_start\n");
+    APP_DEBUG("app_system_session_start\n");
     return idigi_callback_continue;
 }
 
@@ -40,7 +40,7 @@ idigi_callback_status_t app_system_session_end(idigi_remote_group_response_t * c
 {
     /* nothing to do here since we only have one group */
     UNUSED_ARGUMENT(response);
-    printf("app_system_session_end\n");
+    APP_DEBUG("app_system_session_end\n");
     return idigi_callback_continue;
 }
 
@@ -50,7 +50,7 @@ idigi_callback_status_t app_system_action_start(idigi_remote_group_request_t con
     /* nothing to do here since we only have one group */
     UNUSED_ARGUMENT(request);
     UNUSED_ARGUMENT(response);
-    printf("app_system_action_start\n");
+    APP_DEBUG("app_system_action_start\n");
     return idigi_callback_continue;
 }
 
@@ -60,7 +60,7 @@ idigi_callback_status_t app_system_action_end(idigi_remote_group_request_t const
     /* nothing to do here since we only have one group */
     UNUSED_ARGUMENT(request);
     UNUSED_ARGUMENT(response);
-    printf("app_system_action_end\n");
+    APP_DEBUG("app_system_action_end\n");
     return idigi_callback_continue;
 }
 
@@ -74,7 +74,7 @@ idigi_callback_status_t app_system_group_init(idigi_remote_group_request_t const
 
     UNUSED_ARGUMENT(request);
 
-    printf("app_system_group_init\n");
+    APP_DEBUG("app_system_group_init\n");
 
     ptr = malloc(sizeof *system);
     if (ptr == NULL)
@@ -161,7 +161,7 @@ idigi_callback_status_t app_system_group_end(idigi_remote_group_request_t const 
 
     ASSERT(system != NULL);
 
-    printf("app_system_group_end\n");
+    APP_DEBUG("app_system_group_end\n");
 
     /* should start writing onto NvRam */
     nvram_system_data = *system;
@@ -176,7 +176,7 @@ void app_system_session_cancel(void * const context)
 {
     ASSERT(context != NULL);
 
-    printf("app_system_group_cancel\n");
+    APP_DEBUG("app_system_group_cancel\n");
 
     free(context);
 
