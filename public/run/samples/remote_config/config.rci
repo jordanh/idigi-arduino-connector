@@ -30,7 +30,7 @@ group setting ethernet "Ethernet interface"
     element subnet "Subnet" type ipv4 
     element gateway "Gateway" type ipv4
     element dhcp "DHCP" type boolean  
-    element dns "DNS" type fqdnv4  
+    element dns "DNS" type fqdnv4 max 127
     element duplex "Duplex" type enum  
         value auto  "Automatic"
         value half  "Half"
