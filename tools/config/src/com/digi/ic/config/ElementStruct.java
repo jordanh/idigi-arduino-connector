@@ -65,6 +65,13 @@ public class ElementStruct {
             return typeAvailable;
         }
 
+        public String toName() {
+            if (this == XHEX)
+                return STRING_0XHEX;
+            else
+                return name();
+        }
+        
         public static ElementType toElementType(String str) throws Exception {
             try {
 
@@ -79,6 +86,7 @@ public class ElementStruct {
             }
 
         }
+        
     }
 
     public enum AccessType {

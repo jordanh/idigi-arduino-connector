@@ -24,7 +24,7 @@
 #define ROUND_UP(value, interval)   ((value) + -(value) % (interval))
 
 #if defined IDIGI_DEBUG
-#define UNHANDLED_CASES_ARE_NEEDED  default: break;
+#define UNHANDLED_CASES_ARE_NEEDED
 #else
 #define UNHANDLED_CASES_ARE_NEEDED  default: break;
 #endif

@@ -278,21 +278,52 @@ static char const * idigi_element_value_type_t_as_string(idigi_element_value_typ
     char const * result;
     switch (value)
     {
+#if defined RCI_PARSER_USES_STRING
         enum_to_case(idigi_element_type_string);
+#endif
+
+#if defined RCI_PARSER_USES_MULTILINE_STRING
         enum_to_case(idigi_element_type_multiline_string);
+#endif
+#if defined RCI_PARSER_USES_PASSWORD
         enum_to_case(idigi_element_type_password);
+#endif
+#if defined RCI_PARSER_USES_INT32
         enum_to_case(idigi_element_type_int32);
+#endif
+#if defined RCI_PARSER_USES_UINT32
         enum_to_case(idigi_element_type_uint32);
+#endif
+#if defined RCI_PARSER_USES_HEX32
         enum_to_case(idigi_element_type_hex32);
+#endif
+#if defined RCI_PARSER_USES_0XHEX
         enum_to_case(idigi_element_type_0xhex);
+#endif
+#if defined RCI_PARSER_USES_FLOAT
         enum_to_case(idigi_element_type_float);
+#endif
+#if defined RCI_PARSER_USES_ENUM
         enum_to_case(idigi_element_type_enum);
+#endif
+#if defined RCI_PARSER_USES_ON_OFF
         enum_to_case(idigi_element_type_on_off);
+#endif
+#if defined RCI_PARSER_USES_BOOLEAN
         enum_to_case(idigi_element_type_boolean);
+#endif
+#if defined RCI_PARSER_USES_IPV4
         enum_to_case(idigi_element_type_ipv4);
+#endif
+#if defined RCI_PARSER_USES_FQDNV4
         enum_to_case(idigi_element_type_fqdnv4);
+#endif
+#if defined RCI_PARSER_USES_FQDNV6
         enum_to_case(idigi_element_type_fqdnv6);
+#endif
+#if defined RCI_PARSER_USES_DATETIME
         enum_to_case(idigi_element_type_datetime);
+#endif
     }
     return result;
 }

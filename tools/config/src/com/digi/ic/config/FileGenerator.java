@@ -51,14 +51,11 @@ public class FileGenerator {
     private final static String TYPEDEF_STRUCT = "\ntypedef struct {\n";
 
     /* Do not change these (if you do, you also need to update idigi_remote.h */
-    private final static String RCI_PARSER_USES_ERROR_DESCRIPTIONS = "RCI_PARSER_USES_ERROR_DESCRIPTIONS\n";
-    private final static String RCI_PARSER_USES_ENUMERATIONS = "RCI_PARSER_USES_ENUMERATIONS\n";
-    private final static String RCI_PARSER_USES_FLOATING_POINT = "RCI_PARSER_USES_FLOATING_POINT\n";
-    private final static String RCI_PARSER_USES_STRINGS = "RCI_PARSER_USES_STRINGS\n";
-    private final static String RCI_PARSER_USES_UNSIGNED_INTEGER = "RCI_PARSER_USES_UNSIGNED_INTEGER\n";
-    private final static String RCI_PARSER_USES_SIGNED_INTEGER = "RCI_PARSER_USES_SIGNED_INTEGER\n";
-    private final static String RCI_PARSER_USES_ON_OFF = "RCI_PARSER_USES_ON_OFF\n";
-    private final static String RCI_PARSER_USES_BOOLEAN = "RCI_PARSER_USES_BOOLEAN\n";
+    private final static String RCI_PARSER_USES = "RCI_PARSER_USES_";
+    
+    private final static String RCI_PARSER_USES_ERROR_DESCRIPTIONS = RCI_PARSER_USES + "ERROR_DESCRIPTIONS\n";
+    private final static String RCI_PARSER_USES_STRINGS = RCI_PARSER_USES + "STRINGS\n";
+    private final static String RCI_PARSER_USES_UNSIGNED_INTEGER = RCI_PARSER_USES + "UNSIGNED_INTEGER\n";
     
     private final static String RCI_PARSER_DATA = "IDIGI_RCI_PARSER_INTERNAL_DATA";
 
@@ -190,6 +187,26 @@ public class FileGenerator {
         headerWriter.write(enumString);
     }
 
+    private void writeElementTypeEnum() throws IOException {
+
+        String enumString = "\n\ntypedef enum {\n";
+        Boolean isFirstEnum = true;
+       
+        for (ElementStruct.ElementType type : ElementStruct.ElementType.values()) {
+            if (type.isSet()) {
+                if (!isFirstEnum) {
+                    enumString += ",\n";
+                }
+                isFirstEnum = false;
+                
+                enumString += "    idigi_element_type_" + type.toName().toLowerCase();
+            }
+        }
+
+        enumString += "\n} idigi_element_value_type_t;\n";
+        headerWriter.write(enumString);
+    }
+
     private void writeElementLimitStruct() throws IOException {
 
         String headerString = "";
@@ -249,11 +266,11 @@ public class FileGenerator {
         if (optionCount > 0) {
             
             if (optionCount > 1) 
-                headerString += "\n\n typedef union { ";
+                headerString += "\n\n typedef union {";
             else 
                 headerString += "\n\n typedef struct {";
             
-            headerString += structString + "} idigi_element_value_limit_t;\n";
+            headerString += "\n" + structString + "} idigi_element_value_limit_t;\n";
         } else {
             headerString += "\n\n typedef void idigi_element_value_limit_t;\n";
         }
@@ -385,62 +402,57 @@ public class FileGenerator {
             headerString += DEFINE + RCI_PARSER_USES_ERROR_DESCRIPTIONS;
         }
 
-        Boolean isUnsignedIntegerDefined = false;
-        Boolean isStringDefined = false;
+        String unsignedIntegerString = null;
+        String stringsString = null;
         
         String floatInclude = null;
 
         for (ElementStruct.ElementType type : ElementStruct.ElementType.values()) {
             if (type.isSet()) {
+                
+                headerString += DEFINE + RCI_PARSER_USES + type.toName().toUpperCase() + "\n";
+                
                 switch (type) {
                 case UINT32:
                 case HEX32:
                 case XHEX:
-                    if (!isUnsignedIntegerDefined) {
+                    if (unsignedIntegerString == null) {
                         /* if not defined yet, then define it */
-                        headerString += DEFINE + RCI_PARSER_USES_UNSIGNED_INTEGER;
-                        isUnsignedIntegerDefined = true;
+                        unsignedIntegerString = DEFINE + RCI_PARSER_USES_UNSIGNED_INTEGER;
                     }
                     break;
                     
                 case INT32:
-                    headerString += DEFINE + RCI_PARSER_USES_SIGNED_INTEGER;
-                     break;
-                    
                 case ENUM:
-                    headerString += DEFINE + RCI_PARSER_USES_ENUMERATIONS;
                     break;
-                    
                 case FLOAT:
                     floatInclude = INCLUDE + FLOAT_HEADER;
-                    headerString += DEFINE + RCI_PARSER_USES_FLOATING_POINT;
                     break;
                     
                 case ON_OFF:
-                    headerString += DEFINE + RCI_PARSER_USES_ON_OFF;
                     /* must put before writing the defines and strings */
                     configData.getRciStrings().put("ON", "on");
                     configData.getRciStrings().put("OFF", "off");
                     break;
                     
                 case BOOLEAN:
-                    headerString += DEFINE + RCI_PARSER_USES_BOOLEAN;
                     /* must put before writing the defines and strings */
                     configData.getRciStrings().put("TRUE", "true");
                     configData.getRciStrings().put("FALSE", "false");
                     break;
                     
                 default:
-                    if (!isStringDefined) {
+                    if (stringsString == null) {
                         /* if not defined yet then define it */
-                        headerString += DEFINE + RCI_PARSER_USES_STRINGS;
-                        isStringDefined = true;
+                        stringsString = DEFINE + RCI_PARSER_USES_STRINGS;
                      }
                     break;
                 }
             }
         }
         
+        if (unsignedIntegerString != null) headerString += unsignedIntegerString;
+        if (stringsString != null) headerString += stringsString;
         
         if (floatInclude != null)
             headerString += "\n\n" + floatInclude;
@@ -453,6 +465,7 @@ public class FileGenerator {
 
         writeDefineOptionHeader(configData);
         writeOnOffBooleanEnum();
+        writeElementTypeEnum();
         writeElementValueStruct();
         writeElementLimitStruct();
         

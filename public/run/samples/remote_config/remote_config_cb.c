@@ -30,6 +30,7 @@ typedef struct remote_group_table {
     remote_group_cancel_cb_t cancel_cb;
 } remote_group_table_t;
 
+#if 0
 remote_group_table_t remote_setting_table[] = {
     {app_serial_group_init,         app_serial_group_set,       app_serial_group_get,       app_serial_group_end,       app_serial_group_cancel},
     {app_ethernet_group_init,       app_ethernet_group_set,     app_ethernet_group_get,     app_ethernet_group_end,     app_ethernet_group_cancel},
@@ -37,11 +38,11 @@ remote_group_table_t remote_setting_table[] = {
     {app_device_info_group_init,    app_device_info_group_set,  app_device_info_group_get,  app_device_info_group_end,  app_device_info_group_cancel},
     {NULL,                          app_system_group_set,          app_system_group_get,          NULL,  NULL},
     {NULL,                          app_device_security_group_set, app_device_security_group_get, NULL,  NULL}
-
 };
+#endif
 
 remote_group_table_t remote_state_table[] = {
-    {NULL, NULL, app_debug_info_group_get, NULL, NULL},
+//    {NULL, NULL, app_debug_info_group_get, NULL, NULL},
     {NULL, NULL, app_gps_stats_group_get, NULL, NULL}
 };
 
@@ -110,6 +111,7 @@ static idigi_callback_status_t app_process_group(idigi_remote_config_request_t c
     switch (request->group.type)
     {
     case idigi_remote_group_setting:
+#if 0
         if (request->group.id <= asizeof (remote_setting_table))
         {
             group_ptr = &remote_setting_table[request->group.id];
@@ -118,6 +120,8 @@ static idigi_callback_status_t app_process_group(idigi_remote_config_request_t c
         {
             ASSERT(0);
         }
+#endif
+
         break;
     case idigi_remote_group_state:
         if (request->group.id <= asizeof (remote_state_table))

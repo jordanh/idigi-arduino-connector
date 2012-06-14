@@ -35,7 +35,7 @@ static idigi_bool_t rci_output_cstr(rci_buffer_t * const output, char const * co
     return rci_output_data(output, CSTR_DATA(cstr), CSTR_LEN(cstr));
 }
 
-#if (defined RCI_PARSER_USES_SIGNED_INTEGER) || (defined RCI_PARSER_USES_UNSIGNED_INTEGER) || (defined RCI_PARSER_USES_FLOATING_POINT)
+#if (defined RCI_PARSER_USES_INT32) || (defined RCI_PARSER_USES_UNSIGNED_INTEGER) || (defined RCI_PARSER_USES_FLOAT)
 static idigi_bool_t rci_output_formatted(rci_buffer_t * const output, char const * const format, ...)
 {
     idigi_bool_t overflow;
@@ -94,7 +94,7 @@ static idigi_bool_t rci_output_entity_name(rci_buffer_t * const output, int cons
     return rci_output_cstr(output, name);
 }
 
-#if defined RCI_PARSER_USES_ENUMERATIONS
+#if defined RCI_PARSER_USES_ENUM
 static cstr_t const * enum_value_to_cstr(rci_t * const rci, unsigned int const value)
 {
     unsigned int const index = value;
@@ -377,25 +377,47 @@ static void rci_generate_output(rci_t * const rci)
             switch (rci->shared.request.element.type)
             {
             UNHANDLED_CASES_ARE_NEEDED
-#if defined RCI_PARSER_USES_STRINGS
+#if (defined RCI_PARSER_USES_STRING) || (defined RCI_PARSER_USES_MULTILINE_STRING) || (defined RCI_PARSER_USES_PASSWORD)
+
+
+#if defined RCI_PARSER_USES_STRING
             case idigi_element_type_string:
+#endif
+
+#if defined RCI_PARSER_USES_MULTILINE_STRING
             case idigi_element_type_multiline_string:
+#endif
+
+#if defined RCI_PARSER_USES_PASSWORD
             case idigi_element_type_password:
+#endif
                 rci->output.state = rci_output_state_content_scan;
                 rci->output.entity_scan_index = 0;
                 break;
+#endif /* (defined RCI_PARSER_USES_STRING) || (defined RCI_PARSER_USES_MULTILINE_STRING) || (defined RCI_PARSER_USES_PASSWORD) */
+
+#if (defined RCI_PARSER_USES_IPV4) || (defined RCI_PARSER_USES_FQDNV4) || (defined RCI_PARSER_USES_FQDNV6) || (defined RCI_PARSER_USES_DATETIME)
+
+#if defined RCI_PARSER_USES_IPV4
+            case idigi_element_type_ipv4:
 #endif
 
-#if defined RCI_PARSER_USES_STRINGS
-            case idigi_element_type_ipv4:
+#if defined RCI_PARSER_USES_FQDNV4
             case idigi_element_type_fqdnv4:
+#endif
+
+#if defined RCI_PARSER_USES_FQDNV6
             case idigi_element_type_fqdnv6:
+#endif
+
+#if defined RCI_PARSER_USES_DATETIME
             case idigi_element_type_datetime:
+#endif
                 overflow = rci_output_data(output, rci->shared.value.string_value, strlen(rci->shared.value.string_value));
                 break;
-#endif
+#endif /* (defined RCI_PARSER_USES_IPV4) || (defined RCI_PARSER_USES_FQDNV4) || (defined RCI_PARSER_USES_FQDNV6) || (defined RCI_PARSER_USES_DATETIME) */
 
-#if defined RCI_PARSER_USES_ENUMERATIONS
+#if defined RCI_PARSER_USES_ENUM
             case idigi_element_type_enum:
                 overflow = rci_output_cstr(output, enum_value_to_cstr(rci, rci->shared.value.enum_value));
                 break;
@@ -413,31 +435,31 @@ static void rci_generate_output(rci_t * const rci)
                 break;
 #endif
 
-#if defined RCI_PARSER_USES_SIGNED_INTEGER
+#if defined RCI_PARSER_USES_INT32
             case idigi_element_type_int32:
                 overflow = rci_output_formatted(output, "%ld", rci->shared.value.signed_integer_value);
                 break;
 #endif
 
-#if defined RCI_PARSER_USES_UNSIGNED_INTEGER
+#if defined RCI_PARSER_USES_UINT32
             case idigi_element_type_uint32:
                 overflow = rci_output_formatted(output, "%lu", rci->shared.value.unsigned_integer_value);
                 break;
 #endif
 
-#if defined RCI_PARSER_USES_UNSIGNED_INTEGER
+#if defined RCI_PARSER_USES_HEX32
             case idigi_element_type_hex32:
                 overflow = rci_output_formatted(output, "%lx", rci->shared.value.unsigned_integer_value);
                 break;
 #endif
 
-#if defined RCI_PARSER_USES_UNSIGNED_INTEGER
+#if defined RCI_PARSER_USES_0XHEX
             case idigi_element_type_0xhex:
                 overflow = rci_output_formatted(output, "0x%lx", rci->shared.value.unsigned_integer_value);
                 break;
 #endif
 
-#if defined RCI_PARSER_USES_FLOATING_POINT
+#if defined RCI_PARSER_USES_FLOAT
             case idigi_element_type_float:
                 overflow = rci_output_formatted(output, "%f", rci->shared.value.float_value);
                 break;
