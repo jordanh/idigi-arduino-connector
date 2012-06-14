@@ -68,7 +68,7 @@ static uint_32 start_network(void)
 		goto error;
 	}
 
-#if (defined IDIGI_FIRMWARE_SERVICE) || (BOOTLOADER_ENABLED == 1)
+#if BSPCFG_ENABLE_FLASHX
     Flash_NVRAM_get_mac_address(mac_addr);
 #endif
 
