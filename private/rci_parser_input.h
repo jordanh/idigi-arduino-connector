@@ -405,7 +405,7 @@ static void rci_handle_content(rci_t * const rci)
         else
         {
             idigi_element_value_string_t const * const limit = &element->value_limit->string_value;
-            error = (string_length >= limit->min_length_in_bytes) && (string_length <= limit->max_length_in_bytes);
+            error = (string_length < limit->min_length_in_bytes) || (string_length > limit->max_length_in_bytes);
         }
         break;
 #endif /* RCI_PARSER_USES_STRINGS */
@@ -478,7 +478,7 @@ static void rci_handle_content(rci_t * const rci)
                     idigi_element_value_signed_integer_t const * const limit = &element->value_limit->signed_integer_value;
                     int32_t const value = rci->shared.value.signed_integer_value;
                     
-                    error = (value >= limit->min_value) && (value <= limit->max_value);
+                    error = (value < limit->min_value) || (value > limit->max_value);
                 }
                 break;
 #endif
@@ -499,7 +499,7 @@ static void rci_handle_content(rci_t * const rci)
                     idigi_element_value_unsigned_integer_t const * const limit = &element->value_limit->unsigned_integer_value;
                     uint32_t const value = rci->shared.value.unsigned_integer_value;
                     
-                    error = (value >= limit->min_value) && (value <= limit->max_value);
+                    error = (value < limit->min_value) || (value > limit->max_value);
                 }    
                 break;
 #endif /* RCI_PARSER_USES_UNSIGNED_INTEGER */
@@ -510,7 +510,7 @@ static void rci_handle_content(rci_t * const rci)
                     idigi_element_value_float_t const * const limit = &element->value_limit->float_value;
                     double const value = rci->shared.value.float_value;
                     
-                    error = (value >= limit->min_value) && (value <= limit->max_value);
+                    error = (value < limit->min_value) || (value > limit->max_value);
                 }
                 break;
 #endif
