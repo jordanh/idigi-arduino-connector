@@ -59,7 +59,11 @@ static void idigi_status(idigi_connector_error_t const status, char const * cons
 static uint_32 start_network(void)
 {
 	IPCFG_IP_ADDRESS_DATA ip_data;
+#ifdef IDIGI_MAC_ADDRESS
     _enet_address mac_addr = IDIGI_MAC_ADDRESS;
+#else
+    _enet_address mac_addr;
+#endif
     uint_32 result = RTCS_create();
 	
     if (result != RTCS_OK) 
@@ -70,6 +74,10 @@ static uint_32 start_network(void)
 
 #if BSPCFG_ENABLE_FLASHX
     Flash_NVRAM_get_mac_address(mac_addr);
+#else
+#ifndef IDIGI_MAC_ADDRESS
+    ENET_get_mac_address (IPCFG_default_enet_device, IPCFG_default_ip_address, mac_addr);
+#endif
 #endif
 
 	result = ipcfg_init_device (ENET_DEVICE, mac_addr);
