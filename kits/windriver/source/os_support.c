@@ -1,27 +1,14 @@
 /*
- *  Copyright (c) 2012 Digi International Inc., All Rights Reserved
- *
- *  This software contains proprietary and confidential information of Digi
- *  International Inc.  By accepting transfer of this copy, Recipient agrees
- *  to retain this software in confidence, to prevent disclosure to others,
- *  and to make no use of this software other than that for which it was
- *  delivered.  This is an unpublished copyrighted work of Digi International
- *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
- *  prohibited.
- *
- *  Restricted Rights Legend
- *
- *  Use, duplication, or disclosure by the Government is subject to
- *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
- *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
- *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
- *  Restricted Rights at 48 CFR 52.227-19, as applicable.
- *
- *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
- *
- * =======================================================================
- *
- */
+* Copyright (c) 2012 Digi International Inc.,
+* All rights not expressly granted are reserved.
+*
+* This Source Code Form is subject to the terms of the Mozilla Public
+* License, v. 2.0. If a copy of the MPL was not distributed with this file,
+* You can obtain one at http://mozilla.org/MPL/2.0/.
+*
+* Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
+* =======================================================================
+*/
 #include <stdlib.h>
 #include <semaphore.h>
 #include <pthread.h>
@@ -38,7 +25,7 @@ idigi_connector_error_t ic_create_event(int const event)
 
     ASSERT_GOTO(event < IC_MAX_NUM_EVENTS, error);
 
-    APP_DEBUG("ic_create_event event [%d]\n", event);
+    APP_DEBUG("ic_create_event [%d]\n", event);
 
     ret = sem_init(&sem_array[event], 0, 0);
     ASSERT_GOTO(ret == 0, error);
@@ -60,7 +47,7 @@ idigi_connector_error_t ic_get_event(int const event, unsigned long const event_
     wait_time.tv_nsec = (timeout_ms%1000)*1000000;
 
 
-    APP_DEBUG("ic_get_event event [%d] sec=[%d] nsec=[%d]\n", event, (int)wait_time.tv_sec, (int)wait_time.tv_nsec);
+    APP_DEBUG("ic_get_event: [%d] sec=[%d] nsec=[%d]\n", event, (int)wait_time.tv_sec, (int)wait_time.tv_nsec);
 
     /*ret = sem_timedwait(&sem_array[event], &wait_time);    */
     ret = sem_wait(&sem_array[event]);
@@ -89,22 +76,30 @@ error:
     return status;
 }
 
+/*
+ * Check if semaphore is already set and if so clear it.
+ */
 idigi_connector_error_t ic_clear_event(int const event, unsigned long const event_bit)
 {
     idigi_connector_error_t status=idigi_connector_event_error;
-    int ret;
+    int ret, val;
 
     UNUSED_PARAMETER(event_bit);
     ASSERT_GOTO(event < IC_MAX_NUM_EVENTS, error);
 
-    APP_DEBUG("ic_set_event [%d]\n", event);
+    APP_DEBUG("ic_clear_event [%d]\n", event);
 
-    ret = sem_post(&sem_array[event]);
-    ASSERT_GOTO(ret == 0, error);
+    while(sem_getvalue(&sem_array[event], &val) > 0)
+    {
+        ret = sem_trywait(&sem_array[event]);
+        ASSERT_GOTO(ret == 0, error);
+    }
 
     status = idigi_connector_success;
 error:
+
     return status;
+
 }
 
 void ic_free(void *ptr)
@@ -124,14 +119,11 @@ void *idigi_run_thread(void * arg)
     return NULL;
 }
 
-unsigned long ic_create_task(unsigned long const index_number, unsigned long const parameter)
+idigi_connector_error_t ic_create_thread(void)
 {
     pthread_t idigi_thread;
     int ret = 0;
     int ccode;
-
-    UNUSED_PARAMETER(index_number);
-    UNUSED_PARAMETER(parameter);
 
     ccode = pthread_create(&idigi_thread, NULL, idigi_run_thread, NULL);
     if (ccode != 0)
@@ -145,9 +137,12 @@ error:
     return ret;
 }
 
-unsigned long ic_destroy_task(unsigned long const task_id)
+void ic_software_reset(void)
 {
-    UNUSED_PARAMETER(task_id);
+    return;
+}
 
-    return 0;
+void ic_watchdog_reset(void)
+{
+    return;
 }

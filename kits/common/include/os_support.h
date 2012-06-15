@@ -33,8 +33,6 @@ idigi_connector_error_t ic_clear_event(int const event, unsigned long const even
 idigi_connector_error_t ic_create_thread(void);
 void ic_free(void *ptr);
 void *ic_malloc(size_t size);
-unsigned long ic_create_task(unsigned long const index_number, unsigned long const parameter);
-unsigned long ic_destroy_task(unsigned long const task_id);
 void ic_software_reset(void);
 void ic_watchdog_reset(void);
 

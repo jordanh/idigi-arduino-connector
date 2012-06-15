@@ -16,6 +16,8 @@
 #include "idigi_api.h"
 #include "platform.h"
 
+unsigned long start_system_up_time = 0;
+
 idigi_callback_status_t app_os_malloc(size_t const size, void ** ptr)
 {
     idigi_callback_status_t status = idigi_callback_abort;
@@ -50,6 +52,11 @@ void app_os_free(void * const ptr)
 idigi_callback_status_t app_os_get_system_time(unsigned long * const uptime)
 {
     time((time_t *)uptime);
+
+    if (start_system_up_time == 0)
+        start_system_up_time = *uptime;
+
+    *uptime -= start_system_up_time;
 
     return idigi_callback_continue;
 }

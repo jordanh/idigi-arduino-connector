@@ -181,6 +181,7 @@ public class Register {
     private void createConfigurationFile() throws IOException {
         String CONFIG_FILENAME = "idigi.conf";
         BufferedWriter headerWriter;
+        int i = Integer.parseInt(vendorId);
 
         headerWriter = new BufferedWriter(new FileWriter(CONFIG_FILENAME));
 
@@ -188,7 +189,7 @@ public class Register {
 
         String config_string = "# iDigi configuration file\n\n"
                             + String.format("# Vendor ID obtained from www.idigi.com\n")
-                            + String.format("vendor_id=%s\n\n", vendorId)
+                            + String.format("vendor_id=%08x\n\n",i)
                             + String.format("# Unique device ID\n")
                             + String.format("mac_addr=%s \n\n", MacAddress)
                             + String.format("# Location of the iDigi server\n")
