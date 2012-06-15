@@ -30,23 +30,34 @@ static void rci_generate_error(rci_t * const rci)
         rci->output.type = rci_output_type_start_tag;
         
 #if defined RCI_PARSER_USES_ERROR_DESCRIPTIONS
-        rci->error.state = rci_error_state_error_content;
+        rci->error.state = rci_error_state_error_description;
 #else
-        rci->error.state = rci_error_state_error_close;
+        rci->error.state = (rci->shared.response.error_hint == NULL) ? rci_error_state_error_close : rci_error_state_error_hint;
 #endif        
         break;
             
-    case rci_error_state_error_content:
-        clear_attributes(&rci->output.attribute);
-        
 #if defined RCI_PARSER_USES_ERROR_DESCRIPTIONS
-        /* TODO: IDK this line */
-/*        output.content.data.counted_string = rci->output.description; */
-        rci->output.type = rci_output_type_content;
-        rci->error.state = rci_error_state_error_close;
-#endif
-        break;
+    case rci_error_state_error_description:
+        clear_attributes(&rci->output.attribute);
+
+        cstr_to_rci_string(RCI_DESC, &rci->output.tag);
+        cstr_to_rci_string(rci->error.description, &rci->output.content);
         
+        rci->output.type = rci_output_type_three_tuple;
+        
+        rci->error.state = (rci->shared.response.element_data.error_hint == NULL) ? rci_error_state_error_close : rci_error_state_error_hint;
+        break;
+#endif
+        
+    case rci_error_state_error_hint:
+        clear_attributes(&rci->output.attribute);
+
+        cstr_to_rci_string(RCI_HINT, &rci->output.tag);
+        cstr_to_rci_string(rci->shared.response.element_data.error_hint, &rci->output.content);
+        
+        rci->output.type = rci_output_type_three_tuple;
+        break;
+
     case rci_error_state_error_close:
         cstr_to_rci_string(RCI_ERROR, &rci->output.tag);
         rci->output.type = rci_output_type_end_tag;

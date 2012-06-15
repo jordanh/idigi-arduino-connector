@@ -79,7 +79,89 @@ static void rci_output_content(rci_t * const rci)
     }
     else
     {
-        rci->output.type = rci_output_type_content;
+        switch (rci->shared.request.element.type)
+        {
+        UNHANDLED_CASES_ARE_NEEDED
+#if (defined RCI_PARSER_USES_STRING) || (defined RCI_PARSER_USES_MULTILINE_STRING) || (defined RCI_PARSER_USES_PASSWORD)
+
+#if defined RCI_PARSER_USES_STRING
+        case idigi_element_type_string:
+#endif
+
+#if defined RCI_PARSER_USES_MULTILINE_STRING
+        case idigi_element_type_multiline_string:
+#endif
+
+#if defined RCI_PARSER_USES_PASSWORD
+        case idigi_element_type_password:
+#endif
+            str_to_rcistr(rci->shared.value.string_value, &rci->output.content);
+            rci->output.type = rci_output_type_content;
+            break;
+#endif /* (defined RCI_PARSER_USES_STRING) || (defined RCI_PARSER_USES_MULTILINE_STRING) || (defined RCI_PARSER_USES_PASSWORD) */
+
+#if (defined RCI_PARSER_USES_IPV4) || (defined RCI_PARSER_USES_FQDNV4) || (defined RCI_PARSER_USES_FQDNV6) || \
+    (defined RCI_PARSER_USES_DATETIME) || \
+    (defined RCI_PARSER_USES_ENUM) || (defined RCI_PARSER_USES_ON_OFF) || (defined RCI_PARSER_BOOLEAN) || \
+    (defined RCI_PARSER_USES_INT32) || (defined RCI_PARSER_USES_UINT32) || (defined RCI_PARSER_USES_HEX32) || (defined RCI_PARSER_USES_0XHEX) || \
+    (defined RCI_PARSER_USES_FLOAT)
+
+#if defined RCI_PARSER_USES_IPV4
+        case idigi_element_type_ipv4:
+#endif
+
+#if defined RCI_PARSER_USES_FQDNV4
+        case idigi_element_type_fqdnv4:
+#endif
+
+#if defined RCI_PARSER_USES_FQDNV6
+        case idigi_element_type_fqdnv6:
+#endif
+
+#if defined RCI_PARSER_USES_DATETIME
+        case idigi_element_type_datetime:
+#endif
+
+#if defined RCI_PARSER_USES_ENUM
+        case idigi_element_type_enum:
+#endif
+
+#if defined RCI_PARSER_USES_ON_OFF
+        case idigi_element_type_on_off:
+#endif
+
+#if defined RCI_PARSER_USES_BOOLEAN
+        case idigi_element_type_boolean:
+#endif
+
+#if defined RCI_PARSER_USES_INT32
+        case idigi_element_type_int32:
+#endif
+
+#if defined RCI_PARSER_USES_UINT32
+        case idigi_element_type_uint32:
+#endif
+
+#if defined RCI_PARSER_USES_HEX32
+        case idigi_element_type_hex32:
+#endif
+
+#if defined RCI_PARSER_USES_0XHEX
+        case idigi_element_type_0xhex:
+#endif
+
+#if defined RCI_PARSER_USES_FLOAT
+        case idigi_element_type_float:
+#endif
+            rci->output.type = rci_output_type_content_formatted;
+            break;
+#endif /* (defined RCI_PARSER_USES_IPV4) || (defined RCI_PARSER_USES_FQDNV4) || (defined RCI_PARSER_USES_FQDNV6) || \
+    (defined RCI_PARSER_USES_DATETIME) || \
+    (defined RCI_PARSER_USES_ENUM) || (defined RCI_PARSER_USES_ON_OFF) || (defined RCI_PARSER_BOOLEAN) || \
+    (defined RCI_PARSER_USES_INT32) || (defined RCI_PARSER_USES_UINT32) || (defined RCI_PARSER_USES_HEX32) || (defined RCI_PARSER_USES_0XHEX) || \
+    (defined RCI_PARSER_USES_FLOAT) */
+        }
+
         state_call(rci, rci_parser_state_output);
     }
 }

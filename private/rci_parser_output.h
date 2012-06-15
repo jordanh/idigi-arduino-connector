@@ -163,11 +163,29 @@ static void rci_generate_output(rci_t * const rci)
             case rci_output_type_start_tag:
             case rci_output_type_end_tag:
             case rci_output_type_unary:
+            case rci_output_type_content:
+            case rci_output_type_content_formatted:
+                rci->output.current = rci->output.type;
+                break;
             case rci_output_type_three_tuple:
+            case rci_output_type_three_tuple_formatted:
+                rci->output.current = rci_output_type_start_tag;
+                break;
+            }                
+
+            switch (rci->output.current)
+            {
+            UNHANDLED_CASES_ARE_INVALID
+            case rci_output_type_start_tag:
+            case rci_output_type_end_tag:
+            case rci_output_type_unary:
                 rci->output.state = rci_output_state_element_tag_open;
                 break;
             case rci_output_type_content:
                 rci->output.state = rci_output_state_content;
+                break;
+            case rci_output_type_content_formatted:
+                rci->output.state = rci_output_state_content_formatted;
                 break;
             }
             break;
@@ -175,7 +193,7 @@ static void rci_generate_output(rci_t * const rci)
         case rci_output_state_element_tag_open:
             rci_output_character(output, '<');
             
-            switch (rci->output.type)
+            switch (rci->output.current)
             {
             UNHANDLED_CASES_ARE_INVALID
             case rci_output_type_end_tag:
@@ -183,6 +201,8 @@ static void rci_generate_output(rci_t * const rci)
                 break;
             case rci_output_type_start_tag:
             case rci_output_type_unary:
+            case rci_output_type_three_tuple:
+            case rci_output_type_three_tuple_formatted:
                 rci->output.state = rci_output_state_element_tag_name;
                 break;
             }
@@ -191,7 +211,7 @@ static void rci_generate_output(rci_t * const rci)
         case rci_output_state_element_tag_slash:
             rci_output_character(output, '/');
             
-            switch (rci->output.type)
+            switch (rci->output.current)
             {
             UNHANDLED_CASES_ARE_INVALID
             case rci_output_type_end_tag:
@@ -199,6 +219,8 @@ static void rci_generate_output(rci_t * const rci)
                 break;
             case rci_output_type_start_tag:
             case rci_output_type_unary:
+            case rci_output_type_three_tuple:
+            case rci_output_type_three_tuple_formatted:
                 rci->output.state = rci_output_state_element_tag_close;
                 break;
             }
@@ -208,9 +230,7 @@ static void rci_generate_output(rci_t * const rci)
             overflow = rci_output_rcistr(output, &rci->output.tag);
             if (overflow) break;
             
-            clear_rcistr(&rci->output.tag);
-            
-            switch (rci->output.type)
+            switch (rci->output.current)
             {
             UNHANDLED_CASES_ARE_INVALID
             case rci_output_type_end_tag:
@@ -225,7 +245,7 @@ static void rci_generate_output(rci_t * const rci)
                 }
                 else
                 {
-                    rci->output.state = (rci->output.type == rci_output_type_start_tag) ? rci_output_state_element_tag_close : rci_output_state_element_tag_slash;
+                    rci->output.state = (rci->output.current == rci_output_type_start_tag) ? rci_output_state_element_tag_close : rci_output_state_element_tag_slash;
                 }
                 break;
             }
@@ -234,7 +254,7 @@ static void rci_generate_output(rci_t * const rci)
         case rci_output_state_element_tag_close:
             rci_output_character(output, '>');
             
-            switch (rci->output.type)
+            switch (rci->output.current)
             {
             UNHANDLED_CASES_ARE_INVALID
             case rci_output_type_end_tag:
@@ -243,10 +263,26 @@ static void rci_generate_output(rci_t * const rci)
                     rci->status = rci_status_complete;
                 }
                 /* no break; */
-                
-            case rci_output_type_start_tag:
             case rci_output_type_unary:
                 rci->output.state = rci_output_state_none;
+                break;                
+                
+            case rci_output_type_start_tag:
+                switch (rci->output.type)
+                {
+                UNHANDLED_CASES_ARE_INVALID
+                case rci_output_type_start_tag:
+                    rci->output.state = rci_output_state_none;
+                    break;                
+                case rci_output_type_three_tuple:
+                    rci->output.state = rci_output_state_content;
+                    rci->output.current = rci_output_type_content;
+                    break;
+                case rci_output_type_three_tuple_formatted:
+                    rci->output.state = rci_output_state_content_formatted;
+                    rci->output.current = rci_output_type_content_formatted;
+                    break;
+                }
                 break;
             }
             break;
@@ -256,7 +292,7 @@ static void rci_generate_output(rci_t * const rci)
             {
                 rci_output_character(output, ' ');
                 
-                switch (rci->output.type)
+                switch (rci->output.current)
                 {
                 UNHANDLED_CASES_ARE_INVALID
                 case rci_output_type_start_tag:
@@ -269,7 +305,7 @@ static void rci_generate_output(rci_t * const rci)
             {
                 clear_attributes(&rci->output.attribute);
                 
-                switch (rci->output.type)
+                switch (rci->output.current)
                 {
                 UNHANDLED_CASES_ARE_INVALID
                 case rci_output_type_start_tag:
@@ -284,7 +320,7 @@ static void rci_generate_output(rci_t * const rci)
             overflow = rci_output_rcistr(output, attribute_name(&rci->output.attribute, rci->output.attribute_pair_index));
             if (overflow) break;
             
-            switch (rci->output.type)
+            switch (rci->output.current)
             {
             UNHANDLED_CASES_ARE_INVALID
             case rci_output_type_end_tag:
@@ -300,7 +336,7 @@ static void rci_generate_output(rci_t * const rci)
         case rci_output_state_element_param_equal_sign:
             rci_output_character(output, '=');
             
-            switch (rci->output.type)
+            switch (rci->output.current)
             {
             UNHANDLED_CASES_ARE_INVALID
             case rci_output_type_start_tag:
@@ -314,7 +350,7 @@ static void rci_generate_output(rci_t * const rci)
         case rci_output_state_element_param_end_quote:
             rci_output_character(output, '"');
             
-            switch (rci->output.type)
+            switch (rci->output.current)
             {
             UNHANDLED_CASES_ARE_INVALID
             case rci_output_type_start_tag:
@@ -373,7 +409,7 @@ static void rci_generate_output(rci_t * const rci)
             rci->output.entity_scan_index++;
             rci->output.state = rci_output_state_element_param_value_scan;
             break;
-        case rci_output_state_content:
+        case rci_output_state_content_formatted:
             switch (rci->shared.request.element.type)
             {
             UNHANDLED_CASES_ARE_NEEDED
@@ -391,8 +427,7 @@ static void rci_generate_output(rci_t * const rci)
 #if defined RCI_PARSER_USES_PASSWORD
             case idigi_element_type_password:
 #endif
-                rci->output.state = rci_output_state_content_scan;
-                rci->output.entity_scan_index = 0;
+                ASSERT(idigi_false);
                 break;
 #endif /* (defined RCI_PARSER_USES_STRING) || (defined RCI_PARSER_USES_MULTILINE_STRING) || (defined RCI_PARSER_USES_PASSWORD) */
 
@@ -465,54 +500,49 @@ static void rci_generate_output(rci_t * const rci)
                 break;
 #endif
             }
-            if (overflow) break;
-
-            if (rci->output.state == rci_output_state_content)
+            if (!overflow)
             {
                 switch (rci->output.type)
                 {
-                UNHANDLED_CASES_ARE_INVALID;
-                case rci_output_type_content:
+                UNHANDLED_CASES_ARE_INVALID
+                case rci_output_type_content_formatted:
                     rci->output.state = rci_output_state_none;
-                    break;
-                case rci_output_type_three_tuple:
+                    break;                
+                case rci_output_type_three_tuple_formatted:
                     rci->output.state = rci_output_state_element_tag_open;
-                    rci->output.type = rci_output_type_end_tag;
+                    rci->output.current = rci_output_type_end_tag;
                     break;
                 }
             }
             break;
 
-            case rci_output_state_content_scan:
+        case rci_output_state_content:
+            rci->output.state = rci_output_state_content_scan;
+            rci->output.entity_scan_index = 0;
+            break;
 
-            if (rci->shared.response.error_id != idigi_success)
-            {
-                /* TODO: Add error <desc>
-                 *
-                 */
-                rci->output.state = rci_output_state_none;
-            }
+        case rci_output_state_content_scan:
+
 #if defined RCI_PARSER_USES_STRINGS
+            if (rci->output.entity_scan_index == rcistr_length(&rci->output.content))
+            {
+                switch (rci->output.type)
+                {
+                UNHANDLED_CASES_ARE_INVALID
+                case rci_output_type_content:
+                    rci->output.state = rci_output_state_none;
+                    break;                
+                case rci_output_type_three_tuple:
+                    rci->output.state = rci_output_state_element_tag_open;
+                    rci->output.current = rci_output_type_end_tag;
+                    break;
+                }
+            }
             else
             {
-                int const character = rci->shared.value.string_value[rci->output.entity_scan_index];
+                int const character = rcistr_char(&rci->output.content, rci->output.entity_scan_index);
 
-                
-                if (character == '\0')
-                {
-                    switch (rci->output.type)
-                    {
-                    UNHANDLED_CASES_ARE_INVALID;
-                    case rci_output_type_content:
-                        rci->output.state = rci_output_state_none;
-                        break;
-                    case rci_output_type_three_tuple:
-                        rci->output.state = rci_output_state_element_tag_open;
-                        rci->output.type = rci_output_type_end_tag;
-                        break;
-                    }
-                }
-                else if (rci_output_non_entity_character(output, character))
+                if (rci_output_non_entity_character(output, character))
                 {
                     rci->output.entity_scan_index++;
                 }
@@ -527,7 +557,7 @@ static void rci_generate_output(rci_t * const rci)
         case rci_output_state_content_entity:
 #if defined RCI_PARSER_USES_STRINGS
             {
-                int const entity = rci->shared.value.string_value[rci->output.entity_scan_index];
+                int const entity = rcistr_char(&rci->output.content, rci->output.entity_scan_index);
                 
                 overflow = rci_output_entity_name(output, entity);
                 if (overflow) break;

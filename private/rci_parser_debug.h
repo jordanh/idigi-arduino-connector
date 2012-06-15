@@ -251,6 +251,7 @@ static char const * rci_output_state_t_as_string(rci_output_state_t const value)
 	    enum_to_case(rci_output_state_element_param_value_entity);
 	    enum_to_case(rci_output_state_element_param_value_semicolon);
 	    enum_to_case(rci_output_state_element_param_end_quote);
+	    enum_to_case(rci_output_state_content_formatted);
 	    enum_to_case(rci_output_state_content);
 	    enum_to_case(rci_output_state_content_scan);
 	    enum_to_case(rci_output_state_content_entity);
@@ -266,9 +267,11 @@ static char const * rci_output_type_t_as_string(rci_output_type_t const value)
     {
         enum_to_case(rci_output_type_start_tag);
         enum_to_case(rci_output_type_content);
+        enum_to_case(rci_output_type_content_formatted);
         enum_to_case(rci_output_type_end_tag);
         enum_to_case(rci_output_type_unary);
         enum_to_case(rci_output_type_three_tuple);
+        enum_to_case(rci_output_type_three_tuple_formatted);
     }
     return result;
 }
@@ -335,7 +338,8 @@ static char const * rci_error_state_t_as_string(rci_error_state_t const value)
     {
         enum_to_case(rci_error_state_none);
         enum_to_case(rci_error_state_error_open);
-        enum_to_case(rci_error_state_error_content);
+        enum_to_case(rci_error_state_error_description);
+        enum_to_case(rci_error_state_error_hint);
         enum_to_case(rci_error_state_error_close);
         enum_to_case(rci_error_state_element_close);
         enum_to_case(rci_error_state_group_close);
@@ -472,6 +476,7 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
         
     output_enum(rci_output_state_t, output.state);
     output_enum(rci_output_type_t, output.type);
+    output_enum(rci_output_type_t, output.current);
     output_rci_string(output.tag);
     output_rci_attribute_list(output.attribute);
     output_size(output.attribute_pair_index);

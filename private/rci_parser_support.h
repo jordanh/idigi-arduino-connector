@@ -151,6 +151,7 @@ typedef enum
 	rci_output_state_element_param_value_entity,
 	rci_output_state_element_param_value_semicolon,
 	rci_output_state_element_param_end_quote,
+	rci_output_state_content_formatted,
 	rci_output_state_content,
 	rci_output_state_content_scan,
 	rci_output_state_content_entity,
@@ -161,7 +162,8 @@ typedef enum
 {
     rci_error_state_none,
     rci_error_state_error_open,
-    rci_error_state_error_content,
+    rci_error_state_error_description,
+    rci_error_state_error_hint,
     rci_error_state_error_close,
     rci_error_state_element_close,
     rci_error_state_group_close,
@@ -173,9 +175,11 @@ typedef enum
 {
     rci_output_type_start_tag,
     rci_output_type_content,
+    rci_output_type_content_formatted,
     rci_output_type_end_tag,
     rci_output_type_unary,
-    rci_output_type_three_tuple
+    rci_output_type_three_tuple,
+    rci_output_type_three_tuple_formatted
 } rci_output_type_t;    
 
 typedef enum
@@ -241,8 +245,10 @@ typedef struct
     struct {
         rci_output_state_t state;
         rci_output_type_t type;
+        rci_output_type_t current;
         rci_string_t tag;
         rci_attribute_list_t attribute;
+        rci_string_t content;
         size_t attribute_pair_index;
         size_t entity_scan_index;
     } output;
