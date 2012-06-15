@@ -968,6 +968,11 @@ static void rci_parse_input_hyphen(rci_t * const rci)
         rci->input.hyphens++;
         break;
 
+    case rci_input_state_content_first:
+        rci->shared.string.content.data = rci->input.destination;
+        rci->input.state = rci_input_state_content;
+        break;
+
     default:
         break;
     }
