@@ -40,6 +40,9 @@ extern idigi_callback_status_t app_get_vendor_id(uint8_t const ** const id, size
 extern idigi_callback_status_t app_get_device_type(char const ** const type, size_t * const size);
 extern idigi_callback_status_t app_custom_get_device_id(uint8_t const ** const id, size_t * const size);
 extern idigi_callback_status_t app_get_mac_addr(uint8_t const ** const addr, size_t * const size);
+/* TODO: Following three prototypes doesn't belong in this file */
 extern void Flash_NVRAM_get_mac_address(uint8_t * const address);
+extern unsigned long ic_create_task(unsigned long const index_number, unsigned long const parameter);
+extern unsigned long ic_destroy_task(unsigned long const task_id);
 
 #endif /* _PLATFORM_H */
