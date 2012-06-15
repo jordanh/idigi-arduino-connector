@@ -9,7 +9,7 @@ void gcov_handler(int signum)
     exit(0); /* exit cleanly after flushing */
 }
 
-void add_gcov_signal()
+void add_gcov_signal(void)
 {
     struct sigaction new_action, old_action;
     

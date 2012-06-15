@@ -271,7 +271,7 @@ def run_test(test, test_list, execution_type, base_src_dir, base_script_dir,
 
         # Sleep 5 seconds to allow device to do it's initialization (push data for example)
         time.sleep(5)
-
+        test_script = None
         try:
             pid = commands.getoutput('pidof -s %s' % idigi_path)
             if pid == '':
@@ -313,7 +313,7 @@ def run_test(test, test_list, execution_type, base_src_dir, base_script_dir,
                         print '>>> [%s] Finished [%s]-[%s]' % (description, execution_type, test_script)
         finally:
             # Killing the process should also cause the thread to complete.
-            if gcov and test != 'compile_and_link':
+            if gcov and test != 'compile_and_link' and test_script is not None:
                 print '>>> [%s] Flushing gcov coverage data for pid [%s] and exiting.' % (description, pid)
                 os.kill(int(pid), signal.SIGUSR1)
                 # Only include Coverage data for files in private directory unless this is a sample test.
@@ -383,7 +383,7 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
                 if test_list.has_key(test_name):
                     test_list = { test_name : test_list[test_name] }
                 else:
-                    print "Error: no tests found for %s with this test type (%s)."\
+                    print "Warning: no tests found for %s with this test type (%s)."\
                         % (test_name, test_type.name)
                     continue
 
