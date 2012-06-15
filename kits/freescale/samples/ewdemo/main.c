@@ -58,12 +58,8 @@ static void idigi_status(idigi_connector_error_t const status, char const * cons
 
 static uint_32 start_network(void)
 {
+    _enet_address * mac_addr = NULL;
 	IPCFG_IP_ADDRESS_DATA ip_data;
-#ifdef IDIGI_MAC_ADDRESS
-    _enet_address mac_addr = IDIGI_MAC_ADDRESS;
-#else
-    _enet_address mac_addr;
-#endif
     uint_32 result = RTCS_create();
 	
     if (result != RTCS_OK) 
@@ -72,15 +68,20 @@ static uint_32 start_network(void)
 		goto error;
 	}
 
-#if BSPCFG_ENABLE_FLASHX
-    Flash_NVRAM_get_mac_address(mac_addr);
-#else
-#ifndef IDIGI_MAC_ADDRESS
-    ENET_get_mac_address (IPCFG_default_enet_device, IPCFG_default_ip_address, mac_addr);
-#endif
-#endif
+    {
+        size_t size;
 
-	result = ipcfg_init_device (ENET_DEVICE, mac_addr);
+        if (app_get_mac_addr((uint8_t const ** const)&mac_addr, &size) != idigi_callback_continue)
+        {
+            APP_DEBUG("Failed to get device MAC address");
+            goto error;
+        }
+
+        APP_DEBUG("MAC Address: %2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X\r\n",
+                  (*mac_addr)[0], (*mac_addr)[1], (*mac_addr)[2], (*mac_addr)[3], (*mac_addr)[4], (*mac_addr)[5]);
+    }
+
+	result = ipcfg_init_device (ENET_DEVICE, *mac_addr);
 	if (result != RTCS_OK) 
 	{
 		APP_DEBUG("Failed to initialize Ethernet device, error = %X", result);

@@ -201,7 +201,8 @@ int _app_write_flash_params(struct fapp_params_flash * fapp_params_current_confi
     return result;
 }
 
-void Flash_NVRAM_get_mac_address(_enet_address address)
+#if BSPCFG_ENABLE_FLASHX && defined(IDIGI_GET_MAC_FROM_NVRAM)
+void Flash_NVRAM_get_mac_address(uint8_t * const address)
 {
 	int result;
 	
@@ -278,5 +279,5 @@ void Flash_NVRAM_get_mac_address(_enet_address address)
     address[4] = fnet_params->fnet_params.mac[4];
     address[5] = fnet_params->fnet_params.mac[5];
 }
-
+#endif
 

@@ -17,10 +17,6 @@
 #include <bele.h>
 #include "idigi_config.h"
 
-extern idigi_callback_status_t app_get_vendor_id(uint8_t const ** const id, size_t * const size);
-extern idigi_callback_status_t app_get_device_type(char const ** const type, size_t * const size);
-extern idigi_callback_status_t app_custom_get_device_id(uint8_t const ** const id, size_t * const size);
-
 /*
  * Routine to get the IP address, you will need to modify this routine for your
  * platform.
@@ -39,18 +35,40 @@ static idigi_callback_status_t app_get_ip_address(uint8_t const ** const ip_addr
     return status;
 }
 
-static idigi_callback_status_t app_get_mac_addr(uint8_t const ** const addr, size_t * const size)
+idigi_callback_status_t app_get_mac_addr(uint8_t const ** const addr, size_t * const size)
 {
     static _enet_address mac_address = {0};
-    idigi_callback_status_t const status = ipcfg_get_mac(IPCFG_default_enet_device, mac_address) ? idigi_callback_continue : idigi_callback_abort;
+    idigi_callback_status_t status = idigi_callback_abort;
 
-    APP_DEBUG("get_mac_addr: MAC Address: %2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X\r\n",
-            mac_address[0], mac_address[1], mac_address[2],
-            mac_address[3], mac_address[4], mac_address[5]);
+    if ((addr == NULL) || (size == NULL))
+    {
+        APP_DEBUG("app_get_mac_addr: Invalid input\n");
+        goto done;
+    }
 
-    *addr = (uint8_t *)&mac_address;
+#if defined(IDIGI_MAC_ADDRESS)
+    {
+        _enet_address const literal_mac = IDIGI_MAC_ADDRESS;
+
+        memcpy(mac_address, literal_mac, sizeof mac_address);
+    }
+#elif defined(IDIGI_GET_MAC_FROM_NVRAM)
+    #if !BSPCFG_ENABLE_FLASHX
+    #error Verify that BSPCFG_ENABLE_FLASHX is defined (different than 0) in user_config.h. Please recompile BSP with this option.
+    #endif
+    Flash_NVRAM_get_mac_address(mac_address);
+#elif defined(IDIGI_CUSTOMIZE_GET_MAC_METHOD)
+    status = app_custom_get_mac_addr(addr, size);
+    goto done;
+#else
+    #error Define the way the MAC address is provided to the library.
+#endif
+
+    *addr = mac_address;
     *size = sizeof mac_address;
+    status = idigi_callback_continue;
 
+done:
     return status;
 }
 

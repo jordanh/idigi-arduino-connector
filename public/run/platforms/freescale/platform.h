@@ -35,6 +35,11 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
                                               size_t * const response_length);
 
 int application_run(idigi_handle_t handle);
-idigi_callback_status_t app_os_sleep(unsigned int const timeout_in_seconds);
+extern idigi_callback_status_t app_os_sleep(unsigned int const timeout_in_seconds);
+extern idigi_callback_status_t app_get_vendor_id(uint8_t const ** const id, size_t * const size);
+extern idigi_callback_status_t app_get_device_type(char const ** const type, size_t * const size);
+extern idigi_callback_status_t app_custom_get_device_id(uint8_t const ** const id, size_t * const size);
+extern idigi_callback_status_t app_get_mac_addr(uint8_t const ** const addr, size_t * const size);
+extern void Flash_NVRAM_get_mac_address(uint8_t * const address);
 
 #endif /* _PLATFORM_H */
