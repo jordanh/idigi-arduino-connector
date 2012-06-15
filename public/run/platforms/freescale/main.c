@@ -33,7 +33,12 @@ TASK_TEMPLATE_STRUCT MQX_template_list[] =
 
 static uint_32 network_start(void)
 {
+#ifndef IDIGI_MAC_ADDRESS
+    _enet_address mac_addr;
+#else
     _enet_address mac_addr = IDIGI_MAC_ADDRESS;
+#endif
+
     IPCFG_IP_ADDRESS_DATA ip_data;
     uint_32 result = RTCS_create();
 
@@ -42,6 +47,10 @@ static uint_32 network_start(void)
         APP_DEBUG("RTCS failed to initialize, error = %X", result);
         goto error;
     }
+
+#ifndef IDIGI_MAC_ADDRESS
+    ENET_get_mac_address (IPCFG_default_enet_device, IPCFG_default_ip_address, mac_addr);
+#endif
 
     result = ipcfg_init_device (ENET_DEVICE, mac_addr);
     if (result != RTCS_OK)
