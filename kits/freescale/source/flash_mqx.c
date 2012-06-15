@@ -21,8 +21,13 @@
 #define APP_DEBUG   _io_printf
 #endif
 
+#if defined IDIGI_MAC_ADDRESS && defined IDIGI_DEFAULT_MAC_ADDRESS
 const _enet_address device_mac_addr = IDIGI_MAC_ADDRESS;
 const _enet_address default_device_mac_addr = IDIGI_DEFAULT_MAC_ADDRESS;
+#else
+const _enet_address device_mac_addr = { 0x00, 0x40, 0x9d, 0x55, 0x29, 0xad };
+const _enet_address default_device_mac_addr = { 0x00, 0x40, 0x9d, 0x55, 0x29, 0xad };
+#endif
 
 struct fapp_params_flash fapp_params_current_config;
 
