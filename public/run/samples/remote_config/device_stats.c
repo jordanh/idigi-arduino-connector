@@ -39,7 +39,7 @@ idigi_callback_status_t app_device_stats_group_init(idigi_remote_group_request_t
     {
         struct tm * gmt;
         /* get initial time */
-        app_os_get_system_time((unsigned long *)&device_stats_config_data.curtime);
+        time(&device_stats_config_data.curtime);
         gmt = gmtime(&device_stats_config_data.curtime);
         sprintf(device_stats_config_data.timestring,
                                      "%04d-%02d-%02dT%02d:%02d:%02dZ",

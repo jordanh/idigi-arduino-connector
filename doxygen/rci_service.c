@@ -853,7 +853,7 @@
  *
  * @section rci_session_end   End of remote configuration
  *
- * Callback is called to end remote configuration. 
+ * Notify callback to end remote configuration. 
  * Callback must release its own memory used for this remote configruation request.
  *
  * @htmlonly
@@ -880,12 +880,9 @@
  * <td> [OUT/IN] Pointer to @endhtmlonly @ref idigi_remote_group_response_t "Remote configuration response" @htmlonly structure:
  *          <dl>
  *              <dt><i>user_context</i></dt>
- *              <dd> - Pointer to callback's context returned from previous callback.
- *                     Callback may write its own context which will be passed back to 
- *                     subsequential callback.</dd>
+ *              <dd> - Pointer to callback's context returned from previous callback.</dd>
  *              <dt><i>error_id</i></dt>
- *              <dd> - Callback writes error enumeration value generatied by @endhtmlonly @ref rci_tool @htmlonly if 
- *                     error is encountered. iDigi connector sends error description if it's provided for the given error_id.</dd>
+ *              <dd> - is not applicable</dd>
  *              <dt><i>element_data</i></dt>
  *              <dd> - is not applicable. </dd>
  *            </dl>
