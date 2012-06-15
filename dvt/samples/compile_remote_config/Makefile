@@ -10,6 +10,7 @@
 #
 # ***************************************************************************
 CC = gcc
+OD = objdump
 
 IDIGI_DIR=../../../private
 PUBLIC_HEADER_DIR=../../../public/include
@@ -18,37 +19,49 @@ PLATFORM_DIR=../../../public/run/platforms/linux
 vpath $(IDIGI_DIR)/%.c
 vpath $(PLATFORM_DIR)/%.c
 
-CFLAGS += $(DFLAGS) -Wall -Werror -Wextra -Wno-missing-field-initializers -pedantic -std=c99 -DIDIGI_VERSION=0x1020000UL 
-CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I. -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR) -I. -g -Os
+CFLAGS += -Winit-self -Wbad-function-cast -Wpointer-arith -Wlogical-op -Wmissing-parameter-type -Wstrict-prototypes -Wformat-security 
+CFLAGS += -Wformat-y2k -Wold-style-definition -Wcast-align -Wformat-nonliteral -Wpadded -Wredundant-decls -Wvariadic-macros
+CFLAGS += -Wno-error=padded -Wno-error=format-nonliteral -Wno-unused-function
 
-OBJS = system.o remote_config_cb.o firmware.o\
-       $(PLATFORM_DIR)/main.o application.o $(IDIGI_DIR)/idigi_api.o $(PLATFORM_DIR)/os.o $(PLATFORM_DIR)/config.o $(PLATFORM_DIR)/debug.o $(PLATFORM_DIR)/network.o 
+CFLAGS += $(DFLAGS) -MD -Wall -Werror -Wextra -Wno-missing-field-initializers -pedantic -std=c99 -DIDIGI_VERSION=0x1020000UL 
+CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -I. -I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_DIR) -I. -g
+#CFLAGS += -DIDIGI_RCI_MAXIMUM_CONTENT_LENGTH=256
+
+ifeq ($(RCI_DEBUG),true)
+CFLAGS += -DRCI_DEBUG -g -O0
+else
+CFLAGS += -Os
+endif
+
 LIBS = -lc -lz -lpthread
 
 SAMPLE = idigi
+.PHONY:all
 all: $(SAMPLE)
 
-CFLAGS += -Wl,-Map,$(SAMPLE).map
+LDFLAGS += -Wl,-Map=$(SAMPLE).map,--sort-common
 
-application.o:
-device_request.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h
-$(IDIGI_DIR)/idigi_api.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h ./idigi_config.h \
-                        $(IDIGI_DIR)/chk_config.h $(IDIGI_DIR)/debug.h $(IDIGI_DIR)/ei_packet.h \
-                        $(IDIGI_DIR)/idigi_cc.h $(IDIGI_DIR)/idigi_ds.h $(IDIGI_DIR)/idigi_fw.h \
-                        $(IDIGI_DIR)/idigi_msg.h $(IDIGI_DIR)/layer.h $(IDIGI_DIR)/network_intf.h \
-                        $(IDIGI_DIR)/options.h $(IDIGI_DIR)/os_intf.h $(IDIGI_DIR)/bele.h \
-                        $(IDIGI_DIR)/idigi_def.h
-$(PLATFORM_DIR)/main.o: $(PUBLIC_HEADER_DIR)/idigi_api.h $(PUBLIC_HEADER_DIR)/idigi_types.h $(PLATFORM_DIR)/platform.h
+SRCS = remote_config_cb.c application.c firmware.c \
+       $(PLATFORM_DIR)/main.c $(PLATFORM_DIR)/os.c $(PLATFORM_DIR)/config.c \
+       $(PLATFORM_DIR)/network.c $(PLATFORM_DIR)/debug.c $(IDIGI_DIR)/idigi_api.c
 
-$(OBJS): *.c $(IDIGI_DIR)/*.c $(PLATFORM_DIR)/*.c
+# removed for testing - ASK
+# $(IDIGI_DIR)/idigi_api.c $(PLATFORM_DIR)/network.c
+
+OBJS = $(SRCS:.c=.o)
+DEPS = $(OBJS:.o=.d)
+
+-include $(DEPS)
 
 $(SAMPLE): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(SAMPLE) 
-
+	$(CC) $(LDFLAGS) $^ $(LIBS) -o $@
+ifeq ($(RCI_EXTRA),true)
+	$(OD) -dS $@ >$@.dis
+	awk -f size.awk idigi.map
+endif
+    
 .PHONY: clean
 clean:
-	-rm -f $(OBJS)
-	-rm -f $(SAMPLE).map 
-	-rm -f $(SAMPLE)
+	-rm -f $(SAMPLE) $(OBJS) $(DEPS)
 
 
