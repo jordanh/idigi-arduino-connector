@@ -341,8 +341,8 @@
  *                              Z for Coordinated Universal Time (UTC) </li></ul></p>
  *      <p>Examples: @endhtmlonly
  *      @code
- *      	   "2002-05-030T09:30:10-0600" 
- *      	   "2002-05-030T15:30:10Z"
+ *      	   "2002-05-30T09:30:10-0600" 
+ *      	   "2002-05-30T15:30:10Z"
  *      @endcode @htmlonly
  *      <p> Note: min and max keywords will throw an error.</p></td>
  * </tr>
