@@ -582,7 +582,7 @@ static void rci_generate_output(rci_t * const rci)
         }
     }
 
-    if (rci->output.state != rci_output_state_none)
+    if ((rci->output.state != rci_output_state_none) || (rci_buffer_remaining(output) == 0))
     {
         rci->status = rci_status_flush_output;
     }

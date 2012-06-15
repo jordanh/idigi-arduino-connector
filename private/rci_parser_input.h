@@ -102,7 +102,7 @@ static void rci_output_content(rci_t * const rci)
 
 #if (defined RCI_PARSER_USES_IPV4) || (defined RCI_PARSER_USES_FQDNV4) || (defined RCI_PARSER_USES_FQDNV6) || \
     (defined RCI_PARSER_USES_DATETIME) || \
-    (defined RCI_PARSER_USES_ENUM) || (defined RCI_PARSER_USES_ON_OFF) || (defined RCI_PARSER_BOOLEAN) || \
+    (defined RCI_PARSER_USES_ENUM) || (defined RCI_PARSER_USES_ON_OFF) || (defined RCI_PARSER_USES_BOOLEAN) || \
     (defined RCI_PARSER_USES_INT32) || (defined RCI_PARSER_USES_UINT32) || (defined RCI_PARSER_USES_HEX32) || (defined RCI_PARSER_USES_0XHEX) || \
     (defined RCI_PARSER_USES_FLOAT)
 
