@@ -33,16 +33,7 @@ function cleanup ()
     rm -r "${BASE_DIR}"
 }
 
-function generate_makefiles()
-{
-    for sample in $SAMPLES
-    do
-        python dvt/scripts/makegen.py public/run/samples/$sample
-        python dvt/scripts/makegen.py public/step/samples/$sample
-    done
-}
-
-generate_makefiles
+python dvt/scripts/makegen.py all
 
 # Create the output directory.
 mkdir -p "${OUTPUT_DIR}"

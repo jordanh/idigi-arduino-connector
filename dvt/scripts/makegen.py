@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # ***************************************************************************
 # Copyright (c) 2011, 2012 Digi International Inc.,
 # All rights not expressly granted are reserved.
@@ -109,16 +110,39 @@ endif"""
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-        print "Usage: makegen.py sample_directory"
+        print "Usage: makegen.py [sample_directory|all]"
+        sys.exit(-1)
 
+    # Read make template into a Template object.
     make_template = open(TEMPLATE, 'r')
     template_data = make_template.read()
     make_template.close()
-    data = generate_makefile(sys.argv[1], Template(template_data))
+    template = Template(template_data)
 
-    target_makefile = os.path.join(os.path.abspath(sys.argv[1]), 'Makefile')
-    print "Generating Makefile in %s" % target_makefile
-    f = open(target_makefile, 'wb')
-    f.write(data)
-    f.close()
+    directories = []
+
+    # Generate Makefile for all samples assuming in base ic directory.
+    if sys.argv[1] == 'all':
+        run_dir = os.path.abspath(os.path.join('.', 'public/run/samples'))
+        step_dir = os.path.abspath(os.path.join('.', 'public/step/samples'))
+
+        for d in os.listdir(run_dir):
+            run_d = os.path.join(run_dir, d)
+            step_d = os.path.join(step_dir, d)
+
+            if os.path.isdir(step_d):
+                directories.append(step_d)
+            if os.path.isdir(run_d):
+                directories.append(run_d)
+    else:
+        directories = os.path.abspath(sys.argv[1])
+
+    for directory in directories:
+        data = generate_makefile(directory, template)
+        target_makefile = os.path.join(directory, 'Makefile')
+        print "Generating Makefile in %s" % target_makefile
+        f = open(target_makefile, 'wb')
+        f.write(data)
+        f.close()
+
     print "Done"
