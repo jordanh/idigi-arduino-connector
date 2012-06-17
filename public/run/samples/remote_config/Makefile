@@ -47,9 +47,6 @@ SRCS = devicesecurity.c system.c gps_stats.c device_info.c \
        $(PLATFORM_DIR)/main.c $(PLATFORM_DIR)/os.c $(PLATFORM_DIR)/config.c \
        $(PLATFORM_DIR)/network.c $(PLATFORM_DIR)/debug.c $(IDIGI_DIR)/idigi_api.c
 
-# removed for testing - ASK
-# $(IDIGI_DIR)/idigi_api.c $(PLATFORM_DIR)/network.c
-
 OBJS = $(SRCS:.c=.o)
 DEPS = $(OBJS:.o=.d)
 
