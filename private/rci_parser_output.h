@@ -12,14 +12,14 @@
 
 static idigi_bool_t rci_output_data(rci_buffer_t * const output, char const * const data, size_t const bytes)
 {
-    idigi_bool_t const overflow = (rci_buffer_remaining(output) < bytes);
-    
+    idigi_bool_t const overflow = idigi_bool(rci_buffer_remaining(output) < bytes);
+
     if (!overflow)
     {
         memcpy(rci_buffer_position(output), data, bytes);
         rci_buffer_advance(output, bytes);
     }
-    
+
     return overflow;
 }
 
@@ -31,7 +31,7 @@ static idigi_bool_t rci_output_rcistr(rci_buffer_t * const output, rci_string_t 
 static idigi_bool_t rci_output_cstr(rci_buffer_t * const output, char const * const cstr)
 {
     ASSERT(cstr != NULL);
-    
+
     return rci_output_data(output, CSTR_DATA(cstr), CSTR_LEN(cstr));
 }
 
@@ -39,23 +39,23 @@ static idigi_bool_t rci_output_cstr(rci_buffer_t * const output, char const * co
 static idigi_bool_t rci_output_formatted(rci_buffer_t * const output, char const * const format, ...)
 {
     idigi_bool_t overflow;
-    
+
     va_list ap;
-        
+
     va_start(ap, format);
     {
         size_t const have = rci_buffer_remaining(output);
         int const result = vsnprintf(rci_buffer_position(output), have, format, ap);
         size_t const need = (size_t) result;
-        
+
         ASSERT(result >= 0);
-        overflow = (need > have);
+        overflow = idigi_bool(need > have);
         if (!overflow)
         {
             size_t const used = (size_t) result;
-            
+
             rci_buffer_advance(output, used);
-        }   
+        }
     }
     va_end(ap);
 
@@ -68,29 +68,29 @@ static void rci_output_character(rci_buffer_t * const output, int const value)
 {
     size_t const bytes = 1;
     ASSERT(rci_buffer_remaining(output) != 0);
-    
+
     rci_buffer_write(output, value);
     rci_buffer_advance(output, bytes);
 }
 
 static idigi_bool_t rci_output_non_entity_character(rci_buffer_t * const output, int const value)
 {
-    idigi_bool_t const non_entity_character = (rci_entity_name(value) == NULL);
-    
+    idigi_bool_t const non_entity_character = idigi_bool(rci_entity_name(value) == NULL);
+
     if (non_entity_character)
     {
         rci_output_character(output, value);
     }
-    
+
     return non_entity_character;
 }
 
 static idigi_bool_t rci_output_entity_name(rci_buffer_t * const output, int const value)
 {
     char const * const name = rci_entity_name(value);
-    
+
     ASSERT(name != NULL);
-    
+
     return rci_output_cstr(output, name);
 }
 
@@ -102,12 +102,12 @@ static cstr_t const * enum_value_to_cstr(rci_t * const rci, unsigned int const v
     idigi_element_value_limit_t const * const value_limit = element->value_limit;
     idigi_element_value_enum_t const * const enum_value = &value_limit->enum_value;
     cstr_t const * result = NULL;
-    
+
     if (index < enum_value->count)
     {
         result = enum_value->value[index];
     }
-        
+
     return result;
 }
 #endif
@@ -116,14 +116,14 @@ static cstr_t const * enum_value_to_cstr(rci_t * const rci, unsigned int const v
 static cstr_t const * on_off_value_to_cstr(idigi_on_off_t const value)
 {
     cstr_t const * result = NULL;
-    
+
     switch (value)
     {
     UNHANDLED_CASES_ARE_NEEDED
     case idigi_off: result = RCI_OFF;   break;
     case idigi_on:  result = RCI_ON;    break;
     }
-    
+
     return result;
 }
 #endif
@@ -132,14 +132,14 @@ static cstr_t const * on_off_value_to_cstr(idigi_on_off_t const value)
 static cstr_t const * boolean_value_to_cstr(idigi_boolean_t const value)
 {
     cstr_t const * result = NULL;
-    
+
     switch (value)
     {
     UNHANDLED_CASES_ARE_NEEDED
     case idigi_false:   result = RCI_FALSE; break;
     case idigi_true:    result = RCI_TRUE;  break;
     }
-    
+
     return result;
 }
 #endif
@@ -148,7 +148,7 @@ static void rci_generate_output(rci_t * const rci)
 {
     rci_buffer_t * const output = &rci->buffer.output;
     idigi_bool_t overflow = idigi_false;
-    
+
     while ((rci_buffer_remaining(output) != 0) && !overflow)
     {
         output_debug_info(rci, RCI_DEBUG_SHOW_DIFFS);
@@ -171,7 +171,7 @@ static void rci_generate_output(rci_t * const rci)
             case rci_output_type_three_tuple_formatted:
                 rci->output.current = rci_output_type_start_tag;
                 break;
-            }                
+            }
 
             switch (rci->output.current)
             {
@@ -189,10 +189,10 @@ static void rci_generate_output(rci_t * const rci)
                 break;
             }
             break;
-            
+
         case rci_output_state_element_tag_open:
             rci_output_character(output, '<');
-            
+
             switch (rci->output.current)
             {
             UNHANDLED_CASES_ARE_INVALID
@@ -207,10 +207,10 @@ static void rci_generate_output(rci_t * const rci)
                 break;
             }
             break;
-            
+
         case rci_output_state_element_tag_slash:
             rci_output_character(output, '/');
-            
+
             switch (rci->output.current)
             {
             UNHANDLED_CASES_ARE_INVALID
@@ -229,7 +229,7 @@ static void rci_generate_output(rci_t * const rci)
         case rci_output_state_element_tag_name:
             overflow = rci_output_rcistr(output, &rci->output.tag);
             if (overflow) break;
-            
+
             switch (rci->output.current)
             {
             UNHANDLED_CASES_ARE_INVALID
@@ -253,7 +253,7 @@ static void rci_generate_output(rci_t * const rci)
 
         case rci_output_state_element_tag_close:
             rci_output_character(output, '>');
-            
+
             switch (rci->output.current)
             {
             UNHANDLED_CASES_ARE_INVALID
@@ -265,15 +265,15 @@ static void rci_generate_output(rci_t * const rci)
                 /* no break; */
             case rci_output_type_unary:
                 rci->output.state = rci_output_state_none;
-                break;                
-                
+                break;
+
             case rci_output_type_start_tag:
                 switch (rci->output.type)
                 {
                 UNHANDLED_CASES_ARE_INVALID
                 case rci_output_type_start_tag:
                     rci->output.state = rci_output_state_none;
-                    break;                
+                    break;
                 case rci_output_type_three_tuple:
                     rci->output.state = rci_output_state_content;
                     rci->output.current = rci_output_type_content;
@@ -291,7 +291,7 @@ static void rci_generate_output(rci_t * const rci)
             if (rci->output.attribute_pair_index < rci->output.attribute.count)
             {
                 rci_output_character(output, ' ');
-                
+
                 switch (rci->output.current)
                 {
                 UNHANDLED_CASES_ARE_INVALID
@@ -304,7 +304,7 @@ static void rci_generate_output(rci_t * const rci)
             else
             {
                 clear_attributes(&rci->output.attribute);
-                
+
                 switch (rci->output.current)
                 {
                 UNHANDLED_CASES_ARE_INVALID
@@ -319,7 +319,7 @@ static void rci_generate_output(rci_t * const rci)
         case rci_output_state_element_param_name:
             overflow = rci_output_rcistr(output, attribute_name(&rci->output.attribute, rci->output.attribute_pair_index));
             if (overflow) break;
-            
+
             switch (rci->output.current)
             {
             UNHANDLED_CASES_ARE_INVALID
@@ -335,7 +335,7 @@ static void rci_generate_output(rci_t * const rci)
 
         case rci_output_state_element_param_equal_sign:
             rci_output_character(output, '=');
-            
+
             switch (rci->output.current)
             {
             UNHANDLED_CASES_ARE_INVALID
@@ -345,11 +345,11 @@ static void rci_generate_output(rci_t * const rci)
                 break;
             }
             break;
-        
+
         case rci_output_state_element_param_start_quote:
         case rci_output_state_element_param_end_quote:
             rci_output_character(output, '"');
-            
+
             switch (rci->output.current)
             {
             UNHANDLED_CASES_ARE_INVALID
@@ -376,7 +376,7 @@ static void rci_generate_output(rci_t * const rci)
             {
                 rci_string_t const * const value = attribute_value(&rci->output.attribute, rci->output.attribute_pair_index);
                 char const * const data = rcistr_data(value);
-                
+
                 if (rci_output_non_entity_character(output, data[rci->output.entity_scan_index]))
                 {
                     rci->output.entity_scan_index++;
@@ -399,7 +399,7 @@ static void rci_generate_output(rci_t * const rci)
 
                 overflow = rci_output_entity_name(output, data[rci->output.entity_scan_index]);
                 if (overflow) break;
-                
+
                 rci->output.state = rci_output_state_element_param_value_semicolon;
             }
             break;
@@ -507,7 +507,7 @@ static void rci_generate_output(rci_t * const rci)
                 UNHANDLED_CASES_ARE_INVALID
                 case rci_output_type_content_formatted:
                     rci->output.state = rci_output_state_none;
-                    break;                
+                    break;
                 case rci_output_type_three_tuple_formatted:
                     rci->output.state = rci_output_state_element_tag_open;
                     rci->output.current = rci_output_type_end_tag;
@@ -531,7 +531,7 @@ static void rci_generate_output(rci_t * const rci)
                 UNHANDLED_CASES_ARE_INVALID
                 case rci_output_type_content:
                     rci->output.state = rci_output_state_none;
-                    break;                
+                    break;
                 case rci_output_type_three_tuple:
                     rci->output.state = rci_output_state_element_tag_open;
                     rci->output.current = rci_output_type_end_tag;
@@ -558,10 +558,10 @@ static void rci_generate_output(rci_t * const rci)
 #if defined RCI_PARSER_USES_STRINGS
             {
                 int const entity = rcistr_char(&rci->output.content, rci->output.entity_scan_index);
-                
+
                 overflow = rci_output_entity_name(output, entity);
                 if (overflow) break;
-                
+
                 rci->output.entity_scan_index++;
                 rci->output.state = rci_output_state_content_semicolon;
              }
@@ -586,7 +586,7 @@ static void rci_generate_output(rci_t * const rci)
     {
         rci->status = rci_status_flush_output;
     }
-    
+
     output_debug_info(rci, RCI_DEBUG_SHOW_DIFFS);
 }
 

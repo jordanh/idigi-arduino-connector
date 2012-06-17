@@ -26,7 +26,7 @@
 static void rci_set_buffer(rci_buffer_t * const dst, rci_service_buffer_t const * const src)
 {
     char * const start = src->data;
-    
+
     dst->start = start;
     dst->end = start + src->bytes;
     dst->current = start;
@@ -56,19 +56,19 @@ static void rci_buffer_advance(rci_buffer_t * const buffer, size_t const amount)
 static int rci_buffer_read(rci_buffer_t const * const buffer)
 {
     ASSERT(rci_buffer_remaining(buffer) != 0);
-    
+
     return *(buffer->current);
 }
 
 static void rci_buffer_write(rci_buffer_t const * const buffer, int const value)
 {
     ASSERT(rci_buffer_remaining(buffer) != 0);
-    
+
     *(buffer->current) = value;
 }
 
 static idigi_bool_t ptr_in_buffer(rci_buffer_t const * const buffer, char const * const pointer)
 {
-    return ((pointer >= buffer->start) && (pointer <= buffer->end));
+    return idigi_bool((pointer >= buffer->start) && (pointer <= buffer->end));
 }
 

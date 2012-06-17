@@ -45,8 +45,8 @@ static idigi_bool_t buffer_equals_buffer(char const * const str1, size_t const l
 {
     ASSERT(len1 != 0);
     ASSERT(len2 != 0);
-    
-    return ((len1 == len2) && (memcmp(str1, str2, len1) == 0)) ? idigi_true : idigi_false;
+
+    return idigi_bool((len1 == len2) && (memcmp(str1, str2, len1) == 0));
 }
 
 static idigi_bool_t cstr_equals_buffer(cstr_t const * const cstr, char const * const str2, unsigned int const len2)
@@ -87,7 +87,7 @@ static char const * rcistr_data(rci_string_t const * const string)
 static int rcistr_char(rci_string_t const * const string, size_t const index)
 {
     ASSERT(index < rcistr_length(string));
-    
+
     return string->data[index];
 }
 #endif
@@ -107,14 +107,14 @@ static void adjust_char_pointer(rci_t const * const rci, char const * const old_
 {
     size_t const offset = (*pointer - old_base);
     char * new_base = (char *) rci->input.storage;
-     
+
     *pointer = (new_base + offset);
 }
 
 static void adjust_rci_string(rci_t const * const rci, char const * const base, rci_string_t * const string)
 {
     char * pointer = (char *) string->data;
-    
+
     adjust_char_pointer(rci, base, &pointer);
     string->data = pointer;
 }
