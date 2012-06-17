@@ -16,6 +16,8 @@ static void trigger_rci_callback(rci_t * const rci, idigi_remote_config_request_
     rci->callback.status = idigi_callback_busy;
 }
 
+static void rci_group_error(rci_t * const rci, unsigned int const id, char const * const hint);
+
 static idigi_bool_t rci_callback(rci_t * const rci)
 {
     idigi_bool_t callback_complete;
@@ -59,6 +61,11 @@ static idigi_bool_t rci_callback(rci_t * const rci)
         
     case idigi_callback_continue:
         callback_complete = idigi_true;
+        
+        if ((response_data != NULL) && (response_data->error_id != idigi_success))
+        {
+            rci_group_error(rci, response_data->error_id, response_data->element_data.error_hint);
+        }
         break;
         
     case idigi_callback_busy:
