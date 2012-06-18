@@ -14,7 +14,7 @@ mac_address=
 ping -q -c 1 $REMOTE_HOST
 rc=$?
 if [[ ${rc} != 0 ]]; then
-    echo "Could not ping device, please verify that the ethernet cable of the device is connected."
+    echo "Could not ping device: Verify that the ethernet cable of the device is connected."
     read -p "Press [Enter] key to exit"
     exit ${rc}
 fi
@@ -26,7 +26,7 @@ b=`expr index "$arp_string" :`
 start=$(($b-3)) # Back up to the beginning of the MAC address
 
 if [ $b -eq 0 ]; then
-    echo "Error could not locate mac address of device."
+    echo "Error could not locate mac address: Verify that the ethernet cable of the device is connected."
     read -p "Press [Enter] key to exit"
     exit -1
 fi
@@ -37,18 +37,24 @@ mac_address=${arp_string:$start:17}
 echo "Mac address of device:" $mac_address
 
 # Execute the process to register the device ID, this will create a file the idigi.conf
-java -classpath /home/wruser/idigi Register $mac_address
+java -classpath . Register $mac_address
+rc=$?
 if [[ ${rc} != 0 ]]; then
-    echo "Could not register device"
+    echo "Could not register device: Verify login credentials and try again."
     exit ${rc}
 fi
 
 # scp the configuration file to the device
 echo "Enter the root password of the device"
 scp idigi.conf root@$REMOTE_HOST:/etc/idigi.conf
+rc=$?
+if [[ ${rc} != 0 ]]; then
+    echo "Failed to transfer configuration file to device, please try again."
+    exit ${rc}
+fi
 
 mac_address=${mac_address//[:]/}
-device_id=00000000-00000000-${mac_address:0:6}FF-FF${mac_address:7:13}
+device_id=00000000-00000000-${mac_address:0:6}ff-ff${mac_address:7:13}
 
 echo "Device ID device (record for later):" $device_id
 read -p "Provisioning complete; press [Enter] to exit"

@@ -1,1 +1,4 @@
-cfm Register.jar Register.mf Register.class
+#!/bin/bash
+#set -v
+javac Register.java
+jar cfm Register.jar Register.mf Register.class

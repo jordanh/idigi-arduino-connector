@@ -64,9 +64,8 @@ public class Register {
                                 errorMessage = "Error 207 (Multi-status) A list was passed in and not all were created.";
                                 break;
                         case BAD_REQUEST:
-                                errorMessage = "Error 400 (Bad request) Invalid request. "
-                                        + "This Device may already be registered "
-                                        + "or you have reached the device limit of your account.";
+                                errorMessage = "This Device may already be registered "
+                                              + "or you have reached the device limit of your account.";
                                 break;
                         case INTERNAL_SERVER_ERROR:
                                 errorMessage = "Error 500 (Internal server error) "
@@ -91,8 +90,9 @@ public class Register {
             connection.disconnect();
 
         } catch (Exception x) {
-            System.out.println("Failed to " + method + " " + target);
-            System.err.println(x);
+            if (target.equals("/ws/DeviceVendor")) {
+                System.out.println("Failed to get the Vendor ID: Verify your account credentials");
+            }
             System.exit(1);
         }
 
@@ -131,14 +131,14 @@ public class Register {
 
         getVendorId();
 
-        //System.out.println(data);
         sendCloudData(REGISTER_PAGE, "POST", data);
 
         try {
             createConfigurationFile();
 
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Failed to create configuration file.");
+            System.exit(1);
         }
     }
 
@@ -151,11 +151,11 @@ public class Register {
         try {
             password = userInput.readLine();
             if (password.isEmpty()) {
-                System.out.println("You must enter a password.\nPlease try again!");
+                System.out.println("You must enter a password.\nPlease try again.");
                 System.exit(1);
             }
         } catch (IOException ioe) {
-            System.out.println("IO error!");
+            System.out.println("Failed to read password");
             System.exit(1);
         }
     }
@@ -173,7 +173,7 @@ public class Register {
                 System.exit(1);
             }
         } catch (IOException ioe) {
-            System.out.println("IO error!");
+            System.out.println("Failed to read username.");
             System.exit(1);
         }
     }
