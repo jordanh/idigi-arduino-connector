@@ -93,10 +93,12 @@ class FileSystemTestCase(iik_testcase.TestCase):
         FILE_TSTAMP = 1
         FILE_SIZE = 2
         FILE_HASH = 3
+        my_path = './'
         for hashAlgo in HashAlgoList:
-            fList, dList = self.get_file_list('./', hashAlgo)
+            fList, dList = self.get_file_list(my_path, hashAlgo)
             for fname, fsize in FileList:
                 fileFound = False
+                fname = my_path + fname
                 for eachFile in fList:
                     if eachFile[FILE_NAME] == fname:
                         fileFound = True
@@ -109,12 +111,14 @@ class FileSystemTestCase(iik_testcase.TestCase):
                 self.assertEqual(fileFound, True, "File %s not in the file list" %fname)
 
             dirNames = ""
+            my_public = my_path + "public"
+            my_private = my_path + "private"
             for eachDir in dList:
-                if eachDir[FILE_NAME] == "private":
+                if eachDir[FILE_NAME] == my_private:
                     dirNames += eachDir[0] + ", "
-                if eachDir[FILE_NAME] == "public":
+                if eachDir[FILE_NAME] == my_public:
                     dirNames += eachDir[0]
-            self.assertEqual(dirNames, "private, public", "expected: private, public, found: %s" %dirNames)
+            self.assertEqual(dirNames, my_private + ", " + my_public, "expected: private, public, found: %s" %dirNames)
 
         for fname, fsize in FileList:
             self.remove_a_file(fname)
