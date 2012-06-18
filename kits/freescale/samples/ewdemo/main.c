@@ -15,13 +15,8 @@
 #include "platform.h"
 #include "idigi_connector.h"
 
-#if !BSPCFG_ENABLE_IO_SUBSYSTEM
-#error This application requires BSPCFG_ENABLE_IO_SUBSYSTEM defined non-zero in user_config.h. Please recompile BSP with this option.
-#endif
-
-
-#ifndef BSP_DEFAULT_IO_CHANNEL_DEFINED
-#error This application requires BSP_DEFAULT_IO_CHANNEL to be not NULL. Please set corresponding BSPCFG_ENABLE_TTYx to non-zero in user_config.h and recompile BSP with this option.
+#if !BSPCFG_ENABLE_GPIODEV
+#error This application requires BSPCFG_ENABLE_GPIODEV defined non-zero in user_config.h. Please recompile BSP with this option.
 #endif
 
 
