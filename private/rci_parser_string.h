@@ -33,18 +33,20 @@ static void cstr_to_rci_string(cstr_t const * const cstr, rci_string_t * const r
     rcistr->length = CSTR_LEN(cstr);
 }
 
+#if (defined RCI_PARSER_USES_STRING) || (defined RCI_PARSER_USES_MULTILINE_STRING) || (defined RCI_PARSER_USES_PASSWORD)
 static void str_to_rcistr(char const * const str, rci_string_t * const rcistr)
 {
     rcistr->data = str;
     rcistr->length = strlen(str);
 }
+#endif
 
 static idigi_bool_t buffer_equals_buffer(char const * const str1, size_t const len1, char const * const str2, size_t const len2)
 {
     ASSERT(len1 != 0);
     ASSERT(len2 != 0);
-    
-    return ((len1 == len2) && (memcmp(str1, str2, len1) == 0)) ? idigi_true : idigi_false;
+
+    return idigi_bool((len1 == len2) && (memcmp(str1, str2, len1) == 0));
 }
 
 static idigi_bool_t cstr_equals_buffer(cstr_t const * const cstr, char const * const str2, unsigned int const len2)
@@ -57,10 +59,12 @@ static idigi_bool_t cstr_equals_rcistr(cstr_t const * const cstr, rci_string_t c
     return cstr_equals_buffer(cstr, rcistr->data, rcistr->length);
 }
 
+#if (defined RCI_PARSER_USES_ENUM) || (defined RCI_PARSER_USES_ON_OFF) || (defined RCI_PARSER_USES_BOOLEAN)
 static idigi_bool_t cstr_equals_str(cstr_t const * const cstr, char const * const str)
 {
     return cstr_equals_buffer(cstr, str, strlen(str));
 }
+#endif
 
 static idigi_bool_t rcistr_to_uint(rci_string_t const * const rcistr, unsigned int * const value)
 {
@@ -79,12 +83,14 @@ static char const * rcistr_data(rci_string_t const * const string)
     return string->data;
 }
 
+#if defined RCI_PARSER_USES_STRINGS
 static int rcistr_char(rci_string_t const * const string, size_t const index)
 {
     ASSERT(index < rcistr_length(string));
-    
+
     return string->data[index];
 }
+#endif
 
 static void clear_rcistr(rci_string_t * const string)
 {
@@ -101,14 +107,14 @@ static void adjust_char_pointer(rci_t const * const rci, char const * const old_
 {
     size_t const offset = (*pointer - old_base);
     char * new_base = (char *) rci->input.storage;
-     
+
     *pointer = (new_base + offset);
 }
 
 static void adjust_rci_string(rci_t const * const rci, char const * const base, rci_string_t * const string)
 {
     char * pointer = (char *) string->data;
-    
+
     adjust_char_pointer(rci, base, &pointer);
     string->data = pointer;
 }

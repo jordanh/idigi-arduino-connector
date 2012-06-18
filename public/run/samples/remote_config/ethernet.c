@@ -169,7 +169,7 @@ idigi_callback_status_t app_ethernet_group_init(idigi_remote_group_request_t con
     inet_ntop(AF_INET, &ethernet_config_data.subnet,        ethernet_ptr->subnet,       sizeof ethernet_ptr->subnet);
     inet_ntop(AF_INET, &ethernet_config_data.gateway,       ethernet_ptr->gateway,      sizeof ethernet_ptr->gateway);
 
-    strcpy(ethernet_ptr->dns, ethernet_config_data.dns);
+    memcpy(ethernet_ptr->dns, ethernet_config_data.dns, sizeof ethernet_ptr->dns);
     ethernet_ptr->dhcp_enabled = (ethernet_config_data.dhcp_enabled == ethernet_dhcp_enabled) ? idigi_boolean_true : idigi_boolean_false;
 
     switch (ethernet_config_data.duplex)
@@ -310,29 +310,31 @@ idigi_callback_status_t app_ethernet_group_end(idigi_remote_group_request_t cons
 
     if (request->action == idigi_remote_action_set)
     {
+        int ccode;
+
         if (inet_aton(ethernet_ptr->ip_address, (struct in_addr *)&ethernet_config_data.ip_address) == 0)
         {
-            response->error_id = idigi_global_error_save_fail;
+            response->error_id = idigi_setting_ethernet_ip;
             response->element_data.error_hint = "IP address";
             goto done;
         }
 
         if (inet_aton(ethernet_ptr->subnet, (struct in_addr *)&ethernet_config_data.subnet) == 0)
         {
-            response->error_id = idigi_global_error_save_fail;
+            response->error_id = idigi_setting_ethernet_subnet;
             response->element_data.error_hint = "Subnet";
             goto done;
         }
 
-        if (inet_aton(ethernet_ptr->gateway, (struct in_addr *)&ethernet_config_data.gateway) == 0)
+        ccode = inet_aton(ethernet_ptr->gateway, (struct in_addr *)&ethernet_config_data.gateway);
+        if (ccode == 0)
         {
-            response->error_id = idigi_global_error_save_fail;
+            response->error_id = idigi_setting_ethernet_gateway;
             response->element_data.error_hint = "Gateway";
             goto done;
         }
 
-        /* TODO: need to check valid DNS? */
-        strcpy(ethernet_config_data.dns, ethernet_ptr->dns);
+        memcpy(ethernet_config_data.dns, ethernet_ptr->dns, sizeof ethernet_config_data.dns);
         ethernet_config_data.dhcp_enabled = (request->element.value->boolean_value == idigi_boolean_true) ? ethernet_dhcp_enabled : ethernet_dhcp_disabled;
 
         switch (ethernet_ptr->duplex)

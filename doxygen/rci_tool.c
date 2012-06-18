@@ -63,7 +63,7 @@
  * <td> Device type string with quotes. </td>
  * </tr> <tr>
  * <th> firmware_version </th>
- * <td> Firmware version number in decimal </td>
+ * <td> Firmware version number (i.e. 1.0.0.0) </td>
  * </tr> <tr>
  * <th> input_config_file </th>
  * <td> Input configuration file. See @endhtmlonly @ref rci_tool_file @htmlonly </td>
@@ -341,8 +341,8 @@
  *                              Z for Coordinated Universal Time (UTC) </li></ul></p>
  *      <p>Examples: @endhtmlonly
  *      @code
- *      	   "2002-05030T09:30:10-0600" 
- *      	   "2002-05030T15:30:10Z"
+ *      	   "2002-05-30T09:30:10-0600" 
+ *      	   "2002-05-30T15:30:10Z"
  *      @endcode @htmlonly
  *      <p> Note: min and max keywords will throw an error.</p></td>
  * </tr>

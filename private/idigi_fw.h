@@ -85,14 +85,13 @@ typedef struct {
     char * name_spec;
     size_t desc_length;
     size_t spec_length;
-    uint16_t target_count;
-    idigi_bool_t fw_keepalive_start;
-    uint8_t target;
-    uint8_t response_buffer[FW_MESSAGE_RESPONSE_MAX_SIZE + PACKET_EDP_FACILITY_SIZE];
     size_t  response_size;
     idigi_bool_t send_busy;
     idigi_bool_t update_started;
-
+    idigi_bool_t fw_keepalive_start;
+    uint16_t target_count;
+    uint8_t target;
+    uint8_t response_buffer[FW_MESSAGE_RESPONSE_MAX_SIZE + PACKET_EDP_FACILITY_SIZE];
 } idigi_firmware_data_t;
 
 static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_ptr, idigi_firmware_request_t const fw_request_id,

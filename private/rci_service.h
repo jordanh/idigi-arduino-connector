@@ -67,9 +67,8 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
             
             MsgSetStart(service_request->need_data->flags);
             
-            idigi_debug_printf("rci_service.resquest: %d %.*s\n", service_request->have_data->length_in_bytes,
-                                                                  service_request->have_data->length_in_bytes,
-                                                                  service_request->have_data->data_ptr);
+            idigi_debug_printf("rci_service.request: %d %.*s\n", service_request->have_data->length_in_bytes, service_request->have_data->length_in_bytes, service_request->have_data->data_ptr);
+
             parser_action = rci_session_start;
             parser_data = service_data;
         }

@@ -33,7 +33,7 @@ typedef struct {
 } device_info_config_data_t;
 
 device_info_config_data_t device_info_config_data = {"iDigi Connector Product\0", "\0", "Digi International Inc.\0", "iDigi Connector Demo on Linux\n"
-        "with firmware ugrade, put service, device request and remote configuration supports\0", 102, "\0"};
+        "with firmware upgrade, and remote configuration supports\0", 102, "\0"};
 
 void print_device_info_desc(void)
 {
@@ -146,11 +146,18 @@ idigi_callback_status_t app_device_info_group_set(idigi_remote_group_request_t c
         };
 
         value_length = strlen(request->element.value->string_value);
-        if (value_length < config_data[request->element.id].min_length ||
-            value_length >= config_data[request->element.id].max_length)
+        if ((value_length < config_data[request->element.id].min_length) ||
+            (value_length >= config_data[request->element.id].max_length))
         {
+            static char error_hint_text[28];
+
             response->error_id = idigi_setting_device_info_error_invalid_length;
-            response->element_data.error_hint = NULL;
+            if (value_length < config_data[request->element.id].min_length)
+                sprintf(error_hint_text, "Minimum length is %d", config_data[request->element.id].min_length);
+            else
+                sprintf(error_hint_text, "Maximum length is %d", config_data[request->element.id].max_length);
+
+            response->element_data.error_hint = error_hint_text;
             goto done;
         }
         memcpy(config_data[request->element.id].store_data, request->element.value->string_value, value_length);

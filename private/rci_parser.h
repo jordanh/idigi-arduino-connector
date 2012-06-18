@@ -198,11 +198,6 @@ done:
     case rci_status_internal_error:
     case rci_status_error:
     case rci_status_complete:
-        /* TODO: do we need to call the callback?
-         *       Add rci_callback call.
-         */
-        rci_callback(&rci);
-
         rci.service_data = NULL;
         break;        
     }
