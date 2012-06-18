@@ -481,14 +481,14 @@ def main():
     if args.configuration == 'compression' or args.configuration == 'all':
         print "============ Compression On ============="
         run_tests('%s_%s' % (args.descriptor, 'Compression'), '.', False, api, cflags,
-        [('IDIGI_NO_COMPRESSION', 'IDIGI_COMPRESSION'), 
+        [('/* #define IDIGI_COMPRESSION */', '#define IDIGI_COMPRESSION'), 
          ('IDIGI_DEBUG', 'IDIGI_NO_DEBUG')], 
          tty=args.tty, test_name=args.test_name, test_type=args.test_type)
 
     if args.configuration == 'debug' or args.configuration == 'all':
         print "============ Debug On ============="
         run_tests('%s_%s' % (args.descriptor, 'Debug'), '.', True, api, cflags, 
-        [('IDIGI_NO_DEBUG', 'IDIGI_DEBUG'),], 
+        [('/* #define IDIGI_DEBUG */', '#define IDIGI_DEBUG'),], 
          tty=args.tty, gcov=args.gcov, test_name=args.test_name, 
          test_type=args.test_type)
 
