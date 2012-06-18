@@ -1595,7 +1595,7 @@ static idigi_callback_status_t msg_process_error(idigi_data_t * const idigi_ptr,
 
             ASSERT_GOTO(error_val < idigi_msg_error_count, error);
             {
-                idigi_msg_error_t const msg_error = error_val;
+                idigi_msg_error_t const msg_error = (idigi_msg_error_t)error_val;
 
                 status = msg_inform_error(idigi_ptr, session, msg_error);
                 if (status != idigi_callback_busy)
