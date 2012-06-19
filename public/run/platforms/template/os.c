@@ -58,7 +58,7 @@ idigi_callback_status_t app_os_malloc(size_t const size, void ** ptr)
  * @see os_malloc
  * @see @ref free API Operating System Callback
  */
-void app_os_free(void * const ptr)
+void app_os_free(void const * const ptr)
 {
     UNUSED_ARGUMENT(ptr);
     return;
@@ -129,7 +129,7 @@ idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
         break;
 
     case idigi_os_free:
-        app_os_free((void *)request_data);
+        app_os_free(request_data);
         status = idigi_callback_continue;
         break;
 

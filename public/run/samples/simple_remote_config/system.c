@@ -172,13 +172,15 @@ idigi_callback_status_t app_system_group_end(idigi_remote_group_request_t const 
 
 }
 
-void app_system_session_cancel(void * const context)
+void app_system_session_cancel(void const * const context)
 {
-    ASSERT(context != NULL);
+    void * const ptr = (void *)context;
+
+    ASSERT(ptr != NULL);
 
     APP_DEBUG("app_system_group_cancel\n");
 
-    free(context);
+    free(ptr);
 
 }
 

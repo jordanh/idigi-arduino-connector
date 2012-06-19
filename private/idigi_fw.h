@@ -297,7 +297,7 @@ static idigi_callback_status_t send_fw_abort(idigi_firmware_data_t * const fw_pt
     idigi_callback_status_t status = idigi_callback_continue;
 
     uint8_t * fw_abort = GET_PACKET_DATA_POINTER(fw_ptr->response_buffer, PACKET_EDP_FACILITY_SIZE);
-    uint8_t abort_code = abort_status.error_status;
+    uint8_t abort_code = (uint8_t)abort_status.error_status;
 
     ASSERT(abort_status.error_status <= UCHAR_MAX);
 
@@ -308,7 +308,7 @@ static idigi_callback_status_t send_fw_abort(idigi_firmware_data_t * const fw_pt
         status = get_abort_status_code(abort_status.user_status);
 
         ASSERT(status.abort_status <= UCHAR_MAX);
-        abort_code = status.abort_status;
+        abort_code = (uint8_t)status.abort_status;
 
     }
 
@@ -541,7 +541,7 @@ enum fw_download_response {
 
     idigi_callback_status_t status = idigi_callback_continue;
     idigi_fw_download_request_t request_data;
-    idigi_fw_status_t response_status = idigi_fw_device_error;
+    fw_abort_status_t response_status;
     uint16_t string_id_length;
 
     uint8_t abort_opcode = fw_download_abort_opcode;
@@ -550,11 +550,12 @@ enum fw_download_response {
 
     request_data.target = message_load_u8(fw_download_request, target);
 
+    response_status.user_status = idigi_fw_device_error;
     if (length < record_bytes(fw_download_request))
     {
         idigi_debug_printf("process_fw_download_request: invalid message length\n");
         abort_opcode = fw_error_opcode;
-        response_status = fw_invalid_msg;
+        response_status.error_status = fw_invalid_msg;
         goto error;
     }
 
@@ -607,18 +608,16 @@ enum fw_download_response {
     }
 
     /* call callback */
-    status = get_fw_config(fw_ptr, idigi_firmware_download_request, &request_data, sizeof request_data, &response_status, NULL, fw_equal);
+    status = get_fw_config(fw_ptr, idigi_firmware_download_request, &request_data, sizeof request_data, &response_status.user_status, NULL, fw_equal);
+
 error:
     if (status != idigi_callback_busy)
     {
         uint8_t * fw_download_response = GET_PACKET_DATA_POINTER(fw_ptr->response_buffer, PACKET_EDP_FACILITY_SIZE);
 
-        if (response_status >= idigi_fw_user_abort)
+        if (response_status.user_status >= idigi_fw_user_abort)
         {
-            fw_abort_status_t fw_status;
-
-            fw_status.user_status = response_status;
-            status = send_fw_abort(fw_ptr, request_data.target, abort_opcode, fw_status);
+            status = send_fw_abort(fw_ptr, request_data.target, abort_opcode, response_status);
             goto done;
         }
 
@@ -628,12 +627,12 @@ error:
         /* send firmware download response */
         message_store_u8(fw_download_response, opcode, fw_download_response_opcode);
         message_store_u8(fw_download_response, target, request_data.target);
-        message_store_u8(fw_download_response, response_type, response_status);
+        message_store_u8(fw_download_response, response_type, response_status.user_status);
 
         fw_ptr->response_size = record_bytes(fw_download_response);
 
         status = send_fw_message(fw_ptr);
-        if (response_status == idigi_fw_success)
+        if (response_status.user_status == idigi_fw_success)
         {
             fw_ptr->update_started = idigi_true;
             fw_ptr->target = request_data.target;
@@ -1093,7 +1092,11 @@ static idigi_callback_status_t fw_process(idigi_data_t * const idigi_ptr, void *
         status = fw_discovery(idigi_ptr, facility_data, edp_header, receive_timeout);
         if (status == idigi_callback_continue)
         {
-            get_system_time(idigi_ptr, &fw_ptr->last_fw_keepalive_sent_time);
+            if (get_system_time(idigi_ptr, &fw_ptr->last_fw_keepalive_sent_time) != idigi_callback_continue)
+            {
+                status = idigi_callback_abort;
+                goto done;
+            }
             fw_ptr->fw_keepalive_start = idigi_false;
             status = idigi_callback_busy;
         }

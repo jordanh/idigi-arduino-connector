@@ -19,17 +19,12 @@
 
 #define DEVICESECURITY_PASSWORD_MAX_LENGTH 135
 
-typedef enum {
-    device_security_simple_type,
-    device_security_password_type,
-} device_security_type_t;
-
 typedef struct {
-    device_security_type_t identity_verification_form;
+    idigi_setting_devicesecurity_identityVerificationForm_id_t identity_verification_form;
     char password[DEVICESECURITY_PASSWORD_MAX_LENGTH];
 } device_security_data_t;
 
-device_security_data_t device_security_data = {device_security_simple_type, "\0"};
+device_security_data_t device_security_data = {idigi_setting_devicesecurity_identityVerificationForm_simple, "\0"};
 
 
 idigi_callback_status_t app_device_security_group_get(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
@@ -67,27 +62,37 @@ idigi_callback_status_t app_device_security_group_set(idigi_remote_group_request
 
     UNUSED_ARGUMENT(response);
 
+    ASSERT(request->element.value != NULL);
+
     switch (request->element.id)
     {
     case idigi_setting_devicesecurity_identityVerificationForm:
     {
         ASSERT(request->element.type == idigi_element_type_enum);
-        ASSERT(request->element.value != NULL);
-        device_security_ptr->identity_verification_form = request->element.value->enum_value;
+        device_security_ptr->identity_verification_form = (idigi_setting_devicesecurity_identityVerificationForm_id_t)request->element.value->enum_value;
         break;
     }
     case idigi_setting_devicesecurity_password:
+    {
+        size_t string_length = strlen(request->element.value->string_value);
         ASSERT(request->element.type == idigi_element_type_password);
 
-        ASSERT(strlen(request->element.value->string_value) < sizeof device_security_ptr->password);
-        memcpy(device_security_ptr->password, request->element.value->string_value, strlen(request->element.value->string_value));
-        break;
+        if (strlen(request->element.value->string_value) >= sizeof device_security_ptr->password)
+        {
+            ASSERT(0);
+            goto done;
+        }
 
+        memcpy(device_security_ptr->password, request->element.value->string_value, string_length);
+        device_security_ptr->password[string_length] = '\0';
+        break;
+    }
     default:
         ASSERT(0);
         break;
     }
 
+done:
     return status;
 }
 

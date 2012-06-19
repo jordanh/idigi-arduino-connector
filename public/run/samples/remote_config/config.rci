@@ -45,6 +45,8 @@ group setting ethernet "Ethernet interface"
 group setting device_stats  "Device statistics"
     element curtime "Current time" type datetime access  read_write
     element signed_integer "Signed integer" type int32 min -100 max 100
+    error invalid_time "Invalid time" 
+    error invalid_integer "Invalid integer value" 
 
 group setting device_info  "Device info"
     element product "Product" type string access  read_write  min  1 max  64 

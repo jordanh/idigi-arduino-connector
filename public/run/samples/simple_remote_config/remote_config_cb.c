@@ -62,7 +62,7 @@ idigi_callback_status_t app_remote_config_handler(idigi_remote_config_request_t 
         break;
     }
     case idigi_remote_config_session_cancel:
-        app_system_session_cancel((void * const)request_data);
+        app_system_session_cancel(request_data);
         break;
     default:
         ASSERT(0);

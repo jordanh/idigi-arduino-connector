@@ -36,9 +36,9 @@ static void rci_error(rci_t * const rci, unsigned int const id, char const * con
 static char const * get_rci_group_error(rci_t * const rci, unsigned int const id)
 {
     idigi_group_t const * const group = get_current_group(rci);
-    unsigned int const index = (id - idigi_global_error_OFFSET);
+    unsigned int const index = (id - idigi_global_error_COUNT);
 
-    ASSERT(id >= idigi_global_error_OFFSET);
+    ASSERT(id >= idigi_global_error_COUNT);
     ASSERT(index < group->errors.count);
 
     return group->errors.description[index];

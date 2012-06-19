@@ -40,7 +40,7 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
     case msg_service_type_need_data:
     case msg_service_type_have_data:
     {
-        rci_status_t ccode;
+        rci_status_t rci_status;
         rci_session_t parser_action = rci_session_active;
         void * parser_data = NULL;
 
@@ -83,9 +83,9 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
         service_data->output.data = service_request->need_data->data_ptr;
         service_data->output.bytes = service_request->need_data->length_in_bytes;
 
-        ccode = rci_parser(parser_action, parser_data);
+        rci_status = rci_parser(parser_action, parser_data);
 
-        switch (ccode)
+        switch (rci_status)
         {
         case rci_status_complete:
             MsgSetLastData(service_request->need_data->flags);
@@ -117,7 +117,7 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
         break;
     }
     case msg_service_type_error:
-        status = rci_parser(rci_status_error);
+         rci_parser(rci_session_lost);
         break;
 
     case msg_service_type_free:
