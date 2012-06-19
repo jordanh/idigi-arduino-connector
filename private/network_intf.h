@@ -445,7 +445,9 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
     /* check Tx keepalive timing */
     if (GET_TX_KEEPALIVE_INTERVAL(idigi_ptr) > 0)
     {
-        unsigned long const max_timeout = (GET_TX_KEEPALIVE_INTERVAL(idigi_ptr) * GET_WAIT_COUNT(idigi_ptr));
+        unsigned long const tx_keepalive_interval = GET_TX_KEEPALIVE_INTERVAL(idigi_ptr);
+        unsigned long const wait_count = GET_WAIT_COUNT(idigi_ptr);
+        unsigned long const max_timeout = (tx_keepalive_interval * wait_count);
 
         if (!valid_timing_limit(idigi_ptr, idigi_ptr->last_tx_keepalive_received_time, max_timeout))
         {
@@ -556,7 +558,7 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
      * So we use index == receive_packet_init to initialize the packet before starting reading.
      * When index == receive_packet_type, set to receive message type. After message type is received,
      * we must check valid message type.
-     * 
+     *
      * When index == receive_packet_length, set to receive message length.
      * When index == receive_packet_data, set to receive message data.
      * When index == receive_packet_complete, message data is completely received and
@@ -617,7 +619,7 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
         {
             /* Got message type let's get to message length.
              * So make sure we support the message type.
-             * Then, set to read message length. 
+             * Then, set to read message length.
              */
             uint16_t type_val;
 
@@ -695,7 +697,7 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
                 idigi_ptr->receive_packet.packet_length = packet_length;
                 idigi_ptr->receive_packet.total_length = packet_length;
             }
-            else 
+            else
             {
                 /*
                  * Read the actual message data bytes into the packet buffer.
