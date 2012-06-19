@@ -15,12 +15,8 @@
 #include "platform.h"
 #include "idigi_connector.h"
 
-#if !BSPCFG_ENABLE_GPIODEV
-#error This application requires BSPCFG_ENABLE_GPIODEV defined non-zero in user_config.h. Please recompile BSP with this option.
-#endif
 
-
-#if !BSPCFG_ENABLE_FLASHX && (defined(IDIGI_FIRMWARE_SERVICE) || (BOOTLOADER_ENABLED == 1))
+#if !BSPCFG_ENABLE_FLASHX && (defined IDIGI_FIRMWARE_SERVICE)
 #error This application requires BSPCFG_ENABLE_FLASHX defined non-zero in user_config.h. Please recompile BSP with this option.
 #endif
 
