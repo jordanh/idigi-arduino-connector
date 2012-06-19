@@ -79,7 +79,7 @@ idigi_callback_status_t app_device_info_group_get(idigi_remote_group_request_t c
     {
     case idigi_setting_device_info_syspwd:
         ASSERT(request->element.type == idigi_element_type_password);
-
+        /* no break; */
     case idigi_setting_device_info_product:
     case idigi_setting_device_info_model:
     case idigi_setting_device_info_company:
@@ -153,9 +153,9 @@ idigi_callback_status_t app_device_info_group_set(idigi_remote_group_request_t c
 
             response->error_id = idigi_setting_device_info_error_invalid_length;
             if (value_length < config_data[request->element.id].min_length)
-                sprintf(error_hint_text, "Minimum length is %d", config_data[request->element.id].min_length);
+                sprintf(error_hint_text, "Minimum length is %zu", config_data[request->element.id].min_length);
             else
-                sprintf(error_hint_text, "Maximum length is %d", config_data[request->element.id].max_length);
+                sprintf(error_hint_text, "Maximum length is %zu", config_data[request->element.id].max_length);
 
             response->element_data.error_hint = error_hint_text;
             goto done;
