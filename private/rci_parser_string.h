@@ -27,19 +27,17 @@
 #define CSTR_DATA(p)    ((p) + 1)
 typedef char cstr_t;
 
-static void cstr_to_rci_string(cstr_t const * const cstr, rci_string_t * const rcistr)
+static void cstr_to_rcistr(cstr_t const * const cstr, rci_string_t * const rcistr)
 {
     rcistr->data = CSTR_DATA(cstr);
     rcistr->length = CSTR_LEN(cstr);
 }
 
-#if (defined RCI_PARSER_USES_STRING) || (defined RCI_PARSER_USES_MULTILINE_STRING) || (defined RCI_PARSER_USES_PASSWORD)
 static void str_to_rcistr(char const * const str, rci_string_t * const rcistr)
 {
     rcistr->data = str;
     rcistr->length = strlen(str);
 }
-#endif
 
 static idigi_bool_t buffer_equals_buffer(char const * const str1, size_t const len1, char const * const str2, size_t const len2)
 {
@@ -111,7 +109,7 @@ static void adjust_char_pointer(rci_t const * const rci, char const * const old_
     *pointer = (new_base + offset);
 }
 
-static void adjust_rci_string(rci_t const * const rci, char const * const base, rci_string_t * const string)
+static void adjust_rcistr(rci_t const * const rci, char const * const base, rci_string_t * const string)
 {
     char * pointer = (char *) string->data;
 

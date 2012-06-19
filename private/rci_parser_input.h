@@ -646,7 +646,7 @@ static void rci_handle_end_tag(rci_t * const rci)
         }
         else
         {
-            cstr_to_rci_string(RCI_REPLY, &rci->output.tag);
+            cstr_to_rcistr(RCI_REPLY, &rci->output.tag);
             config_request_id = idigi_remote_config_session_end;
             rci->input.command = rci_command_unseen;
         }
@@ -1109,14 +1109,14 @@ static void rci_parse_input(rci_t * const rci)
 
                 memcpy(rci->input.storage, base, bytes);
 
-                adjust_rci_string(rci, base, &rci->shared.string.generic);
+                adjust_rcistr(rci, base, &rci->shared.string.generic);
                 {
                     size_t i;
 
                     for (i = 0; i < attribute_count(&rci->shared.attribute); i++)
                     {
-                        adjust_rci_string(rci, base, attribute_name(&rci->shared.attribute, i));
-                        adjust_rci_string(rci, base, attribute_value(&rci->shared.attribute, i));
+                        adjust_rcistr(rci, base, attribute_name(&rci->shared.attribute, i));
+                        adjust_rcistr(rci, base, attribute_value(&rci->shared.attribute, i));
                     }
                 }
                 adjust_char_pointer(rci, base, &rci->input.destination);
