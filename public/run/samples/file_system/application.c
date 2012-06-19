@@ -12,10 +12,6 @@
 #include "idigi_api.h"
 #include "platform.h"
 
-extern idigi_callback_status_t app_remote_config_handler(idigi_remote_config_request_t const request,
-                                                      void const * const request_data, size_t const request_length,
-                                                      void * response_data, size_t * const response_length);
-
 
 idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_request_t const request_id,
                                     void const * const request_data, size_t const request_length,
@@ -37,11 +33,9 @@ idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_r
     case idigi_class_file_system:
         status = app_file_system_handler(request_id.file_system_request, request_data, request_length, response_data, response_length);
         break;
-    case idigi_class_remote_config_service:
-        status = app_remote_config_handler(request_id.remote_config_request, request_data, request_length, response_data, response_length);
-        break;
     default:
         /* not supported */
+        status = idigi_callback_unrecognized;
         break;
     }
     return status;

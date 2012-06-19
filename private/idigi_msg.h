@@ -417,7 +417,7 @@ static msg_session_t * msg_create_session(idigi_data_t * const idigi_ptr, idigi_
     }
 
     {
-        void * ptr = NULL;
+        void * ptr;
         size_t const bytes_in_block = sizeof(msg_data_block_t);
         size_t const bytes_in_service_data = sizeof(msg_service_data_t);
         size_t const bytes_in_session = sizeof *session;
@@ -427,7 +427,7 @@ static msg_session_t * msg_create_session(idigi_data_t * const idigi_ptr, idigi_
         idigi_callback_status_t const status = malloc_data(idigi_ptr, total_bytes, &ptr);
         uint8_t * data_ptr = ptr;
 
-        if ((status != idigi_callback_continue) || (ptr == NULL)) goto done;
+        if (status != idigi_callback_continue) goto done;
         session = ptr;
         data_ptr += bytes_in_session;
 

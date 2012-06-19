@@ -124,14 +124,21 @@ static idigi_callback_status_t malloc_cb(idigi_callback_t const callback, size_t
     idigi_request_t request_id;
 
     request_id.os_request = idigi_os_malloc;
+    *ptr = NULL;
     status = idigi_callback(callback, idigi_class_operating_system, request_id, &size, sizeof size, ptr, &len);
     if (status == idigi_callback_continue)
     {
-        add_malloc_stats(*ptr, size);
-        ASSERT(*ptr != NULL);
+        if (*ptr != NULL)
+        { 
+            add_malloc_stats(*ptr, size);
+        }
+        else
+        {
+            ASSERT(idigi_false);
+            status = idigi_callback_abort;
+        }
     }
     return status;
-
 }
 
 
@@ -262,8 +269,6 @@ static idigi_callback_status_t add_facility_data(idigi_data_t * const idigi_ptr,
     status = malloc_data(idigi_ptr, size + facility_size, &ptr);
     if (status == idigi_callback_continue)
     {
-
-        ASSERT(ptr != NULL);
         /* add facility to idigi facility list */
         facility = ptr;
         facility->facility_num = facility_num;

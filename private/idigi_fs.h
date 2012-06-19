@@ -1189,7 +1189,7 @@ static idigi_callback_status_t file_store_path(idigi_data_t * const idigi_ptr,
 {
     idigi_callback_status_t status = idigi_callback_continue;
     size_t path_len = strlen(path);
-    void *ptr = NULL;
+    void *ptr;
 
     if (FileIsDir(context) && path[path_len - 1] != '/')
     {
@@ -1208,8 +1208,6 @@ static idigi_callback_status_t file_store_path(idigi_data_t * const idigi_ptr,
     status = malloc_data(idigi_ptr, IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH, &ptr);
     if (status != idigi_callback_continue)
         goto done;
-
-    ASSERT_GOTO(ptr != NULL, done);
 
     context->data.d.path = ptr;
     memcpy(context->data.d.path, path, path_len + 1);
@@ -1432,14 +1430,12 @@ static idigi_callback_status_t allocate_file_context(idigi_data_t * const idigi_
     file_system_context_t * context = NULL;
     idigi_callback_status_t status;
 
-    void * ptr = NULL;
+    void * ptr;
 
     status = malloc_data(idigi_ptr, sizeof *context, &ptr);
     if (status != idigi_callback_continue)
         goto done;
-    
-    ASSERT_GOTO(ptr != NULL, done);
-
+ 
     context = ptr;
 
     context->handle = NULL;

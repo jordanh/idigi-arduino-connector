@@ -150,7 +150,6 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
             goto done;
         }
 
-        ASSERT_GOTO(handle != NULL, done);
         idigi_handle = handle;
     }
 
