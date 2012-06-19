@@ -5,6 +5,7 @@ BASE_DIR=$WORKSPACE/idigi
 OUTPUT_DIR=$WORKSPACE/output
 PART_NUMBER=40003007
 PKG_NAME=${PART_NUMBER}_${REVISION}
+TOOLS_DIR=${BASE_DIR}/tools
 
 function cleanup () 
 {
@@ -24,8 +25,16 @@ function cleanup ()
     rm -r "${BASE_DIR}"
 }
 
+function build_config_tool ()
+{
+    mkdir -p "${TOOLS_DIR}"  
+    ant -f "${WORKSPACE}/tools/config/build.xml" -Ddist.dir="${TOOLS_DIR}"
+}
+
 # Create the output directory.
 mkdir -p "${OUTPUT_DIR}"
+
+build_config_tool
 
 # Create the doxygen documentation
 cd doxygen
