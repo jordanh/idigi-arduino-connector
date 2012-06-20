@@ -769,6 +769,10 @@ static idigi_callback_status_t msg_send_complete(idigi_data_t * const idigi_ptr,
 
     ASSERT_GOTO(session != NULL, error);
     ASSERT_GOTO(dblock != NULL, error);
+
+    if ((MsgIsDoubleBuf(dblock->status_flag) == idigi_false) && (MsgIsCompressed(dblock->status_flag) == idigi_false))
+        return_status = release_packet_buffer(idigi_ptr, packet, idigi_success, NULL);
+
     switch (status)
     {
         case idigi_service_busy:
@@ -816,9 +820,6 @@ static idigi_callback_status_t msg_send_complete(idigi_data_t * const idigi_ptr,
 
 error:
 done:
-    if ((MsgIsDoubleBuf(dblock->status_flag) == idigi_false) && (MsgIsCompressed(dblock->status_flag) == idigi_false))
-        return_status = release_packet_buffer(idigi_ptr, packet, idigi_success, NULL);
-
     return return_status;
 }
 
