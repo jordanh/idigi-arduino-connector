@@ -572,7 +572,7 @@ static void rci_handle_content(rci_t * const rci)
                     idigi_element_value_unsigned_integer_t const * const limit = &element->value_limit->unsigned_integer_value;
                     uint32_t const value = rci->shared.value.unsigned_integer_value;
 
-                    error = (value < limit->min_value) || (value > limit->max_value);
+                    error = idigi_bool((value < limit->min_value) || (value > limit->max_value));
                 }
                 break;
 #endif /* RCI_PARSER_USES_UNSIGNED_INTEGER */
