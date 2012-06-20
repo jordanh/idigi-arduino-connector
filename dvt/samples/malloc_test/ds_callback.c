@@ -249,8 +249,6 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
 
     if ((server_data->flags & IDIGI_MSG_FIRST_DATA) == IDIGI_MSG_FIRST_DATA)
     {
-        void * ptr;
-
         if (strcmp(server_device_request->target, request_terminate_target) == 0)
         {
             idigi_status_t ccode;
@@ -306,7 +304,6 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
         {
             /* testing to return unrecognized status */
             APP_DEBUG("process_device_request: unrecognized target = %s\n", server_device_request->target);
-            free(ptr);
             device_request_active_count--;
             status = idigi_callback_unrecognized;
             goto done;
