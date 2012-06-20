@@ -82,7 +82,6 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
 
         service_data->output.data = service_request->need_data->data_ptr;
         service_data->output.bytes = service_request->need_data->length_in_bytes;
-
         rci_status = rci_parser(parser_action, parser_data);
 
         switch (rci_status)
@@ -117,7 +116,7 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
         break;
     }
     case msg_service_type_error:
-         rci_parser(rci_session_lost);
+        rci_parser(rci_session_lost);
         break;
 
     case msg_service_type_free:

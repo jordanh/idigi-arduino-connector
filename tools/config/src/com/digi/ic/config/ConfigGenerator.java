@@ -126,7 +126,7 @@ public class ConfigGenerator {
         System.exit(1);
     }
 
-    private void getPassword() {
+    private void queryPassword() {
         
       Console console = System.console();
         
@@ -290,6 +290,9 @@ public class ConfigGenerator {
         }
     }
 
+    public static long getFirmware() {
+        return fwVersion;
+    }
     public static String getArgumentLogString() {
         return argumentLog;
     }
@@ -322,7 +325,7 @@ public class ConfigGenerator {
             usage();
         }
         if (password == null) {
-            getPassword();
+            queryPassword();
         }
     }
 

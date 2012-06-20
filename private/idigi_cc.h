@@ -198,7 +198,7 @@ done:
 }
 static idigi_callback_status_t get_connection_type(idigi_data_t * const idigi_ptr, uint8_t * const connection_type)
 {
-#if defined(IDIGI_CONNECTION_TYPE)
+#if (defined IDIGI_CONNECTION_TYPE)
 
     UNUSED_PARAMETER(idigi_ptr);
 
@@ -391,7 +391,7 @@ enum cc_connection_info {
         {
             uint8_t * connection_info = connection_report + record_bytes(connection_report);
 
-#if defined(IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND)
+#if (defined IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND)
             message_store_be32(connection_info, link_speed, IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND);
             idigi_debug_printf("send_connection_report: link_speed = %d\n", IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND);
 
@@ -424,7 +424,7 @@ enum cc_connection_info {
             cc_ptr->report_length += field_named_data(connection_info, link_speed, size);
 
             {
-#if !defined(IDIGI_WAN_PHONE_NUMBER_DIALED)
+#if !(defined IDIGI_WAN_PHONE_NUMBER_DIALED)
                 /* callback for phone number for WAN connection type */
                 idigi_request_t request_id;
                 size_t length = 0;

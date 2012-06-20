@@ -11,7 +11,7 @@
  */
 #include "idigi_config.h"
 
-#if defined(IDIGI_DEBUG)
+#if (defined IDIGI_DEBUG)
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>

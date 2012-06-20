@@ -52,22 +52,22 @@ static idigi_facility_init_t const idigi_supported_facility_table[] = {
         {{MANDATORY_FACILITY}, idigi_facility_cc_init, idigi_facility_cc_delete, idigi_facility_cc_cleanup, cc_discovery, cc_process},
 
         /* list of optional facilities */
-#if defined(IDIGI_FIRMWARE_SERVICE)
-    #if defined(IDIGI_FIRMWARE_SUPPORT)
+#if (defined IDIGI_FIRMWARE_SERVICE) || (defined IDIGI_RCI_SERVICE)
+    #if (defined IDIGI_FIRMWARE_SUPPORT) || (defined IDIGI_RCI_SERVICE)
         {{MANDATORY_FACILITY}, idigi_facility_firmware_init, idigi_facility_firmware_delete, NULL, fw_discovery, fw_process},
     #else
         {{idigi_config_firmware_facility}, idigi_facility_firmware_init, idigi_facility_firmware_delete, NULL, fw_discovery, fw_process},
     #endif
 #endif
-#if defined(IDIGI_DATA_SERVICE)
-    #if defined(IDIGI_DATA_SERVICE_SUPPORT)
+#if (defined IDIGI_DATA_SERVICE)
+    #if (defined IDIGI_DATA_SERVICE_SUPPORT)
         {{MANDATORY_FACILITY}, idigi_facility_data_service_init, idigi_facility_data_service_delete, idigi_facility_data_service_cleanup, msg_discovery, msg_process},
     #else
         {{idigi_config_data_service}, idigi_facility_data_service_init, idigi_facility_data_service_delete, idigi_facility_data_service_cleanup, msg_discovery, msg_process},
     #endif
 #endif
-#if defined(IDIGI_FILE_SYSTEM)
-    #if defined(IDIGI_FILE_SYSTEM_SUPPORT)
+#if (defined IDIGI_FILE_SYSTEM)
+    #if (defined IDIGI_FILE_SYSTEM_SUPPORT)
         {{MANDATORY_FACILITY}, idigi_facility_file_system_init, idigi_facility_file_system_delete, idigi_facility_file_system_cleanup, msg_discovery, msg_process},
     #else
         {{idigi_config_file_system}, idigi_facility_file_system_init, idigi_facility_file_system_delete, idigi_facility_file_system_cleanup, msg_discovery, msg_process},
@@ -75,7 +75,7 @@ static idigi_facility_init_t const idigi_supported_facility_table[] = {
 #endif
 
 #if (defined IDIGI_RCI_SERVICE)
-    #if defined(IDIGI_REMOTE_CONFIGURATION_SUPPORT)
+    #if (defined IDIGI_REMOTE_CONFIGURATION_SUPPORT)
         {{MANDATORY_FACILITY}, idigi_facility_rci_service_init, idigi_facility_rci_service_delete, idigi_facility_rci_service_cleanup, msg_discovery, msg_process}
     #else
         {{idigi_config_remote_configuration}, idigi_facility_rci_service_init, idigi_facility_rci_service_delete, idigi_facility_rci_service_cleanup, msg_discovery, msg_process}
@@ -168,13 +168,13 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
 
     static idigi_config_request_t const idigi_edp_init_config_ids[] = {
             idigi_config_server_url,
-#if !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
+#if !(defined IDIGI_RX_KEEPALIVE_IN_SECONDS)
             idigi_config_rx_keepalive,
 #endif
-#if !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS)
+#if !(defined IDIGI_TX_KEEPALIVE_IN_SECONDS)
             idigi_config_tx_keepalive,
 #endif
-#if !defined(IDIGI_WAIT_COUNT)
+#if !(defined IDIGI_WAIT_COUNT)
             idigi_config_wait_count
 #endif
     };
@@ -191,7 +191,7 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
 
         request_id.config_request = idigi_edp_init_config_ids[i];
 
-#if !defined(IDIGI_CLOUD_URL) || !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS) || !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS) || !defined(IDIGI_WAIT_COUNT)
+#if !(defined IDIGI_CLOUD_URL) || !(defined IDIGI_RX_KEEPALIVE_IN_SECONDS) || !(defined IDIGI_TX_KEEPALIVE_IN_SECONDS) || !(defined IDIGI_WAIT_COUNT)
         status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_config, request_id, &data, &length);
         if (status != idigi_callback_continue)
         {
@@ -212,14 +212,14 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
             idigi_ptr->error_code = idigi_invalid_data;
             goto error;
         }
-#endif /* !defined(IDIGI_CLOUD_URL) || !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS) ||
-          !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS) || !defined(IDIGI_WAIT_COUNT) */
+#endif /* !(defined IDIGI_CLOUD_URL) || !(defined IDIGI_RX_KEEPALIVE_IN_SECONDS) ||
+          !(defined IDIGI_TX_KEEPALIVE_IN_SECONDS) || !(defined IDIGI_WAIT_COUNT) */
 
 
         switch(request_id.config_request)
         {
         case idigi_config_server_url:
-#if defined(IDIGI_CLOUD_URL)
+#if (defined IDIGI_CLOUD_URL)
         {
             static char const idigi_cloud_url[]= IDIGI_CLOUD_URL;
             length = sizeof idigi_cloud_url -1;
@@ -236,21 +236,21 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
             idigi_ptr->server_url_length = length;
             break;
 
-#if !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS) || !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
+#if !(defined IDIGI_TX_KEEPALIVE_IN_SECONDS) || !(defined IDIGI_RX_KEEPALIVE_IN_SECONDS)
         case idigi_config_tx_keepalive:
         case idigi_config_rx_keepalive:
         {
             uint16_t const * const value = data;
-#if !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS) && !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
+#if !(defined IDIGI_TX_KEEPALIVE_IN_SECONDS) && !(defined IDIGI_RX_KEEPALIVE_IN_SECONDS)
             idigi_bool_t const is_tx = (request_id.config_request == idigi_config_tx_keepalive) ? idigi_true : idigi_false;
             uint16_t const min_interval = is_tx ? MIN_TX_KEEPALIVE_INTERVAL_IN_SECONDS : MIN_RX_KEEPALIVE_INTERVAL_IN_SECONDS;
             uint16_t const max_interval = is_tx ? MAX_TX_KEEPALIVE_INTERVAL_IN_SECONDS : MAX_RX_KEEPALIVE_INTERVAL_IN_SECONDS;
 
-#elif !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS)
+#elif !(defined IDIGI_TX_KEEPALIVE_IN_SECONDS)
             uint16_t const min_interval = MIN_TX_KEEPALIVE_INTERVAL_IN_SECONDS;
             uint16_t const max_interval = MAX_TX_KEEPALIVE_INTERVAL_IN_SECONDS;
 
-#elif !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
+#elif !(defined IDIGI_RX_KEEPALIVE_IN_SECONDS)
             uint16_t const min_interval = MIN_RX_KEEPALIVE_INTERVAL_IN_SECONDS;
             uint16_t const max_interval = MAX_RX_KEEPALIVE_INTERVAL_IN_SECONDS;
 #endif
@@ -260,11 +260,11 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
                 goto error;
             }
             {
-#if !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS) && !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
+#if !(defined IDIGI_TX_KEEPALIVE_IN_SECONDS) && !(defined IDIGI_RX_KEEPALIVE_IN_SECONDS)
                 uint16_t * const store_at = is_tx ? &idigi_ptr->tx_keepalive_interval : &idigi_ptr->rx_keepalive_interval;
-#elif !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS)
+#elif !(defined IDIGI_TX_KEEPALIVE_IN_SECONDS)
                 uint16_t * const store_at = &idigi_ptr->tx_keepalive_interval;
-#elif !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
+#elif !(defined IDIGI_RX_KEEPALIVE_IN_SECONDS)
                 uint16_t * const store_at = &idigi_ptr->rx_keepalive_interval;
 #endif
                 *store_at = *value;
@@ -273,7 +273,7 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
         }
 #endif
 
-#if !defined(IDIGI_WAIT_COUNT)
+#if !(defined IDIGI_WAIT_COUNT)
         case idigi_config_wait_count:
         {
             uint16_t const * const value = data;
@@ -306,7 +306,7 @@ error:
         status = idigi_callback_abort;
     }
 
-#if !defined(IDIGI_CLOUD_URL) || !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS) || !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS) || !defined(IDIGI_WAIT_COUNT)
+#if !(defined IDIGI_CLOUD_URL) || !(defined IDIGI_RX_KEEPALIVE_IN_SECONDS) || !(defined IDIGI_TX_KEEPALIVE_IN_SECONDS) || !(defined IDIGI_WAIT_COUNT)
 done:
 #endif
     return status;
@@ -1071,7 +1071,7 @@ enum {
 
         message_store_u8(edp_vendor_msg, security_coding, SECURITY_PROTO_NONE);
         message_store_u8(edp_vendor_msg, opcode, DISC_OP_VENDOR_ID);
-#if !defined(IDIGI_VENDOR_ID)
+#if !(defined IDIGI_VENDOR_ID)
         message_store_array(edp_vendor_msg, vendor_id, idigi_ptr->vendor_id, VENDOR_ID_LENGTH);
         idigi_debug_hexvalue("discovery layer: send vendor id", idigi_ptr->vendor_id, VENDOR_ID_LENGTH);
 #else
@@ -1116,7 +1116,7 @@ enum {
         uint8_t * edp_device_type = start_ptr;
 
 
-#if defined(IDIGI_DEVICE_TYPE)
+#if (defined IDIGI_DEVICE_TYPE)
         static const char idigi_device_type[] = IDIGI_DEVICE_TYPE;
         size_t device_type_length  = sizeof idigi_device_type-1;
 #else

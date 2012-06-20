@@ -338,7 +338,7 @@ done:
     return status;
 }
 
-void app_ethernet_group_cancel(void *const  context)
+void app_ethernet_group_cancel(void * const  context)
 {
     remote_group_session_t * const session_ptr = context;
 

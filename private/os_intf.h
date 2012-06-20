@@ -79,7 +79,7 @@ static idigi_callback_status_t idigi_callback(idigi_callback_t const callback, i
 
 static void notify_error_status(idigi_callback_t const callback, idigi_class_t const class_number, idigi_request_t const request_number, idigi_status_t const status)
 {
-#if defined(IDIGI_DEBUG)
+#if (defined IDIGI_DEBUG)
     idigi_error_status_t err_status;
     idigi_request_t request_id;
 

@@ -14,7 +14,7 @@
 
 #define IDIGI_LITTLE_ENDIAN
 #define IDIGI_DEBUG
-#define IDIGI_FIRMWARE_SERVICE
+/* #define IDIGI_FIRMWARE_SERVICE */
 /* #define IDIGI_COMPRESSION */
 /* #define IDIGI_DATA_SERVICE */
 /* #define IDIGI_FILE_SYSTEM */

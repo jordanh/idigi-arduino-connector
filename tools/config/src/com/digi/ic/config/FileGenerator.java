@@ -111,6 +111,8 @@ public class FileGenerator {
              */
             headerWriter.write(String.format("\n\n#if defined %s\n\n", RCI_PARSER_DATA));
 
+            headerWriter.write(String.format("#define FIRMWARE_TARGET_ZERO_VERSION  0x%X\n\n",ConfigGenerator.getFirmware()));
+            
             /* Write all string length and index defines in C file */
             writeDefineStrings(configData);
 

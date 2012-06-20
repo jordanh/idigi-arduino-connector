@@ -1890,6 +1890,11 @@ done:
 }
 
 #if (defined IDIGI_RCI_SERVICE)
+
 #include "rci_service.h"
+
+#if (!defined IDIGI_FIRMWARE_SERVICE)
+#include "rci_fwstub.h"
+#endif
 #endif
 

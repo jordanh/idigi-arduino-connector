@@ -94,6 +94,20 @@ typedef struct {
     uint8_t response_buffer[FW_MESSAGE_RESPONSE_MAX_SIZE + PACKET_EDP_FACILITY_SIZE];
 } idigi_firmware_data_t;
 
+#if defined IDIGI_RCI_SERVICE
+static void confirm_fw_version(idigi_firmware_data_t * const fw_ptr, uint8_t target_number, uint32_t version)
+{
+    if (target_number == 0 && version != FIRMWARE_TARGET_ZERO_VERSION)
+    {
+        idigi_data_t * const idigi_ptr = fw_ptr->idigi_ptr;
+        idigi_request_t request_id;
+
+        request_id.firmware_request = idigi_firmware_version;
+        notify_error_status(idigi_ptr->callback, idigi_class_firmware, request_id, idigi_bad_version);
+    }
+}
+#endif
+
 static idigi_callback_status_t get_fw_config(idigi_firmware_data_t * const fw_ptr, idigi_firmware_request_t const fw_request_id,
                                            void * const request, size_t const request_size,
                                            void * response, size_t * const response_size,
@@ -397,6 +411,12 @@ enum fw_info {
         case idigi_firmware_version:
             /* add target number to the target list message before version*/
             status = get_fw_config(fw_ptr, idigi_firmware_version, &request, sizeof request,&fw_ptr->version, NULL, fw_equal);
+#if defined IDIGI_RCI_SERVICE
+            if (status == idigi_callback_continue)
+            {
+                confirm_fw_version(fw_ptr, request.target, fw_ptr->version);
+            }
+#endif
             break;
 
         case idigi_firmware_code_size:
@@ -1049,6 +1069,9 @@ enum fw_target_list{
             if (status == idigi_callback_continue)
             {
 
+#if defined IDIGI_RCI_SERVICE
+                confirm_fw_version(fw_ptr, request.target, version);
+#endif
                 message_store_u8(fw_target_list, target, request.target);
                 message_store_be32(fw_target_list, version, version);
 

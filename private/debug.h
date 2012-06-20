@@ -75,7 +75,7 @@ static void del_malloc_stats(void const * const ptr)
 }
 #endif
 
-#if defined(IDIGI_DEBUG)
+#if (defined IDIGI_DEBUG)
 void idigi_debug_hexvalue(char * label, uint8_t * buff, int length)
 {
     int i;
