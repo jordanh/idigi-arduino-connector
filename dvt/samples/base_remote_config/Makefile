@@ -39,7 +39,7 @@ SAMPLE = idigi
 .PHONY:all
 all: $(SAMPLE)
 
-LDFLAGS += -Wl,-Map=$(SAMPLE).map,--sort-common
+LDFLAGS += $(DFLAGS) -Wl,-Map=$(SAMPLE).map,--sort-common
 
 SRCS = remote_config.c application.c \
        $(PLATFORM_DIR)/main.c $(PLATFORM_DIR)/os.c $(PLATFORM_DIR)/config.c \
