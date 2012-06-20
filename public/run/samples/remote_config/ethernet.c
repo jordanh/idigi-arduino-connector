@@ -25,24 +25,15 @@
 #define ETHERNET_IPV4_STRING_LENGTH 16
 #define ETHERNET_DNS_FQDN_LENGTH    128
 
-enum {
-    ethernet_dhcp_disabled,
-    ethernet_dhcp_enabled
-};
 
-enum {
-    ethernet_duplex_auto,
-    ethernet_duplex_half,
-    ethernet_duplex_full,
-};
 typedef struct {
     in_addr_t ip_address;
     in_addr_t subnet;
     in_addr_t gateway;
-    unsigned int duplex;
+    idigi_setting_ethernet_duplex_id_t duplex;
     char dns[ETHERNET_DNS_FQDN_LENGTH];
 
-    unsigned char dhcp_enabled;
+    idigi_boolean_t dhcp_enabled;
 } ethernet_config_data_t;
 
 typedef struct {
@@ -54,8 +45,7 @@ typedef struct {
     idigi_boolean_t dhcp_enabled;
 } ethernet_idigi_data_t;
 
-ethernet_config_data_t ethernet_config_data = {0, 0, 0, ethernet_duplex_auto, "\0", ethernet_dhcp_enabled};
-
+ethernet_config_data_t ethernet_config_data = {0, 0, 0, idigi_setting_ethernet_duplex_auto, "\0", idigi_boolean_true};
 
 int ethernet_configuration_init(void)
 {
@@ -150,12 +140,14 @@ void ethernet_get_ip_address(unsigned char ** addr, size_t * size)
 
 idigi_callback_status_t app_ethernet_group_init(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
+    idigi_callback_status_t status = idigi_callback_continue;
     remote_group_session_t * const session_ptr = response->user_context;
     void * ptr;
     ethernet_idigi_data_t * ethernet_ptr = NULL;
 
     UNUSED_ARGUMENT(request);
     ASSERT(session_ptr != NULL);
+
 
     ptr = malloc(sizeof *ethernet_ptr);
     if (ptr == NULL)
@@ -170,24 +162,12 @@ idigi_callback_status_t app_ethernet_group_init(idigi_remote_group_request_t con
     inet_ntop(AF_INET, &ethernet_config_data.gateway,       ethernet_ptr->gateway,      sizeof ethernet_ptr->gateway);
 
     memcpy(ethernet_ptr->dns, ethernet_config_data.dns, sizeof ethernet_ptr->dns);
-    ethernet_ptr->dhcp_enabled = (ethernet_config_data.dhcp_enabled == ethernet_dhcp_enabled) ? idigi_boolean_true : idigi_boolean_false;
-
-    switch (ethernet_config_data.duplex)
-    {
-    case ethernet_duplex_auto:
-        ethernet_ptr->duplex = idigi_setting_ethernet_duplex_auto;
-        break;
-    case ethernet_duplex_half:
-        ethernet_ptr->duplex = idigi_setting_ethernet_duplex_half;
-        break;
-    case ethernet_duplex_full:
-        ethernet_ptr->duplex = idigi_setting_ethernet_duplex_full;
-        break;
-    }
+    ethernet_ptr->dhcp_enabled = ethernet_config_data.dhcp_enabled;
+    ethernet_ptr->duplex = ethernet_config_data.duplex;
 
 done:
     session_ptr->group_context = ethernet_ptr;
-    return idigi_callback_continue;
+    return status;
 }
 
 idigi_callback_status_t app_ethernet_group_get(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
@@ -202,20 +182,25 @@ idigi_callback_status_t app_ethernet_group_get(idigi_remote_group_request_t cons
 
     ethernet_ptr = session_ptr->group_context;
 
+    printf("app_ethernet_group_get: id = %d\n", request->element.id);
+
     switch (request->element.id)
     {
     case idigi_setting_ethernet_dhcp:
         ASSERT(request->element.type == idigi_element_type_boolean);
         response->element_data.element_value->boolean_value = ethernet_ptr->dhcp_enabled;
         break;
+
     case idigi_setting_ethernet_dns:
         ASSERT(request->element.type == idigi_element_type_fqdnv4);
         response->element_data.element_value->string_value = ethernet_ptr->dns;
         break;
+
     case idigi_setting_ethernet_duplex:
         ASSERT(request->element.type == idigi_element_type_enum);
         response->element_data.element_value->enum_value = ethernet_ptr->duplex;
         break;
+
     case idigi_setting_ethernet_ip:
     case idigi_setting_ethernet_subnet:
     case idigi_setting_ethernet_gateway:
@@ -226,6 +211,7 @@ idigi_callback_status_t app_ethernet_group_get(idigi_remote_group_request_t cons
         response->element_data.element_value->string_value = config_data[request->element.id];
         break;
     }
+
     default:
         ASSERT(0);
         break;
@@ -247,24 +233,28 @@ idigi_callback_status_t app_ethernet_group_set(idigi_remote_group_request_t cons
     ASSERT(request->element.value != NULL);
 
     ethernet_ptr = session_ptr->group_context;
+
     switch (request->element.id)
     {
     case idigi_setting_ethernet_dhcp:
         ASSERT(request->element.type == idigi_element_type_boolean);
         ethernet_ptr->dhcp_enabled = request->element.value->boolean_value;
         break;
+
     case idigi_setting_ethernet_dns:
         ASSERT(request->element.type == idigi_element_type_fqdnv4);
         length = strlen(request->element.value->string_value);
 
-        ASSERT(length <= sizeof ethernet_ptr->dns);
+        ASSERT(length < sizeof ethernet_ptr->dns);
         memcpy(ethernet_ptr->dns, request->element.value->string_value, length);
         ethernet_ptr->dns[length] = '\0';
         break;
+
     case idigi_setting_ethernet_duplex:
         ASSERT(request->element.type == idigi_element_type_enum);
-        ethernet_ptr->duplex = request->element.value->enum_value;
+        ethernet_ptr->duplex = (idigi_setting_ethernet_duplex_id_t)request->element.value->enum_value;
         break;
+
     case idigi_setting_ethernet_ip:
     case idigi_setting_ethernet_subnet:
     case idigi_setting_ethernet_gateway:
@@ -297,9 +287,9 @@ idigi_callback_status_t app_ethernet_group_set(idigi_remote_group_request_t cons
 
 idigi_callback_status_t app_ethernet_group_end(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
-
+    idigi_callback_status_t status = idigi_callback_continue;
     remote_group_session_t * const session_ptr = response->user_context;
-    ethernet_idigi_data_t * ethernet_ptr;
+    ethernet_idigi_data_t * ethernet_ptr = NULL;
 
     /* save the data */
 
@@ -314,14 +304,14 @@ idigi_callback_status_t app_ethernet_group_end(idigi_remote_group_request_t cons
 
         if (inet_aton(ethernet_ptr->ip_address, (struct in_addr *)&ethernet_config_data.ip_address) == 0)
         {
-            response->error_id = idigi_setting_ethernet_ip;
+            response->error_id = idigi_global_error_load_fail;
             response->element_data.error_hint = "IP address";
             goto done;
         }
 
         if (inet_aton(ethernet_ptr->subnet, (struct in_addr *)&ethernet_config_data.subnet) == 0)
         {
-            response->error_id = idigi_setting_ethernet_subnet;
+            response->error_id = idigi_setting_ethernet_error_invalid_subnet;
             response->element_data.error_hint = "Subnet";
             goto done;
         }
@@ -329,28 +319,14 @@ idigi_callback_status_t app_ethernet_group_end(idigi_remote_group_request_t cons
         ccode = inet_aton(ethernet_ptr->gateway, (struct in_addr *)&ethernet_config_data.gateway);
         if (ccode == 0)
         {
-            response->error_id = idigi_setting_ethernet_gateway;
+            response->error_id = idigi_setting_ethernet_error_invalid_gateway;
             response->element_data.error_hint = "Gateway";
             goto done;
         }
 
         memcpy(ethernet_config_data.dns, ethernet_ptr->dns, sizeof ethernet_config_data.dns);
-        ethernet_config_data.dhcp_enabled = (request->element.value->boolean_value == idigi_boolean_true) ? ethernet_dhcp_enabled : ethernet_dhcp_disabled;
-
-        switch (ethernet_ptr->duplex)
-        {
-        case idigi_setting_ethernet_duplex_auto:
-            ethernet_config_data.duplex = ethernet_duplex_auto;
-            break;
-        case idigi_setting_ethernet_duplex_half:
-            ethernet_config_data.duplex = ethernet_duplex_half;
-            break;
-        case idigi_setting_ethernet_duplex_full:
-            ethernet_config_data.duplex = ethernet_duplex_full;
-            break;
-        default:
-            break;
-        }
+        ethernet_config_data.dhcp_enabled = ethernet_ptr->dhcp_enabled;
+        ethernet_config_data.duplex = ethernet_ptr->duplex;
 
     }
 
@@ -359,7 +335,7 @@ done:
     {
         free(ethernet_ptr);
     }
-    return idigi_callback_continue;
+    return status;
 }
 
 void app_ethernet_group_cancel(void *const  context)

@@ -111,24 +111,22 @@ static idigi_callback_status_t app_process_group(idigi_remote_config_request_t c
     switch (request->group.type)
     {
     case idigi_remote_group_setting:
-        if (request->group.id <= asizeof (remote_setting_table))
-        {
-            group_ptr = &remote_setting_table[request->group.id];
-        }
-        else
+
+        if (request->group.id >= asizeof(remote_setting_table))
         {
             ASSERT(0);
+            goto done;
         }
+
+        group_ptr = &remote_setting_table[request->group.id];
         break;
     case idigi_remote_group_state:
-        if (request->group.id <= asizeof (remote_state_table))
-        {
-            group_ptr = &remote_state_table[request->group.id];
-        }
-        else
+        if (request->group.id >= asizeof(remote_state_table))
         {
             ASSERT(0);
+            goto done;
         }
+        group_ptr = &remote_state_table[request->group.id];
         break;
     }
 
@@ -161,10 +159,10 @@ done:
 }
 
 
-static idigi_callback_status_t app_process_session_cancel(void * const context)
+static idigi_callback_status_t app_process_session_cancel(void const * const context)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    remote_group_session_t * session_ptr = context;
+    remote_group_session_t * const session_ptr = (remote_group_session_t *)context;
 
     APP_DEBUG("app_process_session_cancel\n");
     if (session_ptr != NULL)
@@ -172,8 +170,8 @@ static idigi_callback_status_t app_process_session_cancel(void * const context)
         remote_group_table_t * const group_ptr = session_ptr->group_context;
         remote_group_cancel_cb_t callback = group_ptr->cancel_cb;
 
-        callback(context);
-        free(context);
+        callback(session_ptr);
+        free(session_ptr);
     }
     return status;
 }
@@ -207,11 +205,8 @@ idigi_callback_status_t app_remote_config_handler(idigi_remote_config_request_t 
         status = app_process_group(request, request_data, response_data);
         break;
     case idigi_remote_config_session_cancel:
-    {
-        void * const context = (void *)request_data;
-        status = app_process_session_cancel(context);
+        status = app_process_session_cancel(request_data);
         break;
-    }
     default:
         APP_DEBUG("app_remote_config_handler: unknown request id %d\n", request);
         break;

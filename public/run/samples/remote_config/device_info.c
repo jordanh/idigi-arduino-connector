@@ -149,13 +149,19 @@ idigi_callback_status_t app_device_info_group_set(idigi_remote_group_request_t c
         if ((value_length < config_data[request->element.id].min_length) ||
             (value_length >= config_data[request->element.id].max_length))
         {
-            static char error_hint_text[28];
+            #define MIN_LENGTH_HINT_FORMAT "Minimum length is %4d"
+            #define MAX_LENGTH_HINT_FORMAT "Maximum length is %4d"
+
+            static char error_hint_text[sizeof MAX_LENGTH_HINT_FORMAT];
+            size_t snprintf_length;
 
             response->error_id = idigi_setting_device_info_error_invalid_length;
             if (value_length < config_data[request->element.id].min_length)
-                sprintf(error_hint_text, "Minimum length is %zu", config_data[request->element.id].min_length);
+                snprintf_length = snprintf(error_hint_text, sizeof error_hint_text, MIN_LENGTH_HINT_FORMAT, config_data[request->element.id].min_length);
             else
-                sprintf(error_hint_text, "Maximum length is %zu", config_data[request->element.id].max_length);
+                snprintf_length = snprintf(error_hint_text, sizeof error_hint_text, MIN_LENGTH_HINT_FORMAT, config_data[request->element.id].max_length);
+
+            ASSERT(snprintf_length < sizeof error_hint_text);
 
             response->element_data.error_hint = error_hint_text;
             goto done;

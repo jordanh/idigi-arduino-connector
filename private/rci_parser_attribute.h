@@ -79,13 +79,13 @@ static void add_attribute(rci_attribute_list_t * const list, cstr_t const * cons
     ASSERT(index < asizeof(list->pair));
 
     list->count++;
-    cstr_to_rci_string(name, &pair->name);
-    cstr_to_rci_string(value, &pair->value);
+    cstr_to_rcistr(name, &pair->name);
+    cstr_to_rcistr(value, &pair->value);
 }
 
 static void prep_rci_reply_data(rci_t * const rci)
 {
-    cstr_to_rci_string(RCI_REPLY, &rci->output.tag);
+    cstr_to_rcistr(RCI_REPLY, &rci->output.tag);
     add_attribute(&rci->output.attribute, RCI_VERSION, RCI_VERSION_SUPPORTED);
     rci->output.type = rci_output_type_start_tag;
 }

@@ -688,9 +688,10 @@ enum {
                  */
                 if (*response_code != initialization_version_response_acceptable)
                 {
-                    idigi_request_t const request_id = {idigi_network_receive};
+                    idigi_request_t request_id;
                     status = idigi_callback_abort;
                     idigi_ptr->error_code = idigi_bad_version;
+                    request_id.network_request = idigi_network_receive;
                     notify_error_status(idigi_ptr->callback, idigi_class_network, request_id, idigi_ptr->error_code);
                     goto done;
 

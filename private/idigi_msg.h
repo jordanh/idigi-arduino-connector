@@ -844,7 +844,7 @@ static idigi_callback_status_t msg_send_data(idigi_data_t * const idigi_ptr, msg
     {
         idigi_status_t const result = (status == idigi_callback_busy) ? idigi_service_busy : idigi_send_error;
 
-        msg_send_complete(idigi_ptr, buffer, result, NULL);
+        msg_send_complete(idigi_ptr, buffer, result, session);
     }
     else
         session->current_state = msg_state_wait_send_complete;
