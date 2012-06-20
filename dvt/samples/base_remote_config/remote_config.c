@@ -86,7 +86,7 @@ void add_setting_data(int group_id, int element_id, const void * data, int lengt
     setting_data_t * g_data = setting_data[group_id];
     if(g_data == NULL){
         g_data =(setting_data_t *)malloc(sizeof(setting_data_t));
-        g_data->group_data = (void **)malloc(10*sizeof(ptr));
+        g_data->group_data = (void **)malloc(1*sizeof(ptr));
         g_data->capacity = 1;        
     }
 
