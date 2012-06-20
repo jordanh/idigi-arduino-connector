@@ -928,14 +928,19 @@ static idigi_callback_status_t process_target_reset(idigi_firmware_data_t * cons
     return status;
 }
 
-static void send_discovery_packet_callback(idigi_data_t * const idigi_ptr, uint8_t const * const packet,
-                                           idigi_status_t const status, void * const user_data)
+static idigi_callback_status_t send_discovery_packet_callback(idigi_data_t * const idigi_ptr, uint8_t const * const packet,
+                                           idigi_status_t const send_status, void * const user_data)
 {
+    idigi_callback_status_t status;
     idigi_firmware_data_t * const fw_ptr = user_data;
     /* update fw download keepalive timing */
-    get_system_time(idigi_ptr, &fw_ptr->last_fw_keepalive_sent_time);
-    release_packet_buffer(idigi_ptr, packet, status, user_data);
+    status = get_system_time(idigi_ptr, &fw_ptr->last_fw_keepalive_sent_time);
+    if (status == idigi_callback_continue)
+    {
+        status = release_packet_buffer(idigi_ptr, packet, send_status, user_data);
+    }
 
+    return status;
 }
 
 static idigi_callback_status_t fw_discovery(idigi_data_t * const idigi_ptr, void * const facility_data,

@@ -16,6 +16,9 @@
 #include "platform.h"
 #include "remote_config_cb.h"
 
+#define VALUE_TO_STRING(value)   # value
+#define MACRO_TO_STRING(macro)   VALUE_TO_STRING(macro)
+
 
 #define DEVICE_INFO_PRODUCT_LENGTH  64
 #define DEVICE_INFO_MODEL_LENGTH  32
@@ -149,21 +152,31 @@ idigi_callback_status_t app_device_info_group_set(idigi_remote_group_request_t c
         if ((value_length < config_data[request->element.id].min_length) ||
             (value_length >= config_data[request->element.id].max_length))
         {
-            #define MIN_LENGTH_HINT_FORMAT "Minimum length is %4d"
-            #define MAX_LENGTH_HINT_FORMAT "Maximum length is %4d"
+            #define LENGTH_FORMAT      "%zu"
+            #define MINIMUM_HINT_TEXT  "Minimum length is "
+            #define MAXIMUM_HINT_TEXT  "Maximum length is "
+            {
+                static char error_hint_text[sizeof (MINIMUM_HINT_TEXT MACRO_TO_STRING(UINT_MAX))];
+                unsigned int const min_length = config_data[request->element.id].min_length;
+                unsigned int const max_length = config_data[request->element.id].max_length;
 
-            static char error_hint_text[sizeof MAX_LENGTH_HINT_FORMAT];
-            size_t snprintf_length;
+                idigi_boolean_t const is_min = (value_length < min_length) ? idigi_boolean_true : idigi_boolean_false;
 
-            response->error_id = idigi_setting_device_info_error_invalid_length;
-            if (value_length < config_data[request->element.id].min_length)
-                snprintf_length = snprintf(error_hint_text, sizeof error_hint_text, MIN_LENGTH_HINT_FORMAT, config_data[request->element.id].min_length);
-            else
-                snprintf_length = snprintf(error_hint_text, sizeof error_hint_text, MIN_LENGTH_HINT_FORMAT, config_data[request->element.id].max_length);
+                CONFIRM(sizeof MINIMUM_HINT_TEXT == sizeof MAXIMUM_HINT_TEXT);
 
-            ASSERT(snprintf_length < sizeof error_hint_text);
+                response->error_id = idigi_setting_device_info_error_invalid_length;
+                {
+                       static char const min_format[] = MINIMUM_HINT_TEXT LENGTH_FORMAT;
+                       static char const max_format[] = MAXIMUM_HINT_TEXT LENGTH_FORMAT;
 
-            response->element_data.error_hint = error_hint_text;
+                snprintf(error_hint_text, sizeof error_hint_text, is_min ? min_format : max_format, is_min? min_length : max_length);
+                }
+                response->element_data.error_hint = error_hint_text;
+            }
+            #undef LENGTH_FORMAT
+            #undef MINIMUM_HINT_TEXT
+            #undef MAXIMUM_HINT_TEXT
+
             goto done;
         }
         memcpy(config_data[request->element.id].store_data, request->element.value->string_value, value_length);

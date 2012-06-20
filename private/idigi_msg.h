@@ -760,8 +760,10 @@ static void msg_fill_msg_header(msg_session_t * const session, void * ptr)
     }
 }
 
-static void msg_send_complete(idigi_data_t * const idigi_ptr, uint8_t const * const packet, idigi_status_t const status, void * const user_data)
+static idigi_callback_status_t msg_send_complete(idigi_data_t * const idigi_ptr, uint8_t const * const packet, idigi_status_t const status, void * const user_data)
 {
+    idigi_callback_status_t return_status = idigi_callback_continue;
+
     msg_session_t * const session = user_data;
     msg_data_block_t * const dblock = session->out_dblock;
 
@@ -815,9 +817,9 @@ static void msg_send_complete(idigi_data_t * const idigi_ptr, uint8_t const * co
 error:
 done:
     if ((MsgIsDoubleBuf(dblock->status_flag) == idigi_false) && (MsgIsCompressed(dblock->status_flag) == idigi_false))
-        release_packet_buffer(idigi_ptr, packet, idigi_success, NULL);
+        return_status = release_packet_buffer(idigi_ptr, packet, idigi_success, NULL);
 
-    return;
+    return return_status;
 }
 
 static idigi_callback_status_t msg_send_data(idigi_data_t * const idigi_ptr, msg_session_t * const session)

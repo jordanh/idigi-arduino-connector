@@ -192,7 +192,7 @@ static int send_buffer(idigi_data_t * const idigi_ptr, uint8_t * const buffer, s
     return bytes_sent;
 }
 
-static void release_packet_buffer(idigi_data_t * const idigi_ptr, uint8_t const * const packet, idigi_status_t const status, void * const user_data)
+static idigi_callback_status_t release_packet_buffer(idigi_data_t * const idigi_ptr, uint8_t const * const packet, idigi_status_t const status, void * const user_data)
 {
     /* this is called when iDigi Connector is done sending or after get_packet_buffer()
      * is called to release idigi_ptr->send_packet.packet_buffer.buffer.
@@ -205,6 +205,8 @@ static void release_packet_buffer(idigi_data_t * const idigi_ptr, uint8_t const 
     ASSERT(idigi_ptr->send_packet.packet_buffer.buffer == packet);
 
     idigi_ptr->send_packet.packet_buffer.in_use = idigi_false;
+
+    return idigi_callback_continue;
 }
 
 static uint8_t * get_packet_buffer(idigi_data_t * const idigi_ptr, uint16_t const facility, uint8_t ** data_ptr, size_t * data_length)
@@ -286,15 +288,18 @@ done:
     return status;
 }
 
-static void send_complete_callback(idigi_data_t * const idigi_ptr)
+static idigi_callback_status_t send_complete_callback(idigi_data_t * const idigi_ptr)
 {
+    idigi_callback_status_t status = idigi_callback_continue;
     send_complete_cb_t callback = idigi_ptr->send_packet.complete_cb;
 
     if (callback != NULL)
     {
         idigi_ptr->send_packet.complete_cb = NULL;
-        callback(idigi_ptr, idigi_ptr->send_packet.ptr, idigi_ptr->error_code, idigi_ptr->send_packet.user_data);
+        status = callback(idigi_ptr, idigi_ptr->send_packet.ptr, idigi_ptr->error_code, idigi_ptr->send_packet.user_data);
     }
+
+    return status;
 }
 
 static idigi_callback_status_t send_packet_process(idigi_data_t * const idigi_ptr)
@@ -339,7 +344,8 @@ static idigi_callback_status_t send_packet_process(idigi_data_t * const idigi_pt
 
         if (idigi_ptr->send_packet.total_length == 0)
         {   /* sent completed so let's call the complete callback */
-            send_complete_callback(idigi_ptr);
+            status = send_complete_callback(idigi_ptr);
+            ASSERT(status == idigi_callback_continue || status == idigi_callback_abort);
         }
     }
 

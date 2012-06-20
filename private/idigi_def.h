@@ -186,7 +186,7 @@ typedef enum {
 struct idigi_data;
 struct idigi_facility;
 
-typedef void (* send_complete_cb_t)(struct idigi_data * const idigi_ptr, uint8_t const * const packet, idigi_status_t const status, void * const user_data);
+typedef idigi_callback_status_t (* send_complete_cb_t)(struct idigi_data * const idigi_ptr, uint8_t const * const packet, idigi_status_t const status, void * const user_data);
 
 typedef struct idigi_facility {
     unsigned int facility_index;
