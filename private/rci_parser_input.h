@@ -223,7 +223,7 @@ static void rci_process_group_tag(rci_t * const rci, rci_action_t const rci_acti
     }
 
     {
-        rci_string_t const * const index = find_attribute_value(&rci->shared.attribute, RCI_INDEX);
+        rcistr_t const * const index = find_attribute_value(&rci->shared.attribute, RCI_INDEX);
 
         if (index == NULL)
         {
@@ -359,7 +359,7 @@ static void rci_handle_start_tag(rci_t * const rci)
     case rci_command_unseen:
         if (cstr_equals_rcistr(RCI_REQUEST, &rci->shared.string.tag))
         {
-            rci_string_t const * const version = find_attribute_value(&rci->shared.attribute, RCI_VERSION);
+            rcistr_t const * const version = find_attribute_value(&rci->shared.attribute, RCI_VERSION);
 
             if ((version == NULL) || (cstr_equals_rcistr(RCI_VERSION_SUPPORTED, version)))
             {

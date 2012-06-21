@@ -30,7 +30,7 @@ static char const * const rci_command[] = {
     RCI_QUERY_STATE
 };
 
-static rci_command_t find_rci_command(rci_string_t const * const tag)
+static rci_command_t find_rci_command(rcistr_t const * const tag)
 {
     size_t i;
     rci_command_t result = rci_command_unknown;
@@ -51,7 +51,7 @@ static rci_command_t find_rci_command(rci_string_t const * const tag)
     return result;
 }
 
-static void set_rci_command_tag(rci_command_t const command, rci_string_t * const tag)
+static void set_rci_command_tag(rci_command_t const command, rcistr_t * const tag)
 {
     int const index = (command - rci_command_set_setting);
 

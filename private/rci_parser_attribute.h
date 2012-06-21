@@ -38,23 +38,23 @@ static void clear_attributes(rci_attribute_list_t * const list)
     list->count = 0;
 }
 
-static rci_string_t * attribute_name(rci_attribute_list_t * const list, unsigned int const index)
+static rcistr_t * attribute_name(rci_attribute_list_t * const list, unsigned int const index)
 {
     ASSERT(index < attribute_count(list));
 
     return &list->pair[index].name;
 }
 
-static rci_string_t * attribute_value(rci_attribute_list_t * const list, unsigned int const index)
+static rcistr_t * attribute_value(rci_attribute_list_t * const list, unsigned int const index)
 {
     ASSERT(index < attribute_count(list));
 
     return &list->pair[index].value;
 }
 
-static rci_string_t const * find_attribute_value(rci_attribute_list_t const * const list, cstr_t const * const name)
+static rcistr_t const * find_attribute_value(rci_attribute_list_t const * const list, cstr_t const * const name)
 {
-    rci_string_t const * result = NULL;
+    rcistr_t const * result = NULL;
     size_t i;
 
     for (i = 0; i < list->count; i++)

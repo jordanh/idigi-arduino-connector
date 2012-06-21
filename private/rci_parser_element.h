@@ -28,7 +28,7 @@
 #define get_element_id(rci)         (ELEMENT_VARIABLE(rci))
 #define have_element_id(rci)        (get_element_id(rci) != INVALID_ID)
 
-static unsigned int find_element_id_in_group(idigi_group_t const * const group, rci_string_t const * const tag)
+static unsigned int find_element_id_in_group(idigi_group_t const * const group, rcistr_t const * const tag)
 {
     int id = INVALID_ID;
     size_t i;
@@ -45,7 +45,7 @@ static unsigned int find_element_id_in_group(idigi_group_t const * const group, 
     return id;
 }
 
-static void assign_element_id(rci_t * const rci, rci_string_t const * const tag)
+static void assign_element_id(rci_t * const rci, rcistr_t const * const tag)
 {
     ASSERT(have_group_id(rci));
     {

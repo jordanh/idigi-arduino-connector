@@ -27,13 +27,13 @@
 #define CSTR_DATA(p)    ((p) + 1)
 typedef char cstr_t;
 
-static void cstr_to_rcistr(cstr_t const * const cstr, rci_string_t * const rcistr)
+static void cstr_to_rcistr(cstr_t const * const cstr, rcistr_t * const rcistr)
 {
     rcistr->data = CSTR_DATA(cstr);
     rcistr->length = CSTR_LEN(cstr);
 }
 
-static void str_to_rcistr(char const * const str, rci_string_t * const rcistr)
+static void str_to_rcistr(char const * const str, rcistr_t * const rcistr)
 {
     rcistr->data = str;
     rcistr->length = strlen(str);
@@ -52,7 +52,7 @@ static idigi_bool_t cstr_equals_buffer(cstr_t const * const cstr, char const * c
     return buffer_equals_buffer(CSTR_DATA(cstr), CSTR_LEN(cstr), str2, len2);
 }
 
-static idigi_bool_t cstr_equals_rcistr(cstr_t const * const cstr, rci_string_t const * const rcistr)
+static idigi_bool_t cstr_equals_rcistr(cstr_t const * const cstr, rcistr_t const * const rcistr)
 {
     return cstr_equals_buffer(cstr, rcistr->data, rcistr->length);
 }
@@ -64,25 +64,25 @@ static idigi_bool_t cstr_equals_str(cstr_t const * const cstr, char const * cons
 }
 #endif
 
-static idigi_bool_t rcistr_to_uint(rci_string_t const * const rcistr, unsigned int * const value)
+static idigi_bool_t rcistr_to_uint(rcistr_t const * const rcistr, unsigned int * const value)
 {
     ASSERT(!isdigit(rcistr->data[rcistr->length]));
 
     return (sscanf(rcistr->data, "%u", value) == 1);
 }
 
-static size_t rcistr_length(rci_string_t const * const string)
+static size_t rcistr_length(rcistr_t const * const string)
 {
     return string->length;
 }
 
-static char const * rcistr_data(rci_string_t const * const string)
+static char const * rcistr_data(rcistr_t const * const string)
 {
     return string->data;
 }
 
 #if defined RCI_PARSER_USES_STRINGS
-static int rcistr_char(rci_string_t const * const string, size_t const index)
+static int rcistr_char(rcistr_t const * const string, size_t const index)
 {
     ASSERT(index < rcistr_length(string));
 
@@ -90,13 +90,13 @@ static int rcistr_char(rci_string_t const * const string, size_t const index)
 }
 #endif
 
-static void clear_rcistr(rci_string_t * const string)
+static void clear_rcistr(rcistr_t * const string)
 {
     string->data = NULL;
     string->length = 0;
 }
 
-static void set_rcistr_length(rci_t const * const rci, rci_string_t * const string)
+static void set_rcistr_length(rci_t const * const rci, rcistr_t * const string)
 {
     string->length = (rci->input.destination - string->data);
 }
@@ -109,7 +109,7 @@ static void adjust_char_pointer(rci_t const * const rci, char const * const old_
     *pointer = (new_base + offset);
 }
 
-static void adjust_rcistr(rci_t const * const rci, char const * const base, rci_string_t * const string)
+static void adjust_rcistr(rci_t const * const rci, char const * const base, rcistr_t * const string)
 {
     char * pointer = (char *) string->data;
 

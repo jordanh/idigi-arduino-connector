@@ -23,7 +23,7 @@ static idigi_bool_t rci_output_data(rci_buffer_t * const output, char const * co
     return overflow;
 }
 
-static idigi_bool_t rci_output_rcistr(rci_buffer_t * const output, rci_string_t const * const rcistr)
+static idigi_bool_t rci_output_rcistr(rci_buffer_t * const output, rcistr_t const * const rcistr)
 {
     return rci_output_data(output, rcistr->data, rcistr->length);
 }
@@ -374,7 +374,7 @@ static void rci_generate_output(rci_t * const rci)
             /* no break; */
         case rci_output_state_element_param_value_scan:
             {
-                rci_string_t const * const value = attribute_value(&rci->output.attribute, rci->output.attribute_pair_index);
+                rcistr_t const * const value = attribute_value(&rci->output.attribute, rci->output.attribute_pair_index);
                 char const * const data = rcistr_data(value);
 
                 if (rci_output_non_entity_character(output, data[rci->output.entity_scan_index]))
@@ -394,7 +394,7 @@ static void rci_generate_output(rci_t * const rci)
             break;
         case rci_output_state_element_param_value_entity:
             {
-                rci_string_t const * const value = attribute_value(&rci->output.attribute, rci->output.attribute_pair_index);
+                rcistr_t const * const value = attribute_value(&rci->output.attribute, rci->output.attribute_pair_index);
                 char const * const data = rcistr_data(value);
 
                 overflow = rci_output_entity_name(output, data[rci->output.entity_scan_index]);

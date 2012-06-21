@@ -28,7 +28,7 @@
 #define get_group_id(rci)           (GROUP_VARIABLE(rci))
 #define have_group_id(rci)          (get_group_id(rci) != INVALID_ID)
 
-static void assign_group_id(rci_t * const rci, rci_string_t const * const tag)
+static void assign_group_id(rci_t * const rci, rcistr_t const * const tag)
 {
     idigi_group_table_t const * const table = (idigi_group_table + rci->shared.request.group.type);
     size_t const count = table->count;
