@@ -12,6 +12,42 @@
 
 static void trigger_rci_callback(rci_t * const rci, idigi_remote_config_request_t const remote_config_request)
 {
+    switch (remote_config_request)
+    {
+    UNHANDLED_CASES_ARE_NEEDED;
+    case idigi_remote_config_session_start:
+    case idigi_remote_config_session_end:
+    case idigi_remote_config_session_cancel:
+        break;
+
+    case idigi_remote_config_action_start:
+    case idigi_remote_config_action_end:
+        ASSERT(!have_group_id(rci));
+        ASSERT(!have_group_index(rci));
+        ASSERT(!have_element_id(rci));
+        break;
+
+    case idigi_remote_config_group_start:
+    case idigi_remote_config_group_end:
+        ASSERT(have_group_id(rci));
+        ASSERT(have_group_index(rci));
+        ASSERT(!have_element_id(rci));
+
+        rci->shared.request.group.id = get_group_id(rci);
+        rci->shared.request.group.index = get_group_index(rci);
+        break;
+
+    case idigi_remote_config_group_process:
+        ASSERT(have_group_id(rci));
+        ASSERT(have_group_index(rci));
+        ASSERT(have_element_id(rci));
+
+        rci->shared.request.group.id = get_group_id(rci);
+        rci->shared.request.group.index = get_group_index(rci);
+        rci->shared.request.element.id = get_element_id(rci);
+        break;
+    }
+
     rci->callback.request.remote_config_request = remote_config_request;
     rci->callback.status = idigi_callback_busy;
 }
@@ -34,7 +70,7 @@ static idigi_bool_t rci_callback(rci_t * const rci)
     case idigi_remote_config_session_start:
     case idigi_remote_config_session_end:
         break;
-        
+
     case idigi_remote_config_action_start:
     case idigi_remote_config_action_end:
     case idigi_remote_config_group_start:
@@ -58,20 +94,20 @@ static idigi_bool_t rci_callback(rci_t * const rci)
         callback_complete = idigi_true;
         rci->status = rci_status_error;
         break;
-        
+
     case idigi_callback_continue:
         callback_complete = idigi_true;
-        
+
         if ((response_data != NULL) && (response_data->error_id != idigi_success))
         {
             rci_group_error(rci, response_data->error_id, response_data->element_data.error_hint);
         }
         break;
-        
+
     case idigi_callback_busy:
         callback_complete = idigi_false;
         break;
-        
+
     default:
         callback_complete = idigi_true;
         rci->status = rci_status_internal_error;

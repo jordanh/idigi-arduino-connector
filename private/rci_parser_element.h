@@ -23,16 +23,17 @@
  *
  */
 
-#define ELEMENT_VARIABLE(rci)       ((rci)->shared.request.element.id)
-#define set_element_id(rci, value)  (ELEMENT_VARIABLE(rci) = (value))
-#define get_element_id(rci)         (ELEMENT_VARIABLE(rci))
-#define have_element_id(rci)        (get_element_id(rci) != INVALID_ID)
+#define ELEMENT_ID_VARIABLE(rci)        ((rci)->shared.current.element.id)
+#define set_element_id(rci, value)      (ELEMENT_ID_VARIABLE(rci) = (value))
+#define get_element_id(rci)             (ELEMENT_ID_VARIABLE(rci))
+#define invalidate_element_id(rci)      set_element_id(rci, INVALID_ID)
+#define have_element_id(rci)            (get_element_id(rci) != INVALID_ID)
 
 static unsigned int find_element_id_in_group(idigi_group_t const * const group, rcistr_t const * const tag)
 {
     int id = INVALID_ID;
     size_t i;
-    
+
     for (i = 0; i < group->elements.count; i++)
     {
         if (cstr_equals_rcistr(group->elements.data[i].name, tag))
@@ -41,7 +42,7 @@ static unsigned int find_element_id_in_group(idigi_group_t const * const group, 
             break;
         }
     }
-    
+
     return id;
 }
 
@@ -50,7 +51,7 @@ static void assign_element_id(rci_t * const rci, rcistr_t const * const tag)
     ASSERT(have_group_id(rci));
     {
         int const id = find_element_id_in_group(get_current_group(rci), tag);
-    
+
         set_element_id(rci, id);
     }
 }
@@ -66,7 +67,7 @@ static idigi_group_element_t const * get_current_element(rci_t const * const rci
 {
     ASSERT(have_group_id(rci));
     ASSERT(have_element_id(rci));
-    
+
     return get_element_in_group(get_current_group(rci), get_element_id(rci));
 }
 

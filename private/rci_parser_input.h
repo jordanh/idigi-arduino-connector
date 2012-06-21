@@ -205,7 +205,7 @@ static void rci_action_start_group(rci_t * const rci)
     rci->output.tag = rci->shared.string.tag;
     rci->output.type = rci_output_type_start_tag;
 
-    add_numeric_attribute(&rci->output.attribute, RCI_INDEX, rci->shared.request.group.index);
+    add_numeric_attribute(&rci->output.attribute, RCI_INDEX, get_group_index(rci));
 
     trigger_rci_callback(rci, idigi_remote_config_group_start);
 
@@ -227,17 +227,20 @@ static void rci_process_group_tag(rci_t * const rci, rci_action_t const rci_acti
 
         if (index == NULL)
         {
-            rci->shared.request.group.index = 1;
+            set_group_index(rci, 1);
         }
         else
         {
             idigi_group_t const * const group = get_current_group(rci);
+            unsigned int group_index;
 
-            if (!rcistr_to_uint(index, &rci->shared.request.group.index) || (rci->shared.request.group.index > group->instances))
+            if (!rcistr_to_uint(index, &group_index) || (group_index > group->instances))
             {
                 rci_global_error(rci, idigi_rci_error_bad_index, RCI_NO_HINT);
                 goto error;
             }
+
+            set_group_index(rci, group_index);
         }
     }
 
@@ -629,7 +632,7 @@ static void rci_handle_end_tag(rci_t * const rci)
     rci->output.tag = rci->shared.string.tag;
     if (have_element_id(rci))
     {
-        set_element_id(rci, INVALID_ID);
+        invalidate_element_id(rci);
     }
     else
     {
@@ -1024,7 +1027,7 @@ static void rci_parse_input(rci_t * const rci)
 
     if (rci->callback.request.remote_config_request == idigi_remote_config_group_end)
     {
-        set_group_id(rci, INVALID_ID);
+        invalidate_group_id(rci);
         /* Set it to something else, so we don't overwrite it again */
         rci->callback.request.remote_config_request = idigi_remote_config_session_cancel;
     }

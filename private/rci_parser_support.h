@@ -180,7 +180,7 @@ typedef enum
     rci_output_type_unary,
     rci_output_type_three_tuple,
     rci_output_type_three_tuple_formatted
-} rci_output_type_t;    
+} rci_output_type_t;
 
 typedef enum
 {
@@ -262,6 +262,15 @@ typedef struct
             rcistr_t tag;
             rcistr_t content;
         } string;
+        struct {
+            struct {
+                unsigned int id;
+                unsigned int index;
+            } group;
+            struct {
+                unsigned int id;
+            } element;
+        } current;
         rci_attribute_list_t attribute;
         idigi_element_value_t value;
         idigi_remote_group_request_t request;

@@ -25,14 +25,14 @@ static void rci_traverse_data(rci_t * const rci)
 
     case rci_traversal_state_all_groups_start:
 
+        ASSERT(!have_group_id(rci));
+        ASSERT(!have_group_index(rci));
+        ASSERT(!have_element_id(rci));
+
+        set_group_id(rci, 0);
+        set_group_index(rci, 1);
+
         trigger_rci_callback(rci, idigi_remote_config_action_start);
-
-        ASSERT(rci->shared.request.group.id == INVALID_ID);
-        ASSERT(rci->shared.request.group.index == INVALID_INDEX);
-        ASSERT(rci->shared.request.element.id == INVALID_ID);
-
-        rci->shared.request.group.id = 0;
-        rci->shared.request.group.index = 1;
 
         rci->output.type = rci_output_type_start_tag;
         set_rci_command_tag(rci->input.command, &rci->output.tag);
@@ -42,16 +42,15 @@ static void rci_traverse_data(rci_t * const rci)
     case rci_traversal_state_all_groups_group_start:
     case rci_traversal_state_one_group_start:
     case rci_traversal_state_indexed_group_start:
+        set_element_id(rci, 0);
         trigger_rci_callback(rci, idigi_remote_config_group_start);
 
-        rci->shared.request.element.id = 0;
-
         {
-            idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
+            idigi_group_t const * const group = (table->groups + get_group_id(rci));
 
             rci->output.type = rci_output_type_start_tag;
             cstr_to_rcistr(group->name, &rci->output.tag);
-            add_numeric_attribute(&rci->output.attribute, RCI_INDEX, rci->shared.request.group.index);
+            add_numeric_attribute(&rci->output.attribute, RCI_INDEX, get_group_index(rci));
         }
 
         switch (rci->traversal.state)
@@ -68,8 +67,8 @@ static void rci_traverse_data(rci_t * const rci)
     case rci_traversal_state_indexed_group_element_start:
     case rci_traversal_state_one_element_start:
         {
-            idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
-            idigi_group_element_t const * const element = (group->elements.data + rci->shared.request.element.id);
+            idigi_group_t const * const group = (table->groups + get_group_id(rci));
+            idigi_group_element_t const * const element = (group->elements.data + get_element_id(rci));
 
             rci->output.type = rci_output_type_start_tag;
             cstr_to_rcistr(element->name, &rci->output.tag);
@@ -112,8 +111,8 @@ static void rci_traverse_data(rci_t * const rci)
     case rci_traversal_state_indexed_group_element_end:
     case rci_traversal_state_one_element_end:
         {
-            idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
-            idigi_group_element_t const * const element = (group->elements.data + rci->shared.request.element.id);
+            idigi_group_t const * const group = (table->groups + get_group_id(rci));
+            idigi_group_element_t const * const element = (group->elements.data + get_element_id(rci));
 
             rci->output.type = rci_output_type_end_tag;
             cstr_to_rcistr(element->name, &rci->output.tag);
@@ -126,12 +125,12 @@ static void rci_traverse_data(rci_t * const rci)
         case rci_traversal_state_one_group_element_end:
         case rci_traversal_state_indexed_group_element_end:
             {
-                idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
-                unsigned int const next_element = (rci->shared.request.element.id + 1);
+                idigi_group_t const * const group = (table->groups + get_group_id(rci));
+                unsigned int const next_element = (get_element_id(rci) + 1);
 
                 if (next_element == group->elements.count)
                 {
-                    rci->shared.request.element.id = INVALID_ID;
+                    invalidate_element_id(rci);
 
                     switch (rci->traversal.state)
                     {
@@ -143,7 +142,7 @@ static void rci_traverse_data(rci_t * const rci)
                 }
                 else
                 {
-                    rci->shared.request.element.id = next_element;
+                    set_element_id(rci, next_element);
 
                     switch (rci->traversal.state)
                     {
@@ -156,7 +155,7 @@ static void rci_traverse_data(rci_t * const rci)
             }
             break;
         case rci_traversal_state_one_element_end:
-            rci->shared.request.element.id = INVALID_ID;
+            invalidate_element_id(rci);
             goto complete;
             break;
         }
@@ -168,7 +167,7 @@ static void rci_traverse_data(rci_t * const rci)
         trigger_rci_callback(rci, idigi_remote_config_group_end);
 
         {
-            idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
+            idigi_group_t const * const group = (table->groups + get_group_id(rci));
 
             rci->output.type = rci_output_type_end_tag;
             cstr_to_rcistr(group->name, &rci->output.tag);
@@ -191,10 +190,10 @@ static void rci_traverse_data(rci_t * const rci)
         case rci_traversal_state_all_groups_group_advance:
         case rci_traversal_state_one_group_advance:
             {
-                idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
+                idigi_group_t const * const group = (table->groups + get_group_id(rci));
 
                 /* group indicies are 1-based */
-                if (rci->shared.request.group.index == group->instances)
+                if (get_group_index(rci) == group->instances)
                 {
                     if (rci->traversal.state == rci_traversal_state_one_group_advance)
                     {
@@ -203,7 +202,7 @@ static void rci_traverse_data(rci_t * const rci)
 
                     ASSERT(rci->traversal.state == rci_traversal_state_all_groups_group_advance);
                     {
-                        unsigned int const next_group = (rci->shared.request.group.id + 1);
+                        unsigned int const next_group = (get_group_id(rci) + 1);
 
                         if (next_group == table->count)
                         {
@@ -211,15 +210,15 @@ static void rci_traverse_data(rci_t * const rci)
                         }
                         else
                         {
-                            rci->shared.request.group.id = next_group;
-                            rci->shared.request.group.index = 1;
+                            set_group_id(rci, next_group);
+                            set_group_index(rci, 1);
                             rci->traversal.state = rci_traversal_state_all_groups_group_start;
                         }
                     }
                 }
                 else
                 {
-                    rci->shared.request.group.index++;
+                    increment_group_index(rci);
                     rci->traversal.state = (rci->traversal.state == rci_traversal_state_all_groups_group_advance) ? rci_traversal_state_all_groups_group_start : rci_traversal_state_one_group_start;
                 }
             }
@@ -247,17 +246,17 @@ static void rci_traverse_data(rci_t * const rci)
     goto done;
 
 group_complete:
-    rci->shared.request.group.id = INVALID_ID;
-    rci->shared.request.group.index = INVALID_INDEX;
-    rci->shared.request.element.id = INVALID_ID;
+    invalidate_group_id(rci);
+    invalidate_group_index(rci);
+    invalidate_element_id(rci);
 
 complete:
     rci->traversal.state = rci_traversal_state_none;
     state_call_return(rci, rci_parser_state_output, rci_parser_state_input);
 
-    ASSERT(rci->shared.request.group.id == INVALID_ID);
-    ASSERT(rci->shared.request.group.index == INVALID_INDEX);
-    ASSERT(rci->shared.request.element.id == INVALID_ID);
+    ASSERT(!have_group_id(rci));
+    ASSERT(!have_group_index(rci));
+    ASSERT(!have_element_id(rci));
 
 done:
     return;

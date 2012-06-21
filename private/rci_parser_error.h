@@ -69,9 +69,9 @@ static void rci_generate_error(rci_t * const rci)
             rci->error.state = rci_error_state_reply_close;
             break;
         default:
-            if (rci->shared.request.element.id != INVALID_ID)
+            if (have_element_id(rci))
                 rci->error.state = rci_error_state_element_close;
-            else if (rci->shared.request.group.id != INVALID_ID)
+            else if (have_group_id(rci))
                 rci->error.state = rci_error_state_group_close;
             else
                 rci->error.state = rci_error_state_command_close;
@@ -81,11 +81,11 @@ static void rci_generate_error(rci_t * const rci)
     case rci_error_state_element_close:
         {
             idigi_group_table_t const * const table = (idigi_group_table + rci->shared.request.group.type);
-            idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
-            idigi_group_element_t const * const group_element = (group->elements.data + rci->shared.request.element.id);
+            idigi_group_t const * const group = (table->groups + get_group_id(rci));
+            idigi_group_element_t const * const group_element = (group->elements.data + get_element_id(rci));
 
             cstr_to_rcistr(group_element->name, &rci->output.tag);
-            rci->shared.request.element.id = INVALID_ID;
+            invalidate_element_id(rci);
 
             rci->error.state = rci_error_state_group_close;
         }
@@ -94,12 +94,13 @@ static void rci_generate_error(rci_t * const rci)
     case rci_error_state_group_close:
         {
             idigi_group_table_t const * const table = (idigi_group_table + rci->shared.request.group.type);
-            idigi_group_t const * const group = (table->groups + rci->shared.request.group.id);
+            idigi_group_t const * const group = (table->groups + get_group_id(rci));
 
             trigger_rci_callback(rci, idigi_remote_config_group_end);
 
             cstr_to_rcistr(group->name, &rci->output.tag);
-            rci->shared.request.group.id = INVALID_ID;
+            invalidate_group_id(rci);
+            invalidate_group_index(rci);
 
             rci->error.state = rci_error_state_command_close;
         }

@@ -47,7 +47,7 @@ static char const * character_as_string(int const value)
     static size_t index;
     static size_t const count = asizeof(storage);
     char * result;
-    
+
     switch (value)
     {
     case '\0':  result = "\\0"; break;
@@ -355,7 +355,7 @@ static void output_buffer_diff(char const * const name, void const * const curre
     {
         unsigned char const * current_buffer = current;
         size_t remaining = bytes;
-        
+
         printf("%s\n", name);
         while (remaining != 0)
         {
@@ -363,12 +363,12 @@ static void output_buffer_diff(char const * const name, void const * const curre
             size_t const bytes_this_line = (remaining < bytes_per_line) ? remaining : bytes_per_line;
             size_t const bytes_extra = (bytes_per_line - bytes_this_line);
             size_t i;
-            
+
             printf("%p: ", current_buffer);
             for (i = 0; i < bytes_this_line; i++)
             {
                 unsigned char const byte = current_buffer[i];
-                
+
                 printf("%02x ", byte);
             }
             for (i = 0; i < bytes_extra; i++)
@@ -379,17 +379,17 @@ static void output_buffer_diff(char const * const name, void const * const curre
             {
                 int const byte = current_buffer[i];
                 int const replacement = '.';
-                
+
                 printf("%c ", (isprint(byte) && !iscntrl(byte)) ? byte : replacement);
             }
-            
+
             remaining -= bytes_this_line;
             current_buffer += bytes_this_line;
-            
+
             putchar('\n');
         }
-        
-        memcpy(previous, current, bytes);             
+
+        memcpy(previous, current, bytes);
     }
 }
 
@@ -429,7 +429,7 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
     static rci_service_data_t service_data;
     static long unsigned int step;
     idigi_bool_t show_service_data = (current->service_data != NULL);
-    
+
     /* have we started a new session? */
     if (show_service_data)
     {
@@ -445,7 +445,7 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
     }
 
     printf("STEP %lu:\n", step);
-    
+
     output_pointer(service_data);
     if (show_service_data)
     {
@@ -460,7 +460,7 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
 
     output_rci_buffer(buffer.input);
     output_rci_buffer(buffer.output);
-    
+
     output_enum(rci_parser_state_t, parser.state.current);
     output_enum(rci_parser_state_t, parser.state.previous);
 
@@ -473,7 +473,7 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
     output_rci_string(input.entity);
 
     output_enum(rci_traversal_state_t, traversal.state);
-        
+
     output_enum(rci_output_state_t, output.state);
     output_enum(rci_output_type_t, output.type);
     output_enum(rci_output_type_t, output.current);
@@ -486,6 +486,11 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
     output_pointer(error.description);
 
     output_rci_string(shared.string.generic);
+    output_unsigned_int(shared.current.group.id);
+    output_unsigned_int(shared.current.group.index);
+    output_unsigned_int(shared.current.element.id);
+    output_rci_attribute_list(output.attribute);
+    /* TODO: shared.value */
     output_enum(idigi_remote_action_t, shared.request.action);
     output_enum(idigi_remote_group_type_t, shared.request.group.type);
     output_unsigned_int(shared.request.group.id);
@@ -503,16 +508,15 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
     {
         output_string(shared.response.element_data.error_hint);
     }
-    output_rci_attribute_list(shared.attribute);
 
     if (show_service_data)
     {
         output_service_data_buffer_diff(input);
         output_service_data_buffer_diff(output);
     }
-    
+
     /* TODO: output temporary transfer buffer */
-    
+
     previous = *current;
     step++;
     fflush(stdout);
