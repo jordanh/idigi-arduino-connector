@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, 2012 Digi International Inc.,
+ * Copyright (c) 2012 Digi International Inc.,
  * All rights not expressly granted are reserved.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -14,8 +14,7 @@
 #include "idigi_config.h"
 #include "idigi_api.h"
 #include "platform.h"
-#include "remote_config.h"
-#include "idigi_debug.h"
+#include "remote_config_cb.h"
 
 #define SYSTEM_STRING_LENGTH 64
 
@@ -26,77 +25,38 @@ typedef struct {
     char description[SYSTEM_STRING_LENGTH];
 } system_data_t;
 
-system_data_t nvram_system_data = {"\0", "\0", "iDigi connector sample"};
+system_data_t system_config_data = {"\0", "\0", "\0"};
 
-idigi_callback_status_t app_system_session_start(idigi_remote_group_response_t * const response)
-{
-    /* nothing to do here since we only have one group */
-    UNUSED_ARGUMENT(response);
-    APP_DEBUG("app_system_session_start\n");
-    return idigi_callback_continue;
-}
-
-idigi_callback_status_t app_system_session_end(idigi_remote_group_response_t * const response)
-{
-    /* nothing to do here since we only have one group */
-    UNUSED_ARGUMENT(response);
-    APP_DEBUG("app_system_session_end\n");
-    return idigi_callback_continue;
-}
-
-idigi_callback_status_t app_system_action_start(idigi_remote_group_request_t const * const request,
-                                                        idigi_remote_group_response_t * const response)
-{
-    /* nothing to do here since we only have one group */
-    UNUSED_ARGUMENT(request);
-    UNUSED_ARGUMENT(response);
-    APP_DEBUG("app_system_action_start\n");
-    return idigi_callback_continue;
-}
-
-idigi_callback_status_t app_system_action_end(idigi_remote_group_request_t const * const request,
-                                                      idigi_remote_group_response_t * const response)
-{
-    /* nothing to do here since we only have one group */
-    UNUSED_ARGUMENT(request);
-    UNUSED_ARGUMENT(response);
-    APP_DEBUG("app_system_action_end\n");
-    return idigi_callback_continue;
-}
-
-idigi_callback_status_t app_system_group_init(idigi_remote_group_request_t const * const request,
-                                                 idigi_remote_group_response_t * const response)
+idigi_callback_status_t app_system_group_init(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
+    remote_group_session_t * const session_ptr = response->user_context;
+    system_data_t * system_ptr;
 
     void * ptr;
-    system_data_t * system;
 
     UNUSED_ARGUMENT(request);
 
-    APP_DEBUG("app_system_group_init\n");
-
-    ptr = malloc(sizeof *system);
+    ptr = malloc(sizeof *system_ptr);
     if (ptr == NULL)
     {
-        response->error_id = idigi_setting_system_error_no_memory;
-    }
-    else
-    {
-        system = ptr;
-        *system = nvram_system_data;
-        response->user_context = system;
+        response->error_id = idigi_global_error_memory_fail;
+        goto done;
     }
 
+    system_ptr = ptr;
+    *system_ptr = system_config_data;  /* load data */
+    session_ptr->group_context = system_ptr;
+
+done:
     return status;
 }
 
 idigi_callback_status_t app_system_group_get(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    system_data_t * const system_ptr = response->user_context;
-
-    ASSERT(request->element.type == idigi_element_type_string);
+    remote_group_session_t * const session_ptr = response->user_context;
+    system_data_t * const system_ptr = session_ptr->group_context;
 
     switch (request->element.id)
     {
@@ -120,14 +80,12 @@ idigi_callback_status_t app_system_group_get(idigi_remote_group_request_t const 
 idigi_callback_status_t app_system_group_set(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
+    remote_group_session_t * const session_ptr = response->user_context;
+    system_data_t * const system_ptr = session_ptr->group_context;
 
-    system_data_t * const system_ptr = response->user_context;
     char * src_ptr = NULL;
 
     UNUSED_ARGUMENT(response);
-
-    ASSERT(request->element.type == idigi_element_type_string);
-    ASSERT(strlen(request->element.value->string_value) < sizeof system_ptr->contact);
 
     switch (request->element.id)
     {
@@ -147,41 +105,39 @@ idigi_callback_status_t app_system_group_set(idigi_remote_group_request_t const 
 
     if (src_ptr != NULL)
     {
-        memcpy(src_ptr, request->element.value->string_value, strlen(request->element.value->string_value));
+        size_t const length = strlen(request->element.value->string_value);
+        memcpy(src_ptr, request->element.value->string_value, length);
+        src_ptr[length] = '\0';
     }
     return status;
 }
 
-idigi_callback_status_t app_system_group_end(idigi_remote_group_request_t const * const request,
-                                                 idigi_remote_group_response_t * const response)
+idigi_callback_status_t app_system_group_end(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
-   system_data_t * const system = response->user_context;
+    idigi_callback_status_t status = idigi_callback_continue;
+    remote_group_session_t * const session_ptr = response->user_context;
+    system_data_t * const system_ptr = session_ptr->group_context;
 
-    UNUSED_ARGUMENT(request);
+    if (request->action == idigi_remote_action_set)
+    {
+        /* save data */
+        system_config_data = *system_ptr;
+    }
 
-    ASSERT(system != NULL);
+    free(system_ptr);
 
-    APP_DEBUG("app_system_group_end\n");
-
-    /* should start writing onto NvRam */
-    nvram_system_data = *system;
-
-    free(system);
-
-    return idigi_callback_continue;
-
+    return status;
 }
 
-void app_system_session_cancel(void const * const context)
+void app_system_group_cancel(void * const context)
 {
-    void * const ptr = (void *)context;
+    remote_group_session_t * const session_ptr = context;
+    system_data_t * const system_ptr = session_ptr->group_context;
 
-    ASSERT(ptr != NULL);
-
-    APP_DEBUG("app_system_group_cancel\n");
-
-    free(ptr);
+    if (system_ptr != NULL)
+    {
+        free(system_ptr);
+    }
 
 }
-
 

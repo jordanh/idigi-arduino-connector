@@ -26,12 +26,42 @@ typedef struct {
 
 device_security_data_t device_security_data = {idigi_setting_devicesecurity_identityVerificationForm_simple, "\0"};
 
+idigi_callback_status_t app_device_security_group_init(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
+{
+    idigi_callback_status_t status = idigi_callback_continue;
+    remote_group_session_t * const session_ptr = response->user_context;
+    device_security_data_t * device_security_ptr;
+
+    void * ptr;
+
+    UNUSED_ARGUMENT(request);
+    ASSERT(session_ptr != NULL);
+
+    ptr = malloc(sizeof *device_security_ptr);
+    if (ptr == NULL)
+    {
+        response->error_id = idigi_global_error_memory_fail;
+        goto done;
+    }
+
+    device_security_ptr = ptr;
+    *device_security_ptr = device_security_data; /* load data */
+    session_ptr->group_context = device_security_ptr;
+
+done:
+    return status;
+}
 
 idigi_callback_status_t app_device_security_group_get(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
+    remote_group_session_t * const session_ptr = response->user_context;
+    device_security_data_t * device_security_ptr;
 
-    device_security_data_t * const device_security_ptr = &device_security_data;
+    ASSERT(session_ptr != NULL);
+    ASSERT(session_ptr->group_context != NULL);
+
+    device_security_ptr = session_ptr->group_context;
 
      switch (request->element.id)
     {
@@ -57,42 +87,76 @@ idigi_callback_status_t app_device_security_group_get(idigi_remote_group_request
 idigi_callback_status_t app_device_security_group_set(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-
-    device_security_data_t * const device_security_ptr = &device_security_data;
+    remote_group_session_t * const session_ptr = response->user_context;
+    device_security_data_t * device_security_ptr;
 
     UNUSED_ARGUMENT(response);
 
     ASSERT(request->element.value != NULL);
+    ASSERT(session_ptr != NULL);
+    ASSERT(session_ptr->group_context != NULL);
+
+    device_security_ptr = session_ptr->group_context;
 
     switch (request->element.id)
     {
     case idigi_setting_devicesecurity_identityVerificationForm:
-    {
         ASSERT(request->element.type == idigi_element_type_enum);
+
         device_security_ptr->identity_verification_form = (idigi_setting_devicesecurity_identityVerificationForm_id_t)request->element.value->enum_value;
         break;
-    }
+
     case idigi_setting_devicesecurity_password:
     {
-        size_t string_length = strlen(request->element.value->string_value);
+        size_t length = strlen(request->element.value->string_value);
+
         ASSERT(request->element.type == idigi_element_type_password);
+        ASSERT(length < sizeof device_security_ptr->password[length]);
 
-        if (strlen(request->element.value->string_value) >= sizeof device_security_ptr->password)
-        {
-            ASSERT(0);
-            goto done;
-        }
-
-        memcpy(device_security_ptr->password, request->element.value->string_value, string_length);
-        device_security_ptr->password[string_length] = '\0';
+        memcpy(device_security_ptr->password, request->element.value->string_value, length);
+        device_security_ptr->password[length] = '\0';
         break;
     }
+
     default:
         ASSERT(0);
         break;
     }
 
-done:
     return status;
+}
+
+idigi_callback_status_t app_device_security_group_end(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
+{
+    idigi_callback_status_t status = idigi_callback_continue;
+    remote_group_session_t * const session_ptr = response->user_context;
+    device_security_data_t * device_security_ptr;
+
+    ASSERT(session_ptr != NULL);
+    ASSERT(session_ptr->group_context != NULL);
+
+    device_security_ptr = session_ptr->group_context;
+
+    if (request->action == idigi_remote_action_set)
+    {
+        /* save data */
+        device_security_data = *device_security_ptr;
+    }
+
+    free(device_security_ptr);
+
+    return status;
+}
+
+void app_device_security_group_cancel(void * const context)
+{
+    remote_group_session_t * const session_ptr = context;
+    device_security_data_t * const device_security_ptr = session_ptr->group_context;
+
+    if (device_security_ptr != NULL)
+    {
+        free(device_security_ptr);
+    }
+
 }
 

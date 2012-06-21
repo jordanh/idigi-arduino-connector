@@ -42,7 +42,7 @@ all: $(SAMPLE)
 LDFLAGS += $(DFLAGS) -Wl,-Map=$(SAMPLE).map,--sort-common
 
 SRCS = devicesecurity.c system.c gps_stats.c device_info.c \
-       device_stats.c ethernet.c debug_info.c serial.c remote_config_cb.c application.c firmware.c \
+       device_time.c ethernet.c debug_info.c serial.c remote_config_cb.c application.c firmware.c \
        remote_config_cb.c application.c firmware.c \
        $(PLATFORM_DIR)/main.c $(PLATFORM_DIR)/os.c $(PLATFORM_DIR)/config.c \
        $(PLATFORM_DIR)/network.c $(PLATFORM_DIR)/debug.c $(IDIGI_DIR)/idigi_api.c

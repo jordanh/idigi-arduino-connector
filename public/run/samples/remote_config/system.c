@@ -27,11 +27,41 @@ typedef struct {
 
 system_data_t system_config_data = {"\0", "\0", "\0"};
 
+idigi_callback_status_t app_system_group_init(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
+{
+    idigi_callback_status_t status = idigi_callback_continue;
+    remote_group_session_t * const session_ptr = response->user_context;
+    system_data_t * system_ptr;
+
+    void * ptr;
+
+    UNUSED_ARGUMENT(request);
+    ASSERT(session_ptr != NULL);
+
+    ptr = malloc(sizeof *system_ptr);
+    if (ptr == NULL)
+    {
+        response->error_id = idigi_global_error_memory_fail;
+        goto done;
+    }
+
+    system_ptr = ptr;
+    *system_ptr = system_config_data;  /* load data */
+    session_ptr->group_context = system_ptr;
+
+done:
+    return status;
+}
 
 idigi_callback_status_t app_system_group_get(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-    system_data_t * const system_ptr = &system_config_data;
+    remote_group_session_t * const session_ptr = response->user_context;
+    system_data_t * system_ptr;
+
+    ASSERT(session_ptr != NULL);
+    ASSERT(session_ptr->group_context != NULL);
+    system_ptr = session_ptr->group_context;
 
     ASSERT(request->element.type == idigi_element_type_string);
 
@@ -57,24 +87,31 @@ idigi_callback_status_t app_system_group_get(idigi_remote_group_request_t const 
 idigi_callback_status_t app_system_group_set(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
+    remote_group_session_t * const session_ptr = response->user_context;
+    system_data_t *  system_ptr;
 
-    system_data_t * const system_ptr = &system_config_data;
     char * src_ptr = NULL;
 
     UNUSED_ARGUMENT(response);
+    ASSERT(session_ptr != NULL);
+    ASSERT(session_ptr->group_context != NULL);
+
+    system_ptr = session_ptr->group_context;
 
     ASSERT(request->element.type == idigi_element_type_string);
-    ASSERT(strlen(request->element.value->string_value) < sizeof system_ptr->contact);
 
     switch (request->element.id)
     {
     case idigi_setting_system_contact:
+        ASSERT(strlen(request->element.value->string_value) < sizeof system_ptr->contact);
         src_ptr = system_ptr->contact;
         break;
     case idigi_setting_system_location:
+        ASSERT(strlen(request->element.value->string_value) < sizeof system_ptr->location);
         src_ptr = system_ptr->location;
         break;
     case idigi_setting_system_description:
+        ASSERT(strlen(request->element.value->string_value) < sizeof system_ptr->description);
         src_ptr = system_ptr->description;
         break;
     default:
@@ -84,8 +121,44 @@ idigi_callback_status_t app_system_group_set(idigi_remote_group_request_t const 
 
     if (src_ptr != NULL)
     {
-        memcpy(src_ptr, request->element.value->string_value, strlen(request->element.value->string_value));
+        size_t const length = strlen(request->element.value->string_value);
+        memcpy(src_ptr, request->element.value->string_value, length);
+        src_ptr[length] = '\0';
     }
     return status;
+}
+
+idigi_callback_status_t app_system_group_end(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
+{
+    idigi_callback_status_t status = idigi_callback_continue;
+    remote_group_session_t * const session_ptr = response->user_context;
+    system_data_t * system_ptr;
+
+    ASSERT(session_ptr != NULL);
+    ASSERT(session_ptr->group_context != NULL);
+
+    system_ptr = session_ptr->group_context;
+
+    if (request->action == idigi_remote_action_set)
+    {
+        /* save data */
+        system_config_data = *system_ptr;
+    }
+
+    free(system_ptr);
+
+    return status;
+}
+
+void app_system_group_cancel(void * const context)
+{
+    remote_group_session_t * const session_ptr = context;
+    system_data_t * const system_ptr = session_ptr->group_context;
+
+    if (system_ptr != NULL)
+    {
+        free(system_ptr);
+    }
+
 }
 

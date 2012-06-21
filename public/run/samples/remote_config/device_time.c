@@ -25,11 +25,11 @@ typedef struct {
     struct timeb current_time;
     int32_t signed_integer;
     char timestring[sizeof "2010-12-12T12:12:12-0000"];
-} device_stats_config_data_t;
+} device_time_config_data_t;
 
-device_stats_config_data_t device_stats_config_data = {{0}, -10, "\0"};
+device_time_config_data_t device_time_config_data = {{0}, -10, "\0"};
 
-idigi_callback_status_t app_device_stats_group_init(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
+idigi_callback_status_t app_device_time_group_init(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
 
     remote_group_session_t * const session_ptr = response->user_context;
@@ -38,35 +38,35 @@ idigi_callback_status_t app_device_stats_group_init(idigi_remote_group_request_t
 
     ASSERT(session_ptr != NULL);
 
-    ftime(&device_stats_config_data.current_time);
+    ftime(&device_time_config_data.current_time);
 
-    session_ptr->group_context = &device_stats_config_data;
+    session_ptr->group_context = &device_time_config_data;
 
     return idigi_callback_continue;
 }
 
-idigi_callback_status_t app_device_stats_group_get(idigi_remote_group_request_t const * const  request, idigi_remote_group_response_t * const response)
+idigi_callback_status_t app_device_time_group_get(idigi_remote_group_request_t const * const  request, idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     remote_group_session_t * const session_ptr = response->user_context;
 
-    device_stats_config_data_t * device_stats_ptr;
+    device_time_config_data_t * device_time_ptr;
 
     ASSERT(session_ptr != NULL);
     ASSERT(session_ptr->group_context != NULL);
 
-    device_stats_ptr = session_ptr->group_context;
+    device_time_ptr = session_ptr->group_context;
 
     switch (request->element.id)
     {
-    case idigi_setting_device_stats_curtime:
+    case idigi_setting_device_time_curtime:
     {
         struct tm * the_time;
 
         ASSERT(request->element.type == idigi_element_type_datetime);
 
-//        the_time = localtime(&device_stats_ptr->current_time.time);
-        the_time = gmtime(&device_stats_ptr->current_time.time);
+//        the_time = localtime(&device_time_ptr->current_time.time);
+        the_time = gmtime(&device_time_ptr->current_time.time);
 
         if (the_time == NULL)
         {
@@ -76,11 +76,11 @@ idigi_callback_status_t app_device_stats_group_get(idigi_remote_group_request_t 
         }
 
         {
-            int tz_hour = device_stats_ptr->current_time.timezone / 60;
-            int const tz_min = device_stats_ptr->current_time.timezone % 60;
-            int const timestring_size = sizeof device_stats_ptr->timestring;
+            int tz_hour = device_time_ptr->current_time.timezone / 60;
+            int const tz_min = device_time_ptr->current_time.timezone % 60;
+            int const timestring_size = sizeof device_time_ptr->timestring;
 
-            int const length = snprintf(device_stats_ptr->timestring, timestring_size,
+            int const length = snprintf(device_time_ptr->timestring, timestring_size,
                                      TIME_FORMAT,
                                      the_time->tm_year + 1900,
                                      the_time->tm_mon + 1,
@@ -88,17 +88,17 @@ idigi_callback_status_t app_device_stats_group_get(idigi_remote_group_request_t 
                                      the_time->tm_hour,
                                      the_time->tm_min,
                                      the_time->tm_sec,
-                                     (device_stats_ptr->current_time.timezone > 0) ? '-' : '+',
+                                     (device_time_ptr->current_time.timezone > 0) ? '-' : '+',
                                      tz_hour, tz_min);
             ASSERT(length == (timestring_size-1));
 
-            response->element_data.element_value->string_value = device_stats_ptr->timestring;
+            response->element_data.element_value->string_value = device_time_ptr->timestring;
         }
         break;
     }
-    case idigi_setting_device_stats_signed_integer:
+    case idigi_setting_device_time_signed_integer:
         ASSERT(request->element.type == idigi_element_type_int32);
-        response->element_data.element_value->signed_integer_value = device_stats_ptr->signed_integer;
+        response->element_data.element_value->signed_integer_value = device_time_ptr->signed_integer;
         break;
 
     default:
@@ -110,21 +110,21 @@ done:
     return status;
 }
 
-idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
+idigi_callback_status_t app_device_time_group_set(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
 
     remote_group_session_t * const session_ptr = response->user_context;
-    device_stats_config_data_t * device_stats_ptr;
+    device_time_config_data_t * device_time_ptr;
 
     ASSERT(session_ptr != NULL);
     ASSERT(session_ptr->group_context != NULL);
 
-    device_stats_ptr = session_ptr->group_context;
+    device_time_ptr = session_ptr->group_context;
 
     switch (request->element.id)
     {
-    case idigi_setting_device_stats_curtime:
+    case idigi_setting_device_time_curtime:
     {
 
         #define TIME_FORMAT_ERROR_HINT  "Time format"
@@ -145,7 +145,7 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
         ASSERT(request->element.value != NULL);
         ASSERT(request->element.value->string_value != NULL);
 
-        lt = localtime(&device_stats_ptr->current_time.time);
+        lt = localtime(&device_time_ptr->current_time.time);
         string_length = strlen(request->element.value->string_value);
 
         while (current_length < string_length && state != get_done)
@@ -199,7 +199,7 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
                     t = atoi(timebuf);
                     if (t < 1900)
                     {
-                        response->error_id = idigi_setting_device_stats_error_invalid_time;
+                        response->error_id = idigi_setting_device_time_error_invalid_time;
                         response->element_data.error_hint = "must be > 1900";
                         goto done;
                     }
@@ -220,7 +220,7 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
                     t = atoi(timebuf);
                     if (t < 0 || t > 12)
                     {
-                        response->error_id = idigi_setting_device_stats_error_invalid_time;
+                        response->error_id = idigi_setting_device_time_error_invalid_time;
                         response->element_data.error_hint = "month between 1 and 12";
                         goto done;
                     }
@@ -232,7 +232,7 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
                     t = atoi(timebuf);
                     if (t < 1 || t > 31) /* day */
                     {
-                        response->error_id = idigi_setting_device_stats_error_invalid_time;
+                        response->error_id = idigi_setting_device_time_error_invalid_time;
                         response->element_data.error_hint = "day of the month between 1 and 31";
                         goto done;
                     }
@@ -252,7 +252,7 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
                     t = atoi(timebuf);
                     if (t < 0 || t > 23)
                     {
-                        response->error_id = idigi_setting_device_stats_error_invalid_time;
+                        response->error_id = idigi_setting_device_time_error_invalid_time;
                         response->element_data.error_hint = "hour between 0 and 23";
                         goto done;
                     }
@@ -273,7 +273,7 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
                     t = atoi(timebuf);
                     if (t < 0 || t > 59)
                     {
-                        response->error_id = idigi_setting_device_stats_error_invalid_time;
+                        response->error_id = idigi_setting_device_time_error_invalid_time;
                         response->element_data.error_hint = "Minute between 0 and 59";
                         goto done;
                     }
@@ -285,7 +285,7 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
                     t = atoi(timebuf);
                     if (t < 0 || t > 59)
                     {
-                        response->error_id = idigi_setting_device_stats_error_invalid_time;
+                        response->error_id = idigi_setting_device_time_error_invalid_time;
                         response->element_data.error_hint = "Second between 0 and 59";
                         goto done;
                     }
@@ -319,7 +319,7 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
                     t = atoi(timebuf);
                     if (t < 0 || t > 24)
                     {
-                        response->error_id = idigi_setting_device_stats_error_invalid_time;
+                        response->error_id = idigi_setting_device_time_error_invalid_time;
                         response->element_data.error_hint = "Invalid timezone";
                         goto done;
                     }
@@ -331,7 +331,7 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
                     t = atoi(timebuf);
                     if (t < 0 || t > 59)
                     {
-                        response->error_id = idigi_setting_device_stats_error_invalid_time;
+                        response->error_id = idigi_setting_device_time_error_invalid_time;
                         response->element_data.error_hint = "Invalid timezone";
                         goto done;
                     }
@@ -360,9 +360,9 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
 
         break;
     }
-    case idigi_setting_device_stats_signed_integer:
+    case idigi_setting_device_time_signed_integer:
         ASSERT(request->element.type == idigi_element_type_int32);
-        device_stats_ptr->signed_integer= request->element.value->signed_integer_value;
+        device_time_ptr->signed_integer= request->element.value->signed_integer_value;
         break;
 
     default:
@@ -373,7 +373,7 @@ idigi_callback_status_t app_device_stats_group_set(idigi_remote_group_request_t 
     goto done;
 
 error:
-    response->error_id = idigi_setting_device_stats_error_invalid_time;
+    response->error_id = idigi_setting_device_time_error_invalid_time;
     response->element_data.error_hint = TIME_FORMAT_ERROR_HINT;
 
 done:

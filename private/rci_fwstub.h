@@ -228,6 +228,11 @@ enum fw_info {
      * build and send firmware info response
     */
     {
+        #define FW_NOT_UPGRADABLE_DESCRIPTION "Non updatable firmware"
+
+        static const char fw_target_description[] = FW_NOT_UPGRADABLE_DESCRIPTION;
+        static const size_t fw_target_description_length = sizeof fw_target_description -1;
+
         uint8_t * edp_header;
         uint8_t * fw_info;
         uint8_t * start_ptr;
@@ -241,7 +246,7 @@ enum fw_info {
         }
         start_ptr = fw_info;
 
-        ASSERT(avail_length > record_bytes(fw_info));
+        ASSERT(avail_length > (record_bytes(fw_info) + fw_target_description_length));
 
         message_store_u8(fw_info, opcode, fw_info_response_opcode);
         message_store_u8(fw_info, target, 0);
@@ -249,7 +254,11 @@ enum fw_info {
         message_store_be32(fw_info, code_size, FW_NO_CODE_SIZE);
         fw_info += record_bytes(fw_info);
 
-//        *fw_info++ = '\n';
+
+
+        memcpy(fw_info, fw_target_description, fw_target_description_length);
+        fw_info += fw_target_description_length;
+        *fw_info++ = '\n';
 
         /* reset back to initial values */
 

@@ -348,9 +348,6 @@ public class ConfigGenerator {
 
             new ConfigGenerator(args);
 
-            /* descriptor constructor for arguments */
-            Descriptors descriptors = new Descriptors(username, password,
-                    vendorId, deviceType, fwVersion);
 
             /* parse file */
             debug_log("Reading filename: " + filename + "...");
@@ -375,6 +372,10 @@ public class ConfigGenerator {
             FileGenerator fileGenerator = new FileGenerator(directoryPath);
             fileGenerator.generateFile(configData);
 
+            /* descriptor constructor for arguments */
+            Descriptors descriptors = new Descriptors(username, password,
+                    vendorId, deviceType, fwVersion);
+            
             /* Generate and upload descriptors */
             debug_log("Generating/loading descriptors...");
             descriptors.processDescriptors(configData);

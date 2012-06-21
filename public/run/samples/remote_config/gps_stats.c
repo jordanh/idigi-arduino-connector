@@ -13,7 +13,12 @@
 #include "idigi_api.h"
 #include "platform.h"
 #include "remote_config_cb.h"
+#include "float.h"
 
+#define VALUE_TO_STRING(value)   # value
+#define MACRO_TO_STRING(macro)   VALUE_TO_STRING(macro)
+
+#define GPS_STATS_LOCATION_STRING_LENGTH   sizeof (MACRO_TO_STRING(FLT_MAX))
 
 typedef struct {
     float latitude;
@@ -25,20 +30,34 @@ static gps_location_t gps_data = { 45.01049, -93.254674 };
 idigi_callback_status_t app_gps_stats_group_get(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
     idigi_callback_status_t status = idigi_callback_continue;
+    char * ptr;
+    float value;
 
     switch (request->element.id)
     {
     case idigi_state_gps_stats_latitude:
-        response->element_data.element_value->float_value = gps_data.latitude;
-        break;
-    case idigi_state_gps_stats_longitude:
-        response->element_data.element_value->float_value = gps_data.longitude;
-        break;
-    default:
-        ASSERT(0);
+    {
+        static char gps_latitude[GPS_STATS_LOCATION_STRING_LENGTH];
+        ptr = gps_latitude;
+        value = gps_data.latitude;
         break;
     }
+    case idigi_state_gps_stats_longitude:
+    {
+        static char gps_longitude[GPS_STATS_LOCATION_STRING_LENGTH];
+        ptr = gps_longitude;
+        value = gps_data.longitude;
+        break;
+    }
+    default:
+        ASSERT(0);
+        goto done;
+    }
 
+    snprintf(ptr, GPS_STATS_LOCATION_STRING_LENGTH, "%f", value);
+    response->element_data.element_value->string_value = ptr;
+
+done:
     return status;
 }
 

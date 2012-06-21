@@ -42,7 +42,7 @@ group setting ethernet "Ethernet interface"
     error invalid_dns "Invalid DNS address"
 
 
-group setting device_stats  "Device statistics"
+group setting device_time  "Device Time"
     element curtime "Current time" type datetime access  read_write
     element signed_integer "Signed integer" type int32 min -100 max 100
     error invalid_time "Invalid time" 
@@ -56,18 +56,7 @@ group setting device_info  "Device info"
     element syspwd "System password" type password access  read_write  max  64 
     error invalid_length "invalid length" 
 
-group state debug_info "Debug info on IC thread"
-    element version "Version" type 0xhex access  read_only 
-    element stacksize "Stack size" type hex32 access  read_only 
-
-# State configuration for GPS
-# Must setup the following group in order for GPS shown in iDigi Cloud.
-group state gps_stats "GPS"
-    element latitude "Latitude" type float access read_only
-    element longitude "Longitude" type float access read_only
-    error invalid_lat "Invalid latitude value"
-    error invalid_long "Invalid longitude value"
-
+# Device info that shows up in iDigi device summary
 # iDigi Manager Pro queries this system setting to display the information in root folder
 group setting system "System"
     element description "Description" type string max 63
@@ -75,13 +64,25 @@ group setting system "System"
     element location "Location" type string max 63
     error invalid_length "Invalid Length"
 
+# EDP password
 # iDigi Manager Pro uses this devicesecurity setting for password authentication
+# Note, as with all password, password type is a write-only field
 group setting devicesecurity "iDigi device security"
     element identityVerificationForm "Connection security" type enum
         value simple "No connection security"
         value password "Connection is password authenticated"
-    element password "iDigi device connection password" type password max 134
+    element password "iDigi device connection password" type password max 133
+
+# Device location
+# State configuration for GPS
+# Must setup the following group for Latitude and Longitude to be shown in iDigi Manager Pro.
+group state gps_stats "GPS"
+    element latitude "Latitude" type string access read_only
+    element longitude "Longitude" type string access read_only
+
+group state debug_info "Debug info on IC thread"
+    element version "Version" type 0xhex access  read_only 
+    element stacksize "Stack size" type hex32 access  read_only 
 
 
-    
     
