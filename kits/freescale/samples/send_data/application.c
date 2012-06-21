@@ -16,10 +16,6 @@
 #include "platform.h"
 #include "idigi_connector.h"
 
-#if !BSPCFG_ENABLE_GPIODEV
-#error This application requires BSPCFG_ENABLE_GPIODEV defined non-zero in user_config.h. Please recompile BSP with this option.
-#endif
-
 static LWGPIO_STRUCT push_button;
 
 static void idigi_status(idigi_connector_error_t const status, char const * const status_message)
@@ -54,7 +50,9 @@ int application_start(void)
     {
         #define WAIT_FOR_10_MSEC    10
         static idigi_connector_data_t ic_data = {0};
-        static char buffer[] = "iDigi Device application data!\n";
+        static unsigned char count = 0;
+        static char buffer[] = "iDigi Device application data. Count xxx!\n";
+        size_t const buf_size = (sizeof buffer) - 1;
 
         if (lwgpio_get_value(&push_button) == LWGPIO_VALUE_LOW)
         {
@@ -62,8 +60,9 @@ int application_start(void)
                 _time_delay(WAIT_FOR_10_MSEC);
 
             APP_DEBUG("Sending data to cloud using idigi_send_data...\n");
+            snprintf(buffer, buf_size, "iDigi Device application data. Count %d!\n", count);
             ic_data.data_ptr = buffer;
-            ic_data.length_in_bytes = sizeof buffer - 1;
+            ic_data.length_in_bytes = buf_size;
             ret = idigi_send_data("test/test.txt", &ic_data, NULL);
         }
         else
@@ -79,6 +78,8 @@ int application_start(void)
         else
         {
             APP_DEBUG("\nSend completed\n");
+            ic_data.flags = IDIGI_FLAG_APPEND_DATA;
+            count++;
         }
     } while ((ret == idigi_connector_init_error) || (ret == idigi_connector_success));
 
