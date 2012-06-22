@@ -157,8 +157,8 @@ idigi_callback_status_t app_device_info_group_set(idigi_remote_group_request_t c
             #define MAXIMUM_HINT_TEXT  "Maximum length is "
             {
                 static char error_hint_text[sizeof (MINIMUM_HINT_TEXT MACRO_TO_STRING(UINT_MAX))];
-                unsigned int const min_length = config_data[request->element.id].min_length;
-                unsigned int const max_length = config_data[request->element.id].max_length;
+                size_t const min_length = config_data[request->element.id].min_length;
+                size_t const max_length = config_data[request->element.id].max_length;
 
                 idigi_boolean_t const is_min = (value_length < min_length) ? idigi_boolean_true : idigi_boolean_false;
 
