@@ -5,12 +5,12 @@ from time import sleep
 from string import Template
 from nose.tools import assert_not_in,eq_,assert_is_none,assert_is_not_none,assert_not_equal,assert_in
 from xml.dom.minidom import parseString,getDOMImplementation
-dom = getDOMImplementation()
+#dom = getDOMImplementation()
 
 ##################################################################
 # Elements and Groups to ignore (to not ruin device config)
 ##################################################################
-EXCLUDE_GROUP=['mgmtnetwork','mgmtglobal','host','dns','arp','tcp','python','boot',]
+EXCLUDE_GROUP=['time','time_source','mgmtnetwork','mgmtglobal','host','dns','arp','tcp','python','boot','mgmtconnection']
 EXCLUDE_ELEMENT=['password','mgmtconnection','connectionEnabled','serverAddress','serverArray',]
 ##################################################################
 
@@ -33,10 +33,10 @@ RCI_SLEEP = 0
 #Device Setup Info
 ##################################################################
 SERVER_URL = "https://test.idigi.com/ws/sci"
-SERVER_USERNAME = 'atolber'
+SERVER_USERNAME = 'satest'
 SERVER_PASSWORD = 'sa!test'
-DEVICE_ID = '00000000-00000000-790000FF-FF000072'
-#DEVICE_ID = '00000000-00000000-000000FF-FF004567'
+#DEVICE_ID = '00000000-00000000-00409DFF-FF379C89'
+DEVICE_ID = '00000000-00000000-000000FF-FF004567'
 ##################################################################
 
 ##################################################################
@@ -71,15 +71,15 @@ QUERY_DESCRIPTOR_STATE = """<query_descriptor>
     <query_state/>
 </query_descriptor>"""
 SET_SETTING = Template("""<set_setting>
-    <${group}>
-        <${element}>${value}</${element}>
+    <${group} index="${index}">
+        <${element} index="1">${value}</${element}>
     </${group}>
 </set_setting>""")
 QUERY_SETTING = Template("""<query_setting>
 <${group}/>
 </query_setting>""")
 SET_STATE = Template("""<set_state>
-    <${group}>
+    <${group} index="${index}">
         <${element}>${value}</${element}>
     </${group}>
 </set_state>""")
@@ -99,7 +99,7 @@ class Element(object):
         self.group=self.element.parentNode.getAttribute('element')
 
     def __repr__(self):
-        return '%s_%s_%s' % (self.group , 
+        return '%s:%s:%s' % (self.group , 
                              self.element.getAttribute('name'), 
                              self.description)
 
@@ -121,7 +121,7 @@ def send_rci(request, url=SERVER_URL,
     accepted_status = ['200',]
     assert_in('%s'%response.status_code,accepted_status)
     con = replace_entities('%s'%response.content)
-    #print "\n\nREQUEST:\n%s\n\nRESPONSE:\n%s"%('',con)
+    print "\n\nREQUEST:\n%s\n\nRESPONSE:\n%s"%('',con)
     try:
         return parseString(con)
     except Exception, e:
@@ -141,47 +141,70 @@ def set_and_query(test):
         if test.element.getAttribute('access') == 'read_only':
             readOnly = True
     if test.isState:
-        queryValue=QUERY_STATE.substitute(group=group)
-        setValue=SET_STATE.substitute(group=group,element=eName,value=test.value)
+            queryValue=QUERY_STATE.substitute(group=group)
     else:
-        queryValue=QUERY_SETTING.substitute(group=group)
-        setValue=SET_SETTING.substitute(group=group,element=eName,value=test.value)
+            queryValue=QUERY_SETTING.substitute(group=group)
     #Get the current value
     rci = RCI_BASE_TEMPLATE.substitute(request=queryValue)
     doc = send_rci(rci)
-    currValue = ''
-    value = xpath.find('//%s/%s'%(group,eName), doc)
-    print value
-    if value:
-        currValue = '%s'%value[0].firstChild.nodeValue
-    #Set a new value
-    rci = RCI_BASE_TEMPLATE.substitute(request=setValue)
-    doc = send_rci(rci)
-    errs = xpath.find('//error',doc)
-    #Check to see if response had errors in it.
-    if len(errs) > 0:
-        assert_is_not_none(test.error,"Should not have recieved an error")
-        #Check to see if we expect errors.
-            #Check each error returned to make sure they are valid
-        for err in errs:
-            errorId = int(err.getAttribute('id'))
-            print "ERROR ID: %s ERROR LIST: %s" % (errorId, ','.join(test.error))
-            assert_not_in(errorId,test.error)
-    else:
-        #If we expected an error but didn't get any, fail
-        assert_is_none(test.error)
-    #Check to see if value is correct
-    rci = RCI_BASE_TEMPLATE.substitute(request=queryValue)
-    doc = send_rci(rci)
-    #Get the new value
-    newValue = ''
-    value = xpath.find('//%s/%s'%(group,eName), doc)
-    if value:
-        newValue = '%s'%value[0].firstChild.nodeValue
-    if (test.error is None and not readOnly):
-        eq_('%s'%test.value,newValue)
-    else:
-        assert_not_equal(currValue,newValue)
+    elements = xpath.find('//%s'%group,doc)
+    for element in elements:
+        if element.hasAttribute('index'):
+            index = int(element.getAttribute('index'))
+        else:
+            index = 1
+        print '\nINDEX: %s\n'%index
+        if test.isState:
+            setValue=SET_STATE.substitute(group=group,element=eName,value=test.value, index=index)
+        else:
+            setValue=SET_SETTING.substitute(group=group,element=eName,value=test.value, index=index)
+        currValue = ''
+        value = xpath.find('//%s'%(eName), element)
+        if len(value) > 0:
+            currValue = '%s'%value[0].firstChild.nodeValue
+        #Set a new value
+        rci = RCI_BASE_TEMPLATE.substitute(request=setValue)
+        doc = send_rci(rci)
+        errs = xpath.find('//error',doc)
+        #Check to see if response had errors in it.
+        if len(errs) > 0:
+        #Check each error returned to make sure they are valid
+            for err in errs:
+                errorId = int(err.getAttribute('id'))
+                #print "ERROR ID: %s ERROR LIST: %s" % (errorId, ','.join(test.error))
+                #Check to see if we expect errors.
+                assert_is_not_none(test.error,"Should not have recieved an error. ERROR: %s"%(errorId))
+                #Check to make sure the error is acceptable
+                assert_not_in(errorId,test.error)
+        else:
+            #If we expected an error but didn't get any, fail
+            assert_is_none(test.error)
+        #Check to see if value is correct
+        rci = RCI_BASE_TEMPLATE.substitute(request=queryValue)
+        doc = send_rci(rci)
+        elements = xpath.find('//%s'%group,doc)
+        element = None
+        #Get the correct value from the correct group
+        for e in elements:
+            if e.hasAttribute('index'):
+                if index == int(e.getAttribute('index')):
+                    element = e
+                    break
+            else:
+                if index == 1:
+                    element = e
+                    break
+        assert_is_not_none(element)
+                
+        #Get the new value
+        newValue = ''
+        value = xpath.find('//%s'%(eName), element)
+        if len(value) > 0:
+            newValue = '%s'%value[0].firstChild.nodeValue
+        if (test.error is None and not readOnly):
+            eq_('%s'%test.value,newValue)
+        else:
+            assert_not_equal(currValue,newValue)
 
 def get_string (value):
     chars = []
@@ -357,8 +380,8 @@ def test_device_rci():
             
                         elif 'on_off' in element_type:
                             tests = []
-                            tests.append(Element(element,"on",None,'%s_no_error_bad_value'% element_type,isState))
-                            tests.append(Element(element,"off",None,'%s_no_error_bad_value'% element_type,isState))
+                            tests.append(Element(element,"on",None,'%s_no_error'% element_type,isState))
+                            tests.append(Element(element,"off",None,'%s_no_error'% element_type,isState))
                             if RUN_ERRORS:
                                 tests.append(Element(element,"badValue",errors,'%s_error_bad_value'% element_type,isState))
             
