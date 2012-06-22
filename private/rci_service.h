@@ -107,18 +107,45 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
             status = idigi_callback_busy;
             break;
 
-        case rci_status_internal_error:
-            /* no break; */
         case rci_status_error:
+            status = idigi_callback_abort;
+
+            /* no break; */
+        case rci_status_internal_error:
             error_status = idigi_msg_error_cancel;
             break;
         }
         break;
     }
     case msg_service_type_error:
-        rci_parser(rci_session_lost);
-        break;
+    {
+        rci_status_t const rci_status = rci_parser(rci_session_lost);
 
+        switch (rci_status)
+        {
+        case rci_status_complete:
+            break;
+
+        case rci_status_busy:
+            status = idigi_callback_busy;
+            break;
+
+        case rci_status_more_input:
+        case rci_status_flush_output:
+            ASSERT(idigi_false);
+            break;
+
+        case rci_status_error:
+            status = idigi_callback_abort;
+            break;
+
+        case rci_status_internal_error:
+            /* just ignore */
+            break;
+
+        }
+        break;
+    }
     case msg_service_type_free:
         free_data(idigi_ptr, session->service_context);
         break;

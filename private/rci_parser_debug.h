@@ -356,7 +356,7 @@ static void output_buffer_diff(char const * const name, void const * const curre
         unsigned char const * current_buffer = current;
         size_t remaining = bytes;
 
-        printf("%s\n", name);
+        idigi_debug_printf("%s\n", name);
         while (remaining != 0)
         {
             size_t const bytes_per_line = 16;
@@ -364,23 +364,23 @@ static void output_buffer_diff(char const * const name, void const * const curre
             size_t const bytes_extra = (bytes_per_line - bytes_this_line);
             size_t i;
 
-            printf("%p: ", current_buffer);
+            idigi_debug_printf("%p: ", current_buffer);
             for (i = 0; i < bytes_this_line; i++)
             {
                 unsigned char const byte = current_buffer[i];
 
-                printf("%02x ", byte);
+                idigi_debug_printf("%02x ", byte);
             }
             for (i = 0; i < bytes_extra; i++)
             {
-                printf("   ");
+                idigi_debug_printf("   ");
             }
             for (i = 0; i < bytes_this_line; i++)
             {
                 int const byte = current_buffer[i];
                 int const replacement = '.';
 
-                printf("%c ", (isprint(byte) && !iscntrl(byte)) ? byte : replacement);
+                idigi_debug_printf("%c ", (isprint(byte) && !iscntrl(byte)) ? byte : replacement);
             }
 
             remaining -= bytes_this_line;
@@ -396,10 +396,10 @@ static void output_buffer_diff(char const * const name, void const * const curre
 #define output_diff(format, operation, member) \
     do { \
         if (show_all) \
-            printf("%s(%p): " format "\n", #member, (void *)&(current->member), operation(current->member)); \
+            idigi_debug_printf("%s(%p): " format "\n", #member, (void *)&(current->member), operation(current->member)); \
         else if (previous.member != current->member) \
         { \
-            printf("%s(%p): " format " -> " format "\n", #member, (void *)&(current->member), operation(previous.member), operation(current->member)); \
+            idigi_debug_printf("%s(%p): " format " -> " format "\n", #member, (void *)&(current->member), operation(previous.member), operation(current->member)); \
             previous.member = current->member; \
         } \
     } while (0)
@@ -444,7 +444,7 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
         previous.service_data = NULL;
     }
 
-    printf("STEP %lu:\n", step);
+    idigi_debug_printf("STEP %lu:\n", step);
 
     output_pointer(service_data);
     if (show_service_data)
