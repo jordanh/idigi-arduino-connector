@@ -26,7 +26,7 @@ idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_r
                                     void const * const request_data, size_t const request_length,
                                     void * response_data, size_t * const response_length)
 {
-    idigi_callback_status_t   status = idigi_callback_continue;
+    idigi_callback_status_t   status;
 
     switch (class_id)
     {
@@ -47,6 +47,7 @@ idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_r
         break;
     default:
         /* not supported */
+        status = idigi_callback_unrecognized;
         break;
     }
     return status;
@@ -55,6 +56,11 @@ idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_r
 int application_run(idigi_handle_t handle)
 {
     UNUSED_ARGUMENT(handle);
+
+    /* No application's thread here.
+     * Application has no other process.
+     * main() will start idigi_run() as a separate thread.
+     */
 
     return 0;
 }

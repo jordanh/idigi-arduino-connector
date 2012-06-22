@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, 2012 Digi International Inc.,
+ * Copyright (c) 2012 Digi International Inc.,
  * All rights not expressly granted are reserved.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -9,12 +9,14 @@
  * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
  */
-#include "idigi_config.h"
 #include "idigi_api.h"
 #include "platform.h"
 #include "remote_config.h"
 
 
+extern idigi_callback_status_t app_firmware_handler(idigi_firmware_request_t const request,
+                                                  void const * const request_data, size_t const request_length,
+                                                  void * response_data, size_t * const response_length);
 extern idigi_callback_status_t app_remote_config_handler(idigi_remote_config_request_t const request,
                                                       void const * const request_data, size_t const request_length,
                                                       void * response_data, size_t * const response_length);
@@ -37,6 +39,9 @@ idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_r
     case idigi_class_network:
         status = app_network_handler(request_id.network_request, request_data, request_length, response_data, response_length);
         break;
+    case idigi_class_firmware:
+        status = app_firmware_handler(request_id.firmware_request, request_data, request_length, response_data, response_length);
+        break;
     case idigi_class_remote_config_service:
         status = app_remote_config_handler(request_id.remote_config_request, request_data, request_length, response_data, response_length);
         break;
@@ -48,14 +53,11 @@ idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_r
     return status;
 }
 
-int application_run(idigi_handle_t handle)
+int application_step(idigi_handle_t handle)
 {
     UNUSED_ARGUMENT(handle);
 
-    /* No application's thread here.
-     * Application has no other process.
-     * main() will start idigi_run() as a separate thread.
-     */
+    /* Application has no other process.*/
 
     return 0;
 }

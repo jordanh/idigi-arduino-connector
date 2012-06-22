@@ -1,0 +1,29 @@
+globalerror load_fail "Load fail"
+globalerror save_fail "Save fail"
+globalerror memory_fail "Insufficient memory"
+
+# Device info that shows up in iDigi device summary
+# iDigi Manager Pro queries this system setting to display the information in root folder
+group setting system "System"
+    element description "Description" type string max 63
+    element contact "Contact" type string max 63
+    element location "Location" type string max 63
+    error invalid_length "Invalid Length"
+ 
+# iDigi password
+# iDigi Manager Pro uses this devicesecurity setting for password authentication
+# Note, as with all password, password type is a write-only field
+# group setting devicesecurity "iDigi device security"
+#    element identityVerificationForm "Connection security" type enum
+#        value simple "No connection security"
+#        value password "Connection is password authenticated"
+#    element password "iDigi device connection password" type password max 133
+
+# Device location
+# State configuration for GPS
+# Must setup the following group for Latitude and Longitude to be shown in iDigi Manager Pro.
+group state gps_stats "GPS"
+    element latitude "Latitude" type string access read_only
+    element longitude "Longitude" type string access read_only
+
+ 

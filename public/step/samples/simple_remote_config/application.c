@@ -48,15 +48,11 @@ idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_r
     return status;
 }
 
-int application_run(idigi_handle_t handle)
+int application_step(idigi_handle_t handle)
 {
     UNUSED_ARGUMENT(handle);
 
-    /* No application's thread here.
-     * Application has no other process.
-     * main() will start idigi_run() as a separate thread.
-     */
-
+    /* Application has no other process.*/
     return 0;
 }
 
