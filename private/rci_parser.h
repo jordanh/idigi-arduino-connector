@@ -117,6 +117,26 @@ static rci_status_t rci_parser(rci_session_t const action, ...)
 {
     static rci_t rci;
 
+    if ((rci.callback.status == idigi_callback_busy) && (rci.parser.state.current != rci_parser_state_output))
+    {
+        if (!rci_callback(&rci))
+            goto done;
+
+        switch (rci.status)
+        {
+        case rci_status_busy:
+        case rci_status_more_input:
+        case rci_status_flush_output:
+            break;
+
+        case rci_status_complete:
+        case rci_status_internal_error:
+        case rci_status_error:
+            goto done;
+            break;
+        }
+    }
+
     {
         idigi_bool_t success;
         va_list ap;
@@ -145,12 +165,6 @@ static rci_status_t rci_parser(rci_session_t const action, ...)
 
         ASSERT(success);
         if (!success) goto done;
-    }
-
-    if ((rci.callback.status == idigi_callback_busy) && (rci.parser.state.current != rci_parser_state_output))
-    {
-        if (!rci_callback(&rci))
-            goto done;
     }
 
     switch (rci.parser.state.current)
@@ -188,36 +202,32 @@ done:
         break;
     }
 
-    switch (rci.status)
     {
-    case rci_status_busy:
-    case rci_status_more_input:
-    case rci_status_flush_output:
-        break;
+        rci_status_t status = rci.status;
 
-    case rci_status_internal_error:
-    case rci_status_error:
-    case rci_status_complete:
-        rci.service_data = NULL;
-        break;
+        switch (rci.status)
+        {
+        case rci_status_busy:
+        case rci_status_more_input:
+        case rci_status_flush_output:
+            break;
+
+        case rci_status_complete:
+        case rci_status_internal_error:
+        case rci_status_error:
+            if (rci.callback.status == idigi_callback_busy)
+            {
+                status = rci_status_busy;
+            }
+            else
+            {
+                rci.service_data = NULL;
+                output_debug_info(&rci, RCI_DEBUG_SHOW_ALL);
+            }
+            break;
+        }
+
+        return status;
     }
-
-#if defined RCI_DEBUG
-    switch (rci.status)
-    {
-    case rci_status_busy:
-    case rci_status_more_input:
-    case rci_status_flush_output:
-        break;
-
-    case rci_status_complete:
-    case rci_status_internal_error:
-    case rci_status_error:
-        output_debug_info(&rci, RCI_DEBUG_SHOW_ALL);
-        break;
-    }
-#endif
-
-    return rci.status;
 }
 
