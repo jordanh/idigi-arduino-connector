@@ -29,10 +29,10 @@ static void rci_traverse_data(rci_t * const rci)
         ASSERT(!have_group_index(rci));
         ASSERT(!have_element_id(rci));
 
+        trigger_rci_callback(rci, idigi_remote_config_action_start);
+
         set_group_id(rci, 0);
         set_group_index(rci, 1);
-
-        trigger_rci_callback(rci, idigi_remote_config_action_start);
 
         rci->output.type = rci_output_type_start_tag;
         set_rci_command_tag(rci->input.command, &rci->output.tag);
@@ -42,8 +42,9 @@ static void rci_traverse_data(rci_t * const rci)
     case rci_traversal_state_all_groups_group_start:
     case rci_traversal_state_one_group_start:
     case rci_traversal_state_indexed_group_start:
-        set_element_id(rci, 0);
         trigger_rci_callback(rci, idigi_remote_config_group_start);
+
+        set_element_id(rci, 0);
 
         {
             idigi_group_t const * const group = (table->groups + get_group_id(rci));
@@ -232,6 +233,9 @@ static void rci_traverse_data(rci_t * const rci)
         break;
 
     case rci_traversal_state_all_groups_end:
+        invalidate_group_id(rci);
+        invalidate_group_index(rci);
+
         trigger_rci_callback(rci, idigi_remote_config_action_end);
 
         rci->output.type = rci_output_type_end_tag;
