@@ -265,12 +265,8 @@
  * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
  * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
  * <tr>
- * <th>@endhtmlonly @ref idigi_callback_continue @htmlonly</th>
- * <td>Callback successfully was able to sleep</td>
- * </tr>
- * <tr>
- * <th>@endhtmlonly @ref idigi_callback_abort @htmlonly</th>
- * <td>Error occurred and callback aborted iDigi connector</td>
+ * <th>None</th>
+ * <td>None</td>
  * </tr>
  * </table>
  * @endhtmlonly
