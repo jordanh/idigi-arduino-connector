@@ -225,22 +225,21 @@
  * for your platform and implement the configuration routines.
  * All configuration routines are passed in a pointer to a pointer, along with a pointer to the size. 
  * The address of the configuration item is stored in the pointer passed in, and the size is assigned to the pointer to the size variable.
- * For example, app_get_server_url() is the routine used to retrieve the iDigi Device Cloud URL
+ * For example, app_get_vendor_id() is the routine used to retrieve the iDigi account Vendor ID
  * and is shown below.
  * @code
- *  static idigi_callback_status_t app_get_server_url(char ** url, size_t * size)
- *  {
- *  #error "Specify iDigi Server URL" // This #error must be removed to compile
- *      // Statically allocated string containing the sever URL
- *      static const char const idigi_server_url[] = "developer.idigi.com";
- *  
- *      // Fill in the pointer with the address of the URL in memory
- *      *url = (char *)idigi_server_url;
- *      // Fill in the size
- *      *size = sizeof idigi_server_url -1;
- *  
- *      return idigi_callback_continue;
- *  }
+ * static idigi_callback_status_t app_get_vendor_id(uint8_t const ** id, size_t * const size)
+ * {
+ * #error  "Specify vendor id"
+ *     #define VENDOR_ID_LENGTH    4
+ *
+ *    static uint8_t const device_vendor_id[VENDOR_ID_LENGTH] = {0x00, 0x00, 0x00, 0x00};
+ *
+ *    *id   =  device_vendor_id;
+ *    *size = sizeof device_vendor_id;
+ *
+ *    return idigi_callback_continue;
+ * }
  * @endcode
  *
  * @note The required routines contain the @htmlonly #error @endhtmlonly preprocessor directive 
