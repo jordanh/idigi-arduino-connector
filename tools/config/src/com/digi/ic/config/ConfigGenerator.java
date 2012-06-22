@@ -50,7 +50,7 @@ public class ConfigGenerator {
             className = className.substring(firstChar);
         }
 
-        log(String.format("Usage: java -jar %s.jar [", className)
+        log(String.format("\nUsage: java -jar %s.jar [", className)
                 + DASH
                 + HELP_OPTION
                 + "] ["
@@ -205,6 +205,13 @@ public class ConfigGenerator {
             int vnumber;
             try {
                 vnumber = Integer.parseInt(ver);
+                if (vnumber > 255) {
+                    /* let's make > max fw version and return true
+                     * for exceeded error msg.
+                     */
+                    fwVersion = FIRMWARE_VERSION_MAX_VALUE + 1;
+                    break;
+                }
             } catch (Exception e) {
                 return false;
             }
@@ -267,14 +274,14 @@ public class ConfigGenerator {
                 }
                 
                 if (fwVersion > FIRMWARE_VERSION_MAX_VALUE) {
-                    throw new Exception(String.format("Exceed maximum firmware version number %s > %d (0x%X, or %d.%d.%d.%d)", arg,
+                    throw new Exception(String.format("Exceeded maximum firmware version number %s > %d (0x%X, or %d.%d.%d.%d)", arg,
                                                       FIRMWARE_VERSION_MAX_VALUE, FIRMWARE_VERSION_MAX_VALUE,
                                                       ((FIRMWARE_VERSION_MAX_VALUE >> 24) & 0xFF),
                                                       ((FIRMWARE_VERSION_MAX_VALUE >> 16) & 0xFF),
                                                       ((FIRMWARE_VERSION_MAX_VALUE >> 8) & 0xFF),
                                                       (FIRMWARE_VERSION_MAX_VALUE & 0xFF)));
                 }
-                debug_log(String.format("FW version: %s = %d", arg, fwVersion));
+                debug_log(String.format("FW version: %s = %d (0x%X)", arg, fwVersion,fwVersion));
                 
                 argumentLog += " " + arg;
                 break;
@@ -283,6 +290,10 @@ public class ConfigGenerator {
                 filename = arg;
                 argumentLog += " " + arg;
                 break;
+                
+            default:
+                log("Unkown argument: " + arg);
+                return;
             }
         } catch (Exception e) {
             log(e.getMessage());
@@ -368,7 +379,7 @@ public class ConfigGenerator {
                     + configData.getStateGroups().size());
 
             /* Generate H and C files */
-            debug_log("Generating C and H files...");
+            debug_log("Start generating C and H files");
             FileGenerator fileGenerator = new FileGenerator(directoryPath);
             fileGenerator.generateFile(configData);
 
@@ -377,7 +388,7 @@ public class ConfigGenerator {
                     vendorId, deviceType, fwVersion);
             
             /* Generate and upload descriptors */
-            debug_log("Generating/loading descriptors...");
+            debug_log("Start Generating/loading descriptors");
             descriptors.processDescriptors(configData);
 
             log("Done.");
