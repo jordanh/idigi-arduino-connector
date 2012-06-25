@@ -21,6 +21,33 @@ def build(dir, cflags):
     
     return (process.returncode, data)
 
+def generate_rci_code(dir, device_type, firmware_version, 
+            hostname, username, password, jar):
+    rci_configs = [ f for f in os.listdir(dir) if f.endswith('.rci') ]
+
+    abs_dir = os.path.abspath(dir)
+    
+    if not len(rci_configs) > 0:
+        return
+
+    rci_config = os.path.join(abs_dir, rci_configs[0])
+
+    print '>>> Generating RCI Config Code for %s.' % (rci_config)
+
+    process = subprocess.Popen(['java', '-jar', jar, '-path=%s' % abs_dir,
+            '-server=%s' % hostname, '%s:%s' % (username, password), 
+            device_type, firmware_version, rci_config], cwd=abs_dir, 
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+    data = process.communicate()[0]
+
+    if process.returncode != 0:
+        print "+++FAIL: ConfigGenerator failed dir=[%s]" % dir
+        if data is not None:
+            print data        
+
+    return (process.returncode, data)
+
 def setup_platform(config_dir, platform_dir, mac_addr):
     config.remove_errors(os.path.join(platform_dir, 'config.c'))
     config.update_config_source(os.path.join(platform_dir, 'config.c'), os.path.join(config_dir, 'config.ini'), mac_addr)
