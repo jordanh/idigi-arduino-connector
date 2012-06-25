@@ -39,10 +39,17 @@
  * To learn more on how to use iDigi Web Services read this document, refer to
  * Chapter 5. SCI (Server Command Interface).
  *
- * @htmlonly <a href="http://developer.idigi.com/edocs/downloads/90002008_C.pdf">iDigi Web Services Programming Guide</a><br>@endhtmlonly
+ * @htmlonly <a href="http://developer.idigi.com/edocs/downloads/90002008_C.pdf">iDigi Web Services Programming Guide</a>@endhtmlonly
  *
  *
  * @note To access this document you will have to login to iDigi
  *
+ * @section Sample Web Services Applications
+ *
+ * Most sample Applications have associated web services client code that demonstrates how
+ * a web services client can interact with the iDigi Cloud.  These samples are written using
+ * Python.
+ *
+ * @htmlinclude terminate.html
  *
  */

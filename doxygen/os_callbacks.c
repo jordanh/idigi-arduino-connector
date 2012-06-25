@@ -24,45 +24,56 @@
  *
  * @htmlonly
  * <table class="apitable">
- * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
- * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <tr>
- * <th>class_id</th>
- * <td>@endhtmlonly @ref idigi_class_operating_system @htmlonly</td>
- * </tr>
- * <tr>
- * <th>request_id</th>
- * <td>@endhtmlonly @ref idigi_os_malloc @htmlonly</td>
- * </tr>
- * <tr>
- * <th>request_data</th>
- * <td>Pointer to number of bytes to be allocated </td>
- * </tr>
- * <tr>
- * <th>request_length</th>
- * <td> The size of *request_data which is sizeof size_t.</td>
- * </tr>
- * <tr>
- * <th>response_data</th>
- * <td> Returns a pointer to memory for allocated address </td>
- * </tr>
- * <tr>
- * <th>response_length</th>
- * <td>N/A</td>
- * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
- * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
- * <tr>
- * <th>@endhtmlonly @ref idigi_callback_continue @htmlonly</th>
- * <td>Callback successfully allocated memory</td>
- * </tr>
- * <tr>
- * <th>@endhtmlonly @ref idigi_callback_abort @htmlonly</th>
- * <td>Callback was unable to allocate memory and callback aborts iDigi connector</td>
- * </tr>
- * <tr>
- * <th>@endhtmlonly @ref idigi_callback_busy @htmlonly</th>
- * <td>Memory is not available at this time and needs to be called back again</td>
- * </tr>
+ *   <th colspan="2" class="title">Arguments</th>
+ *   </tr>
+ *   <tr>
+ *     <th class="subtitle">Name</th>
+ *     <th class="subtitle">Description</th>
+ *   </tr>
+ *   <tr>
+ *     <td>class_id</td>
+ *     <td>@endhtmlonly @ref idigi_class_operating_system @htmlonly</td>
+ *   </tr>
+ *   <tr>
+ *     <td>request_id</td>
+ *     <td>@endhtmlonly @ref idigi_os_malloc @htmlonly</td>
+ *   </tr>
+ *   <tr>
+ *     <td>request_data</td>
+ *     <td>Pointer to number of bytes to be allocated </td>
+ *   </tr>
+ *   <tr>
+ *     <td>request_length</td>
+ *     <td> The size of *request_data which is sizeof size_t.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>response_data</td>
+ *     <td> Returns a pointer to memory for allocated address </td>
+ *   </tr>
+ *   <tr>
+ *     <td>response_length</td>
+ *     <td>N/A</td>
+ *   </tr>
+ *   <tr>
+ *     <th colspan="2" class="title">Return Values</th>
+ *   </tr>
+ *   <tr>
+ *     <th class="subtitle">Values</th>
+ *     <th class="subtitle">Description</th>
+ *   </tr>
+ *   <tr>
+ *     <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
+ *     <td>Callback successfully allocated memory</td>
+ *   </tr>
+ *   <tr>
+ *     <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
+ *     <td>Callback was unable to allocate memory and callback aborts iDigi connector</td>
+ *   </tr>
+ *   <tr>
+ *     <td>@endhtmlonly @ref idigi_callback_busy @htmlonly</td>
+ *     <td>Memory is not available at this time and needs to be called back again</td>
+ *   </tr>
  * </table>
  * @endhtmlonly
  *
@@ -290,4 +301,5 @@
  *
  * @endcode
  *
+ * @htmlinclude terminate.html
  */

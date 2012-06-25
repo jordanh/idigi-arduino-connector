@@ -103,7 +103,7 @@
  *         static uint8_t my_device_id[DEVICE_ID_LENGTH];
  *         uint8_t ** response_device_id = (uint8_t **)response_data;
  *
- *          /* just uses the MAC address to format the device ID */
+ *          // just uses the MAC address to format the device ID
  *          my_device_id[8] = my_device_mac_addr[0];
  *          my_device_id[9] = my_device_mac_addr[1];
  *          my_device_id[10] = my_device_mac_addr[2];
@@ -113,7 +113,7 @@
  *          my_device_id[14] = my_device_mac_addr[4];
  *          my_device_id[15] = my_device_mac_addr[5];
  *
- *          /* return the address of my_device_id */
+ *          // return the address of my_device_id
  *          *response_device_id   = my_device_id;
  *          *response_length = sizeof my_device_id;
  *     }
@@ -270,7 +270,7 @@
  *
  *     if (class_id == idigi_class_config && request_id.config_request == idigi_config_device_type)
  *     {
- *         /* Return pointer to device type. */
+ *         // Return pointer to device type.
  *         extern const char device_type[];
  *         char ** type = (char **)response_data;
  *         *type = (char *)&device_type[0];
@@ -345,7 +345,7 @@
  *
  *     if (class_id == idigi_class_config && request_id.config_request == idigi_config_server_url)
  *     {
- *         /* Return pointer to server url. */
+ *         // Return pointer to server url.
  *         static const char idigi_server_url[] = "developer.idigi.com";
  *         char ** url = (char **)response_data;
  *
@@ -371,8 +371,12 @@
  *
  * @htmlonly
  * <table class="apitable">
- * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
- * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
+ *   <tr>
+ *     <th colspan="2" class="title">Arguments</th>
+ *   </tr>
+ *   <tr>
+ *     <th class="subtitle">Name</th> <th class="subtitle">Description</th>
+ *    </tr>
  * <tr>
  * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_config @htmlonly</td>
@@ -594,8 +598,11 @@
  * @htmlonly
  * <table class="apitable">
  * <tr>
- * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
- * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
+ *   <th colspan="2" class="title">Arguments</th>
+ * </tr>
+ * <tr>
+ *   <th class="subtitle">Name</th> <th class="subtitle">Description</th>
+ * </tr>
  * <tr>
  * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_config @htmlonly</td>
@@ -669,8 +676,13 @@
  *
  * @htmlonly
  * <table class="apitable">
- * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
- * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
+ *   <tr>
+ *     <th colspan="2" class="title">Arguments</th>
+ *   </tr>
+ *   <tr>
+ *     <th class="subtitle">Name</th>
+ *     <th class="subtitle">Description</th>
+ *   </tr>
  * <tr>
  * <th>class_id</th>
  * <td>@endhtmlonly @ref idigi_class_config @htmlonly</td>
@@ -1500,7 +1512,7 @@
  * <tr>
  * <th>response_data</th>
  * <td> Callback writes 14 IMEI decimal digits plus 1 check digit. Each nibble
- *      corresponds a decimal digit and most upper nibble must be 0. <td>
+ *      corresponds a decimal digit and most upper nibble must be 0. </td>
  * </tr>
  * <tr>
  * <th>response_length</th>
@@ -1558,4 +1570,6 @@
  * }
  *
  * @endcode
+ *
+ * @htmlinclude terminate.html
  */

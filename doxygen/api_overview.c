@@ -9,6 +9,7 @@
  *      @li iDigi connector application-defined callback
  * 
  *  The functions available in the iDigi connector are listed below:
+ *
  * @htmlonly
  * <table class="apitable">
  * <tr>
@@ -16,19 +17,19 @@
  * <th class="title">Description</th>
  * </tr>
  * <tr>
- * <th>@endhtmlonly idigi_init() @htmlonly</th>
+ * <td>@endhtmlonly idigi_init() @htmlonly</td>
  * <td>Start the iDigi connector</td>
  * </tr>
  * <tr>
- * <th>@endhtmlonly idigi_step() @htmlonly</th>
+ * <td>@endhtmlonly idigi_step() @htmlonly</td>
  * <td>Execute the iDigi connector and return</td>
  * </tr>
  * <tr>
- * <th>@endhtmlonly idigi_run() @htmlonly</th>
+ * <td>@endhtmlonly idigi_run() @htmlonly</td>
  * <td>Start the iDigi connector and do not return</td>
  * </tr>
  * <tr>
- * <th>@endhtmlonly idigi_initiate_action() @htmlonly</th>
+ * <td>@endhtmlonly idigi_initiate_action() @htmlonly</td>
  * <td>Begin an iDigi connector operation, like starting a data transfer</td>
  * </tr>
  * </table>
@@ -110,5 +111,6 @@
  * "Operating System" page.
  *
  *
+ * @htmlinclude terminate.html
  *
  */
