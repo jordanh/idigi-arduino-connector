@@ -9,11 +9,11 @@
  *      @li iDigi connector application-defined callback
  * 
  *  The functions available in the iDigi connector are listed below:
-  * @htmlonly
+ * @htmlonly
  * <table class="apitable">
  * <tr>
- * <th class="title">Routine</td>
- * <th class="title">Description</td>
+ * <th class="title">Routine</th>
+ * <th class="title">Description</th>
  * </tr>
  * <tr>
  * <th>@endhtmlonly idigi_init() @htmlonly</th>

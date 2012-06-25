@@ -58,11 +58,11 @@
  * @htmlonly
  * <table class="apitable">
  * <tr>
- * <th class="title">iDigi connector Service Options and Configuration Methodology</td>
- * <th class="title">Text</td>
- * <th class="title">rodata</td>
- * <th class="title">data</td>
- * <th class="title">bss</td>
+ * <th class="title">iDigi connector Service Options and Configuration Methodology</th>
+ * <th class="title">Text</th>
+ * <th class="title">rodata</th>
+ * <th class="title">data</th>
+ * <th class="title">bss</th>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref IDIGI_DEBUG, @ref IDIGI_FIRMWARE_SERVICE, @ref IDIGI_DATA_SERVICE @htmlonly enabled.</td>
@@ -115,10 +115,10 @@
  * @htmlonly
  * <table class="apitable">
  * <tr>
- * <th class="title">Description</td>
- * <th class="title">IDIGI_COMPRESSION enabled</td>
- * <th class="title">IDIGI_COMPRESSION disabled</td>
- * <th class="title">Notes</td>
+ * <th class="title">Description</th>
+ * <th class="title">IDIGI_COMPRESSION enabled</th>
+ * <th class="title">IDIGI_COMPRESSION disabled</th>
+ * <th class="title">Notes</th>
  * </tr>
  * <tr>
  * <td>iDigi connector Base usage</td>
@@ -153,8 +153,8 @@
  * @htmlonly
  * <table class="apitable">
  * <tr>
- * <th class="title">Build Details </td>
- * <th class="title"> Program stack size</td>
+ * <th class="title">Build Details </th>
+ * <th class="title"> Program stack size</th>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref IDIGI_DEBUG @htmlonly disabled</td>
@@ -224,53 +224,49 @@
  * @htmlonly
  * <table class="apitable">
  * <tr>
- * <th class="title">Directory</td>
- * <th class="title">Description</td>
+ *   <th class="title">Directory</th>
+ *   <th class="title">Description</th>
  * </tr>
  * <tr>
- * <td rowspan="2">private</td>
- * <td style="border-bottom: 0px none;">iDigi connector Library Code</td>
- * </tr><tr>
- * <td style="border-top: 0px none;">This directory contains all the private and internal files used to build the iDigi connector library. 
- * <b>You should never modify, directly call, debug, or reference any file from this directory</b>.</td>
+ *   <td>private</td>
+ *   <td>iDigi connector Library Code<br></br>
+ *   This directory contains all the private and internal files used to build the iDigi connector library.
+ *   <b>You should never modify, directly call, debug, or reference any file from this directory</b>.</td>
  * </tr>
  * <tr>
- * <td rowspan=2>public/include</td>
- * <td style="border-bottom: 0px none;"> @endhtmlonly  @ref api_overview "iDigi connector Public API" @htmlonly </td>
- * </tr><tr>
- * <td style="border-top: 0px none;">Contains the three public headers: @endhtmlonly  @ref idigi_api.h,  @ref idigi_types.h,
- * and @ref idigi_config.h @htmlonly.  The @endhtmlonly @ref api_overview "iDigi connector Public API"  @htmlonly is located in @endhtmlonly @ref idigi_api.h @htmlonly and
- * required for application development.  All the machine device types are located in @endhtmlonly @ref idigi_types.h @htmlonly and might
- * require updating to match your platform's characteristics (i.e., data size and supported compiler data types).  The header @endhtmlonly
- * @ref idigi_config.h @htmlonly contains all the iDigi connector settings and configurations. </td>
+ *   <td>public/include</td>
+ *   <td> @endhtmlonly  @ref api_overview "iDigi connector Public API" @htmlonly <br></br>
+ *   Contains the three public headers: @endhtmlonly  @ref idigi_api.h,  @ref idigi_types.h, and @ref idigi_config.h @htmlonly.
+ *   The @endhtmlonly @ref api_overview "iDigi connector Public API"  @htmlonly is located in @endhtmlonly @ref idigi_api.h @htmlonly and
+ *   required for application development.  All the machine device types are located in @endhtmlonly @ref idigi_types.h @htmlonly and might
+ *   require updating to match your platform's characteristics (i.e., data size and supported compiler data types).  The header @endhtmlonly
+ *   @ref idigi_config.h @htmlonly contains all the iDigi connector settings and configurations. </td>
  * </tr>
  * <tr>
- * <td rowspan=2>public/run</td>
- * <td style="border-bottom: 0px none;">Platforms and samples for running the iDigi connector as a separate thread</td>
- * </tr><tr>
- * <td style="border-top: 0px none;">This directory contains platforms and samples that use @endhtmlonly idigi_run() @htmlonly which runs
- * the iDigi connector as a separate thread in a multitasking environment.</td>
- * </tr>
- * <td rowspan=2>public/run/platforms</td>
- * <td style="border-bottom: 0px none;">Platform files for running the iDigi connector as a separate thread</td>
- * </tr><tr>
- * <td style="border-top: 0px none;">Platform dependent files that interface between the iDigi connector library (private) and the sample applications.
- * These files include @endhtmlonly os.c, network.c, config.c, platform.h and main.c.@htmlonly
- * The Getting Started Procedure walks you through the process of porting and setting these platform files.</td>
+ *   <td>public/run</td>
+ *   <td>Platforms and samples for running the iDigi connector as a separate thread <br></br>
+ *   This directory contains platforms and samples that use @endhtmlonly idigi_run() @htmlonly which runs
+ *   the iDigi connector as a separate thread in a multitasking environment.</td>
  * </tr>
  * <tr>
- * <td rowspan="2">public/run/samples</td>
- * <td style="border-bottom: 0px none;">Samples for the iDigi connector</td>
- * </tr><tr>
- * <td style="border-top: 0px none;">Samples on how to use the iDigi connector, the compile_and_link sample is used to verify
- * that your new envirorment is able to build. There is a sample for each major
- * feature in the iDigi connector, there is documentation in this guide for each sample.</td>
+ *   <td>public/run/platforms</td>
+ *   <td>Platform files for running the iDigi connector as a separate thread<br></br>
+ *   Platform dependent files that interface between the iDigi connector library (private) and the sample applications.
+ *   These files include <a class="el" href="os_8c.html" title="Functions used by the iDigi connector to interface to the OS.">os.c</a>, <a class="el" href="network_8c.html" title="Rountines which implement the iDigi connector network interface.">network.c</a>, <a class="el" href="config_8c.html" title="Configuration routines for the iDigi Connector.">config.c</a>, <a class="el" href="platform_8h_source.html">platform.h</a> and main.c.
+ *   The Getting Started Procedure walks you through the process of porting and setting these platform files.</td>
  * </tr>
  * <tr>
- * <td rowspan=2>public/step</td>
- * <td style="border-top: 0px none;">This directory contains platforms and samples that use @endhtmlonly idigi_step() @htmlonly which makes
- * repeated calls within a round robin control loop.</td>
- * </tr><tr>
+ *   <td>public/run/samples</td>
+ *   <td>Samples for the iDigi connector<br></br>
+ *   Samples on how to use the iDigi connector, the compile_and_link sample is used to verify
+ *   that your new envirorment is able to build. There is a sample for each major
+ *   feature in the iDigi connector, there is documentation in this guide for each sample.</td>
+ * </tr>
+ * <tr>
+ *   <td>public/step</td>
+ *   <td>This directory contains platforms and samples that use @endhtmlonly idigi_step() @htmlonly which makes
+ *   repeated calls within a round robin control loop.</td>
+ * </tr>
  * </table>
  * @endhtmlonly
  *
@@ -357,5 +353,6 @@
  * @section the_getting_started_process Getting Started 
  * To get started, follow along the steps of the @ref getting_started process.
  *
+ * @htmlinclude terminate.html
  */
 
