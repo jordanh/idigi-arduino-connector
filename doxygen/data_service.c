@@ -27,28 +27,34 @@
  *
  * @htmlonly
  * <table class="apitable">
- * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
- * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <tr>
- * <th>handle</th>
- * <td>@endhtmlonly @ref idigi_handle_t @htmlonly returned from the @endhtmlonly idigi_init() @htmlonly function.</td>
+ *   <th colspan="2" class="title">Arguments</th>
  * </tr>
  * <tr>
- * <th>request</th>
- * <td>@endhtmlonly @ref idigi_initiate_data_service @htmlonly</td>
+ *   <th class="subtitle">Name</th>
+ *   <th class="subtitle">Description</th>
  * </tr>
  * <tr>
- * <th>request_data</th>
- * <td> Pointer to @endhtmlonly idigi_data_service_put_request_t @htmlonly structure:</br>
- *      </br> - <b><i>path</i></b> - file path to store the data on device cloud
- *      </br> - <b><i>content_type</i></b> - "text/plain", "text/xml", "application/json", etc
- *      </br> - <b><i>flags</i></b> - @endhtmlonly @ref put_flags @htmlonly
- *      </br> - <b><i>context</i></b> - can be used to identify the Put Request session
- * </td>
+ *   <td>handle</td>
+ *   <td>@endhtmlonly @ref idigi_handle_t @htmlonly returned from the @endhtmlonly idigi_init() @htmlonly function.</td>
  * </tr>
  * <tr>
- * <th>response_data </th>
- * <td> NULL </td>
+ *   <td>request</td>
+ *   <td>@endhtmlonly @ref idigi_initiate_data_service @htmlonly</td>
+ * </tr>
+ * <tr>
+ *   <td>request_data</td>
+ *   <td> Pointer to @endhtmlonly idigi_data_service_put_request_t @htmlonly structure, where member:
+ *        <ul>
+ *        <li><b><i>path</i></b> is the device cloud file path containing the data</li>
+ *        <li><b><i>content_type</i></b> is "text/plain", "text/xml", "application/json", etc</li>
+ *        <li><b><i>flags</i></b> are the @endhtmlonly @ref put_flags @htmlonly</li>
+ *        <li><b><i>context</i></b> is the application session context</li>
+ *        </ul></td>
+ * </tr>
+ * <tr>
+ *   <td>response_data </td>
+ *   <td> NULL </td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -95,50 +101,67 @@
  *
  * @htmlonly
  * <table class="apitable">
- * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
- * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <tr>
- * <th>class_id</th>
- * <td>@endhtmlonly @ref idigi_class_data_service @htmlonly</td>
+ *   <th colspan="2" class="title">Arguments</th>
  * </tr>
  * <tr>
- * <th>request_id</th>
- * <td>@endhtmlonly @ref idigi_data_service_put_request @htmlonly</td>
+ *   <th class="subtitle">Name</th> <th class="subtitle">Description</th>
  * </tr>
  * <tr>
- * <th>request_data</th>
- * <td> [IN] pointer to @endhtmlonly idigi_data_service_msg_request_t @htmlonly structure:
- *   <p><b><i>service_context</i></b> </br> - Was set in the request_data argument in a call to
- *      @endhtmlonly @ref idigi_initiate_data_service @htmlonly
- *   <p><b><i>message_type</i></b> 
- *      </br> - @endhtmlonly @ref idigi_data_service_type_need_data @htmlonly - request to send more data to the server. 
- *      </br> - @endhtmlonly @ref idigi_data_service_type_have_data @htmlonly - response from the server.
- *      </br> - @endhtmlonly @ref idigi_data_service_type_error @htmlonly - message processing error. 
- *   <p><b><i>server_data</i></b> for @endhtmlonly @ref idigi_data_service_type_need_data @htmlonly
- *      </br> - Not used.
- *   <p><b><i>server_data</i></b> for @endhtmlonly @ref idigi_data_service_type_have_data @htmlonly points to @endhtmlonly idigi_data_service_block_t @htmlonly structure:
- *      </br> - <b><i>data</i></b> - might contain response from the server.
- *      </br> - <b><i>length_in_bytes</i></b> - size of response from the server.
- *      </br> - <b><i>flags</i></b> - @endhtmlonly @ref data_service_flags @htmlonly: success or error code from the server.
- *   <p><b><i>server_data</i></b> for @endhtmlonly @ref idigi_data_service_type_error @htmlonly points to @endhtmlonly idigi_data_service_block_t @htmlonly structure:
- *      </br> - <b><i>data</i></b> - message processing error code of @endhtmlonly @ref idigi_msg_error_t @htmlonly type.</p>
- * </td></tr>
+ *   <td>class_id</td>
+ *   <td>@endhtmlonly @ref idigi_class_data_service @htmlonly</td>
+ * </tr>
  * <tr>
- * <th>request_length</th>
- * <td> [IN] Size of @endhtmlonly idigi_data_service_msg_request_t @htmlonly</td>
+ *   <td>request_id</td>
+ *   <td>@endhtmlonly @ref idigi_data_service_put_request @htmlonly</td>
+ * </tr>
+ * <tr>
+ *   <td>request_data</td>
+ *   <td>[IN] pointer to @endhtmlonly idigi_data_service_msg_request_t @htmlonly structure:<br></br>
+ *     <b><i>service_context</i></b> set to the request_data argument from the @endhtmlonly idigi_initiate_action() @htmlonly
+ *     @endhtmlonly @ref idigi_initiate_data_service @htmlonly call<br></br>
+ *     <b><i>message_type</i></b> can be set to one of the following:
+ *       <ul>
+ *       <li> @endhtmlonly @ref idigi_data_service_type_need_data @htmlonly: request to send more data to the server.</li>
+ *       <li> @endhtmlonly @ref idigi_data_service_type_have_data @htmlonly: response from the server.</li>
+ *       <li> @endhtmlonly @ref idigi_data_service_type_error @htmlonly: message processing error.</li>
+ *       </ul>
+ *
+ *     <b><i>server_data</i></b> is based on <i>message_type</i> setting:
+ *       <ul>
+ *       <li> For <i>message_type</i> set to @endhtmlonly @ref idigi_data_service_type_need_data @htmlonly: server_data not used.</li>
+ *       <li> For <i>message_type</i> set to @endhtmlonly @ref idigi_data_service_type_have_data @htmlonly: server_data points to a @endhtmlonly idigi_data_service_block_t @htmlonly structure where:
+ *           <ul>
+ *           <li> <b><i>data</i></b> might contain response from the server.</li>
+ *           <li> <b><i>length_in_bytes</i></b> is the size of response from the server.</li>
+ *           <li> <b><i>flags</i></b> is @endhtmlonly @ref data_service_flags @htmlonly: success or error code from the server.</li>
+ *           </ul></li>
+ *       <li> For <i>message_type</i> set to @endhtmlonly @ref idigi_data_service_type_error @htmlonly: server_data points to a @endhtmlonly idigi_data_service_block_t @htmlonly structure:
+ *           <ul>
+ *           <li>where <b><i>data</i></b> contains the message processing error code of @endhtmlonly @ref idigi_msg_error_t @htmlonly type.</li>
+ *           </ul></li>
+ *       </ul>
+ *   </td>
+ * </tr>
+ * <tr>
+ *   <td>request_length</td>
+ *   <td> [IN] Size of @endhtmlonly idigi_data_service_msg_request_t @htmlonly</td>
  * </tr>
  * <tr>
  * <th>response_data</th>
- * <td>[OUT] pointer to @endhtmlonly idigi_data_service_msg_response_t @htmlonly structure:
- *   <p><b><i>user_context</i></b> 
- *      </br> - Not used.
- *   <p><b><i>message_status</i></b> 
- *      </br> - Status of @endhtmlonly @ref idigi_msg_error_t @htmlonly type to send to the server on return.
- *   <p><b><i>client_data</i></b> points to @endhtmlonly idigi_data_service_block_t @htmlonly structure:
- *      </br> - <b><i>data</i></b> - pointer to copy data to send to the server.
- *      </br> - <b><i>length_in_bytes</i></b> - size of data buffer on input, actual data size on output.
- *      </br> - <b><i>flags</i></b> - @endhtmlonly @ref data_service_flags @htmlonly to mark first or last chunk of data.
- * </td></tr>
+ * <td>[OUT] pointer to @endhtmlonly idigi_data_service_msg_response_t @htmlonly structure where:
+ *   <ul>
+ *   <li><b><i>user_context</i></b> is not used.</li>
+ *   <li><b><i>message_status</i></b> is the status of @endhtmlonly @ref idigi_msg_error_t @htmlonly type to send to the server on return.</li>
+ *   <li><b><i>client_data</i></b> points to a @endhtmlonly idigi_data_service_block_t @htmlonly structure where:
+ *      <ul>
+ *      <li><b><i>data</i></b> points to a copy of the data sent to the server.</li>
+ *      <li><b><i>length_in_bytes</i></b> is the size of data buffer on input, actual data size on output.</li>
+ *      <li><b><i>@endhtmlonly @ref data_service_flags "flags" @htmlonly</i></b> used to mark the @endhtmlonly @ref IDIGI_MSG_FIRST_DATA "first" @htmlonly @endhtmlonly or @ref IDIGI_MSG_LAST_DATA "last" @htmlonly chunk of data.</li>
+ *      </ul></li>
+ *    </ul>
+ * </td>
+ * </tr>
  * <tr>
  * <th>response_length</th>
  * <td>[OUT] Size of @endhtmlonly idigi_data_service_msg_response_t @htmlonly</td>
@@ -251,67 +274,87 @@
  *
  * @htmlonly
  * <table class="apitable">
- * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
- * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
- * <th>class_id</th>
- * <td>@endhtmlonly @ref idigi_class_data_service @htmlonly</td>
+ * <tr>
+ *   <th colspan="2" class="title">Arguments</th>
  * </tr>
  * <tr>
- * <th>request_id</th>
- * <td>@endhtmlonly @ref idigi_data_service_device_request @htmlonly</td>
+ *   <th class="subtitle">Name</th> <th class="subtitle">Description</th>
  * </tr>
  * <tr>
- * <th>request_data</th>
- * <td> [IN] pointer to @endhtmlonly idigi_data_service_msg_request_t @htmlonly structure:
- *   <p><b><i>service_context</i></b> </br> - pointer to @endhtmlonly @ref idigi_data_service_device_request_t @htmlonly.
- *   <p><b><i>message_type</i></b> 
- *      </br> - @endhtmlonly @ref idigi_data_service_type_have_data @htmlonly - data received from the server.
- *      </br> - @endhtmlonly @ref idigi_data_service_type_need_data @htmlonly - need to send a response to the server. 
- *      </br> - @endhtmlonly @ref idigi_data_service_type_error @htmlonly - message processing error.
- *   <p><b><i>server_data</i></b> for @endhtmlonly @ref idigi_data_service_type_need_data @htmlonly
- *      </br> - Not used.
- *   <p><b><i>server_data</i></b> for @endhtmlonly @ref idigi_data_service_type_have_data @htmlonly points to @endhtmlonly idigi_data_service_block_t @htmlonly structure: 
- *      </br> - <b><i>data</i></b> - pointer to data chunk, received from the server.
- *      </br> - <b><i>length_in_bytes</i></b> - size of received data chunk.
- *      </br> - <b><i>flags</i></b> - @endhtmlonly @ref data_service_flags @htmlonly marking first or last chunk of data. 
- *   <p><b><i>server_data</i></b> for @endhtmlonly @ref idigi_data_service_type_error @htmlonly points to @endhtmlonly idigi_data_service_block_t @htmlonly structure:
- *      </br> - <b><i>data</i></b> - message processing error code of @endhtmlonly @ref idigi_msg_error_t @htmlonly type.</p>
- * </td></tr>
+ *   <td>class_id</td>
+ *   <td>@endhtmlonly @ref idigi_class_data_service @htmlonly</td>
+ * </tr>
  * <tr>
- * <th>request_length</th>
- * <td> [IN] Size of @endhtmlonly idigi_data_service_msg_request_t @htmlonly</td>
+ *   <td>request_id</td>
+ *   <td>@endhtmlonly @ref idigi_data_service_device_request @htmlonly</td>
+ * </tr>
+ * <tr>
+ *   <td>request_data</td>
+ *   <td> [IN] pointer to @endhtmlonly idigi_data_service_msg_request_t @htmlonly structure where:
+ *     <b><i>service_context</i></b> is a pointer to @endhtmlonly @ref idigi_data_service_device_request_t @htmlonly.<br></br>
+ *     <b><i>message_type</i></b> can be set to one of the following:
+ *       <ul>
+ *       <li> @endhtmlonly @ref idigi_data_service_type_have_data @htmlonly: data received from the cloud.</li>
+ *       <li> @endhtmlonly @ref idigi_data_service_type_need_data @htmlonly: data for response to the cloud.</li>
+ *       <li> @endhtmlonly @ref idigi_data_service_type_error @htmlonly: message processing error.</li>
+ *       </ul>
+ *     <b><i>server_data</i></b> is based on <i>message_type</i> setting:
+ *       <ul>
+ *       <li> For <i>message_type</i> set to @endhtmlonly @ref idigi_data_service_type_need_data @htmlonly: server_data not used.</li>
+ *       <li> For <i>message_type</i> set to @endhtmlonly @ref idigi_data_service_type_have_data @htmlonly: server_data points to a @endhtmlonly idigi_data_service_block_t @htmlonly structure where:
+ *           <ul>
+ *           <li> <b><i>data</i></b> contains a chunk of data received from the cloud.</li>
+ *           <li> <b><i>length_in_bytes</i></b> is the size of received data chunk.</li>
+ *           <li> <b><i>flags</i></b> is @endhtmlonly @ref data_service_flags @htmlonly: success or error code from the server.</li>
+ *           </ul></li>
+ *       <li> For <i>message_type</i> set to @endhtmlonly @ref idigi_data_service_type_error @htmlonly: server_data points to a @endhtmlonly idigi_data_service_block_t @htmlonly structure:
+ *           <ul>
+ *           <li>where <b><i>data</i></b> contains the message processing error code of @endhtmlonly @ref idigi_msg_error_t @htmlonly type.</li>
+ *           </ul></li>
+ *       </ul>
+ *   </td>
+ * </tr>
+ * <tr>
+ *   <td>request_length</td>
+ *   <td> [IN] Size of @endhtmlonly idigi_data_service_msg_request_t @htmlonly</td>
  * </tr>
  * <tr>
  * <th>response_data</th>
- * <td>[OUT] pointer to @endhtmlonly idigi_data_service_msg_response_t @htmlonly structure:
- *   <p><b><i>user_context</i></b>
- *      </br> - Set by a user to be returned on subsequent callbacks. 
- *   <p><b><i>message_status</i></b>
- *      </br> - If an application has encountered an error while processing the callback it can set a status to  
- *              @endhtmlonly @ref idigi_msg_error_t @htmlonly send an error code back to the server, 
- *   <p><b><i>client_data</i></b> points to @endhtmlonly idigi_data_service_block_t @htmlonly structure:
- *      </br> - <b><i>data</i></b> - pointer to copy data to send in response to the server.
- *      </br> - <b><i>length_in_bytes</i></b> - size of data buffer on input, actual data size on output.
- *      </br> - <b><i>flags</i></b> - @endhtmlonly @ref data_service_flags @htmlonly to mark first or last chunk 
- *            of data or to indicate that the callback did not process the message.</p>
- * </td></tr>
- * <tr>
- * <th>response_length</th>
- * <td>[OUT] Size of @endhtmlonly idigi_data_service_msg_response_t @htmlonly</td>
- * </tr>
- * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
- * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
- * <tr>
- * <th>@endhtmlonly @ref idigi_callback_continue @htmlonly</th>
- * <td>Continue</td>
+ * <td>[OUT] pointer to @endhtmlonly idigi_data_service_msg_response_t @htmlonly structure where:
+ *   <ul>
+ *   <li><b><i>user_context</i></b> is set by the caller to be returned on subsequent callbacks.</li>
+ *   <li><b><i>message_status</i></b> is the callback status of @endhtmlonly @ref idigi_msg_error_t @htmlonly type to send to the server on return.</li>
+ *   <li><b><i>client_data</i></b> points to a @endhtmlonly idigi_data_service_block_t @htmlonly structure where:
+ *      <ul>
+ *      <li><b><i>data</i></b> points to a copy of the data to send to the cloud.</li>
+ *      <li><b><i>length_in_bytes</i></b> is the size of data buffer on input and actual data size on output.</li>
+ *      <li><b><i>@endhtmlonly @ref data_service_flags "flags" @htmlonly</i></b> used to mark the @endhtmlonly @ref IDIGI_MSG_FIRST_DATA "first" @htmlonly data chunk, @endhtmlonly @ref  IDIGI_MSG_LAST_DATA "last" @htmlonly data chunk,
+ *                              or to indicate the callback could not @endhtmlonly @ref  IDIGI_MSG_DATA_NOT_PROCESSED "complete" @htmlonly the message request.</li>
+ *      </ul></li>
+ *    </ul>
+ * </td>
  * </tr>
  * <tr>
- * <th>@endhtmlonly @ref idigi_callback_abort @htmlonly</th>
- * <td>Aborts iDigi connector</td>
+ *   <td>response_length</td>
+ *   <td>[OUT] Size of @endhtmlonly idigi_data_service_msg_response_t @htmlonly</td>
  * </tr>
  * <tr>
- * <th>@endhtmlonly @ref idigi_callback_busy @htmlonly</th>
- * <td>Busy and needs to be called back again</td>
+ *   <th colspan="2" class="title">Return Values</th>
+ * </tr>
+ * <tr>
+ *   <th class="subtitle">Values</th> <th class="subtitle">Description</th>
+ * </tr>
+ * <tr>
+ *   <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
+ *   <td>Continue</td>
+ * </tr>
+ * <tr>
+ *   <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
+ *   <td>Aborts iDigi connector</td>
+ * </tr>
+ * <tr>
+ *   <td>@endhtmlonly @ref idigi_callback_busy @htmlonly</td>
+ *   <td>Busy and needs to be called back again</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -474,6 +517,7 @@
  *
  * @note The zlib library is required only if your application enables the @ref IDIGI_COMPRESSION "Data Compression switch".
  *
+ * @htmlinclude terminate.html
  */
 
 
