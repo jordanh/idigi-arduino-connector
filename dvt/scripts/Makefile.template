@@ -38,7 +38,8 @@ CFLAGS += -DIDIGI_VERSION=0x1020000UL
 CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE 
 # Include Public Header Files.
 CFLAGS += -I. -I$$(PUBLIC_HEADER_DIR)
-${PLATFORM_HEADER_INCLUDE}# Optimize for Size
+${PLATFORM_HEADER_INCLUDE}
+# Optimize for Size
 CFLAGS += -Os
 
 # Target output to generate.

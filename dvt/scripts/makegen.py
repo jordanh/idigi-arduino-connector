@@ -63,6 +63,7 @@ def generate_makefile(path, make_template):
     :param make_template: a Template object for a Makefile.
     """
     full_path = os.path.abspath(path)
+    
     # Get the Mode and name of the Sample, this will be used for determining
     # what libraries and platform files to include.
     (_, mode, _, sample) = full_path.rsplit(os.sep, 3)
@@ -135,7 +136,7 @@ if __name__ == "__main__":
             if os.path.isdir(run_d):
                 directories.append(run_d)
     else:
-        directories = os.path.abspath(sys.argv[1])
+        directories.append(os.path.abspath(sys.argv[1]))
 
     for directory in directories:
         data = generate_makefile(directory, template)
