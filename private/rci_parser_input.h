@@ -10,65 +10,6 @@
  * =======================================================================
  */
 
-static void state_call_return(rci_t * const rci, rci_parser_state_t const call_state, rci_parser_state_t const return_state)
-{
-    rci->parser.state.previous = return_state;
-    rci->parser.state.current = call_state;
-}
-
-static void state_call(rci_t * const rci, rci_parser_state_t const call_state)
-{
-    state_call_return(rci, call_state, rci->parser.state.current);
-}
-
-static void rci_error(rci_t * const rci, unsigned int const id, char const * const description, char const * const hint)
-{
-    rci->shared.response.error_id = id;
-    rci->shared.response.element_data.error_hint = hint;
-
-    rci->error.description = description;
-
-    state_call(rci, rci_parser_state_error);
-}
-
-#if defined RCI_PARSER_USES_ERROR_DESCRIPTIONS
-#define get_rci_global_error(rci, id)   idigi_rci_errors[(id) - idigi_rci_error_OFFSET]
-static char const * get_rci_group_error(rci_t * const rci, unsigned int const id)
-{
-    idigi_group_t const * const group = get_current_group(rci);
-    unsigned int const index = (id - idigi_global_error_COUNT);
-
-    ASSERT(id >= idigi_global_error_COUNT);
-    ASSERT(index < group->errors.count);
-
-    return group->errors.description[index];
-}
-#else
-#define get_rci_global_error(rci, id)   ((void) (rci), (void) (id), NULL)
-#define get_rci_group_error(rci, id)    ((void) (rci), (void) (id), NULL)
-#endif
-
-static void rci_global_error(rci_t * const rci, unsigned int const id, char const * const hint)
-{
-    char const * const description = get_rci_global_error(rci, id);
-
-    rci_error(rci, id, description, hint);
-}
-
-static void rci_group_error(rci_t * const rci, unsigned int const id, char const * const hint)
-{
-    if (id < idigi_global_error_COUNT)
-    {
-        rci_global_error(rci, id, hint);
-    }
-    else
-    {
-        char const * const description = get_rci_group_error(rci, id);
-
-        rci_error(rci, id, description, hint);
-    }
-}
-
 static void rci_output_content(rci_t * const rci)
 {
     switch (rci->shared.request.element.type)
@@ -273,7 +214,6 @@ static void rci_action_start_element(rci_t * const rci)
     case rci_command_query_setting:
     case rci_command_query_state:
         trigger_rci_callback(rci, idigi_remote_config_group_process);
-        rci->input.send_content = idigi_true;
     }
 }
 
@@ -366,12 +306,12 @@ static void rci_handle_start_tag(rci_t * const rci)
 
             if ((version == NULL) || (cstr_equals_rcistr(RCI_VERSION_SUPPORTED, version)))
             {
-                trigger_rci_callback(rci, idigi_remote_config_session_start);
-
                 rci->input.command = rci_command_header;
 
                 prep_rci_reply_data(rci);
                 state_call(rci, rci_parser_state_output);
+
+                trigger_rci_callback(rci, idigi_remote_config_session_start);
             }
             else
             {
@@ -401,11 +341,11 @@ static void rci_handle_start_tag(rci_t * const rci)
             case rci_command_query_state:   rci->shared.request.action = idigi_remote_action_query; rci->shared.request.group.type = idigi_remote_group_state;      break;
             }
 
-            trigger_rci_callback(rci, idigi_remote_config_action_start);
-
             rci->output.tag = rci->shared.string.tag;
             rci->output.type = rci_output_type_start_tag;
             state_call(rci, rci_parser_state_output);
+
+            trigger_rci_callback(rci, idigi_remote_config_action_start);
         }
         break;
 
@@ -629,10 +569,13 @@ static void rci_handle_content(rci_t * const rci)
 
 static void rci_handle_end_tag(rci_t * const rci)
 {
-    rci->output.tag = rci->shared.string.tag;
     if (have_element_id(rci))
     {
         invalidate_element_id(rci);
+        rci->output.tag = rci->shared.string.tag;
+
+        rci->output.type = rci_output_type_end_tag;
+        state_call(rci, rci_parser_state_output);
     }
     else
     {
@@ -645,20 +588,14 @@ static void rci_handle_end_tag(rci_t * const rci)
         else if (rci->input.command != rci_command_header)
         {
             config_request_id = idigi_remote_config_action_end;
-            rci->input.command = rci_command_header;
         }
         else
         {
-            cstr_to_rcistr(RCI_REPLY, &rci->output.tag);
             config_request_id = idigi_remote_config_session_end;
-            rci->input.command = rci_command_unseen;
         }
 
         trigger_rci_callback(rci, config_request_id);
     }
-
-    rci->output.type = rci_output_type_end_tag;
-    state_call(rci, rci_parser_state_output);
 }
 
 static void rci_parse_input_less_than_sign(rci_t * const rci)
@@ -1025,21 +962,89 @@ static void rci_parse_input(rci_t * const rci)
 {
     rci_buffer_t * const input = &rci->buffer.input;
 
-    if (rci->callback.request.remote_config_request == idigi_remote_config_group_end)
+    if (rci->callback.status == idigi_callback_busy)
     {
-        invalidate_group_id(rci);
-        /* Set it to something else, so we don't overwrite it again */
-        rci->callback.request.remote_config_request = idigi_remote_config_session_cancel;
+        idigi_remote_group_response_t const * const response = &rci->shared.response;
+
+        if (!rci_callback(rci))
+            goto done;
+
+        if (response->error_id != idigi_success)
+        {
+            rci_group_error(rci, response->error_id, response->element_data.error_hint);
+            goto done;
+        }
+
+        {
+            idigi_remote_config_request_t const remote_config_request = rci->callback.request.remote_config_request;
+
+            switch (remote_config_request)
+            {
+            UNHANDLED_CASES_ARE_NEEDED;
+            case idigi_remote_config_session_start:
+            case idigi_remote_config_action_start:
+            case idigi_remote_config_group_start:
+                break;
+
+            case idigi_remote_config_group_process:
+                {
+                    idigi_remote_group_request_t const * const request = &rci->shared.request;
+
+                    switch (request->action)
+                    {
+                    UNHANDLED_CASES_ARE_NEEDED
+                    case idigi_remote_action_set:
+                        break;
+                    case idigi_remote_action_query:
+                        rci_output_content(rci);
+                        goto done;
+                        break;
+                    }
+                }
+                break;
+            case idigi_remote_config_session_cancel:
+                rci->status = rci_status_error;
+                goto done;
+               break;
+
+            case idigi_remote_config_group_end:
+            case idigi_remote_config_action_end:
+            case idigi_remote_config_session_end:
+                switch (remote_config_request)
+                {
+                UNHANDLED_CASES_ARE_INVALID;
+                case idigi_remote_config_group_end:
+                {
+                    idigi_group_table_t const * const table = (idigi_group_table + rci->shared.request.group.type);
+                    idigi_group_t const * const group = (table->groups + get_group_id(rci));
+
+                    cstr_to_rcistr(group->name, &rci->output.tag);
+
+                    invalidate_group_id(rci);
+                    invalidate_group_index(rci);
+                    break;
+                }
+                case idigi_remote_config_action_end:
+                    set_rci_command_tag(rci->input.command, &rci->output.tag);
+
+                    rci->input.command = rci_command_header;
+                    break;
+                case idigi_remote_config_session_end:
+                    cstr_to_rcistr(RCI_REPLY, &rci->output.tag);
+
+                    rci->input.command = rci_command_unseen;
+                    break;
+                }
+
+                rci->output.type = rci_output_type_end_tag;
+                state_call(rci, rci_parser_state_output);
+                goto done;
+                break;
+            }
+        }
     }
 
-    if (rci->input.send_content)
-    {
-        rci_output_content(rci);
-        rci->input.send_content = idigi_false;
-        goto done;
-    }
-
-    while ((rci_buffer_remaining(input) != 0) && (rci->parser.state.current == rci_parser_state_input) && (rci->callback.status != idigi_callback_busy))
+    while ((rci_buffer_remaining(input) != 0) && (rci->parser.state.current == rci_parser_state_input))
     {
         output_debug_info(rci, RCI_DEBUG_SHOW_DIFFS);
 
@@ -1092,6 +1097,11 @@ static void rci_parse_input(rci_t * const rci)
             rci->input.destination++;
         }
         rci_buffer_advance(input, 1);
+
+        if  (rci->callback.status == idigi_callback_busy)
+        {
+            goto done;
+        }
     }
 
     if (rci_buffer_remaining(input) == 0)

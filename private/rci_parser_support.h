@@ -234,7 +234,6 @@ typedef struct
         unsigned int hyphens;
         int character;
         char * destination;
-        idigi_bool_t send_content;
         rci_command_t command;
         rcistr_t entity;
         char storage[ROUND_UP(IDIGI_RCI_MAXIMUM_CONTENT_LENGTH + sizeof nul, sizeof (int))];

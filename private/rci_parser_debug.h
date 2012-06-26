@@ -468,7 +468,6 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
     output_unsigned_int(input.hyphens);
     output_character(input.character);
     output_pointer(input.destination);
-    output_boolean(input.send_content);
     output_enum(rci_command_t, input.command);
     output_rci_string(input.entity);
 
