@@ -249,7 +249,7 @@ class TestRciDescriptors(object):
             rci=r['query']
             doc = send_rci(rci, 'https://%s/ws/sci' % IIKPlugin.api.hostname, 
                 IIKPlugin.api.username, IIKPlugin.api.password)
-            print doc.toprettyxml(indent='    ')
+
             for descriptor in xpath.find('//format_define/descriptor', doc):
                 #Get all the possible error id's for this descriptor
                 if descriptor.getAttribute('element') not in EXCLUDE_GROUP:

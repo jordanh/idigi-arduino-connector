@@ -22,7 +22,7 @@ def build(dir, cflags):
     return (process.returncode, data)
 
 def generate_rci_code(dir, device_type, firmware_version, 
-            hostname, username, password, jar):
+            hostname, username, password, jar, keystore):
     rci_configs = [ f for f in os.listdir(dir) if f.endswith('.rci') ]
 
     abs_dir = os.path.abspath(dir)
@@ -33,8 +33,9 @@ def generate_rci_code(dir, device_type, firmware_version,
     rci_config = os.path.join(abs_dir, rci_configs[0])
 
     print '>>> Generating RCI Config Code for %s.' % (rci_config)
-
-    process = subprocess.Popen(['java', '-jar', jar, '-path=%s' % abs_dir,
+    process = subprocess.Popen(['java', 
+            '-Djavax.net.ssl.trustStore=%s' % keystore, '-jar', jar, 
+            '-path=%s' % abs_dir, 
             '-server=%s' % hostname, '%s:%s' % (username, password), 
             device_type, firmware_version, rci_config], cwd=abs_dir, 
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)

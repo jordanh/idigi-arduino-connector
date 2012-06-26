@@ -155,7 +155,7 @@ def start_iik(executable, tty=False):
 def run_test(test, test_list, execution_type, base_src_dir, base_script_dir, 
     description, base_dir, debug_on, api, cflags, replace_list=[], 
     update_config_header=False, tty=False, gcov=False, sample=False,
-    config_tool_jar='ConfigGenerator.jar'):
+    config_tool_jar='ConfigGenerator.jar', keystore=None):
     device_location = None
     try:
         sandbox_dir = sandbox(base_dir)
@@ -226,7 +226,8 @@ def run_test(test, test_list, execution_type, base_src_dir, base_script_dir,
                       '--build_username=%s' % api.username,
                       '--build_password=%s' % api.password,
                       '--build_hostname=%s' % api.hostname,
-                      '--build_config_tool_jar=%s' % config_tool_jar]
+                      '--build_config_tool_jar=%s' % config_tool_jar,
+                      '--build_keystore=%s' % keystore]
 
         rc = nose.run(defaultTest=[BUILD_TEST], argv=build_args)
 
@@ -339,7 +340,7 @@ def run_test(test, test_list, execution_type, base_src_dir, base_script_dir,
 
 def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[], 
     update_config_header=False, tty=False, gcov=False, test_type=None, 
-    test_name=None, config_tool_jar='ConfigGenerator.jar'):
+    test_name=None, config_tool_jar='ConfigGenerator.jar', keystore=None):
 
     test_modes = ([('IDIGI_FILE_SYSTEM', 'IDIGI_NO_FILE_SYSTEM'), 
                    ('IDIGI_FIRMWARE_SERVICE', 'IDIGI_NO_FIRMWARE_SERVICE')],
@@ -390,7 +391,7 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
                     os.path.join(test_type.src_dir, test_set), 
                     test_type.script_dir, description, base_dir, debug_on, 
                     api, cflags, replace_list, update_config_header, tty, 
-                    gcov, sample, config_tool_jar)
+                    gcov, sample, config_tool_jar, keystore)
                 if more_modes:
                     for test_mode in test_modes:
                         new_replace_list = replace_list + test_mode
@@ -398,7 +399,7 @@ def run_tests(description, base_dir, debug_on, api, cflags, replace_list=[],
                         os.path.join(test_type.src_dir, test_set), 
                         test_type.script_dir, description, base_dir, debug_on, 
                         api, cflags, new_replace_list, update_config_header, tty, 
-                        gcov, sample, config_tool_jar)
+                        gcov, sample, config_tool_jar, keystore)
 
 def clean_output(directory):
     for root, folders, files in os.walk(directory):
@@ -446,11 +447,19 @@ def main():
     parser.add_argument('--gcov', action='store_true', dest='gcov', default=False)
     parser.add_argument('--config_tool_jar', action='store', 
         dest='config_tool_jar', type=argparse.FileType('r'))
+    parser.add_argument('--keystore', action='store', 
+        dest='keystore', type=argparse.FileType('r'))
 
     args = parser.parse_args()
 
     config_tool_jar = os.path.abspath(args.config_tool_jar.name) \
         if args.config_tool_jar is not None else None
+
+    keystore = os.path.abspath(args.keystore.name) \
+        if args.keystore is not None else None
+
+    if args.hostname == "idigi-e2e.sa.digi.com":
+        keystore = os.path.abspath('dvt/conf/e2e.keystore')
 
     # If 64-bit not passed in, assume 32-bit
     if args.architecture == 'x64':
@@ -471,14 +480,14 @@ def main():
         print "============ Default ============="
         run_tests('%s_%s' % (args.descriptor, 'Default'), '.', True, api, cflags, 
         tty=args.tty, test_name=args.test_name, test_type=args.test_type,
-        config_tool_jar = config_tool_jar)
+        config_tool_jar = config_tool_jar, keystore = keystore)
 
     if args.configuration == 'nodebug' or args.configuration == 'all':
         print "============ No Debug ============="
         run_tests('%s_%s' % (args.descriptor, 'Release'), '.', False, api, cflags, 
         [('IDIGI_DEBUG', 'IDIGI_NO_DEBUG')], 
          tty=args.tty, test_name=args.test_name, test_type=args.test_type,
-         config_tool_jar = config_tool_jar)
+        config_tool_jar = config_tool_jar, keystore = keystore)
 
     if args.configuration == 'compression' or args.configuration == 'all':
         print "============ Compression On ============="
@@ -486,7 +495,7 @@ def main():
         [('/* #define IDIGI_COMPRESSION */', '#define IDIGI_COMPRESSION'), 
          ('IDIGI_DEBUG', 'IDIGI_NO_DEBUG')], 
          tty=args.tty, test_name=args.test_name, test_type=args.test_type,
-         config_tool_jar = config_tool_jar)
+         config_tool_jar = config_tool_jar, keystore = keystore)
 
     if args.configuration == 'debug' or args.configuration == 'all':
         print "============ Debug On ============="
@@ -494,14 +503,14 @@ def main():
         [('/* #define IDIGI_DEBUG */', '#define IDIGI_DEBUG'),], 
          tty=args.tty, gcov=args.gcov, test_name=args.test_name, 
          test_type=args.test_type,
-         config_tool_jar = config_tool_jar)
+         config_tool_jar = config_tool_jar, keystore = keystore)
 
     if args.configuration == 'config_header' or args.configuration == 'all':
         print "============ Configurations in idigi_config.h ============="
         run_tests('%s_%s' % (args.descriptor, 'idigiconfig'), '.', True, api, cflags,
         update_config_header=True, tty=args.tty, test_name=args.test_name, 
         test_type=args.test_type,
-        config_tool_jar = config_tool_jar)
+        config_tool_jar = config_tool_jar, keystore = keystore)
 
     if args.configuration == 'template' or args.configuration == 'all':
         print "============ Template platform ============="

@@ -12,6 +12,7 @@ class BuildPlugin(Plugin):
         parser.add_option('--build_device_type', action='store', type="string", dest="device_type", default="Linux Application", help="Device Type to Use for Config Tool.")
         parser.add_option('--build_firmware_version', action='store', type='string', dest="firmware_version", default="0", help="Firmware Version to Use for Config Tool.")
         parser.add_option('--build_config_tool_jar', action='store', type="string", dest="config_tool_jar", default="ConfigGenerator.jar", help="Config Tool Jar used to generate RCI Config Code")
+        parser.add_option('--build_keystore', action='store', type="string", dest="keystore", default="dvt/conf/e2e.keystore", help="Keystore for Config Tool to use for SSL trust.")
         parser.add_option('--build_cflags', action='store', type="string", dest="cflags", help="CFLAGS to add to compile", default="")
         parser.add_option('--build_src', action='store', type="string", dest="src", help="Source Directory to Build From.", default=".")
 
@@ -29,6 +30,7 @@ class BuildPlugin(Plugin):
         self.device_type = options.device_type
         self.firmware_version = options.firmware_version
         self.config_tool_jar = options.config_tool_jar
+        self.keystore = options.keystore
 
     def finalize(self, result):
         pass
@@ -42,3 +44,4 @@ class BuildPlugin(Plugin):
         test.test.hostname = self.hostname
         test.test.firmware_version = self.firmware_version
         test.test.config_tool_jar = self.config_tool_jar
+        test.test.keystore = self.keystore

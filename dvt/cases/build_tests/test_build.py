@@ -8,7 +8,7 @@ class BuildTestCase(unittest.TestCase):
     def test_compile(self):
     	(rc,output) = generate_rci_code(self.src, self.device_type, 
     		self.firmware_version, self.hostname, self.username, 
-    		self.password, self.config_tool_jar)
+    		self.password, self.config_tool_jar, self.keystore)
 
     	if rc != 0:
     		self.fail("RCI Config Generation Failed: \n%s" % output)
