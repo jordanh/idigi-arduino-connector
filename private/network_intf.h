@@ -424,7 +424,8 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
         case idigi_callback_abort:
         case idigi_callback_unrecognized:
             idigi_debug_printf("receive_buffer: callback returns abort\n");
-            bytes_received = -idigi_receive_error;
+            bytes_received = -1;
+            idigi_ptr->error_code = idigi_receive_error;
             /* fall thru */
         case idigi_callback_busy:
             goto done;
@@ -437,7 +438,8 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
             /* Retain the "last (tx keepalive) message send" time. */
             if (get_system_time(idigi_ptr, &idigi_ptr->last_tx_keepalive_received_time) != idigi_callback_continue)
             {
-                bytes_received = -idigi_configuration_error;
+                bytes_received = -1;
+                idigi_ptr->error_code = idigi_configuration_error;
             }
             else
             {
@@ -461,6 +463,7 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
              * We haven't received a message
              * of any kind for the configured maximum interval, so we must
              * mark this connection in error and return that status.
+             * We consider the connection lost.
              *
              * Note: this inactivity check applies only for MTv2 and later.
              * For MTv1, the client sends keep-alives, but the server does
@@ -469,7 +472,8 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
              * keep-alive failure check never triggers.
              *
              */
-            bytes_received = -idigi_keepalive_error;
+            bytes_received = -1;
+            idigi_ptr->error_code = idigi_keepalive_error;
             notify_error_status(idigi_ptr->callback, idigi_class_network, request_id, idigi_keepalive_error);
             idigi_debug_printf("idigi_receive: keepalive fails\n");
         }
@@ -495,11 +499,6 @@ static idigi_callback_status_t receive_data_status(idigi_data_t * const idigi_pt
 
         if (read_length < 0)
         {
-            /* make it a position number for enum error */
-            int error_code = -read_length;
-            ASSERT(error_code > idigi_success && error_code <= idigi_no_resource);
-
-            idigi_ptr->error_code = error_code;
             status = idigi_callback_abort;
             goto done;
         }

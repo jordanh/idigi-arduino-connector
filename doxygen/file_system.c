@@ -1575,4 +1575,5 @@
  *
  * @endcode
  *
+ * @htmlinclude terminate.html
  */

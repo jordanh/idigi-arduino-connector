@@ -10,6 +10,65 @@
  * =======================================================================
  */
 
+static void state_call_return(rci_t * const rci, rci_parser_state_t const call_state, rci_parser_state_t const return_state)
+{
+    rci->parser.state.previous = return_state;
+    rci->parser.state.current = call_state;
+}
+
+static void state_call(rci_t * const rci, rci_parser_state_t const call_state)
+{
+    state_call_return(rci, call_state, rci->parser.state.current);
+}
+
+static void rci_error(rci_t * const rci, unsigned int const id, char const * const description, char const * const hint)
+{
+    rci->shared.response.error_id = id;
+    rci->shared.response.element_data.error_hint = hint;
+
+    rci->error.description = description;
+
+    state_call(rci, rci_parser_state_error);
+}
+
+#if defined RCI_PARSER_USES_ERROR_DESCRIPTIONS
+#define get_rci_global_error(rci, id)   idigi_rci_errors[(id) - idigi_rci_error_OFFSET]
+static char const * get_rci_group_error(rci_t * const rci, unsigned int const id)
+{
+    idigi_group_t const * const group = get_current_group(rci);
+    unsigned int const index = (id - idigi_global_error_COUNT);
+
+    ASSERT(id >= idigi_global_error_COUNT);
+    ASSERT(index < group->errors.count);
+
+    return group->errors.description[index];
+}
+#else
+#define get_rci_global_error(rci, id)   ((void) (rci), (void) (id), NULL)
+#define get_rci_group_error(rci, id)    ((void) (rci), (void) (id), NULL)
+#endif
+
+static void rci_global_error(rci_t * const rci, unsigned int const id, char const * const hint)
+{
+    char const * const description = get_rci_global_error(rci, id);
+
+    rci_error(rci, id, description, hint);
+}
+
+static void rci_group_error(rci_t * const rci, unsigned int const id, char const * const hint)
+{
+    if (id < idigi_global_error_COUNT)
+    {
+        rci_global_error(rci, id, hint);
+    }
+    else
+    {
+        char const * const description = get_rci_group_error(rci, id);
+
+        rci_error(rci, id, description, hint);
+    }
+}
+
 static void trigger_rci_callback(rci_t * const rci, idigi_remote_config_request_t const remote_config_request)
 {
     switch (remote_config_request)
@@ -52,8 +111,6 @@ static void trigger_rci_callback(rci_t * const rci, idigi_remote_config_request_
     rci->callback.status = idigi_callback_busy;
 }
 
-static void rci_group_error(rci_t * const rci, unsigned int const id, char const * const hint);
-
 static idigi_bool_t rci_callback(rci_t * const rci)
 {
     idigi_bool_t callback_complete;
@@ -91,17 +148,13 @@ static idigi_bool_t rci_callback(rci_t * const rci)
     switch (rci->callback.status)
     {
     case idigi_callback_abort:
-        callback_complete = idigi_true;
+        callback_complete = idigi_false;
         rci->status = rci_status_error;
         break;
 
     case idigi_callback_continue:
         callback_complete = idigi_true;
 
-        if ((response_data != NULL) && (response_data->error_id != idigi_success))
-        {
-            rci_group_error(rci, response_data->error_id, response_data->element_data.error_hint);
-        }
         break;
 
     case idigi_callback_busy:
@@ -109,9 +162,8 @@ static idigi_bool_t rci_callback(rci_t * const rci)
         break;
 
     default:
-        callback_complete = idigi_true;
+        callback_complete = idigi_false;
         rci->status = rci_status_internal_error;
-        ASSERT(idigi_false);
         break;
     }
 

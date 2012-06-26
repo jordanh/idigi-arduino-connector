@@ -48,13 +48,14 @@ idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_r
     return status;
 }
 
-extern void remote_config_set(void);
-
 int application_run(idigi_handle_t handle)
 {
     UNUSED_ARGUMENT(handle);
 
-//    remote_config_set();
+    /* No application's thread here.
+     * Application has no other process.
+     * main() will start idigi_run() as a separate thread.
+     */
 
     return 0;
 }

@@ -985,4 +985,5 @@
  * 
  * @endcode
  *
+ * @htmlinclude terminate.html
  */

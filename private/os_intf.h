@@ -108,14 +108,17 @@ static idigi_callback_status_t get_system_time(idigi_data_t * const idigi_ptr, u
     /* Call callback to get system up time in second */
     request_id.os_request = idigi_os_system_up_time;
     status = idigi_callback_no_request_data(idigi_ptr->callback, idigi_class_operating_system, request_id, uptime, &length);
-    if (status == idigi_callback_abort)
+    switch (status)
     {
+    case idigi_callback_continue:
+        break;
+    case idigi_callback_abort:
         idigi_ptr->error_code = idigi_configuration_error;
-    }
-    else if (status != idigi_callback_continue)
-    {
+        break;
+    default:
         ASSERT(idigi_false);
         status = idigi_callback_abort;
+        break;
     }
 
 
@@ -131,17 +134,24 @@ static idigi_callback_status_t malloc_cb(idigi_callback_t const callback, size_t
     request_id.os_request = idigi_os_malloc;
     *ptr = NULL;
     status = idigi_callback(callback, idigi_class_operating_system, request_id, &size, sizeof size, ptr, &len);
-    if (status == idigi_callback_continue)
+    switch (status)
     {
-        if (*ptr != NULL)
+    case idigi_callback_continue:
+        if (*ptr == NULL)
         { 
-            add_malloc_stats(*ptr, size);
-        }
-        else
-        {
             ASSERT(idigi_false);
             status = idigi_callback_abort;
         }
+        break;
+
+    case idigi_callback_abort:
+    case idigi_callback_busy:
+        break;
+
+    default:
+        ASSERT(idigi_false);
+        status = idigi_callback_abort;
+        break;
     }
     return status;
 }
@@ -152,7 +162,7 @@ static idigi_callback_status_t malloc_data(idigi_data_t * const idigi_ptr, size_
     idigi_callback_status_t status;
 
     status = malloc_cb(idigi_ptr->callback, length, ptr);
-    if (status == idigi_callback_abort || status == idigi_callback_unrecognized)
+    if (status == idigi_callback_abort)
     {
         status = idigi_callback_abort;
         idigi_ptr->error_code = idigi_configuration_error;
@@ -167,7 +177,6 @@ static void free_data(idigi_data_t * const idigi_ptr, void * const ptr)
 
     request_id.os_request = idigi_os_free;
     idigi_callback_no_response(idigi_ptr->callback, idigi_class_operating_system, request_id, ptr, 0);
-    del_malloc_stats(ptr);
 
     return;
 }

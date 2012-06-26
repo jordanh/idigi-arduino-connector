@@ -70,23 +70,42 @@
 
     4) Select the option 'Examples > SCI > Data Service > Send Request', on the
        left panel a SCI request will be automatically generated.
-    5) Make sure the Device ID is correct and modify the payload string if
-       needed.
-    6) Replace the target with "LED1" or "LED2"
-    7) Replace the payload with ON or OFF
-    6) Select 'Send' to see the request coming in the device. You should see
-       the console output on the terminal window for the received request and
-       sent response string.
-    7) Observe the response returned from the device on the 'Web Services
+    5) Make sure the Device ID is correct.
+    6) Replace the target with "LED1" or "LED2" and the payload with ON or
+       OFF, i.e., to turn on LED1 the request should be:
+
+       <sci_request version="1.0">
+          <data_service>
+             <targets>
+                <device id="00000000-00000000-XXXXXXFF-FFXXXXXX"/>
+             </targets>
+             <requests>
+                <device_request target_name="LED1">
+                   ON
+                </device_request>
+             </requests>
+          </data_service>
+       </sci_request>
+
+    7) Select 'Send' to see the request coming in the device. You should see
+       the console output on the terminal window for the received request:
+
+       Turning ON LED1
+       LED1 action is Success
+
+    8) Observe the response returned from the device on the 'Web Services
        Responses' on the right. Click 'Click to examine' to see both request
        and response, the last will be something similar to:
 
-
-
-
-
-
-                   iDigi Connector device response!
+       <sci_reply version="1.0">
+          <data_service>
+             <device id="00000000-00000000-XXXXXXFF-FFXXXXXX">
+                <requests>
+                   <device_request target_name="LED1" status="1">Success</device_request>
+                </requests>
+             </device>
+          </data_service>
+       </sci_reply>
 
   Tested On
   ---------

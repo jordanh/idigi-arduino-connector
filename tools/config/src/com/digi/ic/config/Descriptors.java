@@ -235,6 +235,7 @@ public class Descriptors {
     }
 
     private void getVendorId() {
+        ConfigGenerator.debug_log("Query vendor ID");
         String response = sendCloudData("/ws/DeviceVendor", "GET", null);
 
         int startIndex = response.indexOf("<dvVendorId>");
@@ -254,6 +255,7 @@ public class Descriptors {
     }
 
     private void validateServerName() {
+        ConfigGenerator.debug_log("Start validating server");
         sendCloudData("/ws/UserInfo", "GET", null);
     }
 

@@ -48,6 +48,8 @@ static idigi_bool_t rci_action_session_start(rci_t * const rci, rci_service_data
 
     rci->status = rci_status_busy;
 
+    rci->input.state = rci_input_state_element_tag_open;
+
     output_debug_info(rci, RCI_DEBUG_SHOW_ALL);
 
     return idigi_true;
@@ -147,12 +149,6 @@ static rci_status_t rci_parser(rci_session_t const action, ...)
         if (!success) goto done;
     }
 
-    if ((rci.callback.status == idigi_callback_busy) && (rci.parser.state.current != rci_parser_state_output))
-    {
-        if (!rci_callback(&rci))
-            goto done;
-    }
-
     switch (rci.parser.state.current)
     {
     case rci_parser_state_input:
@@ -178,45 +174,20 @@ done:
     {
     case rci_status_busy:
     case rci_status_more_input:
-    case rci_status_internal_error:
-    case rci_status_error:
         break;
-
     case rci_status_flush_output:
+        rci.service_data->output.bytes = rci_buffer_used(&rci.buffer.output);
+        output_debug_info(&rci, RCI_DEBUG_SHOW_ALL);
+        break;
     case rci_status_complete:
         rci.service_data->output.bytes = rci_buffer_used(&rci.buffer.output);
-        break;
-    }
-
-    switch (rci.status)
-    {
-    case rci_status_busy:
-    case rci_status_more_input:
-    case rci_status_flush_output:
-        break;
-
-    case rci_status_internal_error:
-    case rci_status_error:
-    case rci_status_complete:
-        rci.service_data = NULL;
-        break;
-    }
-
-#if defined RCI_DEBUG
-    switch (rci.status)
-    {
-    case rci_status_busy:
-    case rci_status_more_input:
-    case rci_status_flush_output:
-        break;
-
-    case rci_status_complete:
+        /* no break; */
     case rci_status_internal_error:
     case rci_status_error:
         output_debug_info(&rci, RCI_DEBUG_SHOW_ALL);
+        rci.service_data = NULL;
         break;
     }
-#endif
 
     return rci.status;
 }
