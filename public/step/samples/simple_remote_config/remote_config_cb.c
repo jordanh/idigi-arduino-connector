@@ -9,7 +9,6 @@
  * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
  */
-#include <malloc.h>
 #include "idigi_config.h"
 #include "idigi_api.h"
 #include "platform.h"
