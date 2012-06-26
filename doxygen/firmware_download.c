@@ -283,8 +283,11 @@
  * <td>response_length</td>
  * <td>Pointer to memory where callback writes the length of the description string. The total length of description and name spec must not exceed 127 bytes.</td>
  * </tr>
- * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
- * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
+ * <tr>
+ *   <th colspan="2" class="title">Return Values</th>
+ * </tr>
+ * <tr>
+ *   <th class="subtitle">Values</th> <th class="subtitle">Description</th>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>

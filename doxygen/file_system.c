@@ -125,25 +125,30 @@
  * <td>@endhtmlonly @ref idigi_file_system_open @htmlonly</td>
  * </tr>
  * <tr>
- * <th>request_data</th>
- * <td> [IN] pointer to @endhtmlonly @ref idigi_file_open_request_t @htmlonly structure:
- *   <p><b><i>path</i></b> - File path is a nul-terminated string. 
- *                          See @endhtmlonly @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly.
- *   <p><b><i>oflag</i></b> - Bitwise-inclusive OR of @endhtmlonly @ref file_open_flag_t @htmlonly.
- * </td></tr>
- * <tr>
- * <td>request_length</td>
- * <td> [IN] Size of @endhtmlonly @ref idigi_file_open_request_t @htmlonly structure</td>
+ *   <td>request_data</td>
+ *   <td> [IN] pointer to @endhtmlonly @ref idigi_file_open_request_t @htmlonly structure where:
+ *     <ul>
+ *       <li><b><i>path</i></b> is the file path to a nul-terminated string (with maximum string length of @endhtmlonly @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly).</li>
+ *       <li><b><i>oflag</i></b> is the bitwise-inclusive OR of @endhtmlonly @ref file_open_flag_t @htmlonly.</li>
+ *     </ul>
+ *   </td>
  * </tr>
  * <tr>
- * <th>response_data</th>
- * <td> [OUT] pointer to @endhtmlonly @ref idigi_file_open_response_t "File open response" @htmlonly structure:
- *   <p><b><i>user_context</i></b> - Application-owned pointer. 
- *   <p><b><i>error</i></b> - Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
- *                            where the callback writes @endhtmlonly @ref idigi_file_error_status_t @htmlonly
- *                            and errnum in case of file I/O error.
- *   <p><b><i>handle</i></b> - Application defined file handle.
- * </td></tr>
+ *   <td>request_length</td>
+ *   <td> [IN] Size of @endhtmlonly @ref idigi_file_open_request_t @htmlonly structure</td>
+ * </tr>
+ * <tr>
+ *   <td>response_data</td>
+ *   <td> [OUT] pointer to @endhtmlonly @ref idigi_file_open_response_t "File open response" @htmlonly structure:
+ *     <ul>
+ *       <li><b><i>user_context</i></b> - Application-owned pointer.</li>
+ *       <li><b><i>error</i></b> - Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
+ *                              where the callback writes @endhtmlonly @ref idigi_file_error_status_t @htmlonly
+ *                              and errnum in case of file I/O error.</li>
+ *       <li><b><i>handle</i></b> - Application defined file handle.</li>
+ *     </ul>
+ *   </td>
+ * </tr>
  * <tr>
  * <td>response_length</td>
  * <td>[OUT] Size of @endhtmlonly @ref idigi_file_open_response_t "File open response" @htmlonly structure</td>
@@ -246,10 +251,12 @@
  * <tr>
  * <th>request_data</th>
  * <td> [IN] pointer to @endhtmlonly @ref idigi_file_lseek_request_t @htmlonly structure:
- *   <p><b><i>handle</i></b> - File handle.
- *   <p><b><i>offset</i></b> - Offset in bytes relative to origin.
- *   <p><b><i>origin</i></b> - IDIGI_SEEK_CUR, IDIGI_SEEK_SET, or IDIGI_SEEK_END, see
- *                             @endhtmlonly @ref idigi_file_seek_origin_t @htmlonly
+ *   <ul>
+ *   <li><b><i>handle</i></b> - File handle.</li>
+ *   <li><b><i>offset</i></b> - Offset in bytes relative to origin.</li>
+ *   <li><b><i>origin</i></b> - IDIGI_SEEK_CUR, IDIGI_SEEK_SET, or IDIGI_SEEK_END, see
+ *                             @endhtmlonly @ref idigi_file_seek_origin_t @htmlonly</li>
+ *   </ul>
  * </td></tr>
  * <tr>
  * <td>request_length</td>
@@ -258,11 +265,13 @@
  * <tr>
  * <th>response_data</th>
  * <td> [IN/OUT] pointer to @endhtmlonly @ref idigi_file_lseek_response_t @htmlonly structure:
- *   <p><b><i>user_context</i></b> - [IN/OUT] Application-owned pointer.
- *   <p><b><i>error</i></b> - [OUT] Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
+ *   <ul>
+ *   <li><b><i>user_context</i></b> - [IN/OUT] Application-owned pointer.</li>
+ *   <li><b><i>error</i></b> - [OUT] Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
  *                            where the callback writes @endhtmlonly @ref idigi_file_error_status_t @htmlonly
- *                            and errnum in case of file I/O error.
- *   <p><b><i>offset</i></b> - [OUT] Resulting file offset.
+ *                            and errnum in case of file I/O error.</li>
+ *   <li><b><i>offset</i></b> - [OUT] Resulting file offset.</li>
+ *   </ul>
  * </td></tr>
  * <tr>
  * <td>response_length</td>
@@ -365,7 +374,9 @@
  * <tr>
  * <th>request_data</th>
  * <td> [IN] pointer to @endhtmlonly @ref idigi_file_request_t "File request" @htmlonly structure:
- *   <p><b><i>handle</i></b> - File handle.
+ *  <ul>
+ *   <li><b><i>handle</i></b> - File handle.</li>
+ *   </ul>
  * </td></tr>
  * <tr>
  * <td>request_length</td>
@@ -374,13 +385,15 @@
  * <tr>
  * <th>response_data</th>
  * <td> [IN/OUT] pointer to @endhtmlonly @ref idigi_file_data_response_t @htmlonly structure:
- *   <p><b><i>user_context</i></b> - [IN/OUT] Application-owned pointer.
- *   <p><b><i>error</i></b> - [OUT] Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
+ *   <ul>
+ *   <li><b><i>user_context</i></b> - [IN/OUT] Application-owned pointer.</li>
+ *   <li><b><i>error</i></b> - [OUT] Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
  *                            where the callback writes @endhtmlonly @ref idigi_file_error_status_t @htmlonly
- *                            and errnum in case of file I/O error.
- *   <p><b><i>data_ptr</i></b> - Pointer to memory where the callback writes data.
- *   <p><b><i>size_in_bytes</i></b> - [IN] Size of the memory buffer. [OUT] Number of bytes
- *                                    retrieved from the file and written to the memory buffer.
+ *                            and errnum in case of file I/O error.</li>
+ *   <li><b><i>data_ptr</i></b> - Pointer to memory where the callback writes data.</li>
+ *   <li><b><i>size_in_bytes</i></b> - [IN] Size of the memory buffer. [OUT] Number of bytes
+ *                                    retrieved from the file and written to the memory buffer.</li>
+ *   </ul>
  * </td></tr>
  * <tr>
  * <td>response_length</td>
@@ -465,9 +478,11 @@
  * <tr>
  * <th>request_data</th>
  * <td> [IN] pointer to @endhtmlonly @ref idigi_file_write_request_t @htmlonly structure:
- *   <p><b><i>handle</i></b> - File handle.
- *   <p><b><i>data_ptr</i></b> - Pointer to data to write to the file.
- *   <p><b><i>size_in_bytes</i></b> - Number of data bytes to write to the file.
+ *   <ul>
+ *   <li><b><i>handle</i></b> - File handle.</li>
+ *   <li><b><i>data_ptr</i></b> - Pointer to data to write to the file.</li>
+ *   <li><b><i>size_in_bytes</i></b> - Number of data bytes to write to the file.</li>
+ *   </ul>
  * </td></tr>
  * <tr>
  * <td>request_length</td>
@@ -476,11 +491,13 @@
  * <tr>
  * <th>response_data</th>
  * <td> [IN/OUT] pointer to @endhtmlonly @ref idigi_file_write_response_t @htmlonly structure:
- *   <p><b><i>user_context</i></b> - [IN/OUT] Application-owned pointer.
- *   <p><b><i>error</i></b> - [OUT] Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
+ *   <ul>
+ *   <li><b><i>user_context</i></b> - [IN/OUT] Application-owned pointer.</li>
+ *   <li><b><i>error</i></b> - [OUT] Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
  *                            where the callback writes @endhtmlonly @ref idigi_file_error_status_t @htmlonly
- *                            and errnum in case of file I/O error.
- *   <p><b><i>size_in_bytes</i></b> - [OUT] Number of bytes actually written to the file.
+ *                            and errnum in case of file I/O error.</li>
+ *   <li><b><i>size_in_bytes</i></b> - [OUT] Number of bytes actually written to the file.</li>
+ *   </ul>
  * </td></tr>
  * <tr>
  * <td>response_length</td>
@@ -567,8 +584,10 @@
  * <tr>
  * <th>request_data</th>
  * <td> [IN] pointer to @endhtmlonly @ref idigi_file_ftruncate_request_t @htmlonly structure:
- *   <p><b><i>handle</i></b> - File handle.
- *   <p><b><i>length</i></b> - Length in bytes to truncate a file to.
+ *   <ul>
+ *   <li><b><i>handle</i></b> - File handle.</li>
+ *   <li><b><i>length</i></b> - Length in bytes to truncate a file to.</li>
+ *   </ul>
  * </td></tr>
  * <tr>
  * <td>request_length</td>
@@ -577,10 +596,12 @@
  * <tr>
  * <th>response_data</th>
  * <td> [IN/OUT] pointer to @endhtmlonly @ref idigi_file_response_t @htmlonly structure:
- *   <p><b><i>user_context</i></b> - [IN/OUT] Application-owned pointer.
- *   <p><b><i>error</i></b> - [OUT] Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
+ *   <ul>
+ *   <li><b><i>user_context</i></b> - [IN/OUT] Application-owned pointer.</li>
+ *   <li><b><i>error</i></b> - [OUT] Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
  *                            where the callback writes @endhtmlonly @ref idigi_file_error_status_t @htmlonly
- *                            and errnum in case of file I/O error.
+ *                            and errnum in case of file I/O error.</li>
+ *   </ul>
  * </td></tr>
  * <tr>
  * <td>response_length</td>
@@ -662,7 +683,7 @@
  * <tr>
  * <th>request_data</th>
  * <td> [IN] pointer to @endhtmlonly @ref idigi_file_request_t "File request" @htmlonly structure:
- *   <p><b><i>handle</i></b> - File handle.
+ *   <ul><li><b><i>handle</i></b> - File handle.</li></ul>
  * </td></tr>
  * <tr>
  * <td>request_length</td>
@@ -671,10 +692,10 @@
  * <tr>
  * <th>response_data</th>
  * <td> [IN/OUT] pointer to @endhtmlonly @ref idigi_file_response_t @htmlonly structure:
- *   <p><b><i>user_context</i></b> - [IN/OUT] Application-owned pointer.
- *   <p><b><i>error</i></b> - [OUT] Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
+ *   <ul><li><b><i>user_context</i></b> - [IN/OUT] Application-owned pointer.</li>
+ *   <li><b><i>error</i></b> - [OUT] Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
  *                            where the callback writes @endhtmlonly @ref idigi_file_error_status_t @htmlonly
- *                            and errnum in case of file I/O error.
+ *                            and errnum in case of file I/O error.</li></ul>
  * </td></tr>
  * <tr>
  * <td>response_length</td>
@@ -736,8 +757,8 @@
  * <tr>
  * <th>request_data</th>
  * <td> [IN] pointer to @endhtmlonly @ref idigi_file_path_request_t @htmlonly structure:
- *   <p><b><i>path</i></b> - File path is a nul-terminated string.
- *                          See @endhtmlonly @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly.
+ *   <ul><li><b><i>path</i></b> - File path is a nul-terminated string.
+ *                          See @endhtmlonly @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly.</li></ul>
  * </td></tr>
  * <tr>
  * <td>request_length</td>
@@ -746,10 +767,10 @@
  * <tr>
  * <th>response_data</th>
  * <td> [IN/OUT] pointer to @endhtmlonly @ref idigi_file_response_t @htmlonly structure:
- *   <p><b><i>user_context</i></b> - [IN/OUT] Application-owned pointer.
- *   <p><b><i>error</i></b> - [OUT] Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
+ *   <ul><li><b><i>user_context</i></b> - [IN/OUT] Application-owned pointer.</li>
+ *   <li><b><i>error</i></b> - [OUT] Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
  *                            where the callback writes @endhtmlonly @ref idigi_file_error_status_t @htmlonly
- *                            and errnum in case of file I/O error.
+ *                            and errnum in case of file I/O error.</li></ul>
  * </td></tr>
  * <tr>
  * <td>response_length</td>
@@ -840,8 +861,8 @@
  * <tr>
  * <th>request_data</th>
  * <td> [IN] pointer to @endhtmlonly @ref idigi_file_path_request_t "Directory path request" @htmlonly structure:
- *   <p><b><i>path</i></b> - File path is a nul-terminated string.
- *                          See @endhtmlonly @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly.
+ *   <ul><li><b><i>path</i></b> - File path is a nul-terminated string.
+ *                          See @endhtmlonly @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly.</li></ul>
  * </td></tr>
  * <tr>
  * <td>request_length</td>
@@ -850,11 +871,11 @@
  * <tr>
  * <th>response_data</th>
  * <td> [OUT] pointer to @endhtmlonly @ref idigi_file_open_response_t "Directory open response" @htmlonly structure:
- *   <p><b><i>user_context</i></b> - Application-owned pointer.
- *   <p><b><i>error</i></b> - Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
+ *   <ul><li><b><i>user_context</i></b> - Application-owned pointer.</li>
+ *   <li><b><i>error</i></b> - Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
  *                              where the callback writes @endhtmlonly @ref idigi_file_error_status_t @htmlonly
- *                              and errnum in case of an error.
- *   <p><b><i>handle</i></b> - Application defined directory handle.
+ *                              and errnum in case of an error.</li>
+ *   <li><b><i>handle</i></b> - Application defined directory handle.</li></ul>
  * </td></tr>
  * <tr>
  * <td>response_length</td>
@@ -972,7 +993,7 @@
  * <tr>
  * <th>request_data</th>
  * <td> [IN] pointer to @endhtmlonly @ref idigi_file_request_t "Directory request" @htmlonly structure:
- *   <p><b><i>handle</i></b> - Directory handle.
+ *   <ul><li><b><i>handle</i></b> - Directory handle.</li></ul>
  * </td></tr>
  * <tr>
  * <td>request_length</td>
@@ -981,14 +1002,14 @@
  * <tr>
  * <th>response_data</th>
  * <td> [IN/OUT] pointer to @endhtmlonly @ref idigi_file_data_response_t @htmlonly structure:
- *   <p><b><i>user_context</i></b> - [IN/OUT] Application-owned pointer.
- *   <p><b><i>error</i></b> - [OUT] Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
+ *   <ul><li><b><i>user_context</i></b> - [IN/OUT] Application-owned pointer.</li>
+ *   <li><b><i>error</i></b> - [OUT] Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
  *                              where the callback writes @endhtmlonly @ref idigi_file_error_status_t @htmlonly
- *                              and errnum in case of an error.
- *   <p><b><i>data_ptr</i></b> - Pointer to memory where the callback writes the directory entry name,
- *                               a nul-terminated string.
- *   <p><b><i>size_in_bytes</i></b> - [IN] Size of the memory buffer. [OUT] Length of the ditectory entry name,
- *                                      including ending '\0'. 0 if no more directory entries exist.
+ *                              and errnum in case of an error.</li>
+ *   <li><b><i>data_ptr</i></b> - Pointer to memory where the callback writes the directory entry name,
+ *                               a nul-terminated string.</li>
+ *   <li><b><i>size_in_bytes</i></b> - [IN] Size of the memory buffer. [OUT] Length of the ditectory entry name,
+ *                                      including ending '\0'. 0 if no more directory entries exist.</li></ul>
  * </td></tr>
  * <tr>
  * <td>response_length</td>
@@ -1108,7 +1129,7 @@
  * <tr>
  * <th>request_data</th>
  * <td> [IN] pointer to @endhtmlonly @ref idigi_file_request_t "Directory request" @htmlonly structure:
- *   <p><b><i>handle</i></b> - Directory handle.
+ *   <ul><li><b><i>handle</i></b> - Directory handle.</li></ul>
  * </td></tr>
  * <tr>
  * <td>request_length</td>
@@ -1117,10 +1138,10 @@
  * <tr>
  * <th>response_data</th>
  * <td> [IN/OUT] pointer to @endhtmlonly @ref idigi_file_response_t @htmlonly structure:
- *   <p><b><i>user_context</i></b> - [IN/OUT] Application-owned pointer.
- *   <p><b><i>error</i></b> - [OUT] Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
+ *   <ul><li><b><i>user_context</i></b> - [IN/OUT] Application-owned pointer.</li>
+ *   <li><b><i>error</i></b> - [OUT] Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
  *                              where the callback writes @endhtmlonly @ref idigi_file_error_status_t @htmlonly
- *                              and errnum in case of an error.
+ *                              and errnum in case of an error.</li></ul>
  * </td></tr>
  * <tr>
  * <td>response_length</td>
@@ -1187,11 +1208,12 @@
  * Hash values support is optional.
  *
  * The following table shows the valid response for a suggested hash algorithm:
+ *
  * @htmlonly
  * <table class="apitable">
  * <tr>
- * <th class="title">Suggested hash algorithm</td>
- * <th class="title">Actual hash algorithm</td>
+ * <th class="title">Suggested hash algorithm</th>
+ * <th class="title">Actual hash algorithm</th>
  * </tr>
  * <tr>
  * <th> @endhtmlonly @ref idigi_file_hash_best @htmlonly</th>
@@ -1201,7 +1223,6 @@
  * <tr>
  * <th> @endhtmlonly @ref idigi_file_hash_md5 @htmlonly</th>
  * <td> @endhtmlonly @ref idigi_file_hash_md5 @htmlonly or @endhtmlonly @ref idigi_file_hash_none @htmlonly</td>
- * </tr>
  * </tr>
  * <tr>
  * <th> @endhtmlonly @ref idigi_file_hash_crc32 @htmlonly</th>
@@ -1231,9 +1252,9 @@
  * <tr>
  * <th>request_data</th>
  * <td> [IN] pointer to @endhtmlonly @ref idigi_file_stat_request_t @htmlonly structure:
- *   <p><b><i>path</i></b> - File path is a nul-terminated string.
- *                          See @endhtmlonly @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly.
- *   <p><b><i>hash_alg</i></b> - Suggested hash algorithm of @endhtmlonly @ref idigi_file_hash_algorithm_t @htmlonly type.
+ *   <ul><li><b><i>path</i></b> - File path is a nul-terminated string.
+ *                          See @endhtmlonly @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly.</li>
+ *   <li><b><i>hash_alg</i></b> - Suggested hash algorithm of @endhtmlonly @ref idigi_file_hash_algorithm_t @htmlonly type.</li></ul>
  * </td></tr>
  * <tr>
  * <td>request_length</td>
@@ -1242,17 +1263,20 @@
  * <tr>
  * <th>response_data</th>
  * <td> [IN/OUT] pointer to @endhtmlonly @ref idigi_file_stat_response_t @htmlonly structure:
- *   <p><b><i>user_context</i></b> - [IN/OUT] Application-owned pointer.
- *   <p><b><i>error</i></b> - [OUT] Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
+ *   <ul><li><b><i>user_context</i></b> - [IN/OUT] Application-owned pointer.</li>
+ *   <li><b><i>error</i></b> - [OUT] Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
  *                            where the callback writes @endhtmlonly @ref idigi_file_error_status_t @htmlonly
- *                            and errnum in case of file error.
- *   <p><b><i>statbuf</i></b> - [OUT] @endhtmlonly @ref idigi_file_stat_t @htmlonly structure where 
+ *                            and errnum in case of file error.</li>
+ *   <li><b><i>statbuf</i></b> - [OUT] @endhtmlonly @ref idigi_file_stat_t @htmlonly structure where
  *                            the callback writes file status data.
- *      <p><b><i> - last_modified</i></b> - Last modified time (seconds since 1970). If not supported, use 0.
- *      <p><b><i> - file_size</i></b> - File size in bytes.
- *      <p><b><i> - flags</i></b> - Non-zero if the file is a regular file or a directory, see @endhtmlonly @ref file_stat_flag_t @htmlonly.
- *      <p><b><i> - hash_alg</i></b> - Actual hash algorithm: @endhtmlonly @ref idigi_file_hash_crc32 @htmlonly,
- *                  @endhtmlonly @ref idigi_file_hash_md5 @htmlonly, or @endhtmlonly @ref idigi_file_hash_none @htmlonly.
+ *
+ *      <ul>
+ *      <li><b><i>last_modified</i></b> Last modified time (seconds since 1970). If not supported, use 0.</li>
+ *      <li><b><i>file_size</i></b> File size in bytes.</li>
+ *      <li><b><i>flags</i></b> Non-zero if the file is a regular file or a directory, see @endhtmlonly @ref file_stat_flag_t @htmlonly.</li>
+ *      <li><b><i>hash_alg</i></b> Actual hash algorithm: @endhtmlonly @ref idigi_file_hash_crc32 @htmlonly,
+ *                  @endhtmlonly @ref idigi_file_hash_md5 @htmlonly, or @endhtmlonly @ref idigi_file_hash_none @htmlonly.</li>
+ *      </ul></li></ul>
  * </td></tr>
  * <tr>
  * <td>response_length</td>
@@ -1367,10 +1391,10 @@
  * <tr>
  * <th>request_data</th>
  * <td> [IN] pointer to @endhtmlonly @ref idigi_file_stat_request_t @htmlonly structure:
- *   <p><b><i>path</i></b> - File path is a nul-terminated string.
- *                          See @endhtmlonly @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly.
- *   <p><b><i>hash_alg</i></b> - Hash algorithm @endhtmlonly @ref idigi_file_hash_md5 @htmlonly
- *                               or @endhtmlonly @ref idigi_file_hash_crc32 @htmlonly.
+ *   <ul><li><b><i>path</i></b> - File path is a nul-terminated string.
+ *                          See @endhtmlonly @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly.</li>
+ *   <li><b><i>hash_alg</i></b> - Hash algorithm @endhtmlonly @ref idigi_file_hash_md5 @htmlonly
+ *                               or @endhtmlonly @ref idigi_file_hash_crc32 @htmlonly.</li></ul>
  * </td></tr>
  * <tr>
  * <td>request_length</td>
@@ -1379,13 +1403,15 @@
  * <tr>
  * <th>response_data</th>
  * <td> [IN/OUT] pointer to @endhtmlonly @ref idigi_file_data_response_t @htmlonly structure:
- *   <p><b><i>user_context</i></b> - [IN/OUT] Application-owned pointer.
- *   <p><b><i>error</i></b> - [OUT] Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
+ *   <ul><li><b><i>user_context</i></b> - [IN/OUT] Application-owned pointer.</li>
+ *   <li><b><i>error</i></b> - [OUT] Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure
  *                            where the callback writes @endhtmlonly @ref idigi_file_error_status_t @htmlonly
- *                            and errnum in case of file error.
- *   <p><b><i>data_ptr</i></b> - Pointer to  memory, where the callback writes the hash value.
- *   <p><b><i>size_in_bytes</i></b> - [IN] Size of memory buffer for hash value: 16 bytes for md5, 
- *                                4 bytes for crc32.
+ *                            and errnum in case of file error.</li>
+ *   <li><b><i>data_ptr</i></b> - Pointer to  memory, where the callback writes the hash value.</li>
+ *   <li><b><i>size_in_bytes</i></b> - [IN] Size of memory buffer for hash value: 16 bytes for md5,
+ *                                4 bytes for crc32.</li></ul>
+ * </td>
+ * </tr>
  * <tr>
  * <td>response_length</td>
  * <td>[OUT] Size of @endhtmlonly @ref idigi_file_data_response_t @htmlonly structure</td>
@@ -1462,15 +1488,14 @@
  * <tr>
  * <th>response_data</th>
  * <td> [IN/OUT] pointer to @endhtmlonly @ref idigi_file_data_response_t @htmlonly structure:
- *   <p><b><i>user_context</i></b> - NULL.
- *   <p><b><i>error</i></b> - [IN] Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure.
- *      <p><b><i>- error_status</i></b> - [IN] Error status of @endhtmlonly @ref idigi_file_error_status_t @htmlonly type
- *                                        . 
- *      <p><b><i>- errnum</i></b> - [IN] Used as an input for an error description string. 
- *   <p><b><i>data_ptr</i></b> - Pointer to memory where the callback writes an error description.
- *                               The error description is not a nul-terminated string.
- *   <p><b><i>size_in_bytes</i></b> - [IN] Size of the memory buffer. 
- *                                    [OUT] Length of the error description string.
+ *   <ul><li><b><i>user_context</i></b> - NULL.</li>
+ *   <li><b><i>error</i></b> [IN] Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure.
+ *      <ul><li><b><i>- error_status</i></b> [IN] Error status of @endhtmlonly @ref idigi_file_error_status_t @htmlonly type.</li>
+ *      <li><b><i>- errnum</i></b> [IN] Used as an input for an error description string.</li></ul></li>
+ *   <li><b><i>data_ptr</i></b> Pointer to memory where the callback writes an error description.
+ *                               The error description is not a nul-terminated string.</li>
+ *   <li><b><i>size_in_bytes</i></b> [IN] Size of the memory buffer.<br></br>
+ *                                   [OUT] Length of the error description string.</li></ul>
  * </td></tr>
  * <tr>
  * <td>response_length</td>
@@ -1533,7 +1558,7 @@
  * <tr>
  * <th>request_data</th>
  * <td> [IN] pointer to @endhtmlonly @ref idigi_file_error_request_t @htmlonly structure:
- *   <p><b><i>message_status</i></b> - @endhtmlonly @ref idigi_msg_error_t @htmlonly.
+ *   <ul><li><b><i>message_status</i></b> - @endhtmlonly @ref idigi_msg_error_t @htmlonly.</li></ul>
  * </td></tr>
  * <tr>
  * <td>request_length</td>
@@ -1542,8 +1567,8 @@
  * <tr>
  * <th>response_data</th>
  * <td> [IN] pointer to @endhtmlonly @ref idigi_file_response_t @htmlonly structure:
- *   <p><b><i>user_context</i></b> - Set by a user in an earlier callback.
- *   <p><b><i>error</i></b> - Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure.
+ *   <ul><li><b><i>user_context</i></b> - Set by a user in an earlier callback.</li>
+ *   <li><b><i>error</i></b> - Pointer to a @endhtmlonly @ref idigi_file_error_data_t @htmlonly structure.</li></ul>
  * </td></tr>
  * <tr>
  * <td>response_length</td>
