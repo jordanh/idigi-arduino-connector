@@ -21,12 +21,12 @@ static struct
     { RCI_ENTITY_LESS_THAN, '<' },
     { RCI_ENTITY_GREATER_THAN, '>' },
 };
-    
+
 static char const * rci_entity_name(int const value)
 {
     char const * result = NULL;
     size_t i;
-    
+
     for (i = 0; i < asizeof(entity_map); i++)
     {
         if (value == entity_map[i].value)
@@ -35,24 +35,24 @@ static char const * rci_entity_name(int const value)
             break;
         }
     }
-    
+
     return result;
 }
-    
-static int rci_entity_value(char const * const name, size_t const bytes)
+
+static int rci_entity_value(rcistr_t const * const entity)
 {
     int result = 0;
     size_t i;
-    
+
     for (i = 0; i < asizeof(entity_map); i++)
     {
-        if (cstr_equals_buffer(entity_map[i].name, name, bytes))
+        if (cstr_equals_rcistr(entity_map[i].name, entity))
         {
             result = entity_map[i].value;
             break;
         }
     }
-    
+
     return result;
 }
 

@@ -1,36 +1,35 @@
 /*
- *  Copyright (c) 2012 Digi International Inc., All Rights Reserved
+ * Copyright (c) 2012 Digi International Inc.,
+ * All rights not expressly granted are reserved.
  *
- *  This software contains proprietary and confidential information of Digi
- *  International Inc.  By accepting transfer of this copy, Recipient agrees
- *  to retain this software in confidence, to prevent disclosure to others,
- *  and to make no use of this software other than that for which it was
- *  delivered.  This is an unpublished copyrighted work of Digi International
- *  Inc.  Except as permitted by federal law, 17 USC 117, copying is strictly
- *  prohibited.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- *  Restricted Rights Legend
- *
- *  Use, duplication, or disclosure by the Government is subject to
- *  restrictions set forth in sub-paragraph (c)(1)(ii) of The Rights in
- *  Technical Data and Computer Software clause at DFARS 252.227-7031 or
- *  subparagraphs (c)(1) and (2) of the Commercial Computer Software -
- *  Restricted Rights at 48 CFR 52.227-19, as applicable.
- *
- *  Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
- *
+ * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
- *
  */
 
-#define CSTR_LEN(p)     ((size_t) *(p))
-#define CSTR_DATA(p)    ((p) + 1)
 typedef char cstr_t;
+
+static cstr_t const * cstr_data(cstr_t const * const cstr)
+{
+    cstr_t const * const data = cstr + 1;
+
+    return data;
+}
+
+static size_t cstr_len(cstr_t const * const cstr)
+{
+    size_t const length = *cstr;
+
+    return length;
+}
 
 static void cstr_to_rcistr(cstr_t const * const cstr, rcistr_t * const rcistr)
 {
-    rcistr->data = CSTR_DATA(cstr);
-    rcistr->length = CSTR_LEN(cstr);
+    rcistr->data = cstr_data(cstr);
+    rcistr->length = cstr_len(cstr);
 }
 
 static void str_to_rcistr(char const * const str, rcistr_t * const rcistr)
@@ -49,7 +48,7 @@ static idigi_bool_t buffer_equals_buffer(char const * const str1, size_t const l
 
 static idigi_bool_t cstr_equals_buffer(cstr_t const * const cstr, char const * const str2, unsigned int const len2)
 {
-    return buffer_equals_buffer(CSTR_DATA(cstr), CSTR_LEN(cstr), str2, len2);
+    return buffer_equals_buffer(cstr_data(cstr), cstr_len(cstr), str2, len2);
 }
 
 static idigi_bool_t cstr_equals_rcistr(cstr_t const * const cstr, rcistr_t const * const rcistr)
@@ -68,7 +67,7 @@ static idigi_bool_t rcistr_to_uint(rcistr_t const * const rcistr, unsigned int *
 {
     ASSERT(!isdigit(rcistr->data[rcistr->length]));
 
-    return (sscanf(rcistr->data, "%u", value) == 1);
+    return idigi_bool(sscanf(rcistr->data, "%u", value) == 1);
 }
 
 static size_t rcistr_length(rcistr_t const * const string)
@@ -96,24 +95,37 @@ static void clear_rcistr(rcistr_t * const string)
     string->length = 0;
 }
 
-static void set_rcistr_length(rci_t const * const rci, rcistr_t * const string)
+static idigi_bool_t rcistr_empty(rcistr_t const * const string)
 {
+    return idigi_bool((string->data == NULL) && (string->length == 0));
+}
+
+static void begin_rcistr(rci_t const * const rci, rcistr_t * const string)
+{
+    ASSERT(rcistr_empty(string));
+
+    string->data = rci->input.destination;
+}
+static void end_rcistr(rci_t const * const rci, rcistr_t * const string)
+{
+    ASSERT(string->data != NULL);
+    ASSERT(string->length == 0);
+
     string->length = (rci->input.destination - string->data);
 }
 
-static void adjust_char_pointer(rci_t const * const rci, char const * const old_base, char * * const pointer)
+static void adjust_char_pointer(char * const new_base, char const * const old_base, char * * const pointer)
 {
     size_t const offset = (*pointer - old_base);
-    char * new_base = (char *) rci->input.storage;
 
     *pointer = (new_base + offset);
 }
 
-static void adjust_rcistr(rci_t const * const rci, char const * const base, rcistr_t * const string)
+static void adjust_rcistr(char * const new_base, char const * const old_base, rcistr_t * const string)
 {
     char * pointer = (char *) string->data;
 
-    adjust_char_pointer(rci, base, &pointer);
+    adjust_char_pointer(new_base, old_base, &pointer);
     string->data = pointer;
 }
 

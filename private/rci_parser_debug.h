@@ -470,6 +470,7 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
     output_pointer(input.destination);
     output_enum(rci_command_t, input.command);
     output_rci_string(input.entity);
+    output_rci_attribute_list(input.attribute);
 
     output_enum(rci_traversal_state_t, traversal.state);
 
@@ -488,7 +489,6 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
     output_unsigned_int(shared.current.group.id);
     output_unsigned_int(shared.current.group.index);
     output_unsigned_int(shared.current.element.id);
-    output_rci_attribute_list(output.attribute);
     /* TODO: shared.value */
     output_enum(idigi_remote_action_t, shared.request.action);
     output_enum(idigi_remote_group_type_t, shared.request.group.type);

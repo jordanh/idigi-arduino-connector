@@ -139,8 +139,7 @@ static void rci_traverse_data(rci_t * const rci)
     case rci_traversal_state_indexed_group_element_start:
     case rci_traversal_state_one_element_start:
         {
-            idigi_group_t const * const group = (table->groups + get_group_id(rci));
-            idigi_group_element_t const * const element = (group->elements.data + get_element_id(rci));
+            idigi_group_element_t const * const element = get_current_element(rci);
 
             rci->output.type = rci_output_type_start_tag;
             cstr_to_rcistr(element->name, &rci->output.tag);
@@ -174,8 +173,7 @@ static void rci_traverse_data(rci_t * const rci)
     case rci_traversal_state_indexed_group_element_end:
     case rci_traversal_state_one_element_end:
         {
-            idigi_group_t const * const group = (table->groups + get_group_id(rci));
-            idigi_group_element_t const * const element = (group->elements.data + get_element_id(rci));
+            idigi_group_element_t const * const element = get_current_element(rci);
 
             rci->output.type = rci_output_type_end_tag;
             cstr_to_rcistr(element->name, &rci->output.tag);

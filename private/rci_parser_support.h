@@ -32,16 +32,6 @@
 
 static char const nul = '\0';
 
-#if defined RCI_PARSER_USES_ON_OFF
-static char const * const on_off_strings[] = {RCI_OFF, RCI_ON};
-static idigi_element_value_enum_t on_off_enum = { asizeof(on_off_strings), on_off_strings};
-#endif
-
-#if defined RCI_PARSER_USES_BOOLEAN
-static char const * const boolean_strings[] = {RCI_FALSE, RCI_TRUE};
-static idigi_element_value_enum_t boolean_enum = { asizeof(boolean_strings), boolean_strings};
-#endif
-
 typedef enum
 {
     rci_session_start,
@@ -56,7 +46,7 @@ typedef enum
     rci_status_busy,            /* user callback returned busy */
     rci_status_more_input,      /* have output buffer space to process more input */
     rci_status_flush_output,    /* need more output space, so send out the current buffer */
-    rci_status_error            /* error occured, RCI service should inform messaging layer to cancel the session */
+    rci_status_error            /* error occurred, RCI service should inform messaging layer to cancel the session */
 } rci_status_t;
 
 typedef struct
@@ -235,6 +225,7 @@ typedef struct
         int character;
         char * destination;
         rci_command_t command;
+        rci_attribute_list_t attribute;
         rcistr_t entity;
         char storage[ROUND_UP(IDIGI_RCI_MAXIMUM_CONTENT_LENGTH + sizeof nul, sizeof (int))];
     } input;
@@ -244,10 +235,10 @@ typedef struct
     struct {
         rci_output_state_t state;
         rci_output_type_t type;
-        rci_output_type_t current;
         rcistr_t tag;
         rci_attribute_list_t attribute;
         rcistr_t content;
+        rci_output_type_t current;
         size_t attribute_pair_index;
         size_t entity_scan_index;
     } output;
@@ -270,7 +261,6 @@ typedef struct
                 unsigned int id;
             } element;
         } current;
-        rci_attribute_list_t attribute;
         idigi_element_value_t value;
         idigi_remote_group_request_t request;
         idigi_remote_group_response_t response;

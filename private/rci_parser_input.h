@@ -10,6 +10,16 @@
  * =======================================================================
  */
 
+#if defined RCI_PARSER_USES_ON_OFF
+static char const * const on_off_strings[] = {RCI_OFF, RCI_ON};
+static idigi_element_value_enum_t on_off_enum = { asizeof(on_off_strings), on_off_strings};
+#endif
+
+#if defined RCI_PARSER_USES_BOOLEAN
+static char const * const boolean_strings[] = {RCI_FALSE, RCI_TRUE};
+static idigi_element_value_enum_t boolean_enum = { asizeof(boolean_strings), boolean_strings};
+#endif
+
 static void rci_output_content(rci_t * const rci)
 {
     switch (rci->shared.request.element.type)
@@ -164,7 +174,7 @@ static void rci_process_group_tag(rci_t * const rci, rci_action_t const rci_acti
     }
 
     {
-        rcistr_t const * const index = find_attribute_value(&rci->shared.attribute, RCI_INDEX);
+        rcistr_t const * const index = find_attribute_value(&rci->input.attribute, RCI_INDEX);
 
         if (index == NULL)
         {
@@ -300,7 +310,7 @@ static void rci_handle_start_tag(rci_t * const rci)
     case rci_command_unseen:
         if (cstr_equals_rcistr(RCI_REQUEST, &rci->shared.string.tag))
         {
-            rcistr_t const * const version = find_attribute_value(&rci->shared.attribute, RCI_VERSION);
+            rcistr_t const * const version = find_attribute_value(&rci->input.attribute, RCI_VERSION);
 
             if ((version == NULL) || (cstr_equals_rcistr(RCI_VERSION_SUPPORTED, version)))
             {
@@ -367,8 +377,8 @@ static void rci_handle_content(rci_t * const rci)
 {
     idigi_group_element_t const * const element = get_current_element(rci);
     idigi_element_value_type_t const type = element->type;
-    char const * const string_value = rci->shared.string.content.data;
-    size_t const string_length = rci->shared.string.content.length;
+    char const * const string_value = rcistr_data(&rci->shared.string.content);
+    size_t const string_length = rcistr_length(&rci->shared.string.content);
     idigi_bool_t error = idigi_true;
 
     /* NUL-terminate the content as we know it is always followed by '<', that's how we got here. */
@@ -608,7 +618,7 @@ static void rci_parse_input_less_than_sign(rci_t * const rci)
     case rci_input_state_content:
         if (have_element_id(rci))
         {
-            set_rcistr_length(rci, &rci->shared.string.content);
+            end_rcistr(rci, &rci->shared.string.content);
             rci_handle_content(rci);
         }
         rci->input.state = rci_input_state_element_tag_name;
@@ -629,7 +639,7 @@ static void rci_parse_input_greater_than_sign(rci_t * const rci)
     switch (rci->input.state)
     {
     case rci_input_state_element_start_name:
-        set_rcistr_length(rci, &rci->shared.string.tag);
+        end_rcistr(rci, &rci->shared.string.tag);
         /* no break; */
 
     case rci_input_state_element_param_name:
@@ -645,7 +655,7 @@ static void rci_parse_input_greater_than_sign(rci_t * const rci)
         break;
 
     case rci_input_state_element_end_name:
-        set_rcistr_length(rci, &rci->shared.string.tag);
+        end_rcistr(rci, &rci->shared.string.tag);
         rci_handle_end_tag(rci);
         rci->input.state = rci_input_state_element_tag_open;
         break;
@@ -669,7 +679,7 @@ static void rci_parse_input_greater_than_sign(rci_t * const rci)
     }
 
     clear_rcistr(&rci->shared.string.tag);
-    clear_attributes(&rci->shared.attribute);
+    clear_attributes(&rci->input.attribute);
 }
 
 static void rci_parse_input_equals_sign(rci_t * const rci)
@@ -677,17 +687,17 @@ static void rci_parse_input_equals_sign(rci_t * const rci)
     switch (rci->input.state)
     {
     case rci_input_state_element_param_equals:
-        set_rcistr_length(rci, &rci->shared.attribute.pair[rci->shared.attribute.count].name);
+        end_rcistr(rci, &rci->input.attribute.pair[rci->input.attribute.count].name);
         rci->input.state = rci_input_state_element_param_quote;
         break;
 
     case rci_input_state_element_param_value_first:
-        rci->shared.attribute.pair[rci->shared.attribute.count].name.data = rci->input.destination;
+        begin_rcistr(rci, &rci->input.attribute.pair[rci->input.attribute.count].name);
         rci->input.state = rci_input_state_element_param_value;
         break;
 
     case rci_input_state_content_first:
-        rci->shared.string.content.data = rci->input.destination;
+        begin_rcistr(rci, &rci->shared.string.content);
         rci->input.state = rci_input_state_content;
         break;
 
@@ -714,7 +724,7 @@ static void rci_parse_input_slash(rci_t * const rci)
         break;
 
     case rci_input_state_element_start_name:
-        set_rcistr_length(rci, &rci->shared.string.tag);
+        end_rcistr(rci, &rci->shared.string.tag);
         /* no break; */
 
     case rci_input_state_element_param_name:
@@ -722,12 +732,12 @@ static void rci_parse_input_slash(rci_t * const rci)
         break;
 
     case rci_input_state_element_param_value_first:
-        rci->shared.attribute.pair[rci->shared.attribute.count].value.data = rci->input.destination;
+        begin_rcistr(rci, &rci->input.attribute.pair[rci->input.attribute.count].value);
         rci->input.state = rci_input_state_element_param_value;
         break;
 
     case rci_input_state_content_first:
-        rci->shared.string.content.data = rci->input.destination;
+        begin_rcistr(rci, &rci->shared.string.content);
         rci->input.state = rci_input_state_content;
         break;
 
@@ -754,13 +764,13 @@ static void rci_parse_input_quote(rci_t * const rci)
         break;
 
     case rci_input_state_element_param_value:
-        set_rcistr_length(rci, &rci->shared.attribute.pair[rci->shared.attribute.count].value);
-        rci->shared.attribute.count++;
+        end_rcistr(rci, &rci->input.attribute.pair[rci->input.attribute.count].value);
+        rci->input.attribute.count++;
         rci->input.state = rci_input_state_element_param_name;
         break;
 
     case rci_input_state_content_first:
-        rci->shared.string.content.data = rci->input.destination;
+        begin_rcistr(rci, &rci->shared.string.content);
         rci->input.state = rci_input_state_content;
         break;
 
@@ -782,22 +792,22 @@ static void rci_parse_input_whitespace(rci_t * const rci)
     switch (rci->input.state)
     {
     case rci_input_state_element_start_name:
-        set_rcistr_length(rci, &rci->shared.string.tag);
+        end_rcistr(rci, &rci->shared.string.tag);
         rci->input.state = rci_input_state_element_param_name;
         break;
 
     case rci_input_state_element_param_name:
-        set_rcistr_length(rci, &rci->shared.attribute.pair[rci->shared.attribute.count].name);
+        end_rcistr(rci, &rci->input.attribute.pair[rci->input.attribute.count].name);
         rci->input.state = rci_input_state_element_param_equals;
         break;
 
     case rci_input_state_element_param_value_first:
-        rci->shared.attribute.pair[rci->shared.attribute.count].value.data = rci->input.destination;
+        begin_rcistr(rci, &rci->input.attribute.pair[rci->input.attribute.count].value);
         rci->input.state = rci_input_state_element_param_value;
         break;
 
     case rci_input_state_content_first:
-        rci->shared.string.content.data = rci->input.destination;
+        begin_rcistr(rci, &rci->shared.string.content);
         rci->input.state = rci_input_state_content;
         break;
 
@@ -824,23 +834,23 @@ static void rci_parse_input_ampersand(rci_t * const rci)
     switch (rci->input.state)
     {
     case rci_input_state_element_param_value_first:
-        rci->shared.attribute.pair[rci->shared.attribute.count].value.data = rci->input.destination;
+        begin_rcistr(rci, &rci->input.attribute.pair[rci->input.attribute.count].value);
         /* no break; */
 
     case rci_input_state_element_param_value:
         rci->input.state = rci_input_state_element_param_value_escaping;
         rci->input.character = nul;
-        ASSERT(rci->input.entity.data == NULL);
+        ASSERT(rcistr_empty(&rci->input.entity));
         break;
 
     case rci_input_state_content_first:
-        rci->shared.string.content.data = rci->input.destination;
+        begin_rcistr(rci, &rci->shared.string.content);
         /* no break; */
 
     case rci_input_state_content:
         rci->input.state = rci_input_state_content_escaping;
         rci->input.character = nul;
-        ASSERT(rci->input.entity.data == NULL);
+        ASSERT(rcistr_empty(&rci->input.entity));
         break;
 
     case rci_input_state_comment:
@@ -859,19 +869,18 @@ static void rci_parse_input_semicolon(rci_t * const rci)
     {
     case rci_input_state_element_param_value_escaping:
     case rci_input_state_content_escaping:
-        ASSERT(rci->input.entity.data != NULL);
-        rci->input.entity.length = (rci->input.destination - rci->input.entity.data);
-        rci->input.character = rci_entity_value(rci->input.entity.data, rci->input.entity.length);
+        end_rcistr(rci, &rci->input.entity);
+        rci->input.character = rci_entity_value(&rci->input.entity);
         ASSERT(rci->input.character != nul);
         break;
 
     case rci_input_state_element_param_value_first:
-        rci->shared.attribute.pair[rci->shared.attribute.count].value.data = rci->input.destination;
+        begin_rcistr(rci, &rci->input.attribute.pair[rci->input.attribute.count].value);
         rci->input.state = rci_input_state_element_param_value;
         break;
 
     case rci_input_state_content_first:
-        rci->shared.string.content.data = rci->input.destination;
+        begin_rcistr(rci, &rci->shared.string.content);
         rci->input.state = rci_input_state_content;
         break;
 
@@ -898,7 +907,7 @@ static void rci_parse_input_hyphen(rci_t * const rci)
         break;
 
     case rci_input_state_content_first:
-        rci->shared.string.content.data = rci->input.destination;
+        begin_rcistr(rci, &rci->shared.string.content);
         rci->input.state = rci_input_state_content;
         break;
 
@@ -912,34 +921,34 @@ static void rci_parse_input_other(rci_t * const rci)
     switch (rci->input.state)
     {
     case rci_input_state_element_tag_name:
-        rci->shared.string.tag.data = rci->input.destination;
+        begin_rcistr(rci, &rci->shared.string.tag);
         rci->input.state = rci_input_state_element_start_name;
         break;
 
     case rci_input_state_element_end_name_first:
-        rci->shared.string.tag.data = rci->input.destination;
+        begin_rcistr(rci, &rci->shared.string.tag);
         rci->input.state = rci_input_state_element_end_name;
         break;
 
     case rci_input_state_element_param_value_escaping:
     case rci_input_state_content_escaping:
-        if (rci->input.entity.data == NULL)
-            rci->input.entity.data = rci->input.destination;
+        if (rcistr_empty(&rci->input.entity))
+            begin_rcistr(rci, &rci->input.entity);
         rci->input.character = nul;
         break;
 
     case rci_input_state_element_param_value_first:
-        rci->shared.attribute.pair[rci->shared.attribute.count].value.data = rci->input.destination;
+        begin_rcistr(rci, &rci->input.attribute.pair[rci->input.attribute.count].value);
         rci->input.state = rci_input_state_element_param_value;
         break;
 
     case rci_input_state_element_param_name:
-        rci->shared.attribute.pair[rci->shared.attribute.count].name.data = rci->input.destination;
+        begin_rcistr(rci, &rci->input.attribute.pair[rci->input.attribute.count].name);
         rci->input.state = rci_input_state_element_param_equals;
         break;
 
     case rci_input_state_content_first:
-        rci->shared.string.content.data = rci->input.destination;
+        begin_rcistr(rci, &rci->shared.string.content);
         rci->input.state = rci_input_state_content;
         break;
 
@@ -1106,11 +1115,12 @@ static void rci_parse_input(rci_t * const rci)
     {
         if (rci->parser.state.current == rci_parser_state_input)
         {
-            char const * const base = rcistr_data(&rci->shared.string.generic);
+            char const * const old_base = rcistr_data(&rci->shared.string.generic);
+            char * const new_base = rci->input.storage;
 
-            if (ptr_in_buffer(&rci->buffer.input, base))
+            if (ptr_in_buffer(&rci->buffer.input, old_base))
             {
-                size_t const bytes = (rci->buffer.input.end - base) + 1;
+                size_t const bytes = (rci->buffer.input.end - old_base) + 1;
 
                 if (bytes >= sizeof rci->input.storage)
                 {
@@ -1118,19 +1128,19 @@ static void rci_parse_input(rci_t * const rci)
                     goto done;
                 }
 
-                memcpy(rci->input.storage, base, bytes);
+                memcpy(new_base, old_base, bytes);
 
-                adjust_rcistr(rci, base, &rci->shared.string.generic);
+                adjust_rcistr(new_base, old_base, &rci->shared.string.generic);
                 {
                     size_t i;
 
-                    for (i = 0; i < attribute_count(&rci->shared.attribute); i++)
+                    for (i = 0; i < attribute_count(&rci->input.attribute); i++)
                     {
-                        adjust_rcistr(rci, base, attribute_name(&rci->shared.attribute, i));
-                        adjust_rcistr(rci, base, attribute_value(&rci->shared.attribute, i));
+                        adjust_rcistr(new_base, old_base, attribute_name(&rci->input.attribute, i));
+                        adjust_rcistr(new_base, old_base, attribute_value(&rci->input.attribute, i));
                     }
                 }
-                adjust_char_pointer(rci, base, &rci->input.destination);
+                adjust_char_pointer(new_base, old_base, &rci->input.destination);
             }
 
             rci->status = rci_status_more_input;

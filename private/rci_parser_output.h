@@ -32,7 +32,7 @@ static idigi_bool_t rci_output_cstr(rci_buffer_t * const output, char const * co
 {
     ASSERT(cstr != NULL);
 
-    return rci_output_data(output, CSTR_DATA(cstr), CSTR_LEN(cstr));
+    return rci_output_data(output, cstr_data(cstr), cstr_len(cstr));
 }
 
 #if (defined RCI_PARSER_USES_INT32) || (defined RCI_PARSER_USES_UNSIGNED_INTEGER) || (defined RCI_PARSER_USES_FLOAT)
