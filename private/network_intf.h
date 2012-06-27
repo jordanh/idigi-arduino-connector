@@ -177,7 +177,8 @@ static int send_buffer(idigi_data_t * const idigi_ptr, uint8_t * const buffer, s
             status = get_system_time(idigi_ptr, &idigi_ptr->last_rx_keepalive_sent_time);
             if (status == idigi_callback_abort)
             {
-                bytes_sent = -idigi_configuration_error;
+                bytes_sent = -1;
+                idigi_ptr->error_code = idigi_configuration_error;
             }
         }
         break;
@@ -185,7 +186,8 @@ static int send_buffer(idigi_data_t * const idigi_ptr, uint8_t * const buffer, s
         break;
     case idigi_callback_abort:
     case idigi_callback_unrecognized:
-        bytes_sent = -idigi_send_error;
+        bytes_sent = -1;
+        idigi_ptr->error_code = idigi_send_error;
         break;
     }
 
@@ -330,11 +332,6 @@ static idigi_callback_status_t send_packet_process(idigi_data_t * const idigi_pt
         bytes_sent = send_buffer(idigi_ptr, buf, length);
         if (bytes_sent < 0)
         {
-            /* make it a position number for enum error */
-            int error_code = -bytes_sent;
-            ASSERT(error_code > idigi_success && error_code <= idigi_no_resource);
-
-            idigi_ptr->error_code = error_code;
             status = idigi_callback_abort;
             goto done;
         }

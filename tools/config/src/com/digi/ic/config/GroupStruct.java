@@ -24,7 +24,7 @@ public class GroupStruct {
 
         if (description == null) {
             throw new IOException("Missing or bad group description");
-      }
+       }
 
         this.name = name;
         this.instances = count;
@@ -92,9 +92,11 @@ public class GroupStruct {
     }
 
     public void validate() throws Exception{
+        
         if (elements.isEmpty()) {
             throw new Exception("No element specified");
         }
+        
     }
 
 }

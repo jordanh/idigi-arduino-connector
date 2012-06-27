@@ -238,29 +238,6 @@ static void idigi_status(idigi_connector_error_t const status, char const * cons
 	APP_DEBUG("idigi_status: status update %d [%s]\n", status, status_message);
 }
 
-int application_start(void)
-{
-    idigi_connector_data_t ic_data;
-    idigi_connector_error_t ret;
-    int status=-1;
-
-    APP_DEBUG("application_start: calling idigi_connector_start\n");
-    ret = idigi_connector_start(idigi_status);
-    if (ret != idigi_connector_success)
-    {
-    	APP_DEBUG("idigi_connector_start failed [%d]\n", ret);
-        goto error;
-    }
-	
-    InitializeK60TowerDemo();
- 
-    status = 0;
-
-error:
-    return status;
-    
-}
-
 /*
  * Temporary task to cause CPU usage to go up.
  */

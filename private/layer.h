@@ -180,7 +180,7 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
     };
     unsigned int i;
 
-   /* Call callback to get server url, wait count, tx keepalive, rx keepalive, & password.
+   /* Call callback to get server url, tx keepalive, rx keepalive, & wait count.
     * Call error status callback if error is encountered (NULL data, invalid range, invalid size).
     */
     for (i=0; i < asizeof(idigi_edp_init_config_ids); i++)

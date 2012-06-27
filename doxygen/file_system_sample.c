@@ -21,9 +21,9 @@
  * @htmlonly
  * <table class="apitable">
  * <tr>
- * <th class="title">Routine</td>
- * <th class="title">Operation</td>
- * <th class="title">Request Id</td>
+ * <th class="title">Routine</th>
+ * <th class="title">Operation</th>
+ * <th class="title">Request Id</th>
  * </tr> 
  * <tr> 
  * <td>app_process_file_open()</td><td>@endhtmlonly @ref file_system_open @htmlonly</td><td>@endhtmlonly @ref idigi_file_system_open @htmlonly</td>
@@ -249,9 +249,9 @@
  * @htmlonly
  * <table class="apitable">
  * <tr>
- * <th class="title">Name</td>
- * <th class="title">Description</td>
- * <th class="title">Location</td>
+ * <th class="title">Name</th>
+ * <th class="title">Description</th>
+ * <th class="title">Location</th>
  * </tr>
  * <tr>
  * <td>application.c</td>
@@ -309,4 +309,5 @@
  *
  * @li -DIDIGI_VERSION=0x1020000UL (indicates version 1.1 of the iDigi connector)
  *
+ * @htmlinclude terminate.html
  */

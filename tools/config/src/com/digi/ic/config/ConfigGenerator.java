@@ -361,7 +361,7 @@ public class ConfigGenerator {
 
 
             /* parse file */
-            debug_log("Reading filename: " + filename + "...");
+            debug_log("Start reading filename: " + filename);
 
             ConfigData configData = new ConfigData();
 

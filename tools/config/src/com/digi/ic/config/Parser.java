@@ -41,11 +41,33 @@ public class Parser {
                      * syntax for parsing group: group setting or state <name>
                      * [instances] <description> [help description]
                      */
-                    groupConfig = configData.getConfigGroup(tokenScanner.getToken());
-
+                    
+                    /* parse setting or state */
+                    String groupType = tokenScanner.getToken();
+                    
                     /* parse name */
                     String nameStr = getName();
 
+                    /* make sure group name doesn't exist in setting and state config */
+                    for (ConfigData.ConfigType type : ConfigData.ConfigType.values()) {
+
+                        String typeName = type.toString().toLowerCase();
+                        LinkedList<GroupStruct> typeGroups = configData.getConfigGroup(typeName);
+
+                        for (GroupStruct group : typeGroups) {
+                            if (group.getName().equals(nameStr)) {
+                                /* duplicate */
+                                String desc = "name";
+                                if (!typeName.equalsIgnoreCase(groupType)) {
+                                    desc += String.format(" (group name must be unique in both %s and %s)", groupType, typeName); 
+                                }
+                                throw new Exception("Duplicate <group> " + desc + ": " + nameStr);
+                            }
+                        }
+                    }
+                    groupConfig = configData.getConfigGroup(groupType);
+
+                    
                     groupLineNumber = tokenScanner.getLineNumber();
 
                     /* parse instances */
@@ -102,12 +124,6 @@ public class Parser {
                         throw new Exception("Error in <group>: " + theGroup.getName() + "\n\t" + e.getMessage());
                     }
 
-                    for (GroupStruct g : groupConfig) {
-                        
-                        if (g.getName().equals(theGroup.getName())) {
-                            throw new Exception("Duplicate <group>: " + theGroup.getName());
-                        }
-                    }
                     groupConfig.add(theGroup);
 
                     if (!tokenScanner.hasToken()) {

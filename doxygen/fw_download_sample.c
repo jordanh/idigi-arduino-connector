@@ -61,9 +61,9 @@
  * @htmlonly
  * <table class="apitable">
  * <tr>
- * <th class="title">Name</td>
- * <th class="title">Description</td>
- * <th class="title">Location</td>
+ * <th class="title">Name</th>
+ * <th class="title">Description</th>
+ * <th class="title">Location</th>
  * </tr>
  * <tr>
  * <th>application.c</th>
@@ -222,5 +222,6 @@
  * @endcode
  *
  *
+ * @htmlinclude terminate.html
  *
  */

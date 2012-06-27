@@ -27,3 +27,8 @@ docs
 *.class
 build
 dist
+
+# Eclipse droppings
+.project
+.cproject
+
