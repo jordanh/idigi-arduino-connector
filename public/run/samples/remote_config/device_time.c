@@ -146,6 +146,13 @@ idigi_callback_status_t app_device_time_group_set(idigi_remote_group_request_t c
         ASSERT(request->element.value->string_value != NULL);
 
         lt = localtime(&device_time_ptr->current_time.time);
+        if (lt == NULL)
+        {
+            response->error_id = idigi_global_error_save_fail;
+            response->element_data.error_hint = "Time is not available.";
+            goto done;
+        }
+
         string_length = strlen(request->element.value->string_value);
 
         while (current_length < string_length && state != get_done)

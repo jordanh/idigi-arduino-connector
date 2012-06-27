@@ -165,12 +165,11 @@ idigi_callback_status_t app_device_info_group_set(idigi_remote_group_request_t c
                 CONFIRM(sizeof MINIMUM_HINT_TEXT == sizeof MAXIMUM_HINT_TEXT);
 
                 response->error_id = idigi_setting_device_info_error_invalid_length;
-                {
-                       static char const min_format[] = MINIMUM_HINT_TEXT LENGTH_FORMAT;
-                       static char const max_format[] = MAXIMUM_HINT_TEXT LENGTH_FORMAT;
 
-                snprintf(error_hint_text, sizeof error_hint_text, is_min ? min_format : max_format, is_min? min_length : max_length);
-                }
+                snprintf(error_hint_text, sizeof error_hint_text,
+                         is_min ? MINIMUM_HINT_TEXT LENGTH_FORMAT : MAXIMUM_HINT_TEXT LENGTH_FORMAT,
+                         is_min? min_length : max_length);
+
                 response->element_data.error_hint = error_hint_text;
             }
             #undef LENGTH_FORMAT
