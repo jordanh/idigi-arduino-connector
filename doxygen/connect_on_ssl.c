@@ -88,5 +88,6 @@
  * @li public/include
  * @li run/platforms/linux (substitute with your platform)
  *
+ * @htmlinclude terminate.html
  *
  */

@@ -79,9 +79,9 @@
  * @htmlonly
  * <table class="apitable">
  * <tr>
- * <th class="title">Name</td>
- * <th class="title">Description</td>
- * <th class="title">Location</td>
+ * <th class="title">Name</th>
+ * <th class="title">Description</th>
+ * <th class="title">Location</th>
  * </tr>
  * <tr>
  * <th>application.c</th>
@@ -149,7 +149,9 @@
  * Once successfully built, run the executable, in Linux type ./idigi to run the
  * sample.
  *
- * Remote configuration can be accessed through the @htmlonly <a href="http://www.idigi.com">iDigi Cloud</a>.@endhtmlonly
+ * Remote configuration can be accessed through the
+ * @htmlonly <a href="http://www.idigi.com">iDigi Cloud</a>@endhtmlonly.
  *
+ * @htmlinclude terminate.html
  *
  */

@@ -32,45 +32,53 @@
  *
  * @htmlonly
  * <table class="apitable">
- * <tr> <th colspan="2" class="title">Arguments</th> </tr> 
- * <tr><th class="subtitle">Name</th> <th class="subtitle">Description</th></tr>
  * <tr>
- * <th>class_id</th>
- * <td>@endhtmlonly @ref idigi_class_network @htmlonly</td>
+ *   <th colspan="2" class="title">Arguments</th>
  * </tr>
  * <tr>
- * <th>request_id</th>
- * <td>@endhtmlonly @ref idigi_network_connect @htmlonly</td>
+ *   <th class="subtitle">Name</th> <th class="subtitle">Description</th>
  * </tr>
  * <tr>
- * <th>request_data</th>
- * <td>Pointer to server URL that callback will make connection to on @endhtmlonly @ref IDIGI_SSL_PORT @htmlonly for secure communication </td>
+ *   <th>class_id</th>
+ *   <td>@endhtmlonly @ref idigi_class_network @htmlonly</td>
  * </tr>
  * <tr>
- * <th>request_length</th>
- * <td> Length of the server URL.</td>
+ *   <th>request_id</th>
+ *   <td>@endhtmlonly @ref idigi_network_connect @htmlonly</td>
  * </tr>
  * <tr>
- * <th>response_data</th>
- * <td> Callback returns the pointer to  @endhtmlonly @ref idigi_network_handle_t @htmlonly which is used throughout network socket callback calls. </td>
+ *   <th>request_data</th>
+ *   <td>Pointer to server URL that callback will make connection to on @endhtmlonly @ref IDIGI_SSL_PORT @htmlonly for secure communication </td>
  * </tr>
  * <tr>
- * <th>response_length</th>
- * <td>Pointer to memory where callback writes the size of idigi_network_handle_t</td>
- * </tr>
- * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
- * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
- * <tr>
- * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
- * <td>Callback successfully established a connection</td>
+ *   <th>request_length</th>
+ *   <td> Length of the server URL.</td>
  * </tr>
  * <tr>
- * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback was unable to connect to the server and callback aborted iDigi connector</td>
+ *   <th>response_data</th>
+ *   <td> Callback returns the pointer to  @endhtmlonly @ref idigi_network_handle_t @htmlonly which is used throughout network socket callback calls. </td>
  * </tr>
  * <tr>
- * <td>@endhtmlonly @ref idigi_callback_busy @htmlonly</td>
- * <td>Callback is busy connecting and needs to be called back again</td>
+ *   <th>response_length</th>
+ *   <td>Pointer to memory where callback writes the size of idigi_network_handle_t</td>
+ * </tr>
+ * <tr>
+ *   <th colspan="2" class="title">Return Values</th>
+ * </tr>
+ * <tr>
+ *   <th class="subtitle">Values</th> <th class="subtitle">Description</th>
+ * </tr>
+ * <tr>
+ *   <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
+ *   <td>Callback successfully established a connection</td>
+ * </tr>
+ * <tr>
+ *   <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
+ *   <td>Callback was unable to connect to the server and callback aborted iDigi connector</td>
+ * </tr>
+ * <tr>
+ *   <td>@endhtmlonly @ref idigi_callback_busy @htmlonly</td>
+ *   <td>Callback is busy connecting and needs to be called back again</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -96,9 +104,9 @@
  *                              void * response_data, size_t * const response_length)
  * {
  *
- *     /* resolve address */
- *     /* create socket fd, set socket option for keep alive and no delay */
- *     /* connect to IDIGI_SSL_PORT on iDigi Cloud */
+ *     // resolve address
+ *     // create socket fd, set socket option for keep alive and no delay
+ *     // connect to IDIGI_SSL_PORT on iDigi Cloud
  *
  *    SSL_library_init();
  *    OpenSSL_add_all_algorithms();
@@ -226,7 +234,7 @@
  *
  *     if (bytes_sent <= 0)
  *     {
- *         /* call SSL_get_error() to find out exact cause */
+ *         // call SSL_get_error() to find out exact cause
  *         APP_DEBUG("SSL_write failed %d\n", bytes_sent);
  *         status = idigi_callback_abort;
  *     }
@@ -319,7 +327,7 @@
  *         FD_ZERO(&read_set);
  *         FD_SET(ssl_ptr->sfd, &read_set);
  *
- *         /* Blocking point for iDigi connector */
+ *         // Blocking point for iDigi connector
  *         ready = select(ssl_ptr->sfd + 1, &read_set, NULL, NULL, &timeout);
  *         if (ready == 0)
  *         {
@@ -337,7 +345,7 @@
  *     bytes_read = SSL_read(ssl_ptr->ssl, read_data->buffer, )read_data->length);
  *     if (bytes_read <= 0)
  *     {
- *         /* EOF on input: the connection was closed. */
+ *         // EOF on input: the connection was closed.
  *         APP_DEBUG("SSL_read failed %d\n", bytes_read);
  *         status = idigi_callback_abort;
  *     }
@@ -413,9 +421,9 @@
  *     idigi_callback_status_t status = idigi_callback_continue;
  *     app_ssl_t * const ssl_ptr = (app_ssl_t *)handle;
  *
- *     /* send close notify to peer */
+ *     // send close notify to peer
  *     if (SSL_shutdown(ssl_ptr->ssl) == 0) 
- *         SSL_shutdown(ssl_ptr->ssl);  /* wait for peer's close notify */
+ *         SSL_shutdown(ssl_ptr->ssl);  // wait for peer's close notify
  *
  *     if (ssl_ptr->ssl != NULL) 
  *     {
@@ -439,4 +447,5 @@
  *
  * @endcode
  *
+ * @htmlinclude terminate.html
  */

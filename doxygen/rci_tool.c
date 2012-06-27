@@ -572,4 +572,5 @@
  *
  * @endcode
  *
+ * @htmlinclude terminate.html
  */
