@@ -18,55 +18,76 @@
  *
  * @htmlonly
  * <table class="apitable">
- * <tr> <th colspan="2" class="title">Usage</th> </tr> 
- * <tr><td colspan="2"> @endhtmlonly java -jar ConfigGenerator.jar [-help] [-verbose] [-nodesc] [-vendor] [-path] [-server]
- *                     \<username[:password]\> \<device_type\> \<firmware_version\> \<input_config_file\> @htmlonly </td>
+ * <tr>
+ *   <th colspan="2" class="title">Usage</th>
  * </tr>
- * <tr> <th colspan="2" class="title">Description</th> </tr> 
- * <tr><td colspan="2">It generates and uploads configuration information (descriptors) to the iDigi
- *                     Cloud server and it also generates ANSI C header 
- *                     files (remote_config.h) from the input iDigi connector configuration file.  
- *                     This header file must be included  in the application. </td>
+ * <tr>
+ *   <td colspan="2"> @endhtmlonly java -jar ConfigGenerator.jar [-help] [-verbose] [-nodesc] [-vendor] [-path] [-server]
+ *                     \<username[:password]\> \<device_type\> \<firmware_version\> \<input_config_file\> @htmlonly
+ *   </td>
  * </tr>
- * <tr> <th colspan="2" class="title">Options</th> </tr> 
- * <tr><th> -help </th>
- * <td> Optional option to show this menu </td>
- * </tr> <tr>
- * <th> -verbos</th>
- * <td> Optional option to output message about what the tool is doing </td>
- * </tr> <tr>
- * <th> -nodesc</th>
- * <td> Optional option to exclude error description in the generated file. Error description will
- *      not be included and sent to the iDigi Cloud when error is encountered.
- *      This is used to reduce the code size.</td>
- * </tr> <tr>
- * <th> -vendor</th>
- * <td> Optional option for vendor ID obtained from iDigi Cloud registration. 
- *      If not given, tool tries to retrieve it from the iDigi Cloud. </td>
- * </tr> <tr>
- * <th> -path</th>
- * <td> Optional option for directory path where the generated file will be created. </td>
+ * <tr>
+ *   <th colspan="2" class="title">Description</th>
  * </tr>
- * </tr> <tr>
- * <th> -server</th>
- * <td> Optional options for iDigi Cloud server. Default is developer.idigi.com </td>
+ * <tr>
+ *   <td colspan="2">It generates and uploads configuration information (descriptors) to the iDigi
+ *       Cloud server and it also generates ANSI C header files (remote_config.h) from the input
+ *       iDigi connector configuration file.  This header file must be included  in the application.
+ *   </td>
  * </tr>
- * </tr> <tr>
- * <th> username </th>
- * <td> Username to log in iDigi Cloud.  </td>
- * </tr> <tr>
- * <th> password </th>
- * <td> Optional for password to log in iDigi Cloud. 
- *      If it's not specified in the command line, you will be prompted for password. </td>
- * </tr> <tr>
- * <th> device_type </th>
- * <td> Device type string with quotes. </td>
- * </tr> <tr>
- * <th> firmware_version </th>
- * <td> Firmware version number (i.e. 1.0.0.0) </td>
- * </tr> <tr>
- * <th> input_config_file </th>
- * <td> Input configuration file. See @endhtmlonly @ref rci_tool_file @htmlonly </td>
+ * <tr>
+ *   <th colspan="2" class="title">Options</th>
+ * </tr>
+ * <tr>
+ *   <th> -help </th>
+ *   <td> Optional option to show this menu </td>
+ * </tr>
+ * <tr>
+ *   <th> -verbos </th>
+ *   <td> Optional option to output message about what the tool is doing </td>
+ * </tr>
+ * <tr>
+ *   <th> -nodesc</th>
+ *   <td> Optional option to exclude error description in the generated file. Error description will
+ *        not be included and sent to the iDigi Cloud when error is encountered.
+ *        This is used to reduce the code size.
+ *   </td>
+ * </tr>
+ * <tr>
+ *   <th> -vendor</th>
+ *   <td> Optional option for vendor ID obtained from iDigi Cloud registration.
+ *        If not given, tool tries to retrieve it from the iDigi Cloud.
+ *   </td>
+ * </tr>
+ * <tr>
+ *   <th> -path</th>
+ *   <td> Optional option for directory path where the generated file will be created. </td>
+ * </tr>
+ * <tr>
+ *   <th> -server</th>
+ *   <td> Optional options for iDigi Cloud server. Default is developer.idigi.com </td>
+ * </tr>
+ * <tr>
+ *   <th> username </th>
+ *   <td> Username to log in iDigi Cloud.  </td>
+ * </tr>
+ * <tr>
+ *   <th> password </th>
+ *   <td> Optional for password to log in iDigi Cloud.
+ *        If it's not specified in the command line, you will be prompted for password.
+ *   </td>
+ * </tr>
+ * <tr>
+ *   <th> device_type </th>
+ *   <td> Device type string with quotes. </td>
+ * </tr>
+ * <tr>
+ *   <th> firmware_version </th>
+ *   <td> Firmware version number (i.e. 1.0.0.0) </td>
+ * </tr>
+ * <tr>
+ *   <th> input_config_file </th>
+ *   <td> Input configuration file. See @endhtmlonly @ref rci_tool_file @htmlonly </td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -214,43 +235,57 @@
  * @subsection element element keyword
  * The @a @b element is used to describe valid fields in a group. It describes an element 
  * under the group that has a type and contains a value.
+ *
  * @htmlonly
  * <table class="apitable">
- * <tr> <th colspan="2" class="title">Syntax</th> </tr> 
- * <tr> <td colspan="2">@endhtmlonly @a @b element \<name\> \<description\> [help_description] 
- *       type \<type_value\> [min \<min_value\>] [max \<max_value\>] [access \<access_value\>]
- *       [unit \<unit_description\>]
- * @htmlonly </td> </tr>
- * <tr> <th colspan="2" class="title">Options</th> </tr> 
  * <tr>
- * <th>name</th>
- * <td> Label (no spaces) of the element. 
- *     <p> @endhtmlonly The tool creates  @a @b \<name\> with @a @b idigi_\<group_type\>_ prefix enumeration value 
- *         to identify the element. The iDigi connector passes this enumeration value to the application-defined callback for accessing the element.
- *         @htmlonly
- *     </p> </td>
- * </tr> <tr>
- * <th>description</th>
- * <td>Description for this element with quotes, suitable for displaying in a generic GUI to represent 
- *     this element. This is only used in the descriptor. It must be 40 characters or less. </td>
- * </tr><tr>
- * <th>help_description</th>
- * <td> Optional description with quotes for extra information shown as a tool-tip and help text. </td>
- * </tr> <tr>
- * <th>type</th>
- * <td>See @endhtmlonly @ref type. @htmlonly </td>
- * </tr><tr>
- * <th>min</th>
- * <td> see @endhtmlonly @ref min. @htmlonly </td>
- * </tr><tr>
- * <th>max</th>
- * <td> see @endhtmlonly @ref max. @htmlonly </td>
- * </tr><tr>
- * <th>access</th>
- * <td> see @endhtmlonly @ref access. @htmlonly </td>
- * </tr><tr>
- * <th>unit</th>
- * <td> see @endhtmlonly @ref unit. @htmlonly </td>
+ *   <th colspan="2" class="title">Syntax</th>
+ * </tr>
+ * <tr>
+ *   <td colspan="2">@endhtmlonly @a @b element \<name\> \<description\> [help_description]
+ *       type \<type_value\> [min \<min_value\>] [max \<max_value\>] [access \<access_value\>]
+ *       [unit \<unit_description\>]@htmlonly
+ *   </td>
+ * </tr>
+ * <tr>
+ *   <th colspan="2" class="title">Options</th>
+ * </tr>
+ * <tr>
+ *   <th>name</th>
+ *   <td> Label (no spaces) of the element.
+ *         @endhtmlonly The tool creates  @a @b \<name\> with @a @b idigi_\<group_type\>_ prefix enumeration value
+ *         to identify the element. The iDigi connector passes this enumeration value to the application-defined
+ *         callback for accessing the element. @htmlonly
+ *   </td>
+ * </tr>
+ * <tr>
+ *   <th>description</th>
+ *   <td>Description for this element with quotes, suitable for displaying in a generic GUI to represent
+ *       this element. This is only used in the descriptor. It must be 40 characters or less. </td>
+ * </tr>
+ * <tr>
+ *   <th>help_description</th>
+ *   <td> Optional description with quotes for extra information shown as a tool-tip and help text. </td>
+ * </tr>
+ * <tr>
+ *   <th>type</th>
+ *   <td>See @endhtmlonly @ref type. @htmlonly </td>
+ * </tr>
+ * <tr>
+ *   <th>min</th>
+ *   <td> see @endhtmlonly @ref min. @htmlonly </td>
+ * </tr>
+ * <tr>
+ *   <th>max</th>
+ *   <td> see @endhtmlonly @ref max. @htmlonly </td>
+ * </tr>
+ * <tr>
+ *   <th>access</th>
+ *   <td> see @endhtmlonly @ref access. @htmlonly </td>
+ * </tr>
+ * <tr>
+ *   <th>unit</th>
+ *   <td> see @endhtmlonly @ref unit. @htmlonly </td>
  * </tr>
  * </table>
  * @endhtmlonly 
@@ -268,6 +303,7 @@
  * The @a @b type is used to indicate the value type of an element's value named in the 
  * @ref element. The type indicates to the descriptor user what restrictions to 
  * place on a value and how to interpret a value received from iDigi connector. 
+ *
  * @htmlonly
  * <table class="apitable">
  * <tr> <th colspan="2" class="title">Syntax</th> </tr> 
@@ -328,18 +364,20 @@
  * </tr><tr>
  * <th>datetime</th>
  * <td> Date and time type. It's a nul-terminated string which contains the ISO 8601 standard for date and 
- *      time representation.
- *      <p>The format is: YYYY-MM-DDTHH:MM:SStz where 
- *      <ul><li>YYYY:Year</li>
- *          <li>MM: Month</li>
- *          <li>DD: Day </li>
- *          <li>T: The separator between date and time </li>
- *          <li>HH: Hours in 24-hour clock </li>
- *          <li>MM: Minutes </li>
- *          <li>SS: Seconds </li>
- *          <li>tz: Time zone, specified either in the form [+,-]HHMM or 
- *                              Z for Coordinated Universal Time (UTC) </li></ul></p>
- *      <p>Examples: @endhtmlonly
+ *      time representation.<br></br>
+ *      The format is: YYYY-MM-DDTHH:MM:SStz where
+ *      <ul>
+ *        <li>YYYY:Year</li>
+ *        <li>MM: Month</li>
+ *        <li>DD: Day </li>
+ *        <li>T: The separator between date and time </li>
+ *        <li>HH: Hours in 24-hour clock </li>
+ *        <li>MM: Minutes </li>
+ *        <li>SS: Seconds </li>
+ *        <li>tz: Time zone, specified either in the form [+,-]HHMM or
+ *                          Z for Coordinated Universal Time (UTC) </li>
+ *      </ul>
+ *      Examples: @endhtmlonly
  *      @code
  *      	   "2002-05-30T09:30:10-0600" 
  *      	   "2002-05-30T15:30:10Z"

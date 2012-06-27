@@ -44,39 +44,39 @@
  * @htmlonly
  * <table class="apitable">
  * <tr>
- * <th class="title">Name</td>
- * <th class="title">Description</td>
- * <th class="title">Location</td>
+ *   <th class="title">Name</th>
+ *   <th class="title">Description</th>
+ *   <th class="title">Location</th>
  * </tr>
  * <tr>
- * <td>application.c</td>
- * <td>Contains application_run() and the application callback</td>
- * <td>samples/connect_on_ssl</td>
+ *   <td>application.c</td>
+ *   <td>Contains application_run() and the application callback</td>
+ *   <td>samples/connect_on_ssl</td>
  * </tr>
  * <tr>
- * <td>idigi_api.c</td>
- * <td>Code for the ICC </td>
- * <td>private</td>
+ *   <td>idigi_api.c</td>
+ *   <td>Code for the ICC </td>
+ *   <td>private</td>
  * </tr>
  * <tr>
- * <td>os.c</td>
- * <td>Operating system calls</td>
- * <td>platforms/<i>my_platform</i></td>
+ *   <td>os.c</td>
+ *   <td>Operating system calls</td>
+ *   <td>platforms/<i>my_platform</i></td>
  * </tr>
  * <tr>
- * <td>network_ssl.c</td>
- * <td> Network interface </td>
- * <td>platforms/<i>my_platform</i></td>
+ *   <td>network_ssl.c</td>
+ *   <td> Network interface </td>
+ *   <td>platforms/<i>my_platform</i></td>
  * </tr>
  * <tr>
- * <td>config.c</td>
- * <td>Configuration routines</td>
- * <td>platforms/<i>my_platform</i></td>
+ *   <td>config.c</td>
+ *   <td>Configuration routines</td>
+ *   <td>platforms/<i>my_platform</i></td>
  * </tr>
  * <tr>
- * <td>main.c</td>
- * <td>Starting point of program, dependent on build environment</td>
- * <td>platforms/<i>my_platform</i></td>
+ *   <td>main.c</td>
+ *   <td>Starting point of program, dependent on build environment</td>
+ *   <td>platforms/<i>my_platform</i></td>
  * </tr>
  * </table>
  * @endhtmlonly
