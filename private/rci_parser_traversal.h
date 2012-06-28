@@ -297,6 +297,7 @@ static void rci_traverse_data(rci_t * const rci)
 group_complete:
     invalidate_group_id(rci);
     invalidate_group_index(rci);
+    state_call(rci, rci_parser_state_input);
 
 complete:
     rci->traversal.state = rci_traversal_state_none;
