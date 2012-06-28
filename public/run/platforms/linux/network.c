@@ -285,7 +285,7 @@ done:
     return rc;
 }
 
-static idigi_callback_status_t app_network_close(idigi_network_handle_t * const fd)
+static idigi_callback_status_t app_network_close(idigi_network_handle_t const * const fd)
 {
     idigi_callback_status_t status = idigi_callback_continue;
     struct linger ling_opt;
@@ -306,7 +306,11 @@ static idigi_callback_status_t app_network_close(idigi_network_handle_t * const 
         perror("network_close: close() failed");
     }
 
-    *fd = -1;
+    {
+        int * user_fd = (int *)fd;
+
+        *user_fd = -1;
+    }
 
     return status;
 }
@@ -356,7 +360,7 @@ idigi_callback_status_t app_network_handler(idigi_network_request_t const reques
         break;
 
     case idigi_network_close:
-        status = app_network_close((idigi_network_handle_t * const)request_data);
+        status = app_network_close(request_data);
         break;
 
     case idigi_network_disconnected:

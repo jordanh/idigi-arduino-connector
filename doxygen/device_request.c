@@ -45,9 +45,9 @@
  * @htmlonly
  * <table class="apitable">
  * <tr>
- * <th class="title">Name</td>
- * <th class="title">Description</td>
- * <th class="title">Location</td>
+ * <th class="title">Name</th>
+ * <th class="title">Description</th>
+ * <th class="title">Location</th>
  * </tr>
  * <tr>
  * <td>application.c</td>
@@ -109,8 +109,7 @@
  *
  * This sample provides a simple python script to send a data service device request to developer.idigi.com
  * using @htmlonly <a href="web_services.html">iDigi Web Services.</a> @endhtmlonly
- *
- * Run the python script in the sample. 
+ * To run the python script for this sample:
  *
  * @code
  * python device_request.py <username> <password> <device_id>
@@ -141,4 +140,5 @@
  * </sci_reply>
  * @endcode
  *
+ * @htmlinclude terminate.html
  */

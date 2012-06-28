@@ -122,9 +122,9 @@ static size_t fill_data_service_header(idigi_data_request_t const * const reques
     ptr = fill_data_block(&request->path, ptr);
 
     {
-        idigi_bool_t const type = (request->content_type.size == 0);
-        idigi_bool_t const archive = (request->flag & IDIGI_DATA_REQUEST_ARCHIVE) == IDIGI_DATA_REQUEST_ARCHIVE;
-        idigi_bool_t const append = (request->flag & IDIGI_DATA_REQUEST_APPEND) == IDIGI_DATA_REQUEST_APPEND;
+        idigi_bool_t const type = idigi_bool(request->content_type.size == 0);
+        idigi_bool_t const archive = idigi_bool((request->flag & IDIGI_DATA_REQUEST_ARCHIVE) == IDIGI_DATA_REQUEST_ARCHIVE);
+        idigi_bool_t const append = idigi_bool((request->flag & IDIGI_DATA_REQUEST_APPEND) == IDIGI_DATA_REQUEST_APPEND);
         uint8_t params = 0;
 
         enum
@@ -187,7 +187,7 @@ static idigi_callback_status_t data_service_get_data(idigi_data_t * const idigi_
         idigi_data_payload_t const * const pblock = &request->payload;
         size_t const available_bytes = service_data->length_in_bytes - data_bytes;
         size_t const bytes_to_send = pblock->size - context->bytes_sent;
-        idigi_bool_t const data_complete = bytes_to_send <= available_bytes;
+        idigi_bool_t const data_complete = idigi_bool(bytes_to_send <= available_bytes);
         size_t const bytes_to_copy =  data_complete ? bytes_to_send : available_bytes;
 
         memcpy(dptr, &pblock->data[context->bytes_sent], bytes_to_copy);
@@ -196,7 +196,7 @@ static idigi_callback_status_t data_service_get_data(idigi_data_t * const idigi_
 
         if (data_complete) 
         {
-            idigi_bool_t const last_chunk = (request->flag & IDIGI_DATA_REQUEST_LAST) == IDIGI_DATA_REQUEST_LAST;
+            idigi_bool_t const last_chunk = idigi_bool((request->flag & IDIGI_DATA_REQUEST_LAST) == IDIGI_DATA_REQUEST_LAST);
 
             context->have_data = idigi_false;
             if (last_chunk)

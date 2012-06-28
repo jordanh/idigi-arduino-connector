@@ -263,14 +263,14 @@ typedef enum {
 
 typedef enum {
     idigi_remote_config_session_start,  /**< inform callback to start remote configuration request */
+    idigi_remote_config_action_start,   /**< requesting callback to start query or set remote configuration data */
+    idigi_remote_config_group_start,    /**< requesting callback to start query or set an individual configuration group */
+    idigi_remote_config_group_process,  /**< requesting callback to query or set an element or field of a configuration group */
+    idigi_remote_config_group_end,      /**< requesting callback to end query or set an individual configuration group */
+    idigi_remote_config_action_end,     /**< requesting callback to end query or set remote configuration data */
     idigi_remote_config_session_end,    /**< inform callback to end remote configuration request
                                             Callback may start writing data into NVRAM for set remote configuration request.
                                             Callback should end and release any resources used when it's done. */
-    idigi_remote_config_action_start,   /**< requesting callback to start query or set remote configuration data */
-    idigi_remote_config_action_end,     /**< requesting callback to end query or set remote configuration data */
-    idigi_remote_config_group_start,    /**< requesting callback to start query or set an individual configuration group */
-    idigi_remote_config_group_end,      /**< requesting callback to end query or set an individual configuration group */
-    idigi_remote_config_group_process,  /**< requesting callback to query or set an element or field of a configuration group */
     idigi_remote_config_session_cancel     /**< Requesting callback to abort and cancel any query or set remote configuration request.
                                             Callback should stop and release any resources used */
 } idigi_remote_config_request_t;

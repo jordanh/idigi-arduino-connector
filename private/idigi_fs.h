@@ -1209,8 +1209,6 @@ static idigi_callback_status_t file_store_path(idigi_data_t * const idigi_ptr,
     if (status != idigi_callback_continue)
         goto done;
 
-    ASSERT(ptr != NULL);
-
     context->data.d.path = ptr;
     memcpy(context->data.d.path, path, path_len + 1);
 
@@ -1280,7 +1278,7 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
     {
         uint8_t * data_ptr = service_data->data_ptr;
         size_t buffer_size = service_data->length_in_bytes;
-        size_t    resp_len    = 0;
+        size_t resp_len    = 0;
 
         size_t const header_len = file_ls_resp_header_size();
         size_t hash_len   = file_hash_size(context->data.d.hash_alg);
@@ -1331,8 +1329,11 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
             if (FileGetState(context) < FILE_STATE_READDIR_DONE)
             {
                 /* read next dir entry */
-                size_t const path_max = MIN_VALUE((buffer_size - (header_len + hash_len)),
-                                            (IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH - context->data.d.path_len));
+                size_t len = header_len + hash_len + context->data.d.path_len;
+                size_t path_max = 0;
+                /* minimum of bytes left for the entry name in output buffer and context->data.d.path buffer */
+                if (len < buffer_size)
+                    path_max = MIN_VALUE((buffer_size - len), (IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH - context->data.d.path_len));
             
                 status = call_file_readdir_user(idigi_ptr, service_request, file_path, path_max);
                 if (status == idigi_callback_busy)
@@ -1374,6 +1375,9 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
  
                 FileSetState(context, FILE_STATE_STAT_DONE);
             }
+            file_path = context->data.d.path;
+            file_path_len = context->data.d.path_len + file_path_len;
+
             if (FileIsDir(context))
                 hash_len = 0;
  
@@ -1381,7 +1385,7 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
             {
                 uint8_t * const hash_ptr = data_ptr + file_path_len + header_len;
 
-                status = call_file_hash_user(idigi_ptr, service_request, context->data.d.path, hash_ptr);
+                status = call_file_hash_user(idigi_ptr, service_request, file_path, hash_ptr);
                 if (status == idigi_callback_busy)
                     goto done;
 
@@ -1431,9 +1435,7 @@ static idigi_callback_status_t allocate_file_context(idigi_data_t * const idigi_
     status = malloc_data(idigi_ptr, sizeof *context, &ptr);
     if (status != idigi_callback_continue)
         goto done;
-    
-    ASSERT(ptr != NULL);
-
+ 
     context = ptr;
 
     context->handle = NULL;

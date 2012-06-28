@@ -14,7 +14,7 @@
 
 #include "idigi_config.h"
 
-#if defined(IDIGI_DEBUG)
+#if (defined IDIGI_DEBUG)
 /**
  * Debug output from the iDigi connector, Writes a formatted string to stdout, expanding the format
  * tags with the value of the argument list arg.  This function behaves exactly as

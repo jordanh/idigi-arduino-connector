@@ -16,6 +16,9 @@
 #include "platform.h"
 #include "remote_config_cb.h"
 
+#define VALUE_TO_STRING(value)   # value
+#define MACRO_TO_STRING(macro)   VALUE_TO_STRING(macro)
+
 
 #define DEVICE_INFO_PRODUCT_LENGTH  64
 #define DEVICE_INFO_MODEL_LENGTH  32
@@ -79,7 +82,7 @@ idigi_callback_status_t app_device_info_group_get(idigi_remote_group_request_t c
     {
     case idigi_setting_device_info_syspwd:
         ASSERT(request->element.type == idigi_element_type_password);
-
+        /* no break; */
     case idigi_setting_device_info_product:
     case idigi_setting_device_info_model:
     case idigi_setting_device_info_company:
@@ -149,15 +152,30 @@ idigi_callback_status_t app_device_info_group_set(idigi_remote_group_request_t c
         if ((value_length < config_data[request->element.id].min_length) ||
             (value_length >= config_data[request->element.id].max_length))
         {
-            static char error_hint_text[28];
+            #define LENGTH_FORMAT      "%zu"
+            #define MINIMUM_HINT_TEXT  "Minimum length is "
+            #define MAXIMUM_HINT_TEXT  "Maximum length is "
+            {
+                static char error_hint_text[sizeof (MINIMUM_HINT_TEXT MACRO_TO_STRING(UINT_MAX))];
+                size_t const min_length = config_data[request->element.id].min_length;
+                size_t const max_length = config_data[request->element.id].max_length;
 
-            response->error_id = idigi_setting_device_info_error_invalid_length;
-            if (value_length < config_data[request->element.id].min_length)
-                sprintf(error_hint_text, "Minimum length is %zu", config_data[request->element.id].min_length);
-            else
-                sprintf(error_hint_text, "Maximum length is %zu", config_data[request->element.id].max_length);
+                idigi_boolean_t const is_min = (value_length < min_length) ? idigi_boolean_true : idigi_boolean_false;
 
-            response->element_data.error_hint = error_hint_text;
+                CONFIRM(sizeof MINIMUM_HINT_TEXT == sizeof MAXIMUM_HINT_TEXT);
+
+                response->error_id = idigi_setting_device_info_error_invalid_length;
+
+                snprintf(error_hint_text, sizeof error_hint_text,
+                         is_min ? MINIMUM_HINT_TEXT LENGTH_FORMAT : MAXIMUM_HINT_TEXT LENGTH_FORMAT,
+                         is_min? min_length : max_length);
+
+                response->element_data.error_hint = error_hint_text;
+            }
+            #undef LENGTH_FORMAT
+            #undef MINIMUM_HINT_TEXT
+            #undef MAXIMUM_HINT_TEXT
+
             goto done;
         }
         memcpy(config_data[request->element.id].store_data, request->element.value->string_value, value_length);

@@ -39,24 +39,26 @@ static idigi_bool_t rci_action_session_start(rci_t * const rci, rci_service_data
 
     rci->input.destination = rci_buffer_position(&rci->buffer.input);
 
-    rci->shared.request.group.id = INVALID_ID;
-    rci->shared.request.group.index = INVALID_INDEX;
-    rci->shared.request.element.id = INVALID_ID;
-    
+    invalidate_group_id(rci);
+    invalidate_group_index(rci);
+    invalidate_element_id(rci);
+
     rci->shared.request.element.value = &rci->shared.value;
     rci->shared.response.element_data.element_value = &rci->shared.value;
-                       
+
     rci->status = rci_status_busy;
 
+    rci->input.state = rci_input_state_element_tag_open;
+
     output_debug_info(rci, RCI_DEBUG_SHOW_ALL);
-    
+
     return idigi_true;
 }
 
 static idigi_bool_t rci_action_session_active(rci_t * const rci)
 {
     idigi_bool_t success = idigi_true;
-    
+
     switch (rci->status)
     {
         case rci_status_error:
@@ -65,27 +67,27 @@ static idigi_bool_t rci_action_session_active(rci_t * const rci)
             rci->status = rci_status_internal_error;
             /* no break; */
         }
-        
+
         case rci_status_internal_error:
         {
             success = idigi_false;
             goto done;
             break;
         }
-        
+
         case rci_status_busy:
         {
             /* assert state is valid */
             break;
         }
-        
+
         case rci_status_more_input:
         {
             rci_set_buffer(&rci->buffer.input, &rci->service_data->input);
             rci->status = rci_status_busy;
             break;
         }
-        
+
         case rci_status_flush_output:
         {
             rci_set_buffer(&rci->buffer.output, &rci->service_data->output);
@@ -96,7 +98,7 @@ static idigi_bool_t rci_action_session_active(rci_t * const rci)
             break;
         }
     }
-    
+
 done:
     return success;
 }
@@ -105,7 +107,7 @@ static idigi_bool_t rci_action_session_lost(rci_t * const rci)
 {
     /* call cancel */
     /* clean up */
-    
+
     rci->service_data = NULL;
     rci->status = rci_status_complete;
 
@@ -132,7 +134,7 @@ static rci_status_t rci_parser(rci_session_t const action, ...)
         case rci_session_active:
             success = rci_action_session_active(&rci);
             break;
-        
+
         case rci_session_lost:
             success = rci_action_session_lost(&rci);
             break;
@@ -142,15 +144,9 @@ static rci_status_t rci_parser(rci_session_t const action, ...)
             break;
 #endif
         }
-        
+
         ASSERT(success);
         if (!success) goto done;
-    }
-
-    if ((rci.callback.status == idigi_callback_busy) && (rci.parser.state.current != rci_parser_state_output))
-    {
-        if (!rci_callback(&rci))
-            goto done;
     }
 
     switch (rci.parser.state.current)
@@ -158,70 +154,40 @@ static rci_status_t rci_parser(rci_session_t const action, ...)
     case rci_parser_state_input:
         rci_parse_input(&rci);
         break;
-        
+
     case rci_parser_state_traversal:
         rci_traverse_data(&rci);
         break;
-        
+
     case rci_parser_state_output:
         rci_generate_output(&rci);
         break;
-        
+
     case rci_parser_state_error:
         rci_generate_error(&rci);
         break;
     }
-    
+
 done:
 
     switch (rci.status)
     {
     case rci_status_busy:
     case rci_status_more_input:
-    case rci_status_internal_error:
-    case rci_status_error:
         break;
-        
     case rci_status_flush_output:
+        rci.service_data->output.bytes = rci_buffer_used(&rci.buffer.output);
+        output_debug_info(&rci, RCI_DEBUG_SHOW_ALL);
+        break;
     case rci_status_complete:
         rci.service_data->output.bytes = rci_buffer_used(&rci.buffer.output);
-        break;        
-    }
-
-    switch (rci.status)
-    {
-    case rci_status_busy:
-    case rci_status_more_input:
-    case rci_status_flush_output:
-        break;
-        
-    case rci_status_internal_error:
-    case rci_status_error:
-    case rci_status_complete:
-        /* TODO: do we need to call the callback?
-         *       Add rci_callback call.
-         */
-        rci_callback(&rci);
-
-        rci.service_data = NULL;
-        break;        
-    }
-
-#if defined RCI_DEBUG       
-    switch (rci.status)
-    {
-    case rci_status_busy:
-    case rci_status_more_input:
-    case rci_status_flush_output:
-        break;
-        
-    case rci_status_complete:
+        /* no break; */
     case rci_status_internal_error:
     case rci_status_error:
         output_debug_info(&rci, RCI_DEBUG_SHOW_ALL);
-        break;        
+        rci.service_data = NULL;
+        break;
     }
-#endif
 
     return rci.status;
 }

@@ -51,6 +51,9 @@ idigi_callback_status_t app_get_mac_addr(uint8_t const ** const addr, size_t * c
         _enet_address const literal_mac = IDIGI_MAC_ADDRESS;
 
         memcpy(mac_address, literal_mac, sizeof mac_address);
+        #if BSPCFG_ENABLE_FLASHX
+        Flash_NVRAM_set_mac_address(mac_address);
+        #endif
     }
 #elif defined(IDIGI_GET_MAC_FROM_NVRAM)
     #if !BSPCFG_ENABLE_FLASHX

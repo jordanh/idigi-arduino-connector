@@ -72,7 +72,11 @@ class DeviceConnectionMonitor(object):
                                         batch_size=1, batch_duration=0, 
                                         format_type='json')
 
-        session = self.client.create_session(self.__session_callback, self.monitor)
+        session = self.client.create_session(self.__session_callback, 
+                                                self.monitor)
+
+        # Arbitrary sleep to allow iDigi to propagate monitoring.
+        time.sleep(1)
 
     def wait_for_connect(self, timeout):
         """

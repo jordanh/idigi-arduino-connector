@@ -12,6 +12,7 @@ function cleanup ()
 
 # Create the output directory structure we need to create the source RPM
 mkdir -p "${TMP_DIR}"
+mkdir -p "${TMP_DIR}/rci"
 mkdir -p "${TMP_DIR}/private"
 mkdir -p "${TMP_DIR}/public"
 mkdir -p "${TMP_DIR}/public/include"
@@ -22,6 +23,7 @@ cp -f ${BASE_DIR}/private/*.* ${TMP_DIR}/private/.
 cp -f ${BASE_DIR}/public/include/*.* ${TMP_DIR}/public/include/.
 cp -f ${BASE_DIR}/public/run/platforms/linux/*.* ${TMP_DIR}/public/run/platforms/linux/.
 cp -f ../source/*.* ${TMP_DIR}/public/.
+cp -f ../source/rci/*.* ${TMP_DIR}/rci/.
 cp -f ../../common/source/*.* ${TMP_DIR}/public/.
 cp -f ../../common/include/*.* ${TMP_DIR}/public/.
 cp -f ../../common/include/idigi_connector.h ${TMP_DIR}/.
@@ -34,6 +36,11 @@ cp -f Makefile.rpm ${TMP_DIR}/Makefile
 # execute a Make and verify the library builds
 cd "${TMP_DIR}"
 make
+rc=$?
+if [[ ${rc} != 0 ]]; then
+    echo "Make failed"
+    exit -1
+fi
 
 if [ -e libidigi.so ]; then
     echo "Library was built"

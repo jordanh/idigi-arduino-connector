@@ -28,6 +28,7 @@ public class Descriptors {
     private String vendorId;
     private final long fwVersion;
     private Boolean callDeleteFlag;
+    private int responseCode;
 
     public Descriptors(final String username, final String password,
                        final String vendorId, final String deviceType, 
@@ -41,7 +42,8 @@ public class Descriptors {
         this.vendorId = vendorId;
         if (vendorId == null) getVendorId();
 
-        callDeleteFlag = true;
+        this.callDeleteFlag = true;
+        this.responseCode = 0;
     }
 
     public void processDescriptors(ConfigData configData) throws Exception {
@@ -199,6 +201,7 @@ public class Descriptors {
         String encodedCredential = DatatypeConverter.printBase64Binary(credential.getBytes());
         HttpsURLConnection connection = null;
 
+        responseCode = 0;
         try {
             URL url = new URL(cloud);
 
@@ -225,26 +228,54 @@ public class Descriptors {
             reader.close();
             connection.disconnect();
 
-        } catch (Exception e) {
-            ConfigGenerator.log(method + " " + target + " is failed!");
-            ConfigGenerator.log("Response status: " + connection.getHeaderField(0));
-            System.exit(1);
+        } catch (Exception resp) {
+            try
+            {
+                responseCode = connection.getResponseCode();
+                response = connection.getHeaderField(0);
+            }
+            catch (Exception e)
+            {
+                ConfigGenerator.log("ERROR: Invalid iDigi Server\n");
+                System.exit(1);
+            }
         }
 
         return response;
     }
 
     private void getVendorId() {
+        ConfigGenerator.debug_log("Query vendor ID");
         String response = sendCloudData("/ws/DeviceVendor", "GET", null);
+
+        if (responseCode != 0)
+        {
+            switch (responseCode)
+            {
+                case 401:
+                    ConfigGenerator.log("Unauthorized: verify username and password are valid\n");
+                    break;
+
+                case 403:
+                    ConfigGenerator.log("Forbidden: verify that your account has the \'Embedded Device Customization\' service subscribed.\n");
+                    break;
+
+                default:
+                    ConfigGenerator.log("Response status: " + response);
+                    break;
+            }
+
+            System.exit(1);
+        }
 
         int startIndex = response.indexOf("<dvVendorId>");
         if (startIndex == -1) {
-            ConfigGenerator.log(username + " has no vendor ID. Refer \"Setup your iDigi Acount\" section of Getting started guide to obtain one");
+            ConfigGenerator.log(username + " has no vendor ID registered. Refer to \"Setup your iDigi Acount\" section of the Getting started guide to obtain one.");
             System.exit(1);
         }
 
         if (startIndex != response.lastIndexOf("<dvVendorId>")) {
-            ConfigGenerator.log(username+ " has more than one vendor ID, so please specify the correct one");
+            ConfigGenerator.log(username+ " has more than one vendor ID, so please specify the correct one.");
             System.exit(1);
         }
 
@@ -254,7 +285,28 @@ public class Descriptors {
     }
 
     private void validateServerName() {
-        sendCloudData("/ws/UserInfo", "GET", null);
+        ConfigGenerator.debug_log("Start validating server");
+        String response = sendCloudData("/ws/UserInfo", "GET", null);
+
+        if (responseCode != 0)
+        {
+            switch (responseCode)
+            {
+                case 401:
+                    ConfigGenerator.log("Unauthorized: verify username and password are valid\n");
+                    break;
+
+                case 403:
+                    ConfigGenerator.log("Forbidden: Failed to get user info.\n");
+                    break;
+
+                default:
+                    ConfigGenerator.log("Response status: " + response);
+                    break;
+            }
+
+            System.exit(1);
+        }
     }
 
     private String tagMessageSegment(String tagName, String value) {
@@ -272,10 +324,28 @@ public class Descriptors {
             String target = String.format("/ws/DeviceMetaData?condition=dvVendorId=%s and dmDeviceType=\'%s\' and dmVersion=%d",
                                             vendorId, deviceType, fwVersion);
 
-            String response = sendCloudData(target.replace(" ", "%20"),
-                    "DELETE", null);
-            ConfigGenerator
-                    .debug_log("Deleted: " + vendorId + "/" + deviceType);
+            String response = sendCloudData(target.replace(" ", "%20"), "DELETE", null);
+            if (responseCode != 0)
+            {
+                switch (responseCode)
+                {
+                    case 401:
+                        ConfigGenerator.log("Unauthorized: verify username and password are valid\n");
+                        break;
+
+                    case 403:
+                        ConfigGenerator.log("Forbidden: deleting MetaData is failed, verify that vendor ID is valid.\n");
+                        break;
+
+                    default:
+                        ConfigGenerator.log("Response status: " + response);
+                        break;
+                }
+
+                System.exit(1);
+            }
+
+            ConfigGenerator.debug_log("Deleted: " + vendorId + "/" + deviceType);
             ConfigGenerator.debug_log(response);
             callDeleteFlag = false;
         }
@@ -289,8 +359,28 @@ public class Descriptors {
         message += "</DeviceMetaData>";
 
         ConfigGenerator.debug_log(message);
-        
+
         String response = sendCloudData("/ws/DeviceMetaData", "POST", message);
+        if (responseCode != 0)
+        {
+            switch (responseCode)
+            {
+                case 401:
+                    ConfigGenerator.log("Unauthorized: verify username and password are valid\n");
+                    break;
+
+                case 403:
+                    ConfigGenerator.log("Forbidden: deleting MetaData is failed, verify that vendor ID is valid.\n");
+                    break;
+
+                default:
+                    ConfigGenerator.log("Response status: " + response);
+                    break;
+            }
+
+            System.exit(1);
+        }
+
         ConfigGenerator.debug_log("Created: " + vendorId + "/" + deviceType + "/" + descName);
         ConfigGenerator.debug_log(response);
     }

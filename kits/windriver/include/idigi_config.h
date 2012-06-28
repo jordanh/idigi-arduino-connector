@@ -184,6 +184,7 @@
 #define IDIGI_FILE_SYSTEM
 #endif
 
+#define IDIGI_RCI_SERVICE
 /**
  * This is used to define the maximum content length in bytes of an element's value for the remote_configuration _service,
  * IC includes the remote_configuration_service that allows user remote configuration, control, and information
@@ -201,7 +202,7 @@
  *
  * @see @ref app_get_remote_configuration_support()
  */
-#define IDIGI_RCI_MAXIMUM_CONTENT_LENGTH    0
+#define IDIGI_RCI_MAXIMUM_CONTENT_LENGTH    1024
 /**
  * @}*/
 

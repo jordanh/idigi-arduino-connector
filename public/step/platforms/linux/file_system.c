@@ -425,16 +425,8 @@ static idigi_callback_status_t app_process_file_readdir(idigi_file_request_t con
     app_dir_data_t * dir_data = request_data->handle;
     struct dirent  * result = NULL;
 
-    // Read next directory entry, skip "." and ".."
+    // Read next directory entry
     int rc = readdir_r(dir_data->dirp, &dir_data->dir_entry, &result);
-
-    while(rc == 0 && result != NULL)
-    {
-        if ((strcmp(result->d_name, ".") != 0) && (strcmp(result->d_name, "..") != 0))
-            break;
-
-        rc = readdir_r(dir_data->dirp, &dir_data->dir_entry, &result);
-    }
 
     // error
     if (rc != 0)

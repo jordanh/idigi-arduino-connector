@@ -17,10 +17,6 @@
 #include "platform.h"
 #include "idigi_connector.h"
 
-#if !BSPCFG_ENABLE_GPIODEV
-#error This application requires BSPCFG_ENABLE_GPIODEV defined non-zero in user_config.h. Please recompile BSP with this option.
-#endif
-
 static LWGPIO_STRUCT led1;
 static LWGPIO_STRUCT led2;
 
@@ -32,7 +28,7 @@ static void idigi_status(idigi_connector_error_t const status, char const * cons
 /*
  * Turn on and off LED outputs
  */
-static void SetOutput(LWGPIO_STRUCT * led, boolean state)
+static void set_led_state(LWGPIO_STRUCT * led, boolean state)
 {
     if (state)
         lwgpio_set_value(led, LWGPIO_VALUE_LOW); /* set pin to 0 */
@@ -40,7 +36,7 @@ static void SetOutput(LWGPIO_STRUCT * led, boolean state)
         lwgpio_set_value(led, LWGPIO_VALUE_HIGH); /* set pin to 1 */
 }
 
-static LWGPIO_STRUCT * GetLEDPin(char const * const ledString)
+static LWGPIO_STRUCT * get_led_pin(char const * const ledString)
 {
     LWGPIO_STRUCT * led = NULL;
 
@@ -59,7 +55,7 @@ static LWGPIO_STRUCT * GetLEDPin(char const * const ledString)
 static idigi_app_error_t device_request_callback(char const * const target, idigi_connector_data_t * const request_data)
 {
     idigi_app_error_t status = idigi_app_invalid_parameter;
-    LWGPIO_STRUCT * const led = GetLEDPin(target);
+    LWGPIO_STRUCT * const led = get_led_pin(target);
 
     if (request_data->error != idigi_connector_success)
     {
@@ -70,10 +66,10 @@ static idigi_app_error_t device_request_callback(char const * const target, idig
     if (led != NULL)
     {
         char const * const stateStr = request_data->data_ptr;
-        boolean const state = (strstr(stateStr, "ON") == NULL) ? TRUE : FALSE;
+        boolean const state = (strstr(stateStr, "ON") != NULL) ? TRUE : FALSE;
 
         APP_DEBUG("Turning %s %s\n", state ? "ON" : "OFF", target);
-        SetOutput(led, state);
+        set_led_state(led, state);
         status = idigi_app_success;
     }
 
@@ -83,7 +79,7 @@ error:
 
 static size_t device_response_callback(char const * const target, idigi_connector_data_t * const response_data)
 {
-    LWGPIO_STRUCT * const led = GetLEDPin(target);
+    LWGPIO_STRUCT * const led = get_led_pin(target);
     char const * const status = (led != NULL) ? "Success" : "Failed";
     size_t bytes_to_copy = strlen(status);
 

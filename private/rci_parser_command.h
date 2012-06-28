@@ -30,15 +30,15 @@ static char const * const rci_command[] = {
     RCI_QUERY_STATE
 };
 
-static rci_command_t find_rci_command(rci_string_t const * const tag)
+static rci_command_t find_rci_command(rcistr_t const * const tag)
 {
     size_t i;
     rci_command_t result = rci_command_unknown;
-      
+
     CONFIRM(rci_command_set_state == (rci_command_set_setting + 1));
     CONFIRM(rci_command_query_setting == (rci_command_set_state + 1));
     CONFIRM(rci_command_query_state == (rci_command_query_setting + 1));
-    
+
     for (i = 0; i < asizeof(rci_command); i++)
     {
         if (cstr_equals_rcistr(rci_command[i], tag))
@@ -47,16 +47,16 @@ static rci_command_t find_rci_command(rci_string_t const * const tag)
             break;
         }
     }
-    
+
     return result;
 }
 
-static void set_rci_command_tag(rci_command_t const command, rci_string_t * const tag)
+static void set_rci_command_tag(rci_command_t const command, rcistr_t * const tag)
 {
     int const index = (command - rci_command_set_setting);
-    
+
     ASSERT((command >= rci_command_set_setting) && (command <= rci_command_query_state));
-    
-    cstr_to_rci_string(rci_command[index], tag);
+
+    cstr_to_rcistr(rci_command[index], tag);
 }
 

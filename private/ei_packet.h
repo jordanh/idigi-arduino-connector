@@ -58,7 +58,7 @@
         memcpy((record + field_named_data(record, field, offset)), (value), array); \
     } while (0)
 
-#if defined(IDIGI_DEBUG)
+#if (defined IDIGI_DEBUG)
 #define message_load_be32(record, field) (ASSERT(field_named_data(record, field, size) == sizeof (uint32_t)), LoadBE32(record + field_named_data(record, field, offset)))
 #define message_load_be16(record, field) (ASSERT(field_named_data(record, field, size) == sizeof (uint16_t)), LoadBE16(record + field_named_data(record, field, offset)))
 #define message_load_u8(record, field) (ASSERT(field_named_data(record, field, size) == sizeof (uint8_t)), *(record + field_named_data(record, field, offset)))

@@ -28,7 +28,7 @@
 #define IDIGI_DEBUG
 #endif
 
-#if defined(IDIGI_COMPRESSION_BUILTIN)
+#if (defined IDIGI_COMPRESSION_BUILTIN)
 #define IDIGI_COMPRESSION
 #endif
 

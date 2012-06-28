@@ -17,4 +17,9 @@ COPY ..\source\*.c %MQX_DIR%\source\platform\
 COPY ..\include\*.h %MQX_DIR%\source\include\
 COPY ..\..\common\source\*.c %MQX_DIR%\source\platform\
 cOPY ..\..\common\include\*.h %MQX_DIR%\source\include\
-
+COPY %BASE_DIR%\public\run\samples\simple_remote_config\config.rci %MQX_DIR%\source\platform\
+COPY %BASE_DIR%\public\run\samples\simple_remote_config\remote_config.h %MQX_DIR%\source\platform\
+COPY %BASE_DIR%\public\run\samples\simple_remote_config\remote_config_cb.c %MQX_DIR%\source\platform\
+COPY %BASE_DIR%\public\run\samples\simple_remote_config\remote_config_cb.h %MQX_DIR%\source\platform\
+COPY %BASE_DIR%\public\run\samples\simple_remote_config\system.c %MQX_DIR%\source\platform\
+COPY %BASE_DIR%\public\run\samples\simple_remote_config\gps_stats.c %MQX_DIR%\source\platform\ 

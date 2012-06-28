@@ -114,7 +114,7 @@
  *
  *     if (class_id == idigi_class_firmware && request_id.firmware_request == idigi_firmware_target_count)
  *     {
- *          /* return total number of firmware update targets */
+ *          // return total number of firmware update targets
  *          *((uint16_t *)response_data) = firmware_list_count;
  *     }
  *     return idigi_callback_continue;
@@ -179,7 +179,7 @@
  *     {
  *          idigi_fw_config_t * config = (idigi_fw_config_t *)request_data;
  *          uint32_t * version = (uint32_t *)response_data;
- *          /* return the target version number */
+ *          // return the target version number
  *          *version = firmware_list[config->target].version;
  *     }
  *     return idigi_callback_continue;
@@ -243,7 +243,7 @@
  *     if (class_id == idigi_class_firmware && request_id.firmware_request == idigi_firmware_code_size)
  *     {
  *          idigi_fw_config_t * config = (idigi_fw_config_t *)request_data;
- *          /* Return the target code size */
+ *          // Return the target code size
  *          uint32_t * code_size = (uint32_t *)response_data;
  *          *code_size = firmware_list[config->target].code_size;
  *     }
@@ -283,8 +283,11 @@
  * <td>response_length</td>
  * <td>Pointer to memory where callback writes the length of the description string. The total length of description and name spec must not exceed 127 bytes.</td>
  * </tr>
- * <tr> <th colspan="2" class="title">Return Values</th> </tr> 
- * <tr><th class="subtitle">Values</th> <th class="subtitle">Description</th></tr>
+ * <tr>
+ *   <th colspan="2" class="title">Return Values</th>
+ * </tr>
+ * <tr>
+ *   <th class="subtitle">Values</th> <th class="subtitle">Description</th>
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_continue @htmlonly</td>
@@ -308,7 +311,7 @@
  *
  *     if (class_id == idigi_class_firmware && request_id.firmware_request == idigi_firmware_description)
  *     {
- *          /* return pointer to firmware target description */
+ *          // return pointer to firmware target description
  *          char ** description = (char **)response_data;
  *          *description = firmware_list[config->target].description;
  *          *response_length = strlen(firmware_list[config->target].description);
@@ -378,7 +381,7 @@
  *
  *     if (class_id == idigi_class_firmware && request_id.firmware_request == idigi_firmware_name_spec)
  *     {
- *           /* return pointer to firmware target description */
+ *           // return pointer to firmware target description
  *          char ** name_spec = (char **)response_data;
  *          *name_spec = firmware_list[config->target].name_spec;
  *          *response_length = strlen(firmware_list[config->target].name_spec);
@@ -449,14 +452,14 @@
  *          idigi_fw_download_request_t  * const download_info = request_data;
  *          idigi_fw_status_t * download_status = response_data;
  *          if (firmware_download_started)
- *          {   /* already started */
+ *          {   // already started
  *              *download_status = idigi_fw_device_error;
  *              return idigi_callback_continue;
  *          }
  *
  *          APP_DEBUG("target = %d\n",         download_info->target);
  *          APP_DEBUG("filename = %s\n",       download_info->filename);
- *          /* initialize & prepare for firmware update */
+ *          // initialize & prepare for firmware update
  *          total_image_size = 0;
  *          firmware_download_started = 1;
  *          *download_status = idigi_fw_success;
@@ -755,4 +758,5 @@
  * }
  * @endcode
  *
+ * @htmlinclude terminate.html
  */

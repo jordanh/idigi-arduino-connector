@@ -180,7 +180,7 @@ typedef enum
     rci_output_type_unary,
     rci_output_type_three_tuple,
     rci_output_type_three_tuple_formatted
-} rci_output_type_t;    
+} rci_output_type_t;
 
 typedef enum
 {
@@ -197,12 +197,12 @@ typedef struct
 {
     char const * data;
     size_t length;
-} rci_string_t;
+} rcistr_t;
 
 typedef struct
 {
-    rci_string_t name;
-    rci_string_t value;
+    rcistr_t name;
+    rcistr_t value;
 } rci_attribute_t;
 
 typedef struct
@@ -234,9 +234,8 @@ typedef struct
         unsigned int hyphens;
         int character;
         char * destination;
-        idigi_bool_t send_content;
         rci_command_t command;
-        rci_string_t entity;
+        rcistr_t entity;
         char storage[ROUND_UP(IDIGI_RCI_MAXIMUM_CONTENT_LENGTH + sizeof nul, sizeof (int))];
     } input;
     struct {
@@ -246,9 +245,9 @@ typedef struct
         rci_output_state_t state;
         rci_output_type_t type;
         rci_output_type_t current;
-        rci_string_t tag;
+        rcistr_t tag;
         rci_attribute_list_t attribute;
-        rci_string_t content;
+        rcistr_t content;
         size_t attribute_pair_index;
         size_t entity_scan_index;
     } output;
@@ -258,10 +257,19 @@ typedef struct
     } error;
     struct {
         union {
-            rci_string_t generic;
-            rci_string_t tag;
-            rci_string_t content;
+            rcistr_t generic;
+            rcistr_t tag;
+            rcistr_t content;
         } string;
+        struct {
+            struct {
+                unsigned int id;
+                unsigned int index;
+            } group;
+            struct {
+                unsigned int id;
+            } element;
+        } current;
         rci_attribute_list_t attribute;
         idigi_element_value_t value;
         idigi_remote_group_request_t request;

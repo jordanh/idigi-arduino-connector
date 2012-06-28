@@ -34,6 +34,7 @@ idigi_callback_status_t app_idigi_callback(idigi_class_t const class_id, idigi_r
         break;
     default:
         /* not supported */
+        status = idigi_callback_unrecognized;
         break;
     }
     return status;

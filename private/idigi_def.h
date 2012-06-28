@@ -22,7 +22,7 @@
 
 #define ON_FALSE_DO_(cond, code)        do { if (!(cond)) {code;} } while (0)
 
-#if defined(IDIGI_DEBUG)
+#if (defined IDIGI_DEBUG)
 #define ON_ASSERT_DO_(cond, code, output)   ON_FALSE_DO_((cond), {ASSERT(cond); code;})
 #else
 #define ON_ASSERT_DO_(cond, code, output)   ON_FALSE_DO_((cond), {code})
@@ -66,19 +66,19 @@
 #define idigi_callback_no_response(callback, class_id, request_id, request_data, request_length) idigi_callback((callback), (class_id), (request_id), (request_data), (request_length), NULL, NULL)
 #define idigi_callback_no_request_data(callback, class_id, request_id, response_data, response_length) idigi_callback((callback), (class_id), (request_id), NULL, 0, (response_data), (response_length))
 
-#if defined(IDIGI_TX_KEEPALIVE_IN_SECONDS)
+#if (defined IDIGI_TX_KEEPALIVE_IN_SECONDS)
 #define GET_TX_KEEPALIVE_INTERVAL(idigi_ptr)    IDIGI_TX_KEEPALIVE_IN_SECONDS
 #else
 #define GET_TX_KEEPALIVE_INTERVAL(idigi_ptr)    idigi_ptr->tx_keepalive_interval
 #endif
 
-#if defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
+#if (defined IDIGI_RX_KEEPALIVE_IN_SECONDS)
 #define GET_RX_KEEPALIVE_INTERVAL(idigi_ptr)    IDIGI_RX_KEEPALIVE_IN_SECONDS
 #else
 #define GET_RX_KEEPALIVE_INTERVAL(idigi_ptr)    idigi_ptr->rx_keepalive_interval
 #endif
 
-#if defined(IDIGI_WAIT_COUNT)
+#if (defined IDIGI_WAIT_COUNT)
 #define GET_WAIT_COUNT(idigi_ptr)    IDIGI_WAIT_COUNT
 #else
 #define GET_WAIT_COUNT(idigi_ptr)    idigi_ptr->wait_count
@@ -109,6 +109,7 @@ typedef enum {
     idigi_true,
     idigi_bool_integer_width = INT_MAX
 } idigi_bool_t;
+#define idigi_bool(cond)    ((cond) ? idigi_true : idigi_false)
 
 typedef enum {
     facility_callback_delete,
@@ -185,7 +186,7 @@ typedef enum {
 struct idigi_data;
 struct idigi_facility;
 
-typedef void (* send_complete_cb_t)(struct idigi_data * const idigi_ptr, uint8_t const * const packet, idigi_status_t const status, void * const user_data);
+typedef idigi_callback_status_t (* send_complete_cb_t)(struct idigi_data * const idigi_ptr, uint8_t const * const packet, idigi_status_t const status, void * const user_data);
 
 typedef struct idigi_facility {
     unsigned int facility_index;
@@ -210,11 +211,11 @@ typedef struct idigi_buffer {
 
 typedef struct idigi_data {
     uint8_t * device_id;
-#if !defined(IDIGI_VENDOR_ID)
+#if !(defined IDIGI_VENDOR_ID)
     uint8_t * vendor_id;
 #endif
 
-#if !defined(IDIGI_DEVICE_TYPE)
+#if !(defined IDIGI_DEVICE_TYPE)
     char * device_type;
     size_t device_type_length;
 #endif
@@ -271,15 +272,15 @@ typedef struct idigi_data {
 
     uint16_t facilities;
 
-#if !defined(IDIGI_TX_KEEPALIVE_IN_SECONDS)
+#if !(defined IDIGI_TX_KEEPALIVE_IN_SECONDS)
     uint16_t tx_keepalive_interval;
 #endif
 
-#if !defined(IDIGI_RX_KEEPALIVE_IN_SECONDS)
+#if !(defined IDIGI_RX_KEEPALIVE_IN_SECONDS)
     uint16_t rx_keepalive_interval;
 #endif
 
-#if !defined(IDIGI_WAIT_COUNT)
+#if !(defined IDIGI_WAIT_COUNT)
     uint16_t wait_count;
 #endif
 

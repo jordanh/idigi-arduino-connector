@@ -141,7 +141,7 @@ idigi_status_t add_to_syslog_buffer(char *syslog_string)
 	size = strlen(syslog_string);
 	if (size > BUFFER_SIZE)
 		return idigi_invalid_data_size;
-	
+
     snprintf((char *)&syslog_put_request_buffer[data_size_in_put_request_buffer],
     		  BUFFER_SIZE - data_size_in_put_request_buffer,
     		  syslog_string);
@@ -151,7 +151,7 @@ idigi_status_t add_to_syslog_buffer(char *syslog_string)
     return idigi_success;
 }
 
-void InitializeK60TowerDemo(void)
+void initialize_k60_tower_demo(void)
 {
     unsigned short reset_count;
     idigi_status_t rc;
@@ -201,14 +201,14 @@ void InitializeK60TowerDemo(void)
     reset_count = WDOG_RSTCNT;
     if (reset_count)
     {
-	    APP_DEBUG("InitializeK60TowerDemo: last reset was a watchdog reset\n");
+	    APP_DEBUG("initialize_k60_tower_demo: last reset was a watchdog reset\n");
 
 	    snprintf(idigi_watchdog_caused_reset, sizeof(idigi_watchdog_caused_reset), "True");
 	    
 	    // Add syslog entry for reset
         rc = add_to_syslog_buffer("Reset was a watchdog reset\n");
         if (rc)
-		    APP_DEBUG("InitializeK60TowerDemo: error adding to syslog buffer\n");
+		    APP_DEBUG("initialize_k60_tower_demo: error adding to syslog buffer\n");
 	    
 	    // Clear the watchdog count so a soft reset will be recognized
 	    WDOG_RSTCNT = 0xffff;
@@ -216,14 +216,14 @@ void InitializeK60TowerDemo(void)
     }
     else
     {
-	    APP_DEBUG("InitializeK60TowerDemo: last reset was a normal reset\n");
+	    APP_DEBUG("initialize_k60_tower_demo: last reset was a normal reset\n");
 	    
 	    snprintf(idigi_watchdog_caused_reset, sizeof(idigi_watchdog_caused_reset), "False");
 	    
 	    // Add syslog entry for reset
         rc = add_to_syslog_buffer("Reset was a normal reset\n");
         if (rc)
-		    APP_DEBUG("InitializeK60TowerDemo: error adding to syslog buffer\n");
+		    APP_DEBUG("initialize_k60_tower_demo: error adding to syslog buffer\n");
     }
 
 	/* Initialize unexpected ISR */

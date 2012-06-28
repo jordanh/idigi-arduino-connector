@@ -26,7 +26,7 @@ typedef struct {
     char description[SYSTEM_STRING_LENGTH];
 } system_data_t;
 
-system_data_t nvram_system_data = {"\0", "\0", "iDigi connector sample"};
+system_data_t nvram_system_data = {"\0", "\0", "Wind River Linux Device"};
 
 idigi_callback_status_t app_system_session_start(idigi_remote_group_response_t * const response)
 {

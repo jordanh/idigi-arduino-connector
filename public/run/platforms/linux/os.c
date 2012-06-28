@@ -35,11 +35,13 @@ idigi_callback_status_t app_os_malloc(size_t const size, void ** ptr)
     return status;
 }
 
-void app_os_free(void * const ptr)
+void app_os_free(void const * const ptr)
 {
-    if (ptr != NULL)
+    void * const free_ptr = (void *)ptr;
+
+    if (free_ptr != NULL)
     {
-        free(ptr);
+        free(free_ptr);
     }
     else
     {
@@ -90,7 +92,7 @@ idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
         break;
 
     case idigi_os_free:
-        app_os_free((void *)request_data);
+        app_os_free(request_data);
         status = idigi_callback_continue;
         break;
 

@@ -14,12 +14,29 @@ f=$(pwd)
 # file manually copy it into ${PROJECT_DIR}/dist/idigi/idigi.spec
 cd build
 ./build.sh
+rc=$?
+if [[ ${rc} != 0 ]]; then
+    echo "Build failed"
+    exit -1
+fi
+
 cp ~/rpmbuild/SRPMS/idigi-1.1-1.fc13.src.rpm ${PROJECT_DIR}/packages
 cp ~/rpmbuild/SOURCES/idigi-1.1.tar.gz ${PROJECT_DIR}/packages/.
 cp ../rpm/SPECS/idigi.spec ${PROJECT_DIR}/build/idigi-1.1/SPECS/.
 cd ${PROJECT_DIR}
 make -C build idigi.distclean
+rc=$?
+if [[ ${rc} != 0 ]]; then
+    echo "build idigi.distclean failed"
+    exit -1
+fi
+
 make -C build idigi
+rc=$?
+if [[ ${rc} != 0 ]]; then
+    echo "build idigi failed"
+    exit -1
+fi
 
 # Remove the old RPM
 rm /tftpboot/kontron_m2m/rootfs/*.rpm

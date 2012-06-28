@@ -12,6 +12,11 @@
 #include "main.h"
 #include "idigi_api.h"
 #include "platform.h"
+#include "idigi_config.h"
+
+int firmware_download_started = 0;
+
+#if defined IDIGI_FIRMWARE_SERVICE
 
 typedef struct {
     uint32_t    version;
@@ -23,10 +28,14 @@ typedef struct {
 /* list of all supported firmware target info */
 static firmware_list_t firmware_list[] = {
     /* version     code_size     name_spec          description */
-    {0x00000100, (uint32_t)-1, ".*\\.S19", "srec Image" }  /* any *.S19 files */
+#ifdef IDIGI_DEVICE_HAS_FLASH_PART_0
+    {FLASH_PART_0_VER, FLASH_PART_0_LEN, FLASH_PART_0_TYPE, FLASH_PART_0_DESC}
+#endif
+#ifdef IDIGI_DEVICE_HAS_FLASH_PART_1
+    {FLASH_PART_1_VER, FLASH_PART_1_LEN, FLASH_PART_1_TYPE, FLASH_PART_1_DESC}
+#endif
 };
 
-int firmware_download_started = 0;
 static size_t total_image_size = 0;
 static uint32_t taskid;
 
@@ -322,3 +331,5 @@ idigi_callback_status_t app_firmware_handler(idigi_firmware_request_t const requ
 
     return status;
 }
+
+#endif /* #if defined IDIGI_FIRMWARE_SERVICE */

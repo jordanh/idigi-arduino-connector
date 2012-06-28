@@ -22,22 +22,25 @@
 #include "os_intf.h"
 #include "network_intf.h"
 #include "idigi_cc.h"
-#if defined(IDIGI_FIRMWARE_SERVICE)
-#include "idigi_fw.h"
-#endif
-#if defined(IDIGI_DATA_SERVICE) || defined(IDIGI_FILE_SYSTEM) || defined(IDIGI_RCI_SERVICE)
+
+#if (defined IDIGI_DATA_SERVICE) || (defined IDIGI_FILE_SYSTEM) || (defined IDIGI_RCI_SERVICE)
 #include "idigi_msg.h"
 #endif
-#if defined(IDIGI_DATA_SERVICE)
+#if (defined IDIGI_DATA_SERVICE)
 #if (IDIGI_VERSION < IDIGI_VERSION_1100)
 #include "idigi_ds_legacy.h"
 #else
 #include "idigi_ds.h"
 #endif
 #endif
-#if defined(IDIGI_FILE_SYSTEM)
+#if (defined IDIGI_FILE_SYSTEM)
 #include "idigi_fs.h"
 #endif
+
+#if (defined IDIGI_FIRMWARE_SERVICE)
+#include "idigi_fw.h"
+#endif
+
 #include "layer.h"
 
 static idigi_callback_status_t get_device_id_method(idigi_data_t * const idigi_ptr, idigi_device_id_method_t * method)
@@ -89,7 +92,7 @@ static idigi_callback_status_t get_device_id_method(idigi_data_t * const idigi_p
     return status;
 }
 
-#if !defined(IDIGI_VENDOR_ID)
+#if !(defined IDIGI_VENDOR_ID)
 static idigi_bool_t isValidVendorId(unsigned long const vendor_id)
 {
 #define MAX_VENDOR_ID_NUMBER 0xFE000000
@@ -122,10 +125,10 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
         size_t min_length;
         size_t max_length;
     } idigi_config_request_ids[] = {
-#if !defined(IDIGI_VENDOR_ID)
+#if !(defined IDIGI_VENDOR_ID)
             {idigi_config_vendor_id, VENDOR_ID_LENGTH, VENDOR_ID_LENGTH},
 #endif
-#if !defined(IDIGI_DEVICE_TYPE)
+#if !(defined IDIGI_DEVICE_TYPE)
             {idigi_config_device_type, 1, DEVICE_TYPE_LENGTH},
 #endif
             {idigi_config_device_id, DEVICE_ID_LENGTH, DEVICE_ID_LENGTH}  /* must be last one */
@@ -150,7 +153,6 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
             goto done;
         }
 
-        ASSERT_GOTO(handle != NULL, done);
         idigi_handle = handle;
     }
 
@@ -195,13 +197,13 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
             data = &idigi_handle->device_id;
             store_at = (void **)data;
             break;
-#if !defined(IDIGI_VENDOR_ID)
+#if !(defined IDIGI_VENDOR_ID)
         case idigi_config_vendor_id:
             data = &idigi_handle->vendor_id;
             store_at = (void **)data;
             break;
 #endif
-#if !defined(IDIGI_DEVICE_TYPE)
+#if !(defined IDIGI_DEVICE_TYPE)
         case idigi_config_device_type:
             data = &idigi_handle->device_type;
             store_at = (void **)data;
@@ -234,7 +236,7 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
                 goto error;
             }
 
-#if !defined(IDIGI_DEVICE_TYPE)
+#if !(defined IDIGI_DEVICE_TYPE)
             if (idigi_config_request_ids[i].request == idigi_config_device_type)
             {
                 idigi_handle->device_type_length = length;
@@ -242,7 +244,7 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
             }
 #endif
 
-#if !defined(IDIGI_VENDOR_ID)
+#if !(defined IDIGI_VENDOR_ID)
             if (idigi_config_request_ids[i].request == idigi_config_vendor_id)
             {
                 if (isValidVendorId(LoadBE32(data)) == idigi_false)
@@ -464,7 +466,7 @@ idigi_status_t idigi_initiate_action(idigi_handle_t const handle, idigi_initiate
         result = idigi_success;
         break;
 
-#if defined(IDIGI_DATA_SERVICE)
+#if (defined IDIGI_DATA_SERVICE)
     case idigi_initiate_data_service:
         if (idigi_ptr->edp_connected)
         {

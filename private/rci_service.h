@@ -40,7 +40,7 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
     case msg_service_type_need_data:
     case msg_service_type_have_data:
     {
-        rci_status_t ccode;
+        rci_status_t rci_status;
         rci_session_t parser_action = rci_session_active;
         void * parser_data = NULL;
 
@@ -67,9 +67,8 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
             
             MsgSetStart(service_request->need_data->flags);
             
-            idigi_debug_printf("rci_service.resquest: %d %.*s\n", service_request->have_data->length_in_bytes,
-                                                                  service_request->have_data->length_in_bytes,
-                                                                  service_request->have_data->data_ptr);
+            idigi_debug_printf("rci_service.request: %d %.*s\n", service_request->have_data->length_in_bytes, service_request->have_data->length_in_bytes, service_request->have_data->data_ptr);
+
             parser_action = rci_session_start;
             parser_data = service_data;
         }
@@ -83,10 +82,9 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
 
         service_data->output.data = service_request->need_data->data_ptr;
         service_data->output.bytes = service_request->need_data->length_in_bytes;
+        rci_status = rci_parser(parser_action, parser_data);
 
-        ccode = rci_parser(parser_action, parser_data);
-
-        switch (ccode)
+        switch (rci_status)
         {
         case rci_status_complete:
             MsgSetLastData(service_request->need_data->flags);
@@ -109,18 +107,45 @@ static idigi_callback_status_t rci_service_callback(idigi_data_t * const idigi_p
             status = idigi_callback_busy;
             break;
 
-        case rci_status_internal_error:
-            /* no break; */
         case rci_status_error:
+            status = idigi_callback_abort;
+
+            /* no break; */
+        case rci_status_internal_error:
             error_status = idigi_msg_error_cancel;
             break;
         }
         break;
     }
     case msg_service_type_error:
-        status = rci_parser(rci_status_error);
-        break;
+    {
+        rci_status_t const rci_status = rci_parser(rci_session_lost);
 
+        switch (rci_status)
+        {
+        case rci_status_complete:
+            break;
+
+        case rci_status_busy:
+            status = idigi_callback_busy;
+            break;
+
+        case rci_status_more_input:
+        case rci_status_flush_output:
+            ASSERT(idigi_false);
+            break;
+
+        case rci_status_error:
+            status = idigi_callback_abort;
+            break;
+
+        case rci_status_internal_error:
+            /* just ignore */
+            break;
+
+        }
+        break;
+    }
     case msg_service_type_free:
         free_data(idigi_ptr, session->service_context);
         break;

@@ -56,6 +56,10 @@ idigi_callback_status_t app_file_system_handler(idigi_file_system_request_t cons
 int application_run(idigi_handle_t handle);
 idigi_callback_status_t app_os_sleep(unsigned int const timeout_in_seconds);
 
+idigi_callback_status_t app_remote_config_handler(idigi_remote_config_request_t const request,
+                                                      void const * const request_data, size_t const request_length,
+                                                      void * response_data, size_t * const response_length);
+
 #define APP_SSL_CA_CERT   "/etc/idigi-ca-cert-public.crt"
 
 #endif /* _PLATFORM_H */

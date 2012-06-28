@@ -177,7 +177,8 @@ static int send_buffer(idigi_data_t * const idigi_ptr, uint8_t * const buffer, s
             status = get_system_time(idigi_ptr, &idigi_ptr->last_rx_keepalive_sent_time);
             if (status == idigi_callback_abort)
             {
-                bytes_sent = -idigi_configuration_error;
+                bytes_sent = -1;
+                idigi_ptr->error_code = idigi_configuration_error;
             }
         }
         break;
@@ -185,14 +186,15 @@ static int send_buffer(idigi_data_t * const idigi_ptr, uint8_t * const buffer, s
         break;
     case idigi_callback_abort:
     case idigi_callback_unrecognized:
-        bytes_sent = -idigi_send_error;
+        bytes_sent = -1;
+        idigi_ptr->error_code = idigi_send_error;
         break;
     }
 
     return bytes_sent;
 }
 
-static void release_packet_buffer(idigi_data_t * const idigi_ptr, uint8_t const * const packet, idigi_status_t const status, void * const user_data)
+static idigi_callback_status_t release_packet_buffer(idigi_data_t * const idigi_ptr, uint8_t const * const packet, idigi_status_t const status, void * const user_data)
 {
     /* this is called when iDigi Connector is done sending or after get_packet_buffer()
      * is called to release idigi_ptr->send_packet.packet_buffer.buffer.
@@ -205,6 +207,8 @@ static void release_packet_buffer(idigi_data_t * const idigi_ptr, uint8_t const 
     ASSERT(idigi_ptr->send_packet.packet_buffer.buffer == packet);
 
     idigi_ptr->send_packet.packet_buffer.in_use = idigi_false;
+
+    return idigi_callback_continue;
 }
 
 static uint8_t * get_packet_buffer(idigi_data_t * const idigi_ptr, uint16_t const facility, uint8_t ** data_ptr, size_t * data_length)
@@ -286,15 +290,18 @@ done:
     return status;
 }
 
-static void send_complete_callback(idigi_data_t * const idigi_ptr)
+static idigi_callback_status_t send_complete_callback(idigi_data_t * const idigi_ptr)
 {
+    idigi_callback_status_t status = idigi_callback_continue;
     send_complete_cb_t callback = idigi_ptr->send_packet.complete_cb;
 
     if (callback != NULL)
     {
         idigi_ptr->send_packet.complete_cb = NULL;
-        callback(idigi_ptr, idigi_ptr->send_packet.ptr, idigi_ptr->error_code, idigi_ptr->send_packet.user_data);
+        status = callback(idigi_ptr, idigi_ptr->send_packet.ptr, idigi_ptr->error_code, idigi_ptr->send_packet.user_data);
     }
+
+    return status;
 }
 
 static idigi_callback_status_t send_packet_process(idigi_data_t * const idigi_ptr)
@@ -325,11 +332,6 @@ static idigi_callback_status_t send_packet_process(idigi_data_t * const idigi_pt
         bytes_sent = send_buffer(idigi_ptr, buf, length);
         if (bytes_sent < 0)
         {
-            /* make it a position number for enum error */
-            int error_code = -bytes_sent;
-            ASSERT(error_code > idigi_success && error_code <= idigi_no_resource);
-
-            idigi_ptr->error_code = error_code;
             status = idigi_callback_abort;
             goto done;
         }
@@ -339,7 +341,8 @@ static idigi_callback_status_t send_packet_process(idigi_data_t * const idigi_pt
 
         if (idigi_ptr->send_packet.total_length == 0)
         {   /* sent completed so let's call the complete callback */
-            send_complete_callback(idigi_ptr);
+            status = send_complete_callback(idigi_ptr);
+            ASSERT(status == idigi_callback_continue || status == idigi_callback_abort);
         }
     }
 
@@ -418,7 +421,8 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
         case idigi_callback_abort:
         case idigi_callback_unrecognized:
             idigi_debug_printf("receive_buffer: callback returns abort\n");
-            bytes_received = -idigi_receive_error;
+            bytes_received = -1;
+            idigi_ptr->error_code = idigi_receive_error;
             /* fall thru */
         case idigi_callback_busy:
             goto done;
@@ -431,7 +435,8 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
             /* Retain the "last (tx keepalive) message send" time. */
             if (get_system_time(idigi_ptr, &idigi_ptr->last_tx_keepalive_received_time) != idigi_callback_continue)
             {
-                bytes_received = -idigi_configuration_error;
+                bytes_received = -1;
+                idigi_ptr->error_code = idigi_configuration_error;
             }
             else
             {
@@ -445,7 +450,9 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
     /* check Tx keepalive timing */
     if (GET_TX_KEEPALIVE_INTERVAL(idigi_ptr) > 0)
     {
-        unsigned long const max_timeout = (GET_TX_KEEPALIVE_INTERVAL(idigi_ptr) * GET_WAIT_COUNT(idigi_ptr));
+        unsigned long const tx_keepalive_interval = GET_TX_KEEPALIVE_INTERVAL(idigi_ptr);
+        unsigned long const wait_count = GET_WAIT_COUNT(idigi_ptr);
+        unsigned long const max_timeout = (tx_keepalive_interval * wait_count);
 
         if (!valid_timing_limit(idigi_ptr, idigi_ptr->last_tx_keepalive_received_time, max_timeout))
         {
@@ -453,6 +460,7 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
              * We haven't received a message
              * of any kind for the configured maximum interval, so we must
              * mark this connection in error and return that status.
+             * We consider the connection lost.
              *
              * Note: this inactivity check applies only for MTv2 and later.
              * For MTv1, the client sends keep-alives, but the server does
@@ -461,7 +469,8 @@ static int receive_buffer(idigi_data_t * const idigi_ptr, uint8_t  * const buffe
              * keep-alive failure check never triggers.
              *
              */
-            bytes_received = -idigi_keepalive_error;
+            bytes_received = -1;
+            idigi_ptr->error_code = idigi_keepalive_error;
             notify_error_status(idigi_ptr->callback, idigi_class_network, request_id, idigi_keepalive_error);
             idigi_debug_printf("idigi_receive: keepalive fails\n");
         }
@@ -487,11 +496,6 @@ static idigi_callback_status_t receive_data_status(idigi_data_t * const idigi_pt
 
         if (read_length < 0)
         {
-            /* make it a position number for enum error */
-            int error_code = -read_length;
-            ASSERT(error_code > idigi_success && error_code <= idigi_no_resource);
-
-            idigi_ptr->error_code = error_code;
             status = idigi_callback_abort;
             goto done;
         }
@@ -556,7 +560,7 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
      * So we use index == receive_packet_init to initialize the packet before starting reading.
      * When index == receive_packet_type, set to receive message type. After message type is received,
      * we must check valid message type.
-     * 
+     *
      * When index == receive_packet_length, set to receive message length.
      * When index == receive_packet_data, set to receive message data.
      * When index == receive_packet_complete, message data is completely received and
@@ -617,7 +621,7 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
         {
             /* Got message type let's get to message length.
              * So make sure we support the message type.
-             * Then, set to read message length. 
+             * Then, set to read message length.
              */
             uint16_t type_val;
 
@@ -695,7 +699,7 @@ static idigi_callback_status_t receive_packet(idigi_data_t * const idigi_ptr, ui
                 idigi_ptr->receive_packet.packet_length = packet_length;
                 idigi_ptr->receive_packet.total_length = packet_length;
             }
-            else 
+            else
             {
                 /*
                  * Read the actual message data bytes into the packet buffer.

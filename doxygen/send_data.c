@@ -43,48 +43,49 @@
  * @htmlonly
  * <table class="apitable">
  * <tr>
- * <th class="title">Name</td>
- * <th class="title">Description</td>
- * <th class="title">Location</td>
+ *   <th class="title">Name</th>
+ *   <th class="title">Description</th>
+ *   <th class="title">Location</th>
  * </tr>
  * <tr>
- * <th>application.c</th>
- * <td>Contains application_run() and the application callback</td>
- * <td>samples/send_data</td>
+ *   <th>application.c</th>
+ *   <td>Contains application_run() and the application callback</td>
+ *   <td>samples/send_data</td>
  * </tr>
  * <tr>
- * <th>put_request.c</th>
- * <td>data service callback and send_put_request() which starts the data transfer</td>
- * <td>samples/send_data</td>
- * </tr>
- * <th>get_file.py</th>
- * <td>Python script to retrieve a file</td>
- * <td>samples/send_data</td>
+ *   <th>put_request.c</th>
+ *   <td>data service callback and send_put_request() which starts the data transfer</td>
+ *   <td>samples/send_data</td>
  * </tr>
  * <tr>
- * <th>idigi_api.c</th>
- * <td>Code for the iDigi connector </td>
- * <td>private</td>
+ *   <th>get_file.py</th>
+ *   <td>Python script to retrieve a file</td>
+ *   <td>samples/send_data</td>
  * </tr>
  * <tr>
- * <th>os.c</th>
- * <td>Operating system calls</td>
- * <td>platforms/<i>my_platform</i></td>
+ *   <th>idigi_api.c</th>
+ *   <td>Code for the iDigi connector </td>
+ *   <td>private</td>
  * </tr>
  * <tr>
- * <th>network.c</th>
- * <td> Network interface </td>
- * <td>platforms/<i>my_platform</i></td>
+ *   <th>os.c</th>
+ *   <td>Operating system calls</td>
+ *   <td>platforms/<i>my_platform</i></td>
  * </tr>
  * <tr>
- * <th>config.c</th>
- * <td>Configuration routines</td>
- * <td>platforms/<i>my_platform</i></td>
+ *   <th>network.c</th>
+ *   <td> Network interface </td>
+ *   <td>platforms/<i>my_platform</i></td>
  * </tr>
  * <tr>
- * <th>main.o</th>
- * <td>Starting point of program, dependent on build environment</td>
- * <td>platforms/<i>my_platform</i></td>
+ *   <th>config.c</th>
+ *   <td>Configuration routines</td>
+ *   <td>platforms/<i>my_platform</i></td>
+ * </tr>
+ * <tr>
+ *   <th>main.o</th>
+ *   <td>Starting point of program, dependent on build environment</td>
+ *   <td>platforms/<i>my_platform</i></td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -136,5 +137,6 @@
  *
  * The script prints the content of test.txt.
  *
+ * @htmlinclude terminate.html
  *
  */

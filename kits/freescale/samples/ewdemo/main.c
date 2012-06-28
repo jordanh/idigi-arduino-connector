@@ -10,27 +10,15 @@
  * =======================================================================
  */
 #include "main.h"
-#include "idigi_config.h"
-#include "idigi_api.h"
 #include "platform.h"
-#include "idigi_connector.h"
+#include "os_support.h"
+#include "idigi_config.h"
 
-#if !BSPCFG_ENABLE_IO_SUBSYSTEM
-#error This application requires BSPCFG_ENABLE_IO_SUBSYSTEM defined non-zero in user_config.h. Please recompile BSP with this option.
-#endif
-
-
-#ifndef BSP_DEFAULT_IO_CHANNEL_DEFINED
-#error This application requires BSP_DEFAULT_IO_CHANNEL to be not NULL. Please set corresponding BSPCFG_ENABLE_TTYx to non-zero in user_config.h and recompile BSP with this option.
-#endif
-
-
-#if !BSPCFG_ENABLE_FLASHX && (defined(IDIGI_FIRMWARE_SERVICE) || (BOOTLOADER_ENABLED == 1))
+#if !BSPCFG_ENABLE_FLASHX && (defined IDIGI_FIRMWARE_SERVICE)
 #error This application requires BSPCFG_ENABLE_FLASHX defined non-zero in user_config.h. Please recompile BSP with this option.
 #endif
 
-
-TASK_TEMPLATE_STRUCT MQX_template_list[] = 
+TASK_TEMPLATE_STRUCT MQX_template_list[] =
 { 
 /*  Task number, Entry point, Stack, Pri, String, Auto? */
    {MAIN_TASK, Main_task, 2048, 9, "main", MQX_AUTO_START_TASK},
@@ -51,22 +39,17 @@ TASK_TEMPLATE_STRUCT MQX_template_list[] =
    {0,                    0,                     0,    0,   0,      0,         }
 };
 
-static void idigi_status(idigi_connector_error_t const status, char const * const status_message)
-{
-	APP_DEBUG("Got an event from iDigi Connector %d[%s]\n", status, status_message);
-}
-
-static uint_32 start_network(void)
+static uint_32 network_start(void)
 {
     _enet_address * mac_addr = NULL;
-	IPCFG_IP_ADDRESS_DATA ip_data;
+    IPCFG_IP_ADDRESS_DATA ip_data;
     uint_32 result = RTCS_create();
-	
+
     if (result != RTCS_OK) 
     {
-		APP_DEBUG("RTCS failed to initialize, error = %X", result);
-		goto error;
-	}
+        APP_DEBUG("RTCS failed to initialize, error = %X", result);
+        goto error;
+    }
 
     {
         size_t size;
@@ -81,16 +64,16 @@ static uint_32 start_network(void)
                   (*mac_addr)[0], (*mac_addr)[1], (*mac_addr)[2], (*mac_addr)[3], (*mac_addr)[4], (*mac_addr)[5]);
     }
 
-	result = ipcfg_init_device (ENET_DEVICE, *mac_addr);
-	if (result != RTCS_OK) 
-	{
-		APP_DEBUG("Failed to initialize Ethernet device, error = %X", result);
-		goto error;
-	}
+    result = ipcfg_init_device (ENET_DEVICE, *mac_addr);
+    if (result != RTCS_OK)
+    {
+        APP_DEBUG("Failed to initialize Ethernet device, error = %X", result);
+        goto error;
+    }
 
-	APP_DEBUG("Waiting for Ethernet cable plug in ... ");
-	while(!ipcfg_get_link_active(ENET_DEVICE)) {};
-	APP_DEBUG("Cable connected\n");
+    APP_DEBUG("Waiting for Ethernet cable plug in ... ");
+    while(!ipcfg_get_link_active(ENET_DEVICE)) {};
+    APP_DEBUG("Cable connected\n");
 
 #if (defined IDIGI_USE_STATIC_IP)
     ip_data.ip = IDIGI_DEVICE_IPADDR;
@@ -101,18 +84,17 @@ static uint_32 start_network(void)
     APP_DEBUG("Setting static IP address ... ");
     result = ipcfg_bind_staticip (ENET_DEVICE, &ip_data);
 #else
-	APP_DEBUG("Contacting DHCP server ... ");
-	result = ipcfg_bind_dhcp_wait(ENET_DEVICE, FALSE, &ip_data);
+    APP_DEBUG("Contacting DHCP server ... ");
+    result = ipcfg_bind_dhcp_wait(ENET_DEVICE, FALSE, &ip_data);
 #endif
-
     if (result != IPCFG_ERROR_OK) 
     {
-    	APP_DEBUG("\nRTCS failed to bind interface with IPv4, error = %X", result);
-    	goto error;
+        APP_DEBUG("\nRTCS failed to bind interface with IPv4, error = %X", result);
+        goto error;
     }
     else
     {
-	    APP_DEBUG("Done\n");	   
+        APP_DEBUG("Done\n");
     }
 
     ipcfg_get_ip(ENET_DEVICE, &ip_data);
@@ -135,23 +117,21 @@ error:
 *END*-----------------------------------------------------*/
 
 void Main_task(uint_32 initial_data)
-{	  
-	uint_32 const result = start_network();
-	
-	if (result == RTCS_OK)
-	{
-		idigi_connector_error_t const status = idigi_connector_start(idigi_status);
-		
-		if (status != idigi_connector_success)
-		{
-			APP_DEBUG("idigi_connector_start failed %d\n", status);
-		}
-	}
-	
-	InitializeK60TowerDemo();
-   
+{
+    uint_32 const result = network_start();
+
+    if (result == RTCS_OK)
+    {
+        int const status = application_start();
+
+        if (status != 0)
+        {
+            APP_DEBUG("application_start failed %d\n", status);
+        }
+    }
+
 error:
-	_task_block();
+    _task_block();
 }
 
 /* EOF */
