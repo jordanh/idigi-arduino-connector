@@ -27,9 +27,8 @@ CFLAGS += -Winit-self -Wbad-function-cast -Wpointer-arith -Wlogical-op
 CFLAGS += -Wmissing-parameter-type -Wstrict-prototypes -Wformat-security 
 CFLAGS += -Wformat-y2k -Wold-style-definition -Wcast-align -Wformat-nonliteral 
 CFLAGS += -Wpadded -Wredundant-decls -Wvariadic-macros
-CFLAGS += -Wno-error=padded -Wno-error=format-nonliteral
-CFLAGS += -Wno-missing-field-initializers
-CFLAGS += -Wall -Werror -Wextra -pedantic 
+CFLAGS += -MMD -Wall -Werror -Wextra -pedantic
+CFLAGS += -Wno-error=padded -Wno-error=format-nonliteral -Wno-unused-function -Wno-missing-field-initializers 
 # Use ANSIC 99
 CFLAGS +=-std=c99 
 # Explicitly Set to Use iDigi 1.2
@@ -39,30 +38,38 @@ CFLAGS += -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE
 # Include Public Header Files.
 CFLAGS += -I. -I$$(PUBLIC_HEADER_DIR)
 ${PLATFORM_HEADER_INCLUDE}
+ifeq ($$(DEBUG),true)
+CFLAGS += -g -O0
+else
 # Optimize for Size
 CFLAGS += -Os
+endif
 
 # Target output to generate.
-${APP_OBJS}
-PRIVATE_OBJS = $$(IDIGI_DIR)/idigi_api.o
-${PLATFORM_OBJS}
-${OBJS}
+${APP_SRCS}
+PRIVATE_SRCS = $$(IDIGI_DIR)/idigi_api.c
+${PLATFORM_SRCS}
+${SRCS}
 
 # Libraries to Link
 ${LIBS}
 
 # Generated Sample Executable Name.
 SAMPLE = idigi
-
-# Linking Flags.
-LDFLAGS += $$(DFLAGS) -Wl,-Map,$$(SAMPLE).map
-
+.PHONY:all
 all: $$(SAMPLE)
 
-$$(OBJS): *.c $$(IDIGI_DIR)/*.c
+# Linking Flags.
+LDFLAGS += $$(DFLAGS) -Wl,-Map,$$(SAMPLE).map,--sort-common
+
+OBJS = $$(SRCS:.c=.o)
+DEPS = $$(OBJS:.o=.d)
+
+-include $$(DEPS)
 
 $$(SAMPLE): $$(OBJS)
-	$$(CC) $$(LDFLAGS) $$^ $$(LIBS) -o $$(SAMPLE)
+	$$(CC) $$(LDFLAGS) $$^ $$(LIBS) -o $$@
 
+.PHONY: clean
 clean:
-	-rm -f $$(OBJS)
+	-rm -f $$(SAMPLE) $$(OBJS) $$(DEPS)

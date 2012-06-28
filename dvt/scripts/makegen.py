@@ -41,13 +41,13 @@ vpath $(PLATFORM_DIR)/%.c""",
     'PLATFORM_HEADER_INCLUDE' : """# Include Platform Header Files.
 CFLAGS += -I$(PLATFORM_DIR)""",
 
-    # Application Objects to use (will resolve to *.c in sample dir to *.o)
-    'APP_OBJS'              : '',
-    # Platform Objects to use (will resolve based on sample name)
-    'PLATFORM_OBJS'           : '',
-    # Include all Application, Platform, and Private Objects.  
+    # Application sorce files to use
+    'APP_SRCS'              : '',
+    # Platform source files to use (will resolve based on sample name)
+    'PLATFORM_SRCS'           : '',
+    # Include all Application, Platform, and Private source.  
     #If Platform not needed, not included.
-    'OBJS'                    : "OBJS = $(APP_OBJS) $(PLATFORM_OBJS) $(PRIVATE_OBJS)",
+    'SRCS'                    : "SRCS = $(APP_SRCS) $(PLATFORM_SRCS) $(PRIVATE_SRCS)",
     # LIBS to include, -pthread will be added if 'run' type.  
     # connect_on_ssl adds '-lssl', file_system adds APP_ENABLE_MD5 if.
     'LIBS'                    : "LIBS = -lc -lz"
@@ -76,13 +76,13 @@ def generate_makefile(path, make_template):
         subs['PLATFORM_DIR'] = ''
         subs['PLATFORM_VPATH'] = ''
         subs['PLATFORM_HEADER_INCLUDE'] = ''
-        subs['OBJS'] = 'OBJS = $(APP_OBJS) $(PRIVATE_OBJS)'
+        subs['SRCS'] = 'SRCS = $(APP_SRCS) $(PRIVATE_SRCS)'
     else:
-        # Assume this is the base set of Platform Objects 
-        subs['PLATFORM_OBJS'] = 'PLATFORM_OBJS = $(PLATFORM_DIR)/os.o $(PLATFORM_DIR)/config.o $(PLATFORM_DIR)/debug.o $(PLATFORM_DIR)/main.o'
+        # Assume this is the base set of Platform files 
+        subs['PLATFORM_SRCS'] = 'PLATFORM_SRCS = $(PLATFORM_DIR)/os.c $(PLATFORM_DIR)/config.c $(PLATFORM_DIR)/debug.c $(PLATFORM_DIR)/main.c'
 
-    # Resolve Local Objs to all *.c files in the directory.
-    subs['APP_OBJS'] = 'APP_OBJS = ' + ' '.join([ re.sub(r'\.c$', '.o', f) \
+    # Add all *.c files in the directory.
+    subs['APP_SRCS'] = 'APP_SRCS = ' + ' '.join([ re.sub(r'\.c$', '.c', f) \
         for f in os.listdir(full_path) if f.endswith('.c') ])
 
     # Add -lpthread as a linked library if this is a run sample.
@@ -90,17 +90,17 @@ def generate_makefile(path, make_template):
         subs['LIBS'] += ' -lpthread' 
 
     if sample == 'connect_on_ssl':
-        # Add network_ssl.o to PLATFORM_OBJS and -lssl to LIBS.
-        subs['PLATFORM_OBJS'] += ' $(PLATFORM_DIR)/network_ssl.o'
+        # Add network_ssl.c to PLATFORM_SRCS and -lssl to LIBS.
+        subs['PLATFORM_SRCS'] += ' $(PLATFORM_DIR)/network_ssl.c'
         subs['LIBS'] += ' -lssl'
     elif sample != 'compile_and_link':
-        #  Otherwise add network.o.
-        subs['PLATFORM_OBJS'] += ' $(PLATFORM_DIR)/network.o'
+        #  Otherwise add network.c.
+        subs['PLATFORM_SRCS'] += ' $(PLATFORM_DIR)/network.c'
 
     if sample == 'file_system':
-        # Add file_system.o to PLATFORM_OBJS.  -lcrypto if APP_ENABLE_MD5 
+        # Add file_system.c to PLATFORM_SRCS.  -lcrypto if APP_ENABLE_MD5
         # passed.
-        subs['PLATFORM_OBJS'] += " $(PLATFORM_DIR)/file_system.o"
+        subs['PLATFORM_SRCS'] += " $(PLATFORM_DIR)/file_system.c"
         subs['LIBS'] += """
 
 ifeq ($(APP_ENABLE_MD5),true)
