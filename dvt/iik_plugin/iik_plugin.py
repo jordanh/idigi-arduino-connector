@@ -2,6 +2,7 @@ from nose.plugins import Plugin
 import os
 import idigi_ws_api
 import configuration
+import logging
 
 class IIKPlugin(Plugin):
     name = 'iik'

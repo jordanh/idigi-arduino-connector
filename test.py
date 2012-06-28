@@ -16,12 +16,12 @@ import commands
 import sys
 import getopt
 import signal
+import subprocess
 import imp
 import tempfile
 import os, time
 import StringIO
 import uuid
-import subprocess
 import tempfile
 import shutil
 import idigi_ws_api
@@ -86,7 +86,7 @@ dvt_tests = {
     'terminate_test'              : ('test_ds_terminate.py',),
     'response_to_bad_values_test' : ('test_debug_response_to_bad_values.py',),
     'compile_remote_config'       : (),
-    'base_remote_config'          : ('test_rci_descriptors.py',)
+    'remote_config'               : ('test_rci_descriptors.py',)
 }
 dvt_test    = TestType('dvt_test', 'dvt/samples/', 'dvt/cases/dvt_tests',
                        dvt_tests)
@@ -428,19 +428,32 @@ def build_template(description, cflags):
     nose.run(defaultTest=[test_to_run], argv=arguments)
     print '>>> [%s] Finished [%s]' % (description, test_script)
 
+def generate_config_tool_jar(build_path='tools/config'):
+    print ">>> Generating Config Tool"
+    process = subprocess.Popen(['ant', 
+            '-f', '%s/build.xml' % build_path], 
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+    data = process.communicate()[0]
+
+    if(process.returncode == 0):
+        print ">>> Config Tool Generation Successful."
+
+    return (process.returncode, data)
+
 def main():
     parser = argparse.ArgumentParser(description="iDigi Connector TestCase",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('--username', action='store', type=str, default='iikdvt')
     parser.add_argument('--password', action='store', type=str, default='iik1sfun')
-    parser.add_argument('--hostname', action='store', type=str, default='test.idigi.com')
+    parser.add_argument('--hostname', action='store', type=str, default='idigi-e2e.sa.digi.com')
     parser.add_argument('--descriptor', action='store', type=str, default='linux-x64')
     parser.add_argument('--architecture', action='store', type=str, default='x64')
     parser.add_argument('--test_name', action='store', type=str, default=None)
     parser.add_argument('--test_type', action='store', type=str, default=None)
     parser.add_argument('--configuration', action='store', type=str, 
-        default='all', choices=['default', 'nodebug', 'compression', 
+        default='default', choices=['default', 'nodebug', 'compression', 
                                     'debug', 'config_header', 'template', 
                                     'all'])
     parser.add_argument('--tty', action='store_true',dest='tty', default=False)
@@ -454,6 +467,20 @@ def main():
 
     config_tool_jar = os.path.abspath(args.config_tool_jar.name) \
         if args.config_tool_jar is not None else None
+
+    if config_tool_jar is None:
+        config_tool_jar = os.path.abspath('tools/config/dist/ConfigGenerator.jar')
+
+        if not os.path.isfile(config_tool_jar):
+            print ">>> Generating ConfigGenerator.jar since not provided and " \
+            "none exists in %s. "\
+            "Note: ant and java are required" % config_tool_jar
+            (rc, output) = generate_config_tool_jar()
+
+            if rc != 0:
+                print output
+                print "ConfigGenerator.jar not created.  " \
+                    "This may cause tests to fail."
 
     keystore = os.path.abspath(args.keystore.name) \
         if args.keystore is not None else None

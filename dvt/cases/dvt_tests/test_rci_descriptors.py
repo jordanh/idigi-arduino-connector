@@ -11,26 +11,22 @@ dom = getDOMImplementation()
 
 from iik_plugin import IIKPlugin
 
+log = logging.getLogger('iik_testcase')
+log.setLevel(logging.INFO)
+if len(log.handlers) == 0:
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    log.addHandler(handler)
+
+logging.getLogger('requests').setLevel(logging.WARNING)
+
 ##################################################################
 # Elements and Groups to ignore (to not ruin device config)
 ##################################################################
-EXCLUDE_GROUP=['mgmtnetwork','mgmtglobal','host','dns','arp','tcp','python','boot',]
-EXCLUDE_ELEMENT=['password','mgmtconnection','connectionEnabled','serverAddress','serverArray',]
-##################################################################
-
-##################################################################
-#Set to 1 if you want to test negative test cases.
-##################################################################
-RUN_ERRORS = 1
-##################################################################
-
-##################################################################
-#Seconds to sleep in between web service calls.
-##################################################################
-#NOTE: Each test does 3 web service calls. 
-#This means about 300 WSCs are done. Which means iDigi may
-#reach it's hourly limit if you are not careful.
-RCI_SLEEP = 0
+EXCLUDE_GROUP=[]
+EXCLUDE_ELEMENT=[]
 ##################################################################
 
 ##################################################################
@@ -58,77 +54,86 @@ RCI_DESC_TEMPLATE = Template("""<sci_request version="1.0">
   </send_message>
 </sci_request>""")
 
-QUERY_DESCRIPTOR_SETTING = """<query_descriptor>
-    <query_setting/>
-</query_descriptor>"""
+QUERY_DESCRIPTOR_SETTING = """<query_descriptor><query_setting/></query_descriptor>"""
 
-QUERY_DESCRIPTOR_STATE = """<query_descriptor>
-    <query_state/>
-</query_descriptor>"""
+QUERY_DESCRIPTOR_STATE = """<query_descriptor><query_state/></query_descriptor>"""
 
-SET_SETTING = Template("""<set_setting>
-    <${group}>
-        <${element}>${value}</${element}>
-    </${group}>
-</set_setting>""")
+SET_SETTING = Template("""<set_setting><${group}><${element}>${value}</${element}></${group}></set_setting>""")
 
-QUERY_SETTING = Template("""<query_setting>
-<${group}/>
-</query_setting>""")
+QUERY_SETTING = Template("""<query_setting><${group}/></query_setting>""")
 
-SET_STATE = Template("""<set_state>
-    <${group}>
-        <${element}>${value}</${element}>
-    </${group}>
-</set_state>""")
+SET_STATE = Template("""<set_state><${group}><${element}>${value}</${element}></${group}></set_state>""")
 
-QUERY_STATE = Template("""<query_state>
-    <${group}/>
-</query_state>""")
+QUERY_STATE = Template("""<query_state><${group}/></query_state>""")
 ##################################################################
 
-class Element(object):
+class RCIGroupTestScenario(object):
     
-    def __init__(self,element,value, error, desc, isState=False):
-        self.element = element
-        self.value = value
-        self.error = error
-        self.description = desc
-        self.isState = isState
-        self.group=self.element.parentNode.getAttribute('element')
+    def __init__(self, element, value, error, description):
+        self.element        = element
+        self.value          = value
+        self.error          = error
+        self.description    = description
 
     def __repr__(self):
-        return '%s_%s_%s' % (self.group , 
-                             self.element.getAttribute('name'), 
+        return '%s_%s_%s' % (self.element.group, 
+                             self.element.name, 
                              self.description)
 
-def replace_entities(aString):
-    rtrn = aString.replace('&lt;','<')
-    rtrn = rtrn.replace('&gt;','>')
-    rtrn = rtrn.replace('&amp;','&')
-    rtrn = rtrn.replace('&quot;','"')
-    rtrn = rtrn.replace('&apos;',"'")
-    return rtrn
+class RciElement(object):
+
+    def __init__(self, group, element):
+        self.group   = group
+        self.element = element
+        self.type    = element.getAttribute('type')
+        self.name    = element.getAttribute('name')
+        self.min     = None
+        self.max     = None
+        self.access  = element.getAttribute('access') \
+                        if element.hasAttribute('access') else None
+
+        base = 16 if self.type in ['hex32', '0xhex'] else 10
+
+        if element.hasAttribute('min'):
+            self.min = int(element.getAttribute('min'), base)
+        if element.hasAttribute('max'):
+            self.max = int(element.getAttribute('max'), base)
+
+    def has_max(self):
+        return self.max is not None
+
+    def has_min(self):
+        return self.min is not None
+
+    def has_min_and_max(self):
+        return self.has_min() and self.has_max()
+
+    def has_min_or_max(self):
+        return self.has_min() or self.has_max()        
+
     
 def send_rci(request, url, 
              username,
              password):
-    #Used if we receive bad XML from iDigi/Device
-    sleep(RCI_SLEEP)
-    response = post(url, data=request, auth=(username, password), verify=False)
+
+    req_data = parseString(request).toxml()
+    log.info("Sending SCI Request: \n%s" % req_data)
+
+    response = post(url, 
+                    data=req_data, 
+                    auth=(username, password), 
+                    verify=False)
+
     assert_equal(200, response.status_code, "Non 200 Status Code: %d.  " \
         "Response: %s" % (response.status_code, response.content))
     try:
-        return parseString(response.content)
+        res_data = parseString(response.content)
+        log.info("Received SCI Response: \n%s" \
+            % res_data.toprettyxml(indent=' '))
+        return res_data
     except Exception, e:
         error = "Response was not valid XML: %s" % response.content
         assert 0==1, error
-
-def bad_type_fail():
-    "If type is not supported, fail!"
-    #Used for error handling.
-    ERROR_UNKNOWN_TYPE = 0
-    assert(ERROR_UNKNOWN_TYPE)
 
 def get_string (value):
     chars = []
@@ -160,73 +165,100 @@ def format_hex(value):
 
 class TestRciDescriptors(object):
 
-    def __init__(self):
-        self.log = logging.getLogger('iik_testcase')
-        self.log.setLevel(logging.INFO)
-        if len(self.log.handlers) == 0:
-            handler = logging.StreamHandler()
-            handler.setLevel(logging.INFO)
-            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-            handler.setFormatter(formatter)
-            self.log.addHandler(handler)
+    def set_and_query_setting(self, test):
+        return self.set_and_query(test, setting=True)
 
-    def set_and_query(self, test):
-        group = test.group
-        eName = test.element.getAttribute('name')
-        readOnly = False
-        if test.element.hasAttribute('access'):
-            if test.element.getAttribute('access') == 'read_only':
-                readOnly = True
-        if test.isState:
-            queryValue=QUERY_STATE.substitute(group=group)
-            setValue=SET_STATE.substitute(group=group,element=eName,value=test.value)
+    def set_and_query_state(self, test):
+        return self.set_and_query(test, setting=False)
+
+    def set_and_query(self, test, setting=True):
+
+        if setting:
+            query_template = QUERY_SETTING
+            set_template = SET_SETTING
         else:
-            queryValue=QUERY_SETTING.substitute(group=group)
-            setValue=SET_SETTING.substitute(group=group,element=eName,value=test.value)
+            query_template = QUERY_STATE
+            set_template = SET_STATE
+
+        query_command = query_template.substitute(group = test.element.group)
+        set_command   = set_template.substitute(group   = test.element.group,
+                                                element = test.element.name,
+                                                value   = test.value)
+
+        log.info("Sending initial query command for %s/%s to capture value." \
+            % (test.element.group, test.element.name))
+
         #Get the current value
-        rci = RCI_BASE_TEMPLATE.substitute(request=queryValue, 
+        rci = RCI_BASE_TEMPLATE.substitute(request=query_command, 
                     device_id=IIKPlugin.device_config.device_id)
         doc = send_rci(rci, 'https://%s/ws/sci' % IIKPlugin.api.hostname, 
             IIKPlugin.api.username, IIKPlugin.api.password)
-        currValue = ''
-        value = xpath.find('//%s/%s'%(group,eName), doc)
+
+        self.parse_errors(doc)
+
+        current_value = ''
+        value = xpath.find('//%s/%s' % (test.element.group,
+                                        test.element.name), doc)
         if value:
-            currValue = '%s'%value[0].firstChild.nodeValue
+            current_value = '%s'%value[0].firstChild.nodeValue
+
         #Set a new value
-        rci = RCI_BASE_TEMPLATE.substitute(request=setValue, 
+        rci = RCI_BASE_TEMPLATE.substitute(request=set_command, 
                     device_id=IIKPlugin.device_config.device_id)
+
+        log.info("Sending set command for %s/%s to value '%s'." \
+                        % (test.element.group, test.element.name, test.value))
         doc = send_rci(rci, 'https://%s/ws/sci' % IIKPlugin.api.hostname, 
             IIKPlugin.api.username, IIKPlugin.api.password)
-        errs = xpath.find('//error',doc)
+
+        errors = xpath.find('//error',doc)
         #Check to see if response had errors in it.
-        if len(errs) > 0:
-            assert_is_not_none(test.error,"Unexpected Errors Returned.  " \
-                "Response: %s" % doc.toprettyxml(indent="\t"))
+        if len(errors) > 0 and test.error is None:
+            log.info("Ensuring no errors returned in set response.")
+            assert_is_not_none(test.error, "Error(s) Unexpectedly Returned")
+        
+        elif test.error is not None:
+            log.info("Ensuring errors were found in set response.")
             #Check to see if we expect errors.
-                #Check each error returned to make sure they are valid
-            for err in errs:
-                errorId = int(err.getAttribute('id'))
-                assert_not_in(errorId,test.error)
+            #Check each error returned to make sure they are valid
+            for error in errors:
+                error_id = int(error.getAttribute('id'))
+                assert_not_in(test.error, error_id)
         else:
             #If we expected an error but didn't get any, fail
-            assert_is_none(test.error)
+            assert_is_none(test.error, 
+                "No errors found when expected")
+
         #Check to see if value is correct
-        rci = RCI_BASE_TEMPLATE.substitute(request=queryValue, 
+        log.info("Sending query command for %s/%s." \
+                    % (test.element.group, test.element.name))
+        rci = RCI_BASE_TEMPLATE.substitute(request=query_command, 
                     device_id=IIKPlugin.device_config.device_id)
         doc = send_rci(rci, 'https://%s/ws/sci' % IIKPlugin.api.hostname, 
             IIKPlugin.api.username, IIKPlugin.api.password)
+
+        self.parse_errors(doc)
+
         #Get the new value
-        newValue = ''
-        value = xpath.find('//%s/%s'%(group,eName), doc)
+        new_value = ''
+        value = xpath.find('//%s/%s'%(test.element.group,test.element.name), doc)
         if value:
-            newValue = '%s'%value[0].firstChild.nodeValue
-        if (test.error is None and not readOnly):
-            eq_('%s'%test.value,newValue)
+            new_value = '%s'%value[0].firstChild.nodeValue
+
+        if (test.error is None and test.element.access != 'read_only'):
+            log.info("Ensuring value was successfully set.")
+            eq_('%s'%test.value,new_value, 
+                "Set value (%s) doesn't match value returned in query (%s)." \
+                    % (test.value, new_value))
         else:
-            assert_not_equal(currValue,newValue)
+            log.info("Ensuring value was not successfully set.")
+            assert_not_equal(current_value,new_value, "Value was set even " \
+                "though we expected the set_setting command to fail.")
+
+        log.info("Test was successful.")
 
     def ensure_connected(self):
-        self.log.info("Ensuring Device %s is connected." \
+        log.info("Ensuring Device %s is connected." \
             % IIKPlugin.device_config.device_id)
         self.device_core = IIKPlugin.api.get_first('DeviceCore', 
                         condition="devConnectwareId='%s'" \
@@ -237,230 +269,63 @@ class TestRciDescriptors(object):
             self.assertEqual('1', self.device_core.dpConnectionStatus, 
                 "Device %s not connected." % IIKPlugin.device_config.device_id)
 
-    def test_device_rci(self):
-        self.ensure_connected()
-        request = [{'query':RCI_DESC_TEMPLATE.substitute(request=QUERY_DESCRIPTOR_SETTING,
-                    device_id=IIKPlugin.device_config.device_id),'isState':False},
-                   {'query':RCI_DESC_TEMPLATE.substitute(request=QUERY_DESCRIPTOR_STATE, 
-                    device_id=IIKPlugin.device_config.device_id),'isState':True},
-                   ]
-        for r in request:
-            isState = r['isState']
-            rci=r['query']
-            doc = send_rci(rci, 'https://%s/ws/sci' % IIKPlugin.api.hostname, 
+    def parse_group(self, descriptor, setting=True):
+        group_name = descriptor.getAttribute('element')
+        errors = [ int(e.getAttribute('id')) \
+                        for e in xpath.find('error_descriptor',descriptor) ]
+
+        elements = [ RciElement(group_name, e) \
+                        for e in xpath.find('element', descriptor) ]
+
+        tests = []
+        for element in elements:
+            if element.type in ['string', 'multiline_string', 'password']:
+                if element.has_min():
+                    tests.append(RCIGroupTestScenario(element, 
+                        get_string(element.min), 
+                        None, 
+                        '%s_no_error_at_min_%s' % (element.type, element.min)))
+
+        return tests
+
+    def parse_errors(self, doc):
+        errors = xpath.find('//error',doc)
+        if len(errors) > 0:
+            error = errors[0]
+            if error.getAttribute('id') == '2007':
+                raise Exception("Invalid XML received from query_setting of device: \n%s" \
+                    % xpath.find('hint/text()', error)[0].data)
+            else:
+                raise Exception("Error (%s) Returned from device: %s. Hint: %s" \
+                    % (error.getAttribute('id'), 
+                       xpath.find('desc/text()', error)[0].data,
+                       xpath.find('hint/text()', error)[0].data))
+
+    def get_descriptors(self, setting=True):
+        request_template = QUERY_DESCRIPTOR_SETTING \
+                            if setting else QUERY_DESCRIPTOR_STATE
+
+        rci = RCI_DESC_TEMPLATE.substitute(request=request_template,
+                        device_id=IIKPlugin.device_config.device_id)
+
+        doc = send_rci(rci, 'https://%s/ws/sci' % IIKPlugin.api.hostname, 
                 IIKPlugin.api.username, IIKPlugin.api.password)
 
-            for descriptor in xpath.find('//format_define/descriptor', doc):
-                #Get all the possible error id's for this descriptor
-                if descriptor.getAttribute('element') not in EXCLUDE_GROUP:
-                    errors = []
-                    for error in xpath.find('error_descriptor',descriptor):
-                        errors.append(int(error.getAttribute('id')))
-                    #Get all the elements in this descriptor
-                    for element in xpath.find('element', descriptor):
-                        if element.getAttribute('name') not in EXCLUDE_ELEMENT:
-                            element_type = element.getAttribute('type')
-                            bad_type = False
-                            # Get min/max values if they have them.
-                            eMin = None
-                            eMax = None
-                            #NOTE: Need these because we are changing min/max into ints
-                            ##If the min/max is 0 it will evaluate as False.
-                            has_min = False
-                            has_max = False
-                            has_both = False
-                            has_none = True
-                            if element.getAttribute('min'):
-                                has_min = True
-                                if element_type not in ['hex32']:
-                                    eMin = int(element.getAttribute('min'),0)
-                                else:
-                                    eMin = int(element.getAttribute('min'),16)
-                            if element.getAttribute('max'):
-                                has_max = True
-                                if element_type not in ['hex32']:
-                                    eMax = int(element.getAttribute('max'),0)
-                                else:
-                                    eMax = int(element.getAttribute('max'),16)
-                            if has_min and has_max:
-                                has_both =True
-                                if eMax > eMin:
-                                    randNum = randrange(eMin, eMax)
-                            if has_min or has_max:
-                                has_none = False
-                            #The following runs tests depending on type of element
-                            if element_type in ['string','multiline_string','password']:
-                                #Create the tests
-                                tests = []
-                                if has_min:
-                                    tests.append(Element(element,
-                                                                get_string(eMin),
-                                                                None,
-                                                                '%s_no_error_at_min' % element_type))
-                                    if eMin > 0:
-                                        if RUN_ERRORS:
-                                            tests.append(Element(element,get_string(eMin-1),errors,'%s_less_than_min'% element_type,isState))
-                                if has_max:
-                                    tests.append(Element(element,get_string(eMax),None,'%s_no_error_at_max'% element_type,isState))
-                                    if RUN_ERRORS:
-                                        tests.append(Element(element,get_string(eMax+1),errors,'%s_more_than_max'% element_type,isState))
-                                if has_both:
-                                    tests.append(Element(element,get_string(randNum),None,'%s_no_error_within_min_max'% element_type,isState))
-                                if has_none:
-                                    tests.append(Element(element,"This is a test",None,'%s_no_error'% element_type,isState))
-                                    if RUN_ERRORS:
-                                        tests.append(Element(element,"",errors,'%s_empty_string'% element_type,isState))
-                
-                            elif element_type in ['uint32', 'int32']:
-                                tests = []
-                                if has_min:
-                                    tests.append(Element(element,eMin,None,'%s_no_error_at_min'% element_type,isState))
-                                    if RUN_ERRORS:
-                                        tests.append(Element(element,eMin-1,errors,'%s_less_than_min'% element_type,isState))
-                                if has_max:
-                                    tests.append(Element(element,eMax,None,'%s_no_error_at_max'% element_type,isState))
-                                    if RUN_ERRORS:
-                                        tests.append(Element(element,eMax+1,errors,'%s_more_than_min'% element_type,isState))
-                                if has_both:
-                                    tests.append(Element(element,randNum,None,'%s_no_error_within_min_max'% element_type,isState))
-                                if has_none:
-                                    tests.append(Element(element,1234545678,None,'%s_no_error'% element_type,isState))
-                                    if 'unit32' in element_type:
-                                        err = errors
-                                    else:
-                                        err = None
-                                    if RUN_ERRORS or err is None:
-                                        tests.append(Element(element,-123,  err, '%s_negative_number'% element_type,isState))
-                
-                            elif element_type in ['hex32','0xhex']:
-                                tests = []
-                                if has_min:
-                                    hMin = hex(eMin)
-                                    hMinM = hex(eMin-1)
-                                    if 'hex32' in element_type:
-                                        hMin = format_hex(hMin)
-                                        hMinM = format_hex(hMinM)
-                                    tests.append(Element(element,hMin,None,'%s_no_error_at_min'% element_type,isState))
-                                    if RUN_ERRORS:
-                                        tests.append(Element(element,hMinM,errors,'%s_less_than_min'% element_type,isState))
-                                if has_max:
-                                    hMax = hex(eMax)
-                                    hMaxP = hex(eMax+1)
-                                    if element_type in 'hex32':
-                                        hMax = format_hex(hMax)
-                                        hMaxP = format_hex(hMaxP)
-                                    tests.append(Element(element,hMax,None,'%s_no_error_at_max'% element_type,isState))
-                                    if RUN_ERRORS:
-                                        tests.append(Element(element,hMaxP,errors,'%s_more_than_min'% element_type,isState))
-                                if has_both:
-                                    hRand = hex(randNum)
-                                    if 'hex32' in element_type:
-                                        hRand = format_hex(hRand)
-                                    tests.append(Element(element,hRand,None,'%s_no_error_within_min_max'% element_type,isState))
-                                if has_none:
-                                    hNorm = hex(1289)
-                                    if 'hex32' in element_type:
-                                        hNorm = format_hex(hNorm)
-                                    tests.append(Element(element,hNorm,None,'%s_no_error'% element_type,isState))
-                
-                            elif 'float' in element_type:
-                                tests = []
-                                if has_min:
-                                    tests.append(Element(element,float(eMin),None,'%s_no_error_at_min'% element_type,isState))
-                                    if RUN_ERRORS:
-                                        tests.append(Element(element,float(eMin-0.1),errors,'%s_less_than_min'% element_type,isState))
-                                if has_max:
-                                    tests.append(Element(element,float(eMax),None,'%s_no_error_at_max'% element_type,isState))
-                                    if RUN_ERRORS:
-                                        tests.append(Element(element,float(eMax+0.1),errors,'%s_more_than_min'% element_type,isState))
-                                if has_both:
-                                    tests.append(Element(element,float(randNum),None,'%s_no_error_within_min_max'% element_type,isState))
-                                if has_none:
-                                    tests.append(Element(element,1234545678.123,None,'%s_no_error'% element_type,isState))
-                                    tests.append(Element(element,-123.123,  None, '%s_no_error_negative_number'% element_type,isState))
-                
-                            elif 'enum' in element_type:
-                                tests = []
-                                for value in xpath.find('value', element):
-                                    tests.append(Element(element,value.getAttribute('value'),None,'%s_no_error_%s' % (element_type,value.getAttribute('value')),isState))
-                                if RUN_ERRORS:
-                                    tests.append(Element(element,"asdasdfkjh",errors,'%s_error_bad_value'% element_type,isState))
-                
-                            elif 'on_off' in element_type:
-                                tests = []
-                                tests.append(Element(element,"on",None,'%s_no_error_bad_value'% element_type,isState))
-                                tests.append(Element(element,"off",None,'%s_no_error_bad_value'% element_type,isState))
-                                if RUN_ERRORS:
-                                    tests.append(Element(element,"badValue",errors,'%s_error_bad_value'% element_type,isState))
-                
-                            elif 'boolean' in element_type:
-                                tests = []
-                                tests.append(Element(element,"true",None,'%s_no_error_bad_value'% element_type,isState))
-                                tests.append(Element(element,"false",None,'%s_no_error_bad_value'% element_type,isState))
-                                if RUN_ERRORS:
-                                    tests.append(Element(element,"badValue",errors,'%s_error_bad_value'% element_type,isState))
-                
-                            elif element_type in ['ipv4', 'fqdnv4','fqdnv6']:
-                                tests = []
-                                #ipv4 tests
-                                tests.append(Element(element,"256.256.256.256",None,'%s_no_error'% element_type,isState))
-                                tests.append(Element(element,"0.0.0.0",None,'%s_no_error'% element_type,isState))
-                                tests.append(Element(element,"10.9.116.1",None,'%s_no_error'% element_type,isState))
-                                if RUN_ERRORS:
-                                    tests.append(Element(element,"1000.1.1.1",errors,'%s_error_bad_value'% element_type,isState))
-                                    tests.append(Element(element,"999.999.999.999",errors,'%s_error_bad_value'% element_type,isState))
-                                    tests.append(Element(element,"1000",errors,'%s_error_bad_value'% element_type,isState))
-                                    tests.append(Element(element,"asdf",errors,'%s_error_bad_value'% element_type,isState))
-                                    tests.append(Element(element,"",errors,'%s_error_bad_value'% element_type,isState))
-                                if element_type in ['fqdnv4','fqdnv6']:
-                                    #fqdnv4/6 tests
-                                    if has_min:
-                                        tests.append(Element(element,get_dns(eMin),None,'%s_no_error_has_min_dns'% element_type,isState))
-                                        if RUN_ERRORS:
-                                            tests.append(Element(element,get_dns(eMin-1),errors,'%s_error_less_than_min_dns'% element_type,isState))
-                                    if has_max:
-                                        tests.append(Element(element,get_dns(eMax),None,'%s_no_error_has_min_dns'% element_type,isState))
-                                        if RUN_ERRORS:
-                                            tests.append(Element(element,get_dns(eMax+1),errors,'%s_error_less_than_min_dns'% element_type,isState))
-                                    if has_both:
-                                        tests.append(Element(element,get_dns(randNum),None,'%s_no_error_within_min_max_dns'% element_type,isState))
-                                    if has_none:
-                                        tests.append(Element(element,'test.idigi.com',None,'%s_no_error_has_min_dns'% element_type,isState))
-                                        if RUN_ERRORS:
-                                            tests.append(Element(element,'',errors,'%s_error_empty_dns'% element_type,isState))
-                                    if element_type in 'fqdnv6':
-                                        #fqdnv6 tests
-                                        tests.append(Element(element,"1000:1000:1000:1000:1000:1000:1000:1000",None,'%s_no_error_ipv6'% element_type,isState))
-                                        tests.append(Element(element,"ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",None,'%s_no_error_ipv6'% element_type,isState))
-                                        tests.append(Element(element,"1000:1000:1000",None,'%s_no_error_ipv6'% element_type,isState))
-                                        if RUN_ERRORS:
-                                            tests.append(Element(element,"asdf",errors,'%s_error_bad_value'% element_type,isState))
-                                            tests.append(Element(element,"",errors,'%s_error_bad_value'% element_type,isState))
-                
-                            elif 'datetime' in element_type:
-                                tests = []
-                                tests.append(Element(element,"2011-03-31T00:00:00Z",None,'%s_no_error'% element_type,isState))
-                                tests.append(Element(element,"2011-03-31T00:00:00-0600",None,'%s_no_error'% element_type,isState))
-                                tests.append(Element(element,"2011-03-31T00:00:00",None,'%s_no_error'% element_type,isState))
-                                if RUN_ERRORS:
-                                    tests.append(Element(element,"9999-12-31T00:00:00Z",errors,'%s_error'% element_type,isState))
-                                    tests.append(Element(element,"2011-13-31T00:00:00Z",errors,'%s_error'% element_type,isState))
-                                    tests.append(Element(element,"2011-00-31T00:00:00Z",errors,'%s_error'% element_type,isState))
-                                    tests.append(Element(element,"2011-03-32T00:00:00Z",errors,'%s_error'% element_type,isState))
-                                    tests.append(Element(element,"0000-03-31T00:00:00Z",errors,'%s_error'% element_type,isState))
-                                    tests.append(Element(element,"2011-03-31T99:00:00Z",errors,'%s_error'% element_type,isState))
-                                    tests.append(Element(element,"2011-03-31T59:00:00Z",errors,'%s_error'% element_type,isState))
-                                    tests.append(Element(element,"2011-03-31T00:99:00Z",errors,'%s_error'% element_type,isState))
-                                    tests.append(Element(element,"2011-03-31T00:00:99Z",errors,'%s_error'% element_type,isState))
-                                    tests.append(Element(element,"2011-03-31T00:00:00-9999",errors,'%s_error'% element_type,isState))
-                                    tests.append(Element(element,"2011-03-31T00:00:00-1",errors,'%s_error'% element_type,isState))
-                                    tests.append(Element(element,"2011-03-31",errors,'%s_error'% element_type,isState))
-                                    tests.append(Element(element,"",errors,'%s_error'% element_type,isState))
-                                
-                            else:
-                                bad_type = True
-                                #yield bad_type_fail
-                            if not bad_type:
-                                for t in tests:
-                                    yield self.set_and_query, t
-                        
+        return [ d for d in xpath.find('//format_define/descriptor', doc) ]
+
+    def test_device_rci(self):
+        self.ensure_connected()
+
+        log.info("Retrieving query_setting descriptors.")
+        for descriptor in self.get_descriptors(setting=True):
+            tests = self.parse_group(descriptor, True)
+
+            for test in tests:
+                yield self.set_and_query_setting, test
+
+        log.info("Retrieving query_state descriptors.")
+        for descriptor in self.get_descriptors(setting=False):
+            tests = self.parse_group(descriptor, False)
+
+            for test in tests:
+                yield self.set_and_query_state, test
