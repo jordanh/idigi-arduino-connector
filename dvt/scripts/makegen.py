@@ -15,6 +15,17 @@ Uses path to sample project to determine contents of Makefile. """
 import os
 import sys
 import re
+import logging
+
+log = logging.getLogger('makegen')
+log.setLevel(logging.WARNING)
+
+if len(log.handlers) == 0:
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    log.addHandler(handler)
 
 from string import Template
 
@@ -137,11 +148,7 @@ endif"""
 
     return make_template.substitute(**subs)
 
-if __name__ == "__main__":
-    if len(sys.argv) == 1:
-        print "Usage: makegen.py [sample_directory|all]"
-        sys.exit(-1)
-
+def make(path):
     # Read make template into a Template object.
     make_template = open(TEMPLATE, 'r')
     template_data = make_template.read()
@@ -151,7 +158,7 @@ if __name__ == "__main__":
     directories = []
 
     # Generate Makefile for all samples assuming in base ic directory.
-    if sys.argv[1] == 'all':
+    if path == 'all':
         run_dir = os.path.abspath(os.path.join('.', 'public/run/samples'))
         step_dir = os.path.abspath(os.path.join('.', 'public/step/samples'))
         dvt_dir = os.path.abspath(os.path.join('.', 'dvt/samples'))
@@ -172,14 +179,22 @@ if __name__ == "__main__":
                 directories.append(sample_dir)
 
     else:
-        directories.append(os.path.abspath(sys.argv[1]))
+        directories.append(os.path.abspath(path))
 
     for directory in directories:
         data = generate_makefile(directory, template)
         target_makefile = os.path.join(directory, 'Makefile')
-        print "Generating Makefile in %s" % target_makefile
+        log.info("Generating Makefile in %s" % target_makefile)
         f = open(target_makefile, 'wb')
         f.write(data)
         f.close()
 
-    print "Done"
+    log.info("Done")
+
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        print "Usage: makegen.py [sample_directory|all]"
+        sys.exit(-1)
+
+    log.setLevel(logging.INFO)
+    make(sys.argv[1])

@@ -37,6 +37,8 @@ import gcov as gcov_config
 from stat import * # ST_SIZE etc
 from threading import Thread
 
+import makegen
+
 BASE_SCRIPT_DIR= 'dvt/cases/'
 SAMPLE_SCRIPT_DIR='dvt/cases/sample_tests/'
 SAMPLE_PLATFORM_RUN_DIR = 'public/run/platforms/linux/'
@@ -465,6 +467,9 @@ def main():
         dest='keystore', type=argparse.FileType('r'))
 
     args = parser.parse_args()
+
+    # Generate all makefiles ahead of running tests.
+    makegen.make('all')
 
     config_tool_jar = os.path.abspath(args.config_tool_jar.name) \
         if args.config_tool_jar is not None else None
