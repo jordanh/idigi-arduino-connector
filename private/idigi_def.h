@@ -109,7 +109,7 @@ typedef enum {
     idigi_true,
     idigi_bool_integer_width = INT_MAX
 } idigi_bool_t;
-#define idigi_bool(cond)	((cond) ? idigi_true : idigi_false)
+#define idigi_bool(cond)    ((cond) ? idigi_true : idigi_false)
 
 typedef enum {
     facility_callback_delete,

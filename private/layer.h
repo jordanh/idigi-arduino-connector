@@ -242,7 +242,7 @@ static idigi_callback_status_t get_configurations(idigi_data_t * const idigi_ptr
         {
             uint16_t const * const value = data;
 #if !(defined IDIGI_TX_KEEPALIVE_IN_SECONDS) && !(defined IDIGI_RX_KEEPALIVE_IN_SECONDS)
-            idigi_bool_t const is_tx = (request_id.config_request == idigi_config_tx_keepalive) ? idigi_true : idigi_false;
+            idigi_bool_t const is_tx = idigi_bool(request_id.config_request == idigi_config_tx_keepalive);
             uint16_t const min_interval = is_tx ? MIN_TX_KEEPALIVE_INTERVAL_IN_SECONDS : MIN_RX_KEEPALIVE_INTERVAL_IN_SECONDS;
             uint16_t const max_interval = is_tx ? MAX_TX_KEEPALIVE_INTERVAL_IN_SECONDS : MAX_RX_KEEPALIVE_INTERVAL_IN_SECONDS;
 
