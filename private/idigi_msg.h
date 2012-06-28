@@ -1549,7 +1549,7 @@ static idigi_callback_status_t msg_process_ack(idigi_msg_data_t * const msg_fac,
     {
         uint16_t const session_id = message_load_be16(ack_packet, transaction_id);
         uint8_t const flag = message_load_u8(ack_packet, flags);
-        idigi_bool_t const client_owned = MsgIsRequest(flag);
+        idigi_bool_t const client_owned = idigi_bool(MsgIsRequest(flag));
 
         session = msg_find_session(msg_fac, session_id, client_owned);
         /* already closed? done sending all data */
