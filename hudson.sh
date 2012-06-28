@@ -7,6 +7,15 @@ PART_NUMBER=40003007
 PKG_NAME=${PART_NUMBER}_${REVISION}
 TOOLS_DIR=${BASE_DIR}/tools
 
+SAMPLES="compile_and_link
+         connect_to_idigi
+         connect_on_ssl
+         device_request
+         firmware_download
+         send_data
+         remote_config
+         simple_remote_config"
+
 function cleanup () 
 {
     ARCHIVE=${WORKSPACE}/archive
@@ -30,6 +39,8 @@ function build_config_tool ()
     mkdir -p "${TOOLS_DIR}"  
     ant -f "${WORKSPACE}/tools/config/build.xml" -Ddist.dir="${TOOLS_DIR}"
 }
+
+python dvt/scripts/makegen.py all
 
 # Create the output directory.
 mkdir -p "${OUTPUT_DIR}"
@@ -78,9 +89,11 @@ today=`date +"%B %d, %Y"`
 echo ">> Setting Release Date to Today (${today}) in ${BASE_DIR}/private/Readme.txt"
 sed -i 's/_RELEASE_DATE_/'"${today}"'/g' "${BASE_DIR}/private/Readme.txt"
 
+# Generate a Makefile for each sample.
+
 # Create the tarball
 echo ">> Creating the release Tarball as ${OUTPUT_DIR}/${PKG_NAME}.tgz."
-tar --exclude=idigi/public/test --exclude=idigi/public/dvt  --exclude=idigi/public/sample  -czvf "${OUTPUT_DIR}/${PKG_NAME}.tgz" idigi/
+tar --exclude=idigi/public/test --exclude=idigi/public/dvt -czvf "${OUTPUT_DIR}/${PKG_NAME}.tgz" idigi/
 
 # Delete the original idigi directory
 echo ">> Removing base dir ${BASE_DIR}."
@@ -99,13 +112,6 @@ python ../dvt/scripts/replace_str.py public/run/samples/compile_and_link/Makefil
 echo ">> Building all samples."
 cd public/run/samples
 
-SAMPLES="compile_and_link
-         connect_to_idigi
-         connect_on_ssl
-         device_request
-         firmware_download
-         send_data"
-
 for sample in $SAMPLES
 do
   echo ">> Building $sample"
@@ -121,48 +127,6 @@ do
 done
 
 cd ../../../../
-
-# Run tests only if release on linux and featureset is full or sharedlib
-if [[ "${type}" == "unrelease" && "${arch}" == "x86" && ("${featureset}" == "full" || "${featureset}" == "unsharedlib") ]]; then
-  echo ">> Executing Test Harness against $TARGET."
-  export LD_LIBRARY_PATH=${OUTPUT_DIR}
-  cd ../public/test/harness
-  make clean all IDIGI_RULES=../rules/${TARGET}.rules LIBDIR=${OUTPUT_DIR}
-  (./iik_test cases/admin_tests/config.ini; ) &
-  child_pid_admin=$!
-  (./iik_test cases/user_tests/config.ini; ) &
-  child_pid_user=$!
-  echo ">> Sleeping 20 seconds to allow Device to connect."
-  sleep 20
-  export PYTHONPATH=../
-  cd cases/user_tests
-  nosetests --with-xunit
-  rc=$?
-  kill -9 $child_pid_user
-  cd ../admin_tests
-  nosetests --with-xunit
-  rca=$?
-  kill -9 $child_pid_admin
-  if [[ ${rc} != 0 ]]; then
-      echo "++ User Tests failed, exiting."
-      cleanup
-      exit ${rc}
-  fi
-  if [[ ${rca} != 0 ]]; then
-      echo "++ Admin Tests failed, exiting."
-      cleanup
-      exit ${rca}
-  fi
-else
-  echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?> \
-    <testsuite name=\"nosetests\" tests=\"0\" errors=\"0\" skip=\"0\"> \
-        <testcase classname=\"empty_test.NoTestsExecuted\" name=\"notest\" time=\"0\"/> \
-    </testsuite>" > ${WORKSPACE}/public/test/harness/cases/admin_tests/nosetests.xml
-  echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?> \
-    <testsuite name=\"nosetests\" tests=\"0\" errors=\"0\" skip=\"0\"> \
-        <testcase classname=\"empty_test.NoTestsExecuted\" name=\"notest\" time=\"0\"/> \
-    </testsuite>" > ${WORKSPACE}/public/test/harness/cases/user_tests/nosetests.xml
-fi
 
 if [[ "${PENDING}" == "true" ]]; then
     # If successfull push the tarball to pending, if PENDING environment variable is set to 1.
