@@ -67,6 +67,7 @@ sample_tests = {
     'send_data'         : ('test_send_data.py',),
     'device_request'    : ('test_device_request.py',),
     'file_system'       : ('test_file_system.py',),
+    'remote_config'     : ('test_rci.py',),
 }
 run_sample  = TestType('run_sample', 'public/run/samples/', 
                        'dvt/cases/sample_tests', sample_tests)

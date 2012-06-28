@@ -3,6 +3,54 @@ import os
 import idigi_ws_api
 import configuration
 import logging
+import xpath
+from requests import post
+from xml.dom.minidom import parseString
+from nose.tools import *
+
+log = logging.getLogger('iik_plugin')
+log.setLevel(logging.INFO)
+
+if len(log.handlers) == 0:
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    log.addHandler(handler)
+
+
+def send_rci(request):
+    username = IIKPlugin.api.username
+    password = IIKPlugin.api.password
+    url = 'https://%s/ws/sci' % IIKPlugin.api.hostname
+
+    req_data = parseString(request).toxml()
+    log.info("Sending SCI Request: \n%s" % req_data)
+
+    response = post(url, 
+                    data=req_data, 
+                    auth=(username, password), 
+                    verify=False)
+
+    assert_equal(200, response.status_code, "Non 200 Status Code: %d.  " \
+        "Response: %s" % (response.status_code, response.content))
+    try:
+        res_data = parseString(response.content)
+        log.info("Received SCI Response: \n%s" \
+            % res_data.toprettyxml(indent=' '))
+        return res_data
+    except Exception, e:
+        error = "Response was not valid XML: %s" % response.content
+        assert 0==1, error
+
+def parse_error(doc):
+    errors = xpath.find('//error',doc)
+    if len(errors) > 0:
+        error = errors[0]
+        return (error.getAttribute('id'), 
+                xpath.find('desc/text()', error)[0].data, 
+                xpath.find('hint/text()', error)[0].data)
+    return None
 
 class IIKPlugin(Plugin):
     name = 'iik'
