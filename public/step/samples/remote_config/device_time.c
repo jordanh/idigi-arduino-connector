@@ -80,7 +80,7 @@ idigi_callback_status_t app_device_time_group_get(idigi_remote_group_request_t c
             int const tz_min = device_time_ptr->current_time.timezone % 60;
             int const timestring_size = sizeof device_time_ptr->timestring;
 
-            int const length = snprintf(device_time_ptr->timestring, timestring_size,
+            snprintf(device_time_ptr->timestring, timestring_size,
                                      TIME_FORMAT,
                                      the_time->tm_year + 1900,
                                      the_time->tm_mon + 1,
@@ -90,7 +90,6 @@ idigi_callback_status_t app_device_time_group_get(idigi_remote_group_request_t c
                                      the_time->tm_sec,
                                      (device_time_ptr->current_time.timezone > 0) ? '-' : '+',
                                      tz_hour, tz_min);
-            ASSERT(length == (timestring_size-1));
 
             response->element_data.element_value->string_value = device_time_ptr->timestring;
         }
@@ -146,6 +145,13 @@ idigi_callback_status_t app_device_time_group_set(idigi_remote_group_request_t c
         ASSERT(request->element.value->string_value != NULL);
 
         lt = localtime(&device_time_ptr->current_time.time);
+        if (lt == NULL)
+        {
+            response->error_id = idigi_global_error_save_fail;
+            response->element_data.error_hint = "Time is not available.";
+            goto done;
+        }
+
         string_length = strlen(request->element.value->string_value);
 
         while (current_length < string_length && state != get_done)
