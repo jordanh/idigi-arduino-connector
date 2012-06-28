@@ -51,7 +51,7 @@ int application_start(void)
         #define WAIT_FOR_10_MSEC    10
         static idigi_connector_data_t ic_data = {0};
         static unsigned char count = 0;
-        static char buffer[] = "iDigi Device application data. Count xxx!\n";
+        static char buffer[] = "iDigi Device application data. Count xxx.\n";
         size_t const buf_size = (sizeof buffer) - 1;
 
         if (lwgpio_get_value(&push_button) == LWGPIO_VALUE_LOW)
@@ -60,24 +60,39 @@ int application_start(void)
                 _time_delay(WAIT_FOR_10_MSEC);
 
             APP_DEBUG("Sending data to cloud using idigi_send_data...\n");
-            snprintf(buffer, buf_size, "iDigi Device application data. Count %d!\n", count);
-            ic_data.data_ptr = buffer;
-            ic_data.length_in_bytes = buf_size;
-            ret = idigi_send_data("test/test.txt", &ic_data, NULL);
+            {
+                size_t const bytes_copied = snprintf(buffer, buf_size, "iDigi Device application data. Count %d.\n", count);
+
+                APP_DEBUG("%s", buffer);
+                ic_data.data_ptr = buffer;
+                ic_data.length_in_bytes = bytes_copied;
+                ret = idigi_send_data("test/test.txt", &ic_data, NULL);
+            }
         }
         else
         {
+            static boolean first_time = TRUE;
+
+            if (first_time)
+            {
+                #define  WAIT_FOR_2_SEC  2000
+
+                _time_delay(WAIT_FOR_2_SEC);
+                APP_DEBUG("Push SW1 to send data to the cloud.\n");
+                first_time = FALSE;
+            }
+
             _time_delay(WAIT_FOR_10_MSEC);
             continue;
         }
 
         if (ret != idigi_connector_success)
         {
-            APP_DEBUG("\nSend failed [%d]\n", ret);
+            APP_DEBUG("Send failed [%d]\n", ret);
         }
         else
         {
-            APP_DEBUG("\nSend completed\n");
+            APP_DEBUG("Send completed\n");
             ic_data.flags = IDIGI_FLAG_APPEND_DATA;
             count++;
         }
