@@ -34,9 +34,7 @@
 #define MSG_FLAG_SEND_NOW     0x1000
 #define MSG_FLAG_DOUBLE_BUF   0x2000
 
-#define MsgIsTrue(cond)         ((cond) ? idigi_true : idigi_false)
-#define MsgIsFalse(cond)        ((cond) ? idigi_false : idigi_true)
-#define MsgIsBitSet(flag, bit)  MsgIsTrue(((flag) & (bit)) == (bit))
+#define MsgIsBitSet(flag, bit)  (((flag) & (bit)) == (bit))
 #define MsgBitSet(flag, bit)    ((flag) |= (bit))
 #define MsgBitClear(flag, bit)  ((flag) &= ~(bit))
 
@@ -306,9 +304,9 @@ static uint16_t msg_find_next_available_id(idigi_msg_data_t * const msg_ptr)
 static void msg_set_error(msg_session_t * const session, idigi_msg_error_t const error_code)
 {
     msg_data_block_t * const dblock = (session->in_dblock != NULL) ? session->in_dblock : session->out_dblock;
-    idigi_bool_t const client_request_error = MsgIsTrue(MsgIsClientOwned(dblock->status_flag) && !MsgIsReceiving(dblock->status_flag));
-    idigi_bool_t const client_response_error = MsgIsTrue(!MsgIsClientOwned(dblock->status_flag) && !MsgIsReceiving(dblock->status_flag));
-    idigi_bool_t const server_request_error = MsgIsTrue(!MsgIsClientOwned(dblock->status_flag) && MsgIsReceiving(dblock->status_flag));
+    idigi_bool_t const client_request_error = idigi_bool(MsgIsClientOwned(dblock->status_flag) && !MsgIsReceiving(dblock->status_flag));
+    idigi_bool_t const client_response_error = idigi_bool(!MsgIsClientOwned(dblock->status_flag) && !MsgIsReceiving(dblock->status_flag));
+    idigi_bool_t const server_request_error = idigi_bool(!MsgIsClientOwned(dblock->status_flag) && MsgIsReceiving(dblock->status_flag));
 
     if (client_request_error && MsgIsStart(dblock->status_flag))
     {
@@ -570,7 +568,7 @@ static idigi_msg_error_t msg_initialize_data_block(msg_session_t * const session
         session->current_state = msg_state_get_data;
         session->service_layer_data.need_data->data_ptr = NULL;
         #if (defined IDIGI_COMPRESSION)
-        if (MsgIsFalse(MsgIsDeflated(session->out_dblock->status_flag)))
+        if (idigi_bool(!MsgIsDeflated(session->out_dblock->status_flag)))
         {
             memset(&session->out_dblock->zlib, 0, sizeof session->out_dblock->zlib);
             ASSERT_GOTO(deflateInit(&session->out_dblock->zlib, Z_DEFAULT_COMPRESSION) == Z_OK, compression_error);
@@ -601,7 +599,7 @@ static idigi_msg_error_t msg_initialize_data_block(msg_session_t * const session
         MsgSetReceiving(session->in_dblock->status_flag);
         session->current_state = msg_state_receive;
         #if (defined IDIGI_COMPRESSION)
-        if (MsgIsFalse(MsgIsInflated(session->in_dblock->status_flag)))
+        if (idigi_bool(!MsgIsInflated(session->in_dblock->status_flag)))
         {
             memset(&session->in_dblock->zlib, 0, sizeof session->in_dblock->zlib);
             ASSERT_GOTO(inflateInit(&session->in_dblock->zlib) == Z_OK, compression_error);
@@ -1157,7 +1155,7 @@ static idigi_callback_status_t msg_process_capabilities(idigi_data_t * const idi
 {
     idigi_callback_status_t status = idigi_callback_continue;
     uint8_t * capability_packet = ptr;
-    idigi_bool_t const request_capabilities = MsgIsTrue((message_load_u8(capability_packet, flags) & MSG_FLAG_REQUEST) == MSG_FLAG_REQUEST);
+    idigi_bool_t const request_capabilities = idigi_bool((message_load_u8(capability_packet, flags) & MSG_FLAG_REQUEST) == MSG_FLAG_REQUEST);
     uint8_t const version = message_load_u8(capability_packet, version);
 
     ASSERT_GOTO(version == MSG_FACILITY_VERSION, error);
@@ -1445,7 +1443,7 @@ static idigi_callback_status_t msg_process_start(idigi_data_t * const idigi_ptr,
     uint8_t * start_packet = ptr;
     unsigned flag = message_load_u8(start_packet, flags);
     uint16_t const session_id = message_load_be16(start_packet, transaction_id);
-    idigi_bool_t const client_owned = MsgIsFalse(MsgIsRequest(flag));
+    idigi_bool_t const client_owned = idigi_bool(!MsgIsRequest(flag));
 
     session = msg_find_session(msg_ptr, session_id, client_owned);
     if (session == NULL)
@@ -1528,7 +1526,7 @@ static idigi_callback_status_t msg_process_data(idigi_data_t * const idigi_ptr, 
     uint8_t * const data_packet = ptr;
     unsigned const flag = message_load_u8(data_packet, flags);
     uint16_t const session_id = message_load_be16(data_packet, transaction_id);
-    idigi_bool_t const client_owned = MsgIsFalse(MsgIsRequest(flag));
+    idigi_bool_t const client_owned = idigi_bool(!MsgIsRequest(flag));
 
     session = msg_find_session(msg_ptr, session_id, client_owned);
     if (session == NULL)
@@ -1584,9 +1582,9 @@ static idigi_callback_status_t msg_process_error(idigi_data_t * const idigi_ptr,
     idigi_callback_status_t status = idigi_callback_continue;
     uint8_t * const error_packet = ptr;
     uint8_t const flag = message_load_u8(error_packet, flags);
-    idigi_bool_t const client_request_error = MsgIsTrue(MsgIsRequest(flag) && !MsgIsSender(flag));
-    idigi_bool_t const server_response_error = MsgIsTrue(!MsgIsRequest(flag) && MsgIsSender(flag));
-    idigi_bool_t const client_owned = MsgIsTrue(client_request_error || server_response_error);
+    idigi_bool_t const client_request_error = idigi_bool(MsgIsRequest(flag) && !MsgIsSender(flag));
+    idigi_bool_t const server_response_error = idigi_bool(!MsgIsRequest(flag) && MsgIsSender(flag));
+    idigi_bool_t const client_owned = idigi_bool(client_request_error || server_response_error);
     uint16_t const session_id = message_load_be16(error_packet, transaction_id);
     msg_session_t * const session = msg_find_session(msg_fac, session_id, client_owned);
 
