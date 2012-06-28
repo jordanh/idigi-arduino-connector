@@ -22,7 +22,7 @@
 #define IDIGI_RCI_MAXIMUM_CONTENT_LENGTH    256
 #define IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH   256
 
-#if ENABLE_COMPILE_TIME_DATA_PASSING
+#ifdef ENABLE_COMPILE_TIME_DATA_PASSING
 #define IDIGI_DEVICE_TYPE                          "iDigi connector Linux Sample"
 #define IDIGI_CLOUD_URL                            "developer.idigi.com"
 #define IDIGI_TX_KEEPALIVE_IN_SECONDS              5

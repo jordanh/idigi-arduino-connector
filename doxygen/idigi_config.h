@@ -194,7 +194,7 @@
 /**
  * @}*/
 
-#if ENABLE_COMPILE_TIME_DATA_PASSING
+#ifdef ENABLE_COMPILE_TIME_DATA_PASSING
 
 /**
  * @defgroup idigi_config_data_options Hard Coded Application Configuration options
