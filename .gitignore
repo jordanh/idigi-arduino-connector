@@ -32,3 +32,9 @@ dist
 .project
 .cproject
 
+# Generated Makefiles and Executables
+public/*/samples/*/Makefile
+public/*/samples/*/idigi
+dvt/samples/*/idigi
+dvt/samples/*/idigi.stats
+dvt/samples/*/Makefile

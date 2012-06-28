@@ -13,9 +13,9 @@
 CC = gcc${TARGET_PLATFORM}
 
 # Location of Private iDigi Code.
-IDIGI_DIR=../../../../private
+IDIGI_DIR=${IDIGI_DIR}
 # Locate of Public Include Header Files.
-PUBLIC_HEADER_DIR=../../../include${PLATFORM_DIR}
+PUBLIC_HEADER_DIR=${PUBLIC_HEADER_DIR}${PLATFORM_DIR}
 
 # Resolves where to find Source files.
 vpath $$(IDIGI_DIR)/%.c${PLATFORM_VPATH}
@@ -69,6 +69,8 @@ DEPS = $$(OBJS:.o=.d)
 
 $$(SAMPLE): $$(OBJS)
 	$$(CC) $$(LDFLAGS) $$^ $$(LIBS) -o $$@
+	${POST_SAMPLE}
+
 
 .PHONY: clean
 clean:
