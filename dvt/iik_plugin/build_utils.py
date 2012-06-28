@@ -28,7 +28,7 @@ def generate_rci_code(dir, device_type, firmware_version,
     abs_dir = os.path.abspath(dir)
     
     if not len(rci_configs) > 0:
-        return
+        return (0, '')
 
     rci_config = os.path.join(abs_dir, rci_configs[0])
 
