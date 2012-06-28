@@ -89,6 +89,7 @@ static void rci_traverse_data(rci_t * const rci)
                 set_rci_command_tag(rci->input.command, &rci->output.tag);
 
                 rci->input.command = rci_command_header;
+                state_call_return(rci, rci_parser_state_output, rci_parser_state_input);
                 goto complete;
                 break;
             case idigi_remote_config_session_cancel:
@@ -217,6 +218,7 @@ static void rci_traverse_data(rci_t * const rci)
             break;
         case rci_traversal_state_one_element_end:
             invalidate_element_id(rci);
+            state_call_return(rci, rci_parser_state_output, rci_parser_state_input);
             goto complete;
             break;
         }
@@ -295,11 +297,9 @@ static void rci_traverse_data(rci_t * const rci)
 group_complete:
     invalidate_group_id(rci);
     invalidate_group_index(rci);
-    invalidate_element_id(rci);
 
 complete:
     rci->traversal.state = rci_traversal_state_none;
-    state_call_return(rci, rci_parser_state_output, rci_parser_state_input);
 
     ASSERT(!have_group_id(rci));
     ASSERT(!have_group_index(rci));

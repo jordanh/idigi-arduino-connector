@@ -112,15 +112,10 @@ static idigi_bool_t rcistr_valid(rcistr_t const * const string)
 
 static void begin_rcistr(rci_t const * const rci, rcistr_t * const string)
 {
-    ASSERT(rcistr_empty(string));
-
     string->data = rci->input.destination;
 }
 static void end_rcistr(rci_t const * const rci, rcistr_t * const string)
 {
-    ASSERT(string->data != NULL);
-    ASSERT(string->length == 0);
-
     string->length = (rci->input.destination - string->data);
 }
 
