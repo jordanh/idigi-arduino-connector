@@ -16,8 +16,6 @@
 #include "platform.h"
 #include "idigi_connector.h"
 
-static LWGPIO_STRUCT push_button;
-
 static void idigi_status(idigi_connector_error_t const status, char const * const status_message)
 {
     APP_DEBUG("idigi_status: status update %d [%s]\n", status, status_message);
@@ -37,7 +35,7 @@ int application_start(void)
         goto error;
     }
 	
-    InitializeK60TowerDemo();
+    initialize_k60_tower_demo();
  
     status = 0;
 
