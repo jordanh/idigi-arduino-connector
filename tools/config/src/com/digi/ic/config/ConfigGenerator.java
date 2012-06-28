@@ -394,8 +394,11 @@ public class ConfigGenerator {
             log("Done.");
 
         } catch (Exception e) {
-            log(e.toString());
 
+            if (e.getMessage() != null) {
+                log(e.getMessage());
+            }
+            
             if (verboseOption) {
                 e.printStackTrace();
                 if (e.getCause() != null)
