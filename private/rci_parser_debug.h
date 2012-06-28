@@ -152,7 +152,6 @@ static char const * rci_input_state_t_as_string(rci_input_state_t const value)
 	    enum_to_case(rci_input_state_element_param_quote);
 	    enum_to_case(rci_input_state_element_param_value_first);
 	    enum_to_case(rci_input_state_element_param_value);
-	    enum_to_case(rci_input_state_element_param_value_escaping);
 	    enum_to_case(rci_input_state_content_first);
 	    enum_to_case(rci_input_state_content);
 	    enum_to_case(rci_input_state_content_escaping);
@@ -247,9 +246,6 @@ static char const * rci_output_state_t_as_string(rci_output_state_t const value)
 	    enum_to_case(rci_output_state_element_param_equal_sign);
 	    enum_to_case(rci_output_state_element_param_start_quote);
 	    enum_to_case(rci_output_state_element_param_value);
-	    enum_to_case(rci_output_state_element_param_value_scan);
-	    enum_to_case(rci_output_state_element_param_value_entity);
-	    enum_to_case(rci_output_state_element_param_value_semicolon);
 	    enum_to_case(rci_output_state_element_param_end_quote);
 	    enum_to_case(rci_output_state_content_formatted);
 	    enum_to_case(rci_output_state_content);
@@ -417,7 +413,6 @@ static void output_buffer_diff(char const * const name, void const * const curre
 #define output_rci_buffer(name)                 do { output_pointer(name.start); output_pointer(name.end); output_pointer(name.current); } while (0)
 #define output_rci_string(name)                 do { output_pointer(name.data); output_size(name.length); } while (0)
 #define output_rci_attribute(pair)              do { output_rci_string(pair.name); output_rci_string(pair.value); } while (0)
-#define output_rci_attribute_list(name)         do { output_size(name.count); assert(asizeof(current->name.pair) == 2); output_rci_attribute(name.pair[0]); output_rci_attribute(name.pair[1]); } while (0)
 
 #define output_service_data_buffer_diff(name)   output_buffer_diff("service_data." #name, current->service_data->name.data, service_data.name.data, current->service_data->name.bytes)
 
@@ -470,7 +465,8 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
     output_pointer(input.destination);
     output_enum(rci_command_t, input.command);
     output_rci_string(input.entity);
-    output_rci_attribute_list(input.attribute);
+    output_rci_attribute(input.attribute.match);
+    output_rci_attribute(input.attribute.current);
 
     output_enum(rci_traversal_state_t, traversal.state);
 
@@ -478,8 +474,7 @@ static void output_debug_info(rci_t const * const current, idigi_bool_t const sh
     output_enum(rci_output_type_t, output.type);
     output_enum(rci_output_type_t, output.current);
     output_rci_string(output.tag);
-    output_rci_attribute_list(output.attribute);
-    output_size(output.attribute_pair_index);
+    output_rci_attribute(output.attribute);
     output_size(output.entity_scan_index);
 
     output_enum(rci_error_state_t, error.state);

@@ -49,6 +49,7 @@ static idigi_bool_t rci_action_session_start(rci_t * const rci, rci_service_data
     rci->status = rci_status_busy;
 
     rci->input.state = rci_input_state_element_tag_open;
+    cstr_to_rcistr(RCI_VERSION, attribute_name(&rci->input.attribute.match));
 
     output_debug_info(rci, RCI_DEBUG_SHOW_ALL);
 

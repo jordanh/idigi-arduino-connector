@@ -128,7 +128,7 @@ static void rci_traverse_data(rci_t * const rci)
 
             rci->output.type = rci_output_type_start_tag;
             cstr_to_rcistr(group->name, &rci->output.tag);
-            add_numeric_attribute(&rci->output.attribute, RCI_INDEX, get_group_index(rci));
+            set_numeric_attribute(&rci->output.attribute, RCI_INDEX, get_group_index(rci));
         }
 
         trigger_rci_callback(rci, idigi_remote_config_group_start);

@@ -238,10 +238,9 @@ static void rci_generate_output(rci_t * const rci)
                 break;
             case rci_output_type_start_tag:
             case rci_output_type_unary:
-                if (have_attributes(&rci->output.attribute))
+                if (have_attribute(&rci->output.attribute))
                 {
                     rci->output.state = rci_output_state_element_param_space;
-                    rci->output.attribute_pair_index = 0;
                 }
                 else
                 {
@@ -288,7 +287,7 @@ static void rci_generate_output(rci_t * const rci)
             break;
 
         case rci_output_state_element_param_space:
-            if (rci->output.attribute_pair_index < rci->output.attribute.count)
+            if (have_attribute(&rci->output.attribute))
             {
                 rci_output_character(output, ' ');
 
@@ -303,8 +302,6 @@ static void rci_generate_output(rci_t * const rci)
             }
             else
             {
-                clear_attributes(&rci->output.attribute);
-
                 switch (rci->output.current)
                 {
                 UNHANDLED_CASES_ARE_INVALID
@@ -317,7 +314,7 @@ static void rci_generate_output(rci_t * const rci)
             break;
 
         case rci_output_state_element_param_name:
-            overflow = rci_output_rcistr(output, attribute_name(&rci->output.attribute, rci->output.attribute_pair_index));
+            overflow = rci_output_rcistr(output, attribute_name(&rci->output.attribute));
             if (overflow) break;
 
             switch (rci->output.current)
@@ -362,54 +359,19 @@ static void rci_generate_output(rci_t * const rci)
                 else
                 {
                     ASSERT(rci->output.state == rci_output_state_element_param_end_quote);
-                    rci->output.attribute_pair_index++;
-                    rci->output.state = rci_output_state_element_param_space;
+                    clear_attribute(&rci->output.attribute);
+                    rci->output.state = rci_output_state_element_tag_close;
                 }
                 break;
             }
             break;
         case rci_output_state_element_param_value:
-            rci->output.entity_scan_index = 0;
-            rci->output.state = rci_output_state_element_param_value_scan;
-            /* no break; */
-        case rci_output_state_element_param_value_scan:
-            {
-                rcistr_t const * const value = attribute_value(&rci->output.attribute, rci->output.attribute_pair_index);
-                char const * const data = rcistr_data(value);
+            overflow = rci_output_rcistr(output, attribute_value(&rci->output.attribute));
+            if (overflow) break;
 
-                if (rci_output_non_entity_character(output, data[rci->output.entity_scan_index]))
-                {
-                    rci->output.entity_scan_index++;
-                    if (rci->output.entity_scan_index == rcistr_length(value))
-                    {
-                            rci->output.state = rci_output_state_element_param_end_quote;
-                    }
-                }
-                else
-                {
-                    rci_output_character(output, '&');
-                    rci->output.state = rci_output_state_element_param_value_entity;
-                }
-            }
+            rci->output.state = rci_output_state_element_param_end_quote;
             break;
-        case rci_output_state_element_param_value_entity:
-            {
-                rcistr_t const * const value = attribute_value(&rci->output.attribute, rci->output.attribute_pair_index);
-                char const * const data = rcistr_data(value);
-
-                overflow = rci_output_entity_name(output, data[rci->output.entity_scan_index]);
-                if (overflow) break;
-
-                rci->output.state = rci_output_state_element_param_value_semicolon;
-            }
-            break;
-        case rci_output_state_element_param_value_semicolon:
-            rci_output_character(output, ';');
-
-            rci->output.entity_scan_index++;
-            rci->output.state = rci_output_state_element_param_value_scan;
-            break;
-        case rci_output_state_content_formatted:
+         case rci_output_state_content_formatted:
             switch (rci->shared.request.element.type)
             {
             UNHANDLED_CASES_ARE_NEEDED

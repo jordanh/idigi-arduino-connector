@@ -56,6 +56,11 @@ static idigi_bool_t cstr_equals_rcistr(cstr_t const * const cstr, rcistr_t const
     return cstr_equals_buffer(cstr, rcistr->data, rcistr->length);
 }
 
+static idigi_bool_t rcistr_equals_rcistr(rcistr_t const * const one, rcistr_t const * const two)
+{
+    return buffer_equals_buffer(one->data, one->length, two->data, two->length);
+}
+
 #if (defined RCI_PARSER_USES_ENUM) || (defined RCI_PARSER_USES_ON_OFF) || (defined RCI_PARSER_USES_BOOLEAN)
 static idigi_bool_t cstr_equals_str(cstr_t const * const cstr, char const * const str)
 {
@@ -98,6 +103,11 @@ static void clear_rcistr(rcistr_t * const string)
 static idigi_bool_t rcistr_empty(rcistr_t const * const string)
 {
     return idigi_bool((string->data == NULL) && (string->length == 0));
+}
+
+static idigi_bool_t rcistr_valid(rcistr_t const * const string)
+{
+    return idigi_bool((string->data != NULL) && (string->length != 0));
 }
 
 static void begin_rcistr(rci_t const * const rci, rcistr_t * const string)

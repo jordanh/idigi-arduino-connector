@@ -10,74 +10,44 @@
  * =======================================================================
  */
 
-static size_t attribute_count(rci_attribute_list_t * const list)
+static rcistr_t * attribute_name(rci_attribute_t * const attribute)
 {
-    return list->count;
+    return &attribute->name;
 }
 
-static idigi_bool_t have_attributes(rci_attribute_list_t * const list)
+static rcistr_t * attribute_value(rci_attribute_t * const attribute)
 {
-    return idigi_bool(attribute_count(list) != 0);
+    return &attribute->value;
 }
 
-static void clear_attributes(rci_attribute_list_t * const list)
+static idigi_bool_t have_attribute(rci_attribute_t * const attribute)
 {
-    list->count = 0;
+    return idigi_bool(rcistr_valid(attribute_name(attribute)) && rcistr_valid(attribute_value(attribute)));
 }
 
-static rcistr_t * attribute_name(rci_attribute_list_t * const list, unsigned int const index)
+static void clear_attribute(rci_attribute_t * const attribute)
 {
-    ASSERT(index < attribute_count(list));
-
-    return &list->pair[index].name;
+    clear_rcistr(&attribute->name);
+    clear_rcistr(&attribute->value);
 }
 
-static rcistr_t * attribute_value(rci_attribute_list_t * const list, unsigned int const index)
+static void set_attribute(rci_attribute_t * const attribute, cstr_t const * const name, cstr_t const * const value)
 {
-    ASSERT(index < attribute_count(list));
+    ASSERT(rcistr_empty(&attribute->name));
+    ASSERT(rcistr_empty(&attribute->value));
 
-    return &list->pair[index].value;
-}
-
-static rcistr_t const * find_attribute_value(rci_attribute_list_t const * const list, cstr_t const * const name)
-{
-    rcistr_t const * result = NULL;
-    size_t i;
-
-    for (i = 0; i < list->count; i++)
-    {
-        rci_attribute_t const * const pair = &list->pair[i];
-
-        if (cstr_equals_rcistr(name, &pair->name))
-        {
-            result = &pair->value;
-            break;
-        }
-    }
-
-    return result;
-}
-
-static void add_attribute(rci_attribute_list_t * const list, cstr_t const * const name, cstr_t const * const value)
-{
-    size_t const index = list->count;
-    rci_attribute_t * const pair = &list->pair[index];
-
-    ASSERT(index < asizeof(list->pair));
-
-    list->count++;
-    cstr_to_rcistr(name, &pair->name);
-    cstr_to_rcistr(value, &pair->value);
+    cstr_to_rcistr(name, &attribute->name);
+    cstr_to_rcistr(value, &attribute->value);
 }
 
 static void prep_rci_reply_data(rci_t * const rci)
 {
     cstr_to_rcistr(RCI_REPLY, &rci->output.tag);
-    add_attribute(&rci->output.attribute, RCI_VERSION, RCI_VERSION_SUPPORTED);
+    set_attribute(&rci->output.attribute, RCI_VERSION, RCI_VERSION_SUPPORTED);
     rci->output.type = rci_output_type_start_tag;
 }
 
-static void add_numeric_attribute(rci_attribute_list_t * const list, cstr_t const * const name, unsigned int const value)
+static void set_numeric_attribute(rci_attribute_t * const attribute, cstr_t const * const name, unsigned int const value)
 {
 #define  MAX_NUMERIC_VALUE  "999"
     static cstr_t storage[] = "n" MAX_NUMERIC_VALUE;
@@ -88,7 +58,7 @@ static void add_numeric_attribute(rci_attribute_list_t * const list, cstr_t cons
     ASSERT((digits_used >= 1) && (digits_used <= digits_max));
     storage[0] = digits_used;
 
-    add_attribute(list, name, storage);
+    set_attribute(attribute, name, storage);
 #undef  MAX_NUMERIC_VALUE
 }
 

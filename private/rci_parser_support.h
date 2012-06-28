@@ -90,7 +90,6 @@ typedef enum
 	rci_input_state_element_param_quote,
 	rci_input_state_element_param_value_first,
 	rci_input_state_element_param_value,
-	rci_input_state_element_param_value_escaping,
 	rci_input_state_content_first,
 	rci_input_state_content,
 	rci_input_state_content_escaping,
@@ -137,9 +136,6 @@ typedef enum
 	rci_output_state_element_param_equal_sign,
 	rci_output_state_element_param_start_quote,
 	rci_output_state_element_param_value,
-	rci_output_state_element_param_value_scan,
-	rci_output_state_element_param_value_entity,
-	rci_output_state_element_param_value_semicolon,
 	rci_output_state_element_param_end_quote,
 	rci_output_state_content_formatted,
 	rci_output_state_content,
@@ -197,12 +193,6 @@ typedef struct
 
 typedef struct
 {
-    size_t count;
-    rci_attribute_t pair[2];
-} rci_attribute_list_t;
-
-typedef struct
-{
     rci_service_data_t * service_data;
     rci_status_t status;
     struct {
@@ -225,7 +215,10 @@ typedef struct
         int character;
         char * destination;
         rci_command_t command;
-        rci_attribute_list_t attribute;
+        struct {
+            rci_attribute_t match;
+            rci_attribute_t current;
+        } attribute;
         rcistr_t entity;
         char storage[ROUND_UP(IDIGI_RCI_MAXIMUM_CONTENT_LENGTH + sizeof nul, sizeof (int))];
     } input;
@@ -236,10 +229,9 @@ typedef struct
         rci_output_state_t state;
         rci_output_type_t type;
         rcistr_t tag;
-        rci_attribute_list_t attribute;
+        rci_attribute_t attribute;
         rcistr_t content;
         rci_output_type_t current;
-        size_t attribute_pair_index;
         size_t entity_scan_index;
     } output;
     struct {

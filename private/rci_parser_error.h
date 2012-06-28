@@ -89,7 +89,7 @@ static void rci_generate_error(rci_t * const rci)
 
     case rci_error_state_error_open:
         cstr_to_rcistr(RCI_ERROR, &rci->output.tag);
-        add_numeric_attribute(&rci->output.attribute, RCI_ID, rci->shared.response.error_id);
+        set_numeric_attribute(&rci->output.attribute, RCI_ID, rci->shared.response.error_id);
         rci->output.type = rci_output_type_start_tag;
 
 #if defined RCI_PARSER_USES_ERROR_DESCRIPTIONS
@@ -101,7 +101,7 @@ static void rci_generate_error(rci_t * const rci)
 
 #if defined RCI_PARSER_USES_ERROR_DESCRIPTIONS
     case rci_error_state_error_description:
-        clear_attributes(&rci->output.attribute);
+        clear_attribute(&rci->output.attribute);
 
         cstr_to_rcistr(RCI_DESC, &rci->output.tag);
         cstr_to_rcistr(rci->error.description, &rci->output.content);
@@ -113,7 +113,7 @@ static void rci_generate_error(rci_t * const rci)
 #endif
 
     case rci_error_state_error_hint:
-        clear_attributes(&rci->output.attribute);
+        clear_attribute(&rci->output.attribute);
 
         cstr_to_rcistr(RCI_HINT, &rci->output.tag);
         str_to_rcistr(rci->shared.response.element_data.error_hint, &rci->output.content);
