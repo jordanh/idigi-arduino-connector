@@ -102,6 +102,12 @@ def generate_makefile(path, make_template):
 # Location of Platform Src Code.
 PLATFORM_DIR=../../../public/run/platforms/$(PLATFORM)"""
 
+        # Change platform to 'template' if this is a template test.
+        if sample == "template_test":
+            subs["TARGET_PLATFORM"] = """
+# Target Platform
+PLATFORM = template"""
+
     # Treat compile and link as a special case, no platform used.
     if sample in LINK_SAMPLES:
         subs['TARGET_PLATFORM'] = ''
