@@ -47,11 +47,11 @@ QUERY_DESCRIPTOR_SETTING = """<query_descriptor><query_setting/></query_descript
 
 QUERY_DESCRIPTOR_STATE = """<query_descriptor><query_state/></query_descriptor>"""
 
-SET_SETTING = Template("""<set_setting><${group} index="${index}><${element}>${value}</${element}></${group}></set_setting>""")
+SET_SETTING = Template("""<set_setting><${group} index="${index}"><${element}>${value}</${element}></${group}></set_setting>""")
 
 QUERY_SETTING = Template("""<query_setting><${group}/></query_setting>""")
 
-SET_STATE = Template("""<set_state><${group} index="${index}><${element}>${value}</${element}></${group}></set_state>""")
+SET_STATE = Template("""<set_state><${group} index="${index}"><${element}>${value}</${element}></${group}></set_state>""")
 
 QUERY_STATE = Template("""<query_state><${group}/></query_state>""")
 
@@ -121,7 +121,7 @@ class RciElement(object):
 def send_rci(request, url, 
              username,
              password):
-
+    
     req_data = parseString(request).toxml()
     log.info("Sending SCI Request: \n%s" % req_data)
 
@@ -227,6 +227,7 @@ class TestRciDescriptors(object):
 
             log.info("Sending set command for %s/%s to value '%s'." \
                             % (test.element.group, test.element.name, test.value))
+            print 'RCI REQUEST: %s\n\n' % rci
             doc = send_rci(rci, 'https://%s/ws/sci' % IIKPlugin.api.hostname, 
                 IIKPlugin.api.username, IIKPlugin.api.password)
 
@@ -276,7 +277,7 @@ class TestRciDescriptors(object):
             value = xpath.find('//%s'%(test.element.name), newElement)
             if len(value) > 0:
                 childs = value[0].childNodes
-                newValue = '%s'%childs[childNumber].nodeValue
+                new_value = '%s'%childs[childNumber].nodeValue
 
             if (test.error is None and test.element.access != 'read_only'):
                 log.info("Ensuring value was successfully set.")
