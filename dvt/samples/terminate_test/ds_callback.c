@@ -21,8 +21,6 @@ terminate_flag_t terminate_flag = device_request_idle;
 
 extern idigi_callback_status_t app_os_malloc(size_t const size, void ** ptr);
 extern void app_os_free(void * const ptr);
-extern int firmware_download_started;
-extern idigi_handle_t idigi_handle;
 
 #define DS_MAX_USER   5
 #define DS_FILE_NAME_LEN  20
@@ -42,8 +40,6 @@ typedef struct
     unsigned long first_data_time;
     unsigned long last_data_time;
 } ds_record_t;
-
-extern int firmware_download_started;
 
 unsigned int put_file_active_count = 0;
 static bool first_time = true;
