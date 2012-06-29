@@ -33,18 +33,7 @@ EXCLUDE_ELEMENT=[]
 #Templates for XML to send.
 ##################################################################
 RCI_BASE_TEMPLATE = Template("""<sci_request version="1.0"> 
-  <send_message cache="false"> 
-    <targets> 
-      <device id="${device_id}"/> 
-    </targets> 
-    <rci_request version="1.1"> 
-      ${request}
-    </rci_request>
-  </send_message>
-</sci_request>""")
-
-RCI_DESC_TEMPLATE = Template("""<sci_request version="1.0"> 
-  <send_message cache="only"> 
+  <send_message cache="${cache}"> 
     <targets> 
       <device id="${device_id}"/> 
     </targets> 
@@ -58,11 +47,11 @@ QUERY_DESCRIPTOR_SETTING = """<query_descriptor><query_setting/></query_descript
 
 QUERY_DESCRIPTOR_STATE = """<query_descriptor><query_state/></query_descriptor>"""
 
-SET_SETTING = Template("""<set_setting><${group}><${element}>${value}</${element}></${group}></set_setting>""")
+SET_SETTING = Template("""<set_setting><${group} index="${index}><${element}>${value}</${element}></${group}></set_setting>""")
 
 QUERY_SETTING = Template("""<query_setting><${group}/></query_setting>""")
 
-SET_STATE = Template("""<set_state><${group}><${element}>${value}</${element}></${group}></set_state>""")
+SET_STATE = Template("""<set_state><${group} index="${index}><${element}>${value}</${element}></${group}></set_state>""")
 
 QUERY_STATE = Template("""<query_state><${group}/></query_state>""")
 
@@ -198,77 +187,92 @@ class TestRciDescriptors(object):
             set_template = SET_STATE
 
         query_command = query_template.substitute(group = test.element.group)
-        set_command   = set_template.substitute(group   = test.element.group,
-                                                element = test.element.name,
-                                                value   = test.value)
-
+        
         log.info("Sending initial query command for %s/%s to capture value." \
             % (test.element.group, test.element.name))
 
         #Get the current value
         rci = RCI_BASE_TEMPLATE.substitute(request=query_command, 
-                    device_id=IIKPlugin.device_config.device_id)
+                    device_id=IIKPlugin.device_config.device_id,
+                    cache = 'false')
         doc = send_rci(rci, 'https://%s/ws/sci' % IIKPlugin.api.hostname, 
             IIKPlugin.api.username, IIKPlugin.api.password)
 
         error = parse_error(doc)
         assert_true(error is None, "Error found: %s " % (error,))
+        for element in xpath.find('//%s'%test.element.group):
+            index = int(element.getAttribute('index')) \
+                        if element.hasAttribute('index') else 1
 
-        current_value = ''
-        value = xpath.find('//%s/%s' % (test.element.group,
-                                        test.element.name), doc)
-        if value:
-            current_value = '%s'%value[0].firstChild.nodeValue
+            set_command   = set_template.substitute(group   = test.element.group,
+                                                element = test.element.name,
+                                                value   = test.value,
+                                                index = index)
 
-        #Set a new value
-        rci = RCI_BASE_TEMPLATE.substitute(request=set_command, 
-                    device_id=IIKPlugin.device_config.device_id)
+            current_value = ''
+            value = xpath.find('//%s/%s' % (test.element.group,
+                                            test.element.name), doc)
+            childNumber = 0
+            if len(value) > 0:
+                vals = value[0].childNodes
+                for val in vals:
+                    if val is not None:
+                        currValue = '%s'%val.nodeValue
+                        break
+                    childNumber += 1
 
-        log.info("Sending set command for %s/%s to value '%s'." \
-                        % (test.element.group, test.element.name, test.value))
-        doc = send_rci(rci, 'https://%s/ws/sci' % IIKPlugin.api.hostname, 
-            IIKPlugin.api.username, IIKPlugin.api.password)
+            #Set a new value
+            rci = RCI_BASE_TEMPLATE.substitute(request=set_command, 
+                        device_id=IIKPlugin.device_config.device_id,
+                        cache = 'false')
 
-        error = parse_error(doc)
-        if test.error is None: # Ensure we have no errors if we don't expect any.
-            log.info("Ensuring no errors returned in set response.")
-            assert_equal(None, error, "Error found: %s" % (error,))
-        elif test.error is not None:
-            log.info("Ensuring errors were found in set response.")
-            # Throw an error if we expected errors and there were none.
-            assert_not_equal(None, error, 
-                "No errors were returned when something was expected.")
+            log.info("Sending set command for %s/%s to value '%s'." \
+                            % (test.element.group, test.element.name, test.value))
+            doc = send_rci(rci, 'https://%s/ws/sci' % IIKPlugin.api.hostname, 
+                IIKPlugin.api.username, IIKPlugin.api.password)
 
-            assert_true(error[0] in test.error, 
-                "Unexpected error: %s" % (error,))
+            error = parse_error(doc)
+            if test.error is None: # Ensure we have no errors if we don't expect any.
+                log.info("Ensuring no errors returned in set response.")
+                assert_equal(None, error, "Error found: %s" % (error,))
+            elif test.error is not None:
+                log.info("Ensuring errors were found in set response.")
+                # Throw an error if we expected errors and there were none.
+                assert_not_equal(None, error, 
+                    "No errors were returned when something was expected.")
 
-            log.info("Error returned as expected: %s" % (error,))
-        #Check to see if value is correct
-        log.info("Sending query command for %s/%s." \
-                    % (test.element.group, test.element.name))
-        rci = RCI_BASE_TEMPLATE.substitute(request=query_command, 
-                    device_id=IIKPlugin.device_config.device_id)
-        doc = send_rci(rci, 'https://%s/ws/sci' % IIKPlugin.api.hostname, 
-            IIKPlugin.api.username, IIKPlugin.api.password)
+                assert_true(error[0] in test.error, 
+                    "Unexpected error: %s" % (error,))
 
-        error = parse_error(doc)
-        assert_true(error is None, "Error found: %s" % (error,))
+                log.info("Error returned as expected: %s" % (error,))
+            #Check to see if value is correct
+            log.info("Sending query command for %s/%s." \
+                        % (test.element.group, test.element.name))
+            rci = RCI_BASE_TEMPLATE.substitute(request=query_command, 
+                        device_id=IIKPlugin.device_config.device_id,
+                        cache = 'false')
+            doc = send_rci(rci, 'https://%s/ws/sci' % IIKPlugin.api.hostname, 
+                IIKPlugin.api.username, IIKPlugin.api.password)
 
-        #Get the new value
-        new_value = ''
-        value = xpath.find('//%s/%s'%(test.element.group,test.element.name), doc)
-        if value:
-            new_value = '%s'%value[0].firstChild.nodeValue
+            error = parse_error(doc)
+            assert_true(error is None, "Error found: %s" % (error,))
 
-        if (test.error is None and test.element.access != 'read_only'):
-            log.info("Ensuring value was successfully set.")
-            eq_('%s'%test.value,new_value, 
-                "Set value (%s) doesn't match value returned in query (%s)." \
-                    % (test.value, new_value))
-        else:
-            log.info("Ensuring value was not successfully set.")
-            assert_not_equal(current_value,new_value, "Value was set even " \
-                "though we expected the set_setting command to fail.")
+            #Get the new value
+            new_value = ''
+            value = xpath.find('//%s/%s'%(test.element.group,test.element.name), doc)
+            if len(value) > 0:
+                childs = value[0].childNodes
+                newValue = '%s'%childs[childNumber].nodeValue
+
+            if (test.error is None and test.element.access != 'read_only'):
+                log.info("Ensuring value was successfully set.")
+                eq_('%s'%test.value,new_value, 
+                    "Set value (%s) doesn't match value returned in query (%s)." \
+                        % (test.value, new_value))
+            else:
+                log.info("Ensuring value was not successfully set.")
+                assert_not_equal(current_value,new_value, "Value was set even " \
+                    "though we expected the set_setting command to fail.")
 
         log.info("Test was successful.")
 
@@ -307,8 +311,9 @@ class TestRciDescriptors(object):
         request_template = QUERY_DESCRIPTOR_SETTING \
                             if setting else QUERY_DESCRIPTOR_STATE
 
-        rci = RCI_DESC_TEMPLATE.substitute(request=request_template,
-                        device_id=IIKPlugin.device_config.device_id)
+        rci = RCI_BASE_TEMPLATE.substitute(request=request_template,
+                        device_id=IIKPlugin.device_config.device_id,
+                        cache='only')
 
         doc = send_rci(rci, 'https://%s/ws/sci' % IIKPlugin.api.hostname, 
                 IIKPlugin.api.username, IIKPlugin.api.password)
