@@ -65,6 +65,23 @@ QUERY_SETTING = Template("""<query_setting><${group}/></query_setting>""")
 SET_STATE = Template("""<set_state><${group}><${element}>${value}</${element}></${group}></set_state>""")
 
 QUERY_STATE = Template("""<query_state><${group}/></query_state>""")
+
+def parse_error(doc):
+    errors = xpath.find('//error',doc)
+    if len(errors) > 0:
+        error = errors[0]
+
+        desc = xpath.find('desc/text()', error)
+        if len(desc) > 0:
+            desc = desc[0].data
+
+        hint = xpath.find('hint/text()', error)
+        if len(hint) > 0:
+            hint = hint[0].data
+
+        return (error.getAttribute('id'), desc, hint)
+    return None
+
 ##################################################################
 
 class RCIGroupTestScenario(object):
@@ -194,7 +211,8 @@ class TestRciDescriptors(object):
         doc = send_rci(rci, 'https://%s/ws/sci' % IIKPlugin.api.hostname, 
             IIKPlugin.api.username, IIKPlugin.api.password)
 
-        self.parse_errors(doc)
+        error = parse_error(doc)
+        assert_true(error is None, "Error found: %s " % (error,))
 
         current_value = ''
         value = xpath.find('//%s/%s' % (test.element.group,
@@ -211,24 +229,20 @@ class TestRciDescriptors(object):
         doc = send_rci(rci, 'https://%s/ws/sci' % IIKPlugin.api.hostname, 
             IIKPlugin.api.username, IIKPlugin.api.password)
 
-        errors = xpath.find('//error',doc)
-        #Check to see if response had errors in it.
-        if len(errors) > 0 and test.error is None:
+        error = parse_error(doc)
+        if test.error is None: # Ensure we have no errors if we don't expect any.
             log.info("Ensuring no errors returned in set response.")
-            assert_is_not_none(test.error, "Error(s) Unexpectedly Returned")
-        
+            assert_equal(None, error, "Error found: %s" % (error,))
         elif test.error is not None:
             log.info("Ensuring errors were found in set response.")
-            #Check to see if we expect errors.
-            #Check each error returned to make sure they are valid
-            for error in errors:
-                error_id = int(error.getAttribute('id'))
-                assert_not_in(test.error, error_id)
-        else:
-            #If we expected an error but didn't get any, fail
-            assert_is_none(test.error, 
-                "No errors found when expected")
+            # Throw an error if we expected errors and there were none.
+            assert_not_equal(None, error, 
+                "No errors were returned when something was expected.")
 
+            assert_true(error[0] in test.error, 
+                "Unexpected error: %s" % (error,))
+
+            log.info("Error returned as expected: %s" % (error,))
         #Check to see if value is correct
         log.info("Sending query command for %s/%s." \
                     % (test.element.group, test.element.name))
@@ -237,7 +251,8 @@ class TestRciDescriptors(object):
         doc = send_rci(rci, 'https://%s/ws/sci' % IIKPlugin.api.hostname, 
             IIKPlugin.api.username, IIKPlugin.api.password)
 
-        self.parse_errors(doc)
+        error = parse_error(doc)
+        assert_true(error is None, "Error found: %s" % (error,))
 
         #Get the new value
         new_value = ''
@@ -287,19 +302,6 @@ class TestRciDescriptors(object):
                         '%s_no_error_at_min_%s' % (element.type, element.min)))
 
         return tests
-
-    def parse_errors(self, doc):
-        errors = xpath.find('//error',doc)
-        if len(errors) > 0:
-            error = errors[0]
-            if error.getAttribute('id') == '2007':
-                raise Exception("Invalid XML received from query_setting of device: \n%s" \
-                    % xpath.find('hint/text()', error)[0].data)
-            else:
-                raise Exception("Error (%s) Returned from device: %s. Hint: %s" \
-                    % (error.getAttribute('id'), 
-                       xpath.find('desc/text()', error)[0].data,
-                       xpath.find('hint/text()', error)[0].data))
 
     def get_descriptors(self, setting=True):
         request_template = QUERY_DESCRIPTOR_SETTING \
