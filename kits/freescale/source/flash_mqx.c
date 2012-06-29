@@ -189,12 +189,10 @@ void Flash_NVRAM_set_mac_address(_enet_address address)
      * Set the bootloaders MAC address to be the same as the devices MAC address
      */
         	
-    if (memcmp((char *)&fnet_params->fnet_params.mac[0], (char *)address, sizeof (_enet_address)) == 0)
+    if (memcmp((char *)&fnet_params->fnet_params.mac[0], (char *)address, sizeof (_enet_address)) != 0)
     {
-        APP_DEBUG("Flash_NVRAM_set_bootloaders_parameters: iDigi Mac address already in NVRAM\n");
-    }
-    else
-    {
+        APP_DEBUG("Flash_NVRAM_set_bootloaders_parameters: writing iDigi Mac address to NVRAM\n");
+        
         /* Get iDigi Default MAC Address */
         memcpy(&fapp_params_current_config.fnet_params.mac[0], (char *)address, sizeof (_enet_address));
         
