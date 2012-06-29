@@ -200,7 +200,7 @@ class TestRciDescriptors(object):
 
         error = parse_error(doc)
         assert_true(error is None, "Error found: %s " % (error,))
-        for element in xpath.find('//%s'%test.element.group):
+        for element in xpath.find('//%s'%test.element.group,doc):
             index = int(element.getAttribute('index')) \
                         if element.hasAttribute('index') else 1
 
@@ -210,8 +210,7 @@ class TestRciDescriptors(object):
                                                 index = index)
 
             current_value = ''
-            value = xpath.find('//%s/%s' % (test.element.group,
-                                            test.element.name), doc)
+            value = xpath.find('//%s' % (test.element.name), element)
             childNumber = 0
             if len(value) > 0:
                 vals = value[0].childNodes
@@ -258,8 +257,23 @@ class TestRciDescriptors(object):
             assert_true(error is None, "Error found: %s" % (error,))
 
             #Get the new value
+
+            newElements = xpath.find('//%s'%test.element.group,doc)
+            newElement = None
+
+            for e in newElements:
+                if e.hasAttribute('index'):
+                    if index == int(e.getAttribute('index')):
+                        newElement = e
+                        break
+                else:
+                    if index == 1:
+                        newElement = e
+                        break
+            assert_true(newElement is not None, "Could not find previously set element!")
+
             new_value = ''
-            value = xpath.find('//%s/%s'%(test.element.group,test.element.name), doc)
+            value = xpath.find('//%s'%(test.element.name), newElement)
             if len(value) > 0:
                 childs = value[0].childNodes
                 newValue = '%s'%childs[childNumber].nodeValue
