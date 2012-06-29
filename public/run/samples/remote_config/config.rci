@@ -49,11 +49,11 @@ group setting device_time  "Device Time"
     error invalid_integer "Invalid integer value" 
 
 group setting device_info  "Device info"
+    element version "Version" type 0xhex access  read_only 
     element product "Product" type string access  read_write  min  1 max  64 
     element model "Model" type string access  read_write  min  0 max  32 
     element company "Company" type string access  read_write 
     element desc "Description" type multiline_string access  read_write 
-    element syspwd "System password" type password access  read_write  max  64 
     error invalid_length "invalid length" 
 
 # Device info that shows up in iDigi device summary
@@ -79,10 +79,6 @@ group setting devicesecurity "iDigi device security"
 group state gps_stats "GPS"
     element latitude "Latitude" type string access read_only
     element longitude "Longitude" type string access read_only
-
-group state debug_info "Debug info on IC thread"
-    element version "Version" type 0xhex access  read_only 
-    element stacksize "Stack size" type hex32 access  read_only 
 
 
     

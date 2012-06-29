@@ -41,7 +41,6 @@ remote_group_table_t remote_setting_table[] = {
 
 remote_group_table_t remote_state_table[] = {
     {NULL, NULL, app_gps_stats_group_get, NULL, NULL},
-    {NULL, NULL, app_debug_info_group_get, NULL, NULL}
 };
 
 
