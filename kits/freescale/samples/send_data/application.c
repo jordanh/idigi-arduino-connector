@@ -46,12 +46,16 @@ int application_start(void)
         goto error;
     }
 
+    #define  WAIT_FOR_2_SEC  2000
+    _time_delay(WAIT_FOR_2_SEC);
+
     do
     {
         #define WAIT_FOR_10_MSEC    10
         static idigi_connector_data_t ic_data = {0};
+        static boolean display_push_msg = TRUE;
         static unsigned char count = 0;
-        static char buffer[] = "iDigi Device application data. Count xxx.\n";
+        static char buffer[] = "iDigi Device application data. Count xxxx.\n";
         size_t const buf_size = (sizeof buffer) - 1;
 
         if (lwgpio_get_value(&push_button) == LWGPIO_VALUE_LOW)
@@ -67,19 +71,15 @@ int application_start(void)
                 ic_data.data_ptr = buffer;
                 ic_data.length_in_bytes = bytes_copied;
                 ret = idigi_send_data("test/test.txt", &ic_data, NULL);
+                display_push_msg = TRUE;
             }
         }
         else
         {
-            static boolean first_time = TRUE;
-
-            if (first_time)
+            if (display_push_msg)
             {
-                #define  WAIT_FOR_2_SEC  2000
-
-                _time_delay(WAIT_FOR_2_SEC);
-                APP_DEBUG("Push SW1 to send data to the cloud.\n");
-                first_time = FALSE;
+                APP_DEBUG("\nPush SW1 to send data to the cloud.\n");
+                display_push_msg = FALSE;
             }
 
             _time_delay(WAIT_FOR_10_MSEC);
