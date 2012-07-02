@@ -334,7 +334,7 @@ public class Descriptors {
                         break;
 
                     case 403:
-                        ConfigGenerator.log("Forbidden: deleting MetaData is failed, verify that vendor ID is valid.\n");
+                        ConfigGenerator.log("Forbidden: deleting previous RCI descriptors failed, verify that vendor ID is valid and is owned by your account.\n");
                         break;
 
                     default:
@@ -370,7 +370,7 @@ public class Descriptors {
                     break;
 
                 case 403:
-                    ConfigGenerator.log("Forbidden: deleting MetaData is failed, verify that vendor ID is valid.\n");
+                    ConfigGenerator.log("Forbidden: Uploading " + descName + " failed, verify that vendor ID is valid and is owned by your account.\n");
                     break;
 
                 default:
