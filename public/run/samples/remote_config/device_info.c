@@ -91,8 +91,10 @@ idigi_callback_status_t app_device_info_group_get(idigi_remote_group_request_t c
     {
         device_info_config_data_t * const device_info_ptr = session_ptr->group_context;
 
-        char * config_data[] = {device_info_ptr->product, device_info_ptr->model,
+        char * config_data[] = {NULL, device_info_ptr->product, device_info_ptr->model,
                                 device_info_ptr->company, device_info_ptr->desc};
+
+        ASSERT(asizeof(config_data) == idigi_setting_device_info_COUNT);
 
         response->element_data.element_value->string_value = config_data[request->element.id];
         if (request->element.id == idigi_setting_device_info_desc)
@@ -137,13 +139,17 @@ idigi_callback_status_t app_device_info_group_set(idigi_remote_group_request_t c
             size_t min_length;
             size_t max_length;
         } config_data[] = {
+                {NULL, 0, 0}, /* ignore idigi_setting_device_info_version */
                 {device_info_ptr->product, 1, sizeof device_info_ptr->product},
                 {device_info_ptr->model, 0, sizeof device_info_ptr->model},
                 {device_info_ptr->company, 0, sizeof device_info_ptr->company},
                 {device_info_ptr->desc, 0, sizeof device_info_ptr->desc},
         };
 
+        ASSERT(asizeof(config_data) == idigi_setting_device_info_COUNT);
+
         value_length = strlen(request->element.value->string_value);
+
         if ((value_length < config_data[request->element.id].min_length) ||
             (value_length >= config_data[request->element.id].max_length))
         {
