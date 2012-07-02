@@ -143,10 +143,17 @@ PLATFORM = template"""
         # Add file_system.c to PLATFORM_SRCS.  -lcrypto if APP_ENABLE_MD5
         # passed.
         subs['PLATFORM_SRCS'] += " $(PLATFORM_DIR)/file_system.c"
+
+    if sample == 'file_system':
+        if dvt_test:
+            subs['LIBS'] += """
+APP_ENABLE_MD5=true"""
+
         subs['LIBS'] += """
 
 ifeq ($(APP_ENABLE_MD5),true)
 LIBS += -lcrypto
+CFLAGS+= -DAPP_ENABLE_MD5=true
 endif"""
 
     if dvt_test:
