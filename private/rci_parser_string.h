@@ -26,23 +26,23 @@ static size_t cstr_len(cstr_t const * const cstr)
     return length;
 }
 
+static void init_rcistr(rcistr_t * const rcistr, char const * const data, size_t length)
+{
+    rcistr->data = data;
+    rcistr->length = length;
+}
 static void cstr_to_rcistr(cstr_t const * const cstr, rcistr_t * const rcistr)
 {
-    rcistr->data = cstr_data(cstr);
-    rcistr->length = cstr_len(cstr);
+    init_rcistr(rcistr, cstr_data(cstr), cstr_len(cstr));
 }
 
 static void str_to_rcistr(char const * const str, rcistr_t * const rcistr)
 {
-    rcistr->data = str;
-    rcistr->length = strlen(str);
+    init_rcistr(rcistr, str, strlen(str));
 }
 
 static idigi_bool_t buffer_equals_buffer(char const * const str1, size_t const len1, char const * const str2, size_t const len2)
 {
-    ASSERT(len1 != 0);
-    ASSERT(len2 != 0);
-
     return idigi_bool((len1 == len2) && (memcmp(str1, str2, len1) == 0));
 }
 

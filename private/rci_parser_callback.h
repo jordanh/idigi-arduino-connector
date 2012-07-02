@@ -69,16 +69,23 @@ static void rci_group_error(rci_t * const rci, unsigned int const id, char const
     }
 }
 
+static idigi_bool_t pending_rci_callback(rci_t * const rci)
+{
+    idigi_bool_t const pending = idigi_bool(rci->callback.status == idigi_callback_busy);
+
+    return pending;
+}
+
 static void trigger_rci_callback(rci_t * const rci, idigi_remote_config_request_t const remote_config_request)
 {
     switch (remote_config_request)
     {
     UNHANDLED_CASES_ARE_NEEDED;
-    case idigi_remote_config_session_start:
-    case idigi_remote_config_session_end:
     case idigi_remote_config_session_cancel:
         break;
 
+    case idigi_remote_config_session_start:
+    case idigi_remote_config_session_end:
     case idigi_remote_config_action_start:
     case idigi_remote_config_action_end:
         ASSERT(!have_group_id(rci));
@@ -87,7 +94,6 @@ static void trigger_rci_callback(rci_t * const rci, idigi_remote_config_request_
         break;
 
     case idigi_remote_config_group_start:
-    case idigi_remote_config_group_end:
         ASSERT(have_group_id(rci));
         ASSERT(have_group_index(rci));
         ASSERT(!have_element_id(rci));
@@ -96,13 +102,17 @@ static void trigger_rci_callback(rci_t * const rci, idigi_remote_config_request_
         rci->shared.request.group.index = get_group_index(rci);
         break;
 
+    case idigi_remote_config_group_end:
+        ASSERT(have_group_id(rci));
+        ASSERT(have_group_index(rci));
+        ASSERT(!have_element_id(rci));
+        break;
+
     case idigi_remote_config_group_process:
         ASSERT(have_group_id(rci));
         ASSERT(have_group_index(rci));
         ASSERT(have_element_id(rci));
 
-        rci->shared.request.group.id = get_group_id(rci);
-        rci->shared.request.group.index = get_group_index(rci);
         rci->shared.request.element.id = get_element_id(rci);
         break;
     }

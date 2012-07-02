@@ -14,7 +14,7 @@ static void rci_generate_error(rci_t * const rci)
 {
     idigi_remote_config_request_t const remote_config_request = rci->callback.request.remote_config_request;
 
-    if (rci->callback.status == idigi_callback_busy)
+    if (pending_rci_callback(rci))
     {
         if (!rci_callback(rci))
             goto done;

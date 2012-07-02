@@ -72,19 +72,18 @@ static idigi_bool_t rci_action_session_active(rci_t * const rci)
         case rci_status_internal_error:
         {
             success = idigi_false;
-            goto done;
             break;
         }
 
         case rci_status_busy:
         {
-            /* assert state is valid */
             break;
         }
 
         case rci_status_more_input:
         {
             rci_set_buffer(&rci->buffer.input, &rci->service_data->input);
+            /* TODO: what about destination? */
             rci->status = rci_status_busy;
             break;
         }
@@ -100,14 +99,16 @@ static idigi_bool_t rci_action_session_active(rci_t * const rci)
         }
     }
 
-done:
     return success;
 }
 
 static idigi_bool_t rci_action_session_lost(rci_t * const rci)
 {
-    /* call cancel */
-    /* clean up */
+    trigger_rci_callback(rci, idigi_remote_config_session_cancel);
+    {
+        idigi_bool_t const success = rci_callback(rci);
+        ASSERT(success);
+    }
 
     rci->service_data = NULL;
     rci->status = rci_status_complete;
@@ -146,7 +147,6 @@ static rci_status_t rci_parser(rci_session_t const action, ...)
 #endif
         }
 
-        ASSERT(success);
         if (!success) goto done;
     }
 
