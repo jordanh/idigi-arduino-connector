@@ -303,7 +303,7 @@ class TestRciDescriptors(object):
 
         # If not connected, fail the TestCase.
         if not self.device_core.dpConnectionStatus == '1':
-            self.assertEqual('1', self.device_core.dpConnectionStatus,
+            assert_equal('1', self.device_core.dpConnectionStatus,
                 "Device %s not connected." % IIKPlugin.device_config.device_id)
 
     def parse_group(self, descriptor, setting=True):

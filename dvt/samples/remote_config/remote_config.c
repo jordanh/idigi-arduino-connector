@@ -17,6 +17,7 @@
 #include "remote_config.h"
 #include "idigi_remote.h"
 #include "platform.h"
+#include <string.h>
 
 int32_t init_signed = 0;
 uint32_t init_unsigned = 1;
@@ -98,6 +99,8 @@ void add_setting_data(idigi_remote_group_request_t const * const request,
     unsigned int group_id = request->group.id;
     unsigned int index = request->group.index;
     unsigned int element_id = request->element.id;
+
+    APP_DEBUG("Setting with length %d.\n", length);
 
     rci_data_t * r_data = &rci_data[request->group.type];
 
@@ -222,18 +225,18 @@ static idigi_callback_status_t app_rci_group_get(
             break;
         case idigi_element_type_ipv4:
             data = get_setting_data(request, init_ipv4, 
-                sizeof(char)*strlen(init_ipv4));
+                sizeof(char)*(strlen(init_ipv4)+1));
             response->element_data.element_value->string_value = data;
             break;
         case idigi_element_type_fqdnv4:
         case idigi_element_type_fqdnv6:
             data =  get_setting_data(request, init_fqdnv4, 
-                sizeof(char)*strlen(init_fqdnv4));
+                sizeof(char)*(strlen(init_fqdnv4)+1));
             response->element_data.element_value->string_value = data;
             break;
         case idigi_element_type_datetime:
             data = get_setting_data(request, init_datetime, 
-                sizeof(char)*strlen(init_datetime)+1);
+                sizeof(char)*(strlen(init_datetime)+1));
             response->element_data.element_value->string_value = data;
             break;
         default:
@@ -259,7 +262,7 @@ static idigi_callback_status_t app_rci_group_set(
         case idigi_element_type_fqdnv6:
         case idigi_element_type_datetime:
             add_setting_data(request, request->element.value->string_value, 
-                sizeof(char)*strlen(request->element.value->string_value));
+                sizeof(char)*(strlen(request->element.value->string_value)+1));
             break;
         case idigi_element_type_int32:
             add_setting_data(request,
