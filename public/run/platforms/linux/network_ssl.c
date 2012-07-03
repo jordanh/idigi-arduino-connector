@@ -449,6 +449,12 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t const * 
     bytes_read = SSL_read(ssl_ptr->ssl, read_data->buffer, read_data->length);
     if (bytes_read <= 0)
     {
+        int ssl_error = SSL_get_error(ssl_ptr->ssl, bytes_read);
+        if (ssl_error == SSL_ERROR_WANT_READ) 
+        {
+            status = idigi_callback_busy;
+            goto done;
+        }
         /* EOF on input: the connection was closed. */
         APP_DEBUG("SSL_read failed %d\n", bytes_read);
         status = idigi_callback_abort;
@@ -528,7 +534,7 @@ idigi_callback_status_t app_network_handler(idigi_network_request_t const reques
         break;
 
     default:
-        APP_DEBUG("idigi_network_callback: unrecognized callback request [%d]\n", request);
+        APP_DEBUG("app_network_handler: unrecognized callback request [%d]\n", request);
         status = idigi_callback_unrecognized;
         break;
     }

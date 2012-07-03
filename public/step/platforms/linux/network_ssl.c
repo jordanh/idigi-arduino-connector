@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, 2012 Digi International Inc.,
+ * Copyright (c) 2012 Digi International Inc.,
  * All rights not expressly granted are reserved.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -110,7 +110,7 @@ done:
     return sd;
 }
 
-static int app_connect_to_server(int fd, char const * const host_name, size_t length)
+static int app_connect_to_server(int fd, char const * const host_name, size_t const length)
 {
     int ret = -1;
     in_addr_t ip_addr;
@@ -447,6 +447,12 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t const * 
     bytes_read = SSL_read(ssl_ptr->ssl, read_data->buffer, read_data->length);
     if (bytes_read <= 0)
     {
+        int ssl_error = SSL_get_error(ssl_ptr->ssl, bytes_read);
+        if (ssl_error == SSL_ERROR_WANT_READ) 
+        {
+            status = idigi_callback_busy;
+            goto done;
+        }
         /* EOF on input: the connection was closed. */
         APP_DEBUG("SSL_read failed %d\n", bytes_read);
         status = idigi_callback_abort;
@@ -493,7 +499,7 @@ idigi_callback_status_t app_network_handler(idigi_network_request_t const reques
                                             void const * const request_data, size_t const request_length,
                                             void * response_data, size_t * const response_length)
 {
-    idigi_callback_status_t status = idigi_callback_continue;
+    idigi_callback_status_t status;
 
     UNUSED_ARGUMENT(request_length);
 
