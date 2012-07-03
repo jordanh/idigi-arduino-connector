@@ -277,7 +277,10 @@ class TestRciDescriptors(object):
             value = xpath.find('//%s'%(test.element.name), newElement)
             if len(value) > 0:
                 childs = value[0].childNodes
-                new_value = '%s'%childs[childNumber].nodeValue
+                if len(childs) <= childNumber:
+                    new_value = ''
+                else:
+                    new_value = '%s'%childs[childNumber].nodeValue
 
             if (test.error is None and test.element.access != 'read_only'):
                 log.info("Ensuring value was successfully set.")
