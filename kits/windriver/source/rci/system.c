@@ -74,7 +74,7 @@ idigi_callback_status_t app_system_group_init(idigi_remote_group_request_t const
 
     UNUSED_ARGUMENT(request);
 
-    APP_DEBUG("app_system_group_init\n");
+    APP_DEBUG("app_system_group_init1\n");
 
     ptr = malloc(sizeof *system);
     if (ptr == NULL)
@@ -86,6 +86,7 @@ idigi_callback_status_t app_system_group_init(idigi_remote_group_request_t const
         system = ptr;
         *system = nvram_system_data;
         response->user_context = system;
+        APP_DEBUG("app_system_group_init description [%s]\n", nvram_system_data.description);
     }
 
     return status;

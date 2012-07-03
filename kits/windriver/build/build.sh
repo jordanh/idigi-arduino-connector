@@ -64,4 +64,4 @@ rpmbuild -ba -vvv rpm/SPECS/idigi.spec
 
 # Copy the final RPM to the release directory
 cd build
-#cleanup
+cleanup

@@ -26,6 +26,7 @@ public class Register {
         getUserName();
         getPassword();
         RegisterDevice();
+        uploadDescriptors();
         System.out.println(getErrorMessage());
         callDeleteFlag = true;
     }
@@ -205,6 +206,64 @@ public class Register {
 
     private void resetErrorMessage() {
         errorMessage = "";
+    }
+
+    // Updload hard coded descriptors to the device
+    private void uploadDescriptors() {
+            String SET_SETTING = "<descriptor element=\"set_setting\" desc=\"Set device configuration\" format=\"all_settings_groups\"> "+
+                                 "<error_descriptor id=\"1\" desc=\"Parser error\" /> <error_descriptor id=\"2\" "+
+                                 "desc=\"Bad XML\" /> <error_descriptor id=\"5\" desc=\"Bad group\" /> <error_descriptor id=\"6\" desc=\"Bad index\" /> "+
+                                 "</descriptor>";
+
+            String QUERY_SETTING = "<descriptor element=\"query_setting\" desc=\"Retrieve device configuratio\" format=\"all_settings_groups\"> "+
+                                 " <format_define name=\"all_settings_groups \"> <error_descriptor id=\"1\" desc=\"Parser error\" /> "+
+                                 "<error_descriptor id=\"2\" desc=\"Bad XML\" /> <error_descriptor id=\"5\" desc=\"Bad group\" /> "+
+                                 "<error_descriptor id=\"6\" desc=\"Bad index\" /> <descriptor element=\"system\" desc=\"System\">"+
+                                 "<element name=\"description\" desc=\"Description  \" type=\"string\" max=\"63\" />"+
+                                 "<element name=\"contact\" desc=\"Contact\" type=\"string\" max=\"63\" /><element name=\"location\" desc=\"Location\" type=\"string\" max=\"63\" />"+
+                                 "<error_descriptor id=\"1\" desc=\"Parser error\" /> "+
+                                 "<error_descriptor id=\"2\" desc=\"Bad XML\" /> <error_descriptor id=\"7\" desc=\"Bad element\" /> "+
+                                 "<error_descriptor id=\"8\" desc=\"Bad value\" /> <error_descriptor id=\"9\" desc=\"Invalid Length\" /> "+
+                                 "<error_descriptor id=\"10\" desc=\"Insufficient memory\" /> </descriptor></format_define> </descriptor>";
+
+           String RCI_REQUEST =  "<descriptor element=\"rci_request\" desc=\"Remote Command Interface request\"> "+
+                                 "<attr name=\"version\" desc=\"RCI version of request. Response will be returned in this versions response format\" "+
+                                 "default=\"1.1\"> <value value=\"1.1\" desc=\"Version 1.1\"/></attr> <descriptor element=\"query_setting\" "+
+                                 "dscr_avail=\"true\" /> <descriptor element=\"set_setting\" dscr_avail=\"true\" /> "+
+                                 "<error_descriptor id=\"1\" desc=\"Parser error\" /> <error_descriptor id=\"2\" desc=\"Bad XML\" /> "+
+                                 "<error_descriptor id=\"3\" desc=\"Bad command\" /> <error_descriptor id=\"4\" desc=\"Invalid version\" /> </descriptor>;";
+
+            uploadDescriptor("query_setting", QUERY_SETTING);
+            uploadDescriptor("set_setting",   SET_SETTING);
+            uploadDescriptor("rci_request",   RCI_REQUEST);
+
+    }
+
+    private String tagMessageSegment(String tagName, String value) {
+        return "<" + tagName + ">" + value + "</" + tagName + ">";
+    }
+
+    private String replaceXmlEntities(String buffer) {
+        return buffer.replace("<", "&lt;").replace(">", "&gt;");
+    }
+
+    private void uploadDescriptor(String descName, String buffer) {
+        String deviceType ="Linux Application";
+        long fwVersion=0x01000000;
+
+        System.out.println("Uploading description:" + descName);
+
+        String message = "<DeviceMetaData>";
+        message += tagMessageSegment("dvVendorId", vendorId);
+        message += tagMessageSegment("dmDeviceType", deviceType);
+        message += tagMessageSegment("dmVersion", String.format("%d", fwVersion));
+        message += tagMessageSegment("dmName", descName);
+        message += tagMessageSegment("dmData", replaceXmlEntities(buffer));
+        message += "</DeviceMetaData>";
+        
+        String response = sendCloudData("/ws/DeviceMetaData", "POST", message);
+        System.out.println("Created: " + vendorId + "/" + deviceType + "/" + descName);
+        System.out.println(response);
     }
 
 }

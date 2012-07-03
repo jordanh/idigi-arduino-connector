@@ -5,9 +5,27 @@
 #set -v
 
 rc=0
-# Add route to the static address of the remote host
-sudo route add -net 172.31.255.1 netmask 255.255.255.255 dev eth2
+
 REMOTE_HOST=172.31.255.1 
+#REMOTE_HOST=10.52.18.100
+# Add route to the static address of the remote host
+
+# If the route to the device does not already exist add it
+check_route=`route | grep $REMOTE_HOST | wc -l`
+
+if [[ $check_route == 0 ]]; then
+
+    num_eths=`ifconfig | grep eth | wc -l`
+
+    # Add the route to the default interface
+    eth=`route | grep default | grep -o 'eth[0-9]'`
+
+    if [[ $num_eths != 1 ]]; then
+        echo "Warning: Multiple ethernets were detected: using default interface" $eth
+        read -p "Press [Enter] key to continue"
+    fi
+    sudo route add -net $REMOTE_HOST netmask 255.255.255.255 dev $eth
+fi
 
 mac_address=
 

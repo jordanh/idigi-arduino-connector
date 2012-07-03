@@ -60,6 +60,11 @@ idigi_callback_status_t app_remote_config_handler(idigi_remote_config_request_t 
                                                       void const * const request_data, size_t const request_length,
                                                       void * response_data, size_t * const response_length);
 
+idigi_callback_status_t app_firmware_handler(idigi_firmware_request_t const request,
+                                                  void const * const request_data, size_t const request_length,
+                                                  void * response_data, size_t * const response_length);
+
+
 #define APP_SSL_CA_CERT   "/etc/idigi-ca-cert-public.crt"
 
 #endif /* _PLATFORM_H */

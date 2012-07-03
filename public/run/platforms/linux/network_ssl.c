@@ -21,6 +21,8 @@
 #include <errno.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <linux/reboot.h>
+#include <sys/reboot.h>
 
 #include "idigi_api.h"
 #include "platform.h"
@@ -482,7 +484,8 @@ static idigi_callback_status_t app_server_reboot(void)
 {
 
     APP_DEBUG("Reboot from server\n");
-    /* should not return from rebooting the system */
+    /* Note: we must be running as the superuser to reboot the system */
+    reboot(LINUX_REBOOT_CMD_RESTART);
     return idigi_callback_continue;
 }
 

@@ -84,7 +84,7 @@
  *
  * @see @ref firmware_support
  */
-//#define IDIGI_FIRMWARE_SERVICE
+#define IDIGI_FIRMWARE_SERVICE
 
 
 /**
@@ -162,7 +162,7 @@
  *
  */
 #define IDIGI_FILE_SYSTEM
-#define IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH   256
+#define IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH   2048
 #if (!defined (IDIGI_NO_FILE_SYSTEM) || defined(DIGI_REQUIRED_TO_GENERATE_INTERNAL_DOCUMENATION))
 /**
  * If defined, IIK includes the @ref file_system.

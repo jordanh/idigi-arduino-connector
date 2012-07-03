@@ -3,7 +3,7 @@
 # the tftp folder which is the NFS mount point for the kontron device.
 # Do not use to create an official build, just use during developement
 # to avoid having to use the slow WorkBench.
-set -v
+#set -v
 
 rc=0
 PROJECT_DIR=~/WindRiver/workspace/WRLinux-Platform_prj
@@ -38,10 +38,11 @@ if [[ ${rc} != 0 ]]; then
     exit -1
 fi
 
+# Copy over if using NFS
 # Remove the old RPM
-rm /tftpboot/kontron_m2m/rootfs/*.rpm
+#rm /tftpboot/kontron_m2m/rootfs/*.rpm
 
-cd ${PROJECT_DIR}/export/RPMS/atom
-cp idigi-1.1-1.atom-*.rpm /tftpboot/kontron_m2m/rootfs/.
-cd ${f}
+#cd ${PROJECT_DIR}/export/RPMS/atom
+#cp idigi-1.1-1.atom-*.rpm /tftpboot/kontron_m2m/rootfs/.
+#cd ${f}
 
