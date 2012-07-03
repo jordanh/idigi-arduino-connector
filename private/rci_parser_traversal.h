@@ -13,7 +13,7 @@
 /* We are only called on set_setting and set_state for a single element (with no content). */
 static idigi_bool_t one_element_set(rci_t const * const rci)
 {
-    idigi_bool_t const set = ((rci->input.command == rci_command_set_setting) || (rci->input.command == rci_command_set_state));
+    idigi_bool_t const set = idigi_bool((rci->input.command == rci_command_set_setting) || (rci->input.command == rci_command_set_state));
 
     if (set)
     {
