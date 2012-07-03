@@ -18,6 +18,7 @@
 #include <idigi_types.h>
 #include <platform.h>
 #include <idigi_debug.h>
+#include <os_support.h>
 
 int idigi_network_receive_failures = 0;
 int idigi_network_send_failures = 0;
@@ -251,7 +252,10 @@ static idigi_callback_status_t app_server_disconnected(void)
 static idigi_callback_status_t app_server_reboot(void)
 {
     APP_DEBUG("Reboot from server\n");
+
     /* should not return from rebooting the system */
+    ic_software_reset();
+
     return idigi_callback_continue;
 }
 
