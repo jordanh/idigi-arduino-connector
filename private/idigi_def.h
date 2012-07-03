@@ -18,7 +18,8 @@
 #define MSG_MAX_RECV_PACKET_SIZE 1600
 #define MSG_MAX_SEND_PACKET_SIZE 512
 
-#define UNUSED_PARAMETER(x)     ((void)x)
+#define UNUSED_VARIABLE(x)      ((void) (x))
+#define UNUSED_PARAMETER(x)     UNUSED_VARIABLE(x)
 
 #define ON_FALSE_DO_(cond, code)        do { if (!(cond)) {code;} } while (0)
 
@@ -30,8 +31,6 @@
 
 #define ASSERT_GOTO(cond, label)    ON_ASSERT_DO_((cond), {goto label;}, {})
 #define CONFIRM(cond)               do { switch(0) {case 0: case (cond):;} } while (0)
-
-#define UNUSED_PARAMETER(x)     ((void)x)
 
 #define EDP_MT_VERSION      2
 

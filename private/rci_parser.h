@@ -107,7 +107,7 @@ static idigi_bool_t rci_action_session_lost(rci_t * const rci)
     trigger_rci_callback(rci, idigi_remote_config_session_cancel);
     {
         idigi_bool_t const success = rci_callback(rci);
-        ASSERT(success);
+        ASSERT(success); UNUSED_VARIABLE(success);
     }
 
     rci->service_data = NULL;
