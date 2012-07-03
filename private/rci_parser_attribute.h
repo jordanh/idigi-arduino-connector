@@ -51,8 +51,8 @@ static void set_numeric_attribute(rci_attribute_t * const attribute, cstr_t cons
 {
 #define  MAX_NUMERIC_VALUE  "999"
     static cstr_t storage[] = "n" MAX_NUMERIC_VALUE;
-    size_t const storage_available = sizeof MAX_NUMERIC_VALUE;
-    int const digits_max = storage_available - 1;
+    int const digits_max = sizeof MAX_NUMERIC_VALUE - sizeof nul;
+    size_t const storage_available = digits_max + sizeof nul;
     int const digits_used = snprintf(storage + 1, storage_available, "%u", value);
 
     ASSERT((digits_used >= 1) && (digits_used <= digits_max));
