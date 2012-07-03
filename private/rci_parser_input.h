@@ -391,6 +391,7 @@ static void rci_process_group_tag(rci_t * const rci, rci_action_t const rci_acti
 
             if (!rcistr_to_uint(index, &group_index) || (group_index > group->instances))
             {
+                invalidate_group_id(rci);
                 rci_global_error(rci, idigi_rci_error_bad_index, RCI_NO_HINT);
                 goto error;
             }
