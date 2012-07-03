@@ -531,8 +531,6 @@ static void rci_handle_start_tag(rci_t * const rci)
 
             if (rcistr_empty(version) || (cstr_equals_rcistr(RCI_VERSION_SUPPORTED, version)))
             {
-                rci->input.command = rci_command_header;
-
                 prep_rci_reply_data(rci);
                 state_call(rci, rci_parser_state_output);
 

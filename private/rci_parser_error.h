@@ -108,7 +108,7 @@ static void rci_generate_error(rci_t * const rci)
 
         rci->output.type = rci_output_type_three_tuple;
 
-        rci->error.state = (rci->shared.response.element_data.error_hint == NULL) ? rci_error_state_error_close : rci_error_state_error_hint;
+        rci->error.state = rci_error_state_error_close;
         break;
 #endif
 
@@ -131,6 +131,7 @@ static void rci_generate_error(rci_t * const rci)
         {
         case rci_command_unseen:
         case rci_command_unknown:
+        case rci_command_header:
             rci->error.state = rci_error_state_reply_close;
             break;
         default:

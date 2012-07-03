@@ -45,6 +45,8 @@ static void prep_rci_reply_data(rci_t * const rci)
     cstr_to_rcistr(RCI_REPLY, &rci->output.tag);
     set_attribute(&rci->output.attribute, RCI_VERSION, RCI_VERSION_SUPPORTED);
     rci->output.type = rci_output_type_start_tag;
+
+    rci->input.command = rci_command_header;
 }
 
 static void set_numeric_attribute(rci_attribute_t * const attribute, cstr_t const * const name, unsigned int const value)
