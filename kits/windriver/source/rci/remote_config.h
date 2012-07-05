@@ -98,6 +98,8 @@ typedef enum {
 
 #if defined IDIGI_RCI_PARSER_INTERNAL_DATA
 
+#define FIRMWARE_TARGET_ZERO_VERSION  0x1000000
+
 #define SETTING_SYSTEM (idigi_remote_all_strings+131)
 #define SETTING_SYSTEM_DESCRIPTION (idigi_remote_all_strings+138)
 #define SETTING_SYSTEM_CONTACT (idigi_remote_all_strings+150)

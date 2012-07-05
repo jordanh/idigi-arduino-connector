@@ -321,7 +321,7 @@
  * @see @ref idigi_config_device_type
  * @see @ref app_get_device_type
  */
-#define IDIGI_DEVICE_TYPE                             "IIK Linux Sample"
+//#define IDIGI_DEVICE_TYPE                             NULL
 
 /**
  * When defined, this string hardcode for the @ref server_url instead of the application framework
@@ -333,7 +333,7 @@
  * @see @ref idigi_config_server_url
  * @see @ref app_get_server_url()
  */
-#define IDIGI_CLOUD_URL                               "developer.idigi.com"
+//#define IDIGI_CLOUD_URL                               "developer.idigi.com"
 
 /**
  * When defined, this string hardcode for the @ref tx_keepalive instead of the application framework

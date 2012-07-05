@@ -58,6 +58,9 @@ iDigi cloud, the python scripts are called led_on.py and led_off.py, the take th
 and password as arguments.  To run the python scripts type:
 
 python led_on.py <username> <password> <device_id>
+
+example:
+python led_off.py username password 00000000-00000000-00b338ff-ff0002d8
  
 You will then see the status LED's on the Kontron device turn on, the status LED is on the top of the 
 device closest to the side with the Ethernet cable.  You can also use iDigi Manager Pro to view the
