@@ -24,12 +24,20 @@ def send_rci(request):
     password = IIKPlugin.api.password
     url = 'https://%s/ws/sci' % IIKPlugin.api.hostname
 
-    req_data = parseString(request).toxml()
-    log.info("Sending SCI Request: \n%s" % req_data)
+    # We need to verify that we are going to send valid XML.
+    # However, parseString changes some XML which we don't want.
+    # For example, <tag></tag> is changed to <tag/>.
+    try:
+       test_xml = parseString(request)
+    except Exceptrion, e:
+        error = "Invalid XML passed: %s"%request
+        assert 0==1, error
 
-    response = post(url, 
-                    data=req_data, 
-                    auth=(username, password), 
+    log.info("Sending SCI Request: \n%s" % request)
+
+    response = post(url,
+                    data=request,
+                    auth=(username, password),
                     verify=False)
 
     assert_equal(200, response.status_code, "Non 200 Status Code: %d.  " \
@@ -47,8 +55,8 @@ def parse_error(doc):
     errors = xpath.find('//error',doc)
     if len(errors) > 0:
         error = errors[0]
-        return (error.getAttribute('id'), 
-                xpath.find('desc/text()', error)[0].data, 
+        return (error.getAttribute('id'),
+                xpath.find('desc/text()', error)[0].data,
                 xpath.find('hint/text()', error)[0].data)
     return None
 
@@ -64,17 +72,17 @@ class IIKPlugin(Plugin):
         parser.add_option('--idigi_hostname', action='store', type="string", dest="hostname", default="idigi-e2e.sa.digi.com", help="Server device is connected to.")
         parser.add_option('--iik_device_id', action='store', type="string", dest="device_id", default="00000000-00000000-00409DFF-FF432317", help="Device ID of device running iDigi Connector.")
         parser.add_option('--iik_config', action='store', type='string', dest="config_file", default="config.ini", help="Config File to use to run tests.")
-    
+
     def configure(self, options, conf):
         Plugin.configure(self, options, conf)
 
         if not self.enabled:
             return
-            
-        IIKPlugin.api = idigi_ws_api.Api(options.username, options.password, 
+
+        IIKPlugin.api = idigi_ws_api.Api(options.username, options.password,
             options.hostname)
         IIKPlugin.device_config = configuration.DeviceConfiguration(
-            options.device_id, 
+            options.device_id,
             config_file=options.config_file)
 
     def finalize(self, result):
