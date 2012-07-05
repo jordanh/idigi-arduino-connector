@@ -102,6 +102,7 @@ static void confirm_fw_version(idigi_firmware_data_t * const fw_ptr, uint8_t tar
         idigi_data_t * const idigi_ptr = fw_ptr->idigi_ptr;
         idigi_request_t request_id;
 
+        idigi_debug_printf("confirm_fw_version: 0x%X != FIRMWARE_TARGET_ZERO_VERSION (0x%X)\n", version, FIRMWARE_TARGET_ZERO_VERSION);
         request_id.firmware_request = idigi_firmware_version;
         notify_error_status(idigi_ptr->callback, idigi_class_firmware, request_id, idigi_bad_version);
     }
