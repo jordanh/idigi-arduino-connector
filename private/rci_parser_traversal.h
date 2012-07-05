@@ -13,14 +13,14 @@
 /* We are only called on set_setting and set_state for a single element (with no content). */
 static idigi_bool_t one_element_set(rci_t const * const rci)
 {
-    idigi_bool_t const set = idigi_bool((rci->input.command == rci_command_set_setting) || (rci->input.command == rci_command_set_state));
+    idigi_bool_t const is_set = is_set_command(rci->input.command);
 
-    if (set)
+    if (is_set)
     {
         ASSERT((rci->traversal.state == rci_traversal_state_one_element_start) || (rci->traversal.state == rci_traversal_state_one_element_data));
     }
 
-    return set;
+    return is_set;
 }
 static void rci_traverse_data(rci_t * const rci)
 {
@@ -164,21 +164,34 @@ static void rci_traverse_data(rci_t * const rci)
         {
             idigi_group_element_t const * const element = get_current_element(rci);
 
+            if (is_query_command(rci->input.command) && (element->access == idigi_element_access_write_only))
+            {
+                switch (rci->traversal.state)
+                {
+                UNHANDLED_CASES_ARE_INVALID
+                case rci_traversal_state_all_groups_element_start:      rci->traversal.state = rci_traversal_state_all_groups_element_end;     break;
+                case rci_traversal_state_one_group_element_start:       rci->traversal.state = rci_traversal_state_one_group_element_end;      break;
+                case rci_traversal_state_indexed_group_element_start:   rci->traversal.state = rci_traversal_state_indexed_group_element_end;  break;
+                case rci_traversal_state_one_element_start:             rci->traversal.state = rci_traversal_state_one_element_end;            break;
+                }
+                goto done;
+            }
+
             rci->output.type = rci_output_type_start_tag;
             cstr_to_rcistr(element->name, &rci->output.tag);
 
             rci->shared.request.element.type = element->type;
             rci->shared.request.element.value = NULL;
-        }
 
-        if (one_element_set(rci))
-        {
-            /* Doing a set, do callback after we have issued the start tag. */
-            rci->traversal.state = rci_traversal_state_one_element_data;
-        }
-        else
-        {
-            trigger_rci_callback(rci, idigi_remote_config_group_process);
+            if (one_element_set(rci))
+            {
+                /* Doing a set, do callback after we have issued the start tag. */
+                rci->traversal.state = rci_traversal_state_one_element_data;
+            }
+            else
+            {
+                trigger_rci_callback(rci, idigi_remote_config_group_process);
+            }
         }
         break;
 
@@ -216,52 +229,65 @@ static void rci_traverse_data(rci_t * const rci)
     case rci_traversal_state_one_element_end:
         {
             idigi_group_element_t const * const element = get_current_element(rci);
+            idigi_bool_t const reading_write_only = idigi_bool(is_query_command(rci->input.command) && (element->access == idigi_element_access_write_only));
 
             rci->output.type = rci_output_type_end_tag;
             cstr_to_rcistr(element->name, &rci->output.tag);
-        }
 
-        switch (rci->traversal.state)
-        {
-        UNHANDLED_CASES_ARE_INVALID
-        case rci_traversal_state_all_groups_element_end:
-        case rci_traversal_state_one_group_element_end:
-        case rci_traversal_state_indexed_group_element_end:
+            switch (rci->traversal.state)
             {
-                idigi_group_t const * const group = (table->groups + get_group_id(rci));
-                unsigned int const next_element = (get_element_id(rci) + 1);
-
-                if (next_element == group->elements.count)
+            UNHANDLED_CASES_ARE_INVALID
+            case rci_traversal_state_all_groups_element_end:
+            case rci_traversal_state_one_group_element_end:
+            case rci_traversal_state_indexed_group_element_end:
                 {
-                    invalidate_element_id(rci);
+                    idigi_group_t const * const group = (table->groups + get_group_id(rci));
+                    unsigned int const next_element = (get_element_id(rci) + 1);
 
-                    switch (rci->traversal.state)
+                    if (next_element == group->elements.count)
                     {
-                    UNHANDLED_CASES_ARE_INVALID
-                    case rci_traversal_state_all_groups_element_end:    rci->traversal.state = rci_traversal_state_all_groups_group_end;    break;
-                    case rci_traversal_state_one_group_element_end:     rci->traversal.state = rci_traversal_state_one_group_end;           break;
-                    case rci_traversal_state_indexed_group_element_end: rci->traversal.state = rci_traversal_state_indexed_group_end;       break;
+                        invalidate_element_id(rci);
+
+                        switch (rci->traversal.state)
+                        {
+                        UNHANDLED_CASES_ARE_INVALID
+                        case rci_traversal_state_all_groups_element_end:    rci->traversal.state = rci_traversal_state_all_groups_group_end;    break;
+                        case rci_traversal_state_one_group_element_end:     rci->traversal.state = rci_traversal_state_one_group_end;           break;
+                        case rci_traversal_state_indexed_group_element_end: rci->traversal.state = rci_traversal_state_indexed_group_end;       break;
+                        }
                     }
+                    else
+                    {
+                        set_element_id(rci, next_element);
+
+                        switch (rci->traversal.state)
+                        {
+                        UNHANDLED_CASES_ARE_INVALID
+                        case rci_traversal_state_all_groups_element_end:    rci->traversal.state = rci_traversal_state_all_groups_element_start;    break;
+                        case rci_traversal_state_one_group_element_end:     rci->traversal.state = rci_traversal_state_one_group_element_start;     break;
+                        case rci_traversal_state_indexed_group_element_end: rci->traversal.state = rci_traversal_state_indexed_group_element_start; break;
+                        }
+                    }
+                }
+                break;
+            case rci_traversal_state_one_element_end:
+                invalidate_element_id(rci);
+                if (reading_write_only)
+                {
+                    state_call(rci, rci_parser_state_input);
                 }
                 else
                 {
-                    set_element_id(rci, next_element);
-
-                    switch (rci->traversal.state)
-                    {
-                    UNHANDLED_CASES_ARE_INVALID
-                    case rci_traversal_state_all_groups_element_end:    rci->traversal.state = rci_traversal_state_all_groups_element_start;    break;
-                    case rci_traversal_state_one_group_element_end:     rci->traversal.state = rci_traversal_state_one_group_element_start;     break;
-                    case rci_traversal_state_indexed_group_element_end: rci->traversal.state = rci_traversal_state_indexed_group_element_start; break;
-                    }
+                    state_call_return(rci, rci_parser_state_output, rci_parser_state_input);
                 }
+                goto element_complete;
+                break;
             }
-            break;
-        case rci_traversal_state_one_element_end:
-            invalidate_element_id(rci);
-            state_call_return(rci, rci_parser_state_output, rci_parser_state_input);
-            goto element_complete;
-            break;
+
+            if (reading_write_only)
+            {
+                goto done;
+            }
         }
         break;
 

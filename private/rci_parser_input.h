@@ -152,6 +152,11 @@ static void rci_handle_content(rci_t * const rci)
     size_t const string_length = rcistr_length(&rci->shared.string.content);
     idigi_bool_t error = idigi_true;
 
+    if (element->access == idigi_element_access_read_only)
+    {
+        goto done;
+    }
+
     /* NUL-terminate the content as we know it is always followed by '<', that's how we got here. */
     ASSERT(string_value[string_length] == '<');
     {
@@ -334,6 +339,8 @@ static void rci_handle_content(rci_t * const rci)
 #endif
     }
 
+done:
+
     if (error)
     {
         rci_global_error(rci, idigi_rci_error_bad_value, RCI_NO_HINT);
@@ -414,21 +421,31 @@ static void rci_action_unary_element(rci_t * const rci)
 
 static void rci_action_start_element(rci_t * const rci)
 {
-    rci->output.tag = rci->shared.string.tag;
-    rci->output.type = rci_output_type_start_tag;
-    state_call(rci, rci_parser_state_output);
-
     switch (rci->input.command)
     {
     UNHANDLED_CASES_ARE_INVALID
     case rci_command_set_setting:
     case rci_command_set_state:
-        /* These are handled in the content parser */
+        rci->output.tag = rci->shared.string.tag;
+        rci->output.type = rci_output_type_start_tag;
+        state_call(rci, rci_parser_state_output);
+
         break;
 
     case rci_command_query_setting:
     case rci_command_query_state:
-        trigger_rci_callback(rci, idigi_remote_config_group_process);
+        {
+            idigi_group_element_t const * const element = get_current_element(rci);
+
+            if (element->access != idigi_element_access_write_only)
+            {
+                rci->output.tag = rci->shared.string.tag;
+                rci->output.type = rci_output_type_start_tag;
+                state_call(rci, rci_parser_state_output);
+
+                trigger_rci_callback(rci, idigi_remote_config_group_process);
+            }
+        }
         break;
     }
 }
@@ -595,11 +612,16 @@ static void rci_handle_end_tag(rci_t * const rci)
 {
     if (have_element_id(rci))
     {
-        invalidate_element_id(rci);
-        rci->output.tag = rci->shared.string.tag;
+        idigi_group_element_t const * const element = get_current_element(rci);
 
-        rci->output.type = rci_output_type_end_tag;
-        state_call(rci, rci_parser_state_output);
+        if (element->access != idigi_element_access_write_only)
+        {
+            rci->output.tag = rci->shared.string.tag;
+
+            rci->output.type = rci_output_type_end_tag;
+            state_call(rci, rci_parser_state_output);
+        }
+        invalidate_element_id(rci);
     }
     else
     {
