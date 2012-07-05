@@ -179,8 +179,13 @@
 
 
 /**
- * This is used to define the maximum file path length in bytes supported by the @ref file_system,
- * including an ending '\0'.
+ * This is used to define the maximum length in bytes of the full file path on the device, supported by the @ref file_system.
+ * This length includes an ending '\0' character.
+ * 
+ * For example, if the device receives a request to list the directory '/mydir' and the '/mydir' directory has an entry
+ * 'myfile', the full path to the directory entry is '/mydir/myfile'. This full path '/mydir/myfile' has a length of 14 bytes,
+ * including an ending '\0' character.
+ *
  * See @ref IDIGI_FILE_SYSTEM to enable or disable the service.
  *
  * @code
