@@ -519,7 +519,7 @@ static void rci_handle_unary_tag(rci_t * const rci)
         }
         else
         {
-            rci_global_error(rci, idigi_rci_error_bad_xml, RCI_NO_HINT);
+            rci_global_error(rci, idigi_rci_error_bad_element, RCI_NO_HINT);
         }
         break;
 
