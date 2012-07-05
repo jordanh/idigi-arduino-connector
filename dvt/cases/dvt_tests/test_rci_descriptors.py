@@ -122,11 +122,14 @@ def send_rci(request, url,
              username,
              password):
 
-    req_data = parseString(request).toxml()
-    log.info("Sending SCI Request: \n%s" % req_data)
-
+    try:
+        req_data = parseString(request).toxml()
+    except Exception, e:
+        error = "Invalid XML passed in: %s"%request
+        assert 0==1, error
+    log.info("Sending SCI Request: \n%s" % request)
     response = post(url,
-                    data=req_data,
+                    data=request,
                     auth=(username, password),
                     verify=False)
 
@@ -461,9 +464,9 @@ class TestRciDescriptors(object):
                         None,
                         '%s_no_error'% element.type))
                     tests.append(RCIGroupTestScenario(element,
-                        -123.123,  
-                        None, 
-                        '%s_no_error_negative_number'% element.type)) 
+                        -123.123,
+                        None,
+                        '%s_no_error_negative_number'% element.type))
             elif 'enum' in element.type:
                 for value in xpath.find('value', element.element):
                     tests.append(RCIGroupTestScenario(element,
@@ -625,7 +628,7 @@ class TestRciDescriptors(object):
                 tests.append(RCIGroupTestScenario(element,
                     "0000-03-31T00:00:00Z",
                     errors,
-                    '%s_error_0_year'% element.type))                    
+                    '%s_error_0_year'% element.type))
                 tests.append(RCIGroupTestScenario(element,
                     "2011-03-31T99:00:00Z",
                     errors,
