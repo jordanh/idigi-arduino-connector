@@ -333,6 +333,7 @@ public class ConfigGenerator {
         argumentLog += "\"";
 
         if (argCount != 4) {
+            log("Missing arguments!");
             usage();
         }
         if (password == null) {
