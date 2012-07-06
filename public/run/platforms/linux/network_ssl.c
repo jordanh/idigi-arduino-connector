@@ -402,6 +402,7 @@ static idigi_callback_status_t app_network_send(idigi_write_request_t const * co
     if (bytes_sent <= 0)
     {
         APP_DEBUG("SSL_write failed %d\n", bytes_sent);
+        SSL_set_shutdown(ssl_ptr->ssl, SSL_SENT_SHUTDOWN | SSL_RECEIVED_SHUTDOWN);
         status = idigi_callback_abort;
     }
 
@@ -455,7 +456,9 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t const * 
             status = idigi_callback_busy;
             goto done;
         }
+
         /* EOF on input: the connection was closed. */
+        SSL_set_shutdown(ssl_ptr->ssl, SSL_SENT_SHUTDOWN | SSL_RECEIVED_SHUTDOWN);
         APP_DEBUG("SSL_read failed %d\n", bytes_read);
         status = idigi_callback_abort;
     }

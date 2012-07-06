@@ -50,8 +50,12 @@ extern int application_run(idigi_handle_t handle);
 extern idigi_callback_status_t app_os_sleep(unsigned int const timeout_in_seconds);
 extern idigi_callback_status_t app_os_get_system_time(unsigned long * const uptime);
 
+#define RUNNING_FROM_BASE_DIR
 
+#if (defined RUNNING_FROM_BASE_DIR)
 #define APP_SSL_CA_CERT   "./public/certificates/idigi-ca-cert-public.crt"
-
+#else
+#define APP_SSL_CA_CERT   "../../../certificates/idigi-ca-cert-public.crt"
+#endif
 
 #endif /* _PLATFORM_H */
