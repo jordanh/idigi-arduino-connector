@@ -396,6 +396,8 @@ class TestRciDescriptors(object):
                     if 'hex32' in element.type:
                         hMin = format_hex(hMin)
                         hMinM = format_hex(hMinM)
+                        if element.min == 0:
+                            hMinM = '-%s'%hMinM
                     tests.append(RCIGroupTestScenario(element,
                         hMin,
                         None,
@@ -590,7 +592,7 @@ class TestRciDescriptors(object):
                         tests.append(RCIGroupTestScenario(element,
                             "asdf",
                             errors,
-                            '%s_error_bad_value_not_hex'% element.type))
+                            '%s_error_bad_value_not_valid_value'% element.type))
                         tests.append(RCIGroupTestScenario(element,
                             "",
                             errors,
