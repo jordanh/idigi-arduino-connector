@@ -339,19 +339,17 @@ static void rci_handle_content(rci_t * const rci)
 #endif
     }
 
-done:
-
     if (error)
     {
         rci_global_error(rci, idigi_rci_error_bad_value, RCI_NO_HINT);
     }
     else
     {
-        rci->shared.request.element.type = element->type;
-        rci->shared.request.element.value = &rci->shared.value;
-
         trigger_rci_callback(rci, idigi_remote_config_group_process);
     }
+
+done:
+    return;
 }
 
 typedef void (*rci_action_t)(rci_t * const rci);
@@ -654,7 +652,7 @@ static void rci_parse_input_less_than_sign(rci_t * const rci)
 
     case rci_input_state_content_first:
     case rci_input_state_content:
-        if (have_element_id(rci))
+        if (have_element_id(rci) && is_set_command(rci->input.command))
         {
             end_rcistr(rci, &rci->shared.string.content);
             rci_handle_content(rci);

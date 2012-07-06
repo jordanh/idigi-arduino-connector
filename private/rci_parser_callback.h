@@ -114,6 +114,13 @@ static void trigger_rci_callback(rci_t * const rci, idigi_remote_config_request_
         ASSERT(have_element_id(rci));
 
         rci->shared.request.element.id = get_element_id(rci);
+        {
+            idigi_group_element_t const * const element = get_current_element(rci);
+
+            rci->shared.request.element.type = element->type;
+        }
+
+        rci->shared.request.element.value = is_set_command(rci->input.command) ? &rci->shared.value : NULL;
         break;
     }
 

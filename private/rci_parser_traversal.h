@@ -180,9 +180,6 @@ static void rci_traverse_data(rci_t * const rci)
             rci->output.type = rci_output_type_start_tag;
             cstr_to_rcistr(element->name, &rci->output.tag);
 
-            rci->shared.request.element.type = element->type;
-            rci->shared.request.element.value = NULL;
-
             if (one_element_set(rci))
             {
                 /* Doing a set, do callback after we have issued the start tag. */
