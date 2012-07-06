@@ -43,7 +43,7 @@ clockid_t clock_id;
 
 struct timespec callback_time = {0};
 unsigned int callback_count = 0;
-unsigned int startWritingCount = 1;
+int startWritingCount = 1;
 
 static FILE * file_fd = NULL;
 static int idigi_count = 0;
@@ -94,7 +94,7 @@ void open_timing_table(char const * const label, char const * const desc)
 
     if (file_fd != NULL)
     {
-        if (startWritingCount==0)
+        if (startWritingCount <= 0)
         {
             fprintf(file_fd, TIMING_TABLE_HTML_MAX_TIMING_ROW, idigi_time_max.tv_sec, idigi_time_max.tv_nsec);
             fprintf(file_fd, TIMING_TABLE_HTML_TOTAL_TIMING_ROW, idigi_time_total.tv_sec, idigi_time_total.tv_nsec);
@@ -109,6 +109,7 @@ void open_timing_table(char const * const label, char const * const desc)
             idigi_time_max.tv_nsec = 0;
             idigi_time_total.tv_sec = 0;
             idigi_time_total.tv_nsec = 0;
+            if (startWritingCount < 0) startWritingCount = 0;
         }
         else
         {
@@ -187,12 +188,13 @@ static void write_timing(struct timespec const elapsed_time)
 
         if (diff)
         {
-    //        if (startWritingCount > 0)
+//            if (startWritingCount >= 0)
             {
                 if (elapsed_time.tv_sec > 0)
                     fprintf(file_fd, TIMING_TABLE_HTML_TIMING_GREATER_SECOND_ROW, ++idigi_count, elapsed_time.tv_sec);
                 else
                     fprintf(file_fd, TIMING_TABLE_HTML_TIMING_ROW, ++idigi_count, elapsed_time.tv_nsec);
+//                if (startWritingCount == 0) startWritingCount--;
             }
             delta_elapsed_time = elapsed_time;
 #if 0
@@ -314,6 +316,7 @@ int main (void)
 
         fprintf(file_fd, TIMING_TABLE_HTML_TABLE_TITLE, "idigi_step() API Timing");
         fprintf(file_fd, TIMING_TABLE_HTML_OPEN_TABLE);
+        writing_timing_description("Start connecting", NULL);
         idigi_count = 0;
         idigi_time_max.tv_sec = 0;
         idigi_time_max.tv_nsec = 0;

@@ -33,6 +33,18 @@ RCI_QUERY_SETTING = \
   </send_message>
 </sci_request>"""
 
+RCI_SET_SETTING = \
+"""<sci_request version="1.0"> 
+  <send_message cache="false"> 
+    <targets> 
+      <device id="%s"/> 
+    </targets> 
+    <rci_request version="1.1"> 
+      <set_setting><system><description>ic_timing DVT testing</description></system></set_setting>
+    </rci_request>
+  </send_message>
+</sci_request>"""
+
 FIRMWARE_QUERY_REQUEST = \
 """<sci_request version="1.0">
   <query_firmware_targets>
@@ -167,63 +179,84 @@ class TimingTestCase(iik_testcase.TestCase):
             self.log.info("Response: %s" % rci_response)
             assert_true(error is found, "Got error response")
 
-#    def test_timing_with_fs(self):
-#    
-#        """ Sends file get command. 
-#        """
-#        my_dir = tempfile.mkdtemp()
-#        my_file_path  = my_dir + '/' + my_test_file
-#        my_ls_path   = my_dir
-#
-#        file_data = self.get_random_word(2048);
-#        put_data = base64.encodestring(file_data)[:-1]
-#
-#        self.log.info("**** Timing Test: File System")
-#        self.log.info("Sending file put and file get commands for \"%s\" to server for device id  %s." % (my_file_path, self.device_config.device_id))
-#
-#        request = (FILE_PUT_GET_REQUEST % (self.device_config.device_id, my_file_path, put_data, my_file_path))
-#        # Send device request
-#        file_get_response = self.api.sci(request)
-#        #self.log.info("%s" % file_get_response)
-#        if file_get_response.find('error id="2107"') != -1:
-#            self.log.info("Service not available.")
-#            return
-#        
-#        # Parse request response 
-#        self.log.info(file_get_response)
-#        dom = xml.dom.minidom.parseString(file_get_response)
-#        get_data = dom.getElementsByTagName("get_file")
-#
-#        if len(get_data) == 0:
-#            self.fail("Response didn't contain \"get_file\" element: %s" % file_get_response)
-#
-#        data =  b64decode(getText(get_data[0].getElementsByTagName("data")[0]))
-#        
-#        # Print file data
-#        #self.log.info("Received:")
-#        #self.log.info("File Data: \"%s\"." % data)
-#
-#        infile = open(my_file_path, "r")
-#        in_text = infile.read()
-#        infile.close()
-#
-#        self.log.info("!!! data len: \"%d\", in len: \"%d\"" %  (len(data), len(in_text)))
-#
-#        self.assertEqual(in_text, data,
-#            "get file error") 
-#        
-#        request = (FILE_LS_REQUEST % (self.device_config.device_id, my_ls_path))
-#
-#        self.log.info("Sending file ls command for \"%s\" to server for device id  %s." % (my_ls_path, self.device_config.device_id))
-#        file_ls_response = self.api.sci(request)
-#        self.log.info("%s" % file_ls_response)
-#
-#        request = (FILE_RM_REQUEST % (self.device_config.device_id, my_file_path))
-#        self.log.info("Sending file rm command for \"%s\" to server for device id  %s." % (my_file_path, self.device_config.device_id))
-#        file_rm_response = self.api.sci(request)
-#
-#        os.removedirs(my_dir)
-#
+    def test_timing_with_rci_set_setting(self):
+    
+        """ Sends set_setting. 
+        """
+        self.log.info("**** Timing Test:  RCI set_setting")
+        # Get the current value
+
+        rci_request = (RCI_SET_SETTING % self.device_config.device_id);
+
+        # Send RCI request
+        rci_response = self.api.sci(rci_request)
+
+        # Parse request response 
+        dom = xml.dom.minidom.parseString(rci_response)
+        rci_error_response = dom.getElementsByTagName('error')
+    
+        if len(rci_error_response) != 0:
+            self.log.info("Request: %s" % rci_request)
+            self.log.info("Response: %s" % rci_response)
+            assert_true(error is found, "Got error response")
+
+    def test_timing_with_fs(self):
+    
+        """ Sends file get command. 
+        """
+        my_dir = tempfile.mkdtemp()
+        my_file_path  = my_dir + '/' + my_test_file
+        my_ls_path   = my_dir
+
+        file_data = self.get_random_word(2048);
+        put_data = base64.encodestring(file_data)[:-1]
+
+        self.log.info("**** Timing Test: File System")
+        self.log.info("Sending file put and file get commands for \"%s\" to server for device id  %s." % (my_file_path, self.device_config.device_id))
+
+        request = (FILE_PUT_GET_REQUEST % (self.device_config.device_id, my_file_path, put_data, my_file_path))
+        # Send device request
+        file_get_response = self.api.sci(request)
+        #self.log.info("%s" % file_get_response)
+        if file_get_response.find('error id="2107"') != -1:
+            self.log.info("Service not available.")
+            return
+        
+        # Parse request response 
+        self.log.info(file_get_response)
+        dom = xml.dom.minidom.parseString(file_get_response)
+        get_data = dom.getElementsByTagName("get_file")
+
+        if len(get_data) == 0:
+            self.fail("Response didn't contain \"get_file\" element: %s" % file_get_response)
+
+        data =  b64decode(getText(get_data[0].getElementsByTagName("data")[0]))
+        
+        # Print file data
+        #self.log.info("Received:")
+        #self.log.info("File Data: \"%s\"." % data)
+
+        infile = open(my_file_path, "r")
+        in_text = infile.read()
+        infile.close()
+
+        self.log.info("!!! data len: \"%d\", in len: \"%d\"" %  (len(data), len(in_text)))
+
+        self.assertEqual(in_text, data,
+            "get file error") 
+        
+        request = (FILE_LS_REQUEST % (self.device_config.device_id, my_ls_path))
+
+        self.log.info("Sending file ls command for \"%s\" to server for device id  %s." % (my_ls_path, self.device_config.device_id))
+        file_ls_response = self.api.sci(request)
+        self.log.info("%s" % file_ls_response)
+
+        request = (FILE_RM_REQUEST % (self.device_config.device_id, my_file_path))
+        self.log.info("Sending file rm command for \"%s\" to server for device id  %s." % (my_file_path, self.device_config.device_id))
+        file_rm_response = self.api.sci(request)
+
+        os.removedirs(my_dir)
+
     def test_timing_with_z_fw(self):
     
         """ Sends a firmware update """

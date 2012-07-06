@@ -86,7 +86,7 @@ extern idigi_handle_t idigi_handle;
 extern int firmware_download_started;
 extern struct timespec callback_time;
 extern unsigned int callback_count;
-extern unsigned int startWritingCount;
+extern int startWritingCount;
 
 
 extern idigi_callback_status_t app_data_service_handler(idigi_data_service_request_t const request,
