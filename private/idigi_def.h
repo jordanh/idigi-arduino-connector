@@ -86,6 +86,9 @@
 #define MAX_RECEIVE_TIMEOUT_IN_SECONDS  1
 #define MIN_RECEIVE_TIMEOUT_IN_SECONDS  0
 
+#if (IDIGI_VERSION < IDIGI_VERSION_1200)
+#define asizeof(array)      (sizeof array/sizeof array[0])
+#endif
 /* IRL EDP States */
 typedef enum {
     edp_init_layer,
@@ -283,7 +286,7 @@ typedef struct idigi_data {
     uint16_t wait_count;
 #endif
 
-#if (!defined IDIGI_DEVICE_ID_METHOD)
+#if (IDIGI_VERSION >= IDIGI_VERSION_1200) && (!defined IDIGI_DEVICE_ID_METHOD)
     idigi_device_id_method_t device_id_method;
 #endif
 
