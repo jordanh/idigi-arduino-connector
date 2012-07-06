@@ -276,6 +276,14 @@ static unsigned int app_get_max_message_transactions(void)
     return IDIGI_MAX_MSG_TRANSACTIONS;
 }
 
+static idigi_callback_status_t app_get_device_id_method(idigi_device_id_method_t * const method)
+{
+
+    *method = idigi_auto_device_id_method;
+
+    return idigi_callback_continue;
+}
+
 /* End of IIK configuration routines */
 
 /*
@@ -663,6 +671,11 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
 
     case idigi_config_max_transaction:
         *((unsigned int *)response_data) = app_get_max_message_transactions();
+        ret = 0;
+        break;
+
+    case idigi_config_device_id_method:
+        status = app_get_device_id_method(response_data);
         ret = 0;
         break;
 

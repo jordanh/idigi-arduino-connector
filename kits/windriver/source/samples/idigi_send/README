@@ -71,7 +71,7 @@ Run the python script in the sample.
 
 python get_file.py <username> <password> <device_id>
 
-The script prints the content of test.txt.
+The script prints the content of test.txt which was uploaded from the device to iDigi.
 
 
 
