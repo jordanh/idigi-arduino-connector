@@ -222,8 +222,6 @@ int start_application_thread(void)
     return ccode;
 }
 
-extern unsigned int put_file_active_count;
-
 int main (void)
 {
     extern size_t total_malloc_size;
