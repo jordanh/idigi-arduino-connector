@@ -28,7 +28,6 @@
  *                                    0x01010000UL
  */
 #define IDIGI_VERSION_1100   0x01010000UL
-#define IDIGI_VERSION_1200   0x01020000UL
 
 #include "idigi_types.h"
 

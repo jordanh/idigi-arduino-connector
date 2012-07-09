@@ -47,3 +47,21 @@ static void set_rci_command_tag(rci_command_t const command, rcistr_t * const ta
     cstr_to_rcistr(rci_command[index], tag);
 }
 
+static idigi_bool_t is_query_command(rci_command_t const command);
+static idigi_bool_t is_set_command(rci_command_t const command)
+{
+    idigi_bool_t const is_set = idigi_bool((command == rci_command_set_setting) || (command == rci_command_set_state));
+
+    ASSERT(is_set || is_query_command(command));
+
+    return is_set;
+}
+
+static idigi_bool_t is_query_command(rci_command_t const command)
+{
+    idigi_bool_t const is_query = idigi_bool((command == rci_command_query_setting) || (command == rci_command_query_state));
+
+    ASSERT(is_query || is_set_command(command));
+
+    return is_query;
+}

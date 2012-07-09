@@ -20,6 +20,11 @@
  * write the network layer callback APIs to connect, send, receive and close the SSL connection.
  * As far as the top level calls are concerned there is no change between the SSL and non-SSL connection.
  *
+ * The CA certificate is stored in public/certificates/ directory. A define APP_SSL_CA_CERT can be found
+ * in platform.h. By default it is set to "./public/certificates/idigi-ca-cert-public.crt". If you are
+ * running connect_to_ssl sample from connect_to_ssl/ directory then make sure to set this define to
+ * "../../../certificates/idigi-ca-cert-public.crt".
+ *
  * @section ssl_connect Connect
  *
  * This callback is called to establish SSL connection between ICC and the iDigi Cloud.
@@ -89,8 +94,6 @@
  * 
  * #include "idigi_api.h"
  * #include "platform.h"
- *
- * #define APP_SSL_CA_CERT   "./public/include/idigi-ca-cert-public.crt"
  *
  * typedef struct
  * {

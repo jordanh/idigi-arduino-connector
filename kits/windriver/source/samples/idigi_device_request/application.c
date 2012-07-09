@@ -15,8 +15,6 @@
 #include <stdbool.h>
 #include "idigi_connector.h"
 
-#define REQUEST_BUFFER_SIZE 256
-
 typedef idigi_app_error_t (* idigi_cmd_handler_t)(void const * const data, unsigned short length);
 
 static idigi_app_error_t led_on(void const * const data, unsigned short length);
@@ -38,6 +36,7 @@ struct command_info_t
 
 static bool leds_initialized=false;
 
+static bool ok_response=false;
 
 static void idigi_status(idigi_connector_error_t const status, char const * const status_message)
 {
@@ -47,19 +46,14 @@ static void idigi_status(idigi_connector_error_t const status, char const * cons
 /* We are passed commands via the device request callback */
 idigi_app_error_t device_request_callback(char const * const target, idigi_connector_data_t * const request_data)
 {
-    static char buffer[REQUEST_BUFFER_SIZE];
     idigi_app_error_t status=idigi_app_invalid_parameter;
     int i;
+
+    ok_response = false;
 
     if (request_data->error != idigi_connector_success)
     {
         printf("devcie_request_callback: error [%d]\n", request_data->error);
-        goto error;
-    }
-
-    if (request_data->length_in_bytes > sizeof buffer)
-    {
-        printf("devcie_request_callback: received more data than expected [%d]\n", request_data->length_in_bytes);
         goto error;
     }
 
@@ -75,6 +69,7 @@ idigi_app_error_t device_request_callback(char const * const target, idigi_conne
         if (strcmp(target, command_table[i].name) == 0)
         {   
             status = command_table[i].cmd_handler(request_data->data_ptr, request_data->length_in_bytes);
+            ok_response = true;
             break;
         }
     }
@@ -88,17 +83,28 @@ error:
 size_t device_response_callback(char const * const target, idigi_connector_data_t * const response_data)
 {
     static char rsp_string[] = "iDigi Connector device response OK\n";
-    size_t const len = sizeof rsp_string - 1;
-    size_t const bytes_to_copy = (len < response_data->length_in_bytes) ? len : response_data->length_in_bytes;
+    static char error_rsp_string[] = "Invalid Target\n";
+    size_t const len;
+    size_t const bytes_to_copy;
 
     if (response_data->error != idigi_connector_success)
     {
         printf("devcie_response_callback: error [%d]\n", response_data->error);
         goto error;
     }
-
-    memcpy(response_data->data_ptr, rsp_string, bytes_to_copy);
+    if (ok_response) 
+    {
+        memcpy(response_data->data_ptr, rsp_string, bytes_to_copy);
+        len = sizeof rsp_string - 1;
+    }
+    else
+    {
+        memcpy(response_data->data_ptr, error_rsp_string, bytes_to_copy);
+        len = sizeof error_rsp_string - 1
+    }
     response_data->flags = IDIGI_FLAG_LAST_DATA;
+
+    bytes_to_copy = (len < response_data->length_in_bytes) ? len : response_data->length_in_bytes;
 
     printf("devcie_response_callback: data- %s\n", rsp_string);
 

@@ -9,12 +9,21 @@
  * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
  */
+
+/*  This was moved here to correct a software engineering defect.
+ * These defines need to be private
+ */
+#define IDIGI_VERSION_1200   0x01020000UL
+#include <stddef.h>
+
 #if (IDIGI_VERSION >= 0x1010000UL)
   #include "idigi_config.h"
 #else
   #include "options.h"
 #endif
+#if (IDIGI_VERSION >= IDIGI_VERSION_1200)
 #include "idigi_debug.h"
+#endif
 #include "idigi_api.h"
 #include "idigi_def.h"
 #include "chk_config.h"
@@ -43,11 +52,10 @@
 
 #include "layer.h"
 
+#if (IDIGI_VERSION >= IDIGI_VERSION_1200)
 static idigi_callback_status_t get_device_id_method(idigi_data_t * const idigi_ptr, idigi_device_id_method_t * method)
 {
     idigi_callback_status_t status = idigi_callback_continue;
-
-#if (IDIGI_VERSION >= IDIGI_VERSION_1200)
 
 #if (defined IDIGI_DEVICE_ID_METHOD)
     UNUSED_PARAMETER(idigi_ptr);
@@ -84,13 +92,9 @@ static idigi_callback_status_t get_device_id_method(idigi_data_t * const idigi_p
     *method = idigi_ptr->device_id_method;
 #endif
 
-#else
-    UNUSED_PARAMETER(idigi_ptr);
-    *method = idigi_manual_device_id_method;
-#endif
-
     return status;
 }
+#endif  /* IDIGI_VERSION >= IDIGI_VERSION_1200 */
 
 #if !(defined IDIGI_VENDOR_ID)
 static idigi_bool_t isValidVendorId(unsigned long const vendor_id)
@@ -166,6 +170,7 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
     idigi_handle->active_state = idigi_device_started;
     idigi_handle->error_code = idigi_success;
 
+#if (IDIGI_VERSION >= IDIGI_VERSION_1200)
     {
         idigi_device_id_method_t device_id_method;
         status = get_device_id_method(idigi_handle, &device_id_method);
@@ -182,6 +187,7 @@ idigi_handle_t idigi_init(idigi_callback_t const callback)
             config_request_count--;
         }
     }
+#endif
 
     /* get device id, vendor id, & device type */
     for (i=0; i < config_request_count; i++)

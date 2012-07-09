@@ -2,7 +2,7 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
-
+import javax.net.ssl.HttpsURLConnection;
 import javax.xml.bind.DatatypeConverter;
 
 public class Register {
@@ -249,7 +249,7 @@ public class Register {
 
     private void uploadDescriptor(String descName, String buffer) {
         String deviceType ="Linux Application";
-        long fwVersion=0x01000000;
+        long fwVersion=0x01000001;
 
         System.out.println("Uploading description:" + descName);
 

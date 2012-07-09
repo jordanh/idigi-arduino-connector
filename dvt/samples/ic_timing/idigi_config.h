@@ -14,15 +14,15 @@
 
 #define IDIGI_LITTLE_ENDIAN
 #define IDIGI_DEBUG
-#define IDIGI_FIRMWARE_SERVICE
 /* #define IDIGI_COMPRESSION */
-/* #define IDIGI_DATA_SERVICE */
-/* #define IDIGI_FILE_SYSTEM */
+#define IDIGI_FIRMWARE_SERVICE
+#define IDIGI_DATA_SERVICE
+#define IDIGI_FILE_SYSTEM
 #define IDIGI_RCI_SERVICE
 #define IDIGI_RCI_MAXIMUM_CONTENT_LENGTH    256
 #define IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH   256
 
-#ifdef ENABLE_COMPILE_TIME_DATA_PASSING
+#if ENABLE_COMPILE_TIME_DATA_PASSING
 #define IDIGI_DEVICE_TYPE                          "iDigi connector Linux Sample"
 #define IDIGI_CLOUD_URL                            "developer.idigi.com"
 #define IDIGI_TX_KEEPALIVE_IN_SECONDS              5

@@ -778,12 +778,7 @@ static idigi_callback_status_t get_imei_device_id(idigi_data_t * const idigi_ptr
     case idigi_callback_busy:
         goto done;
     }
-/*
-    {
-        size_t const offset = DEVICE_ID_LENGTH - length;
-        memcpy((device_id + offset), imei_number, offset);
-    }
-*/
+
     goto done;
 
 error:
@@ -794,15 +789,15 @@ error:
 done:
     return status;
 }
-#endif
+#endif /* (IDIGI_VERSION >= IDIGI_VERSION_1200) */
 
 static idigi_callback_status_t build_device_id(idigi_data_t * const idigi_ptr, uint8_t * const edp_device_id)
 {
 
     idigi_callback_status_t status = idigi_callback_continue;
-    idigi_device_id_method_t method;
 
 #if (IDIGI_VERSION >= IDIGI_VERSION_1200)
+    idigi_device_id_method_t method;
 
     #if (defined IDIGI_DEVICE_ID_METHOD)
         /* if IDIGI_DEVICE_ID_METHOD is idigi_manual_device_id_method,
@@ -813,18 +808,12 @@ static idigi_callback_status_t build_device_id(idigi_data_t * const idigi_ptr, u
         method = idigi_ptr->device_id_method;
     #endif
 
-#else
-    method = idigi_manual_device_id_method;
-#endif
-
 
     if (method == idigi_manual_device_id_method)
     {
         ASSERT(idigi_ptr->device_id != NULL);
         memcpy(edp_device_id, idigi_ptr->device_id, DEVICE_ID_LENGTH);
     }
-
-#if (IDIGI_VERSION >= IDIGI_VERSION_1200)
     else
     {
         uint8_t connection_type;
@@ -872,7 +861,13 @@ static idigi_callback_status_t build_device_id(idigi_data_t * const idigi_ptr, u
         }
     }
 done:
-#endif
+#else
+    /* We should already have device_id from init() */
+    ASSERT(idigi_ptr->device_id != NULL);
+    memcpy(edp_device_id, idigi_ptr->device_id, DEVICE_ID_LENGTH);
+
+#endif /* (IDIGI_VERSION >= IDIGI_VERSION_1200) */
+
     idigi_debug_hexvalue("security layer: send device ID", edp_device_id, DEVICE_ID_LENGTH);
 
     return status;

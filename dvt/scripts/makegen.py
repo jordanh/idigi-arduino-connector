@@ -156,6 +156,10 @@ LIBS += -lcrypto
 CFLAGS+= -DAPP_ENABLE_MD5=true
 endif"""
 
+    if sample == 'ic_timing':
+        subs['LIBS'] += ' -lrt' 
+
+
     if dvt_test:
         subs['POST_SAMPLE'] = '$(AT)python ../../../dvt/scripts/iikmapsum.py $(SAMPLE).map | tee $(basename $@).stats'
 

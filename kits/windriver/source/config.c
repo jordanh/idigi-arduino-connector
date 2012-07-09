@@ -28,6 +28,7 @@
 #define VENDOR_ID_LENGTH    4
 #define MAC_ADDR_LENGTH     6
 #define MAX_URL_LENGTH      256
+#define MAX_DEVICE_NAME_LENGTH  256
 
 /* Configuration file */
 #define MAXLEN 80
@@ -40,6 +41,7 @@ static struct idigi_parameters_t
     uint8_t vendor_id[VENDOR_ID_LENGTH];
     uint8_t mac_addr[MAC_ADDR_LENGTH];
     char    server_url[MAX_URL_LENGTH];
+    char    device_name[MAX_DEVICE_NAME_LENGTH];
 } idigi_params;
 
 /*
@@ -160,11 +162,9 @@ static int app_get_vendor_id(uint8_t ** id, size_t * size)
 
 static int app_get_device_type(char ** type, size_t * size)
 {
-    static const char const *device_type = "Linux Application";
-
     /* Return pointer to device type. */
-    *type = (char *)device_type;
-    *size = strlen(device_type);
+    *type = (char *)idigi_params.device_name;
+    *size = strlen(idigi_params.device_name);
 
     return 0;
 }
@@ -274,6 +274,14 @@ static unsigned int app_get_max_message_transactions(void)
 #define IDIGI_MAX_MSG_TRANSACTIONS   1
 
     return IDIGI_MAX_MSG_TRANSACTIONS;
+}
+
+static idigi_callback_status_t app_get_device_id_method(idigi_device_id_method_t * const method)
+{
+
+    *method = idigi_auto_device_id_method;
+
+    return idigi_callback_continue;
 }
 
 /* End of IIK configuration routines */
@@ -426,6 +434,7 @@ static void init_parameters (struct idigi_parameters_t *parms)
   memset(parms->vendor_id, 0, VENDOR_ID_LENGTH);
   memset(parms->mac_addr, 0, MAC_ADDR_LENGTH);
   strncpy (parms->server_url, "developer.idigi.com", MAX_URL_LENGTH);
+  strncpy (parms->device_name, "WindRiver Linux Application", MAX_DEVICE_NAME_LENGTH);
 }
 
 static char *trim(char *s)
@@ -545,8 +554,13 @@ static void parse_config(struct idigi_parameters_t *parms)
     }
     else if (strcmp(name, "server_url")==0)
     {
-      strncpy (parms->server_url, value, MAXLEN);
+      strncpy (parms->server_url, value, MAX_URL_LENGTH);
       APP_DEBUG("config: server_url [%s]\n", parms->server_url);
+    }
+    else if (strcmp(name, "device_name")==0)
+    {
+      strncpy (parms->device_name, value, MAX_DEVICE_NAME_LENGTH);
+      APP_DEBUG("config: device name [%s]\n", parms->device_name);
     }
     else
     {
@@ -657,6 +671,11 @@ idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
 
     case idigi_config_max_transaction:
         *((unsigned int *)response_data) = app_get_max_message_transactions();
+        ret = 0;
+        break;
+
+    case idigi_config_device_id_method:
+        status = app_get_device_id_method(response_data);
         ret = 0;
         break;
 

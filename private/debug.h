@@ -10,8 +10,23 @@
  * =======================================================================
  */
 
-
 #if (defined IDIGI_DEBUG)
+
+#if (IDIGI_VERSION < IDIGI_VERSION_1200)
+static void idigi_debug_printf(char const * const format, ...)
+{
+#if defined(IDIGI_DEBUG)
+    va_list args;
+
+    va_start(args, format);
+    USER_DEBUG_VPRINTF(format, args);
+    va_end(args);
+#else
+    (void) format;
+#endif
+}
+#endif
+
 void idigi_debug_hexvalue(char * label, uint8_t * buff, int length)
 {
     int i;
@@ -23,7 +38,6 @@ void idigi_debug_hexvalue(char * label, uint8_t * buff, int length)
     }
     idigi_debug_printf("\n");
 }
-
 
 #else
 #define idigi_debug_hexvalue(label, start, length)

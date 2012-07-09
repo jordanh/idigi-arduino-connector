@@ -43,7 +43,6 @@ static idigi_bool_t rci_action_session_start(rci_t * const rci, rci_service_data
     invalidate_group_index(rci);
     invalidate_element_id(rci);
 
-    rci->shared.request.element.value = &rci->shared.value;
     rci->shared.response.element_data.element_value = &rci->shared.value;
 
     rci->status = rci_status_busy;

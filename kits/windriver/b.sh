@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # Script used to build locally, build Windriver Linux and copy to
 # the tftp folder which is the NFS mount point for the kontron device.
 # Do not use to create an official build, just use during developement
