@@ -1261,7 +1261,7 @@
  * or disable remote configuration capability during runtime.
  *
  * @note If @ref IDIGI_RCI_SERVICE is not defined in @ref idigi_config.h, this callback 
- * will not be called and remote configuration is not supported. IC does not include remote configuration.
+ * will not be called and remote configuration is not supported. iDigi Connector does not include remote configuration.
  *
  * @note If @ref IDIGI_RCI_SERVICE is defined in @ref idigi_config.h, this callback is not needed.
  * It enables remote configuration capability. See @ref idigi_config_data_options. 
