@@ -13,22 +13,25 @@
 #define __IDIGI_CONFIG_H_
 
 #define IDIGI_LITTLE_ENDIAN
-/* #define IDIGI_DEBUG */
 #define IDIGI_FIRMWARE_SERVICE
-/* #define IDIGI_COMPRESSION */
 #define IDIGI_DATA_SERVICE
+
+//#define IDIGI_RCI_SERVICE
+//#define IDIGI_COMPRESSION
 #define IDIGI_FILE_SYSTEM
-/* #define IDIGI_RCI_SERVICE */
+
+//#define IDIGI_DEBUG
 #define IDIGI_RCI_MAXIMUM_CONTENT_LENGTH    256
 #define IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH   256
 
+//#define ENABLE_COMPILE_TIME_DATA_PASSING
 #ifdef ENABLE_COMPILE_TIME_DATA_PASSING
 #define IDIGI_DEVICE_TYPE                          "iDigi connector Linux Sample"
 #define IDIGI_CLOUD_URL                            "developer.idigi.com"
 #define IDIGI_TX_KEEPALIVE_IN_SECONDS              5
 #define IDIGI_RX_KEEPALIVE_IN_SECONDS              75
 #define IDIGI_WAIT_COUNT                           5
-#define IDIGI_VENDOR_ID                            0x00000000
+#define IDIGI_VENDOR_ID                            0x80000001
 #define IDIGI_MSG_MAX_TRANSACTION                  1
 #define IDIGI_CONNECTION_TYPE                      idigi_lan_connection_type
 #define IDIGI_WAN_LINK_SPEED_IN_BITS_PER_SECOND    0

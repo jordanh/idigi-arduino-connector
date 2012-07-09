@@ -10,6 +10,28 @@
  * =======================================================================
  */
 #include "idigi_api.h"
+#include "idigi_config.h"
+
+#if (defined IDIGI_DEBUG)
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+
+
+void idigi_debug_printf(char const * const format, ...)
+{
+    va_list args;
+
+    va_start(args, format);
+    vprintf(format, args);
+    va_end(args);
+    fflush(stdout);
+}
+#else
+ /* to avoid ISO C forbids an empty translation unit compiler error */
+typedef int dummy;
+
+#endif
 
 int main (void)
 {
@@ -17,6 +39,7 @@ int main (void)
      * Call idigi_init() with a NULL callback, we are only verifying that we 
      * can compile and link the iDigi Connector.
      */
-    (void)idigi_init((idigi_callback_t)0);
+	(void)idigi_init((idigi_callback_t)0);
     return 0;
 }
+
