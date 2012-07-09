@@ -7,7 +7,7 @@
  * This sample demonstrates how to send data from a device to the iDigi Server.
  * Using the @ref data_service_overview "data service api" this application writes data to a file on the
  * idigi server.
- *
+ * 
  * @section connect_description Code Flow
  *
  * The routine main() in the platform directory initializes the iDigi connector and
@@ -108,21 +108,21 @@
  * To view the results for this sample login to the iDigi Device Cloud as described
  * in the @ref add_your_device_to_the_cloud "Getting Started" section. 
  *
- * Once logged in click on storage from within the left navigation panel as shown
+ * Once logged in click on the Data Service tab as shown
  * below. Double click to the device folder.
  *
- * @image html sample1.png
+ * @image html send_data_sample1.png
  *
  * This sample creates a file test.txt in the test directory.  Double click on the test folder to
  * open the test directory.
  *
- * @image html send_data_sample3.png
+ * @image html send_data_sample2.png
  *
  * The file is then listed as shown (below). You can click on a 
  * file to view its contents, you will see the file test.txt in the test directory
  * after you run this sample.
  *
- * @image html sample2.png
+ * @image html send_data_sample3.png
  *
  * @section python_script Python script to retrieve a file from iDigi Device Cloud storage
  *

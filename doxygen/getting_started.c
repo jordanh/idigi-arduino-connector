@@ -174,8 +174,10 @@
  *
  * @subsection idigi_vendor_id Obtain an iDigi Vendor ID
  * 2. If you are a first time iDigi developer, you will need to obtain an iDigi Vendor ID.  To
- * obtain an iDigi Vendor ID, select the register for Vendor ID button in the Vendor Information
- * section on the bottom of the @b My @b Account tab after successfully logging into https://developer.idigi.com/.
+ * obtain an iDigi Vendor ID, select the Register for new vendor id button on the bottom of 
+ * the @b My @b Account section under @b Administration tab after successfully logging into https://developer.idigi.com/.
+ *
+ * @image html idigi5.jpg
  *
  * After selecting the register for a Vendor ID button, the page will refresh and your unique vendor ID number
  * will be displayed in place of the button.  Record the Vendor ID, you will need it later.
@@ -385,41 +387,38 @@
  *
  * @code
  *  >./idigi
- *  Start iDigi
- *  initialize_facilities: callback supports  13 facility
- *  initialize_facilities: callback supports  14 facility
- *  idigi_run thread starts
- *  application_run thread exits 0
- *  idigi_run thread starts
- *  dns_resolve_name: ip address = [50.56.41.153]
- *  network_connect: connected to [developer.idigi.com] server
- *  communication layer: Send MT Version
- *  communication layer: receive Mt version
- *  communication layer: send keepalive params
- *  communication layer: Rx keepalive parameter = 60
- *  communication layer: Tx keepalive parameter = 90
- *  communication layer: Wait Count parameter = 5
- *  initialization layer: send protocol version
- *  initialization layer: receive protocol version
- *  Security layer: send security form
- *  security layer: send device ID =  00 00 00 00 00 00 00 00 00 40 9D FF FF 43 23 17
- *  security layer: send server url = developer.idigi.com
- *  discovery layer: send vendor id =  01 00 00 1A
- *  discovery layer: send device type = connect to idigi DVT
- *  fw_discovery: No target supported
- *  Connection Control: send redirect_report
- *  get packet buffer: send pending
- *  Connection Control: send redirect_report
- *  Connection Control: send connection report
- *  get_ip_address: Looking for current device IP address: found [2] entries
- *  get_ip_address: 1: Interface name [lo]  IP Address [127.0.0.1]
- *  get_ip_address: 2: Interface name [eth3]        IP Address [10.52.32.71]
- *  get_ip_addr: Device IP address =  0A 34 20 47
- *  get_connection_type: connection type = 0
- *  get_mac_addr: MAC address =  00 40 9D 43 23 17
- *  discovery layer: send complete
- *  idigi_facility_layer: receive data facility = 0x00c0
- *  rx_keepalive_process: time to send Rx keepalive
+ * Start iDigi
+ * iDigi Connector v1.2.0.0
+ * vendor id: 0x1000001
+ * idigi_run thread starts
+ * application_run thread starts
+ * application_run thread exits 0
+ * dns_resolve_name: ip address = [50.56.41.153]
+ * network_connect: connected to [developer.idigi.com] server
+ * communication layer: Send MT Version
+ * communication layer: receive Mt version
+ * communication layer: send keepalive params 
+ * communication layer: Rx keepalive parameter = 60
+ * communication layer: Tx keepalive parameter = 90
+ * communication layer: Wait Count parameter = 5
+ * initialization layer: send protocol version
+ * initialization layer: receive protocol version
+ * Security layer: send security form
+ * get_connection_type: connection type = 0
+ * get_mac_addr: MAC address =  78 E7 D1 84 47 82
+ * security layer: send device ID =  00 00 00 00 00 00 00 00 78 E7 D1 FF FF 84 47 82
+ * security layer: send server url = developer.idigi.com
+ * discovery layer: send vendor id =  01 00 00 01
+ * discovery layer: send device type = Linux Application
+ * Connection Control: send redirect_report
+ * Connection Control: send connection report
+ * get_ip_address: Looking for current device IP address: found [2] entries
+ * get_ip_address: 1: Interface name [lo]  IP Address [127.0.0.1]
+ * get_ip_address: 2: Interface name [eth1]        IP Address [10.52.18.75]
+ * get_ip_addr: Device IP address =  0A 34 12 4B
+ * get_connection_type: connection type = 0
+ * get_mac_addr: MAC address =  78 E7 D1 84 47 82
+ * discovery layer: send complete
  * @endcode
  *
  * @subsection bad_results_output Locating helpful error info in iDigi connector standard output
@@ -450,7 +449,7 @@
  * the iDigi Device Cloud.
  *
  *  -# Navigate to http://www.idigi.com and login to the iDigi Device Cloud
- *  -# Click on Devices from within the left navigation panel.
+ *  -# Click on the iDigi Manager Pro tab.
  *  -# Click the Add Devices button (the + button under Devices) to bring up the Add Devices dialog.
  *
  * @image html add1.png
