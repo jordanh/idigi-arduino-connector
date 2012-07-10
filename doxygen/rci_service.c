@@ -171,11 +171,11 @@
  *                  <dt><i>type</i></dt>
  *                  <dd> <ul><li>@endhtmlonly @ref idigi_remote_group_setting @htmlonly for setting configuration group or </li>
  *                       <li>@endhtmlonly @ref idigi_remote_group_state @htmlonly for state configuration group.</li></ul></dd>
- *                  <dt><i>id</i></dt><dd> - is not applicable.</dd>
- *                  <dt><i>index</i></dt><dd> - is not applicable.</dd>
+ *                  <dt><i>id</i></dt><dd> - not applicable.</dd>
+ *                  <dt><i>index</i></dt><dd> - not applicable.</dd>
  *                  </dl> </dd>
  *              <dt><i>element</i></dt>
- *              <dd>- is not applicable.</dd>
+ *              <dd>- not applicable.</dd>
  *            </dl>
  * </td></tr>
  * <tr>
@@ -268,7 +268,7 @@
  *                  <dt><i>index</i></dt><dd> - is index number of the configuration group.</dd>
  *                  </dl> </dd>
  *              <dt><i>element</i></dt>
- *                  <dd> Not applicable.</dd>
+ *                  <dd> not applicable.</dd>
  *            </dl>
  * </td></tr>
  * <tr>
@@ -567,7 +567,7 @@
  *                                           of the group configuration to be set.</dd>
  *                  <dt><i>type</i></dt><dd> - is value type of the element. See
  *                                             @endhtmlonly @ref idigi_element_value_type_t @htmlonly </dd>
- *                  <dt><i>value</i></dt><dd> - is not applicable.</dd>
+ *                  <dt><i>value</i></dt><dd> - not applicable.</dd>
  *                  </dl></dd>
  *            </dl>
  * </td></tr>
@@ -816,11 +816,11 @@
  *                  <dt><i>type</i></dt>
  *                  <dd> <ul><li>@endhtmlonly @ref idigi_remote_group_setting @htmlonly for setting configuration group or </li>
  *                       <li>@endhtmlonly @ref idigi_remote_group_state @htmlonly for state configuration group.</li></ul></dd>
- *                  <dt><i>id</i></dt><dd> - is not applicable.</dd>
- *                  <dt><i>index</i></dt><dd> - is not applicable</dd>
+ *                  <dt><i>id</i></dt><dd> - not applicable.</dd>
+ *                  <dt><i>index</i></dt><dd> - not applicable.</dd>
  *                  </dl> </dd>
  *              <dt><i>element</i></dt>
- *              <dd> - is not applicable.</dd>
+ *              <dd> - not applicable.</dd>
  *            </dl>
  * </td></tr>
  * <tr>
@@ -989,7 +989,7 @@
  * <td> Pointer to callback's context returned from previous callback in @endhtmlonly @ref idigi_remote_group_response_t @htmlonly </td></tr>
  * <tr>
  * <th>request_length</th>
- * <td> Not applicable</td>
+ * <td> not applicable.</td>
  * </tr>
  * <tr>
  * <th>response_data</th>
