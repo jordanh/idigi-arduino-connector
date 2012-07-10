@@ -159,7 +159,7 @@ struct fapp_params_boot
                              * This script may contain any command supported by 
                              * the application shell. The commands must be split 
                              * by semicolon operator. @n
-                             * The string must be null-terminated.
+                             * The string must be NUL-terminated.
                              */
 };
 
@@ -187,7 +187,7 @@ struct fapp_params_tftp
     char file_name[FAPP_PARAMS_TFTP_FILE_NAME_SIZE] FNET_COMP_PACKED; /**< @brief This is the default file name
                                      * to be loaded by TFTP loader if no 
                                      * file name is provided to the "tftp" shell command. @n
-                                     * The string must be null-terminated.
+                                     * The string must be NUL-terminated.
                                      */
 };
 

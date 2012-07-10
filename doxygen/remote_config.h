@@ -108,7 +108,7 @@ typedef enum {
  * Remote Configuration Element value
  */
 typedef union {
-    char const * string_value;          /**< Pointer to a nul-terminated string for the following value types:
+    char const * string_value;          /**< Pointer to a NUL-terminated string for the following value types:
                                              @htmlonly
                                              <ul>
                                              <li>@endhtmlonly @ref idigi_element_type_string @htmlonly</li>

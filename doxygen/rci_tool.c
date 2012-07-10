@@ -311,10 +311,10 @@
  * <tr> <th colspan="2" class="title">value</th> </tr> 
  * <tr>
  * <th>string</th>
- * <td> Single line string with nul-terminated.</td>
+ * <td> Single line string with NUL-terminated.</td>
  * </tr> <tr>
  * <th>multiline_string</th>
- * <td>This type is used for a nul-terminated string that may be more than one line. A "text area" is shown 
+ * <td>This type is used for a NUL-terminated string that may be more than one line. A "text area" is shown 
  *     in the iDigi Device Cloud that allows a user to form multiple lines by pressing enter. </td>
  * </tr><tr>
  * <th>password</th>
@@ -363,7 +363,7 @@
  * <td>This type accepts either IPv6 address, IPv4 address, or DNS name. </td>
  * </tr><tr>
  * <th>datetime</th>
- * <td> Date and time type. It's a nul-terminated string which contains the ISO 8601 standard for date and 
+ * <td> Date and time type. It's a NUL-terminated string which contains the ISO 8601 standard for date and 
  *      time representation.<br></br>
  *      The format is: YYYY-MM-DDTHH:MM:SStz where
  *      <ul>
