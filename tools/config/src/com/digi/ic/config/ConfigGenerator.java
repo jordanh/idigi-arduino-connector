@@ -74,7 +74,7 @@ public class ConfigGenerator {
                         CONFIG_FILENAME));
 
         log("Description:");
-        log("\tIt generates and uploads configuration information (descriptors) to the iDigi Cloud server");
+        log("\tIt generates and uploads configuration information (descriptors) to the iDigi Device Cloud");
         log("\tand it also generates ANSI C header file (remote_config.h) ");
         log("\tfrom the input iDigi Connector remote configuration file.\n");
 
@@ -91,7 +91,7 @@ public class ConfigGenerator {
                         DASH + NO_DESC_OPTION));
         log(String
                 .format(
-                        "\t%-16s \t= optional option for vendor ID obtained from iDigi Cloud registration.",
+                        "\t%-16s \t= optional option for vendor ID obtained from iDigi Device Cloud registration.",
                         DASH + VENDOR_OPTION + "=<vendorID>"));
         log(String
                 .format(
@@ -104,16 +104,16 @@ public class ConfigGenerator {
                         DASH + DIRECTORY_OPTION + "=<directory path>"));
         log(String
                 .format(
-                        "\t%-16s \t= optional option for iDigi Cloud server. Default is developer.idigi.com",
+                        "\t%-16s \t= optional option for iDigi Device Cloud. Default is developer.idigi.com",
                         DASH + SERVER_OPTION + "=<server address>"));
 
         log(String
                 .format(
-                        "\n\t%-16s \t= username to log in iDigi Cloud. If no password is given you will be prompted to enter the password",
+                        "\n\t%-16s \t= username to log in iDigi Device Cloud. If no password is given you will be prompted to enter the password",
                         USERNAME));
         log(String
                 .format(
-                        "\t%-16s \t= optional option for password to log in iDigi Cloud",
+                        "\t%-16s \t= optional option for password to log in iDigi Device Cloud",
                         PASSWORD));
         log(String
                 .format(

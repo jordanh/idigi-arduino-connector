@@ -281,7 +281,7 @@ public class Descriptors {
 
         startIndex += "<dvVendorId>".length();
         vendorId = response.substring(startIndex, response.indexOf("</dvVendorId>"));
-        ConfigGenerator.log(String.format("iDigi Cloud registered vendor ID: 0x%X", Integer.parseInt(vendorId)));
+        ConfigGenerator.log(String.format("iDigi Device Cloud registered vendor ID: 0x%X", Integer.parseInt(vendorId)));
     }
 
     private void validateServerName() {
