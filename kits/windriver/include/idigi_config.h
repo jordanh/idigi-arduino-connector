@@ -66,7 +66,7 @@
  * @see USER_DEBUG_VPRINTF
  * @see ASSERT
  */
-#define IDIGI_DEBUG
+//#define IDIGI_DEBUG
 
 /**
  * When defined, IIK private library includes the @ref firmware_download "Firmware Download Service".

@@ -12,6 +12,7 @@ public class Register {
     private String vendorId;            // vendor ID is read from iDigi
     private Boolean callDeleteFlag;
     private String errorMessage="Device registration complete";
+    private int responseCode;
 
     // Return codes
     private final int DEVICE_ADDED = 201;
@@ -26,9 +27,10 @@ public class Register {
         getUserName();
         getPassword();
         RegisterDevice();
+        callDeleteFlag = true;
         uploadDescriptors();
         System.out.println(getErrorMessage());
-        callDeleteFlag = true;
+
     }
 
     public static void main(String args[]) {
@@ -252,6 +254,36 @@ public class Register {
         long fwVersion=0x01000001;
 
         System.out.println("Uploading description:" + descName);
+
+        if (callDeleteFlag) {
+            String target = String.format("/ws/DeviceMetaData?condition=dvVendorId=%s and dmDeviceType=\'%s\' and dmVersion=%d",
+                                            vendorId, deviceType, fwVersion);
+
+            String response = sendCloudData(target.replace(" ", "%20"), "DELETE", null);
+            if (responseCode != 0)
+            {
+                switch (responseCode)
+                {
+                    case 401:
+                        System.out.println("Unauthorized: verify username and password are valid\n");
+                        break;
+
+                    case 403:
+                        System.out.println("Forbidden: deleting previous RCI descriptors failed, verify that vendor ID is valid and is owned by your account.\n");
+                        break;
+
+                    default:
+                        System.out.println("Response status: " + response);
+                        break;
+                }
+
+                System.exit(1);
+            }
+
+            System.out.println("Deleted: " + vendorId + "/" + deviceType);
+            System.out.println(response);
+            callDeleteFlag = false;
+        }
 
         String message = "<DeviceMetaData>";
         message += tagMessageSegment("dvVendorId", vendorId);

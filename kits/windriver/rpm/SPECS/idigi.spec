@@ -25,6 +25,8 @@ Library routines used to connect to the Digi cloud
 
 %build
 make %{?_smp_mflags}
+make clean
+make %{?_smp_mflags} DEBUG="on"
 
 %install
 make install DESTDIR=$RPM_BUILD_ROOT
@@ -36,6 +38,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 %{_libdir}/libidigi.so
+%{_libdir}/libidigi_debug.so
 %{_includedir}/idigi_types.h
 %{_includedir}/idigi_connector.h
 %{_sysconfdir}/idigi.conf

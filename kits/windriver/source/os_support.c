@@ -15,6 +15,7 @@
 #include "os_support.h"
 #include "idigi_api.h"
 #include "platform.h"
+#include "idigi_debug.h"
 
 static sem_t sem_array[IC_MAX_NUM_EVENTS];
 
@@ -146,3 +147,12 @@ void ic_watchdog_reset(void)
 {
     return;
 }
+
+#if (!defined IDIGI_DEBUG)
+/* Stub routine: don't do anything (debug is shut off) */
+void idigi_debug_printf(char const * const format, ...)
+{
+    UNUSED_PARAMETER(format);
+
+}
+#endif

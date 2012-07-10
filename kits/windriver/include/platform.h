@@ -26,9 +26,14 @@
 #ifndef _PLATFORM_H
 #define _PLATFORM_H
 
-#include <stdio.h>
+#include "idigi_debug.h"
 
-#define APP_DEBUG   printf
+
+#if (!defined IDIGI_DEBUG)
+void idigi_debug_printf(char const * const format, ...);
+#endif
+
+#define APP_DEBUG idigi_debug_printf
 
 #define UNUSED_ARGUMENT(x)     ((void)x)
 

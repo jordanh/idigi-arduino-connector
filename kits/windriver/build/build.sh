@@ -35,7 +35,7 @@ cp -f Makefile.rpm ${TMP_DIR}/Makefile
 
 # execute a Make and verify the library builds
 cd "${TMP_DIR}"
-make
+make DEBUG="off"
 rc=$?
 if [[ ${rc} != 0 ]]; then
     echo "Make failed"
@@ -43,6 +43,22 @@ if [[ ${rc} != 0 ]]; then
 fi
 
 if [ -e libidigi.so ]; then
+    echo "Library was built"
+else
+    echo "******windriver Library was NOT built******"
+#    cleanup
+    exit -1
+fi
+make clean
+
+make DEBUG="on"
+rc=$?
+if [[ ${rc} != 0 ]]; then
+    echo "Make failed"
+    exit -1
+fi
+
+if [ -e libidigi_debug.so ]; then
     echo "Library was built"
 else
     echo "******windriver Library was NOT built******"
@@ -64,4 +80,4 @@ rpmbuild -ba -vvv rpm/SPECS/idigi.spec
 
 # Copy the final RPM to the release directory
 cd build
-cleanup
+#cleanup

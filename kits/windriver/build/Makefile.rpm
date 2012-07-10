@@ -33,13 +33,23 @@ vpath %.h ./public/include ./public/run/platforms/linux ./private ./rci
 SRC  = idigi_api.c os.c network_ssl.c config.c file_system.c idigi_connector.c os_support.c data_service.c debug.c
 SRC += remote_config_cb.c system.c firmware.c
 OBJ  = $(SRC:.c=.o)
+
+ifeq ($(DEBUG), on)
+OUT  = libidigi_debug.so
+else
 OUT  = libidigi.so
+endif
+
 DEPS = idigi_api.h idigi_config.h os_support.h platform.h
 
 INCDIRS=-I$(PUBLIC_HEADER_DIR) -I$(PLATFORM_HEADER_DIR) -I$(PRIVATE_HEADER_DIR) -I$(RCI_HEADER_DIR)
 
-CFLAGS += -Wno-missing-field-initializers $(DFLAGS) -DAPP_ENABLE_MD5 -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1010000UL -g
+CFLAGS += -Wno-missing-field-initializers $(DFLAGS) -DAPP_ENABLE_MD5 -Wall -Werror -Wextra -pedantic -std=c99 -DIDIGI_VERSION=0x1020000UL -g
 CFLAGS += -fPIC -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE $(INCDIRS)
+
+ifeq ($(DEBUG), on)
+CFLAGS += -DIDIGI_DEBUG
+endif
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
@@ -49,13 +59,14 @@ $(OUT): $(OBJ)
 
 .PHONY: clean
 clean:
-	-rm -f $(OBJ) $(OUT)
+	-rm -f $(OBJ)
 
 install:
 	mkdir -p $(DESTDIR)/usr/lib
 	mkdir -p $(DESTDIR)/usr/include
 	mkdir -p $(DESTDIR)/etc
-	cp $(OUT) $(DESTDIR)/usr/lib
+	cp libidigi.so $(DESTDIR)/usr/lib
+	cp libidigi_debug.so $(DESTDIR)/usr/lib
 	cp idigi_connector.h $(DESTDIR)/usr/include
 	cp ./public/include/idigi_types.h $(DESTDIR)/usr/include
 	cp idigi-ca-cert-public.crt  $(DESTDIR)/etc/
