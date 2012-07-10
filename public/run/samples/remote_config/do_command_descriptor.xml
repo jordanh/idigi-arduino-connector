@@ -1,5 +1,0 @@
-<descriptor element="do_command" desc="Send a command to a subsystem">
-<attr name="target" desc="The subsystem that the command is forwarded.">
-<value value="file_system" desc="File system commands"/>
-</attr>
-</descriptor>

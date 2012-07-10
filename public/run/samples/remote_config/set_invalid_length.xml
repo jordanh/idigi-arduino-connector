@@ -1,9 +1,0 @@
-
-<rci_request version="1.1">
-    <set_setting>
-        <serial>
-            <databits>10</databits>
-        </serial>
-    </set_setting>
-</rci_request>
-
