@@ -268,6 +268,7 @@ static idigi_callback_status_t app_rci_group_set(
             add_setting_data(request,
                 &request->element.value->signed_integer_value, 
                 sizeof(request->element.value->signed_integer_value));
+            break;
         case idigi_element_type_uint32:
         case idigi_element_type_hex32:
         case idigi_element_type_0xhex:
