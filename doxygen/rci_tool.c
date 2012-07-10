@@ -6,7 +6,7 @@
  *
  * The remote configuration tool is used to generate device configuration header file and upload
  * device configuration information to the iDigi Device Cloud. It allows user to define all device configuration
- * data and information that can be accessed throught iDigi Device Cloud using iDigi connector. 
+ * data and information that can be accessed through iDigi Device Cloud using iDigi connector. 
  * User must include the generated header file and provide callback functions to handle all 
  * device configuration in an application.
  *
@@ -97,9 +97,9 @@
  *
  * @section rci_tool_file   Input Configuration File
  *
- * User must define all device configuration data and system information that is accessed throught the iDigi Device Cloud and run the 
+ * User must define all device configuration data and system information that is accessed through the iDigi Device Cloud and run the 
  * tool to generate remote_config.h file. User must include this remote_config.h header file and
- * provide callback to handle all device configuration data and system information.
+ * provide callbacks to handle all device configuration data and system information.
  *
  * User uses the following keywords to define device configuration data and system information:
  * -# @ref globalerror
@@ -115,8 +115,8 @@
  * -# @ref comment
  *
  * @subsection globalerror  globalerror keyword
- * The @a @b globalerror is used to define the text in the iDigi Device Cloud when 
- * an error condition occurs. This @a @b globalerror defines errors common to all configurations.
+ * A @a @b globalerror is used to define the text in the iDigi Device Cloud when 
+ * an error condition occurs. @a @b Globalerrors define errors common to all configurations.
  *
  * @htmlonly
  * <table class="apitable">
@@ -153,7 +153,7 @@
  * @endcode
  *
  * @subsection group  group keyword
- * The @a @b group is used to define a device configuration data and information about the 
+ * A @a @b group is used to define a device configuration data and information about the 
  * current state of the device.
  * It contains metadata about the element named in the @ref element.
  *
@@ -200,8 +200,8 @@
  * @endcode
  *
  * @subsection error  error keyword
- * The @a @b error is used to define the text in the iDigi Device Cloud when an error 
- * condition occurs. This is used to specify an error for individual group.
+ * An @a @b error is used to define the text in the iDigi Device Cloud when an error 
+ * condition occurs. It is used to specify an error for individual group.
  *
  * @htmlonly
  * <table class="apitable">
@@ -233,7 +233,7 @@
  * @endcode
  *
  * @subsection element element keyword
- * The @a @b element is used to describe valid fields in a group. It describes an element 
+ * An @a @b element is used to describe valid fields in a group. It describes an element 
  * under the group that has a type and contains a value.
  *
  * @htmlonly
@@ -425,6 +425,7 @@
  * Example:
  * @code
  *
+ *     element baud "Baud rate" type enum access read_write
  *       value auto "Automatic"
  *       value 1200
  *       value 2400
