@@ -108,7 +108,7 @@
  * To view the results for this sample login to the iDigi Device Cloud as described
  * in the @ref add_your_device_to_the_cloud "Getting Started" section. 
  *
- * Once logged in click on the Data Service tab as shown
+ * Once logged in click on the Data Services tab as shown
  * below. Double click to the device folder.
  *
  * @image html send_data_sample1.png

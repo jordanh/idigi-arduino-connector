@@ -141,7 +141,7 @@
  * Once you are logged to see your device, click the Refresh button.
  * The device's status should show as 'Connected'.
  *
- * @image html sample3.png
+ * @image html fw_download_sample1.png
  *
  * Then click the Firmware Update button to update your firmware, and then select 
  * the file that is your firmware image on your local machine.  The image will then
@@ -150,7 +150,7 @@
  * @note The firmware image name must match the regular expression given to 
  * filter names, see @ref fw_namespec.
  *
- * @image html sample4.png
+ * @image html fw_download_sample2.png
  * 
  * The results in this application are displayed in the output console of the
  * application.  Since this is only a sample the fiwmware is not updated on the
