@@ -44,9 +44,7 @@ group setting ethernet "Ethernet interface"
 
 group setting device_time  "Device Time"
     element curtime "Current time" type datetime access  read_write
-    element signed_integer "Signed integer" type int32 min -100 max 100
     error invalid_time "Invalid time" 
-    error invalid_integer "Invalid integer value" 
 
 group setting device_info  "Device info"
     element version "Version" type 0xhex access  read_only 
@@ -72,6 +70,11 @@ group setting devicesecurity "iDigi device security"
         value simple "No connection security"
         value password "Connection is password authenticated"
     element password "iDigi device connection password" type password max 133
+
+group state device_state  "Device State"
+    element system_up_time "System Up time" type uint32 access read_only
+    element signed_integer "Signed integer" type int32 min -100 max 100
+    error invalid_integer "Invalid integer value" 
 
 # Device location
 # State configuration for GPS

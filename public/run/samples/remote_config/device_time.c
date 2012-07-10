@@ -23,11 +23,10 @@
 
 typedef struct {
     struct timeb current_time;
-    int32_t signed_integer;
     char timestring[sizeof "2010-12-12T12:12:12-0000"];
 } device_time_config_data_t;
 
-device_time_config_data_t device_time_config_data = {{0}, -10, "\0"};
+device_time_config_data_t device_time_config_data = {{0}, "\0"};
 
 idigi_callback_status_t app_device_time_group_init(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response)
 {
@@ -95,10 +94,6 @@ idigi_callback_status_t app_device_time_group_get(idigi_remote_group_request_t c
         }
         break;
     }
-    case idigi_setting_device_time_signed_integer:
-        ASSERT(request->element.type == idigi_element_type_int32);
-        response->element_data.element_value->signed_integer_value = device_time_ptr->signed_integer;
-        break;
 
     default:
         ASSERT(0);
@@ -366,10 +361,6 @@ idigi_callback_status_t app_device_time_group_set(idigi_remote_group_request_t c
 
         break;
     }
-    case idigi_setting_device_time_signed_integer:
-        ASSERT(request->element.type == idigi_element_type_int32);
-        device_time_ptr->signed_integer= request->element.value->signed_integer_value;
-        break;
 
     default:
         ASSERT(0);

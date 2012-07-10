@@ -51,6 +51,10 @@ extern idigi_callback_status_t app_system_group_get(idigi_remote_group_request_t
 extern idigi_callback_status_t app_system_group_end(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
 extern void app_system_group_cancel(void * const context);
 
+extern idigi_callback_status_t app_device_state_group_init(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
+extern idigi_callback_status_t app_device_state_group_get(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
+extern idigi_callback_status_t app_device_state_group_set(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
+
 extern idigi_callback_status_t app_device_security_group_init(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
 extern idigi_callback_status_t app_device_security_group_set(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);
 extern idigi_callback_status_t app_device_security_group_get(idigi_remote_group_request_t const * const request, idigi_remote_group_response_t * const response);

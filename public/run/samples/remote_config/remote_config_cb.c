@@ -40,6 +40,7 @@ remote_group_table_t remote_setting_table[] = {
 
 
 remote_group_table_t remote_state_table[] = {
+    {app_device_state_group_init,    app_device_state_group_set,  app_device_state_group_get,  NULL, NULL},
     {NULL, NULL, app_gps_stats_group_get, NULL, NULL},
 };
 
