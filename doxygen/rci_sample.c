@@ -16,36 +16,66 @@
  *
  * A User can use the included python script to send a device request to the device.
  *
- * This sample defines a configuration group with two unsigned integer elements:
- * - The name of the configuration group is @a @b keepalive.
- * - It contains 2 elements and the names of the elements are:
- *      @htmlonly <ol><li><i><b>tx</b></i></li>
- *                      <li><i><b>rx</b></i></li></ol> @endhtmlonly
- *
+ * This sample defines a configuration group with the following confgiruations:
+ * - System 
+ *   - Description
+ *   - Contact
+ *   - Location
+ * - GPS
+ *   - Latitude
+ *   - Longitude
+ * - Device security (optional)
+ *   - Connection security
+ *   - Password
  *
  * @subsection config_file iDigi connector configuration file
  *
- * The following is the iDigi connector configuration file for the keepalive configuration group:
+ * The following is the iDigi connector configuration file:
  * 
  * @code
- *  group setting keepalive "iDigi Connector Keepalive Configuration"
- *     element rx "Rx interval" "Time value which device will send Keep-Alive messages must be between 5 to 7200 seconds" type uint32 min 5 max 7200 unit "in seconds"
- *     element tx "Tx Interval" "Time value which server will send Keep-Alive messages must be between 5 to 7200 seconds" type uint32 min 5 max 7200 unit "in seconds"
- *     
- *     error load_fail "Unable to load the value"
- *     error save_fail "Unable to save the value"
- *     error no_memory "Insufficient memory"
+ * globalerror load_fail "Load fail"
+ * globalerror save_fail "Save fail"
+ * globalerror memory_fail "Insufficient memory"
+ * 
+ * # Device info that shows up in iDigi device summary
+ * # iDigi Manager Pro queries this system setting to display the information in root folder
+ * group setting system "System"
+ *     element description "Description" type string max 63
+ *     element contact "Contact" type string max 63
+ *     element location "Location" type string max 63
+ *     error invalid_length "Invalid Length"
+ *  
+ * # iDigi password
+ * # iDigi Manager Pro uses this devicesecurity setting for password authentication
+ * # Note, as with all password, password type is a write-only field
+ * # To include the devicesecurity setting, change devicesecurity.c.optional 
+ * # to devicesecurity.c
+ * # group setting devicesecurity "iDigi device security"
+ * #    element identityVerificationForm "Connection security" type enum
+ * #        value simple "No connection security"
+ * #        value password "Connection is password authenticated"
+ * #    element password "iDigi device connection password" type password max 133
+ * 
+ * # Device location
+ * # State configuration for GPS
+ * # Must setup the following group for Latitude and Longitude to be shown in iDigi Manager Pro.
+ * group state gps_stats "GPS"
+ *     element latitude "Latitude" type string access read_only
+ *     element longitude "Longitude" type string access read_only
  * @endcode
+ *
+ *
+ * Note that the device security is not included. Remove the comment tags in configuration file to include it and 
+ * change the devicesecurity.c.optional to devicesecurity.c. Add this devicesecurity.c to the Makefile.
  *
  * Run @ref rci_tool to generate remote_config.h:
  * @code
  *
- *   java -jar ConfigGenerator.jar username:xxxxxx "Linux Application" 16777216 config.rci
+ *   java -jar ConfigGenerator.jar username:password "Linux Application" 1.0.0.0 config.rci
  *
  * @endcode
  *
  * When the iDigi Cloud sends a RCI request to the device, app_remote_config_handler() is called with the following request ID:
- * for:
  * -# @ref idigi_remote_config_session_start
  * -# @ref idigi_remote_config_action_start
  * -# @ref idigi_remote_config_group_start
@@ -55,10 +85,7 @@
  * -# @ref idigi_remote_config_session_end
  *
  * The callback with @ref idigi_remote_config_group_process request ID is continually called 
- * unitl all elements in the configuration group is processed.
- *
- * This sample prints out the value of the configuration group in the callback with
- * @ref idigi_remote_config_group_end request id.
+ * until all elements in the configuration group is processed.
  *
  * When the callback is called with @ref idigi_remote_config_session_cancel request ID it indicates
  * an error is encountered and needs to cancel the RCI. In this example it cancels 
@@ -84,18 +111,18 @@
  * <th class="title">Location</th>
  * </tr>
  * <tr>
+ * <th>config.rci</th>
+ * <td>Remote Configuration file</td>
+ * <td>samples/simple_remote_config</td>
+ * </tr>
+ * <tr>
  * <th>application.c</th>
  * <td>Contains application_run() and the application defined callback</td>
  * <td>samples/simple_remote_config</td>
  * </tr>
  * <tr>
- * <th>firmware.c</th>
- * <td>Routines used to process the FW download requests</td>
- * <td>samples/simple_remote_config</td>
- * </tr>
- * <tr>
- * <th>keepalive.c</th>
- * <td>Routines used to set and query the keepalive configuration group</td>
+ * <th>remote_config.h</th>
+ * <td>Remote configuration definitions generated by the @endhmtlonly @ref rci_tool @htmlonly </td>
  * <td>samples/simple_remote_config</td>
  * </tr>
  * <tr>
@@ -104,6 +131,31 @@
  * <td>samples/simple_remote_config</td>
  * </tr>
  * <tr>
+ * <th>remote_config_cb.h</th>
+ * <td>Header for remote configuration callback</td>
+ * <td>samples/simple_remote_config</td>
+ * </tr>
+ * <tr>
+ * <th>gps_stats.c</th>
+ * <td>GPS remote configuration callback</td>
+ * <td>samples/simple_remote_config</td>
+ * </tr>
+ * <tr>
+ * <th>system.c</th>
+ * <td>System remote configuration callback</td>
+ * <td>samples/simple_remote_config</td>
+ * </tr>
+ * <tr>
+ * <th>devicesecurity.c.optional</th>
+ * <td>Device security remote configuration callback (optional)</td>
+ * <td>samples/simple_remote_config</td>
+ * </tr>
+ * <tr>
+ * <tr>
+ * <th>idigi_config.h</th>
+ * <td>iDigi Connector options</td>
+ * <td>samples/simple_remote_config</td>
+ * </tr>
  * <th>idigi_api.c</th>
  * <td>Code for the iDigi connector </td>
  * <td>private</td>
@@ -149,8 +201,25 @@
  * Once successfully built, run the executable, in Linux type ./idigi to run the
  * sample.
  *
- * Remote configuration can be accessed through the
- * @htmlonly <a href="http://www.idigi.com">iDigi Cloud</a>@endhtmlonly.
+ * Login to @htmlonly <a href="http://www.idigi.com">iDigi Device Cloud</a>@endhtmlonly 
+ * (described in the @ref idigi_login "Getting Started Section").
+ * Once you are logged, go to iDigi Manager Pro tab and click the Refresh button.
+ * The device's status should show as 'Connected'. 
+ *
+ * @image html rci_sample1.png
+ *
+ * Then double click the device. Click the Refresh button to update the configurations.
+ *
+ * @image html rci_sample2.png
+ *
+ * Click the System item under the Configuration link. Click the Save button
+ * after updating the configurations.
+ *
+ * @image html rci_sample3.png
+ *
+ * Go back to Home page and click the Refresh button, it will show the new configuration data.
+ *
+ * @image html rci_sample4.png
  *
  * @htmlinclude terminate.html
  *

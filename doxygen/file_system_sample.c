@@ -256,12 +256,17 @@
  * <tr>
  * <td>application.c</td>
  * <td>Contains application_run() and the application callback</td>
- * <td>samples/device_request</td>
+ * <td>samples/file_system</td>
  * </tr>
  * <tr>
  * <td>file_system.py</td>
  * <td>Python script to write, read, and list a file</td>
  * <td>samples/file_system</td>
+ * </tr>
+ * <tr>
+ *   <th>idigi_config.h</th>
+ *   <td> iDigi Connector options</td>
+ *   <td>samples/file_system</td>
  * </tr>
  * <tr>
  * <td>idigi_api.c</td>

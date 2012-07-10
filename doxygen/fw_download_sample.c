@@ -86,6 +86,11 @@
  * <td>samples/firmware_download</td>
  * </tr>
  * <tr>
+ *   <th>idigi_config.h</th>
+ *   <td> iDigi Connector options</td>
+ *   <td>samples/firmware_download</td>
+ * </tr>
+ * <tr>
  * <th>idigi_api.c</th>
  * <td>Code for the iDigi connector </td>
  * <td>private</td>
