@@ -86,7 +86,7 @@
  * If the session is successful:
  *  -# iDigi connector calls @ref file_system_close "idigi_file_system_close" or @ref file_system_closedir "idigi_file_system_closedir" callback, 
  *     if there is an open file or directory.
- *  -# iDigi connector sends last response to the iDigi Device Cloud.
+ *  -# iDigi connector sends the last response to the iDigi Device Cloud.
  *
  * The callback aborts iDigi connector:
  *  -# The callback returns @ref idigi_callback_abort status.
