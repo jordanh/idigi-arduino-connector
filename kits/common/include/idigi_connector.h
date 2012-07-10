@@ -11,8 +11,7 @@
  */
  /**
   * @file
-  *  @brief Functions and prototypes for iDigi Connector
-  *         user APIs for easier access to iDigi functionalities.
+  *  @brief Functions and prototypes for iDigi Connector Kits.
   *
   */
 #ifndef IDIGI_CONNECTOR_H
@@ -20,30 +19,39 @@
 
 #include <idigi_types.h>
 
+
+ /** 
+ * Status values returned by application to iDigi connector API 
+ * calls. 
+ */
 typedef enum
 {
-    idigi_app_success,
-    idigi_app_busy,
-    idigi_app_unknown_target,
-    idigi_app_invalid_parameter,
-    idigi_app_resource_error
+    idigi_app_success,              /**< No error. */
+    idigi_app_busy,                 /**< Application busy. */
+    idigi_app_unknown_target,       /**< Invalid target. */
+    idigi_app_invalid_parameter,    /**< Invalid parameter. */
+    idigi_app_resource_error        /**< Lack of resources */
 } idigi_app_error_t;
 
+
+ /** 
+ * Status returned by iDigi connector API calls.
+ */
 typedef enum
 {
-    idigi_connector_success,
-    idigi_connector_reset,
-    idigi_connector_init_error,
-    idigi_connector_invalid_parameter,
-    idigi_connector_already_registered,
-    idigi_connector_resource_error,
-    idigi_connector_event_error,
-    idigi_connector_failed_to_create_thread,
-    idigi_connector_network_error,
-    idigi_connector_compression_error,
-    idigi_connector_timeout,
-    idigi_connector_session_error,
-    idigi_connector_service_unavailable
+    idigi_connector_success,                    /**< No error. */
+    idigi_connector_reset,                      /**< Connection reset. */
+    idigi_connector_init_error,                 /**< Initialization error. */
+    idigi_connector_invalid_parameter,          /**< Invalid parameter. */
+    idigi_connector_already_registered,         /**< Device already registered. */
+    idigi_connector_resource_error,             /**< Lack of resources. */
+    idigi_connector_event_error,                /**< OS event error. */
+    idigi_connector_failed_to_create_thread,    /**< OS could not create thread. */
+    idigi_connector_network_error,              /**< General network error. */
+    idigi_connector_compression_error,          /**< Error compressing data. */
+    idigi_connector_timeout,                    /**< Connection timeout. */
+    idigi_connector_session_error,              /**< iDigi session error. */
+    idigi_connector_service_unavailable         /**< Session unavailable. */
 } idigi_connector_error_t;
 
 /**
