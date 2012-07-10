@@ -51,8 +51,10 @@
  * and program stack.  
  *     
  * @subsection CodespaceRequirements Code Space Estimates 
- * The following Flash/Code space data was generated using Ubuntu 4.4.3 gcc for 32-bit i486 architecture using the
- * @ref step3 "compile_and_link" sample application.  The build was optimized for size (-Os) with @ref IDIGI_COMPRESSION disabled in all cases.
+ * The following Flash/Code space data was generated using Ubuntu 4.4.3 gcc for 32-bit i486 architecture
+ * using the @ref step3 "compile_and_link" or @ref rci_sample "simple_remote_config" sample applications.
+ *
+ * The build was optimized for size (-Os) with @ref IDIGI_COMPRESSION disabled in all cases.
  * The metrics exclude any code space required for application layer calls.  This information should be treated as a typical use case.
  * 
  * @htmlonly
@@ -65,37 +67,93 @@
  * <th class="title">bss</th>
  * </tr>
  * <tr>
- * <td>@endhtmlonly @ref IDIGI_DEBUG, @ref IDIGI_FIRMWARE_SERVICE, @ref IDIGI_DATA_SERVICE @htmlonly enabled.</td>
- * <td>20285</td>
- * <td>6840</td>
- * <td>0</td>
- * <td>12</td>
+ * <td>@endhtmlonly Uses the @ref rci_sample "simple_remote_config" sample with @ref IDIGI_DEBUG, @ref IDIGI_RCI_SERVICE, @ref IDIGI_FILE_SYSTEM, @ref IDIGI_FIRMWARE_SERVICE, @ref IDIGI_DATA_SERVICE enabled, plus @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH and @ref IDIGI_RCI_MAXIMUM_CONTENT_LENGTH @htmlonly set to 256.</td>
+ * <td>39529</td>
+ * <td>11637</td>
+ * <td>5</td>
+ * <td>493</td>
  * </tr>
  * <tr>
- * <td>@endhtmlonly @ref IDIGI_FIRMWARE_SERVICE, @ref IDIGI_DATA_SERVICE @htmlonly enabled.</td>
- * <td>16400</td>
- * <td>372</td>
+ * <td>@endhtmlonly Uses the @ref rci_sample "simple_remote_config" sample with @ref IDIGI_RCI_SERVICE, @ref IDIGI_FILE_SYSTEM, @ref IDIGI_FIRMWARE_SERVICE, @ref IDIGI_DATA_SERVICE enabled, plus @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH and @ref IDIGI_RCI_MAXIMUM_CONTENT_LENGTH @htmlonly set to 256.</td>
+ * <td>32437</td>
+ * <td>1872</td>
+ * <td>5</td>
+ * <td>493</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly Uses the @ref rci_sample "simple_remote_config" sample with @ref IDIGI_DEBUG, @ref IDIGI_RCI_SERVICE, @ref IDIGI_FIRMWARE_SERVICE, @ref IDIGI_DATA_SERVICE enabled and @ref IDIGI_RCI_MAXIMUM_CONTENT_LENGTH @htmlonly set to 256.</td>
+ * <td>34438</td>
+ * <td>11228</td>
+ * <td>5</td>
+ * <td>493</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly Uses the @ref rci_sample "simple_remote_config" sample with @ref IDIGI_RCI_SERVICE, @ref IDIGI_FIRMWARE_SERVICE, @ref IDIGI_DATA_SERVICE enabled and @ref IDIGI_RCI_MAXIMUM_CONTENT_LENGTH @htmlonly set to 256.</td>
+ * <td>27612</td>
+ * <td>1780</td>
+ * <td>5</td>
+ * <td>493</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly Uses the @ref rci_sample "simple_remote_config" sample with @ref IDIGI_DEBUG, @ref IDIGI_RCI_SERVICE enabled and @ref IDIGI_RCI_MAXIMUM_CONTENT_LENGTH @htmlonly set to 256.</td>
+ * <td>28256</td>
+ * <td>9446</td>
+ * <td>5</td>
+ * <td>493</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly Uses the @ref rci_sample "simple_remote_config" sample with @ref IDIGI_RCI_SERVICE enabled and @ref IDIGI_RCI_MAXIMUM_CONTENT_LENGTH @htmlonly set to 256.</td>
+ * <td>22690</td>
+ * <td>1656</td>
+ * <td>5</td>
+ * <td>493</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly Uses the @ref step3 "compile_and_link" sample with @ref IDIGI_DEBUG, @ref IDIGI_FILE_SYSTEM, @ref IDIGI_FIRMWARE_SERVICE, @ref IDIGI_DATA_SERVICE enabled and @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly set to 256.</td>
+ * <td>27873</td>
+ * <td>7602</td>
+ * <td>0</td>
+ * <td>0</td>
+ * </tr>
+  * <tr>
+ * <td>@endhtmlonly Uses the @ref step3 "compile_and_link" sample with @ref IDIGI_FILE_SYSTEM, @ref IDIGI_FIRMWARE_SERVICE, @ref IDIGI_DATA_SERVICE enabled and @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly set to 256.</td>
+ * <td>23011</td>
+ * <td>484</td>
  * <td>0</td>
  * <td>0</td>
  * </tr>
  * <tr>
- * <td>@endhtmlonly @ref IDIGI_FIRMWARE_SERVICE, @ref IDIGI_DATA_SERVICE enabled.  @ref idigi_config_data_options used. @htmlonly </td>
- * <td>15545</td>
- * <td>372</td>
+ * <td>@endhtmlonly Uses the @ref step3 "compile_and_link" sample with @ref IDIGI_DEBUG, @ref IDIGI_FIRMWARE_SERVICE, @ref IDIGI_DATA_SERVICE @htmlonly enabled.</td>
+ * <td>22525</td>
+ * <td>7125</td>
  * <td>0</td>
  * <td>0</td>
  * </tr>
  * <tr>
- * <td>@endhtmlonly @ref IDIGI_FIRMWARE_SERVICE enabled.  @ref idigi_config_data_options used. @htmlonly </td>
- * <td>9813</td>
- * <td>280</td>
+ * <td>@endhtmlonly Uses the @ref step3 "compile_and_link" sample with @ref IDIGI_FIRMWARE_SERVICE, @ref IDIGI_DATA_SERVICE @htmlonly enabled.</td>
+ * <td>18090</td>
+ * <td>392</td>
  * <td>0</td>
  * <td>0</td>
  * </tr>
  * <tr>
- * <td>@endhtmlonly @ref IDIGI_DATA_SERVICE enabled.  @ref idigi_config_data_options used. @htmlonly </td>
- * <td>12413</td>
- * <td>244</td>
+ * <td>@endhtmlonly Uses the @ref step3 "compile_and_link" sample with @ref IDIGI_FIRMWARE_SERVICE, @ref IDIGI_DATA_SERVICE enabled.  @ref idigi_config_data_options used. @htmlonly </td>
+ * <td>16598</td>
+ * <td>389</td>
+ * <td>0</td>
+ * <td>0</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly Uses the @ref step3 "compile_and_link" sample with @ref IDIGI_FIRMWARE_SERVICE enabled.  @ref idigi_config_data_options used. @htmlonly </td>
+ * <td>11155</td>
+ * <td>300</td>
+ * <td>0</td>
+ * <td>0</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly Uses the @ref step3 "compile_and_link" sample with @ref IDIGI_DATA_SERVICE enabled.  @ref idigi_config_data_options used. @htmlonly </td>
+ * <td>13473</td>
+ * <td>241</td>
  * <td>0</td>
  * <td>0</td>
  * </tr>
