@@ -148,7 +148,9 @@ typedef enum
 {
     rci_error_state_none,
     rci_error_state_error_open,
+#if defined RCI_PARSER_USES_ERROR_DESCRIPTIONS
     rci_error_state_error_description,
+#endif
     rci_error_state_error_hint,
     rci_error_state_error_close,
     rci_error_state_element_close,

@@ -95,7 +95,7 @@ static void rci_generate_error(rci_t * const rci)
 #if defined RCI_PARSER_USES_ERROR_DESCRIPTIONS
         rci->error.state = rci_error_state_error_description;
 #else
-        rci->error.state = (rci->shared.response.error_hint == NULL) ? rci_error_state_error_close : rci_error_state_error_hint;
+        rci->error.state = (rci->shared.response.element_data.error_hint == NULL) ? rci_error_state_error_close : rci_error_state_error_hint;
 #endif
         break;
 

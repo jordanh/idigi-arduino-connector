@@ -72,7 +72,7 @@ group setting devicesecurity "iDigi device security"
     element password "iDigi device connection password" type password max 133
 
 group state device_state  "Device State"
-    element system_up_time "System Up time" type uint32 access read_only
+    element system_up_time "System Up time" type uint32 access read_only unit "seconds"
     element signed_integer "Signed integer" type int32 min -100 max 100
     error invalid_integer "Invalid integer value" 
 
