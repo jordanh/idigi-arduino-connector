@@ -16,10 +16,10 @@
  * when a data service request is received.
  *
  * The routine application_run() (or application_step()) which is called after initialization calls the routine
- * send_put_request() to initiate the data transfer to the iDigi Cloud.  This routine
+ * send_put_request() to initiate the data transfer to the iDigi Device Cloud.  This routine
  * initiates the data transfer by calling idigi_initiate_action(); once the server is 
  * ready to receive data the app_data_service_handler() routine is called.  The callback then returns
- * the string "Welcome to iDigi data service sample!\n" back to the iDigi Cloud.  This data is @b copied
+ * the string "Welcome to iDigi data service sample!\n" back to the iDigi Device Cloud.  This data is @b copied
  * @b into @b the @b callback's @b buffer, the flags @ref IDIGI_MSG_LAST_DATA and @ref IDIGI_MSG_FIRST_DATA
  * indicate this is the only message in this data transfer.  By modifying these flags
  * you could modify this sample to send large amounts of data back to the server.

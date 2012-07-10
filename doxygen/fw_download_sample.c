@@ -17,7 +17,7 @@
  * app_firmware_handler() when a firmware request callback is received.
  *
  * All interaction with the iDigi connector is through the callback in this sample; Firmware download
- * is initiated fully from the cloud.  The file firmware.c contains the routines which process
+ * is initiated fully from the iDigi Device Cloud.  The file firmware.c contains the routines which process
  * the firmware download callbacks passed to app_firmware_handler().
  *
  * This sample defines all supported image files with .a and .bin file extensions.
@@ -141,7 +141,7 @@
  *
  * @subsection fw_gui Firmware Download using iDigi Device Cloud GUI
  *
- * Login to the iDigi Device cloud at http://www.idigi.com  and click on your device
+ * Login to the iDigi Device Cloud at http://www.idigi.com  and click on your device
  * (described in the @ref idigi_login "Getting Started Section").
  * Once you are logged to see your device, click the Refresh button.
  * The device's status should show as 'Connected'.

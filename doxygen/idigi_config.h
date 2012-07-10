@@ -166,7 +166,7 @@
 /**
  * This is used to define the maximum content length in bytes of an element's value for the @ref rci_service,
  * iDigi connector includes the @ref rci_service that allows user remote configuration, control, and information
- * exchange between a device and iDigi Cloud.
+ * exchange between a device and iDigi Device Cloud.
  * See @ref IDIGI_RCI_SERVICE to enable or disable the service.
  *
  * @code

@@ -4,9 +4,9 @@
  *
  * @section connect_overview Overview
  *
- * In this example the device connects to the iDigi Device cloud and sends
+ * In this example the device connects to the iDigi Device Cloud and sends
  * basic information about the device, this is intended to verify that the
- * device can communicate with the iDigi Device cloud and the user
+ * device can communicate with the iDigi Device Cloud and the user
  * can login and view the device configuration.
  *
  *

@@ -317,12 +317,12 @@ typedef enum {
  */
 typedef enum {
 #if (IDIGI_VERSION < IDIGI_VERSION_1100)
-    idigi_data_service_send_complete, /**< Deprecated. Used to indicate the completion of earlier initiate_action() call to send data to the cloud */
-    idigi_data_service_response,  /**< Deprecated. Used to indicate the device cloud response for the current operation */
-    idigi_data_service_error, /**< Deprecated. Used to indicate the error either from the device cloud or from the iDigi connector while processing the message */
+    idigi_data_service_send_complete, /**< Deprecated. Used to indicate the completion of earlier initiate_action() call to send data to the iDigi Device Cloud */
+    idigi_data_service_response,  /**< Deprecated. Used to indicate the iDigi Device Cloud response for the current operation */
+    idigi_data_service_error, /**< Deprecated. Used to indicate the error either from the iDigi Device Cloud or from the iDigi connector while processing the message */
 #endif
-    idigi_data_service_put_request, /**< Indicates data service request related to send data to the device cloud */
-    idigi_data_service_device_request /**< Indicates data service request related to receive data from device cloud */
+    idigi_data_service_put_request, /**< Indicates data service request related to send data to the iDigi Device Cloud */
+    idigi_data_service_device_request /**< Indicates data service request related to receive data from iDigi Device Cloud */
 } idigi_data_service_request_t;
 /**
 * @}
@@ -337,7 +337,7 @@ typedef enum {
 */
 typedef enum {
     idigi_initiate_terminate,               /**< Terminates and stops iDigi connector from running. */
-    idigi_initiate_data_service            /**< Initiates the action to send data to device cloud, the data will be stored in a file on the cloud. */
+    idigi_initiate_data_service            /**< Initiates the action to send data to iDigi Device Cloud, the data will be stored in a file on the cloud. */
 } idigi_initiate_request_t;
 /**
 * @}
@@ -368,7 +368,7 @@ typedef enum {
 typedef enum  {
     idigi_callback_continue,        /**< Continues with no error */
     idigi_callback_busy,            /**< Callback is busy */
-    idigi_callback_abort,           /**< Aborts iDigi connector. iDigi connector will try reconnecting to iDigi Cloud
+    idigi_callback_abort,           /**< Aborts iDigi connector. iDigi connector will try reconnecting to iDigi Device Cloud
                                          if @ref idigi_step or @ref idigi_run is called again. */
     idigi_callback_unrecognized     /**< Unsupported callback request */
 } idigi_callback_status_t;
@@ -623,7 +623,7 @@ typedef struct {
 * @{
 */
 /**
- * Error values returned either from the remote device cloud or 
+ * Error values returned either from the remote iDigi Device Cloud or 
  * from the local iDigi client. These are errors originated from
  * messaging layer, where compression/decompression, resource
  * allocation and state handling take place. 
@@ -641,7 +641,7 @@ typedef enum
     idigi_msg_error_memory, /**< Malloc failed, try to restrict the number of active sessions */
     idigi_msg_error_send, /**< Send socket error */
     idigi_msg_error_cancel, /**< Used to force termination of a session */
-    idigi_msg_error_busy, /**< Either device cloud or iDigi client is busy processing */
+    idigi_msg_error_busy, /**< Either iDigi Device Cloud or iDigi client is busy processing */
     idigi_msg_error_ack, /**< Invalid ack count */
     idigi_msg_error_timeout, /**< Session timed out */
     idigi_msg_error_no_service, /**< Requested service is not supported */
@@ -656,7 +656,7 @@ typedef enum
 * @{
 */
 /**
- * Possible response status returned from device cloud for the 
+ * Possible response status returned from iDigi Device Cloud for the 
  * data send request (put request). 
  */
 typedef enum
@@ -768,7 +768,7 @@ typedef struct
  */
 typedef struct
 {
-    char const * path;  /**< NUL terminated file path where user wants to store the data on device cloud */
+    char const * path;  /**< NUL terminated file path where user wants to store the data on iDigi Device Cloud */
     char const * content_type;  /**< NUL terminated content type (text/plain, text/xml, application/json, etc. */
     unsigned int flags; /**< Indicates whether server should archive and/or append, one of the following @ref put_flags */
     void const * context; /**< To hold the user context */

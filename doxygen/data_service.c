@@ -46,7 +46,7 @@
  *   <td>request_data</td>
  *   <td> Pointer to @endhtmlonly idigi_data_service_put_request_t @htmlonly structure, where member:
  *        <ul>
- *        <li><b><i>path</i></b> is the device cloud file path containing the data</li>
+ *        <li><b><i>path</i></b> is the iDigi Device Cloud file path containing the data</li>
  *        <li><b><i>content_type</i></b> is "text/plain", "text/xml", "application/json", etc</li>
  *        <li><b><i>flags</i></b> are the @endhtmlonly @ref put_flags @htmlonly</li>
  *        <li><b><i>context</i></b> is the application session context</li>
@@ -71,7 +71,7 @@
  *   header.content_type = file_type;
  *   header.context = &header;
  *
- *   // Begin a file transfer to the iDigi Cloud
+ *   // Begin a file transfer to the iDigi Device Cloud
  *   status = idigi_initiate_action(handle, idigi_initiate_data_service, &header, NULL);
  * @endcode
  *
@@ -294,8 +294,8 @@
  *     <b><i>service_context</i></b> is a pointer to @endhtmlonly @ref idigi_data_service_device_request_t @htmlonly.<br></br>
  *     <b><i>message_type</i></b> can be set to one of the following:
  *       <ul>
- *       <li> @endhtmlonly @ref idigi_data_service_type_have_data @htmlonly: data received from the cloud.</li>
- *       <li> @endhtmlonly @ref idigi_data_service_type_need_data @htmlonly: data for response to the cloud.</li>
+ *       <li> @endhtmlonly @ref idigi_data_service_type_have_data @htmlonly: data received from the iDigi Device Cloud.</li>
+ *       <li> @endhtmlonly @ref idigi_data_service_type_need_data @htmlonly: data for response to the iDigi Device Cloud.</li>
  *       <li> @endhtmlonly @ref idigi_data_service_type_error @htmlonly: message processing error.</li>
  *       </ul>
  *     <b><i>server_data</i></b> is based on <i>message_type</i> setting:
@@ -303,7 +303,7 @@
  *       <li> For <i>message_type</i> set to @endhtmlonly @ref idigi_data_service_type_need_data @htmlonly: server_data not used.</li>
  *       <li> For <i>message_type</i> set to @endhtmlonly @ref idigi_data_service_type_have_data @htmlonly: server_data points to a @endhtmlonly idigi_data_service_block_t @htmlonly structure where:
  *           <ul>
- *           <li> <b><i>data</i></b> contains a chunk of data received from the cloud.</li>
+ *           <li> <b><i>data</i></b> contains a chunk of data received from the iDigi Device Cloud.</li>
  *           <li> <b><i>length_in_bytes</i></b> is the size of received data chunk.</li>
  *           <li> <b><i>flags</i></b> is @endhtmlonly @ref data_service_flags @htmlonly: success or error code from the server.</li>
  *           </ul></li>
@@ -326,7 +326,7 @@
  *   <li><b><i>message_status</i></b> is the callback status of @endhtmlonly @ref idigi_msg_error_t @htmlonly type to send to the server on return.</li>
  *   <li><b><i>client_data</i></b> points to a @endhtmlonly idigi_data_service_block_t @htmlonly structure where:
  *      <ul>
- *      <li><b><i>data</i></b> points to a copy of the data to send to the cloud.</li>
+ *      <li><b><i>data</i></b> points to a copy of the data to send to the iDigi Device Cloud.</li>
  *      <li><b><i>length_in_bytes</i></b> is the size of data buffer on input and actual data size on output.</li>
  *      <li><b><i>@endhtmlonly @ref data_service_flags "flags" @htmlonly</i></b> used to mark the @endhtmlonly @ref IDIGI_MSG_FIRST_DATA "first" @htmlonly data chunk, @endhtmlonly @ref  IDIGI_MSG_LAST_DATA "last" @htmlonly data chunk,
  *                              or to indicate the callback could not @endhtmlonly @ref  IDIGI_MSG_DATA_NOT_PROCESSED "complete" @htmlonly the message request.</li>

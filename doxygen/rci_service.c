@@ -5,9 +5,9 @@
  * @section rci_overview Remote Configuration Overview
  *
  * Remote configuration is an optional service for applications to 
- * exchange device configruation data and information between the device and the iDigi Cloud using
+ * exchange device configruation data and information between the device and the iDigi Device Cloud using
  * remote command interface (RCI). 
- * User must define all device configurations that are accessed by the iDigi Cloud and run the @ref rci_tool
+ * User must define all device configurations that are accessed by the iDigi Device Cloud and run the @ref rci_tool
  * to generate a source and header files for remote configuration support.
  *
  * The iDigi connector invokes the application-defined callbacks to configure and retrieve information from the device.
@@ -47,7 +47,7 @@
  * @section rci_cancel Termination and Error Processing
  * The application-defined callback sets <b><i>error_id</i></b> field in the 
  * @ref idigi_remote_group_response_t "remote configuration response" structure
- * to cancel remote configuration request and iDigi connector sends error response to iDigi Cloud.
+ * to cancel remote configuration request and iDigi connector sends error response to iDigi Device Cloud.
  * If iDigi connector encounters error, it calls application-defined @ref rci_session_cancel callback 
  * to cancel remote configuration request.
  *

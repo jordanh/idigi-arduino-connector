@@ -320,7 +320,7 @@ static idigi_callback_status_t app_server_disconnected(void)
 
     APP_DEBUG("Disconnected from server\n");
     /* if idigi_run or idigi_step is called again,
-     * it will reconnect to iDigi Cloud.
+     * it will reconnect to iDigi Device Cloud.
      */
     return idigi_callback_continue;
 }

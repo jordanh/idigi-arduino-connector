@@ -187,7 +187,7 @@
  * @section step5 Step 5: Porting your platform for the connect_to_idigi sample
  *
  * The @b connect_to_idigi sample validates the most fundamental iDigi connector porting aspects.  If you can successfully connect and stay
- * connected to the iDigi cloud, all other iDigi connector functions (like @ref put_request "sending data" or @ref firmware_download "firmware download")
+ * connected to the iDigi Device Cloud, all other iDigi connector functions (like @ref put_request "sending data" or @ref firmware_download "firmware download")
  * should work without failure.
  *
  * Go into the platforms directory and select a platform which is similar to your platform.  If
@@ -474,11 +474,11 @@
  *
  * Click the Refresh button. The device will reconnect to the iDigi Device Cloud.
  * If successful your device Status will show connected.  You can now communicate 
- * with your device over the iDigi cloud.  The next step
+ * with your device over the iDigi Device Cloud.  The next step
  * is to integrate in one of the samples to add in more functionality to your
  * application.
  *
- * @note If you cannot connect to the iDigi Device cloud, the most likely problem
+ * @note If you cannot connect to the iDigi Device Cloud, the most likely problem
  * is in the iDigi Configuration, review the configuration routines in config.c;
  * The device ID and vendor ID must be valid to connect.
  *

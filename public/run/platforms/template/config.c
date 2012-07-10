@@ -324,8 +324,8 @@ static idigi_callback_status_t app_get_phone_number(char const ** number, size_t
  *
  * This routine assigns the TX keepalive interval in seconds. This indicates how
  * often the iDigi Device Cloud sends a keepalive message to the device to verify the
- * device is still operational. Keepalive messages are from the prospective of the cloud,
- * this keepalive is sent from the cloud to the device. The value must be between 5 and 7200 seconds.
+ * device is still operational. Keepalive messages are from the prospective of the iDigi Device Cloud,
+ * this keepalive is sent from the iDigi Device Cloud to the device. The value must be between 5 and 7200 seconds.
  *
  * @param [out] interval  Pointer to memory containing the keep alive interval
  * @param [out] size Size of memory buffer, containing the keep alive interval in bytes (this must be 2 bytes).
@@ -357,8 +357,8 @@ static idigi_callback_status_t app_get_tx_keepalive_interval(uint16_t const ** i
  *
  * This routine assigns the RX keepalive interval in seconds. This indicates how
  * often the iDigi Connector device sends keepalive messages to the iDigi Device Cloud. Keepalive
- * messages are from the prospective of the cloud, this keepalive is sent from the
- * device to the cloud. The value must be between 5 and 7200 seconds.
+ * messages are from the prospective of the iDigi Device Cloud, this keepalive is sent from the
+ * device to the iDigi Device Cloud. The value must be between 5 and 7200 seconds.
  *
  * @param [out] interval  Pointer to memory containing the keep alive interval
  * @param [out] size Size of memory buffer, containing the keep alive interval in bytes (this must be 2 bytes).
@@ -529,7 +529,7 @@ static idigi_service_supported_status_t app_get_remote_configuration_support(idi
  * @brief   Get maximum transactions
  *
  * This routine tells iDigi Connector the maximum simultaneous transactions for data service
- * to receive messages from iDigi Cloud.
+ * to receive messages from iDigi Device Cloud.
  *
  * @param [out] transCount  Pointer memory where callback writes the maximum simultaneous transaction.
  *                           Writes 0 for unlimited transactions.

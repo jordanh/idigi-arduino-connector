@@ -63,7 +63,7 @@ int application_start(void)
             while (lwgpio_get_value(&push_button) == LWGPIO_VALUE_LOW)
                 _time_delay(WAIT_FOR_10_MSEC);
 
-            APP_DEBUG("Sending data to cloud using idigi_send_data...\n");
+            APP_DEBUG("Sending data to the iDigi Device Cloud using idigi_send_data...\n");
             {
                 size_t const bytes_copied = snprintf(buffer, buf_size, "iDigi Device application data. Count %d.\n", count);
 
@@ -78,7 +78,7 @@ int application_start(void)
         {
             if (display_push_msg)
             {
-                APP_DEBUG("\nPush SW1 to send data to the cloud.\n");
+                APP_DEBUG("\nPush SW1 to send data to the iDigi Device Cloud.\n");
                 display_push_msg = FALSE;
             }
 

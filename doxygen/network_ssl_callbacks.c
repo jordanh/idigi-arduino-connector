@@ -5,7 +5,7 @@
  *
  * @section net_ssl Network Callbacks
  * From the top level these callbacks are analogous to the @ref network_callbacks. Internally they provide
- * interface to securely connect to iDigi Cloud on SSL. Any application can make use of these APIs to
+ * interface to securely connect to iDigi Device Cloud on SSL. Any application can make use of these APIs to
  * obtain secure connection just by including network_ssl.c instead of network.c. The sample application
  * @ref connect_on_ssl is created to demonstrate how easy to enable SSL connections. Like @ref network_callbacks,
  * the SSL network interface module will provide the following callback APIs 
@@ -27,7 +27,7 @@
  *
  * @section ssl_connect Connect
  *
- * This callback is called to establish SSL connection between ICC and the iDigi Cloud.
+ * This callback is called to establish SSL connection between ICC and the iDigi Device Cloud.
  * Callback is responsible to setup any socket options and SSL specific initial settings.
  * 
  * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
@@ -109,7 +109,7 @@
  *
  *     // resolve address
  *     // create socket fd, set socket option for keep alive and no delay
- *     // connect to IDIGI_SSL_PORT on iDigi Cloud
+ *     // connect to IDIGI_SSL_PORT on iDigi Device Cloud
  *
  *    SSL_library_init();
  *    OpenSSL_add_all_algorithms();
@@ -169,7 +169,7 @@
  *
  * @section ssl_send Send
  *
- * Callback is called to send data to the iDigi Cloud over SSL connection. This function may 
+ * Callback is called to send data to the iDigi Device Cloud over SSL connection. This function may 
  * block up to the timeout specified in the idigi_write_request_t. If it encounters EAGAIN 
  * or EWOULDBLOCK error, 0 bytes must be returned and iDigi connector will continue calling this function.
  *
@@ -363,7 +363,7 @@
  *
  * @section ssl_close Close
  *
- * Callback is called to close a connection between a device and the iDigi Cloud. This API
+ * Callback is called to close a connection between a device and the iDigi Device Cloud. This API
  * should release all the SSL based allocation.
  *
  * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"

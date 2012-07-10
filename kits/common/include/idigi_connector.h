@@ -47,7 +47,7 @@ typedef enum
 } idigi_connector_error_t;
 
 /**
- * This flag can be used with idigi_send_data(). The archive flag tells the cloud to keep a history 
+ * This flag can be used with idigi_send_data(). The archive flag tells the iDigi Device Cloud to keep a history 
  * of changes to the file being pushed. So even if it is written over or deleted the user can 
  * query for old versions of the file.
  */
@@ -55,7 +55,7 @@ typedef enum
 
 /**
  * This flag is used in idigi_send_data(). The append flag is used to append the data to an 
- * existing file on the cloud.
+ * existing file on the iDigi Device Cloud.
  */
 #define IDIGI_FLAG_APPEND_DATA  0x02
 
@@ -130,11 +130,11 @@ typedef size_t (* idigi_device_response_callback_t)(char const * const target, i
 
 /**
  * Registers device request and response callback functions to deliver the request
- * from the iDigi cloud and to return the response to the cloud.
+ * from the iDigi Device Cloud and to return the response to the iDigi Device Cloud.
  *
  * Parameters:
- *    request_callback -- called with request data from the cloud
- *    response_callback -- called to get the response data to the cloud
+ *    request_callback -- called with request data from the iDigi Device Cloud
+ *    response_callback -- called to get the response data to the iDigi Device Cloud
  *
  * Return Value:
  *    idigi_connector_success -- success
@@ -144,19 +144,19 @@ typedef size_t (* idigi_device_response_callback_t)(char const * const target, i
 idigi_connector_error_t idigi_register_device_request_callbacks(idigi_device_request_callback_t request_callback, idigi_device_response_callback_t response_callback);
 
 /**
- * This function will send data to the iDigi cloud.  Note, this is a network blocking call.
+ * This function will send data to the iDigi Device Cloud.  Note, this is a network blocking call.
  *
  * Parameters:
- *      path -- NUL-terminated file path where user wants to store the data on the iDigi cloud
+ *      path -- NUL-terminated file path where user wants to store the data on the iDigi Device Cloud
  *      device_data -- Will contain pointer to application data, data length in bytes, flags to indicate
  *                     whether append or archive is needed and application context (will be returned in subsequent callbacks)
- *      content_type -- NUL-terminated content type (text/plain, text/xml, application/json, etc). Pass NULL to let cloud determine
+ *      content_type -- NUL-terminated content type (text/plain, text/xml, application/json, etc). Pass NULL to let the iDigi Device Cloud determine
  *                      the type based on the file extension. In that case unsupported extensions will be treated as a binary data.
  *
  * Return Value:
  *      idigi_connector_success -- success
  *      idigi_connector_invalid_parameter -- Indicates bad parameters
- *      idigi_connector_cloud_error -- Indicates error response from iDigi cloud
+ *      idigi_connector_cloud_error -- Indicates error response from the iDigi Device Cloud
  */
 idigi_connector_error_t idigi_send_data(char const * const path, idigi_connector_data_t * const device_data, char const * const content_type);
 

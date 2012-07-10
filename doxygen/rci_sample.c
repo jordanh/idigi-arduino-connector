@@ -75,7 +75,7 @@
  *
  * @endcode
  *
- * When the iDigi Cloud sends a RCI request to the device, app_remote_config_handler() is called with the following request ID:
+ * When the iDigi Device Cloud sends a RCI request to the device, app_remote_config_handler() is called with the following request ID:
  * -# @ref idigi_remote_config_session_start
  * -# @ref idigi_remote_config_action_start
  * -# @ref idigi_remote_config_group_start

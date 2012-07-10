@@ -6,7 +6,7 @@
  *
  * This sample demonstrates how to process data sent from the iDigi Server.
  * Using the @ref data_service_overview "data service api" this application prints
- * out the data sent from the iDigi Cloud.
+ * out the data sent from the iDigi Device Cloud.
  *
  * @section connect_description Code Flow
  *
@@ -17,7 +17,7 @@
  *
  * A User can use the included python script to send a device request to the device.
  *
- * When the iDigi Cloud sends a device request to the device, app_data_service_handler() is called
+ * When the iDigi Device Cloud sends a device request to the device, app_data_service_handler() is called
  * with @ref idigi_data_service_type_have_data message type to process the data. This callback
  * is continually called with this message type until the last chunk of data is processed. This 
  * sample examines the given target and prints out the device request data. It cancels

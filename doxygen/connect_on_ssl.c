@@ -4,7 +4,7 @@
  *
  * @section ssl_overview Overview
  *
- * This sample demonstrates how one can connect to iDigi Cloud securely. The sample includes
+ * This sample demonstrates how one can connect to iDigi Device Cloud securely. The sample includes
  * network_ssl.c, instead of network.c, to provide network specific user callbacks. That means
  * any application can run on ssl by including network_ssl.c.
  * 
@@ -28,7 +28,8 @@
  * -# The main(), defined in main.c, calls application_start()
  * -# The application_start(), defined in application.c, registers app_idigi_callbacks()
  * -# The app_idigi_callbacks(), defined in application.c, calls app_network_callbacks() for all network related ICC requests
- * -# The app_network_callbacks(), defined in network_ssl.c, calls subsequent openssl functions to communicate with iDigi cloud over SSL
+ * -# The app_network_callbacks(), defined in network_ssl.c, calls subsequent openssl functions to communicate 
+ *    with iDigi Device Cloud over SSL
  *
  * @section connect_build Building
  *

@@ -23,8 +23,8 @@
  * @section intro Introduction
  *
  * The iDigi Connector is a software development package used to
- * communicate and exchange information between a device and the iDigi Device
- * Cloud. iDigi supports application to device data interaction (messaging),
+ * communicate and exchange information between a device and the iDigi Device Cloud. 
+ * iDigi supports application to device data interaction (messaging),
  * application & device data storage, and remote management of devices. Devices
  * are associated with the iDigi Device Cloud through the Internet or other wide
  * area network connections, which allows for communication between the device, the
@@ -332,7 +332,7 @@
  * The iDigi connector is split into two separate partitions, a private partition and a public Application Framework.
  *
  * The private partition (iDigi connector Library) includes source code that implements the @ref api_overview "iDigi connector public API", plus all the internal code used to implement the
- * iDigi Cloud protocol.  For forward compatibility this private partition should be treated as a black box and never changed or referenced directly.
+ * iDigi Device Cloud protocol.  For forward compatibility this private partition should be treated as a black box and never changed or referenced directly.
  *
  * The public Application Framework partition is further divided in two: a Platform and Sample section.  The Platform section is related to system
  * specific porting dependencies (i.e., fleshing out @ref os_callbacks "operating system" calls, @ref network_callbacks "networking", @ref config_callbacks "system configuration").  The Sample section contains an application

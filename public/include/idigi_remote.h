@@ -155,7 +155,7 @@ typedef struct {
 */
 typedef union {
     char const * error_hint;    /**< Callback returns a pointer to a constant NUL-terminated string which will be sent
-                                     to the iDigi Cloud if error is encountered.
+                                     to the iDigi Device Cloud if error is encountered.
                                      Note: this string cannot be altered until next callback call.
                                   */
     idigi_element_value_t * element_value; /**< Pointer to memory where callback write the element value */

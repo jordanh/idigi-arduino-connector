@@ -78,11 +78,11 @@ unsigned long cpu_usage_baseline = 0;
 unsigned char ad_average_int, ad_average_dec, cur_ad_average_int = 99, cur_ad_average_dec = 99;
 
 /*
- *  This function will initiate a put request to the iDigi cloud.
+ *  This function will initiate a put request to the iDigi Device Cloud.
  *
  *  Parameters:
- *      path            -- NUL terminated file path where user wants to store the data on the iDigi cloud.
- *      data            -- Data to write to file on iDigi cloud.
+ *      path            -- NUL terminated file path where user wants to store the data on the iDigi Device Cloud.
+ *      data            -- Data to write to file on iDigi Device Cloud.
  *      content_type    -- NUL terminated content type (text/plain, text/xml, application/json, etc.
  *      length_in_bytes -- Data length in put_request
  *      flags           -- Indicates whether server should archive and/or append.
@@ -90,7 +90,7 @@ unsigned char ad_average_int, ad_average_dec, cur_ad_average_int = 99, cur_ad_av
  *  Return Value:
  *      idigi_success
  *      idigi_invalid_data      -- Indicates bad parameters
- *      idigi_invalid_response  -- Indicates error response from iDigi cloud
+ *      idigi_invalid_response  -- Indicates error response from iDigi Device Cloud
  */
 idigi_status_t idigi_initiate_put_request(char const * const path, char const * const data, char const * const content_type,
 		                                  size_t const length_in_bytes, unsigned int const flags) 

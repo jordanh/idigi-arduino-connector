@@ -4,7 +4,7 @@
  *
  * @section services iDigi Web Services
  *
- * Applications can communicate to devices over the iDigi Cloud using iDigi Web Services,
+ * Applications can communicate to devices over the iDigi Device Cloud using iDigi Web Services,
  * requests are sent to the iDigi server using Server Command Interface (SCI).
  * The iDigi connector supports a subset of the SCI operations supported by iDigi, the
  * supported SCI operations are listed in the table below:
@@ -47,7 +47,7 @@
  * @section Sample Web Services Applications
  *
  * Most sample Applications have associated web services client code that demonstrates how
- * a web services client can interact with the iDigi Cloud.  These samples are written using
+ * a web services client can interact with the iDigi Device Cloud.  These samples are written using
  * Python.
  *
  * @htmlinclude terminate.html

@@ -16,7 +16,7 @@
  *
  * @section connect Connect
  *
- * This callback is called to establish connection between iDigi connector and the iDigi Cloud.
+ * This callback is called to establish connection between iDigi connector and the iDigi Device Cloud.
  * Callback is responsible to setup any socket options.
  *
  * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
