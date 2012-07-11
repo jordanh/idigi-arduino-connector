@@ -4,12 +4,18 @@
  *
  * @section services iDigi Web Services
  *
- * Applications can communicate to devices over the iDigi Device Cloud using iDigi Web Services,
- * requests are sent to the iDigi server using Server Command Interface (SCI).
+ * Applications can communicate to devices through the iDigi Device Cloud using iDigi Web Service
+ * requests, which are sent to the iDigi Device Cloud using the Server Command Interface (SCI).
+ * The diagram below shows how a Web Services Client can send an SCI command to the iDigi Device Cloud.
+ * In this example, the web services call will address Device ID 00409dFFFF010202:
+ *
+ * @image html WebServices.jpg
+ *
+ * @section SCIservices Supported SCI Operations
+ *
  * The iDigi connector supports a subset of the SCI operations supported by iDigi, the
  * supported SCI operations are listed in the table below:
  *
- 
  * @htmlonly
  * <table class="apitable">
  * <tr>
