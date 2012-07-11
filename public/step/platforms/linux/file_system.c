@@ -457,7 +457,6 @@ static idigi_callback_status_t app_process_file_readdir(idigi_file_request_t con
         }
         else
         {
-            ASSERT(0);
             APP_DEBUG("directory entry name too long\n");
             status = app_process_file_error(response_data->error, ENAMETOOLONG);
         }
