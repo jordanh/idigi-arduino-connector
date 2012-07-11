@@ -149,20 +149,20 @@
  * @note Do not execute the compile_and_link sample, as this only verifies that the build environment
  * is set up correctly. The application will exit on a failed ASSERT when run.
  *
- * @section step4 Step 4: Setup your iDigi Account
+ * @section step4 Step 4: Setup your iDigi Device Cloud Account
  *
- * @subsection idigi_account Create an iDigi Account
- * Before getting started you will need to create a new iDigi account and obtain a unique iDigi Vendor ID (which is
+ * @subsection idigi_account Create an iDigi Device Cloud Account
+ * Before getting started you will need to create a new iDigi Device Cloud account and obtain a unique iDigi Device Cloud Vendor ID (which is
  * a unique identifier for your company).
  *
  * Later in this process, when you get the connect_to_idigi sample @ref good_results_output "running successfully", you will be @ref add_your_device_to_the_cloud "instructed to register"
- * your Device ID with iDigi.
+ * your Device ID with the iDigi Device Cloud.
  *
  * To create an account, navigate to
  * https://developer.idigi.com/user_registration.do and follow the instructions to create and register your
- * iDigi account.
+ * iDigi Device Cloud account.
  *
- * @note If you have already created and registered an iDigi Account, navigate here
+ * @note If you have already created and registered an iDigi Device Cloud Account, navigate here
  * https://developer.idigi.com/ and follow the instructions in the next step.
  *
  * @image html idigi1.jpg 
@@ -172,9 +172,9 @@
  * 
  * @image html idigi4.jpg
  *
- * @subsection idigi_vendor_id Obtain an iDigi Vendor ID
- * 2. If you are a first time iDigi developer, you will need to obtain an iDigi Vendor ID.  To
- * obtain an iDigi Vendor ID, select the Register for new vendor id button on the bottom of 
+ * @subsection idigi_vendor_id Obtain an iDigi Device Cloud Vendor ID
+ * 2. If you are a first time iDigi Device Cloud developer, you will need to obtain an iDigi Device Cloud Vendor ID.  To
+ * obtain an iDigi Device Cloud Vendor ID, select the Register for new vendor id button on the bottom of 
  * the @b My @b Account section under @b Administration tab after successfully logging into https://developer.idigi.com/.
  *
  * @image html idigi5.jpg
@@ -227,7 +227,7 @@
  * for your platform and implement the configuration routines.
  * All configuration routines are passed in a pointer to a pointer, along with a pointer to the size. 
  * The address of the configuration item is stored in the pointer passed in, and the size is assigned to the pointer to the size variable.
- * For example, app_get_vendor_id() is the routine used to retrieve the iDigi account Vendor ID
+ * For example, app_get_vendor_id() is the routine used to retrieve the iDigi Device Cloud account Vendor ID
  * and is shown below.
  * @code
  * static idigi_callback_status_t app_get_vendor_id(uint8_t const ** id, size_t * const size)
@@ -276,7 +276,7 @@
  * @note For information on using hard coded values instead of these configuration callbacks,
  *       which helps to reduce the iDigi connector code space,  see @ref idigi_config_data_options
  *
- * @subsection application_start iDigi Initialization
+ * @subsection application_start iDigi Connector Initialization
  *
  * As in the @ref step3 "compile_and_link" sample, you must make a call to idigi_init().  However, in
  * this sample, you will execute the code, making all the networking, configuration, and operating
@@ -479,7 +479,7 @@
  * application.
  *
  * @note If you cannot connect to the iDigi Device Cloud, the most likely problem
- * is in the iDigi Configuration, review the configuration routines in config.c;
+ * is in the iDigi Connector Configuration, review the configuration routines in config.c;
  * The device ID and vendor ID must be valid to connect.
  *
  * @image html results1.png
