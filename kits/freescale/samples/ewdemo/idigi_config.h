@@ -247,7 +247,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref IDIGI_CLOUD_URL @htmlonly </td>
- * <td>iDigi Device Cloud FQDN.
+ * <td>The iDigi Device Cloud FQDN.
  * See @endhtmlonly @ref server_url @htmlonly</td>
  * </tr>
  * <tr>

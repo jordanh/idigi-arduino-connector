@@ -37,7 +37,7 @@
  * globalerror save_fail "Save fail"
  * globalerror memory_fail "Insufficient memory"
  * 
- * # Device info that shows up in iDigi device summary
+ * # Device info that shows up in iDigi device Cloud under iDigi Manger Pro
  * # iDigi Manager Pro queries this system setting to display the information in root folder
  * group setting system "System"
  *     element description "Description" type string max 63
@@ -45,7 +45,7 @@
  *     element location "Location" type string max 63
  *     error invalid_length "Invalid Length"
  *  
- * # iDigi password
+ * # iDigi connector password
  * # iDigi Manager Pro uses this devicesecurity setting for password authentication
  * # Note, as with all password, password type is a write-only field
  * # To include the devicesecurity setting, change devicesecurity.c.optional 

@@ -30,7 +30,7 @@ class Redirect3UrlsTestCase(iik_testcase.TestCase):
     def test_redirect_three_destinations(self):
     
         """ Sends redirect request to given device and verifies that
-        the device disconnects and reconnects to an iDigi server.
+        the device disconnects and reconnects to the iDigi Device Cloud.
         
         Test may terminate iDigi Connector device session running in debug.
         """

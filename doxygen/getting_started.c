@@ -167,7 +167,7 @@
  *
  * @image html idigi1.jpg 
  *
- * @subsection idigi_login Login to the iDigi Server
+ * @subsection idigi_login Login to the iDigi Device Cloud
  * 1. Login with the user credentials you created in section @ref idigi_account
  * 
  * @image html idigi4.jpg

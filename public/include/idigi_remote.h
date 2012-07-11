@@ -20,7 +20,7 @@
 #include "idigi_types.h"
 
 /**
- * @defgroup idigi_remote_action_t iDigi remote configuration action types
+ * @defgroup idigi_remote_action_t iDigi connector remote configuration action types
  * @{
  */
 /**
@@ -35,7 +35,7 @@ typedef enum {
  */
 
 /**
- * @defgroup idigi_remote_group_type_t iDigi remote configuration types
+ * @defgroup idigi_remote_group_type_t iDigi connector remote configuration types
  * @{
  */
 /**
@@ -52,7 +52,7 @@ typedef enum {
 
 
 /**
-* @defgroup idigi_element_access_t iDigi remote configuration access types
+* @defgroup idigi_element_access_t iDigi connector remote configuration access types
 * @{
 */
 /**
@@ -90,7 +90,7 @@ typedef struct {
 
 
 /**
-* @defgroup idigi_remote_group_t iDigi remote configuration group
+* @defgroup idigi_remote_group_t iDigi connector remote configuration group
 * @{
 */
 /**
@@ -113,7 +113,7 @@ typedef struct {
 */
 
 /**
-* @defgroup idigi_remote_element_t iDigi remote configuration element
+* @defgroup idigi_remote_element_t iDigi connector remote configuration element
 * @{
 */
 /**
@@ -130,7 +130,7 @@ typedef struct {
 */
 
 /**
-* @defgroup idigi_remote_group_request_t iDigi remote configuration request structure
+* @defgroup idigi_remote_group_request_t iDigi connector remote configuration request structure
 * @{
 */
 /**
@@ -147,7 +147,7 @@ typedef struct {
 */
 
 /**
-* @defgroup idigi_remote_element_response_t iDigi remote configuration element response union
+* @defgroup idigi_remote_element_response_t iDigi connector remote configuration element response union
 * @{
 */
 /**
@@ -155,7 +155,7 @@ typedef struct {
 */
 typedef union {
     char const * error_hint;    /**< Callback returns a pointer to a constant NUL-terminated string which will be sent
-                                     to the iDigi Device Cloud if error is encountered.
+                                     to the iDigi connector Device Cloud if error is encountered.
                                      Note: this string cannot be altered until next callback call.
                                   */
     idigi_element_value_t * element_value; /**< Pointer to memory where callback write the element value */
@@ -165,7 +165,7 @@ typedef union {
 */
 
 /**
-* @defgroup idigi_remote_group_response_t iDigi remote configuration response structure
+* @defgroup idigi_remote_group_response_t iDigi connector remote configuration response structure
 * @{
 */
 /**

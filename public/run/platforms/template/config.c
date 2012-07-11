@@ -89,7 +89,7 @@ static idigi_callback_status_t app_get_mac_addr(uint8_t const ** mac_address, si
  * of the MAC and setting all other bytes of the Device ID to 0.
  * For Example:
  * MAC Address 12:34:56:78:9A:BC, would map to a Device ID: 00000000-123456FF-FF789ABC.
- * If a client has more than one network interface, it does not matter to iDigi which
+ * If a client has more than one network interface, it does not matter to the iDigi Device Cloud which
  * network interface MAC is used for the basis of the Device ID.  If the MAC is read
  * directly from the network interface to generate the client's Device ID, care must be
  * taken to always use the same network interface's MAC since there is a unique mapping
@@ -143,7 +143,7 @@ static idigi_callback_status_t app_get_device_id(uint8_t const ** id, size_t * c
  * @brief   Get the iDigi vendor ID
  *
  * This routine assigns a pointer to the vendor ID which is a unique code identifying
- * the manufacturer of a device. Vendor IDs are assigned to manufacturers by iDigi.
+ * the manufacturer of a device. Vendor IDs are assigned to manufacturers by iDigi Device Cloud.
  *
  * @param [out] id  Pointer to memory containing the device ID
  * @param [out] size Size of the vendor ID in bytes (4 bytes)
@@ -449,7 +449,7 @@ static idigi_callback_status_t app_get_firmware_support(idigi_service_supported_
  * @brief  Get data service support
  *
  * This routine tells iDigi Connector whether the data service facility is supported or not.
- * If you plan on sending data to/from the iDigi server set this to idigi_service_supported.
+ * If you plan on sending data to/from the iDigi Device Cloud set this to idigi_service_supported.
  *
  * @param [out] isSupported  Pointer memory where callback writes idigi_service_supported if data service is supported or
  *                            idigi_service_unsupported  if data service is not supported.
@@ -476,7 +476,7 @@ static idigi_callback_status_t app_get_data_service_support(idigi_service_suppor
  * @brief   Get file system support
  *
  * This routine tells iDigi Connector whether the file system facility is supported or not.
- * If you plan to access device files from the iDigi server set this to idigi_service_supported.
+ * If you plan to access device files from the iDigi Device Cloud set this to idigi_service_supported.
  *
  * @param [out] isSupported  Pointer memory where callback writes idigi_service_supported if file system is supported or
  *                            idigi_service_unsupported  if file system is not supported.
@@ -503,7 +503,7 @@ static idigi_callback_status_t app_get_file_system_support(idigi_service_support
  * @brief   Get the remote configuration support
  *
  * This routine tells iDigi connector whether the remote configuration service is supported or not.
- * If you plan on accessing device data configurations through iDigi server set
+ * If you plan on accessing device data configurations through the iDigi Device Cloud set
  * this to idigi_service_supported.
  *
  * @param [out] isSupported  Pointer memory where callback writes idigi_service_supported if the remote configuration is supported or
@@ -529,7 +529,7 @@ static idigi_service_supported_status_t app_get_remote_configuration_support(idi
  * @brief   Get maximum transactions
  *
  * This routine tells iDigi Connector the maximum simultaneous transactions for data service
- * to receive messages from iDigi Device Cloud.
+ * to receive messages from the iDigi Device Cloud.
  *
  * @param [out] transCount  Pointer memory where callback writes the maximum simultaneous transaction.
  *                           Writes 0 for unlimited transactions.

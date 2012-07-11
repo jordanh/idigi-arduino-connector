@@ -10,7 +10,7 @@
 #
 # ***************************************************************************
 # get_file.py
-# Get a file from iDigi Cloud storage
+# Get a file from the iDigi Device Cloud storage
 # -------------------------------------------------
 # Usage: get_file.py <username> <password> <device_id>
 # -------------------------------------------------

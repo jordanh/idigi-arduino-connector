@@ -82,7 +82,7 @@
  *
  * @subsection get_data Put Request Callback
  *
- * After calling idigi_initiate_action(), the iDigi connector will make @ref idigi_data_service_put_request "Put Request"
+ * After calling idigi_initiate_action(), iDigi connector will make @ref idigi_data_service_put_request "Put Request"
  * @ref idigi_callback_t "callbacks" to retrieve the application data. These callbacks will continue 
  * until the transfer is complete or an error is encountered. @ref IDIGI_MSG_LAST_DATA flag in the client_data 
  * field indicates the last chunk of data.
@@ -350,7 +350,7 @@
  * </tr>
  * <tr>
  *   <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- *   <td>Aborts iDigi connector</td>
+ *   <td>Aborts the iDigi connector</td>
  * </tr>
  * <tr>
  *   <td>@endhtmlonly @ref idigi_callback_busy @htmlonly</td>
@@ -359,7 +359,7 @@
  * </table>
  * @endhtmlonly
  *
- * A user uses the SCI web service to send a device request to the iDigi server, which
+ * A user uses the SCI web service to send a device request to the iDigi Device Cloud, which
  * in turn sends it to the device. An example of an application callback for a device
  * request is show below:
  *
@@ -506,7 +506,7 @@
  * @endcode
  *
  * @section zlib Optional Data Compression Support
- * The iDigi connector has an optional Data Compression switch that reduces the amount of network traffic.  This option requires applications
+ * iDigi connector has an optional Data Compression switch that reduces the amount of network traffic.  This option requires applications
  * to link with the zlib library and add the zlib header file (zlib.h) to the iDigi connector include path.
  *
  * @note Enabling this option greatly increases the application code size and memory required to execute.

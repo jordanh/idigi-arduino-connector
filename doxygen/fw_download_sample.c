@@ -21,7 +21,7 @@
  * the firmware download callbacks passed to app_firmware_handler().
  *
  * This sample defines all supported image files with .a and .bin file extensions.
- * The file extension is only validated when updating firmware from iDigi Device Cloud.
+ * The file extension is only validated when updating firmware from the iDigi Device Cloud.
  *
  * @code
  * // list of all supported firmware target info
@@ -42,7 +42,7 @@
  * that the downloaded image is valid.
  *
  * When firmware_download_complete() returns @ref idigi_fw_download_success status,
- * it indicates the firmware image has been updated. iDigi Device Cloud will reset the unit,
+ * it indicates the firmware image has been updated. The iDigi Device Cloud will reset the unit,
  * the routine firmware_reset() is called for resetting.
  * 
  * The routine firmware_download_abort() is called when the iDigi Device Cloud encounters error.
@@ -136,10 +136,10 @@
  * Once successfully built, run the executable, in Linux type ./idigi to run the
  * sample.
  *
- * Firmware downloads can be initiated by the server using <a href="http://www.idigi.com/idigimanagerpro">iDigi Manager Pro</a>
+ * Firmware downloads can be initiated by the iDigi Device Cloud using <a href="http://www.idigi.com/idigimanagerpro">iDigi Manager Pro</a>
  * or by issuing a @ref services "SCI update_firmware operation".
  *
- * @subsection fw_gui Firmware Download using iDigi Device Cloud GUI
+ * @subsection fw_gui Firmware Download using the iDigi Device Cloud GUI
  *
  * Login to the iDigi Device Cloud at http://www.idigi.com  and click on your device
  * (described in the @ref idigi_login "Getting Started Section").

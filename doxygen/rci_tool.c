@@ -6,7 +6,7 @@
  *
  * The remote configuration tool is used to generate device configuration header file and upload
  * device configuration information to the iDigi Device Cloud. It allows user to define all device configuration
- * data and information that can be accessed through iDigi Device Cloud using iDigi connector. 
+ * data and information that can be accessed through the iDigi Device Cloud using iDigi connector. 
  * User must include the generated header file and provide callback functions to handle all 
  * device configuration in an application.
  *
@@ -30,8 +30,8 @@
  *   <th colspan="2" class="title">Description</th>
  * </tr>
  * <tr>
- *   <td colspan="2">It generates and uploads configuration information (descriptors) to the iDigi
- *       Cloud server and it also generates ANSI C header files (remote_config.h) from the input
+ *   <td colspan="2">It generates and uploads configuration information (descriptors) to the iDigi Device
+ *       Cloud and it also generates ANSI C header files (remote_config.h) from the input
  *       iDigi connector configuration file.  This header file must be included  in the application.
  *   </td>
  * </tr>
@@ -55,7 +55,7 @@
  * </tr>
  * <tr>
  *   <th> -vendor</th>
- *   <td> Optional option for vendor ID obtained from iDigi Device Cloud registration.
+ *   <td> Optional option for vendor ID obtained from the iDigi Device Cloud registration.
  *        If not given, tool tries to retrieve it from the iDigi Device Cloud.
  *   </td>
  * </tr>
@@ -65,15 +65,15 @@
  * </tr>
  * <tr>
  *   <th> -server</th>
- *   <td> Optional options for iDigi Device Cloud server. Default is developer.idigi.com </td>
+ *   <td> Optional options for the iDigi Device Cloud URL. Default is developer.idigi.com </td>
  * </tr>
  * <tr>
  *   <th> username </th>
- *   <td> Username to log in iDigi Device Cloud.  </td>
+ *   <td> Username to log in the iDigi Device Cloud.  </td>
  * </tr>
  * <tr>
  *   <th> password </th>
- *   <td> Optional for password to log in iDigi Device Cloud.
+ *   <td> Optional for password to log in the iDigi Device Cloud.
  *        If it's not specified in the command line, you will be prompted for password.
  *   </td>
  * </tr>
@@ -92,8 +92,8 @@
  * </table>
  * @endhtmlonly
  *
- * @a @b username, @a @b password,@a @b vendor_id, @a @b device_type, and @a @b firmware_version are used for accessing your iDigi 
- * Cloud account and uploading the device configuration information (descriptors) for your device.
+ * @a @b username, @a @b password,@a @b vendor_id, @a @b device_type, and @a @b firmware_version are used for accessing the iDigi 
+ * Device Cloud account and uploading the device configuration information (descriptors) for your device.
  *
  * @section rci_tool_file   Input Configuration File
  *
@@ -331,14 +331,14 @@
  * <td> 32-bit unsigned hexadecimal </td>
  * </tr><tr>
  * <th>0xhex</th>
- * <td>32-bit unsigned hexadecimal with 0x prefix shown in iDigi Device Cloud. </td>
+ * <td>32-bit unsigned hexadecimal with 0x prefix shown in the iDigi Device Cloud. </td>
  * </tr> <tr>
  * <th>float</th>
  * <td>Floating value. float.h is included in the generated header file. </td>
  * </tr><tr>
  * <th>enum</th>
  * <td> enum is used to define a set of allowed values for an element. This is a 
- * pull-down menu shown in iDigi Device Cloud. See @endhtmlonly @ref value @htmlonly to define set 
+ * pull-down menu shown in the iDigi Device Cloud. See @endhtmlonly @ref value @htmlonly to define set 
  * of enum values for the element. <p> Note: min and max keywords will throw an error.</p></td>
  * </tr><tr>
  * <th>on_off</th>
@@ -353,7 +353,7 @@
  *     <p>Note: min and max keywords will throw an error.</p> </td>
  * </tr> <tr>
  * <th>ipv4</th>
- * <td>Valid IPv4 address (32-bit value) which is shown aaa.bbb.ccc.ddd in iDigi Device Cloud
+ * <td>Valid IPv4 address (32-bit value) which is shown aaa.bbb.ccc.ddd in the iDigi Device Cloud
  *     <p>Note: min and max keywords will throw an error.</p></td>
  * </tr><tr>
  * <th>fqdnv4</th>
@@ -554,7 +554,7 @@
  * @code
  *
  *      # State configuration for GPS
- *      # Must setup the following group in order for GPS shown in iDigi Device Cloud.
+ *      # Must setup the following group in order for GPS shown in the iDigi Device Cloud.
  *
  * @endcode
  *
@@ -604,7 +604,7 @@
  *     element usedmem "Allocated memory used" type uint32 access  read_only 
  * 
  * # State configuration for GPS
- * # Must setup the following group in order for GPS shown in iDigi Device Cloud.
+ * # Must setup the following group in order for GPS shown in the iDigi Device Cloud.
  * group state gps_stats "GPS"
  *     element latitude "Latitude" type float access read_only
  *     element longitude "Longitude" type float access read_only

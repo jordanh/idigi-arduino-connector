@@ -1,5 +1,5 @@
 # get_file.py
-# Get a file from iDigi Cloud storage
+# Get a file from the iDigi Device Cloud storage
 # -------------------------------------------------
 # The following lines require manual changes
 username = "YourUsername" # enter your username

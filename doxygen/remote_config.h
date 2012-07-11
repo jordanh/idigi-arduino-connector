@@ -19,11 +19,11 @@
 
 
 /**
- * @defgroup idigi_on_off_t  iDigi on or off values
+ * @defgroup idigi_on_off_t  iDigi Connector on or off values
  * @{
  */
 /**
- * iDigi ON and OFF value types
+ * iDigi Connector ON and OFF value types
  */
 typedef enum {
     idigi_off,  /**< OFF */
@@ -34,7 +34,7 @@ typedef enum {
 */
 
 /**
-* @defgroup idigi_boolean_t iDigi boolean type
+* @defgroup idigi_boolean_t iDigi Connector boolean type
 * @{
 */
 /**
@@ -50,7 +50,7 @@ typedef enum {
 
 
 /**
- * @defgroup idigi_element_value_type_t idigi remote configuration element types
+ * @defgroup idigi_element_value_type_t iDigi Connector remote configuration element types
  * @{
  */
 /**
@@ -66,16 +66,16 @@ typedef enum {
     idigi_element_type_int32,               /**< 32-bit signed integer value */
     idigi_element_type_uint32,              /**< 32-bit unsigned integer value */
     idigi_element_type_hex32,               /**< 32-bit unsigned hexadecimal */
-    idigi_element_type_0xhex,               /**< 32-bit unsigned hexadecimal with 0x prefix shown in iDigi Device Cloud.*/
+    idigi_element_type_0xhex,               /**< 32-bit unsigned hexadecimal with 0x prefix shown in the iDigi Device Cloud.*/
     idigi_element_type_float,               /**< Floating value. float.h is included. */
     idigi_element_type_enum,                /**< enum is used to define a set of allowed values for an element.
-                                                This is a pull-down menu shown in iDigi Device Cloud. */
+                                                This is a pull-down menu shown in the iDigi Device Cloud. */
     idigi_element_type_on_off,              /**< "on" or "off" value. An applciation's callback should use
                                                  idigi_on value for "on"  or idigi_off value for "off". See @ref idigi_on_off_t*/
     idigi_element_type_boolean,             /**< true or false value. An application's callback should use  idigi_boolean_true
                                                 value for true  or idigi_boolean_false value for false. See @ref idigi_boolean_t */
 
-    idigi_element_type_ipv4,                /**< Valid IPv4 address (32-bit value) which is shown aaa.bbb.ccc.ddd in iDigi Device Cloud */
+    idigi_element_type_ipv4,                /**< Valid IPv4 address (32-bit value) which is shown aaa.bbb.ccc.ddd in the iDigi Device Cloud */
     idigi_element_type_fqdnv4,              /**< This type accepts either ipv4 or DNS name. */
     idigi_element_type_fqdnv6,              /**< This type accepts either IPv6 address, IPv4 address, or DNS name. */
     idigi_element_type_datetime             /**< Date and time type. It’s string which contains the ISO 8601 standard
@@ -101,7 +101,7 @@ typedef enum {
 
 
 /**
- * @defgroup idigi_element_value_t iDigi remote configuration element value union
+ * @defgroup idigi_element_value_t iDigi Connector remote configuration element value union
  * @{
  */
 /**

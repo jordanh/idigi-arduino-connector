@@ -5,7 +5,7 @@
  *
  * @section net_ssl Network Callbacks
  * From the top level these callbacks are analogous to the @ref network_callbacks. Internally they provide
- * interface to securely connect to iDigi Device Cloud on SSL. Any application can make use of these APIs to
+ * interface to securely connect to the iDigi Device Cloud on SSL. Any application can make use of these APIs to
  * obtain secure connection just by including network_ssl.c instead of network.c. The sample application
  * @ref connect_on_ssl is created to demonstrate how easy to enable SSL connections. Like @ref network_callbacks,
  * the SSL network interface module will provide the following callback APIs 
@@ -15,7 +15,7 @@
  *  -# @ref ssl_receive
  *  -# @ref ssl_close
  * 
- * The SSL network callback APIs use openssl functions to communicate with iDigi server over SSL connection.
+ * The SSL network callback APIs use openssl functions to communicate with the iDigi Device Cloud over SSL connection.
  * These APIs can be found in network_ssl.c under platforms/<i>my_platform</i> to demonstrate how one can
  * write the network layer callback APIs to connect, send, receive and close the SSL connection.
  * As far as the top level calls are concerned there is no change between the SSL and non-SSL connection.
@@ -109,7 +109,7 @@
  *
  *     // resolve address
  *     // create socket fd, set socket option for keep alive and no delay
- *     // connect to IDIGI_SSL_PORT on iDigi Device Cloud
+ *     // connect to IDIGI_SSL_PORT on the iDigi Device Cloud
  *
  *    SSL_library_init();
  *    OpenSSL_add_all_algorithms();
@@ -200,7 +200,7 @@
  * </tr>
  * <tr>
  * <th>response_data</th>
- * <td> Pointer to size_t type memory where callback writes number of bytes sent to the iDigi server. </td>
+ * <td> Pointer to size_t type memory where callback writes number of bytes sent to the iDigi Device Cloud. </td>
  * </tr>
  * <tr>
  * <th>response_length</th>
@@ -249,7 +249,7 @@
  *
  * @section ssl_receive Receive
  *
- * Callback is called to receive a specified number of bytes of data from the iDigi 
+ * Callback is called to receive a specified number of bytes of data from the iDigi Device
  * Cloud.  This function may block up to the timeout specified in the idigi_read_request_t.
  *
  * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
@@ -282,7 +282,7 @@
  * </tr>
  * <tr>
  * <th>response_data</th>
- * <td> Pointer to size_t type memory where callback writes number of bytes received from the iDigi server. </td>
+ * <td> Pointer to size_t type memory where callback writes number of bytes received from the iDigi Device Cloud. </td>
  * </tr>
  * <tr>
  * <th>response_length</th>

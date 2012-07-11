@@ -39,7 +39,7 @@
  * of the MAC and setting all other bytes of the Device ID to 0.
  * For Example:
  * MAC Address 12:34:56:78:9A:BC, would map to a Device ID: 00000000-123456FF-FF789ABC.
- * If a client has more than one network interface, it does not matter to iDigi which
+ * If a client has more than one network interface, it does not matter to the iDigi Device Cloud which
  * network interface MAC is used for the basis of the Device ID.  If the MAC is read
  * directly from the network interface to generate the client's Device ID, care must be
  * taken to always use the same network interface's MAC since there is a unique mapping
@@ -126,7 +126,7 @@
  * @section vendor_id Vendor ID
  *
  * Return vendor ID which is a unique code identifying the manufacturer of a device. 
- * Vendor IDs are assigned to manufacturers by iDigi. 
+ * Vendor IDs are assigned to manufacturers by the iDigi Device Cloud. 
  *
  * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
  * and implemented in the @b Platform function app_get_vendor_id() in config.c.
@@ -281,7 +281,7 @@
  *
  * @endcode
  *
- * @section server_url iDigi Server URL
+ * @section server_url The iDigi Device Cloud Server URL
  *
  * Return the iDigi Device Cloud FQDN.
  *
@@ -315,7 +315,7 @@
  * </tr>
  * <tr>
  * <th>response_data</th>
- * <td> Callback returns pointer to FQDN of iDigi server to be connected. </td>
+ * <td> Callback returns pointer to FQDN of the iDigi Device Cloud to be connected. </td>
  * </tr>
  * <tr>
  * <th>response_length</th>
@@ -555,7 +555,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback was unable to get link speed and callback aborted iDigi connector</td>
+ * <td>Callback was unable to get link speed and callback aborted the iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -744,7 +744,7 @@
  * @section rx_keepalive RX Keepalive Interval
  *
  * Return RX keepalive interval in seconds. This tells how 
- * often the iDigi connector sends keepalive messages to the iDigi Device Cloud (device to the iDigi Device Cloud).
+ * often iDigi connector sends keepalive messages to the iDigi Device Cloud (device to the iDigi Device Cloud).
  *
  * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"
  * and implemented in the @b Platform function app_get_rx_keepalive_interval() in config.c.
@@ -968,7 +968,7 @@
  * @section error_status  Error Status Notification
  *
  * This callback is called to notify the user that iDigi connector encountered an error. When iDigi connector finds an
- * error, the iDigi connector will call this callback indicating the error status
+ * error, iDigi connector will call this callback indicating the error status
  *
  * @note If @ref IDIGI_DEBUG  is not defined in @ref idigi_config.h, this callback 
  * will not be called.
@@ -1330,8 +1330,8 @@
  *
  * @section max_msg_transactions Maximum Message Transactions
  *
- * Return maximum simultaneous transactions for data service and file system to receive message from 
- * iDigi server. This configuration is required if @ref data_service_support or @ref file_system_support
+ * Return maximum simultaneous transactions for data service and file system to receive message from the
+ * iDigi Device Cloud. This configuration is required if @ref data_service_support or @ref file_system_support
  * is enabled. 
  *
  * @note If @ref IDIGI_MSG_MAX_TRANSACTION configuration is defined in @ref idigi_config.h, this callback 

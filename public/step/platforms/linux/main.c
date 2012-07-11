@@ -40,7 +40,7 @@ int main (void)
             status != idigi_send_error && status != idigi_connect_error)
         {
             /* We exclude idigi_receive_error, idigi_send_error, &
-             * idigi_connect_error. We want to reconnect iDigi
+             * idigi_connect_error. We want to reconnect iDigi Device Cloud
              * even if idigi_step returns error in receive, send, or connect.
              */
             APP_DEBUG("main: idigi_step() failed\n");

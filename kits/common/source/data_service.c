@@ -285,7 +285,7 @@ static idigi_callback_status_t process_send_data_response(idigi_data_service_msg
             char * const data = message->data;
 
             data[message->length_in_bytes] = '\0';
-            APP_DEBUG("Cloud response %s\n", data);
+            APP_DEBUG("iDigi Device Cloud response %s\n", data);
         }
     }
 

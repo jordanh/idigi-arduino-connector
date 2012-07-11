@@ -17,7 +17,7 @@
 #include "platform.h"
 
 /**
- * @brief   Connect to the iDigi server
+ * @brief   Connect to the iDigi Device Cloud
  *
  * This routine sets up a connection to the iDigi Device Cloud specified in the
  * host_name and fills in a network handle which is then passed to subsequent 
@@ -49,7 +49,7 @@ static idigi_callback_status_t app_network_connect(char const * const host_name,
 }
 
 /**
- * @brief   Send data to the iDigi server
+ * @brief   Send data to the iDigi Device Cloud
  *
  * This routine sends data to the iDigi Device Cloud. This function must not block.
  * If it encounters EAGAIN or EWOULDBLOCK error, 0 bytes must be returned and the iDigi connector
@@ -74,9 +74,9 @@ static idigi_callback_status_t app_network_send(idigi_write_request_t const * co
 }
 
 /**
- * @brief   Receive data from the iDigi server
+ * @brief   Receive data from the iDigi Device Cloud
  *
- * This routine reads a specified number of bytes from the iDigi Device Cloud.
+ * This routine reads a specified number of bytes from the the iDigi Device Cloud.
  * This function blocks up to the timeout value specified. If no data is received
  * and the timeout has expired 0 bytes must be returned and iDigi connector will continue
  * calling this function.
@@ -102,7 +102,7 @@ static idigi_callback_status_t app_network_receive(idigi_read_request_t const * 
 }
 
 /**
- * @brief   Close the connection to the iDigi server
+ * @brief   Close the connection to the iDigi Device Cloud
  *
  * This routine closes the connection to the iDigi Device Cloud
  *

@@ -175,7 +175,7 @@
  * </tr>
  * <tr>
  * <th>response_data</th>
- * <td> Pointer to size_t type memory where callback writes number of bytes sent to the iDigi server. </td>
+ * <td> Pointer to size_t type memory where callback writes number of bytes sent to the iDigi Device Cloud. </td>
  * </tr>
  * <tr>
  * <th>response_length</th>
@@ -269,7 +269,7 @@
  * </tr>
  * <tr>
  * <th>response_data</th>
- * <td> Pointer to size_t type memory where callback writes number of bytes received from the iDigi server. </td>
+ * <td> Pointer to size_t type memory where callback writes number of bytes received from the iDigi Device Cloud. </td>
  * </tr>
  * <tr>
  * <th>response_length</th>
@@ -408,8 +408,8 @@
  *
  * @section disconnected Connection disconnected
  *
- * Callback is called when the iDigi server has terminated the connection. 
- * iDigi connector calls this callback to notify that the iDigi server has disconnected 
+ * Callback is called when the iDigi Device Cloud has terminated the connection. 
+ * iDigi connector calls this callback to notify that the iDigi Device Cloud has disconnected 
  * the connection. 
  *
  * @htmlonly
@@ -473,7 +473,7 @@
  *
  * @section reboot Reboot
  *
- * Callback is called when the iDigi server requests that the device reboots. 
+ * Callback is called when the iDigi Device Cloud requests that the device reboots. 
  * The device should reboot and this callback should not return. 
  *
  * @htmlonly

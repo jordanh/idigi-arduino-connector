@@ -35,7 +35,7 @@ static idigi_callback_status_t app_firmware_download_request(idigi_fw_download_r
 
     if ((download_info == NULL) || (download_status == NULL))
     {
-        APP_DEBUG("app_firmware_download_request ERROR: iDigi passes incorrect parameters\n");
+        APP_DEBUG("app_firmware_download_request ERROR: Got incorrect parameters\n");
         status = idigi_callback_abort;
         goto done;
     }
@@ -64,7 +64,7 @@ static idigi_callback_status_t app_firmware_image_data(idigi_fw_image_data_t con
 
     if (image_data == NULL || data_status == NULL)
     {
-        APP_DEBUG("app_firmware_image_data ERROR: iDigi passes incorrect parameters\n");
+        APP_DEBUG("app_firmware_image_data ERROR: Got incorrect parameters\n");
         status = idigi_callback_abort;
         goto done;
     }
@@ -94,7 +94,7 @@ static idigi_callback_status_t app_firmware_download_complete(idigi_fw_download_
 
     if ((complete_request == NULL) || (complete_response == NULL))
     {
-        APP_DEBUG("app_firmware_download_complete Error: iDigi passes incorrect parameters\n");
+        APP_DEBUG("app_firmware_download_complete Error: Got incorrect parameters\n");
         status = idigi_callback_abort;
         goto done;
     }
@@ -138,7 +138,7 @@ static idigi_callback_status_t app_firmware_download_abort(idigi_fw_download_abo
 
     if (abort_data == NULL)
     {
-        APP_DEBUG("app_firmware_download_abort Error: iDigi passes incorrect parameters\n");
+        APP_DEBUG("app_firmware_download_abort Error: Got incorrect parameters\n");
         status = idigi_callback_abort;
         goto done;
     }

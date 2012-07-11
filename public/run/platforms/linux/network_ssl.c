@@ -389,7 +389,7 @@ done:
 }
 
 /*
- * Send data to the iDigi server, this routine must not block.
+ * Send data to the iDigi Device Cloud, this routine must not block.
  */
 static idigi_callback_status_t app_network_send(idigi_write_request_t const * const write_data,
                                             size_t * const sent_length)
@@ -411,7 +411,7 @@ static idigi_callback_status_t app_network_send(idigi_write_request_t const * co
 }
 
 /*
- * This routine reads a specified number of bytes from the iDigi server.
+ * This routine reads a specified number of bytes from the iDigi Device Cloud.
  */
 static idigi_callback_status_t app_network_receive(idigi_read_request_t const * const read_data, size_t * const read_length)
 {

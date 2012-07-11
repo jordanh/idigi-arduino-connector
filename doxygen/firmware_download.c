@@ -26,7 +26,7 @@
  * could be maintained as well.
  * Applications define an image to each target except target 0 (target 0 must be the firmware 
  * image that is running the iDigi connector). Only one firmware upgrade can be in progress at any given 
- * time. The iDigi connector will send a firmware target list to the iDigi server to identify the number 
+ * time. The iDigi connector will send a firmware target list to the iDigi Device Cloud to identify the number 
  * of target applications and the version number of each target. 
  *
  * The firmware portion of the application-defined callback is used for the following:
@@ -98,7 +98,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback aborted iDigi connectorArguments</td>
+ * <td>Callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -161,7 +161,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref idigi_callback_abort @htmlonly</td>
- * <td>Callback aborted iDigi connectorArguments</td>
+ * <td>Callback aborted iDigi connector</td>
  * </tr>
  * </table>
  * @endhtmlonly

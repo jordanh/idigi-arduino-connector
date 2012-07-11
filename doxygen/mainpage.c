@@ -24,17 +24,17 @@
  *
  * The iDigi Connector is a software development package used to
  * communicate and exchange information between a device and the iDigi Device Cloud. 
- * iDigi supports application to device data interaction (messaging),
+ * iDigi Connector supports application to device data interaction (messaging),
  * application & device data storage, and remote management of devices. Devices
  * are associated with the iDigi Device Cloud through the Internet or other wide
  * area network connections, which allows for communication between the device, the
  * iDigi Device Cloud, and customer applications. An important part of this communication
  * is the transfer of data from a device to the iDigi Device Cloud.
- * iDigi is based upon a cloud computing model that provides on-demand scalability so
- * you can rest assured that when you need additional computing and storage, iDigi will
+ * The iDigi Device Cloud is based upon a cloud computing model that provides on-demand scalability so
+ * you can rest assured that when you need additional computing and storage, the iDigi Device Cloud will
  * scale to meet your needs. The iDigi Device Cloud is designed using a high-availability
  * architecture, with redundancy and failover characteristics in mind.
- * Using iDigi, customers can now easily develop cloud connected devices and
+ * Using iDigi Connector, customers can now easily develop cloud connected devices and
  * applications that quickly scale from dozens to hundreds, thousands or even
  * millions of endpoints.
  *

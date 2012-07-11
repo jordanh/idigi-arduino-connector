@@ -4,7 +4,7 @@
  *
  * @section device_request_overview Overview
  *
- * This sample demonstrates how to process data sent from the iDigi Server.
+ * This sample demonstrates how to process data sent from the iDigi Device Cloud.
  * Using the @ref data_service_overview "data service api" this application prints
  * out the data sent from the iDigi Device Cloud.
  *
@@ -25,7 +25,7 @@
  *
  * After the callback is called with @ref idigi_data_service_type_have_data message type for the last chunk of data,
  * the callback is called with @ref idigi_data_service_type_need_data message type to send response
- * data back to iDigi server. This sample sends and prints out the request and response data.
+ * data back to the iDigi Device Cloud. This sample sends and prints out the request and response data.
  *
  * When the callback is called with @ref idigi_data_service_type_error message type it indicates
  * an error is encountered and needs to cancel the device request. In this example it cancels 
@@ -66,7 +66,7 @@
  * </tr>
  * <tr>
  *   <th>idigi_config.h</th>
- *   <td> iDigi Connector options</td>
+ *   <td>The iDigi Connector options</td>
  *   <td>samples/device_request</td>
  * </tr>
  * <tr>

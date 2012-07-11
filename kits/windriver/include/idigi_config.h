@@ -188,7 +188,7 @@
 /**
  * This is used to define the maximum content length in bytes of an element's value for the remote_configuration _service,
  * IC includes the remote_configuration_service that allows user remote configuration, control, and information
- * exchange between a device and iDigi Device Cloud.
+ * exchange between a device and the iDigi Device Cloud.
  * To disable the remote_configuration feature, define this to 0 in idigi_config.h:
  *
  * @code
@@ -250,7 +250,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref IDIGI_CLOUD_URL @htmlonly </td>
- * <td>iDigi Device Cloud FQDN.
+ * <td>The iDigi Device Cloud FQDN.
  * See @endhtmlonly @ref server_url @htmlonly</td>
  * </tr>
  * <tr>

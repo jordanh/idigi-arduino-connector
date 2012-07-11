@@ -84,9 +84,9 @@ typedef enum {
    idigi_unsupported_security,  /**< iDigi connector received a packet with unsupported security. */
    idigi_invalid_data,          /**< Callback returned invalid data. Callback may return a NULL data. */
    idigi_server_disconnected,   /**< Server disconnected iDigi connector. */
-   idigi_connect_error,         /**< iDigi connector was unable to connect to the iDigi server. The callback for connect failed. */
-   idigi_receive_error,         /**< Unable to receive message from the iDigi server. The callback for receive failed. */
-   idigi_send_error,            /**< Unable to send message to the iDigi server. The callback for send failed. */
+   idigi_connect_error,         /**< iDigi connector was unable to connect to the iDigi Device Cloud. The callback for connect failed. */
+   idigi_receive_error,         /**< Unable to receive message from the iDigi Device Cloud. The callback for receive failed. */
+   idigi_send_error,            /**< Unable to send message to the iDigi Device Cloud. The callback for send failed. */
    idigi_close_error,           /**< Unable to disconnect the connection. The callback for close failed. */
    idigi_device_terminated,     /**< iDigi connector was terminated by user via idigi_initiate_action call. */
    idigi_service_busy,          /**< Someone else is using the same service or the device is busy. */
@@ -148,7 +148,7 @@ typedef enum {
     idigi_config_device_id,         /**< Requesting callback to return a unique device id which is used to identify the device.*/
     idigi_config_vendor_id,         /**< Requesting callback to return a unique vendor id identifying the manufacturer of a device. */
     idigi_config_device_type,       /**< Requesting callback to return device type that identifies the type of the device  */
-    idigi_config_server_url,        /**< Requesting callback to return iDigi server FQDN which will be connected to */
+    idigi_config_server_url,        /**< Requesting callback to return iDigi Device Cloud URL which will be connected to */
     idigi_config_connection_type,   /**< Requesting callback to return LAN or WAN connection type */
     idigi_config_mac_addr,          /**< Requesting callback to return device's MAC addresss */
     idigi_config_link_speed,        /**< Requesting callback to return link speed for WAN connection type */
@@ -198,11 +198,11 @@ typedef enum {
 * The class id for this idigi_network_request_t is idigi_class_network.
 */
 typedef enum {
-    idigi_network_connect,                  /**< Requesting callback to set up and make connection to iDigi server */
-    idigi_network_send,                     /**< Requesting callback to send data to iDigi server */
-    idigi_network_receive,                  /**< Requesting callback to receive data from iDigi server */
-    idigi_network_close,                    /**< Requesting callback to close iDigi server connection */
-    idigi_network_disconnected,             /**< iDigi server disconnected notification. iDigi server requests to disconnect the connection */
+    idigi_network_connect,                  /**< Requesting callback to set up and make connection to the iDigi Device Cloud */
+    idigi_network_send,                     /**< Requesting callback to send data to the iDigi Device Cloud */
+    idigi_network_receive,                  /**< Requesting callback to receive data from the iDigi Device Cloud */
+    idigi_network_close,                    /**< Requesting callback to close the iDigi Device Cloud connection */
+    idigi_network_disconnected,             /**< iDigi server disconnected notification. The iDigi Device Cloud requests to disconnect the connection */
     idigi_network_reboot                   /**< Requesting callback to reboot the system */
 } idigi_network_request_t;
 /**
@@ -322,7 +322,7 @@ typedef enum {
     idigi_data_service_error, /**< Deprecated. Used to indicate the error either from the iDigi Device Cloud or from the iDigi connector while processing the message */
 #endif
     idigi_data_service_put_request, /**< Indicates data service request related to send data to the iDigi Device Cloud */
-    idigi_data_service_device_request /**< Indicates data service request related to receive data from iDigi Device Cloud */
+    idigi_data_service_device_request /**< Indicates data service request related to receive data from the iDigi Device Cloud */
 } idigi_data_service_request_t;
 /**
 * @}
@@ -337,7 +337,7 @@ typedef enum {
 */
 typedef enum {
     idigi_initiate_terminate,               /**< Terminates and stops iDigi connector from running. */
-    idigi_initiate_data_service            /**< Initiates the action to send data to iDigi Device Cloud, the data will be stored in a file on the cloud. */
+    idigi_initiate_data_service            /**< Initiates the action to send data to the iDigi Device Cloud, the data will be stored in a file on the cloud. */
 } idigi_initiate_request_t;
 /**
 * @}
@@ -368,7 +368,7 @@ typedef enum {
 typedef enum  {
     idigi_callback_continue,        /**< Continues with no error */
     idigi_callback_busy,            /**< Callback is busy */
-    idigi_callback_abort,           /**< Aborts iDigi connector. iDigi connector will try reconnecting to iDigi Device Cloud
+    idigi_callback_abort,           /**< Aborts iDigi connector. iDigi connector will try reconnecting to the iDigi Device Cloud
                                          if @ref idigi_step or @ref idigi_run is called again. */
     idigi_callback_unrecognized     /**< Unsupported callback request */
 } idigi_callback_status_t;
@@ -478,7 +478,7 @@ typedef struct  {
 * @{
 */
 /**
-* Write request structure for @ref idigi_network_send callback which is called to send data to iDigi server.
+* Write request structure for @ref idigi_network_send callback which is called to send data to the iDigi Device Cloud.
 */
 typedef struct  {
     idigi_network_handle_t * network_handle;    /**< Pointer to network handle associated with a connection through the idigi_network_connect callback */
@@ -496,7 +496,7 @@ typedef struct  {
 */
 /**
 * Read request structure for idigi_network_receive callback which is called to receive
-* a specified number of bytes data from the iDigi server.
+* a specified number of bytes data from the iDigi Device Cloud.
 */
 typedef struct  {
     idigi_network_handle_t * network_handle;    /**< Pointer to network handle associated with a connection through the idigi_network_connect callback */
@@ -570,7 +570,7 @@ typedef struct {
 */
 /**
 * Firmware download complete request structure containing information about firmware image data
-* for idigi_firmware_download_complete callback which is called when iDigi server is done
+* for idigi_firmware_download_complete callback which is called when the iDigi Device Cloud is done
 * sending all image data.
 */
 typedef struct {
@@ -589,7 +589,7 @@ typedef struct {
 */
 /**
 * Firmware download complete response structure for idigi_firmware_download_complete callback which
-* writes information and status of the download completion when iDigi server is done sending all image data.
+* writes information and status of the download completion when the iDigi Device Cloud is done sending all image data.
 */
 typedef struct {
     uint32_t version;                               /**< Version number of the downloaded image */
@@ -619,11 +619,11 @@ typedef struct {
 
 
 /**
-* @defgroup idigi_msg_error_t iDigi Error Codes
+* @defgroup idigi_msg_error_t iDigi Connector Error Codes
 * @{
 */
 /**
- * Error values returned either from the remote iDigi Device Cloud or 
+ * Error values returned either from the remote the iDigi Device Cloud or 
  * from the local iDigi client. These are errors originated from
  * messaging layer, where compression/decompression, resource
  * allocation and state handling take place. 
@@ -641,7 +641,7 @@ typedef enum
     idigi_msg_error_memory, /**< Malloc failed, try to restrict the number of active sessions */
     idigi_msg_error_send, /**< Send socket error */
     idigi_msg_error_cancel, /**< Used to force termination of a session */
-    idigi_msg_error_busy, /**< Either iDigi Device Cloud or iDigi client is busy processing */
+    idigi_msg_error_busy, /**< Either the iDigi Device Cloud or iDigi client is busy processing */
     idigi_msg_error_ack, /**< Invalid ack count */
     idigi_msg_error_timeout, /**< Session timed out */
     idigi_msg_error_no_service, /**< Requested service is not supported */
@@ -656,7 +656,7 @@ typedef enum
 * @{
 */
 /**
- * Possible response status returned from iDigi Device Cloud for the 
+ * Possible response status returned from the iDigi Device Cloud for the 
  * data send request (put request). 
  */
 typedef enum
@@ -768,7 +768,7 @@ typedef struct
  */
 typedef struct
 {
-    char const * path;  /**< NUL terminated file path where user wants to store the data on iDigi Device Cloud */
+    char const * path;  /**< NUL terminated file path where user wants to store the data on the iDigi Device Cloud */
     char const * content_type;  /**< NUL terminated content type (text/plain, text/xml, application/json, etc. */
     unsigned int flags; /**< Indicates whether server should archive and/or append, one of the following @ref put_flags */
     void const * context; /**< To hold the user context */
@@ -864,7 +864,7 @@ typedef enum
 * @{
 */
 /**
-* Data service block structure is used to send data between iDigi server and client.
+* Data service block structure is used to send data between the iDigi Device cloud and client.
 * This structure is used in idigi_data_service_put_request and idigi_data_service_device_request callbacks.
 *
 * When message type is idigi_data_service_type_need_data in idigi_data_service_msg_request_t,
@@ -895,8 +895,8 @@ typedef struct
 * @{
 */
 /**
-* Data service message request structure is used to tell the callback to process data from
-* iDigi server, to return data to be sent to iDigi server, or to cancel an active message.
+* Data service message request structure is used to tell the callback to process data from the
+* iDigi Device Cloud, to return data to be sent to the iDigi Device Cloud, or to cancel an active message.
 *
 * This structure is used in idigi_data_service_put_request and idigi_data_service_device_request callbacks.
 *
@@ -926,8 +926,8 @@ typedef struct
 */
 /**
 * Data service message response structure is used in idigi_data_service_put_request
-* and idigi_data_service_device_request callbacks to return data to be sent to
-* iDigi server, or to cancel the message.
+* and idigi_data_service_device_request callbacks to return data to be sent to the
+* iDigi Device Cloud, or to cancel the message.
 *
 * @see idigi_data_service_request_t
 * @see idigi_data_service_type_t
@@ -1510,9 +1510,9 @@ idigi_handle_t idigi_init(idigi_callback_t const callback);
  * @retval idigi_unsupported_security   iDigi connector received a packet with unsupported security.
  * @retval idigi_invalid_data           Callback returned invalid data. Callback may return a NULL data. 
  * @retval idigi_server_disconnected    Server disconnected iDigi connector.
- * @retval idigi_connect_error          iDigi connector was unable to connect to the iDigi server. The callback for connect failed.
- * @retval idigi_receive_error          Unable to receive message from the iDigi server. The callback for receive failed. 
- * @retval idigi_send_error             Unable to send message to the iDigi server. The callback for send failed. 
+ * @retval idigi_connect_error          iDigi connector was unable to connect to the iDigi Device Cloud. The callback for connect failed.
+ * @retval idigi_receive_error          Unable to receive message from the iDigi Device Cloud. The callback for receive failed. 
+ * @retval idigi_send_error             Unable to send message to the iDigi Device Cloud. The callback for send failed. 
  * @retval idigi_close_error            Unable to disconnect the connection. The callback for close failed. 
  * @retval idigi_device_terminated      iDigi connector was terminated by user via idigi_initiate_action call.
  *
@@ -1561,9 +1561,9 @@ idigi_status_t idigi_step(idigi_handle_t const handle);
  * @retval idigi_unsupported_security   iDigi connector received a packet with unsupported security.
  * @retval idigi_invalid_data           Callback returned invalid data. Callback may return a NULL data. 
  * @retval idigi_server_disconnected    Server disconnected iDigi connector.
- * @retval idigi_connect_error          iDigi connector was unable to connect to the iDigi server. The callback for connect failed.
- * @retval idigi_receive_error          Unable to receive message from the iDigi server. The callback for receive failed. 
- * @retval idigi_send_error             Unable to send message to the iDigi server. The callback for send failed. 
+ * @retval idigi_connect_error          iDigi connector was unable to connect to the iDigi Device Cloud. The callback for connect failed.
+ * @retval idigi_receive_error          Unable to receive message from the iDigi Device Cloud. The callback for receive failed. 
+ * @retval idigi_send_error             Unable to send message to the iDigi Device Cloud. The callback for send failed. 
  * @retval idigi_close_error            Unable to disconnect the connection. The callback for close failed. 
  * @retval idigi_device_terminated      iDigi connector was terminated by user via idigi_initiate_action call.
  *
@@ -1601,7 +1601,7 @@ idigi_status_t idigi_run(idigi_handle_t const handle);
  * @param [in] request  Request action (one of the following):
  *                      @li @b idigi_initiate_terminate:
  *                          Terminates and stops iDigi connector from running. It closes the connection to the
- *                          iDigi server and frees all allocated
+ *                          iDigi Device Cloud and frees all allocated
  *                          memory. If the application is using
  *                          idigi_step, the next call to
  *                          idigi_step will terminate the iDigi connector.
@@ -1613,7 +1613,7 @@ idigi_status_t idigi_run(idigi_handle_t const handle);
  * 
  *                      @li @b idigi_initiate_data_service: 
  *                           This is used to trigger the send
- *                           data to the iDigi server. Only the
+ *                           data to the iDigi Device Cloud. Only the
  *                           header information is passed by
  *                           this method. The actual data is
  *                           transferred through callbacks. The
@@ -1632,7 +1632,7 @@ idigi_status_t idigi_run(idigi_handle_t const handle);
  *                          This is NULL.
  *
  * @retval idigi_success  No error
- * @retval idigi_init_error           iDigi connector was not initialized or not connected to the iDigi.
+ * @retval idigi_init_error           iDigi connector was not initialized or not connected to the iDigi Device Cloud.
  * @retval idigi_configuration_error  Callback aborted iDigi connector.
  * @retval idigi_invalid_data         Invalid parameter
  * @retval idigi_no_resource          Insufficient memory

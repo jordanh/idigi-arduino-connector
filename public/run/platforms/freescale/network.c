@@ -161,7 +161,7 @@ done:
 }
 
 /*
- * Send data to the iDigi server, this routine must not block.  If it encounters
+ * Send data to the iDigi Device Cloud, this routine must not block.  If it encounters
  * EAGAIN or EWOULDBLOCK error, 0 bytes must be returned and iDigi Connector will continue
  * calling this function.
  */
@@ -189,7 +189,7 @@ static idigi_callback_status_t app_network_send(idigi_write_request_t const * co
 }
 
 /*
- * This routine reads a specified number of bytes from the iDigi server.  This
+ * This routine reads a specified number of bytes from the iDigi Device Cloud.  This
  * function must not block. If it encounters EAGAIN or EWOULDBLOCK error, 0
  * bytes must be returned and iDigi Connector will continue calling this function.
  */
@@ -244,7 +244,7 @@ static idigi_callback_status_t app_server_disconnected(void)
 {
     APP_DEBUG("Disconnected from server\n");
     /* if idigi_run or idigi_step is called again,
-    * it will reconnect to iDigi Device Cloud.
+    * it will reconnect to the iDigi Device Cloud.
     */
     return idigi_callback_continue;
 }

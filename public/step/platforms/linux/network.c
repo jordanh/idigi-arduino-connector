@@ -197,7 +197,7 @@ done:
 }
 
 /*
- * Sends data to the iDigi server, this routine must not block.  If it encounters
+ * Sends data to the iDigi Device Cloud, this routine must not block.  If it encounters
  * EAGAIN  error, return idigi_callback_busy and iDigi connector will ignore the
  * sent_length and continue calling this function.
  */
@@ -223,7 +223,7 @@ static idigi_callback_status_t app_network_send(idigi_write_request_t const * co
 }
 
 /*
- * This routine reads a specified number of bytes from the iDigi server.  This 
+ * This routine reads a specified number of bytes from the iDigi Device Cloud.  This 
  * function must not block. If it encounters EAGAIN  error, return
  * idigi_callback_busy and iDigi connector will ignore the read_data and read_length
  * and continue calling this function.

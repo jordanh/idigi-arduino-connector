@@ -479,7 +479,7 @@ group state debug_info "Debug info on iDigi connector thread"
     element usedmem "Allocated memory used" type uint32 access  read_only 
 
 # State configuration for GPS
-# Must setup the following group in order for GPS shown in iDigi Cloud.
+# Must setup the following group in order for GPS shown in the iDigi Device Cloud.
 group state gps_stats "GPS"
     element latitude "Latitude" type float access read_only
     element longitude "Longitude" type float access read_only""")
@@ -528,7 +528,7 @@ group state debug_info "Debug info on iDigi connector thread"
     element usedmem "Allocated memory used" type uint32 access  read_only 
 
 # State configuration for GPS
-# Must setup the following group in order for GPS shown in iDigi Cloud.
+# Must setup the following group in order for GPS shown in the iDigi Device Cloud.
 group state gps_stats "GPS"
     element latitude "Latitude" type float access read_only
     element longitude "Longitude" type float access read_only""")
@@ -577,7 +577,7 @@ group state debug_info "Debug info on iDigi connector thread"
     element usedmem "Allocated memory used" type uint32 access  read_only 
 
 # State configuration for GPS
-# Must setup the following group in order for GPS shown in iDigi Cloud.
+# Must setup the following group in order for GPS shown in the iDigi Device Cloud.
 group state gps_stats "GPS"
     element latitude "Latitude" type float access read_only
     element longitude "Longitude" type float access read_only""")
@@ -623,7 +623,7 @@ group state debug_info "Debug info on iDigi connector thread"
     element usedmem "Allocated memory used" type uint32 access  read_only 
 
 # State configuration for GPS
-# Must setup the following group in order for GPS shown in iDigi Cloud.
+# Must setup the following group in order for GPS shown in the iDigi Device Cloud.
 group state gps_stats "GPS"
     element latitude "Latitude" type float access read_only
     element longitude "Longitude" type float access read_only""")

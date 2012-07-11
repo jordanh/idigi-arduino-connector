@@ -91,7 +91,7 @@ public class ConfigGenerator {
                         DASH + NO_DESC_OPTION));
         log(String
                 .format(
-                        "\t%-16s \t= optional option for vendor ID obtained from iDigi Device Cloud registration.",
+                        "\t%-16s \t= optional option for vendor ID obtained from the iDigi Device Cloud registration.",
                         DASH + VENDOR_OPTION + "=<vendorID>"));
         log(String
                 .format(
@@ -104,16 +104,16 @@ public class ConfigGenerator {
                         DASH + DIRECTORY_OPTION + "=<directory path>"));
         log(String
                 .format(
-                        "\t%-16s \t= optional option for iDigi Device Cloud. Default is developer.idigi.com",
+                        "\t%-16s \t= optional option for the iDigi Device Cloud. Default is developer.idigi.com",
                         DASH + SERVER_OPTION + "=<server address>"));
 
         log(String
                 .format(
-                        "\n\t%-16s \t= username to log in iDigi Device Cloud. If no password is given you will be prompted to enter the password",
+                        "\n\t%-16s \t= username to log in the iDigi Device Cloud. If no password is given you will be prompted to enter the password",
                         USERNAME));
         log(String
                 .format(
-                        "\t%-16s \t= optional option for password to log in iDigi Device Cloud",
+                        "\t%-16s \t= optional option for password to log in the iDigi Device Cloud",
                         PASSWORD));
         log(String
                 .format(

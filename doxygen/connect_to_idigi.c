@@ -1,4 +1,4 @@
-/*! @page connect_to_idigi Connect To iDigi
+/*! @page connect_to_idigi Connect To the iDigi Device Cloud
  *
  * @htmlinclude nav.html
  *

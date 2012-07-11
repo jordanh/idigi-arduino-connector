@@ -4,7 +4,7 @@
  *
  * @section ssl_overview Overview
  *
- * This sample demonstrates how one can connect to iDigi Device Cloud securely. The sample includes
+ * This sample demonstrates how one can connect to the iDigi Device Cloud securely. The sample includes
  * network_ssl.c, instead of network.c, to provide network specific user callbacks. That means
  * any application can run on ssl by including network_ssl.c.
  * 
@@ -18,7 +18,7 @@
  * 
  * -# Login to developer.idigi.com
  * -# Click Resources link
- * -# Click iDigi Device Cloud CA Certificate under Downloads, General Downloads
+ * -# Click the iDigi Device Cloud CA Certificate under Downloads, General Downloads
  * -# Extract the zip file to public/include (or wherever is convenient)
  * -# Modify the APP_SSL_CA_CERT in platforms/<i>my_platform</i>/network_ssl.c file to match the correct path
  * -# Rebuild the application
@@ -29,7 +29,7 @@
  * -# The application_start(), defined in application.c, registers app_idigi_callbacks()
  * -# The app_idigi_callbacks(), defined in application.c, calls app_network_callbacks() for all network related ICC requests
  * -# The app_network_callbacks(), defined in network_ssl.c, calls subsequent openssl functions to communicate 
- *    with iDigi Device Cloud over SSL
+ *    with the iDigi Device Cloud over SSL
  *
  * @section connect_build Building
  *

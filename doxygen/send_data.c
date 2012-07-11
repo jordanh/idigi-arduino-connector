@@ -108,7 +108,7 @@
  *
  * @li -DIDIGI_VERSION=0x1020000UL (indicates version 1.1 of the iDigi connector)
  *
- * @section web_gui Viewing results from iDigi Device Cloud
+ * @section web_gui Viewing results from the iDigi Device Cloud
  *
  * To view the results for this sample login to the iDigi Device Cloud as described
  * in the @ref add_your_device_to_the_cloud "Getting Started" section. 
@@ -129,7 +129,7 @@
  *
  * @image html send_data_sample3.png
  *
- * @section python_script Python script to retrieve a file from iDigi Device Cloud storage
+ * @section python_script Python script to retrieve a file from the iDigi Device Cloud storage
  *
  * This sample provides a simple python script to retrive the test.txt file from developer.idigi.com
  * after a device has sent test.txt into the server.

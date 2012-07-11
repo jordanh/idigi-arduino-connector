@@ -19,7 +19,7 @@
 
 
 /**
-* @defgroup idigi_config_options iDigi Configuration Options
+* @defgroup idigi_config_options iDigi Connector Configuration Options
 * @{
 *
 * @brief Defines the major blocks of functionality used in the iDigi connector
@@ -166,7 +166,7 @@
 /**
  * This is used to define the maximum content length in bytes of an element's value for the @ref rci_service,
  * iDigi connector includes the @ref rci_service that allows user remote configuration, control, and information
- * exchange between a device and iDigi Device Cloud.
+ * exchange between a device and the iDigi Device Cloud.
  * See @ref IDIGI_RCI_SERVICE to enable or disable the service.
  *
  * @code
@@ -243,7 +243,7 @@
  * </tr>
  * <tr>
  * <td>@endhtmlonly @ref IDIGI_CLOUD_URL @htmlonly </td>
- * <td>iDigi Device Cloud FQDN.
+ * <td>The iDigi Device Cloud FQDN.
  * See @endhtmlonly @ref server_url @htmlonly</td>
  * </tr>
  * <tr>
