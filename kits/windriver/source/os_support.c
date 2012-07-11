@@ -123,17 +123,15 @@ void *idigi_run_thread(void * arg)
 idigi_connector_error_t ic_create_thread(void)
 {
     pthread_t idigi_thread;
-    int ret = 0;
+    idigi_connector_error_t ret = idigi_connector_success;
     int ccode;
 
     ccode = pthread_create(&idigi_thread, NULL, idigi_run_thread, NULL);
     if (ccode != 0)
     {
         APP_DEBUG("thread_create() error on idigi_process_thread %d\n", ccode);
-        goto error;
+        ret = idigi_connector_failed_to_create_thread;
     }
-
-error:
 
     return ret;
 }
