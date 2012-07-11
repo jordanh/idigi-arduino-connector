@@ -294,11 +294,17 @@
  * <tr>
  *   <td>public/include</td>
  *   <td> @endhtmlonly  @ref api_overview "iDigi connector Public API" @htmlonly <br></br>
- *   Contains the three public headers: @endhtmlonly  @ref idigi_api.h,  @ref idigi_types.h, and @ref idigi_config.h @htmlonly.
- *   The @endhtmlonly @ref api_overview "iDigi connector Public API"  @htmlonly is located in @endhtmlonly @ref idigi_api.h @htmlonly and
- *   required for application development.  All the machine device types are located in @endhtmlonly @ref idigi_types.h @htmlonly and might
- *   require updating to match your platform's characteristics (i.e., data size and supported compiler data types).  The header @endhtmlonly
- *   @ref idigi_config.h @htmlonly contains all the iDigi connector settings and configurations. </td>
+ *   Contains the four public headers: @endhtmlonly @ref idigi_api.h, @ref idigi_types.h, @ref idigi_debug.h, and @ref idigi_remote.h @htmlonly.
+ *   The @endhtmlonly @ref api_overview "iDigi Connector public API" @htmlonly is located in @endhtmlonly @ref idigi_api.h @htmlonly and
+ *   required for application development.  All the machine device types are located in @endhtmlonly @ref idigi_types.h @htmlonly and
+ *   might require updating to match your platform's characteristics (i.e., data size and supported compiler data types).
+ *
+ *   Public header @endhtmlonly @ref idigi_debug.h @htmlonly contains the prototype for @endhtmlonly @ref idigi_debug_printf() @htmlonly which is a required
+ *   porting implementation function when @endhtmlonly @ref IDIGI_DEBUG @htmlonly is defined.  Also contains appropriate definitions for the macro ASSERT(),
+ *   which is used within the private folder.
+ *
+ *   <br></br>
+ *   Note the header file @endhtmlonly @ref idigi_config.h @htmlonly has now been moved into the samples directories. </td>
  * </tr>
  * <tr>
  *   <td>public/run</td>
@@ -310,14 +316,14 @@
  *   <td>public/run/platforms</td>
  *   <td>Platform files for running the iDigi connector as a separate thread<br></br>
  *   Platform dependent files that interface between the iDigi connector library (private) and the sample applications.
- *   These files include <a class="el" href="os_8c.html" title="Functions used by the iDigi connector to interface to the OS.">os.c</a>, <a class="el" href="network_8c.html" title="Rountines which implement the iDigi connector network interface.">network.c</a>, <a class="el" href="config_8c.html" title="Configuration routines for the iDigi Connector.">config.c</a>, <a class="el" href="platform_8h_source.html">platform.h</a> and main.c.
+ *   These files include @endhtmlonly @ref network.c, file_system.c, @ref os.c, @ref config.c, and main.c. @htmlonly
  *   The Getting Started Procedure walks you through the process of porting and setting these platform files.</td>
  * </tr>
  * <tr>
  *   <td>public/run/samples</td>
  *   <td>Samples for the iDigi connector<br></br>
  *   Samples on how to use the iDigi connector, the compile_and_link sample is used to verify
- *   that your new envirorment is able to build. There is a sample for each major
+ *   that your new environment is able to build. There is a sample for each major
  *   feature in the iDigi connector, there is documentation in this guide for each sample.</td>
  * </tr>
  * <tr>
