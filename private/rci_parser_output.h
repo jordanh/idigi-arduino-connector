@@ -434,7 +434,7 @@ static void rci_generate_output(rci_t * const rci)
 
 #if defined RCI_PARSER_USES_INT32
             case idigi_element_type_int32:
-                overflow = rci_output_formatted(output, "%ld", rci->shared.value.signed_integer_value);
+                overflow = rci_output_formatted(output, "%d", rci->shared.value.signed_integer_value);
                 break;
 #endif
 
