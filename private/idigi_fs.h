@@ -638,19 +638,15 @@ static size_t parse_file_path(file_system_context_t * const context,
                               size_t const buffer_size)
 {
     char const * const path = path_ptr;
-    size_t path_len = strlen(path);
+    size_t path_len = strnlen(path, buffer_size);
 
-    if (path_len > buffer_size)
-        path_len = 0;
-    else
-    if (path_len != 0 && path[path_len] == '\0')
-    {
+    if ((path_len > 0) && (path_len < buffer_size))
         path_len++;
-    }
+    else 
+        path_len = 0;
 
     if (path_len == 0)
     {
-        ASSERT(idigi_false);
         context->error.error_status = idigi_file_request_format_error;
         context->error.errnum = file_str_request_format_error;
         FileSetErrorHint(context);
@@ -1198,7 +1194,6 @@ static idigi_callback_status_t file_store_path(idigi_data_t * const idigi_ptr,
 
     if (path_len >= IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH)
     {
-        ASSERT(idigi_false);
         context->error.error_status = idigi_file_out_of_memory;
         context->error.errnum = file_str_etoolong;
         FileSetErrorHint(context);
@@ -1303,7 +1298,7 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
                 context->error.error_status = idigi_file_out_of_memory;
                 context->error.errnum = file_str_etoolong;
                 FileSetErrorHint(context);
-                ASSERT_GOTO(idigi_false, close_dir);
+                goto close_dir;
             }
 
             if (hash_len != 0)   
@@ -1361,8 +1356,8 @@ static idigi_callback_status_t process_file_ls_response(idigi_data_t * const idi
                     context->error.error_status = idigi_file_out_of_memory;
                     context->error.errnum = file_str_etoolong;
                     FileSetErrorHint(context);
-                    ASSERT_GOTO(idigi_false, close_dir);
-                }
+                    goto close_dir;
+                 }
                 /* strcat file name to after directory path */
                 memcpy(context->data.d.path + context->data.d.path_len, file_path, file_path_len);
 
@@ -1490,13 +1485,16 @@ static idigi_callback_status_t file_system_request_callback(idigi_data_t * const
         }
     }
 
-    if (context->opcode != fs_put_request_opcode && !MsgIsStart(service_data->flags))
+    if (context->opcode != fs_put_request_opcode)
     {
         /* don't support request in >1 message */
-        context->error.error_status = idigi_file_request_format_error;
-        context->error.errnum = file_str_request_format_error;
-        FileSetErrorHint(context);
-        ASSERT_GOTO(idigi_false, done);
+        if ( !(MsgIsStart(service_data->flags) && MsgIsLastData(service_data->flags)) )
+        {
+            context->error.error_status = idigi_file_out_of_memory;
+            context->error.errnum = file_str_etoolong;
+            FileSetErrorHint(context);
+            goto done;
+        }
     }
 
     switch (context->opcode)
