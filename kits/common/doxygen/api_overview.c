@@ -4,11 +4,15 @@
  *
  * @section api1_overview API Overview
  *
- * The iDigi connector API includes two major software interfaces:
- *      @li iDigi connector function calls
- *      @li iDigi connector application-defined callback
+ * The iDigi connector API is used to send data to and from the iDigi Device Cloud.
+ * Data transfers are either initiated from the iDigi Device Cloud or the device itself.
+ * When data is sent to the iDigi Device Cloud it is sent as a file.  When data is
+ * sent from the iDigi Device Cloud it is sent as a device request.  This device
+ * request can be used to turn on/off an Led, set the state of a GPIO pin, or
+ * set the value of a variable. It is the applications responsibility to parse
+ * and evaluate the device request.
  * 
- *  The functions available in the iDigi connector are listed below:
+ *  The functions available in the iDigi connector API are listed below:
  *
  * @htmlonly
  * <table class="apitable">
@@ -27,6 +31,14 @@
  * <tr>
  * <td>@endhtmlonly idigi_register_device_request_callbacks() @htmlonly</td>
  * <td>Registers the device request callbacks</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly @ref idigi_device_request_callback_t "device_request_callback()" @htmlonly</td>
+ * <td>Handles the device request callback</td>
+ * </tr>
+ * <tr>
+ * <td>@endhtmlonly @ref idigi_device_response_callback_t "device_response_callback()" @htmlonly</td>
+ * <td>Prepares the response to the device request</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -47,6 +59,16 @@
  *
  * The function idigi_register_device_request_callbacks() must be called in order to receive device requests from the iDigi
  * Device Cloud.  You must register a device_request_callback and a device_response_callback.
+ *
+ * @subsection device_request_callback Device Request Callback: device_request_callback() 
+ *
+ * The user defined function @ref idigi_device_request_callback_t "device_request_callback()" parses the device request received
+ * from the iDigi Device Cloud.
+ *
+ * @subsection device_response_callback Device Response Callback: device_response_callback() 
+ *
+ * The user defined function @ref idigi_device_response_callback_t "device_response_callback()" Prepares the response to the device
+ * request to be sent to the iDigi Device Cloud.
  *
  * @htmlinclude terminate.html
  *
