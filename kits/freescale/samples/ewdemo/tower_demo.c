@@ -78,11 +78,11 @@ unsigned long cpu_usage_baseline = 0;
 unsigned char ad_average_int, ad_average_dec, cur_ad_average_int = 99, cur_ad_average_dec = 99;
 
 /*
- *  This function will initiate a put request to the iDigi Device Cloud.
+ *  This function will initiate a put request to the iDigi cloud.
  *
  *  Parameters:
- *      path            -- NUL terminated file path where user wants to store the data on the iDigi Device Cloud.
- *      data            -- Data to write to file on the iDigi Device Cloud.
+ *      path            -- NUL terminated file path where user wants to store the data on the iDigi cloud.
+ *      data            -- Data to write to file on iDigi cloud.
  *      content_type    -- NUL terminated content type (text/plain, text/xml, application/json, etc.
  *      length_in_bytes -- Data length in put_request
  *      flags           -- Indicates whether server should archive and/or append.
@@ -90,7 +90,7 @@ unsigned char ad_average_int, ad_average_dec, cur_ad_average_int = 99, cur_ad_av
  *  Return Value:
  *      idigi_success
  *      idigi_invalid_data      -- Indicates bad parameters
- *      idigi_invalid_response  -- Indicates error response from the iDigi Device Cloud
+ *      idigi_invalid_response  -- Indicates error response from iDigi cloud
  */
 idigi_status_t idigi_initiate_put_request(char const * const path, char const * const data, char const * const content_type,
 		                                  size_t const length_in_bytes, unsigned int const flags) 
@@ -743,6 +743,8 @@ void idigi_app_run_task(unsigned long initial_data)
 	        	
 	        	if (status)
 	        	    APP_DEBUG("idigi_app_run_task: error putting to ad_file_path\n");
+	        	else
+	        		goto done;
     	    }
         
 		    num_ad_samples = 0;
@@ -758,7 +760,7 @@ void idigi_app_run_task(unsigned long initial_data)
             elapsed = _time_diff_ticks_int32 (&ticknow, &tickstart, NULL);
         	
             /* Send a put to the iDigi server every 1 second */
-            if (elapsed > 100)
+            if (elapsed > 200)
             {  
                 _time_get_elapsed_ticks(&tickstart);
                 
@@ -789,6 +791,8 @@ void idigi_app_run_task(unsigned long initial_data)
 	        	    status = idigi_initiate_put_request(touch_pad_file_path, put_temp_buffer, "text/plain", strlen(put_temp_buffer), 0);        	        	
 	        	    if (status)
 	        	        APP_DEBUG("idigi_touch_pad_task: error putting to touch pad path\n");
+		        	else
+		        		goto done;
     	    	}
     	    	
     	    	if (put_led_state)
@@ -802,18 +806,24 @@ void idigi_app_run_task(unsigned long initial_data)
         	        	    status = idigi_initiate_put_request(touch_pad_file_path, put_temp_buffer, "text/plain", strlen(put_temp_buffer), 0);        	        	
         	        	    if (status)
         	        	        APP_DEBUG("idigi_touch_pad_task: error putting to touch pad path\n");
+        		        	else
+        		        		goto done;
         	        	    break;
     	    		    case 1:      	        	
          	        	    strncpy(put_temp_buffer, "slow", sizeof(put_temp_buffer));
         	        	    status = idigi_initiate_put_request(touch_pad_file_path, put_temp_buffer, "text/plain", strlen(put_temp_buffer), 0);        	        	
         	        	    if (status)
         	        	        APP_DEBUG("idigi_touch_pad_task: error putting to touch pad path\n");
+        		        	else
+        		        		goto done;
         	        	    break;
     	    		    case 2:      	        	
          	        	    strncpy(put_temp_buffer, "fast", sizeof(put_temp_buffer));
         	        	    status = idigi_initiate_put_request(touch_pad_file_path, put_temp_buffer, "text/plain", strlen(put_temp_buffer), 0);        	        	
         	        	    if (status)
         	        	        APP_DEBUG("idigi_touch_pad_task: error putting to touch pad path\n");
+        		        	else
+        		        		goto done;
         	        	    break;
     	    		    default:
         	        	    APP_DEBUG("idigi_touch_pad_task: unrecognized blinkrate\n");
@@ -836,7 +846,9 @@ void idigi_app_run_task(unsigned long initial_data)
     	        	status = idigi_initiate_put_request(accel_file_path, put_temp_buffer, "text/plain", strlen(put_temp_buffer), 0);
     	        	
     	        	if (status)
-    	        	    APP_DEBUG("idigi_app_run_task: error putting to accel path\n");   	    		
+    	        	    APP_DEBUG("idigi_app_run_task: error putting to accel path\n");
+    	        	else
+    	        		goto done;   	    		
             	}
             	
     	    	/* Send a syslog if data is in syslog buffer */
@@ -846,8 +858,11 @@ void idigi_app_run_task(unsigned long initial_data)
     	        	
     	        	if (status)
     	        	    APP_DEBUG("idigi_app_run_task: error putting to syslog path\n");
-    	        	
-    	        	data_size_in_put_request_buffer = 0;
+    	        	else
+    	        	{
+        	        	data_size_in_put_request_buffer = 0;
+    	        		goto done;
+    	        	}
     	    	}
                 
     	    	/* Only send put request if data has changed from the last reading */
@@ -876,6 +891,8 @@ void idigi_app_run_task(unsigned long initial_data)
     	        	
     	        	    if (status)
     	        	        APP_DEBUG("idigi_app_run_task: error putting to pot path\n");
+    		        	else
+    		        		goto done;
     	    	    }
     	    	}
 
@@ -917,9 +934,16 @@ void idigi_app_run_task(unsigned long initial_data)
                 idigi_network_receive_failures, idigi_network_send_failures, idigi_connect_to_idigi_failures, idigi_watchdog_caused_reset);
 
 	        	status = idigi_initiate_put_request(sysinfo_file_path, put_temp_buffer, "text/plain", strlen(put_temp_buffer), 0);
+	        	
+        	    if (status)
+        	        APP_DEBUG("idigi_app_run_task: error putting to sysinfo_file_path\n");
+	        	else
+	        		goto done;
             }    		
     	}
-       
+
+ done:
+ 
         //Time Delay task to allow other tasks to run
         _time_delay(10);
     }
