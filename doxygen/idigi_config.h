@@ -185,6 +185,8 @@
  * For example, if the device receives a request to list the directory '/mydir' and the '/mydir' directory has an entry
  * 'myfile', the full path to the directory entry is '/mydir/myfile'. This full path '/mydir/myfile' has a length of 14 bytes,
  * including an ending '\0' character.
+ * 
+ * @note System limitation: IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH must be <= 460
  *
  * See @ref IDIGI_FILE_SYSTEM to enable or disable the service.
  *

@@ -27,7 +27,11 @@
 
 
 #if !defined IDIGI_FILE_SYSTEM 
-#error "Replace IDIGI_NO_FILE_SYSTEM with IDIGI_FILE_SYSTEM in idigi_config.h to run this sample" 
+#error "Please define IDIGI_FILE_SYSTEM in idigi_config.h to run this sample" 
+#endif
+
+#if IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH > 460
+#error The maximum supported IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH is 460
 #endif
 
 #ifndef APP_MIN_VALUE
