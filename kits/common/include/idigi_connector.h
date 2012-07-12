@@ -168,9 +168,26 @@ idigi_connector_error_t idigi_send_data(char const * const path, idigi_connector
  * @param status iDigi connector error value or reset
  * @param status_message if available, this string explains more about the error
  *
+ * @defgroup idigi_status_callback_t Application-defined status_callback
+ *@{ 
+ * idigi_status_callback_t: iDigi connector Application-defined status_callback, this is the 
+ * callback used when there is any asynchronous error or reset message from
+ * the cloud/connector. After returning this callback, the application can restart the
+ * iDigi connector by calling idigi_connector_start()..
+ *
+ */
+/** 
+ * idigi_status_callback_t. 
+ *
+ * @param status iDigi connector error value or reset
+ * @param status_message if available, this string explains more about the error
+ *
  * @retval none
  */
 typedef void (* idigi_status_callback_t)(idigi_connector_error_t const status, char const * const status_message);
+/**
+* @}
+*/
 
 /**
  * @brief Start the iDigi connector.
