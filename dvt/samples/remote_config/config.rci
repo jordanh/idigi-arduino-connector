@@ -58,14 +58,6 @@ group state debug_info "Debug info on IC thread"
     element version "Version" type 0xhex access  read_only 
     element stacksize "Stack size" type hex32 access  read_only 
 
-# State configuration for GPS
-# Must setup the following group in order for GPS shown in iDigi Cloud.
-group state gps_stats "GPS"
-    element latitude "Latitude" type float access read_only
-    element longitude "Longitude" type float access read_only
-    error invalid_lat "Invalid latitude value"
-    error invalid_long "Invalid longitude value"
-
 # Some setting stuff to test
 group setting state_test "State Test"
     element test1 "Test 1" type uint32 access read_write
@@ -97,6 +89,16 @@ group setting devicesecurity "iDigi device security"
         value password "Connection is password authenticated"
     element password "iDigi device connection password" type password max 134
 
+group state device_state  "Device State"
+    element system_up_time "System Up time" type uint32 access read_only unit "seconds"
+    element signed_integer "Signed integer" type int32 min -100 max 100
+    error invalid_integer "Invalid integer value" 
 
+# Device location
+# State configuration for GPS
+# Must setup the following group for Latitude and Longitude to be shown in iDigi Manager Pro.
+group state gps_stats "GPS"
+    element latitude "Latitude" type string access read_only
+    element longitude "Longitude" type string access read_only
     
     
