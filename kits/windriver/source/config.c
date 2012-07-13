@@ -557,7 +557,7 @@ static void parse_config(struct idigi_parameters_t *parms)
       strncpy (parms->server_url, value, MAX_URL_LENGTH);
       APP_DEBUG("config: server_url [%s]\n", parms->server_url);
     }
-    else if (strcmp(name, "device_name")==0)
+    else if (strcmp(name, "device_type")==0)
     {
       strncpy (parms->device_name, value, MAX_DEVICE_NAME_LENGTH);
       APP_DEBUG("config: device name [%s]\n", parms->device_name);

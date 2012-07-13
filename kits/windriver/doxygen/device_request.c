@@ -8,7 +8,8 @@
  * using the @ref idigi_register_device_request_callbacks "device request callbacks".
  * Commands sent from the iDigi Cloud are used by this application to control
  * the status LED of the Kontron unit.  The status LED is located on top of the unit
- * next to the SIM slot.  You can expand this application to control your device.
+ * next to the SIM slot.  You can use this sample as a starting point for adding
+ * the ability to control your device.
  *
  * @section device_request_description Code Flow
  *
@@ -26,14 +27,17 @@
  * to the previous command.  If the command was received OK then the response "iDigi Connector device response OK\n"
  * is sent back to the iDigi cloud.
  *
- * The routines led_on and led_off are the command handlers for the corresponding commands LED_ON and LED_OFF.
+ * The routines led_on() and led_off() are the command handlers for the corresponding commands LED_ON and LED_OFF.
  *
  * @section device_request_build Building
  *
  *    1. Click on Wind River Workbench icon, this is used to build, debug and launch the idigi samples
  *       applications.
+ * 
  *    2. The sample applications appear on the left hand side of the workbench.
+ * 
  *    3. Click on idigi_device_request
+ * 
  *    4. Right mouse click and select Build Project.
  *
  * In the Build Console on the lower portion of the screen you can view the build output.
@@ -91,18 +95,12 @@
  * To run the python script for this sample:
  *
  * @code
- * python led_on.py <username> <password> <device_id>
+ * 'python led_on.py <username> <password> <device_id>'
  * @endcode
  *
- * @note The devive_id must be in the long format, for example: python led_off.py username password 00000000-00000000-00b338ff-ff0002d8
+ * @note The device_id must be in the long format, for example: python led_off.py username password 00000000-00000000-00b338ff-ff0002d8
  * where the MAC address of the device is 00:b3:38:00:02:d8
  *
- * Output from this sample:
- *
- * @code
- * Device request data: received data = "My device request data" for target = "myTarget"
- * Device response data: send response data = My device response data
- * @endcode
  *
  * @htmlinclude terminate.html
  */

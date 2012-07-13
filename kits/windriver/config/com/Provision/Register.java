@@ -197,6 +197,7 @@ public class Register {
                             + String.format("mac_addr=%s \n\n", MacAddress)
                             + String.format("# Location of the iDigi server\n")
                             + String.format("server_url=developer.idigi.com\n\n");
+                            + String.format("device_type=Digi Intel Linux Device\n\n");
 
         headerWriter.write(config_string);
         headerWriter.close();
@@ -250,8 +251,8 @@ public class Register {
     }
 
     private void uploadDescriptor(String descName, String buffer) {
-        String deviceType ="Linux Application";
-        long fwVersion=0x01000001;
+        String deviceType ="Digi Intel Linux Device";
+        long fwVersion=0x01000000;
 
         System.out.println("Uploading description:" + descName);
 

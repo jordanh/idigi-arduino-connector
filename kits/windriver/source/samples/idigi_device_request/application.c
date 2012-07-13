@@ -10,6 +10,12 @@
  * =======================================================================
  */
 
+ /**
+  * @file
+  *  @brief Functions and prototypes for iDigi Connector Kits.
+  *
+  */
+
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdbool.h>
@@ -38,12 +44,38 @@ static bool leds_initialized=false;
 
 static bool ok_response=false;
 
+/**
+ * @brief Status request callback.
+ *
+ * Called when there is a status change from the iDigi device 
+ * cloud. 
+ *
+ * @param path Status code.
+ * @param status_message ASCIIZ terminated status message
+ * @retval none
+ */
 static void idigi_status(idigi_connector_error_t const status, char const * const status_message)
 {
     printf("idigi_status: status update %d [%s]\n", status, status_message);
 }
 
-/* We are passed commands via the device request callback */
+/**
+ * @brief Device request callback.
+ *
+ * Called when data is received from the iDigi device cloud.
+ *
+ * @param target       NUL-terminated device request target 
+ *                     name.
+ * @param request_data pointer to the request info, which contain requested data, data length,
+ *                     flag to indicate last request data, connector error if any,
+ *                     and application context. The value updated in the application context
+ *                     will be retained in subsequent callbacks for the same target.
+ *  
+ * @retval idigi_app_success        for success
+ * @retval idigi_app_busy           application is not ready to receive this request
+ * @retval idigi_app_unknown_target target not supported
+ * @retval idigi_app_resource_error failed to allocate required resource
+ */
 idigi_app_error_t device_request_callback(char const * const target, idigi_connector_data_t * const request_data)
 {
     idigi_app_error_t status=idigi_app_invalid_parameter;
@@ -80,6 +112,25 @@ error:
     return status;
 }
 
+/**
+ * @brief Device response callback function.
+ *
+ * This function checks for the result of the device request callback function, and sets up the
+ * response_data based on that result.  The Application needs to check the error value in the
+ * response_data before returning the response. 
+ *
+ * @param target        NUL-terminated target name
+ * @param response_data pointer to the response info, which contain pointer to a buffer where user
+ *                      can write the response, maximum buffer length, flag to indicate last response
+ *                      data, connector error if any and the application context provided in the
+ *                      first request callback.
+ *
+ * @retval -1 indicates error
+ * @retval 0  busy if last flag is not set
+ * @retval 0> indicates number of bytes copied to the response buffer, not more than max_response_bytes.
+ *            The default max_response_bytes will be around 1590 bytes.
+ *
+ */
 size_t device_response_callback(char const * const target, idigi_connector_data_t * const response_data)
 {
     static char rsp_string[] = "iDigi Connector device response OK\n";
@@ -142,6 +193,7 @@ error:
     
 }
 
+
 static idigi_app_error_t initialize_leds(void)
 {
     idigi_app_error_t status=idigi_app_invalid_parameter;
@@ -155,11 +207,11 @@ static idigi_app_error_t initialize_leds(void)
     
     printf("Initializing LED's\n");
 
-	if ((fp = fopen("/sys/class/gpio/export", "w")) == NULL)
-	{
-		printf("Cannot open GPIO export file.\n");
+    if ((fp = fopen("/sys/class/gpio/export", "w")) == NULL)
+    {
+        printf("Cannot open GPIO export file.\n");
         goto error;	
-	}
+    }
 
     rewind(fp);
     strcpy(set_value,"0");
@@ -167,11 +219,11 @@ static idigi_app_error_t initialize_leds(void)
     rewind(fp);
     strcpy(set_value,"1");
     fwrite(&set_value, sizeof(char), 1, fp);
-	fclose(fp);
+    fclose(fp);
 
-	if ((fp = fopen("/sys/class/gpio/gpio0/direction", "rb+")) == NULL)
-	{
-		printf("Cannot open GPIO 0 direction file.\n");
+    if ((fp = fopen("/sys/class/gpio/gpio0/direction", "rb+")) == NULL)
+    {
+        printf("Cannot open GPIO 0 direction file.\n");
         goto error;	
     }
 
@@ -179,18 +231,18 @@ static idigi_app_error_t initialize_leds(void)
     rewind(fp);
     strcpy(set_value,"out");
     fwrite(&set_value, 3, 1, fp);
-	fclose(fp);
+    fclose(fp);
 
-	if ((fp = fopen("/sys/class/gpio/gpio1/direction", "rb+")) == NULL)
-	{
-		printf("Cannot open GPIO 1 direction file.\n");
+    if ((fp = fopen("/sys/class/gpio/gpio1/direction", "rb+")) == NULL)
+    {
+        printf("Cannot open GPIO 1 direction file.\n");
         goto error;	
-	}
+    }
 
     rewind(fp);
     strcpy(set_value,"out");
     fwrite(&set_value, 3, 1, fp);
-	fclose(fp);
+    fclose(fp);
 
     leds_initialized = true;
 
@@ -200,6 +252,19 @@ error:
     return status;
 }
 
+/**
+ * @brief Turn LED on.
+ *
+ *
+ * @param data    Data received from the target
+ * @param length Number of bytes received
+ *  
+ * @retval -1 indicates error
+ * @retval 0  busy if last flag is not set
+ * @retval 0> indicates number of bytes copied to the response buffer, not more than max_response_bytes.
+ *            The default max_response_bytes will be around 1590 bytes.
+ *
+ */
 static idigi_app_error_t led_on(void const * const data, unsigned short length)
 {
     idigi_app_error_t status=idigi_app_invalid_parameter;
@@ -212,29 +277,29 @@ static idigi_app_error_t led_on(void const * const data, unsigned short length)
         initialize_leds();
     }
 
-	if ((fp = fopen("/sys/class/gpio/gpio0/value", "rb+")) == NULL)
-	{
-		printf("Cannot open GPIO0 value file.\n");
+    if ((fp = fopen("/sys/class/gpio/gpio0/value", "rb+")) == NULL)
+    {
+        printf("Cannot open GPIO0 value file.\n");
         goto error;	
-	}
+    }
 
     /* Set the value of the LED 0= off */
     rewind(fp);
     strcpy(set_value,"0");
     fwrite(&set_value, sizeof(char), 1, fp);
-	fclose(fp);
-	
-	if ((fp = fopen("/sys/class/gpio/gpio1/value", "rb+")) == NULL)
-	{
-		printf("Cannot open GPIO0 value file.\n");
+    fclose(fp);
+
+    if ((fp = fopen("/sys/class/gpio/gpio1/value", "rb+")) == NULL)
+    {
+        printf("Cannot open GPIO0 value file.\n");
         goto error;	
-	}
+    }
 
     /* Set the value of the LED 0= off */
     rewind(fp);
     strcpy(set_value,"0");
     fwrite(&set_value, sizeof(char), 1, fp);
-	fclose(fp);
+    fclose(fp);
 
 
     status = idigi_app_success;
@@ -243,6 +308,19 @@ error:
     return status;
 }
 
+/**
+ * @brief Turn LED off.
+ *
+ *
+ * @param data    Data received from the target
+ * @param length Number of bytes received
+ *  
+ * @retval -1 indicates error
+ * @retval 0  busy if last flag is not set
+ * @retval 0> indicates number of bytes copied to the response buffer, not more than max_response_bytes.
+ *            The default max_response_bytes will be around 1590 bytes.
+ *
+ */
 static idigi_app_error_t led_off(void const * const data, unsigned short length)
 {
     idigi_app_error_t status=idigi_app_invalid_parameter;
@@ -255,32 +333,38 @@ static idigi_app_error_t led_off(void const * const data, unsigned short length)
         initialize_leds();
     }
 
-	if ((fp = fopen("/sys/class/gpio/gpio0/value", "rb+")) == NULL)
-	{
-		printf("Cannot open GPIO direction file.\n");
+    if ((fp = fopen("/sys/class/gpio/gpio0/value", "rb+")) == NULL)
+    {
+        printf("Cannot open GPIO direction file.\n");
         goto error;	
-	}
+    }
 
     /* Set the value of the LED 0= off */
     rewind(fp);
     strcpy(set_value,"1");
     fwrite(&set_value, sizeof(char), 1, fp);
-	fclose(fp);
-	
-	if ((fp = fopen("/sys/class/gpio/gpio1/value", "rb+")) == NULL)
-	{
-		printf("Cannot open GPIO direction file.\n");
+    fclose(fp);
+
+    if ((fp = fopen("/sys/class/gpio/gpio1/value", "rb+")) == NULL)
+    {
+        printf("Cannot open GPIO direction file.\n");
         goto error;	
-	}
+    }
 
     /* Set the value of the LED 0= off */
     rewind(fp);
     strcpy(set_value,"1");
     fwrite(&set_value, sizeof(char), 1, fp);
-	fclose(fp);
+    fclose(fp);
 
     status = idigi_app_success;
 
 error:
     return status;
 }
+
+/**
+* @}.
+*/
+#endif
+
