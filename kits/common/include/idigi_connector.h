@@ -54,6 +54,16 @@ typedef enum
     idigi_connector_service_unavailable         /**< Session unavailable. */
 } idigi_connector_error_t;
 
+ /**
+ * @defgroup idigi_send_data_flag_definitions iDigi Send Data Flag Definitions
+ * @{ 
+ */
+/**
+ * This flag can be used with idigi_send_data(). The overwrite flag tells the iDigi Device Cloud to overwrite 
+ * the existing file on the iDigi Device Cloud..
+ */
+#define IDIGI_FLAG_OVERWRITE_DATA 0x00
+
 /**
  * This flag can be used with idigi_send_data(). The archive flag tells the iDigi Device Cloud to keep a history 
  * of changes to the file being pushed. So even if it is written over or deleted the user can 
@@ -66,6 +76,9 @@ typedef enum
  * existing file on the iDigi Device Cloud.
  */
 #define IDIGI_FLAG_APPEND_DATA  0x02
+/**
+* @}
+*/
 
 /**
  * The last data flag is used to indicate the last chunk of the request/response data. The connector 
@@ -94,6 +107,7 @@ typedef struct idigi_connector_data_t
 /**
  *
  * This function needs to determine if the target and the data associated with that target is valid.
+ * If both are valid, this function should take the appropriate actions.
  *
  * @param target       NUL-terminated device request target name
  * @param request_data pointer to the request info, which contain requested data, data length,
@@ -206,7 +220,19 @@ typedef size_t (* idigi_device_response_callback_t)(char const * const target, i
  *
  * @retval idigi_connector_success success
  * @retval idigi_connector_invalid_parameter NULL callback function
- * @retval idigi_connector_already_registered callback has already been registered 
+ * @retval idigi_connector_already_registered callback has already been registered
+ *
+ * Example Usage:
+ * @code
+ *    idigi_connector_error_t ret;
+ *
+ *    APP_DEBUG("application_start: calling idigi_register_device_request_callbacks\n");
+ *    ret = idigi_register_device_request_callbacks(device_request_callback, device_response_callback);
+ *    if (ret != idigi_connector_success)
+ *    {
+ *        APP_DEBUG("idigi_register_device_request_callbacks failed [%d]\n", ret);
+ *    }
+ * @endcode 
  */
 idigi_connector_error_t idigi_register_device_request_callbacks(idigi_device_request_callback_t request_callback, idigi_device_response_callback_t response_callback);
 /**
