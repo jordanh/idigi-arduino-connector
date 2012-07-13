@@ -47,9 +47,11 @@
  * @subsection initialization Initialization: idigi_connector_start() 
  * 
  * The function idigi_connector_start() is called once at startup to initialize the iDigi connector.
- * The status callback function is passed as an argument; the @ref idigi_status_callback_t 
- * "status_callback" is used by the iDigi connector to communicate with the application. 
- * The idigi_connector_start() function must be called before all other iDigi connector APIs.
+ * The status callback function is passed as an argument.  The @ref idigi_status_callback_t 
+ * "status_callback" is the callback used when there is any asynchronous error or reset message from
+ * the cloud/connector. After returning this callback, the application can restart the iDigi connector
+ * by calling idigi_connector_start().  The idigi_connector_start() function must be called before all
+ * other iDigi connector APIs.
  *
  * @subsection send_data Send Data: idigi_send_data() 
  * 
