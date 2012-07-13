@@ -114,7 +114,7 @@ typedef struct idigi_connector_data_t
  *
  *    if (request_data->error != idigi_connector_success)
  *    {
- *        APP_DEBUG("devcie_request_callback: error [%d]\n", request_data->error);
+ *        APP_DEBUG("device_request_callback: error [%d]\n", request_data->error);
  *        goto error;
  *    }
  *
