@@ -60,7 +60,7 @@ typedef enum
  */
 /**
  * This flag can be used with idigi_send_data(). The overwrite flag tells the iDigi Device Cloud to overwrite 
- * the existing file on the iDigi Device Cloud..
+ * the existing file on the iDigi Device Cloud.
  */
 #define IDIGI_FLAG_OVERWRITE_DATA 0x00
 
@@ -72,7 +72,7 @@ typedef enum
 #define IDIGI_FLAG_ARCHIVE_DATA 0x01
 
 /**
- * This flag is used in idigi_send_data(). The append flag is used to append the data to an 
+ * This flag can be used with idigi_send_data(). The append flag is used to append the data to an 
  * existing file on the iDigi Device Cloud.
  */
 #define IDIGI_FLAG_APPEND_DATA  0x02
@@ -246,11 +246,13 @@ idigi_connector_error_t idigi_register_device_request_callbacks(idigi_device_req
  */
 /** 
  *
- * This function will attempt to send data to a file on the iDigi Device Cloud.  Note, this is a network blocking call.
+ * This function is used to write data to a file on the iDigi Server specified by parameters path, file-name,
+ * content-type, data to be written to the file, length of the data and flags.  The flags are used to specify how the data
+ * will be written to the file.  Note, this is a network blocking call.
  *
- * @param path NUL terminated file path where user wants to store the data on the iDigi Device Cloud
- * @param device_data Will contain pointer to application data, data length in bytes, flags to indicate
- *                    whether append or archive is needed and application context (will be returned in subsequent callbacks)
+ * @param path NUL-terminated file path where user wants to store the data on the iDigi Device Cloud
+ * @param device_data Will contain pointer to application data, data length in bytes, @ref IDIGI_FLAG_OVERWRITE_DATA "flags" to indicate
+ *                    whether to overwrite, append or archive the data and application context (will be returned in subsequent callbacks)
  * @param content_type NUL-terminated content type (text/plain, text/xml, application/json, etc). Pass NULL to let the iDigi Device Cloud determine
  *                     the type based on the file extension. In that case unsupported extensions will be treated as a binary data.
  *
@@ -264,7 +266,7 @@ idigi_connector_error_t idigi_register_device_request_callbacks(idigi_device_req
  *    char content_type[] = "text/plain";
  *    char path[] = 'test.txt";
  *    char buffer[] = "This is a test";
- *    unsigned int flags = 0; // 0 = overwrite file
+ *    unsigned int flags = IDIGI_FLAG_OVERWRITE_DATA;
  *
  *    do
  *    {
