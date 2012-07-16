@@ -176,24 +176,21 @@
  * <table class="apitable">
  * <tr>
  * <th class="title">Description</th>
- * <th class="title">IDIGI_COMPRESSION enabled, IDIGI_RCI_SERVICE disabled</th>
- * <th class="title">IDIGI_COMPRESSION and IDIGI_RCI_SERVICE disabled</th>
- * <th class="title">IDIGI_COMPRESSION and IDIGI_RCI_SERVICE enabled</th>
- * <th class="title">IDIGI_COMPRESSION disabled, IDIGI_RCI_SERVICE enabled</th>
+ * <th class="title">IDIGI_COMPRESSION enabled</th>
+ * <th class="title">IDIGI_COMPRESSION disabled</th>
  * <th class="title">Notes</th>
  * </tr>
  * <tr>
  * <td>iDigi connector Base usage</td>
  * <td>2436</td>
  * <td>2436</td>
- * <td>3196</td>
- * <td>3196</td>
- * <td>Memory usage for internal state machines, infrastructure and communication buffers</td>
+ * <td>Memory usage for internal state machines, infrastructure and communication buffers.
+ *     Note when including @endhtmlonly @ref IDIGI_RCI_SERVICE , an additional 760 bytes is allocated.
+ *     When adding the @ref IDIGI_FILE_SYSTEM, an additional 48 + @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH
+ *     @htmlonly is allocated.  </td>
  * </tr>
  * <tr>
  * <td>With @endhtmlonly @ref IDIGI_FIRMWARE_SERVICE @htmlonly enabled</td>
- * <td>104</td>
- * <td>104</td>
  * <td>104</td>
  * <td>104</td>
  * <td></td>
@@ -202,16 +199,12 @@
  * <td>With @endhtmlonly @ref IDIGI_DATA_SERVICE @htmlonly enabled</td>
  * <td>100 + 3372*n</td>
  * <td>100 + 108*n</td>
- * <td>100 + 3372*n</td>
- * <td>100 + 108*n</td>
  * <td>Where n is the maximum number of simultaneous message transactions, defined in the @endhtmlonly @ref IDIGI_MSG_MAX_TRANSACTION @htmlonly </td>
  * </tr>
  * <tr>
  * <td>Total</td>
  * <td>6012</td>
  * <td>2748</td>
- * <td>6772</td>
- * <td>3508</td>
  * <td>Assumes both @endhtmlonly @ref IDIGI_FIRMWARE_SERVICE and @ref IDIGI_DATA_SERVICE @htmlonly enabled, with n=1 (one data service message transaction maximum)</td>
  * </tr>
  * </table>
