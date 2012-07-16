@@ -113,7 +113,7 @@ malloc_tests = {'malloc_test'     : ('test_malloc.py',)
 malloc_test  = TestType('malloc_test',  'dvt/samples', 
                        'dvt/cases/malloc_tests', malloc_tests)
 
-timing_tests = {'ic_timing'     : ('test_ic_timing.py') 
+timing_tests = {'ic_timing'     : ('test_ic_timing.py',) 
 }
 timing_test  = TestType('ic_timing',  'dvt/samples', 
                        'dvt/cases/ic_timing', timing_tests)
