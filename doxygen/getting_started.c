@@ -42,8 +42,10 @@
  *
  * @section step1 Step 1: Determine if your compiler is C89 or C99 compliant
  *
- * The iDigi connector is ANSI X3.159-1989 (ANSI C89) and ISO/IEC 9899:1999 (ANSI C99) compliant.  If your compiler is ANSI C89 or C99 compliant and you are 
- * running on a 32-bit processor you can skip to the next section.  
+ * The iDigi connector is ANSI X3.159-1989 (ANSI C89) and ISO/IEC 9899:1999 (ANSI C99) compliant.  If
+ * your compiler is ANSI C89 or C99 compliant and you are running on a 32-bit processor you can skip
+ * to the next section.  (Note the @ref IDIGI_RCI_SERVICE "Remote Configuration" feature requires
+ * ANSI C99.)
  *
  * If your compiler is not ANSI C89 or C99 compliant, you will have to review (and edit) public/include/idigi_types.h 
  * to adjust the data types @ref uint8_t, @ref uint16_t, @ref uint32_t.  
