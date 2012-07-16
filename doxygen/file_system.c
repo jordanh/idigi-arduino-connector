@@ -134,7 +134,7 @@
  *   <td>request_data</td>
  *   <td> [IN] pointer to @endhtmlonly @ref idigi_file_open_request_t "idigi_file_open_request_t" @htmlonly structure where:
  *     <ul>
- *       <li><b><i>path</i></b> is the file path to a NUL-terminated string (with maximum string length of @endhtmlonly @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly).</li>
+ *       <li><b><i>path</i></b> is the file path to a null-terminated string (with maximum string length of @endhtmlonly @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly).</li>
  *       <li><b><i>oflag</i></b> is the bitwise-inclusive OR of @endhtmlonly @ref file_open_flag_t @htmlonly.</li>
  *     </ul>
  *   </td>
@@ -757,7 +757,7 @@
  * <tr>
  * <th>request_data</th>
  * <td> [IN] pointer to @endhtmlonly @ref idigi_file_path_request_t "idigi_file_path_request_t" @htmlonly structure:
- *   <ul><li><b><i>path</i></b> - File path is a NUL-terminated string.
+ *   <ul><li><b><i>path</i></b> - File path is a null-terminated string.
  *                          See @endhtmlonly @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly.</li></ul>
  * </td></tr>
  * <tr>
@@ -860,7 +860,7 @@
  * <tr>
  * <th>request_data</th>
  * <td> [IN] pointer to @endhtmlonly @ref idigi_file_path_request_t "idigi_file_path_request_t" @htmlonly structure:
- *   <ul><li><b><i>path</i></b> - File path is a NUL-terminated string.
+ *   <ul><li><b><i>path</i></b> - File path is a null-terminated string.
  *                          See @endhtmlonly @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly.</li></ul>
  * </td></tr>
  * <tr>
@@ -1004,7 +1004,7 @@
  *   <li><b><i>error</i></b> - [OUT] Pointer to a @endhtmlonly @ref idigi_file_error_data_t "idigi_file_error_data_t" @htmlonly structure,
  *                                          used in case of an error.</li>
  *   <li><b><i>data_ptr</i></b> - Pointer to memory where the callback writes the directory entry name,
- *                               a NUL-terminated string.</li>
+ *                               a null-terminated string.</li>
  *   <li><b><i>size_in_bytes</i></b> - [IN] Size of the memory buffer. [OUT] Length of the ditectory entry name,
  *                                      including ending '\0'. 0 if no more directory entries exist.</li></ul>
  * </td></tr>
@@ -1248,7 +1248,7 @@
  * <tr>
  * <th>request_data</th>
  * <td> [IN] pointer to @endhtmlonly @ref idigi_file_stat_request_t "idigi_file_stat_request_t" @htmlonly structure:
- *   <ul><li><b><i>path</i></b> - File path is a NUL-terminated string.
+ *   <ul><li><b><i>path</i></b> - File path is a null-terminated string.
  *                          See @endhtmlonly @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly.</li>
  *   <li><b><i>hash_alg</i></b> - Suggested hash algorithm of @endhtmlonly @ref idigi_file_hash_algorithm_t "idigi_file_hash_algorithm_t" 
  *                                @htmlonly type.</li></ul>
@@ -1387,7 +1387,7 @@
  * <tr>
  * <th>request_data</th>
  * <td> [IN] pointer to @endhtmlonly @ref idigi_file_stat_request_t "idigi_file_stat_request_t" @htmlonly structure:
- *   <ul><li><b><i>path</i></b> - File path is a NUL-terminated string.
+ *   <ul><li><b><i>path</i></b> - File path is a null-terminated string.
  *                          See @endhtmlonly @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly.</li>
  *   <li><b><i>hash_alg</i></b> - Hash algorithm @endhtmlonly @ref idigi_file_hash_md5 @htmlonly
  *                               or @endhtmlonly @ref idigi_file_hash_crc32 @htmlonly.</li></ul>
@@ -1489,7 +1489,7 @@
  *      <ul><li><b><i>- error_status</i></b> [IN] Error status of @endhtmlonly @ref idigi_file_error_status_t "idigi_file_error_status_t" @htmlonly type.</li>
  *      <li><b><i>- errnum</i></b> [IN] Used as an input for an error description string.</li></ul></li>
  *   <li><b><i>data_ptr</i></b> Pointer to memory where the callback writes an error description.
- *                               The error description is not a NUL-terminated string.</li>
+ *                               The error description is not a null-terminated string.</li>
  *   <li><b><i>size_in_bytes</i></b> [IN] Size of the memory buffer.<br></br>
  *                                   [OUT] Length of the error description string.</li></ul>
  * </td></tr>

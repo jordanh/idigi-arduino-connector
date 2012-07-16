@@ -584,7 +584,7 @@
  * @section phone_number Phone Number
  *
  * Return the phone number dialed for a WAN connection type. 
- * The phone number is a variable length, non NUL-terminated string.
+ * The phone number is a variable length, non null-terminated string.
  * If connection type is LAN, iDigi connector will not request phone number 
  *
  * This callback is trapped in application.c, in the @b Sample section of @ref AppStructure "Public Application Framework"

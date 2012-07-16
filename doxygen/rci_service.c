@@ -600,7 +600,7 @@
  *                  <dt><i>element_value</i></dt><dd> - the pointer to @endhtmlonly @ref idigi_element_value_t @htmlonly
  *                          where callback writes element data to if no error is encountered.
  *                      <dl><dt><i>string_value</i></dt>
- *                          <dd> - Callback returns a pointer to a NUL-terminated data string for the following types:
+ *                          <dd> - Callback returns a pointer to a null-terminated data string for the following types:
  *                              <ul> <li>@endhtmlonly @ref idigi_element_type_string @htmlonly</li>
  *                                   <li>@endhtmlonly @ref idigi_element_type_multiline_string @htmlonly</li>
  *                                   <li>@endhtmlonly @ref idigi_element_type_password @htmlonly</li>

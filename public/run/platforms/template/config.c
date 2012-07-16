@@ -209,7 +209,7 @@ static idigi_callback_status_t app_get_device_type(char const ** type, size_t * 
 /**
  * @brief   Get the iDigi server URL
  *
- * This routine assigns a pointer to the ASCII NUL-terminated string of the iDigi
+ * This routine assigns a pointer to the ASCII null-terminated string of the iDigi
  * Device Cloud FQDN, this is typically developer.idig.com.
  *
  * @param [out] url  Pointer to memory containing the URL
@@ -294,7 +294,7 @@ static idigi_callback_status_t app_get_link_speed(uint32_t const ** speed, size_
  * @brief   Get the WAN phone number
  *
  * This routine assigns the phone number dialed for WAN connection type,
- * including any dialing prefixes. It's a variable length, non NUL-terminated string.
+ * including any dialing prefixes. It's a variable length, non null-terminated string.
  * If connection type is LAN, iDigi Connector will not request phone number.
  *
  * @param [out] number  Pointer to memory containing the phone number

@@ -109,7 +109,7 @@ typedef struct idigi_connector_data_t
  * This function needs to determine if the target and the data associated with that target is valid.
  * If both are valid, this function should take the appropriate actions.
  *
- * @param target       NUL-terminated device request target name
+ * @param target       null-terminated device request target name
  * @param request_data pointer to the request info, which contain requested data, data length,
  *                     flag to indicate last request data, connector error if any,
  *                     and application context. The value updated in the application context
@@ -167,7 +167,7 @@ typedef idigi_app_error_t (* idigi_device_request_callback_t)(char const * const
  * response_data based on that result.  The Application needs to check the error value in the
  * response_data before returning the response.
  *
- * @param target        NUL-terminated target name
+ * @param target        null-terminated target name
  * @param response_data pointer to the response info, which contain pointer to a buffer where user
  *                      can write the response, maximum buffer length, flag to indicate last response
  *                      data, connector error if any and the application context provided in the
@@ -250,10 +250,10 @@ idigi_connector_error_t idigi_register_device_request_callbacks(idigi_device_req
  * content-type, data to be written to the file, length of the data and flags.  The flags are used to specify how the data
  * will be written to the file.  Note, this is a network blocking call.
  *
- * @param path NUL-terminated file path where user wants to store the data on the iDigi Device Cloud
+ * @param path null-terminated file path where user wants to store the data on the iDigi Device Cloud
  * @param device_data Will contain pointer to application data, data length in bytes, @ref IDIGI_FLAG_OVERWRITE_DATA "flags" to indicate
  *                    whether to overwrite, append or archive the data and application context (will be returned in subsequent callbacks)
- * @param content_type NUL-terminated content type (text/plain, text/xml, application/json, etc). Pass NULL to let the iDigi Device Cloud determine
+ * @param content_type null-terminated content type (text/plain, text/xml, application/json, etc). Pass NULL to let the iDigi Device Cloud determine
  *                     the type based on the file extension. In that case unsupported extensions will be treated as a binary data.
  *
  * @retval idigi_connector_success success

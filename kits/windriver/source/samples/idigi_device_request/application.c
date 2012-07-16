@@ -64,7 +64,7 @@ static void idigi_status(idigi_connector_error_t const status, char const * cons
  *
  * Called when data is received from the iDigi device cloud.
  *
- * @param target       NUL-terminated device request target 
+ * @param target       null-terminated device request target 
  *                     name.
  * @param request_data pointer to the request info, which contain requested data, data length,
  *                     flag to indicate last request data, connector error if any,
@@ -119,7 +119,7 @@ error:
  * response_data based on that result.  The Application needs to check the error value in the
  * response_data before returning the response. 
  *
- * @param target        NUL-terminated target name
+ * @param target        null-terminated target name
  * @param response_data pointer to the response info, which contain pointer to a buffer where user
  *                      can write the response, maximum buffer length, flag to indicate last response
  *                      data, connector error if any and the application context provided in the
