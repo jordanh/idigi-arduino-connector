@@ -1,9 +1,26 @@
-                      Release Notes for 40003007_C
-                     iDigi Integration Kit vVERSION
-                           _RELEASE_DATE_ 
+                      Release Notes for 40003007_E
+                          iDigi Connector vVERSION
+                             _RELEASE_DATE_ 
 
 ENHANCEMENTS
 
+    v1.2
+     
+        Support for Remote configuration (using the rci_request payload mechanism
+        within the send_message operation) has been added.  This allows iDigi Connector
+        applications to develop configurations that can be remotely managed (read/write) 
+        through iDigi Manager Pro or a web services client.
+        
+        Support for Remote File Systems (using the file_system operation) has 
+        been added.  This allows remotely connected devices to easily connect
+        to standard file system commands (i.e., open, close, read, write, stat) 
+        and have the file system contents displayed through iDigi Manager Pro or 
+        through a web services client. 
+        
+        Additional examples demonstrating secure connections using OpenSSL.  This 
+        allows sensitive applications to easily include greater levels of network 
+        security.  
+        
     v1.1
 
         Added support for device requests from the iDigi device cloud, the IIK
@@ -42,4 +59,8 @@ KNOWN ISSUES
     
 BUG FIXES
 
-    None
+    v1.2
+     
+        Corrected all platforms to include handle unrecognized iDigi Callback 
+        cases with an idigi_callback_unrecognized return value.  This was missing 
+        in v1.1 and allows v1.2 applications to port correctly to v1.3.
