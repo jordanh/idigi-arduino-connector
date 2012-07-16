@@ -47,6 +47,7 @@ SAMPLE_PLATFORM_STEP_DIR = 'public/step/platforms/linux/'
 BUILD_TEST='dvt/cases/build_tests/test_build.py'
 
 MEMORY_USAGE_FILE = './dvt/memory_usage.txt'
+STACK_SIZE_FILE = './dvt/stacksize.html'
 
 DEVICE_ID_PROTOTYPE = '00000000-00000000-%sFF-FF%s'
 MAC_ADDR_PROTOTYPE = '%s:%s'
@@ -112,10 +113,19 @@ malloc_tests = {'malloc_test'     : ('test_malloc.py',)
 malloc_test  = TestType('malloc_test',  'dvt/samples', 
                        'dvt/cases/malloc_tests', malloc_tests)
 
-timing_tests = {'ic_timing'     : ('test_ic_timing.py',) 
+timing_tests = {'ic_timing'     : ('test_ic_timing.py') 
 }
 timing_test  = TestType('ic_timing',  'dvt/samples', 
                        'dvt/cases/ic_timing', timing_tests)
+
+stacksize_tests = {'stack_size'     : ('test_stack_size.py',
+                                       'test_stack_size_rci.py',
+                                       'test_stack_size_ds.py',
+                                       'test_stack_size_fw.py',
+                                       'test_stack_size_fs.py')
+}
+stacksize_test  = TestType('stack_size',  'dvt/samples', 
+                       'dvt/cases/stack_size', stacksize_tests)
 
 # Dictionary mapping Test Type name to it's instance.
 TESTS = dict((test.name,test) for test in [run_sample, step_sample,
@@ -126,7 +136,8 @@ SAMPLE_TESTS = dict((test.name,test) for test in [run_sample, step_sample])
 
 DVT_TESTS = dict((test.name,test) for test in [malloc_test,
                                            dvt_test, admin_test, 
-                                           keepalive_test, timing_test])
+                                           keepalive_test, timing_test,
+                                           stacksize_test])
 
 def generate_id(api):
     """
@@ -512,6 +523,10 @@ def main():
 
     # create empty memory usage file
     mem_usage_file = open(MEMORY_USAGE_FILE, 'w')
+    mem_usage_file.close()
+
+    # create empty stack usage file
+    mem_usage_file = open(STACK_SIZE_FILE, 'w')
     mem_usage_file.close()
 
     if args.configuration == 'default' or args.configuration == 'all':

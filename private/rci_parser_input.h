@@ -116,7 +116,8 @@ static idigi_bool_t rci_scan_formatted(char const * const input, char const * co
     va_list ap;
 
     va_start(ap, format);
-    error = idigi_bool(vsscanf(input, format, ap) != 1);
+    errno = 0;
+    error = idigi_bool((vsscanf(input, format, ap) != 1) || errno != 0);
     va_end(ap);
 
     return error;
@@ -238,25 +239,25 @@ static void rci_handle_content(rci_t * const rci)
 
 #if defined RCI_PARSER_USES_INT32
         case idigi_element_type_int32:
-            error = rci_scan_formatted(string_value, "%ld", &rci->shared.value.signed_integer_value);
+            error = rci_scan_formatted(string_value, "%" SCNd32, &rci->shared.value.signed_integer_value);
             break;
 #endif
 
 #if defined RCI_PARSER_USES_UINT32
         case idigi_element_type_uint32:
-            error = rci_scan_formatted(string_value, "%lu", &rci->shared.value.unsigned_integer_value);
+            error = rci_scan_formatted(string_value, "%" SCNu32, &rci->shared.value.unsigned_integer_value);
             break;
 #endif
 
 #if defined RCI_PARSER_USES_HEX32
         case idigi_element_type_hex32:
-            error = rci_scan_formatted(string_value, "%lx", &rci->shared.value.unsigned_integer_value);
+            error = rci_scan_formatted(string_value, "%" SCNx32, &rci->shared.value.unsigned_integer_value);
             break;
 #endif
 
 #if defined RCI_PARSER_USES_0XHEX
         case idigi_element_type_0xhex:
-            error = rci_scan_formatted(string_value, "0x%lx", &rci->shared.value.unsigned_integer_value);
+            error = rci_scan_formatted(string_value, "0x%" SCNx32, &rci->shared.value.unsigned_integer_value);
             break;
 #endif
 

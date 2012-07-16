@@ -17,6 +17,8 @@
 #define IDIGI_RCI_PARSER_INTERNAL_DATA
 #include "remote_config.h"
 
+#include <errno.h>
+
 #define RCI_NO_HINT             NULL
 #define INVALID_ID              UINT_MAX
 #define INVALID_INDEX           UINT_MAX

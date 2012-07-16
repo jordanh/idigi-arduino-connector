@@ -435,7 +435,7 @@ static void rci_generate_output(rci_t * const rci)
 #if defined RCI_PARSER_USES_INT32
             case idigi_element_type_int32:
             {
-                long value = (long)rci->shared.value.signed_integer_value;
+                long const value = (long)rci->shared.value.signed_integer_value;
                 overflow = rci_output_formatted(output, "%ld", value);
                 break;
             }
@@ -444,7 +444,7 @@ static void rci_generate_output(rci_t * const rci)
 #if defined RCI_PARSER_USES_UINT32
             case idigi_element_type_uint32:
             {
-                unsigned long value = (unsigned long)rci->shared.value.unsigned_integer_value;
+                unsigned long const value = (unsigned long)rci->shared.value.unsigned_integer_value;
                 overflow = rci_output_formatted(output, "%lu", value);
                 break;
             }
@@ -453,7 +453,7 @@ static void rci_generate_output(rci_t * const rci)
 #if defined RCI_PARSER_USES_HEX32
             case idigi_element_type_hex32:
             {
-                unsigned long value = (unsigned long)rci->shared.value.unsigned_integer_value;
+                unsigned long const value = (unsigned long)rci->shared.value.unsigned_integer_value;
                 overflow = rci_output_formatted(output, "%lx", value);
                 break;
             }
@@ -462,7 +462,7 @@ static void rci_generate_output(rci_t * const rci)
 #if defined RCI_PARSER_USES_0XHEX
             case idigi_element_type_0xhex:
             {
-                unsigned long value = (unsigned long)rci->shared.value.unsigned_integer_value;
+                unsigned long const value = (unsigned long)rci->shared.value.unsigned_integer_value;
                 overflow = rci_output_formatted(output, "0x%lx", value);
                 break;
             }

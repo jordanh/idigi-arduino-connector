@@ -109,7 +109,6 @@ static idigi_bool_t rci_action_session_lost(rci_t * const rci)
         ASSERT(success); UNUSED_VARIABLE(success);
     }
 
-    rci->service_data = NULL;
     rci->status = rci_status_complete;
 
     return idigi_false;

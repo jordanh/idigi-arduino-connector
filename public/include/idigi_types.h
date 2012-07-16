@@ -40,6 +40,7 @@
 
 #if defined IDIGI_HAVE_STDINT_HEADER
   #include <stdint.h>
+#include <inttypes.h>
 #else
 /**
 * @defgroup user_types User Defined C types
@@ -92,7 +93,20 @@
 #define SIZE_MAX  UINT32_MAX
 #endif
 
+#ifndef SCNd32
+#define SCNd32 "ld"
 #endif
+
+#ifndef SCNu32
+#define SCNu32 "lu"
+#endif
+
+#ifndef SCNx32
+#define SCNx32 "lx"
+#endif
+
+#endif
+
 /**
 * @defgroup idigi_network_handle_t Network Handle
 * @{
