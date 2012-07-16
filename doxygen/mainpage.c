@@ -186,25 +186,56 @@
  * </tr>
  * <tr>
  * <td>With @endhtmlonly @ref IDIGI_FIRMWARE_SERVICE @htmlonly enabled</td>
- * <td>108</td>
- * <td>108</td>
+ * <td>104</td>
+ * <td>104</td>
  * <td></td>
  * </tr>
  * <tr>
  * <td>With @endhtmlonly @ref IDIGI_DATA_SERVICE @htmlonly enabled</td>
- * <td>92 + 3320*n</td>
- * <td>92 + 56*n</td>
+ * <td>100 + 3372*n</td>
+ * <td>100 + 108*n</td>
  * <td>Where n is the maximum number of simultaneous message transactions, defined in the @endhtmlonly @ref IDIGI_MSG_MAX_TRANSACTION @htmlonly </td>
  * </tr>
  * <tr>
  * <td>Total</td>
- * <td>5920</td>
- * <td>2656</td>
+ * <td>6012</td>
+ * <td>2748</td>
  * <td>Assumes both @endhtmlonly @ref IDIGI_FIRMWARE_SERVICE and @ref IDIGI_FIRMWARE_SERVICE @htmlonly enabled, with n=1 (one data service message transaction maximum)</td>
  * </tr>
  * </table>
  * @endhtmlonly
- *  
+ *
+ * @htmlonly
+ * <br>
+ * <table class="apitable">
+ * <tr>
+ * <th class="title">Description</th>
+ * <th class="title">IDIGI_COMPRESSION disabled</th>
+ * <th class="title">Notes</th>
+ * </tr>
+ * <tr>
+ * <td>iDigi connector Base usage</td>
+ * <td>2436</td>
+ * <td>Memory usage for internal state machines, infrastructure and communication buffers</td>
+ * </tr>
+ * <tr>
+ * <td>With @endhtmlonly @ref IDIGI_FIRMWARE_SERVICE @htmlonly enabled</td>
+ * <td>104</td>
+ * <td></td>
+ * </tr>
+ * <tr>
+ * <td>With @endhtmlonly @ref IDIGI_RCI_SERVICE @htmlonly enabled</td>
+ * <td>100 + 660</td>
+ * <td>Only one simultaneous message transaction is supported</td>
+ * </tr>
+ * <tr>
+ * <td>Total</td>
+ * <td>3300</td>
+ * <td>Assumes both @endhtmlonly @ref IDIGI_FIRMWARE_SERVICE and @ref IDIGI_FIRMWARE_SERVICE @htmlonly enabled, with n=1 (one data service message transaction maximum)</td>
+ * </tr>
+ * </table>
+ * @endhtmlonly
+ *
  * @subsection StackRequirements Program Stack Usage 
  * The following program stack usage was observed using gcc 4.2.0 compiled for a 32-bit ARM9 TDMI architecture.  
  *
