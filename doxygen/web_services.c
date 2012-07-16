@@ -53,9 +53,6 @@
  * To learn more about iDigi Web Services, see Chapter 5 SCI (Server Command Interface) in the
  * @htmlonly <a href="http://ftp1.digi.com/support/documentation/90002008_F.pdf">iDigi Web Services Programming Guide</a>@endhtmlonly.
  *
- * Additional information on the iDigi Web Services refer to the 'iDigi Web Services Programming Guide' which can be accessed
- * from the iDigi Manager Pro via the 'Help & Downloads' > 'Dowloads' menu.
- *
  * @note To access this document you will have to login to iDigi
  *
  * @section Sample Web Services Applications
