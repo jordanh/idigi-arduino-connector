@@ -42,9 +42,11 @@
  *
  * @section language Language Support
  *
- * The iDigi connector software provided is ANSI X3.159-1989 (ANSI C89) and ISO/IEC 9899:1999 (ANSI C99) compliant. The sample platforms 
- * provided use standard ANSI C calls which are available in most operating systems.  If you are running on a Linux i486 based platform 
- * and using the GNU toolchain the Linux platform and samples can be run without any modifications.
+ * The iDigi connector software provided is ANSI X3.159-1989 (ANSI C89) and ISO/IEC 9899:1999 (ANSI C99)
+ * compliant.  (Note the @ref IDIGI_RCI_SERVICE "Remote Configuration" feature requires ANSI C99.)   The
+ * sample platforms provided use standard ANSI C calls which are available in most operating systems.
+ * If you are running on a Linux i486 based platform and using the GNU toolchain the Linux platform
+ * and samples can be run without any major modifications.
  *
  * @section requirements Platform Memory Requirements
  * The iDigi connector requires both Flash and RAM.  Flash is needed to store instructions and variables.  RAM is needed for dynamic allocation
@@ -168,24 +170,30 @@
  * 
  * @subsection RAMRequirements Dynamic RAM Usage 
  * The following dynamic RAM usage was developed by monitoring the high-water mark during the
- * @ref idigi_os_malloc @ref idigi_callback_t "application-defined callback".  
+ * @ref idigi_os_malloc @ref idigi_callback_t "application-defined callback".
  * 
  * @htmlonly
  * <table class="apitable">
  * <tr>
  * <th class="title">Description</th>
- * <th class="title">IDIGI_COMPRESSION enabled</th>
- * <th class="title">IDIGI_COMPRESSION disabled</th>
+ * <th class="title">IDIGI_COMPRESSION enabled, IDIGI_RCI_SERVICE disabled</th>
+ * <th class="title">IDIGI_COMPRESSION and IDIGI_RCI_SERVICE disabled</th>
+ * <th class="title">IDIGI_COMPRESSION and IDIGI_RCI_SERVICE enabled</th>
+ * <th class="title">IDIGI_COMPRESSION disabled, IDIGI_RCI_SERVICE enabled</th>
  * <th class="title">Notes</th>
  * </tr>
  * <tr>
  * <td>iDigi connector Base usage</td>
  * <td>2436</td>
  * <td>2436</td>
+ * <td>3196</td>
+ * <td>3196</td>
  * <td>Memory usage for internal state machines, infrastructure and communication buffers</td>
  * </tr>
  * <tr>
  * <td>With @endhtmlonly @ref IDIGI_FIRMWARE_SERVICE @htmlonly enabled</td>
+ * <td>104</td>
+ * <td>104</td>
  * <td>104</td>
  * <td>104</td>
  * <td></td>
@@ -194,44 +202,17 @@
  * <td>With @endhtmlonly @ref IDIGI_DATA_SERVICE @htmlonly enabled</td>
  * <td>100 + 3372*n</td>
  * <td>100 + 108*n</td>
+ * <td>100 + 3372*n</td>
+ * <td>100 + 108*n</td>
  * <td>Where n is the maximum number of simultaneous message transactions, defined in the @endhtmlonly @ref IDIGI_MSG_MAX_TRANSACTION @htmlonly </td>
  * </tr>
  * <tr>
  * <td>Total</td>
  * <td>6012</td>
  * <td>2748</td>
- * <td>Assumes both @endhtmlonly @ref IDIGI_FIRMWARE_SERVICE and @ref IDIGI_FIRMWARE_SERVICE @htmlonly enabled, with n=1 (one data service message transaction maximum)</td>
- * </tr>
- * </table>
- * @endhtmlonly
- *
- * @htmlonly
- * <br>
- * <table class="apitable">
- * <tr>
- * <th class="title">Description</th>
- * <th class="title">IDIGI_COMPRESSION disabled</th>
- * <th class="title">Notes</th>
- * </tr>
- * <tr>
- * <td>iDigi connector Base usage</td>
- * <td>2436</td>
- * <td>Memory usage for internal state machines, infrastructure and communication buffers</td>
- * </tr>
- * <tr>
- * <td>With @endhtmlonly @ref IDIGI_FIRMWARE_SERVICE @htmlonly enabled</td>
- * <td>104</td>
- * <td></td>
- * </tr>
- * <tr>
- * <td>With @endhtmlonly @ref IDIGI_RCI_SERVICE @htmlonly enabled</td>
- * <td>100 + 660</td>
- * <td>Only one simultaneous message transaction is supported</td>
- * </tr>
- * <tr>
- * <td>Total</td>
- * <td>3300</td>
- * <td>Assumes both @endhtmlonly @ref IDIGI_FIRMWARE_SERVICE and @ref IDIGI_FIRMWARE_SERVICE @htmlonly enabled, with n=1 (one data service message transaction maximum)</td>
+ * <td>6772</td>
+ * <td>3508</td>
+ * <td>Assumes both @endhtmlonly @ref IDIGI_FIRMWARE_SERVICE and @ref IDIGI_DATA_SERVICE @htmlonly enabled, with n=1 (one data service message transaction maximum)</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -262,9 +243,10 @@
  * or a thread that accesses local configuration, or makes malloc/free OS calls, whichever is the worst case.
  * 
  * @section features iDigi connector Features
- *     @li Send data to and from a device using the iDigi Device Cloud
+ *     @li Send data to and from a device through the iDigi Device Cloud
  *     @li Update firmware on the device
  *     @li View and configure the device configurations
+ *     @li Access a device's File System
  *     @li Reboot a device
  *
  * @section communicating Communicating with your device
