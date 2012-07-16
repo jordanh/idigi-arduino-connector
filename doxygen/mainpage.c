@@ -181,13 +181,13 @@
  * <th class="title">Notes</th>
  * </tr>
  * <tr>
- * <td>iDigi connector Base usage</td>
+ * <td>iDigi Connector base usage</td>
  * <td>2436</td>
  * <td>2436</td>
  * <td>Memory usage for internal state machines, infrastructure and communication buffers.
- *     Note when including @endhtmlonly @ref IDIGI_RCI_SERVICE , an additional 760 bytes is allocated.
- *     When adding the @ref IDIGI_FILE_SYSTEM, an additional 48 + @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH
- *     @htmlonly is allocated.  </td>
+ *     <br></br>Note when including @endhtmlonly @ref IDIGI_RCI_SERVICE an additional 760 bytes is allocated.
+ *     When including @ref IDIGI_FILE_SYSTEM an additional 48 + @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH
+ *     @htmlonly bytes is allocated.  </td>
  * </tr>
  * <tr>
  * <td>With @endhtmlonly @ref IDIGI_FIRMWARE_SERVICE @htmlonly enabled</td>
