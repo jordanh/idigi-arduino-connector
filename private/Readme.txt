@@ -9,7 +9,8 @@ ENHANCEMENTS
         Support for Remote configuration (using the rci_request payload mechanism
         within the send_message operation) has been added.  This allows iDigi Connector
         applications to develop configurations that can be remotely managed (read/write) 
-        through iDigi Manager Pro or a web services client.
+        through iDigi Manager Pro or a web services client.  Note this feature 
+        requires a C99 Compiler.
         
         Support for Remote File Systems (using the file_system operation) has 
         been added.  This allows remotely connected devices to easily connect
