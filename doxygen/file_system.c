@@ -1191,14 +1191,14 @@
  * @li File size
  * @li Last modified time
  * @li The @ref IDIGI_FILE_IS_REG flag set, if the path represents a regular file.
- * @li Hash algorithm of @ref idigi_file_hash_algorithm_t type to be used for this file in a future
+ * @li Hash algorithm of @ref idigi_file_hash_algorithm_t "idigi_file_hash_algorithm_t" type to be used for this file in a future
  * @ref file_system_hash "idigi_file_system_hash" callback.
  *
  * When called for a directory, the callback returns the following information in the @ref idigi_file_stat_t "idigi_file_stat_t"
  * structure of the response:
  * @li Last modified time
  * @li The @ref IDIGI_FILE_IS_DIR flag set.
- * @li Hash algorithm of @ref idigi_file_hash_algorithm_t type to be used for each regular file in this directory
+ * @li Hash algorithm of @ref idigi_file_hash_algorithm_t "idigi_file_hash_algorithm_t" type to be used for each regular file in this directory
  * in a separate @ref file_system_hash "idigi_file_system_hash" callback. 
  *
  * Hash values support is optional.
@@ -1250,7 +1250,8 @@
  * <td> [IN] pointer to @endhtmlonly @ref idigi_file_stat_request_t "idigi_file_stat_request_t" @htmlonly structure:
  *   <ul><li><b><i>path</i></b> - File path is a NUL-terminated string.
  *                          See @endhtmlonly @ref IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH @htmlonly.</li>
- *   <li><b><i>hash_alg</i></b> - Suggested hash algorithm of @endhtmlonly @ref idigi_file_hash_algorithm_t @htmlonly type.</li></ul>
+ *   <li><b><i>hash_alg</i></b> - Suggested hash algorithm of @endhtmlonly @ref idigi_file_hash_algorithm_t "idigi_file_hash_algorithm_t" 
+ *                                @htmlonly type.</li></ul>
  * </td></tr>
  * <tr>
  * <td>request_length</td>
