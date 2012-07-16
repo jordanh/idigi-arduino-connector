@@ -1,4 +1,4 @@
- /*! @mainpage iDigi Connector Kit
+ /*! @mainpage iDigi Connector
  *
  * @htmlinclude nav.html
  *
