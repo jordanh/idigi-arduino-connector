@@ -203,6 +203,8 @@ static void rci_traverse_data(rci_t * const rci)
             content = '<';
             init_rcistr(&rci->shared.string.content, &content, 0);
             rci_handle_content(rci);
+
+            rci->traversal.state = rci_traversal_state_one_element_end;
         }
         else
         {
