@@ -81,7 +81,7 @@ fi
 if [ $TAG != "" ]
   then
     echo ">> Setting Version to ${TAG} in ${BASE_DIR}/private/Readme.txt"
-    sed -i 's/iDigi Integration Kit v\S*/iDigi Integration Kit v'"$TAG"'/g' "${BASE_DIR}/private/Readme.txt"
+    sed -i 's/iDigi Connector v\S*/iDigi Connector v'"$TAG"'/g' "${BASE_DIR}/private/Readme.txt"
 fi
 
 # Replace the date in Readme.txt to match today's date
