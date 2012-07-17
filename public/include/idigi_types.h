@@ -69,41 +69,87 @@
 */
    typedef int int32_t;
 
-/**
-* @}
-*/
-
 #ifndef UINT16_MAX
+/**
+*  Unsigned 16 bit maximum value.
+*/
 #define UINT16_MAX  0xFFFF
 #endif
 
 #ifndef INT32_MIN
+/**
+*  Signed 32 bit minimum value.
+*/
 #define INT32_MIN (-2147483647 -1)
 #endif
 
 #ifndef INT32_MAX
+/**
+*  Signed 32 bit maximum value.
+*/
 #define INT32_MAX 2147483647
 #endif
 
 #ifndef UINT32_MAX
+/**
+*  Unsigned 32 bit maximum value.
+*/
 #define UINT32_MAX 4294967295U
 #endif
 
 #ifndef SIZE_MAX
+/**
+*  size_t maximum value.
+*/
 #define SIZE_MAX  UINT32_MAX
 #endif
 
 #ifndef SCNd32
+/**
+*  Scan format specifier for signed 32 bit value.
+*/
 #define SCNd32 "ld"
 #endif
 
 #ifndef SCNu32
+/**
+*  Scan format specifier for unsigned 32 bit value.
+*/
 #define SCNu32 "lu"
 #endif
 
 #ifndef SCNx32
+/**
+*  Scan format specifier for 32 bit hex value.
+*/
 #define SCNx32 "lx"
 #endif
+
+#ifndef PRId32
+/**
+*  Print format specifier for signed 32 bit value.
+*/
+#define PRId32 "ld"
+#endif
+
+#ifndef PRIu32
+/**
+*  Print format specifier for unsigned 32 bit value.
+*/
+#define PRIu32 "lu"
+#endif
+
+#ifndef PRIx32
+/**
+*  Print format specifier for 32 bit hex value.
+*/
+#define PRIx32 "lx"
+#endif
+
+/**
+* @}
+*/
+
 
 #endif
 

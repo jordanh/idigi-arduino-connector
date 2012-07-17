@@ -272,7 +272,6 @@ static idigi_callback_status_t process_device_request(idigi_data_service_msg_req
                 response_data->message_status = idigi_msg_error_memory;
                 goto done;
             }
-            APP_DEBUG("Device Request: %s (%d)\n", server_device_request->target, target_length);
             memcpy(client_device_request->target, server_device_request->target, target_length);
             client_device_request->target[target_length] = '\0';
         }

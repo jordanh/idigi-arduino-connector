@@ -434,38 +434,26 @@ static void rci_generate_output(rci_t * const rci)
 
 #if defined RCI_PARSER_USES_INT32
             case idigi_element_type_int32:
-            {
-                long const value = (long)rci->shared.value.signed_integer_value;
-                overflow = rci_output_formatted(output, "%ld", value);
+                overflow = rci_output_formatted(output, "%" PRId32, rci->shared.value.signed_integer_value);
                 break;
-            }
 #endif
 
 #if defined RCI_PARSER_USES_UINT32
             case idigi_element_type_uint32:
-            {
-                unsigned long const value = (unsigned long)rci->shared.value.unsigned_integer_value;
-                overflow = rci_output_formatted(output, "%lu", value);
+                overflow = rci_output_formatted(output, "%" PRIu32, rci->shared.value.unsigned_integer_value);
                 break;
-            }
 #endif
 
 #if defined RCI_PARSER_USES_HEX32
             case idigi_element_type_hex32:
-            {
-                unsigned long const value = (unsigned long)rci->shared.value.unsigned_integer_value;
-                overflow = rci_output_formatted(output, "%lx", value);
+                overflow = rci_output_formatted(output, "%" PRIx32, rci->shared.value.unsigned_integer_value);
                 break;
-            }
 #endif
 
 #if defined RCI_PARSER_USES_0XHEX
             case idigi_element_type_0xhex:
-            {
-                unsigned long const value = (unsigned long)rci->shared.value.unsigned_integer_value;
-                overflow = rci_output_formatted(output, "0x%lx", value);
+                overflow = rci_output_formatted(output, "0x%" PRIx32, rci->shared.value.unsigned_integer_value);
                 break;
-            }
 #endif
 
 #if defined RCI_PARSER_USES_FLOAT
