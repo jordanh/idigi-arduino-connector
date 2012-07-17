@@ -48,11 +48,28 @@
  * ANSI C99.)
  *
  * If your compiler is not ANSI C89 or C99 compliant, you will have to review (and edit) public/include/idigi_types.h 
- * to adjust the data types @ref uint8_t, @ref uint16_t, @ref uint32_t.  
+ * to adjust the data types @ref uint8_t, @ref uint16_t, @ref uint32_t, minimum and maxinum values 
+ * and format specifiers. 
  *
+ * -# Data types:
  *  @li @ref uint8_t
  *  @li @ref uint16_t
  *  @li @ref uint32_t
+ *
+ * -# Minimum and maximum values:
+ *  @li @ref UINT16_MAX
+ *  @li @ref INT32_MIN
+ *  @li @ref INT32_MAX
+ *  @li @ref UINT32_MAX
+ *  @li @ref SIZE_MAX
+ *
+ * -# Format specifiers:
+ *  @li @ref SCNd32
+ *  @li @ref SCNu32
+ *  @li @ref SCNx32
+ *  @li @ref PRNd32
+ *  @li @ref PRNu32
+ *  @li @ref PRNx32
  *
  * Note by default these are defined for a 32-bit machine.
  *  
