@@ -55,8 +55,13 @@ static void rci_buffer_write(rci_buffer_t const * const buffer, int const value)
     *(buffer->current) = value;
 }
 
-static idigi_bool_t ptr_in_buffer(rci_buffer_t const * const buffer, char const * const pointer)
+static idigi_bool_t ptr_in_range(void const * const pointer, void const * const start, void const * const end)
 {
-    return idigi_bool((pointer >= buffer->start) && (pointer < buffer->end));
+    return idigi_bool((pointer >= start) && (pointer < end));
+}
+
+static idigi_bool_t ptr_in_buffer(char const * const pointer, rci_buffer_t const * const buffer)
+{
+    return ptr_in_range(pointer, buffer->start, buffer->end);
 }
 

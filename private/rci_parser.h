@@ -82,7 +82,10 @@ static idigi_bool_t rci_action_session_active(rci_t * const rci)
         case rci_status_more_input:
         {
             rci_set_buffer(&rci->buffer.input, &rci->service_data->input);
-            /* TODO: what about destination? */
+            if (!destination_in_storage(rci))
+            {
+                rci->input.destination = rci_buffer_position(&rci->buffer.input);
+            }
             rci->status = rci_status_busy;
             break;
         }

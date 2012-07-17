@@ -682,16 +682,8 @@ static void rci_parse_input_greater_than_sign(rci_t * const rci)
         break;
 
     case rci_input_state_element_param_name:
-        /* TODO: Why is comment here? */
-        if (cstr_equals_rcistr(RCI_COMMENT, &rci->shared.string.tag))
-        {
-            rci->input.state = rci_input_state_comment;
-        }
-        else
-        {
-            rci_handle_start_tag(rci);
-            rci->input.state = rci_input_state_content_first;
-        }
+        rci_handle_start_tag(rci);
+        rci->input.state = rci_input_state_content_first;
         break;
 
     case rci_input_state_element_end_name:
@@ -708,7 +700,6 @@ static void rci_parse_input_greater_than_sign(rci_t * const rci)
     case rci_input_state_comment:
         if (rci->input.hyphens == 2)
         {
-            /* TODO: base state on previous state */
             rci->input.state = rci_input_state_content_first;
         }
         rci->input.hyphens = 0;
@@ -841,7 +832,7 @@ static void rci_parse_input_whitespace(rci_t * const rci)
     {
     case rci_input_state_element_start_name:
         end_rcistr(rci, &rci->shared.string.tag);
-        rci->input.state = rci_input_state_element_param_name;
+        rci->input.state = cstr_equals_rcistr(RCI_COMMENT, &rci->shared.string.tag) ? rci_input_state_comment : rci_input_state_element_param_name;
         break;
 
     case rci_input_state_element_param_name:
@@ -1002,6 +993,15 @@ static void rci_parse_input_other(rci_t * const rci)
     }
 }
 
+static idigi_bool_t destination_in_storage(rci_t const * const rci)
+{
+    char const * const storage_begin = rci->input.storage;
+    char const * const storage_end = storage_begin + sizeof rci->input.storage;
+
+    return ptr_in_range(rci->input.destination, storage_begin, storage_end);
+}
+
+
 static void rci_parse_input(rci_t * const rci)
 {
     rci_buffer_t * const input = &rci->buffer.input;
@@ -1017,6 +1017,11 @@ static void rci_parse_input(rci_t * const rci)
         {
             rci_group_error(rci, response->error_id, response->element_data.error_hint);
             goto done;
+        }
+
+        if (destination_in_storage(rci))
+        {
+            rci->input.destination = rci_buffer_position(&rci->buffer.input);
         }
 
         {
@@ -1138,6 +1143,14 @@ static void rci_parse_input(rci_t * const rci)
                 *(rci->input.destination) = rci->input.character;
             }
             rci->input.destination++;
+            if (!ptr_in_buffer(rci->input.destination, &rci->buffer.input) && !destination_in_storage(rci))
+            {
+                size_t const storage_bytes = sizeof rci->input.storage;
+
+                idigi_debug_printf("Maximum content size exceeded while parsing - wanted %u, had %u\n", storage_bytes + 1, storage_bytes);
+                rci_global_error(rci, idigi_rci_error_bad_value, RCI_NO_HINT);
+                goto done;
+            }
         }
         rci_buffer_advance(input, 1);
 
@@ -1154,13 +1167,13 @@ static void rci_parse_input(rci_t * const rci)
             char const * const old_base = rcistr_data(&rci->shared.string.generic);
             char * const new_base = rci->input.storage;
 
-            if (ptr_in_buffer(&rci->buffer.input, old_base))
+            if (ptr_in_buffer(old_base, &rci->buffer.input))
             {
                 size_t const bytes = (rci->buffer.input.end - old_base) + 1;
 
                 if (bytes >= sizeof rci->input.storage)
                 {
-                    idigi_debug_printf("Maximum content size exceeded - wanted %u, had %y\n", bytes, sizeof rci->input.storage);
+                    idigi_debug_printf("Maximum content size exceeded while storing - wanted %u, had %u\n", bytes, sizeof rci->input.storage);
                     rci_global_error(rci, idigi_rci_error_parser_error, RCI_NO_HINT);
                     goto done;
                 }
