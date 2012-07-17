@@ -47,17 +47,28 @@
  * information defined above.
  *
  * # iDigi Manager Pro queries this system setting to display the information in root folder
+ * 
  * group setting system "System"
+ * 
  *   element description "Description" type string max 63
+ * 
  *   element contact "Contact" type string max 63
+ * 
  *   element location "Location" type string max 63
+ * 
  *   error invalid_length "Invalid Length"
+ * 
  *   error no_memory "Insufficient memory"
  *
  * @section device_type Device Type
- *
+ * 
+ *  The device type is an iso-8859-1 encoded string which identifies the device. This string should be chosen by the device manufacturer
+ *  as a name that uniquely identifies this model of device to the server. When the server finds two devices with
+ *  the same device type, it can infer that they are the same product and product-scoped data may be shared among
+ *  all devices with this device type. A device's type cannot be an empty string, nor contain only whitespace.
  *  If you modify the device type you must rerun the @ref rci_tool; this informs the iDigi Device Cloud
  *  that the name of the device has changed.  The default device type is "Digi Intel Linux Device".
+ * 
  *
  *
  * @htmlinclude terminate.html

@@ -41,7 +41,7 @@ static struct idigi_parameters_t
     uint8_t vendor_id[VENDOR_ID_LENGTH];
     uint8_t mac_addr[MAC_ADDR_LENGTH];
     char    server_url[MAX_URL_LENGTH];
-    char    device_name[MAX_DEVICE_NAME_LENGTH];
+    char    device_type[MAX_DEVICE_NAME_LENGTH];
 } idigi_params;
 
 /*
@@ -163,8 +163,8 @@ static int app_get_vendor_id(uint8_t ** id, size_t * size)
 static int app_get_device_type(char ** type, size_t * size)
 {
     /* Return pointer to device type. */
-    *type = (char *)idigi_params.device_name;
-    *size = strlen(idigi_params.device_name);
+    *type = (char *)idigi_params.device_type;
+    *size = strlen(idigi_params.device_type);
 
     return 0;
 }
@@ -433,8 +433,8 @@ static void init_parameters (struct idigi_parameters_t *parms)
 {
   memset(parms->vendor_id, 0, VENDOR_ID_LENGTH);
   memset(parms->mac_addr, 0, MAC_ADDR_LENGTH);
-  strncpy (parms->server_url, "developer.idigi.com", MAX_URL_LENGTH);
-  strncpy (parms->device_name, "WindRiver Linux Application", MAX_DEVICE_NAME_LENGTH);
+  strncpy(parms->server_url, "developer.idigi.com", MAX_URL_LENGTH);
+  strncpy(parms->device_type, "Digi Intel Linux Device", MAX_DEVICE_NAME_LENGTH);
 }
 
 static char *trim(char *s)
@@ -559,8 +559,8 @@ static void parse_config(struct idigi_parameters_t *parms)
     }
     else if (strcmp(name, "device_type")==0)
     {
-      strncpy (parms->device_name, value, MAX_DEVICE_NAME_LENGTH);
-      APP_DEBUG("config: device name [%s]\n", parms->device_name);
+      strncpy (parms->device_type, value, MAX_DEVICE_NAME_LENGTH);
+      APP_DEBUG("config: device type [%s]\n", parms->device_type);
     }
     else
     {

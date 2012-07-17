@@ -105,7 +105,8 @@ typedef struct idigi_connector_data_t
  * @b Include: idigi_connector.h
  */
 /**
- *
+ *  
+ * This routine is called when a device request is received. 
  * This function needs to determine if the target and the data associated with that target is valid.
  * If both are valid, this function should take the appropriate actions.
  *
@@ -121,10 +122,12 @@ typedef struct idigi_connector_data_t
  * @retval idigi_app_resource_error failed to allocate required resource
  *
  * Example Usage:
- * @code
- *    #define BUFFER_SIZE 256
- *    static char buffer[BUFFER_SIZE];
- *    idigi_app_error_t status=idigi_app_invalid_parameter;
+ * @code 
+ *  
+ * idigi_app_error_t device_request_callback(char const * const target, idigi_connector_data_t * const request_data)
+ * {
+ *   static char buffer[BUFFER_SIZE];
+ *   idigi_app_error_t status=idigi_app_invalid_parameter;
  *
  *    if (request_data->error != idigi_connector_success)
  *    {
@@ -134,6 +137,7 @@ typedef struct idigi_connector_data_t
  *
  *    if (request_data->length_in_bytes < sizeof buffer)
  *    {
+ *        // Copy the request reveived into our own local buffer 
  *        memcpy(buffer, request_data->data_ptr, request_data->length_in_bytes);
  *        buffer[request_data->length_in_bytes] = 0;
  *    }
@@ -148,8 +152,12 @@ typedef struct idigi_connector_data_t
  *
  * error:
  *    return status;
+ * }
  * @endcode
- *
+ *  
+ *  
+ * @see idigi_connector_data_t
+ * @see idigi_app_error_t
  */
 typedef idigi_app_error_t (* idigi_device_request_callback_t)(char const * const target, idigi_connector_data_t * const request_data);
 /**
@@ -198,7 +206,8 @@ typedef idigi_app_error_t (* idigi_device_request_callback_t)(char const * const
  * error:
  *    return bytes_to_copy;
  * @endcode
- *
+ *  
+ * @see  idigi_connector_data_t
  */
 typedef size_t (* idigi_device_response_callback_t)(char const * const target, idigi_connector_data_t * const response_data);
 /**
@@ -233,6 +242,10 @@ typedef size_t (* idigi_device_response_callback_t)(char const * const target, i
  *        APP_DEBUG("idigi_register_device_request_callbacks failed [%d]\n", ret);
  *    }
  * @endcode 
+ *  
+ * @see idigi_device_request_callback_t
+ * @see idigi_device_response_callback_t
+ * @see idigi_connector_error_t
  */
 idigi_connector_error_t idigi_register_device_request_callbacks(idigi_device_request_callback_t request_callback, idigi_device_response_callback_t response_callback);
 /**
@@ -263,11 +276,13 @@ idigi_connector_error_t idigi_register_device_request_callbacks(idigi_device_req
  * Example Usage:
  * @code
  *    idigi_connector_error_t ret;
- *    char content_type[] = "text/plain";
- *    char path[] = 'test.txt";
- *    char buffer[] = "This is a test";
+ *    char content_type[] = "text/plain"; 
+ *    char path[] = 'test.txt";             // Name of the file to be created in the cloud
+ *    char buffer[] = "This is a test";     // Data to be written to the file
  *    unsigned int flags = IDIGI_FLAG_OVERWRITE_DATA;
- *
+ *  
+ *    // This is called in a loop, an idigi_connector_init_error error may be returned if the initialization is not
+ *    // complete
  *    do
  *    {
  *        static idigi_connector_data_t device_data = {0};
@@ -275,7 +290,8 @@ idigi_connector_error_t idigi_register_device_request_callbacks(idigi_device_req
  *        device_data_data.data_ptr = buffer;
  *        device_data_data.length_in_bytes = strlen(buffer);
  *        device_data_data.flags = flags;
- *
+ *  
+ *        // Call the API to write the file
  *        ret = idigi_send_data(path, &device_data, content_type);
  *        if (ret == idigi_connector_init_error)
  *        {
@@ -284,7 +300,10 @@ idigi_connector_error_t idigi_register_device_request_callbacks(idigi_device_req
  *        }
  *
  *    } while (ret == idigi_connector_init_error);
- * @endcode
+ * @endcode 
+ *  
+ *  
+ * @see idigi_connector_error_t
  */
 idigi_connector_error_t idigi_send_data(char const * const path, idigi_connector_data_t * const device_data, char const * const content_type);
 /**
@@ -320,7 +339,7 @@ typedef void (* idigi_status_callback_t)(idigi_connector_error_t const status, c
  */
 /** 
  *
- * This function will to try to start the iDigi connector.  Any error during init may
+ * This function will to try to start the iDigi connector.  Any error during initialization may
  * invoke the provided callback routine.  
  *  
  * @param status_callback to provide asynchronous status from iDigi connector
@@ -335,7 +354,7 @@ typedef void (* idigi_status_callback_t)(idigi_connector_error_t const status, c
  * @endcode
  *  
  * @see idigi_status_callback_t
- *
+ * @see idigi_connector_error_t
  */
 idigi_connector_error_t idigi_connector_start(idigi_status_callback_t status_callback);
 /**

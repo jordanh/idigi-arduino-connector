@@ -9,10 +9,7 @@
  *
  * @section device_request_description Code Flow
  *
- * The routine main() calls idigi_connector_start(), this will initiate the connection process to the iDigi cloud, if any errors are
- * encountered they are reported to stdout and will show up in the workbench console window.
- * 
- * Next, main() calls the API idigi_send_data(), this initiates the file transfer to the
+ * The routine main() calls the API idigi_send_data(), this initiates the file transfer to the
  * iDigi Device cloud.  The data structure idigi_connector_data_t contains the information about the file
  * which is transfered, including the length and potiner to the data,the flag field is used to
  * indicate that the data is to be appended to an existing file, in this case we create a new file.

@@ -12,7 +12,8 @@
  * set the value of a variable. It is the applications responsibility to parse
  * and evaluate the device request.
  * 
- *  The functions available in the iDigi connector API are listed below:
+ *  The functions available in the iDigi connector API are listed below, click on
+ *  the name of the routine for more details.
  *
  * @htmlonly
  * <table class="apitable">
@@ -84,6 +85,10 @@
  *
  * The function idigi_register_device_request_callbacks() must be called in order to receive and to respond to device requests
  * from the iDigi Device Cloud.  You must register a device_request_callback and a device_response_callback.
+ * 
+ * Device requests are used to control and send messages to a device.  The iDigi Connector user can write a web services
+ * application to send device requests to the device; the application running on the device then interprets the
+ * incomming requests.
  *
  * @subsection device_request_callback Device Request Callback: device_request_callback() 
  *

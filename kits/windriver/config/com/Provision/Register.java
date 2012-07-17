@@ -20,6 +20,11 @@ public class Register {
     private final int BAD_REQUEST = 400;
     private final int INTERNAL_SERVER_ERROR = 500;
 
+    // Device information
+    private final String deviceType ="Digi Intel Linux Device";
+    private final long fwVersion=0x01000000;
+    private final String server_url ="developer.idigi.com";
+
     public Register(String MacAddress) {
 
         this.MacAddress = MacAddress;
@@ -42,7 +47,7 @@ public class Register {
     private String sendCloudData(String target, String method, String message) {
         String response = "";
         boolean error = false;
-        String cloud = "http://" + "developer.idigi.com" + target;
+        String cloud = "http://" + server_url + target;
         String credential = username + ":" + password;
         String encodedCredential = DatatypeConverter.printBase64Binary(credential.getBytes());
 
@@ -196,8 +201,8 @@ public class Register {
                             + String.format("# Unique device ID\n")
                             + String.format("mac_addr=%s \n\n", MacAddress)
                             + String.format("# Location of the iDigi server\n")
-                            + String.format("server_url=developer.idigi.com\n\n");
-                            + String.format("device_type=Digi Intel Linux Device\n\n");
+                            + String.format("server_url=%s\n\n", server_url)
+                            + String.format("device_type=%s \n\n", deviceType);
 
         headerWriter.write(config_string);
         headerWriter.close();
@@ -236,9 +241,9 @@ public class Register {
                                  "<error_descriptor id=\"1\" desc=\"Parser error\" /> <error_descriptor id=\"2\" desc=\"Bad XML\" /> "+
                                  "<error_descriptor id=\"3\" desc=\"Bad command\" /> <error_descriptor id=\"4\" desc=\"Invalid version\" /> </descriptor>;";
 
-            uploadDescriptor("query_setting", QUERY_SETTING);
-            uploadDescriptor("set_setting",   SET_SETTING);
-            uploadDescriptor("rci_request",   RCI_REQUEST);
+            uploadDescriptor("descriptor/query_setting", QUERY_SETTING);
+            uploadDescriptor("descriptor/set_setting",   SET_SETTING);
+            uploadDescriptor("descriptor",   RCI_REQUEST);
 
     }
 
@@ -251,8 +256,6 @@ public class Register {
     }
 
     private void uploadDescriptor(String descName, String buffer) {
-        String deviceType ="Digi Intel Linux Device";
-        long fwVersion=0x01000000;
 
         System.out.println("Uploading description:" + descName);
 

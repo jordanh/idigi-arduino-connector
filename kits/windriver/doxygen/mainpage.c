@@ -37,22 +37,22 @@
  *     @li Send data to and from a device using the iDigi Device Cloud
  *     @li Access the file system on the device
  *     @li Upload and download files to the device
- *     @li View and configure the device configurations
+ *     @li View and modify the device configuration
  *     @li Reboot the device
  *     @li SSL support
  *
  * @section communicating Communicating with your device over iDigi
  * 
  * All devices in the iDigi cloud are assigned a device ID, the device ID is derived from the MAC
- * address of your device. The value 0xFFFF is inserted in the MAC address to form the device
+ * address of the device. The value 0xFFFF is inserted in the MAC address to form the device
  * ID, and example is shown below.
  * 
  * Example MAC: 112233:445566
  * 
  * Device ID mapping: 00000000-00000000-112233FF-FF445566
  *
- * When you walk through the getting started procedure you will provision your device, this will
- * register your device with the iDigi device cloud and push up information about your device.
+ * When you walk through the @ref the_getting_started_process "getting started process" you will provision your device, this will
+ * register your device with the iDigi Device Cloud and push up information about your device.
  * 
  * @b Before @b you @b can @b communicate @b with @b iDigi @b your @b device @b must @b be @b provisioned.
  * 
@@ -68,13 +68,13 @@
  *
  * @section idigi_package iDigi in Wind River Linux
  *
- * The iDigi connector kit is provided as a source package (SRPM) in the Wind River Linux envirorment.
+ * The iDigi Connector Kit is provided as a source package (SRPM) in the Wind River Linux envirorment.
  * The library provided contains all the functions necessary to communicate with the iDigi device
- * cloud.  The library contains the API described in this document.  Samples are provided in the
- * Wind River Workbench which demonstrate how to use these API's.  The idigi package is provided
- * with the Wind River distrubution in the User space for the platform project.  The Wind River
+ * cloud.  The library contains the @ref api_overview "API" described in this document.  Samples are provided in the
+ * Wind River Workbench which demonstrate how to use these API's to communicate with the iDigi device cloud.  The idigi package is provided
+ * with the Wind River distrubution in the user space for the platform project.  The Wind River
  * Workbench is used to build, debug and run the iDigi Samples.  The @ref the_getting_started_process "getting started process"
- * walks you through using the Workbench and communicating with your Konton device.
+ * walks you through using the Workbench and communicating with your Kontron device.
  * 
  * The components of the idigi SRPM are
  * 
@@ -88,29 +88,28 @@
  * <tr>
  *   <td>libidigi.so</td>
  *   <td>/usr/lib</td>
- *   <td>iDigi connector Library (non debug) Library which implements the iDigi Connector API and contains all the functionality to communicate to the iDigi Cloud</td>
+ *   <td>iDigi connector library (non debug) which implements the iDigi Connector API and contains all the functionality to communicate to the iDigi Cloud</td>
  * </tr>
  * <tr>
  *   <td>libidigi_debug.so</td>
  *   <td>/usr/lib</td>
- *   <td>iDigi connector Library (non debug) Debug version of the library which implements the iDigi Connector API and contains all the functionality to communicate to the iDigi Cloud.
+ *   <td>iDigi connector debug library which implements the iDigi Connector API and contains all the functionality to communicate to the iDigi Cloud.
  *   This library has ASSERTS turned on and has debug messages sent to stdout </td>
  * </tr>
  * <tr>
  *   <td>idigi_connector.h</td>
  *   <td>/usr/include</td>
- *   <td>iDigi connector Library (non debug) Debug version of the library which implements the iDigi Connector API and contains all the functionality to communicate to the iDigi Cloud.
- *   This library has ASSERTS turned on and has debug messages sent to stdout </td>
+ *   <td>Contains the iDigi Connector @endhtmlonly @ref api_overview "API" @htmlonly </td>
  * </tr>
  * <tr>
  *   <td>idigi.conf</td>
  *   <td>/etc</td>
- *   <td>Default configuration file</td>
+ *   <td>Device configuration information</td>
  * </tr>
  * <tr>
  *   <td>idigi-ca-cert-public.crt</td>
  *   <td>/etc</td>
- *   <td>SSL certificate</td>
+ *   <td>SSL public CA certificate</td>
  * </tr>
  * </table>
  * @endhtmlonly
@@ -119,7 +118,7 @@
  * 
  * The iDigi connector library uses a secure SSL connection, the CA certificate idigi-ca-cert-public.crt is stored
  * in the /etc directory and is included in the idigi SRPM.  If the date on the device is incorrect an
- * error may be returned when validating the server certificate.  To set the time on the device use the date command, as
+ * error may be returned when validating the server certificate.  To set the date and time on the device use the date command, as
  * shown below:
  * 
  * @htmlonly date +%Y%m%d -s "20120601" (replace the string with the correct date) @endhtmlonly
@@ -192,7 +191,7 @@
  * @section the_getting_started_process Getting Started 
  * To get started, follow the steps of the <a href="/home/wruser/idigi/idigi.pdf">Getting Started Procedure</a>.
  * The getting started procedure will walk you through setting up your device and running a sample application.
- * Once you have completed the getting started procedure the continue to one of the samples.
+ * Once you have completed the getting started procedure then continue to run one of the samples.
  *
  * @htmlinclude terminate.html
  */

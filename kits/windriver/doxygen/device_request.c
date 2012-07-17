@@ -7,7 +7,7 @@
  * This sample demonstrates how to process data sent from the iDigi Server
  * using the @ref idigi_register_device_request_callbacks "device request callbacks".
  * Commands sent from the iDigi Cloud are used by this application to control
- * the status LED of the Kontron unit.  The status LED is located on top of the unit
+ * the status LEDs on the Kontron unit.  The status LED is located on top of the unit
  * next to the SIM slot.  You can use this sample as a starting point for adding
  * the ability to control your device.
  *
@@ -23,7 +23,7 @@
  * LED_ON or LED_OFF.  The routine device_request_callback() checks the command received against a
  * list of commands and calls the corresponding command handler routine.
  *
- * The callback device_response_callback is called by the iDigi connector library to get the response
+ * The callback device_response_callback() is called by the iDigi connector library to get the response
  * to the previous command.  If the command was received OK then the response "iDigi Connector device response OK\n"
  * is sent back to the iDigi cloud.
  *
