@@ -417,7 +417,7 @@ int main (void)
             }
         }
         close_stack_info_file();
-        usleep(1000);
+        usleep(1000000);
         /* continue and reconnect iDigi so python test will not fail */
     }
 
