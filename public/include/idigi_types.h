@@ -40,13 +40,13 @@
 
 #if defined IDIGI_HAVE_STDINT_HEADER
   #include <stdint.h>
-#include <inttypes.h>
+  #include <inttypes.h>
 #else
 /**
 * @defgroup user_types User Defined C types
 * If your compiler is C89 complaint these defines are used: you will need
 * to define them appropriately for your system.  If your compiler is C99 complaint
-* then the types from stdint.h are used.
+* then the types from stdint.h and inttypes.h are used.
 * @{
 */
 /**

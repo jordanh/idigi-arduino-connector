@@ -67,9 +67,9 @@
  *  @li @ref SCNd32
  *  @li @ref SCNu32
  *  @li @ref SCNx32
- *  @li @ref PRNd32
- *  @li @ref PRNu32
- *  @li @ref PRNx32
+ *  @li @ref PRId32
+ *  @li @ref PRIu32
+ *  @li @ref PRIx32
  *
  * Note by default these are defined for a 32-bit machine.
  *  
