@@ -49,8 +49,8 @@
  * 
  * The function idigi_connector_start() is called once at startup to initialize the iDigi connector.
  * The status callback function is passed as an argument.  The @ref idigi_status_callback_t 
- * "status_callback" is the callback used when there is any asynchronous error or reset message from
- * the cloud/connector. After returning this callback, the application can restart the iDigi connector
+ * "status_callback" is the callback used when there are asynchronous error messages from
+ * the iDigi Device Cloud. After returning this callback, the application can restart the iDigi connector
  * by calling idigi_connector_start().  The idigi_connector_start() function must be called before all
  * other iDigi connector APIs.
  *
@@ -88,7 +88,7 @@
  * 
  * Device requests are used to control and send messages to a device.  The iDigi Connector user can write a web services
  * application to send device requests to the device; the application running on the device then interprets the
- * incomming requests.
+ * incoming requests.
  *
  * @subsection device_request_callback Device Request Callback: device_request_callback() 
  *

@@ -4,21 +4,16 @@
  *
  * @section send_data_overview Overview
  *
- * This sample demonstrates how to send data sent to the iDigi Server
+ * This sample demonstrates how to send data to the iDigi Server
  * using the idigi_send_data() API. The data is stored as a file on the iDigi server.
  *
  * @section device_request_description Code Flow
  *
  * The routine main() calls the API idigi_send_data(), this initiates the file transfer to the
- * iDigi Device cloud.  The data structure idigi_connector_data_t contains the information about the file
- * which is transfered, including the length and potiner to the data,the flag field is used to
- * indicate that the data is to be appended to an existing file, in this case we create a new file.
- * The data is sent in a loop every 60 seconds.
+ * iDigi Device Cloud.  The path field contains the file name and the data structure idigi_connector_data_t contains information about the file
+ * which is transferred.  The routine idigi_send_data() is called in a loop which iterates every
+ * 60 seconds, each time overwriting the existing file on the iDigi Device Cloud.
  * 
- * The data transfered is stored in the file test.txt in the folder for the device.  This file can
- * be viewed from iDigi Manager Pro or retrieved using the python script get file which is described
- * below.
- *
  * @section send_data_build Building
  *
  *    1. Click on Wind River Workbench icon, this is used to build, debug and launch the idigi samples
@@ -65,6 +60,11 @@
  * 
  * @section web_gui Viewing results from the iDigi Device Cloud
  * 
+ * 
+ * The data transferred is stored in the file test.txt in the folder for the device.  This file can
+ * be viewed from iDigi Manager Pro or retrieved using the python script get file which is described
+ * below.
+ * 
  * To view the results for this sample login to the iDigi Device Cloud.
  * Once logged in click on the Data Services tab as shown below. Double click to the device folder.
  * 
@@ -91,11 +91,7 @@
  * python get_file.py <username> <password> <device_id>
  * @endcode
  *
- * @note The device_id must be in the long format, for example:
- * 
- *      python get_file.py username password 00000000-00000000-00b338ff-ff0002d8
- * 
- * where the MAC address of the device is 00:b3:38:00:02:d8
+ * @note The device_id must be in the long format, for example: python get_file.py username password 00000000-00000000-00b338ff-ff0002d8 where the MAC address of the device is 00:b3:38:00:02:d8
  *
  *
  * @htmlinclude terminate.html

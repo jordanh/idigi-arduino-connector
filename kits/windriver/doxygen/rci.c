@@ -9,14 +9,27 @@
  * remote command interface (RCI). 
  * 
  * In this version of the iDigi Connector Kit only minimal RCI support is provided. A default RCI configuration
- * is provided with the elements in the table below.  The user only needs to run the @ref rci_tool if the
+ * is provided with the elements in the table below.  The user must run the @ref rci_tool if the
  * any of the following are modified:
  *       -# @ref device_type
  *       -# iDigi server
  *       -# iDigi account
- *       -# Version number
+ *       -# @ref version_number
  * 
  * The syntax for running the rci tool can be found @ref rci_tool_usage "here".
+ * 
+ * An example of changing the device type is shown below, you would
+ * need to run the ConfigGenerator.jar tool which is located in /home/wruser/idigi.  In this example
+ * we change the name of the device to "My Device Type", we need to modify /etc/idigi.conf to match this
+ * and rerun the RCI configuration tool as shown below; a default config.rci is in the
+ * /home/wruser/idigi directory.  The tool generates an output header file, for this release
+ * the header file is not used.
+ * 
+ * java -jar ConfigGenerator.jar username:password "My Companies Device Type" 1.0.0.0 config.rci
+ * 
+ * @note The parameters passed to ConfigGenerator.jar must match the configuration file
+ * /etc/idigi.conf.
+ *
  * 
  * The following table describes the configuration items supported in this release.
  * 
@@ -41,7 +54,7 @@
  * </table>
  * @endhtmlonly
  *
- * @section remote_config_file Configuration File
+ * @section remote_config_file Remote Configuration File
  * 
  * The remote configuration file config.rci is provided in the /home/wruser/idigi directory, this contains the configruation
  * information defined above.
@@ -68,6 +81,12 @@
  *  all devices with this device type. A device's type cannot be an empty string, nor contain only whitespace.
  *  If you modify the device type you must rerun the @ref rci_tool; this informs the iDigi Device Cloud
  *  that the name of the device has changed.  The default device type is "Digi Intel Linux Device".
+ * 
+ * 
+ * @section version_number Version Number
+ * 
+ * The firmware version of this release is 1.0.0.0, currently the user cannot modify the version number.
+ * This must be left at 1.0.0.0.
  * 
  *
  *

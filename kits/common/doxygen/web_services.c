@@ -17,16 +17,16 @@
  * <th  class="title">Description</th>
  * </tr>
  * <tr>
- * <td>update_firmware</td>
- * <td>Updates the firmware of the device</td>
+ * <td>file_system</td>
+ * <td>Used to interact with files on a device</td>
+ * </tr>
+ * <tr>
+ * <td>send_message</td>
+ * <td>Allows an RCI request to be sent to the device</td>
  * </tr>
  * <tr>
  * <td>disconnect</td>
  * <td>Sends a request to the device to disconnect from the server</td>
- * </tr>
- * <tr>
- * <td>query_firmware_targets</td>
- * <td>Gets a list of firmware targets on the device</td>
  * </tr>
  * <tr>
  * <td>data_service</td>

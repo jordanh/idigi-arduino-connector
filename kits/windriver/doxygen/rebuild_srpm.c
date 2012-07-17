@@ -8,9 +8,20 @@
  *  in the Wind River Linux distribution.  If required you can modify and rebuild the iDigi library
  *  this is currently only required when modifying RCI.
  * 
+ * @section modifying_code Modifying Code in the SRPM
+ * 
+ *  The Wind River workbench extracts the SRPM into the directory: /home/wruser/WindRiver/workspace/WRLinux-Platform_prj/build/idigi-1.1.
+ *  The source code for the package is contained in the /home/wruser/WindRiver/workspace/WRLinux-Platform_prj/build/idigi-1.1/BUILD
+ *.  Be careful to backup any modifications made to this directory; this directory is overwritten if the package is reimported.
+ * 
+ * 
+ *  @note If you distclean the package the /home/wruser/WindRiver/workspace/WRLinux-Platform_prj/build/idigi-1.1. is deleted.
+ *  Backup any modifications you make in this directory, they are not added to the SRPM only into the build directory.
+ *
+ * 
  * @section rebuild_srpm_details How to rebuild the idigi SRPM
  * 
- *  You can view the idigi package in the Wind River Workbenck
+ *  You can view the idigi package in the Wind River Workbench
  *  by clicking on WRLinux-Platform and then selecting User Space Configuration, this is shown in the
  *  screen below:
  * 
@@ -25,25 +36,15 @@
  * 
  * An example copy command is:
  * 
- *      @htmlonly scp idigi-debuginfo-1.1-1.atom-2ee4548.rpm root@10.52.18.100:/  @endhtmlonly
+ *      @htmlonly scp idigi-debuginfo-1.1-1.atom-2ee4548.rpm root@172.31.255.1:/  @endhtmlonly
  * 
- * This will copy to the root directory to the device which has the IP address 10.52.18.100.
+ * This will copy to the root directory to the device which has the IP address 172.31.255.1.
  * 
  * The command to reinstall the RPM on the device is:
  * 
  *     rpm -i -v --force idigi-1.1-1.atom-2ee4548.rpm
  * 
  * Note that the name of the RPM contains the MD5 sum of the RPM, this will change when the package is rebuilt.
- *
- * @section modifying_code Modifiying Code in the SRPM
- * 
- *  The Wind River workbench extracts the SRPM into the directory: /home/wruser/WindRiver/workspace/WRLinux-Platform_prj/build/idigi-1.1.
- *  The source is contained in the BUILD/idigi-1.1 directory.  Be careful to backup any modifications made to this directory;
- *  this directory is overwritten when a clean build is performed.
- * 
- * 
- *  @note If you distclean the package the /home/wruser/WindRiver/workspace/WRLinux-Platform_prj/build/idigi-1.1. is deleted.
- *  Backup any modifications you make in this directory, they are not added to the SRPM only into the build directory.
  *
  * @htmlinclude terminate.html
  */
