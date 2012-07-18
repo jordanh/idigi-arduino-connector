@@ -85,9 +85,18 @@ class DeviceConnectionMonitor(object):
         raised.
         """
         self.connect_event.wait(timeout)
+
         if self.connect_data is None:
-            raise Exception('Device %s did not connect within %d seconds.' % \
-                (self.device_id, timeout))
+            device_core = self.api.get_first('DeviceCore/%s' % self.dev_id)
+        
+            # Device connected we're all good.
+            if device_core.dpConnectionStatus == '1':
+                self.connect_data = None
+                self.connect_event.clear()
+                return device_core
+            else:
+                raise Exception('Device %s did not connect within %d seconds.' % \
+                    (self.device_id, timeout))
         
         connect_data = self.connect_data
         self.connect_data = None
@@ -101,9 +110,17 @@ class DeviceConnectionMonitor(object):
         raised.
         """
         self.disconnect_event.wait(timeout)
+
         if self.disconnect_data is None:
-            raise Exception('Device %s did not disconnect within %d seconds.' % \
-                (self.device_id, timeout))
+            device_core = self.api.get_first('DeviceCore/%s' % self.dev_id)
+            # Device disconnected we're all good.
+            if device_core.dpConnectionStatus == '0':
+                self.disconnect_data = None
+                self.disconnect_event.clear()
+                return device_core
+            else:
+                raise Exception('Device %s did not disconnect within %d seconds.' % \
+                    (self.device_id, timeout))
         
         disconnect_data = self.disconnect_data
         self.disconnect_data = None
