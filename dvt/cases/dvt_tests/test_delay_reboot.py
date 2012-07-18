@@ -104,9 +104,10 @@ class RebootTestCase(iik_testcase.TestCase):
             # Create reboot request
             reboot_request = REBOOT_REQUEST % (self.device_config.device_id)
 
-            # Send SCI reboot request
-            response = self.api.sci(reboot_request)
-            self.log.info("response to reboot request = %s" % response)
+            def send_reboot():
+                # Send SCI reboot request
+                response = self.api.sci(reboot_request)
+                self.log.info("response to reboot request = %s" % response)
               
             # Wait for reboot result file.
             # Create content that are expected from the reboot result file.
@@ -118,7 +119,8 @@ class RebootTestCase(iik_testcase.TestCase):
         
             # get and verify correct content is pushed.
             get_and_verify(self, self.api, self.device_config.device_id, 
-                           datetime_created, file_push_location, expected_content)
+                           datetime_created, file_push_location, expected_content,
+                           trigger_function=send_reboot)
         
         finally:
             monitor.stop()        

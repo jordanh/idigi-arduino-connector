@@ -105,9 +105,10 @@ class TerminateTestCase(iik_testcase.TestCase):
         # the reboot result.
         delete_file(self, TERMINATE_TEST_FILE)
 
-        # Send device request to request terminate the sample
-        status = send_device_request(self, 'request_terminate_in_application', '')
-        self.assertTrue(status == 0, "Unable to send device request")
+        def send_data():
+            # Send device request to request terminate the sample
+            status = send_device_request(self, 'request_terminate_in_application', '')
+            self.assertTrue(status == 0, "Unable to send device request")
                   
         # Wait for terminate result file.
         # Create content that are expected from the reboot result file.
@@ -119,7 +120,8 @@ class TerminateTestCase(iik_testcase.TestCase):
     
         # get and verify correct content is pushed.
         get_and_verify(self, self.api, self.device_config.device_id, 
-                       datetime_created, file_push_location, expected_content)
+                       datetime_created, file_push_location, expected_content,
+                       trigger_function=send_data)
                
     def test_terminate_in_put_request(self):
     
@@ -132,9 +134,10 @@ class TerminateTestCase(iik_testcase.TestCase):
         # the reboot result.
         delete_file(self, TERMINATE_TEST_FILE)
 
-        # Send device request to request terminate the sample
-        status = send_device_request(self, 'request_terminate_in_callback', '')
-        self.assertTrue(status == 0, "Unable to send device request")
+        def send_data():
+            # Send device request to request terminate the sample
+            status = send_device_request(self, 'request_terminate_in_callback', '')
+            self.assertTrue(status == 0, "Unable to send device request")
                    
         # Wait for terminate result file.
         # Create content that are expected from the reboot result file.
@@ -146,7 +149,8 @@ class TerminateTestCase(iik_testcase.TestCase):
     
         # get and verify correct content is pushed.
         get_and_verify(self, self.api, self.device_config.device_id, 
-                       datetime_created, file_push_location, expected_content)
+                       datetime_created, file_push_location, expected_content,
+                       trigger_function=send_data)
         
 
     def test_terminate_in_firmware(self):
@@ -179,12 +183,13 @@ class TerminateTestCase(iik_testcase.TestCase):
         data_value = encodestring(data)
         f.close()
 
-        # Send update request
-        request = (FIRMWARE_DATA_REQUEST % (target, self.device_config.device_id, data_value))
+        def update_firmware():
+            # Send update request
+            request = (FIRMWARE_DATA_REQUEST % (target, self.device_config.device_id, data_value))
 
-        self.log.info("Sending request to update firmware.")
-        response = self.api.sci(request)
-        self.log.info("Response to:\n%s" % response)
+            self.log.info("Sending request to update firmware.")
+            response = self.api.sci(request)
+            self.log.info("Response to:\n%s" % response)
    
         # Wait for terminate result file.
         # Create content that are expected from the reboot result file.
@@ -196,7 +201,8 @@ class TerminateTestCase(iik_testcase.TestCase):
     
         # get and verify correct content is pushed.
         get_and_verify(self, self.api, self.device_config.device_id, 
-                       datetime_created, file_push_location, expected_content)
+                       datetime_created, file_push_location, expected_content,
+                       trigger_function=update_firmware)
 
  
 if __name__ == '__main__':

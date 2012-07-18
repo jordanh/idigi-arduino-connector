@@ -61,7 +61,8 @@ class FileDataCallback(object):
 def get_and_verify(instance, api, device_id,  
                     datetime_created, file_location, 
                     expected_content=None, dne=False,
-                    original_created_time=None, wait_time=90):
+                    original_created_time=None, wait_time=90,
+                    trigger_function=None):
                     
     """Performs a GET on the file_location to determine if the correct content 
     was pushed. A second GET is performed to verify the file's 
@@ -78,6 +79,9 @@ def get_and_verify(instance, api, device_id,
         cb = FileDataCallback(file_location)
 
         session = client.create_session(cb.callback, monitor)
+
+        if trigger_function is not None:
+            trigger_function()
                       
         # Check that file content is correct
         log.info("Waiting for File...")
