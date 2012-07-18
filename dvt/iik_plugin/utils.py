@@ -109,6 +109,8 @@ class DeviceConnectionMonitor(object):
         timeout, returns the DeviceCore payload, otherwise an Exception is 
         raised.
         """
+        device_core = self.api.get_first('DeviceCore/%s' % self.dev_id)
+        last_connect = device_core.dpLastConnectTime
         self.disconnect_event.wait(timeout)
 
         if self.disconnect_data is None:
@@ -118,7 +120,8 @@ class DeviceConnectionMonitor(object):
                 self.disconnect_data = None
                 self.disconnect_event.clear()
                 return device_core
-            else:
+            # if last connect times match, device didnt' disconnect
+            elif device_core.dpLastConnectTime == last_connect:
                 raise Exception('Device %s did not disconnect within %d seconds.' % \
                     (self.device_id, timeout))
         
