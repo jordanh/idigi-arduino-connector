@@ -1143,13 +1143,17 @@ static void rci_parse_input(rci_t * const rci)
                 *(rci->input.destination) = rci->input.character;
             }
             rci->input.destination++;
-            if (!ptr_in_buffer(rci->input.destination, &rci->buffer.input) && !destination_in_storage(rci))
+
             {
                 size_t const storage_bytes = sizeof rci->input.storage;
+                char const * const storage_end = rci->input.storage + storage_bytes;
 
-                idigi_debug_printf("Maximum content size exceeded while parsing - wanted %u, had %u\n", storage_bytes + 1, storage_bytes);
-                rci_global_error(rci, idigi_rci_error_bad_value, RCI_NO_HINT);
-                goto done;
+                if (rci->input.destination == storage_end)
+                {
+                    idigi_debug_printf("Maximum content size exceeded while parsing - wanted %u, had %u\n", storage_bytes + 1, storage_bytes);
+                    rci_global_error(rci, idigi_rci_error_bad_value, RCI_NO_HINT);
+                    goto done;
+                }
             }
         }
         rci_buffer_advance(input, 1);
@@ -1165,25 +1169,29 @@ static void rci_parse_input(rci_t * const rci)
         if (rci->parser.state.current == rci_parser_state_input)
         {
             char const * const old_base = rcistr_data(&rci->shared.string.generic);
-            char * const new_base = rci->input.storage;
+            char * const new_base = destination_in_storage(rci) ? rci->input.destination : rci->input.storage;;
 
             if (ptr_in_buffer(old_base, &rci->buffer.input))
             {
-                size_t const bytes = (rci->buffer.input.end - old_base) + 1;
+                size_t const storage_bytes = sizeof rci->input.storage;
+                char const * const storage_end = rci->input.storage + storage_bytes;
+                size_t const bytes_wanted = (rci->buffer.input.end - old_base) + 1;
+                size_t const bytes_have = (storage_end - new_base);
 
-                if (bytes >= sizeof rci->input.storage)
+                if (bytes_wanted >= bytes_have)
                 {
-                    idigi_debug_printf("Maximum content size exceeded while storing - wanted %u, had %u\n", bytes, sizeof rci->input.storage);
+                    idigi_debug_printf("Maximum content size exceeded while storing - wanted %u, had %u\n", bytes_wanted, bytes_have);
                     rci_global_error(rci, idigi_rci_error_parser_error, RCI_NO_HINT);
                     goto done;
                 }
 
-                memcpy(new_base, old_base, bytes);
+                memcpy(new_base, old_base, bytes_wanted);
 
                 adjust_rcistr(new_base, old_base, &rci->shared.string.generic);
                 adjust_rcistr(new_base, old_base, attribute_name(&rci->input.attribute.current));
                 adjust_rcistr(new_base, old_base, attribute_value(&rci->input.attribute.current));
-                adjust_char_pointer(new_base, old_base, &rci->input.destination);
+
+                rci->input.destination = new_base + bytes_wanted;
             }
 
             rci->status = rci_status_more_input;
