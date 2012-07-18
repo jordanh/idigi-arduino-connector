@@ -6,7 +6,7 @@
  *
  * This sample demonstrates how to process data sent from the iDigi Server
  * using the @ref idigi_register_device_request_callbacks "device request callbacks".
- * Commands sent from the iDigi Cloud are used by this application to control
+ * Commands sent from the iDigi Device Cloud are used by this application to control
  * the status LEDs on the Kontron unit.  The status LED is located on top of the unit
  * next to the SIM slot.  You can use this sample as a starting point for adding
  * the ability to control your device.
@@ -23,15 +23,16 @@
  * LED_ON or LED_OFF.  The routine device_request_callback() checks the command received against a
  * list of commands and calls the corresponding command handler routine.
  *
- * The callback device_response_callback() is called by the iDigi connector library to get the response
+ * The callback device_response_callback() is called by the iDigi connector library to retrieve the response
  * to the previous command.  If the command was received OK then the response "iDigi Connector device response OK\n"
- * is sent back to the iDigi cloud.
+ * is sent back to the iDigi Device Cloud.
  *
- * The routines led_on() and led_off() are the command handlers for the corresponding commands LED_ON and LED_OFF.
+ * The routines led_on() and led_off() are the command handlers for the corresponding commands LED_ON and LED_OFF; the are
+ * called when the corresponding command is received.
  *
  * @section device_request_build Building
  *
- *    1. Click on Wind River Workbench icon, this is used to build, debug and launch the idigi samples
+ *    1. Click on Wind River Workbench icon, this is used to build, debug and launch the idigi sample
  *       applications.
  * 
  *    2. The sample applications appear on the left hand side of the workbench.
@@ -66,17 +67,17 @@
  * </tr>
  * <tr>
  * <th>led_on.py</th>
- * <td>Python script to turn the LED on</td>
+ * <td>Python script which used web services API to turn the LED on</td>
  * <td>workspace/idigi_device_request</td>
  * </tr>
  * <tr>
  * <th>led_off.py</th>
- * <td>Python script to turn the LED off</td>
+ * <td>Python script which uses web services API to turn the LED off</td>
  * <td>workspace/idigi_device_request</td>
  * </tr>
  * <tr>
  * <th>idigi_connector.h</th>
- * <td> iDigi Connector options</td>
+ * <td> iDigi Connector API</td>
  * <td>usr/lib</td>
  * </tr>
  * </table>

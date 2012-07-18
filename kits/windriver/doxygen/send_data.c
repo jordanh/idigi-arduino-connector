@@ -5,18 +5,18 @@
  * @section send_data_overview Overview
  *
  * This sample demonstrates how to send data to the iDigi Server
- * using the idigi_send_data() API. The data is stored as a file on the iDigi server.
+ * using the idigi_send_data() API. The data is stored as a file on the iDigi Server.
  *
  * @section device_request_description Code Flow
  *
- * The routine main() calls the API idigi_send_data(), this initiates the file transfer to the
+ * The routine main() calls the API idigi_send_data(), this performs the file transfer to the
  * iDigi Device Cloud.  The path field contains the file name and the data structure idigi_connector_data_t contains information about the file
  * which is transferred.  The routine idigi_send_data() is called in a loop which iterates every
  * 60 seconds, each time overwriting the existing file on the iDigi Device Cloud.
  * 
  * @section send_data_build Building
  *
- *    1. Click on Wind River Workbench icon, this is used to build, debug and launch the idigi samples
+ *    1. Click on Wind River Workbench icon, this is used to build, debug and launch the idigi sample
  *       applications.
  * 
  *    2. The sample applications appear on the left hand side of the workbench.
@@ -81,7 +81,7 @@
  *
  * @image html send_data_sample3.png
  *
- * @section python_script Python script to retrieve file from the iDigi device cloud.
+ * @section python_script Python script to retrieve file from the iDigi Device Cloud.
  *
  * This sample provides a simple python script to retrieve the file test.txt from developer.idigi.com
  * using @htmlonly <a href="web_services.html">iDigi Web Services.</a> @endhtmlonly

@@ -35,7 +35,10 @@
  * @image html cloud.jpg 
  *
  * @section features iDigi Connector Features
- *     @li Send data to and from a device using the iDigi Device Cloud
+ * 
+ * The following is a list of features available using the iDigi Device Cloud:
+ * 
+ *     @li Send data to and from a remote device
  *     @li Access the file system on the device
  *     @li Upload and download files to the device
  *     @li View and modify the device configuration
@@ -77,7 +80,7 @@
  * Workbench is used to build, debug and run the iDigi Samples.  The @ref the_getting_started_process "getting started process"
  * walks you through using the Workbench and communicating with your Kontron device.
  * 
- * The components of the iDigi SRPM are
+ * The components of the iDigi SRPM are:
  * 
  * @htmlonly
  * <table class="apitable">

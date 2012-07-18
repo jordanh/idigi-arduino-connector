@@ -19,7 +19,7 @@
  *  Backup any modifications you make in this directory, they are not added to the SRPM only into the build directory.
  *
  * 
- * @section rebuild_srpm_details How to rebuild the idigi SRPM
+ * @section rebuild_srpm_details How to rebuild the iDigi SRPM
  * 
  *  You can view the idigi package in the Wind River Workbench
  *  by clicking on WRLinux-Platform and then selecting User Space Configuration, this is shown in the

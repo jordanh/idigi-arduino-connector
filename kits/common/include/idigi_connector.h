@@ -59,21 +59,18 @@ typedef enum
  * @{ 
  */
 /**
- * This flag can be used with idigi_send_data(). The overwrite flag tells the iDigi Device Cloud to overwrite 
- * the existing file on the iDigi Device Cloud.
+ * Overwrite the existing file.
  */
 #define IDIGI_FLAG_OVERWRITE_DATA 0x00
 
 /**
- * This flag can be used with idigi_send_data(). The archive flag tells the iDigi Device Cloud to keep a history 
- * of changes to the file being pushed. So even if it is written over or deleted the user can 
+ * Keep a history of changes to the file being written. So even if it is written over or deleted the user can 
  * query for old versions of the file.
  */
 #define IDIGI_FLAG_ARCHIVE_DATA 0x01
 
 /**
- * This flag can be used with idigi_send_data(). The append flag is used to append the data to an 
- * existing file on the iDigi Device Cloud.
+ * Append the data to an existing file.
  */
 #define IDIGI_FLAG_APPEND_DATA  0x02
 /**
@@ -81,9 +78,7 @@ typedef enum
 */
 
 /**
- * The last data flag is used to indicate the last chunk of the request/response data. The connector 
- * will use this flag to indicate the last request chunk and application should use this to 
- * indicate the last response.
+ * Last chunk of request data or response data. 
  */
 #define IDIGI_FLAG_LAST_DATA	0x10
 
@@ -92,16 +87,16 @@ typedef enum
  * When calling idigi_send_data() this structure contains the data to be sent to the 
  * iDigi Device cloud; when this is passed to @ref idigi_device_request_callback_t it 
  * contains the data received from the iDigi Device Cloud. The length_in_bytes field depends on the 
- * context in which this structure is used, when sending a @ref device_response_callback "response", 
+ * context in which this structure is used, when sending a @ref idigi_device_response_callback_t "response", 
  * the length indicates the size of the buffer passed into the function. 
  */
 typedef struct idigi_connector_data_t
 {
     void * data_ptr;               /**< Pointer to application/cloud data */
-    size_t length_in_bytes;        /**< Number of bytes filled in (@ref idigi_device_request_callback_t "request"), number of bytes available to fill (@ref device_response_callback "response") or the number of bytes available to @ref idigi_send_data "send" */
-    unsigned int flags;            /**< Indicates archive/append in idigi_send_data, otherwise it indicates the last chunk @see IDIGI_FLAG_OVERWRITE_DATA @see IDIGI_FLAG_ARCHIVE_DATA @see IDIGI_FLAG_APPEND_DATA @see IDIGI_FLAG_LAST_DATA */
-    void * app_context;            /**< Pointer to hold application specific context, passed into subsequent calls */
-    idigi_connector_error_t error; /**< Error encountered, the application has to check this value before handling the data */
+    size_t length_in_bytes;        /**< Number of bytes filled in (@ref idigi_device_request_callback_t "request"), number of bytes available to fill (@ref idigi_device_response_callback_t "response") or the number of bytes available to @ref idigi_send_data "send" */
+    unsigned int flags;            /**< One of the values listed below: @see IDIGI_FLAG_OVERWRITE_DATA @see IDIGI_FLAG_ARCHIVE_DATA @see IDIGI_FLAG_APPEND_DATA @see IDIGI_FLAG_LAST_DATA */
+    void * app_context;            /**< Pointer to hold application specific context, passed into subsequent calls. */
+    idigi_connector_error_t error; /**< Error encountered, the application has to check this value before handling the data. */
 }idigi_connector_data_t;
 
 /**
@@ -113,9 +108,9 @@ typedef struct idigi_connector_data_t
  *  
  * This routine is called when a device request is received. 
  * This function needs to determine if the target and the data associated with that target is valid.
- * If both are valid, this function should take the appropriate actions with the data received.
+ * If both are valid, this function should take the appropriate action with the data received.
  *
- * @param target       Null-terminated device request target name
+ * @param target       null-terminated device request target name
  * @param request_data Pointer to the @ref idigi_connector_data_t "request data" received from the iDigi Device Cloud.
  *
  * @retval idigi_app_success        Success
@@ -183,9 +178,9 @@ typedef idigi_app_error_t (* idigi_device_request_callback_t)(char const * const
  *                      data, connector error if any and the application context provided in the
  *                      first request callback.
  *
- * @retval -1 indicates error
- * @retval 0  busy if last flag is not set
- * @retval 0> indicates number of bytes copied to the response buffer, cannot be more than the available 
+ * @retval -1 Error
+ * @retval 0  Busy if last flag is not set, this routine will be called again.
+ * @retval 0> Number of bytes copied to the response buffer, cannot be more than the available 
  * bytes specified in @ref idigi_connector_data_t.
  *
  * Example Usage:
@@ -224,11 +219,11 @@ typedef size_t (* idigi_device_response_callback_t)(char const * const target, i
 /**
  *
  * This function registers device request and response callback functions.  The device 
- * request callback is called when data is received from the iDigi device cloud, the 
- * device response callback is called to retrieve the response to the previous request. 
+ * request callback is called when device requests are received from the iDigi Device Cloud, the 
+ * device response callback is called to retrieve the response to the previous device request. 
  * 
- * @param request_callback Called with request data from the iDigi Device Cloud
- * @param response_callback Called to get the response data to the previous request
+ * @param request_callback Called with device request data from the iDigi Device Cloud
+ * @param response_callback Called to get the response to the previous device request
  *
  * @retval idigi_connector_success Success
  * @retval idigi_connector_invalid_parameter NULL callback function

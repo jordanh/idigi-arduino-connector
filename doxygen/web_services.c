@@ -39,7 +39,7 @@
  * <td>Sends messages to devices over the data service</td>
  * </tr>
  * <tr>
- * <td>File_system</td>
+ * <td>file_system</td>
  * <td>Used to interact with a file system on a connected iDigi device</td>
  * </tr>
  * <tr>

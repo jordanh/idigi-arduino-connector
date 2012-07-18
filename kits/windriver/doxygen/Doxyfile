@@ -673,7 +673,7 @@ INPUT                  =  mainpage.c \
                          ../source/samples/idigi_device_request/application.c \
                          ../source/samples/idigi_device_request/led_on.py \
                          ../source/samples/idigi_device_request/led_off.py \
-                         ../../common/doxygen/web_services.c \
+                         ../../../doxygen/web_services.c \
                          ../../common/doxygen/api_overview.c \
                          ../../common/doxygen/rci_tool.c \
                          ../../common/include/idigi_connector.h \

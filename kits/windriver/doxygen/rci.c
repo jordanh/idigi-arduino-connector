@@ -9,23 +9,25 @@
  * remote command interface (RCI). 
  * 
  * In this version of the iDigi Connector Kit only minimal RCI support is provided. A default RCI configuration
- * is provided with the elements in the table below.  The user must run the @ref rci_tool if the
+ * is provided with the elements in the table below.  The user must run the @ref rci_tool if 
  * any of the following are modified:
  *       -# @ref device_type
  *       -# iDigi server
  *       -# iDigi account
  *       -# @ref version_number
  * 
- * The syntax for running the rci tool can be found @ref rci_tool_usage "here".
+ * An example of changing the device type is as follows:
  * 
- * An example of changing the device type is shown below, you would
- * need to run the ConfigGenerator.jar tool which is located in /home/wruser/idigi.  In this example
- * we change the name of the device to "My Device Type", we need to modify /etc/idigi.conf to match this
- * and rerun the RCI configuration tool as shown below; a default config.rci is in the
- * /home/wruser/idigi directory.  The tool generates an output header file, for this release
- * the header file is not used.
- * 
- * java -jar ConfigGenerator.jar username:password "My Companies Device Type" 1.0.0.0 config.rci
+ *     -# Stop the current iDigi process running on the device.
+ *     -# Run the ConfigGenerator.jar tool which is located in /home/wruser/idigi.  In this example
+ *       we change the device type to "My Companies Device Type" The tool generates an output header file,
+ *       for this release the header file is not used.  The file config.rci is also loacted in /home/wruser/idigi.
+ * @code
+ *       java -jar ConfigGenerator.jar username:password "My Companies Device Type" 1.0.0.0 config.rci
+ * @endcode
+ *     -# Edit the file /etc/idigi.conf on the device and add in the new device type.
+ *     -# Restart the iDigi process on the device.
+ *
  * 
  * @note The parameters passed to ConfigGenerator.jar must match the configuration file
  * /etc/idigi.conf.
