@@ -158,12 +158,12 @@
  *
  * @subsection build_sample Build the sample
  *
- * Now that you have the build environment setup, verify that you can compile and
- * link.  If you are using the Makefile provided, type make in the compile_and_link directory, 
- * otherwise execute the build for your system.
- * If you are experiencing a build problem, double check the steps listed above.  There is only
- * one include path and two C files required to build this sample. Once the build is successful
- * you can proceed to the next step.
+ * Now that you have the build environment setup, verify the compilation and link.  If
+ * you using the Makefile provided, type @htmlonly"<I>make clean all</I>"@endhtmlonly in
+ * the compile_and_link directory, otherwise perform a build ni your environment.
+ * If you are experiencing a build problem, double check the steps listed above.  There
+ * is only one include path and two C files required to build this sample. Once the build
+ * is successful you can proceed to the next step.
  *
  * @note Do not execute the compile_and_link sample, as this only verifies that the build environment
  * is set up correctly. The application will exit on a failed ASSERT when run.
@@ -390,8 +390,8 @@
  * @li run/platforms/@a my_platform
  * 
  * @section step7 Step 7: Build the connect_to_idigi sample
- * Next, build the sample.  If you are running on Linux you can simply type make in
- * the directory public/run/samples/connect_to_idigi, if you are not using Linux then
+ * Next, build the sample.  If you are running on Linux you can simply type: @htmlonly"<I>make clean all</I>"@endhtmlonly
+ * in the public/run/samples/connect_to_idigi, if you are not using Linux then
  * you will have to build for your environment.
  *
  * @section step8 Step 8: Run the connect_to_idigi sample
@@ -509,6 +509,9 @@
  * can port in more functionality to your application.  We first suggest 
  * reading the @ref api1_overview "API" section of the documentation and then 
  * select a sample which has the functionality you need.
+ *
+ * @note If using the Linux makefiles, when compiling and running a different sample,
+ * always build clean: @htmlonly"<I>make clean all</I>"@endhtmlonly before running.
  *
  * @htmlinclude terminate.html
  */

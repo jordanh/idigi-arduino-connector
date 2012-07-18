@@ -236,11 +236,13 @@
  *
  * @section fs_sample_build Building
  *
- * To build this example for a Linux-based platform you can go into the directory
- * public/run/samples/file_system and type make or make APP_ENABLE_MD5=true.  If you are not running Linux you
- * will need to setup your build system with the information described below
- * and then build the image for your platform. You'll also need to port callbacks in file_system.c
- * to your platform.
+ * To build this example on a Linux system, go to the public/run/samples/file_system
+ * directory and type: @htmlonly"<I>make clean all</I>"@endhtmlonly.
+ * If you are not using Linux you will need to update your environment with
+ * the information below and then build the image for your platform.
+ *
+ * @note To build this example for Linux with MD5 checksums, type
+ * type: @htmlonly"<I>make APP_ENABLE_MD5=true clean all</I>"@endhtmlonly.
  *
  * @subsection source_files Source Files
  *

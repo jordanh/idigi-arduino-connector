@@ -49,10 +49,10 @@
  * 
  * @section connect_build Building
  *
- * To build this example for a Linux-based platform you can go into the directory
- * public/run/samples/firmware_download and type make.  If you are not running Linux you
- * will need to setup your build system with the information described below
- * and then build the image for your platform.
+ * To build this example on a Linux system, go to the public/run/samples/device_request
+ * directory and type: @htmlonly"<I>make clean all</I>"@endhtmlonly.
+ * If you are not using Linux you will need to update your environment with
+ * the information below and then build the image for your platform.
  *
  * @subsection source_files Source Files
  *

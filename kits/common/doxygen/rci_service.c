@@ -92,7 +92,7 @@
  *              <dt><i>element_data</i></dt>
  *              <dd><dl>
  *                  <dt><i>error_hint</i></dt>
- *                  <dd> - Callback returns a pointer to a constant nul terminated hint string 
+ *                  <dd> - Callback returns a pointer to a constant null-terminated hint string
  *                         which will be sent to the server if error is encountered.
  *                         This string cannot be altered until next callback call.</dd>
  *                  </dl></dd>
@@ -196,7 +196,7 @@
  *              <dt><i>element_data</i></dt>
  *              <dd><dl>
  *                  <dt><i>error_hint</i></dt>
- *                  <dd> - Callback returns a pointer to a constant nul terminated hint string 
+ *                  <dd> - Callback returns a pointer to a constant null-terminated hint string
  *                         which will be sent to the server if error is encountered.
  *                         This string cannot be altered until next callback call.</dd>
  *                  </dl></dd>
@@ -289,7 +289,7 @@
  *              <dt><i>element_data</i></dt>
  *              <dd><dl>
  *                  <dt><i>error_hint</i></dt>
- *                  <dd> - Callback returns a pointer to a constant nul terminated hint string 
+ *                  <dd> - Callback returns a pointer to a constant null-terminated hint string
  *                         which will be sent to the server if error is encountered.
  *                         This string cannot be altered until next callback call.</dd>
  *                  </dl></dd>
@@ -473,7 +473,7 @@
  *              <dt><i>element_data</i></dt>
  *              <dd><dl>
  *                  <dt><i>error_hint</i></dt>
- *                  <dd> - Callback returns a pointer to a constant nul terminated hint string 
+ *                  <dd> - Callback returns a pointer to a constant null-terminated hint string
  *                         which will be sent to the server if error is encountered.
  *                         This string cannot be altered until next callback call.</dd>
  *                  </dl></dd>
@@ -594,7 +594,7 @@
  *       where callback writes response data to:
  *       <dl>
  *                  <dt><i>error_hint</i></dt>
- *                  <dd> - Callback returns a pointer to a constant nul terminated hint string 
+ *                  <dd> - Callback returns a pointer to a constant null-terminated hint string
  *                         which will be sent to the server if error is encountered.
  *                         This string cannot be altered until next callback call.</dd>
  *                  <dt><i>element_value</i></dt><dd> - is pointer to @endhtmlonly @ref idigi_element_value_t @htmlonly
@@ -734,7 +734,7 @@
  *              <dt><i>element_data</i></dt>
  *              <dd><dl>
  *                  <dt><i>error_hint</i></dt>
- *                  <dd> - Callback returns a pointer to a constant nul terminated hint string 
+ *                  <dd> - Callback returns a pointer to a constant null-terminated hint string
  *                         which will be sent to the server if error is encountered.
  *                         This string cannot be altered until next callback call.</dd>
  *                  </dl></dd>
@@ -841,7 +841,7 @@
  *              <dt><i>element_data</i></dt>
  *              <dd><dl>
  *                  <dt><i>error_hint</i></dt>
- *                  <dd> - Callback returns a pointer to a constant nul terminated hint string 
+ *                  <dd> - Callback returns a pointer to a constant null-terminated hint string
  *                         which will be sent to the server if error is encountered.
  *                         This string cannot be altered until next callback call.</dd>
  *                  </dl></dd>
@@ -925,7 +925,7 @@
  *              <dt><i>element_data</i></dt>
  *              <dd><dl>
  *                  <dt><i>error_hint</i></dt>
- *                  <dd> - Callback returns a pointer to a constant nul terminated hint string 
+ *                  <dd> - Callback returns a pointer to a constant null-terminated hint string
  *                         which will be sent to the server if error is encountered.
  *                         This string cannot be altered.</dd>
  *                  </dl></dd>
