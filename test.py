@@ -235,6 +235,10 @@ def run_test(test, test_list, execution_type, base_src_dir, base_script_dir,
 
         print '>>> [%s] Testing [%s]-[%s]' % (description, execution_type, test)
 
+        device_type = "iC DVT Device"
+        if sample:
+          device_type = "Linux Application"
+
         build_args = ['nosetests',
                       '--with-xunit',
                       '-s', # Don't Capture STDOUT
@@ -246,6 +250,7 @@ def run_test(test, test_list, execution_type, base_src_dir, base_script_dir,
                       '--build_password=%s' % api.password,
                       '--build_hostname=%s' % api.hostname,
                       '--build_config_tool_jar=%s' % config_tool_jar,
+                      '--build_device_type=%s' % device_type,
                       '--build_keystore=%s' % keystore]
 
         rc = nose.run(defaultTest=[BUILD_TEST], argv=build_args)

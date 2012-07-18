@@ -23,7 +23,7 @@
 #define IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH   256
 
 #if ENABLE_COMPILE_TIME_DATA_PASSING
-#define IDIGI_DEVICE_TYPE                          "Linux Application"
+#define IDIGI_DEVICE_TYPE                          "iC DVT Device"
 #define IDIGI_CLOUD_URL                            "developer.idigi.com"
 #define IDIGI_TX_KEEPALIVE_IN_SECONDS              5
 #define IDIGI_RX_KEEPALIVE_IN_SECONDS              75
