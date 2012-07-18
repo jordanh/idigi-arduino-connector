@@ -63,6 +63,7 @@ mkdir -p "${BASE_DIR}"
 cp -rf private "${BASE_DIR}"
 cp -rf public "${BASE_DIR}"
 cp -rf docs "${BASE_DIR}"
+rm -rf "${BASE_DIR}/public/run/platforms/freescale"
 
 # Get the name of the getting starting guides and see which one is newer
 released_file=$(find /eng/store/released/90000000 -name 90002142*.pdf)
