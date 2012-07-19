@@ -395,7 +395,7 @@ static msg_session_t * msg_create_session(idigi_data_t * const idigi_ptr, idigi_
 
         if ((max_transactions != unlimited_transactions) && (active_transactions >= max_transactions))
         {
-            idigi_debug_printf("msg_create_session: active transactions %d > max transactions %d\n", active_transactions, max_transactions);
+            idigi_debug_printf("msg_create_session: active transactions %d > max transactions %d, service id %d\n", active_transactions, max_transactions, service_id);
             ASSERT(client_owned); /* server should not send more than client's max transactions */
             goto done;
         }
