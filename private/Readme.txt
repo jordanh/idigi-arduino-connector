@@ -62,7 +62,7 @@ BUG FIXES
 
     v1.2
      
-        Corrected all platforms to include handling fotr unrecognized iDigi 
+        Corrected all platforms to include handling for unrecognized iDigi 
         Callback cases with an idigi_callback_unrecognized return value.  This 
         was missing in v1.1 and will allow v1.2 applications to port correctly 
         to v1.3 and beyond. 
