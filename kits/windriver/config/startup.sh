@@ -55,10 +55,11 @@ mac_address=${arp_string:$start:17}
 echo "Mac address of device:" $mac_address
 
 # Execute the process to register the device ID, this will create a file the idigi.conf
-java -classpath . Register $mac_address
+java -classpath /home/wruser/idigi Register $mac_address
 rc=$?
 if [[ ${rc} != 0 ]]; then
     echo "Could not register device: Verify login credentials and try again."
+    read -p "Press [Enter] key to exit"
     exit ${rc}
 fi
 
@@ -68,11 +69,12 @@ scp idigi.conf root@$REMOTE_HOST:/etc/idigi.conf
 rc=$?
 if [[ ${rc} != 0 ]]; then
     echo "Failed to transfer configuration file to device, please try again."
+    read -p "Press [Enter] key to exit"
     exit ${rc}
 fi
 
 mac_address=${mac_address//[:]/}
-device_id=00000000-00000000-${mac_address:0:6}ff-ff${mac_address:7:13}
+device_id=00000000-00000000-${mac_address:0:6}ff-ff${mac_address:6:6}
 
 echo "Device ID device (record for later):" $device_id
 read -p "Provisioning complete; press [Enter] to exit"
