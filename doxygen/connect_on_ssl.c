@@ -8,21 +8,6 @@
  * network_ssl.c, instead of network.c, to provide network specific user callbacks. That means
  * any application can run on ssl by including network_ssl.c.
  * 
- * <b> Makefile changes: </b>
- * 
- * There are two changes user will need to enable SSL.
- * -# Replace network.c with network_ssl.c
- * -# Include libssl.a
- * 
- * <b> How to get CA certificate: </b>
- * 
- * -# Login to developer.idigi.com
- * -# Click Resources link
- * -# Click the iDigi Device Cloud CA Certificate under Downloads, General Downloads
- * -# Extract the zip file to public/include (or wherever is convenient)
- * -# Modify the APP_SSL_CA_CERT in platforms/<i>my_platform</i>/network_ssl.c file to match the correct path
- * -# Rebuild the application
- *
  * @section ssl_connect_description Code Flow
  *
  * -# The main(), defined in main.c, calls application_start()
@@ -88,6 +73,19 @@
  *
  * @li public/include
  * @li run/platforms/linux (substitute with your platform)
+ *
+ * @subsection Defines
+ *
+ * The following defines are used in this sample:
+ *
+ * @li -DIDIGI_VERSION=0x1020000UL
+ *
+ * <b> How to get CA certificate: </b>
+ *
+ * -# The iDigi Device Cloud CA Certificate is located in ./public/certificates
+ *
+ * @note To convert other samples to use SSL, change the makefile to replace
+ * network.c with network_ssl.c and include the libssl.a library.
  *
  * @htmlinclude terminate.html
  *

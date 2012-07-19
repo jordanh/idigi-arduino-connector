@@ -129,7 +129,7 @@
  *
  * The following defines are used in this sample:
  *
- * @li -DIDIGI_VERSION=0x1020000UL (indicates version 1.1 of the iDigi connector)
+ * @li -DIDIGI_VERSION=0x1020000UL
  *
  * @section running Running
  *
