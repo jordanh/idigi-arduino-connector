@@ -99,6 +99,18 @@ def update_idigi_config_c(src_file, config):
     outfile.write(line)
   outfile.close()
 
+def update_platform_h(platform_file, target_ssl_cert='public/certificates/idigi-ca-cert-public.crt'):
+  ssl_cert_text = '#define APP_SSL_CA_CERT   "../../../certificates/idigi-ca-cert-public.crt"'
+  replace_text  = '#define APP_SSL_CA_CERT   "%s"' % target_ssl_cert
+
+  infile = open(platform_file, 'r')
+  data = infile.read()
+  infile.close()
+  data = data.replace(ssl_cert_text, replace_text)
+  outfile = open(platform_file, 'w')
+  outfile.write(data)
+  outfile.close()
+
 def update_config_c(cnfg_file, config, mac_addr):
 
   old_mac = '{0x00, 0x00, 0x00, 0x00, 0x00, 0x00}'

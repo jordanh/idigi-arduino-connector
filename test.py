@@ -202,6 +202,9 @@ def run_test(test, test_list, execution_type, base_src_dir, base_script_dir,
             setup_platform(test_dir, os.path.join(sandbox_dir, 
                 SAMPLE_PLATFORM_STEP_DIR), mac_addr)
 
+        config.update_platform_h(os.path.join(SAMPLE_PLATFORM_STEP_DIR, "platform.h"))
+        config.update_platform_h(os.path.join(SAMPLE_PLATFORM_RUN_DIR, "platform.h"))
+
         if update_config_header:
             config.update_config_header(idigi_config, 
                 os.path.join(test_dir, 'config.ini'))
