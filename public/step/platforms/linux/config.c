@@ -176,7 +176,7 @@ static idigi_callback_status_t app_get_device_type(char const ** type, size_t * 
 static idigi_callback_status_t app_get_server_url(char const ** url, size_t * const size)
 {
 #error "Specify iDigi Device Cloud URL"
-    static  char const idigi_server_url[] = "test.idigi.com";
+    static  char const idigi_server_url[] = "developer.idigi.com";
 
     /* Return pointer to device type. */
     *url = idigi_server_url;
