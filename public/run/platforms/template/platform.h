@@ -44,5 +44,6 @@ extern idigi_callback_status_t app_file_system_handler(idigi_file_system_request
 
 extern int application_run(idigi_handle_t handle);
 
+#define APP_SSL_CA_CERT   "../../../certificates/idigi-ca-cert-public.crt"
 
 #endif /* _PLATFORM_H */

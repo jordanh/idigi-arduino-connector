@@ -21,9 +21,7 @@
  * As far as the top level calls are concerned there is no change between the SSL and non-SSL connection.
  *
  * The CA certificate is stored in public/certificates/ directory. A define APP_SSL_CA_CERT can be found
- * in platform.h. By default it is set to "./public/certificates/idigi-ca-cert-public.crt". If you are
- * running connect_to_ssl sample from connect_to_ssl/ directory then make sure to set this define to
- * "../../../certificates/idigi-ca-cert-public.crt".
+ * in platform.h. By default it is set to "../../../certificates/idigi-ca-cert-public.crt".
  *
  * @section ssl_connect Connect
  *
