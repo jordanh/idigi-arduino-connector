@@ -201,7 +201,7 @@
  * iDigi process on the device.
  * 
  * @section the_getting_started_process Getting Started 
- * To get started, follow the steps of the <a href="/home/wruser/idigi/idigi.pdf">Getting Started Procedure</a>.
+ * To get started, follow the steps of the <a href="/mnt/live/idigi/idigi.pdf">Getting Started Procedure</a>.
  * The getting started procedure will walk you through setting up your device and running a sample application.
  * Once you have completed the getting started procedure then continue to run one of the samples.
  *

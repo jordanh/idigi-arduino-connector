@@ -9,10 +9,10 @@
  * Cloud via <a href="http://www.idigi.com/idigimanagerpro">iDigi Manager Pro</a> or by
  * using @ref web_services "iDigi Web Services".  When commands are received they
  * come in the form of an iDigi device request, for each request the device will be
- * asked to send back a response.  Device requests can be used to send commands to and
- * control a device.  This API is also used to push files onto the iDigi device cloud.
+ * asked to send back a response.  Device requests can be used to send commands to control a device.
+ * This API is also used to push files onto the iDigi device cloud.
  * 
- * The API consists of the following routines, click on the namer of the routine for more
+ * The API consists of the following routines, click on the name of the routine for more
  * details.
  * 
  * @htmlonly
