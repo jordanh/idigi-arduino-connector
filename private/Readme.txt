@@ -1,5 +1,5 @@
                       Release Notes for 40003007_E
-                          iDigi Connector vVERSION
+                        iDigi Connector vVERSION
                              _RELEASE_DATE_ 
 
 ENHANCEMENTS
@@ -7,10 +7,10 @@ ENHANCEMENTS
     v1.2
      
         Support for Remote configuration (using the rci_request payload mechanism
-        within the send_message operation) has been added.  This allows iDigi Connector
-        applications to develop configurations that can be remotely managed (read/write) 
-        through iDigi Manager Pro or a web services client.  Note this feature 
-        requires a C99 Compiler.
+        within the send_message operation) has been added.  This allows iDigi 
+        Connector applications to develop configurations that can be remotely 
+        managed (read/write) through iDigi Manager Pro or a web services client.  
+        Note this feature requires a C99 Compiler.
         
         Support for Remote File Systems (using the file_system operation) has 
         been added.  This allows remotely connected devices to easily connect
@@ -62,6 +62,7 @@ BUG FIXES
 
     v1.2
      
-        Corrected all platforms to include handle unrecognized iDigi Callback 
-        cases with an idigi_callback_unrecognized return value.  This was missing 
-        in v1.1 and allows v1.2 applications to port correctly to v1.3.
+        Corrected all platforms to include handling fotr unrecognized iDigi 
+        Callback cases with an idigi_callback_unrecognized return value.  This 
+        was missing in v1.1 and will allow v1.2 applications to port correctly 
+        to v1.3 and beyond. 
