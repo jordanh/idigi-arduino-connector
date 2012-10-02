@@ -1,0 +1,1 @@
+../public/step/platforms/arduino/idigi_config.h

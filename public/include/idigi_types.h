@@ -57,17 +57,17 @@
 /**
  *  Unsigned 16 bit value.
  */
-  typedef unsigned short uint16_t;
+  typedef unsigned int uint16_t;
 
 /**
  *  Unsigned 32 bit value.
  */
-  typedef unsigned int uint32_t;
+  typedef unsigned long uint32_t;
 
 /**
 *  Signed 32 bit value.
 */
-   typedef int int32_t;
+   typedef long int32_t;
 
 #ifndef UINT16_MAX
 /**

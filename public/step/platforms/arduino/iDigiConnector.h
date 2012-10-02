@@ -1,0 +1,146 @@
+/*
+ * Copyright (c) 1996-2012 Digi International Inc.,
+ * All rights not expressly granted are reserved.
+ * 
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
+ * =======================================================================
+ */
+
+#ifndef __IDIGI_CONNECTOR_H__
+#define __IDIGI_CONNECTOR_H__
+
+#include <Ethernet.h>
+
+extern "C" {
+#include "idigi_api.h"
+#include "idigi_config.h"
+}
+
+class iDigiConnectorClass {
+public:
+  iDigiConnectorClass();
+  
+  /* important interface functions */
+  void setup(uint8_t *mac, IPAddress ip, uint32_t vendorId);
+  void setup(uint8_t *mac, IPAddress ip, uint32_t vendorId,
+        char *serverHost);
+  void setup(uint8_t *mac, IPAddress ip, uint32_t vendorId,
+        char *serverHost, char *deviceType);
+  bool isConnected();
+  idigi_status_t step();
+  
+  /* iDigi Connector callback */
+  idigi_callback_status_t appCallback(idigi_class_t const class_id,
+                                      idigi_request_t const request_id,
+                                      void * const request_data,
+                                      size_t const request_length, void * response_data,
+                                      size_t * const response_length);
+#if 0
+  /* cloud file interface */
+  static ArduinoiDigiDataService dataService;
+  
+  /* network functions */
+  int network_connect(char const * const host_name, idigi_network_handle_t **network_handle);
+  size_t network_send(idigi_network_handle_t *handle, char *buffer, size_t length);
+  size_t network_recv(idigi_network_handle_t *handle, int timeout_sec, char *buffer, size_t length);
+  int network_connected(idigi_network_handle_t *handle);
+  void network_close(idigi_network_handle_t *handle);
+  
+  /* config functions */
+  void setMac(uint8_t *mac);
+  void setIp(IPAddress ip);
+  void setVendorId(uint32_t vendorId);
+  void setDeviceType(const char *deviceType);
+  void setServerHost(const char *serverHost);
+  void setLinkSpeed(uint32_t linkSpeed);
+  void setPhoneNumber(const char *phoneNumber);
+  
+  void getMac(uint8_t **mac, size_t *length);
+  void getIp(uint8_t **ip, size_t *length);
+  void getDeviceId(uint8_t **deviceId, size_t *length);
+  void getDeviceIdString(String *dest);
+  void getVendorId(uint8_t **vendorId, size_t *length);
+  char *getDeviceType();
+  char *getServerHost();
+  idigi_connection_type_t getConnectionType();
+  uint32_t getLinkSpeed();
+  char *getPhoneNumber();
+#endif  
+  /* misc accessor functions */
+  idigi_handle_t getHandle();
+  
+  
+private:
+  /* iDigi state */
+  idigi_handle_t idigi_handle;
+  bool connected;
+
+  /* network state */
+  EthernetClient client;
+  
+  /* configuration state */
+  uint8_t _mac[IDIGI_MAC_LENGTH];
+  uint8_t _ip[IDIGI_IP_LENGTH];
+  uint8_t _deviceId[IDIGI_DEVICEID_LENGTH];
+  uint8_t _vendorId[IDIGI_VENDORID_LENGTH];
+  char _deviceType[IDIGI_DEVICETYPE_LENGTH];
+  char _serverHost[IDIGI_SERVERHOST_LENGTH];
+  idigi_connection_type_t _connectionType;
+  uint32_t _linkSpeed;
+  char _phoneNumber[IDIGI_PHONENUMBER_LENGTH];
+
+  /* private interface methods */
+  idigi_callback_status_t app_get_ip_address(uint8_t const ** ip_address, size_t * const size);
+  idigi_callback_status_t app_get_mac_addr(uint8_t const ** addr, size_t * const size);
+  idigi_callback_status_t app_get_device_id(uint8_t const ** id, size_t * const size);
+  idigi_callback_status_t app_get_vendor_id(uint8_t const ** id, size_t * const size);
+  idigi_callback_status_t app_get_device_type(char const ** type, size_t * const size);
+  idigi_callback_status_t app_get_server_url(char const ** url, size_t * const size);
+  idigi_callback_status_t app_get_connection_type(idigi_connection_type_t const ** type);
+  idigi_callback_status_t app_get_link_speed(uint32_t const ** speed, size_t * const size);
+  idigi_callback_status_t app_get_phone_number(char const ** number, size_t * const size);
+  idigi_callback_status_t app_get_tx_keepalive_interval(uint16_t const ** interval, size_t * const size);
+  idigi_callback_status_t app_get_rx_keepalive_interval(uint16_t const ** interval, size_t * const size);
+  idigi_callback_status_t app_get_wait_count(uint16_t const ** count, size_t * const size);
+  idigi_callback_status_t app_get_firmware_support(idigi_service_supported_status_t * const isSupported);
+  idigi_callback_status_t app_get_data_service_support(idigi_service_supported_status_t * const isSupported);
+  idigi_callback_status_t app_get_file_system_support(idigi_service_supported_status_t * const isSupported);
+  idigi_callback_status_t app_get_remote_configuration_support(idigi_service_supported_status_t * const isSupported);
+  idigi_callback_status_t app_get_max_message_transactions(unsigned int * const transCount);
+  idigi_callback_status_t app_get_device_id_method(idigi_device_id_method_t * const method);
+  void app_config_error(idigi_error_status_t const * error_data);
+
+  idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
+                                              void const * const request_data,
+                                              size_t const request_length,
+                                              void * response_data,
+                                              size_t * const response_length);
+
+};
+
+extern iDigiConnectorClass iDigi;
+
+extern "C"
+{
+  int app_vprintf(const char *format, va_list ap);
+}
+
+static void APP_DEBUG(char const * const format, ...)
+{
+#if defined(APP_DEBUG_ENABLED)
+  va_list args;
+  
+  va_start(args, format);
+  app_vprintf(format, args);
+  va_end(args);
+#else
+  (void) format;
+#endif
+}
+
+
+#endif /* __IDIGI_CONNECTOR_H__ */

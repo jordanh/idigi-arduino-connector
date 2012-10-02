@@ -14,6 +14,13 @@
  * These defines need to be private
  */
 #define IDIGI_VERSION_1200   0x01020000UL
+
+/* JRH change for Arduino environment */
+#ifndef IDIGI_VERSION
+/* Private modification to facilitate Arduino build environment */
+#define IDIGI_VERSION IDIGI_VERSION_1200
+#endif
+
 #include <stddef.h>
 
 #if (IDIGI_VERSION >= 0x1010000UL)
