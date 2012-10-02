@@ -1,4 +1,0 @@
-globalerror load_fail "Load fail"
-globalerror save_fail "Save fail"
-globalerror memory_fail "Insufficient memory"
-
