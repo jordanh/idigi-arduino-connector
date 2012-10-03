@@ -334,13 +334,6 @@ void iDigiConnectorClass::app_config_error(idigi_error_status_t const * const er
 
 }
 
-
-/**
- * @cond DEV
- */
-/*
- * Configuration callback routine.
- */
 idigi_callback_status_t iDigiConnectorClass::app_config_handler(idigi_config_request_t const request,
                                               void const * const request_data,
                                               size_t const request_length,
@@ -441,6 +434,4 @@ idigi_callback_status_t iDigiConnectorClass::app_config_handler(idigi_config_req
 
     return status;
 }
-/**
- * @endcond
- */
+

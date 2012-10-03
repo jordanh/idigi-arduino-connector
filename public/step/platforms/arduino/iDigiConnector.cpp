@@ -20,7 +20,7 @@ extern "C" {
 #include <SPI.h>
 #include <Ethernet.h>
 
-/* C++ */
+
 iDigiConnectorClass::iDigiConnectorClass()
 {  
   memset(&_mac, 0, sizeof(_mac));
@@ -97,10 +97,10 @@ idigi_callback_status_t iDigiConnectorClass::appCallback(
       }      
       status = app_config_handler(request_id.config_request, request_data, request_length, response_data, response_length);
       break;
-#if 0
     case idigi_class_operating_system:
       status = app_os_handler(request_id.os_request, request_data, request_length, response_data, response_length);
       break;
+#if 0
     case idigi_class_network:
       status = app_network_handler(request_id.network_request, request_data, request_length, response_data, response_length);
       break;

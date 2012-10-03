@@ -94,6 +94,8 @@ private:
   char _phoneNumber[IDIGI_PHONENUMBER_LENGTH];
 
   /* private interface methods */
+
+  /* Define in iDigiConnectorConfic.cpp */
   idigi_callback_status_t app_get_ip_address(uint8_t const ** ip_address, size_t * const size);
   idigi_callback_status_t app_get_mac_addr(uint8_t const ** addr, size_t * const size);
   idigi_callback_status_t app_get_device_id(uint8_t const ** id, size_t * const size);
@@ -113,12 +115,32 @@ private:
   idigi_callback_status_t app_get_max_message_transactions(unsigned int * const transCount);
   idigi_callback_status_t app_get_device_id_method(idigi_device_id_method_t * const method);
   void app_config_error(idigi_error_status_t const * error_data);
-
   idigi_callback_status_t app_config_handler(idigi_config_request_t const request,
                                               void const * const request_data,
                                               size_t const request_length,
                                               void * response_data,
                                               size_t * const response_length);
+
+  /* Defined in iDigiConnectorOs.cpp */
+  int app_os_malloc(size_t const size, void ** ptr);
+  void app_os_free(void * const ptr);
+  int app_os_get_system_time(unsigned long * const uptime);
+  void app_os_sleep(unsigned int const timeout_in_seconds);
+  idigi_callback_status_t app_os_handler(idigi_os_request_t const request,
+                                        void * const request_data, size_t const request_length,
+                                        void * response_data, size_t * const response_length);
+
+  /* Defined in iDigiNetwork.cpp */
+  idigi_callback_status_t app_network_connect(char * const host_name, size_t const length, idigi_network_handle_t ** network_handle);
+  bool app_network_connected(idigi_network_handle_t * network_handle);
+  idigi_callback_status_t app_network_send(idigi_write_request_t * const write_data, size_t * sent_length);
+  idigi_callback_status_t app_network_receive(idigi_read_request_t * read_data, size_t * read_length);
+  idigi_callback_status_t app_network_close(idigi_network_handle_t * const fd);
+  int app_server_disconnected(void);
+  int app_server_reboot(void);
+  idigi_callback_status_t app_network_handler(idigi_network_request_t const request,
+                                            void * const request_data, size_t const request_length,
+                                            void * response_data, size_t * const response_length);
 
 };
 
