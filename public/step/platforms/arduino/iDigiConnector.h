@@ -20,6 +20,8 @@ extern "C" {
 #include "idigi_config.h"
 }
 
+#include "iDigiDataService.h"
+
 class iDigiConnectorClass {
 public:
   iDigiConnectorClass();
@@ -39,16 +41,16 @@ public:
                                       void * const request_data,
                                       size_t const request_length, void * response_data,
                                       size_t * const response_length);
-#if 0
-  /* cloud file interface */
-  static ArduinoiDigiDataService dataService;
+
+  static idigi_callback_status_t appCallbackWrapper(idigi_class_t const class_id,
+                                      idigi_request_t const request_id,
+                                      void * const request_data,
+                                      size_t const request_length, void * response_data,
+                                      size_t * const response_length);
   
-  /* network functions */
-  int network_connect(char const * const host_name, idigi_network_handle_t **network_handle);
-  size_t network_send(idigi_network_handle_t *handle, char *buffer, size_t length);
-  size_t network_recv(idigi_network_handle_t *handle, int timeout_sec, char *buffer, size_t length);
-  int network_connected(idigi_network_handle_t *handle);
-  void network_close(idigi_network_handle_t *handle);
+
+  /* cloud file interface */
+  iDigiDataService dataService;
   
   /* config functions */
   void setMac(uint8_t *mac);
@@ -69,7 +71,7 @@ public:
   idigi_connection_type_t getConnectionType();
   uint32_t getLinkSpeed();
   char *getPhoneNumber();
-#endif  
+
   /* misc accessor functions */
   idigi_handle_t getHandle();
   

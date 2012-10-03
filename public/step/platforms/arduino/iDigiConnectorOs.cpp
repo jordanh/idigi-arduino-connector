@@ -12,6 +12,7 @@
  */
 
 #include "iDigiConnector.h"
+#include <Arduino.h>
 
  /**
   * @file
@@ -121,7 +122,6 @@ int iDigiConnectorClass::app_os_get_system_time(unsigned long * const uptime)
  */
 void iDigiConnectorClass::app_os_sleep(unsigned int const timeout_in_seconds)
 {
-    extern void delay(unsigned int ms);
     delay(timeout_in_seconds*1000);
     
     return;
