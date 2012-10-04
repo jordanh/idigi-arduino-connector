@@ -17,7 +17,7 @@
 #define APP_DEBUG_ENABLED
 /* #define IDIGI_FIRMWARE_SERVICE */
 /* #define IDIGI_COMPRESSION */
-/* #define IDIGI_DATA_SERVICE */
+#define IDIGI_DATA_SERVICE
 /* #define IDIGI_FILE_SYSTEM */
 /* #define IDIGI_RCI_SERVICE */
 #define IDIGI_DEFAULT_SERVERHOST    "my.idigi.com"
