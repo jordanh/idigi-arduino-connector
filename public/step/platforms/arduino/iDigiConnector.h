@@ -23,6 +23,8 @@ extern "C" {
 #include "iDigiDataService.h"
 
 class iDigiConnectorClass {
+  friend class iDigiDataService;
+  
 public:
   iDigiConnectorClass();
   
@@ -71,9 +73,6 @@ public:
   idigi_connection_type_t getConnectionType();
   uint32_t getLinkSpeed();
   char *getPhoneNumber();
-
-  /* misc accessor functions */
-  idigi_handle_t getHandle();
   
   
 private:
@@ -96,6 +95,7 @@ private:
   char _phoneNumber[IDIGI_PHONENUMBER_LENGTH];
 
   /* private interface methods */
+  idigi_handle_t getHandle();
 
   /* Define in iDigiConnectorConfic.cpp */
   idigi_callback_status_t app_get_ip_address(uint8_t const ** ip_address, size_t * const size);

@@ -244,6 +244,12 @@ char *iDigiConnectorClass::getPhoneNumber()
   return _phoneNumber;
 }
 
+/* private methods */
+idigi_handle_t iDigiConnectorClass::getHandle()
+{
+  return idigi_handle;
+}
+
 /* global and static member initialization */
 iDigiConnectorClass iDigi;
 
