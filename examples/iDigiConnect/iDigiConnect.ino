@@ -5,15 +5,15 @@
 
 #define ETHERNET_DHCP 0
 
-#define IDIGI_VENDOR_ID    0x01000198
+#define IDIGI_VENDOR_ID    0x03000009
 
 byte mac[] = { 0x90, 0xA2, 0xDA, 0x05, 0x00, 0x57 };
 // iDigi Device ID will be 00000000-00000000-90A2DAFF-FF050057
 
 #if(ETHERNET_DHCP == 0)
-IPAddress ip(10, 40, 18, 133);
-IPAddress gw(10, 40, 18, 1);
-IPAddress dns(10, 40, 8, 28);
+IPAddress ip(10, 101, 1, 142);
+IPAddress gw(10, 101, 1, 1);
+IPAddress nameserver(8, 8, 8, 8);
 IPAddress subnet(255, 255, 255, 0);
 #endif /* ETHERNET_DHCP */
 
@@ -27,7 +27,7 @@ void setup() {
  
   Serial.println("Starting Ethernet..."); 
 #if(ETHERNET_DHCP == 0)
-  Ethernet.begin(mac, ip, dns, gw, subnet);
+  Ethernet.begin(mac, ip, nameserver, gw, subnet);
   Serial.println("Starting iDigi...");
   iDigi.setup(mac, ip, IDIGI_VENDOR_ID);
   Serial.println("iDigi started!");

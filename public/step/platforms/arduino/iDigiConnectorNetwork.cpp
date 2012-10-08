@@ -70,20 +70,27 @@ idigi_callback_status_t iDigiConnectorClass::app_network_receive(idigi_read_requ
     idigi_callback_status_t rc = idigi_callback_continue;
 
     if (!app_network_connected(read_data->network_handle))
+    {
       return idigi_callback_abort;
+    }
 
     EthernetClient *client = (EthernetClient *) read_data->network_handle;
     APP_DEBUG("app_network_recv: timeout_sec = %d\r\n", read_data->timeout);
     if (!client->available())
-        return idigi_callback_abort;
+    {
+        APP_DEBUG("app_network_recv: no data available\r\n");
+        return idigi_callback_busy;
+    }
   
     *read_length = client->read((uint8_t *) read_data->buffer, read_data->length);
 
+    APP_DEBUG("app_network_recv: read %d bytes\r\n", *read_length);
+
     if (*read_length == 0)
-      rc = idigi_callback_busy;
-  
-    if (!app_network_connected(read_data->network_handle))
+    {
+      APP_DEBUG("app_network_recv: connection reset\r\n");
       rc = idigi_callback_abort;
+    }
 
     return rc;
 }

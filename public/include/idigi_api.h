@@ -28,6 +28,14 @@
  *                                    0x01010000UL
  */
 #define IDIGI_VERSION_1100   0x01010000UL
+#define IDIGI_VERSION_1200   0x01020000UL
+
+/* JRH change for Arduino environment */
+#ifndef IDIGI_VERSION
+/* Private modification to facilitate Arduino build environment */
+#define IDIGI_VERSION IDIGI_VERSION_1200
+#endif
+
 
 #include "idigi_types.h"
 

@@ -155,7 +155,7 @@ idigi_callback_status_t iDigiDataService::appReqHandler(idigi_data_service_reque
     } 
   } else
   {
-    APP_DEBUG("iDigiDataService::appReqHandler(): unhandled request %d\n", request);
+    APP_DEBUG("iDigiDataService::appReqHandler(): unhandled request %d (not %d or %d)\n", request, idigi_data_service_put_request, idigi_data_service_device_request);
   }
   
   return status;

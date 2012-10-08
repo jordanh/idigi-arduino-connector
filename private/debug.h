@@ -12,6 +12,8 @@
 
 #if (defined IDIGI_DEBUG)
 
+#define idigi_debug_printf app_vprintf
+
 #if (IDIGI_VERSION < IDIGI_VERSION_1200)
 static void idigi_debug_printf(char const * const format, ...)
 {
