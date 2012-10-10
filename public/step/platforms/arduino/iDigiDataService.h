@@ -13,12 +13,28 @@
 #ifndef __IDIGI_DATA_SERVICE_H__
 #define __IDIGI_DATA_SERVICE_H__
 
+#include <WString.h>
+#include "Vector.h"
+
 extern "C" {
 #include <stddef.h>
 #include "idigi_api.h"
 }
 
 #define IDIGI_DS_TARGET_LEN  64
+
+class DigiString : public String
+{
+  // Extension of Arduino Wiring string to have access to internal buffer
+public:
+  DigiString & operator= (const char *cstr) { 
+        if (cstr) copy(cstr, strlen(cstr));
+        else invalidate();
+                
+        return *this;
+  };
+  char *c_str() { return buffer; };
+};
 
 
 class iDigiPutFileRequest {
@@ -27,9 +43,10 @@ class iDigiPutFileRequest {
 public:
   iDigiPutFileRequest():active_flag(false), finished_flag(false) { };
   
-  char *buffer;
+  const char *buffer;
   size_t length;
   size_t written;
+  void *userContext;
   
   void finished() { finished_flag = true; }
   bool isFinished() { return finished_flag; }
@@ -71,6 +88,64 @@ private:
 
 typedef void (* iDigiDataServiceHandler)(iDigiDataServiceRequest *);
 
+
+class iDigiDiaSample {
+public:
+  String name, unit, value, isoTimestamp;
+  iDigiDiaSample() { };
+  iDigiDiaSample(const char *name, const char *value, const char *unit, const char *isoTimestamp) { 
+      this->name = name;
+      this->value = value;
+      this->unit = unit;
+      this->isoTimestamp = isoTimestamp;
+  };
+};
+
+class iDigiDiaDataset {
+public:
+    DigiString name;
+
+    iDigiDiaDataset(size_t maxNumSamples, const char *name) {
+      this->name = name;
+      this->_maxNumSamples = maxNumSamples;
+      _samples = new Vector<iDigiDiaSample>();
+    };
+    ~iDigiDiaDataset() {
+      dealloc();
+    };
+    bool add(const char *name, const char *value, const char *unit) {
+      return add(name, value, unit, "");
+    };
+    bool add(const char *name, const char *value, const char *unit, const char *isoTimestamp) {
+      if (_samples->size() >= _maxNumSamples)
+        return false;
+      iDigiDiaSample *sample = new iDigiDiaSample(name, value, unit, isoTimestamp);
+      _samples->push_back(*sample);
+      return true;
+    };
+    size_t size() { return _samples->size(); }
+    iDigiDiaSample const *operator[](size_t idx) const { return &(*_samples)[idx]; };
+    void clear() { dealloc(); _samples = new Vector<iDigiDiaSample>(); };
+
+private:
+    Vector <iDigiDiaSample> *_samples;
+    size_t _maxNumSamples;
+
+    void dealloc() {
+      for (size_t i=0; i < _samples->size(); i++)
+        delete &(*_samples)[i];
+      delete _samples;
+    }
+};
+
+class iDigiDiaDatasetContext {
+public:
+  DigiString formatBuffer;
+  iDigiDiaDatasetContext():dataset(NULL), begin(0), it(0), end(0) {};
+  iDigiDiaDataset *dataset;
+  size_t begin, it, end;
+};
+
 class iDigiDataService {
   friend class iDigiConnectorClass;
   
@@ -78,13 +153,19 @@ public:
   iDigiDataService():_putFileCallback(NULL), _putFileContext(),
                             _requestCallback(NULL), _requestContext() { };
   
-  size_t putFile(char *filePath, char *mimeType, char *buffer, size_t length);
-  size_t putFile(char *filePath, char *mimeType, char *buffer, size_t length, unsigned int flags);
-  unsigned int putFileAsync(char *filePath, char *mimeType, iDigiPutFileHandler handler);
-  unsigned int putFileAsync(char *filePath, char *mimeType, iDigiPutFileHandler handler, unsigned int flags);
+  size_t putFile(const char *filePath, const char *mimeType, const char *buffer, size_t length);
+  size_t putFile(const char *filePath, const char *mimeType, const char *buffer, size_t length, unsigned int flags);
+  size_t putDiaDataset(iDigiDiaDataset *dataset);
+  unsigned int putFileAsync(const char *filePath, const char *mimeType, iDigiPutFileHandler handler);
+  unsigned int putFileAsync(const char *filePath, const char *mimeType, iDigiPutFileHandler handler, unsigned int flags);
+  unsigned int putFileAsync(const char *filePath, const char *mimeType, iDigiPutFileHandler handler, unsigned int flags,
+                            void *userContext);
   bool putFileAsyncBusy() { return _putFileContext.active_flag; }
+
   void registerHandler(iDigiDataServiceHandler callback);
   bool sendResponse(iDigiDataServiceRequest *request, char *buffer, size_t length);
+
+
 
 private:
   iDigiPutFileHandler     _putFileCallback;
@@ -93,30 +174,30 @@ private:
   iDigiDataServiceRequest _requestContext;
 
   static void putFileSyncHandler(iDigiPutFileRequest *request) { }
+  static void putDiaDatasetHandler(iDigiPutFileRequest *request);
   
   idigi_callback_status_t appReqHandler(idigi_data_service_request_t const request,
                                         void const * request_data, size_t const request_length,
                                         void * response_data, size_t * const response_length);  
   
-  idigi_callback_status_t appPutReqHandlerNeedData(idigi_data_service_msg_request_t const * const request_data,
+  idigi_callback_status_t appPutReqHandlerNeedData(idigi_data_service_msg_request_t const *request_data,
                                                    idigi_data_service_msg_response_t * const response_data);
   
-  idigi_callback_status_t appPutReqHandlerHaveData(idigi_data_service_msg_request_t const * const request_data,
+  idigi_callback_status_t appPutReqHandlerHaveData(idigi_data_service_msg_request_t const *request_data,
                                                    idigi_data_service_msg_response_t * const response_data);
   
-  idigi_callback_status_t appPutReqHandlerError(idigi_data_service_msg_request_t const * const request_data,
+  idigi_callback_status_t appPutReqHandlerError(idigi_data_service_msg_request_t const *request_data,
                                                 idigi_data_service_msg_response_t * const response_data);
   
-  idigi_callback_status_t appDeviceReqHandlerNeedData(idigi_data_service_msg_request_t const * const request_data,
+  idigi_callback_status_t appDeviceReqHandlerNeedData(idigi_data_service_msg_request_t const *request_data,
                                                       idigi_data_service_msg_response_t * const response_data);
   
-  idigi_callback_status_t appDeviceReqHandlerHaveData(idigi_data_service_msg_request_t const * const request_data,
+  idigi_callback_status_t appDeviceReqHandlerHaveData(idigi_data_service_msg_request_t const *request_data,
                                                       idigi_data_service_msg_response_t * const response_data);
   
-  idigi_callback_status_t appDeviceReqHandlerError(idigi_data_service_msg_request_t const * const request_data,
+  idigi_callback_status_t appDeviceReqHandlerError(idigi_data_service_msg_request_t const *request_data,
                                                    idigi_data_service_msg_response_t * const response_data);
 };
-
 
 
 #endif /* __ARDUINO_IDIGI_DATA_SERVICE_H__ */

@@ -24,7 +24,7 @@ extern "C" {
 
 class iDigiConnectorClass {
   friend class iDigiDataService;
-  
+
 public:
   iDigiConnectorClass();
   
@@ -152,19 +152,5 @@ extern "C"
 {
   int app_vprintf(const char *format, va_list ap);
 }
-
-static void APP_DEBUG(char const * const format, ...)
-{
-#if defined(APP_DEBUG_ENABLED)
-  va_list args;
-  
-  va_start(args, format);
-  app_vprintf(format, args);
-  va_end(args);
-#else
-  (void) format;
-#endif
-}
-
 
 #endif /* __IDIGI_CONNECTOR_H__ */

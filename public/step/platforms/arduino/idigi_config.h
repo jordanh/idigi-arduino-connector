@@ -14,7 +14,7 @@
 
 #define IDIGI_LITTLE_ENDIAN
 /* #define IDIGI_DEBUG */
-// #define APP_DEBUG_ENABLED
+#define APP_DEBUG_ENABLED
 /* #define IDIGI_FIRMWARE_SERVICE */
 /* #define IDIGI_COMPRESSION */
 #define IDIGI_DATA_SERVICE
@@ -40,5 +40,7 @@
 #define IDIGI_FILE_SYSTEM_MAX_PATH_LENGTH   256
 
 #define UNUSED_ARGUMENT(x)     ((void)x)
+
+void APP_DEBUG(char const * format, ...);
 
 #endif

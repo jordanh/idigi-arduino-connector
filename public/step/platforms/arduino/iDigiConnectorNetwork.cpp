@@ -24,7 +24,7 @@ idigi_callback_status_t iDigiConnectorClass::app_network_connect(char * const ho
     
     idigi_callback_status_t rc = idigi_callback_continue;
 
-    APP_DEBUG("app_network_connect: %s\r\n", host_name);
+    // APP_DEBUG("app_network_connect: %s\r\n", host_name);
     if (!client.connect(host_name, IDIGI_PORT))
     {
         rc = idigi_callback_busy;
@@ -40,7 +40,7 @@ bool iDigiConnectorClass::app_network_connected(idigi_network_handle_t * network
     EthernetClient *client = (EthernetClient *) network_handle;
 
     bool socket_connected = (bool) client->connected();
-    APP_DEBUG("app_network_connected: %d\r\n", (int) socket_connected);
+    // APP_DEBUG("app_network_connected: %d\r\n", (int) socket_connected);
     if (connected && socket_connected == 0)
     {
       connected = false;
@@ -54,7 +54,7 @@ idigi_callback_status_t iDigiConnectorClass::app_network_send(idigi_write_reques
     idigi_callback_status_t rc = idigi_callback_continue;
 
     EthernetClient *client = (EthernetClient *) write_data->network_handle;
-    APP_DEBUG("network_send: len = %d\r\n", write_data->length);
+    // APP_DEBUG("network_send: len = %d\r\n", write_data->length);
     *sent_length = client->write((uint8_t * const) write_data->buffer, write_data->length);
     if (*sent_length == 0)
     {
@@ -75,20 +75,20 @@ idigi_callback_status_t iDigiConnectorClass::app_network_receive(idigi_read_requ
     }
 
     EthernetClient *client = (EthernetClient *) read_data->network_handle;
-    APP_DEBUG("app_network_recv: timeout_sec = %d\r\n", read_data->timeout);
+    // APP_DEBUG("app_network_recv: timeout_sec = %d\r\n", read_data->timeout);
     if (!client->available())
     {
-        APP_DEBUG("app_network_recv: no data available\r\n");
+        // APP_DEBUG("app_network_recv: no data available\r\n");
         return idigi_callback_busy;
     }
   
     *read_length = client->read((uint8_t *) read_data->buffer, read_data->length);
 
-    APP_DEBUG("app_network_recv: read %d bytes\r\n", *read_length);
+    // APP_DEBUG("app_network_recv: read %d bytes\r\n", *read_length);
 
     if (*read_length == 0)
     {
-      APP_DEBUG("app_network_recv: connection reset\r\n");
+      // APP_DEBUG("app_network_recv: connection reset\r\n");
       rc = idigi_callback_abort;
     }
 

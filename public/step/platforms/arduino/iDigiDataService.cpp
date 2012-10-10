@@ -12,21 +12,22 @@
 
 #include "iDigiDataService.h"
 #include "iDigiConnector.h"
- 
+
 extern iDigiConnectorClass iDigi;
 
-size_t iDigiDataService::putFile(char *filePath, char *mimeType, 
-                                        char *buffer, size_t length)
+size_t iDigiDataService::putFile(const char *filePath, const char *mimeType, 
+                                        const char *buffer, size_t length)
 {
   return putFile(filePath, mimeType, buffer, length, 0);
 }
 
-size_t iDigiDataService::putFile(char *filePath, char *mimeType, 
-                                        char *buffer, size_t length, unsigned int flags)
+size_t iDigiDataService::putFile(const char *filePath, const char *mimeType, 
+                                        const char *buffer, size_t length, unsigned int flags)
 {
   unsigned int result = putFileAsync(filePath, mimeType, &putFileSyncHandler, flags);
   
-  if (result != idigi_success) {
+  if (result != idigi_success)
+  {
     // error occured
     return -result;
   }
@@ -43,14 +44,91 @@ size_t iDigiDataService::putFile(char *filePath, char *mimeType,
   return _putFileContext.written;
 }
 
-unsigned int iDigiDataService::putFileAsync(char *filePath, char *mimeType,
+size_t iDigiDataService::putDiaDataset(iDigiDiaDataset *dataset)
+{
+  iDigiDiaDatasetContext context;
+  context.dataset = dataset;
+  APP_DEBUG("About to upload dataset \"%s\"\r\n", dataset->name.c_str());
+  context.end = dataset->size();
+  unsigned int result = putFileAsync("diaData.xml", "text/xml",
+                                     &putDiaDatasetHandler, 0, (void *) &context);
+
+  if (result != idigi_success)
+  {
+    // error occured
+    return -result;
+  }
+  
+  while (putFileAsyncBusy())
+  {
+    iDigi.step();
+  }
+
+  return _putFileContext.written;
+}
+
+void iDigiDataService::putDiaDatasetHandler(iDigiPutFileRequest *request)
+{
+    iDigiDiaDatasetContext *context = (iDigiDiaDatasetContext *) request->userContext;
+
+    context->formatBuffer = "";
+
+    if (context->it == context->begin)
+    {
+      // We need to begin the document:
+      context->formatBuffer += "<idigi_data compact=\"True\"j>";
+    }
+
+    if (context->it != context->end)
+    {
+      // We're in the middle of the vector of samples:
+      context->formatBuffer += "<sample name=\"";
+      context->formatBuffer += context->dataset->name;
+      context->formatBuffer += ".";
+      context->formatBuffer += (*context->dataset)[context->it]->name;
+      context->formatBuffer += "\" ";
+      context->formatBuffer += "value=\"";
+      context->formatBuffer += (*context->dataset)[context->it]->value;
+      context->formatBuffer += "\" ";
+      context->formatBuffer += "unit=\"";
+      context->formatBuffer += (*context->dataset)[context->it]->unit;
+      context->formatBuffer += "\" ";
+      if ((*context->dataset)[context->it]->isoTimestamp.length() > 0)
+      {
+        context->formatBuffer += "timestamp=\"";
+        context->formatBuffer += (*context->dataset)[context->it]->isoTimestamp;
+        context->formatBuffer += "\" ";
+      }
+      context->formatBuffer += "/>";
+      context->it++; // increment iterator
+    } else
+    {
+      // We've processed the last sample:
+      context->formatBuffer += "</idigi_data>";
+      request->finished();
+    }
+
+    APP_DEBUG("iDigiDataService::putDiaDatasetHandler: %s\r\n", context->formatBuffer.c_str());
+
+    request->length = context->formatBuffer.length();
+    request->buffer = context->formatBuffer.c_str();
+}
+
+unsigned int iDigiDataService::putFileAsync(const char *filePath, const char *mimeType,
                                           iDigiPutFileHandler handler)
 {
   return putFileAsync(filePath, mimeType, handler, 0);
 }
 
-unsigned int iDigiDataService::putFileAsync(char *filePath, char *mimeType,
+unsigned int iDigiDataService::putFileAsync(const char *filePath, const char *mimeType,
                                           iDigiPutFileHandler handler, unsigned int flags)
+{
+  return putFileAsync(filePath, mimeType, handler, 0, NULL);
+}
+
+unsigned int iDigiDataService::putFileAsync(const char *filePath, const char *mimeType,
+                                          iDigiPutFileHandler handler, unsigned int flags,
+                                          void *userContext)
 {
   idigi_status_t status = idigi_success;
   
@@ -62,6 +140,7 @@ unsigned int iDigiDataService::putFileAsync(char *filePath, char *mimeType,
 
   _putFileCallback = handler;
   _putFileContext.written = 0;
+  _putFileContext.userContext = userContext;
   _putFileContext.finished_flag = 0;
   _putFileContext.header.flags = flags;
   _putFileContext.header.path = filePath;
@@ -200,7 +279,7 @@ idigi_callback_status_t iDigiDataService::appPutReqHandlerNeedData(idigi_data_se
 }
 
 
-idigi_callback_status_t iDigiDataService::appPutReqHandlerHaveData(idigi_data_service_msg_request_t const * const request_data,
+idigi_callback_status_t iDigiDataService::appPutReqHandlerHaveData(idigi_data_service_msg_request_t const *request_data,
                                                                             idigi_data_service_msg_response_t * const response_data)
 {
   idigi_callback_status_t status = idigi_callback_continue;
@@ -216,7 +295,7 @@ idigi_callback_status_t iDigiDataService::appPutReqHandlerHaveData(idigi_data_se
   return status;
 }
 
-idigi_callback_status_t iDigiDataService::appPutReqHandlerError(idigi_data_service_msg_request_t const * const request_data,
+idigi_callback_status_t iDigiDataService::appPutReqHandlerError(idigi_data_service_msg_request_t const *request_data,
                                                                          idigi_data_service_msg_response_t * const response_data)
 {
   idigi_callback_status_t status = idigi_callback_continue;
@@ -231,7 +310,7 @@ idigi_callback_status_t iDigiDataService::appPutReqHandlerError(idigi_data_servi
 }
 
   
-idigi_callback_status_t iDigiDataService::appDeviceReqHandlerNeedData(idigi_data_service_msg_request_t const * const request_data,
+idigi_callback_status_t iDigiDataService::appDeviceReqHandlerNeedData(idigi_data_service_msg_request_t const *request_data,
                                                                                idigi_data_service_msg_response_t * const response_data)
 {
   iDigiDataServiceRequest *context = (iDigiDataServiceRequest *) response_data->user_context;
@@ -263,7 +342,7 @@ idigi_callback_status_t iDigiDataService::appDeviceReqHandlerNeedData(idigi_data
 }
 
 
-idigi_callback_status_t iDigiDataService::appDeviceReqHandlerHaveData(idigi_data_service_msg_request_t const * const request_data,
+idigi_callback_status_t iDigiDataService::appDeviceReqHandlerHaveData(idigi_data_service_msg_request_t const *request_data,
                                                                                idigi_data_service_msg_response_t * const response_data)
 {
   idigi_data_service_device_request_t * const server_device_request = (idigi_data_service_device_request_t * const) request_data->service_context;
@@ -313,7 +392,7 @@ idigi_callback_status_t iDigiDataService::appDeviceReqHandlerHaveData(idigi_data
   return idigi_callback_continue;
 }
 
-idigi_callback_status_t iDigiDataService::appDeviceReqHandlerError(idigi_data_service_msg_request_t const * const request_data,
+idigi_callback_status_t iDigiDataService::appDeviceReqHandlerError(idigi_data_service_msg_request_t const *request_data,
                                                                             idigi_data_service_msg_response_t * const response_data)
 {
   idigi_data_service_block_t * error_data = request_data->server_data;
@@ -323,3 +402,4 @@ idigi_callback_status_t iDigiDataService::appDeviceReqHandlerError(idigi_data_se
   
   return idigi_callback_continue;
 }
+

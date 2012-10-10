@@ -45,7 +45,7 @@ void iDigiConnectorClass::setup(uint8_t *mac, IPAddress ip, uint32_t vendorId)
   setVendorId(vendorId);
   
   idigi_handle = idigi_init((idigi_callback_t) &iDigiConnectorClass::appCallbackWrapper);
-  APP_DEBUG("idigi_init complete.\r\n"); 
+  // APP_DEBUG("idigi_init complete.\r\n"); 
 }
 
 void iDigiConnectorClass::setup(uint8_t *mac, IPAddress ip, uint32_t vendorId,
@@ -80,7 +80,7 @@ idigi_callback_status_t iDigiConnectorClass::appCallback(
                             size_t * const response_length)
 {
   idigi_callback_status_t   status = idigi_callback_continue;
-  APP_DEBUG("iDigiConnectorClass.appCallback(): %d %d\n", class_id, request_id);
+  // APP_DEBUG("iDigiConnectorClass.appCallback(): %d %d\n", class_id, request_id);
   switch (class_id)
   {
     case idigi_class_config:
@@ -281,4 +281,18 @@ int app_printf(const char *format, ...)
     
   return ret;
 }
+
+void APP_DEBUG(char const * format, ...)
+{
+#if defined(APP_DEBUG_ENABLED)
+  va_list args;
+  
+  va_start(args, format);
+  app_vprintf(format, args);
+  va_end(args);
+#else
+  (void) format;
+#endif
+}
+
 } /* /extern "C" */
