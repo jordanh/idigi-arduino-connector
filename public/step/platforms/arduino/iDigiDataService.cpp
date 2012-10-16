@@ -46,10 +46,9 @@ size_t iDigiDataService::putFile(const char *filePath, const char *mimeType,
 
 size_t iDigiDataService::putDiaDataset(iDigiDiaDataset *dataset)
 {
-  iDigiDiaDatasetContext context;
-  context.dataset = dataset;
+  putDiaDatasetContext context(dataset);
+
   // APP_DEBUG("iDigiDataService::putDiaDataset: About to upload dataset \"%s\" (%d samples) \r\n", dataset->name, dataset->size());
-  context.end = dataset->size();
   unsigned int result = putFileAsync("diaData.xml", "text/xml",
                                      &putDiaDatasetHandler, 0, (void *) &context);
 
@@ -69,34 +68,34 @@ size_t iDigiDataService::putDiaDataset(iDigiDiaDataset *dataset)
 
 void iDigiDataService::putDiaDatasetHandler(iDigiPutFileRequest *request)
 {
-    iDigiDiaDatasetContext *context = (iDigiDiaDatasetContext *) request->userContext;
+    putDiaDatasetContext *context = (putDiaDatasetContext *) request->userContext;
 
     context->formatBuffer = "";
 
-    if (context->it == context->begin)
+    if (context->it == context->dataset->begin())
     {
       // We need to begin the document:
       context->formatBuffer += "<idigi_data compact=\"True\">";
     }
 
-    if (context->it != context->end)
+    if (context->it != context->dataset->end())
     {
       // We're in the middle of the vector of samples:
       context->formatBuffer += "<sample name=\"";
       context->formatBuffer += context->dataset->name;
       context->formatBuffer += ".";
-      context->formatBuffer += (*context->dataset)[context->it]->name;
+      context->formatBuffer += context->it->name;
       context->formatBuffer += "\" ";
       context->formatBuffer += "value=\"";
-      context->formatBuffer += (*context->dataset)[context->it]->value;
+      context->formatBuffer += context->it->value;
       context->formatBuffer += "\" ";
       context->formatBuffer += "unit=\"";
-      context->formatBuffer += (*context->dataset)[context->it]->unit;
+      context->formatBuffer += context->it->unit;
       context->formatBuffer += "\" ";
-      if (strlen((*context->dataset)[context->it]->isoTimestamp) > 0)
+      if (strlen(context->it->isoTimestamp) > 0)
       {
         context->formatBuffer += "timestamp=\"";
-        context->formatBuffer += (*context->dataset)[context->it]->isoTimestamp;
+        context->formatBuffer += context->it->isoTimestamp;
         context->formatBuffer += "\" ";
       }
       context->formatBuffer += "/>";
