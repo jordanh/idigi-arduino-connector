@@ -81,6 +81,7 @@ idigi_callback_status_t iDigiConnectorClass::appCallback(
 {
   idigi_callback_status_t   status = idigi_callback_continue;
   // APP_DEBUG("iDigiConnectorClass.appCallback(): %d %d\n", class_id, request_id);
+  // APP_DEBUG("iDigiConnectorClass.appCallback(): freeRam %d\r\n", freeRam());
   switch (class_id)
   {
     case idigi_class_config:
@@ -293,6 +294,12 @@ void APP_DEBUG(char const * format, ...)
 #else
   (void) format;
 #endif
+}
+
+static int freeRam () {
+  extern int __heap_start, *__brkval; 
+  int v; 
+  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
 }
 
 } /* /extern "C" */

@@ -48,7 +48,7 @@ size_t iDigiDataService::putDiaDataset(iDigiDiaDataset *dataset)
 {
   iDigiDiaDatasetContext context;
   context.dataset = dataset;
-  APP_DEBUG("About to upload dataset \"%s\"\r\n", dataset->name.c_str());
+  // APP_DEBUG("iDigiDataService::putDiaDataset: About to upload dataset \"%s\" (%d samples) \r\n", dataset->name, dataset->size());
   context.end = dataset->size();
   unsigned int result = putFileAsync("diaData.xml", "text/xml",
                                      &putDiaDatasetHandler, 0, (void *) &context);
@@ -76,7 +76,7 @@ void iDigiDataService::putDiaDatasetHandler(iDigiPutFileRequest *request)
     if (context->it == context->begin)
     {
       // We need to begin the document:
-      context->formatBuffer += "<idigi_data compact=\"True\"j>";
+      context->formatBuffer += "<idigi_data compact=\"True\">";
     }
 
     if (context->it != context->end)
@@ -93,7 +93,7 @@ void iDigiDataService::putDiaDatasetHandler(iDigiPutFileRequest *request)
       context->formatBuffer += "unit=\"";
       context->formatBuffer += (*context->dataset)[context->it]->unit;
       context->formatBuffer += "\" ";
-      if ((*context->dataset)[context->it]->isoTimestamp.length() > 0)
+      if (strlen((*context->dataset)[context->it]->isoTimestamp) > 0)
       {
         context->formatBuffer += "timestamp=\"";
         context->formatBuffer += (*context->dataset)[context->it]->isoTimestamp;
@@ -108,7 +108,7 @@ void iDigiDataService::putDiaDatasetHandler(iDigiPutFileRequest *request)
       request->finished();
     }
 
-    APP_DEBUG("iDigiDataService::putDiaDatasetHandler: %s\r\n", context->formatBuffer.c_str());
+    // APP_DEBUG("iDigiDataService::putDiaDatasetHandler: %s\r\n", context->formatBuffer.c_str());
 
     request->length = context->formatBuffer.length();
     request->buffer = context->formatBuffer.c_str();
@@ -135,6 +135,7 @@ unsigned int iDigiDataService::putFileAsync(const char *filePath, const char *mi
   if (_putFileContext.active_flag)
   {
     // Another request is already active, do not create a new request
+    // APP_DEBUG("iDigiDataService::putFileAsync(): another request in progress");
     return (unsigned int) idigi_service_busy;
   }
 
@@ -154,7 +155,7 @@ unsigned int iDigiDataService::putFileAsync(const char *filePath, const char *mi
   {
     _putFileContext.active_flag = true;
   }
-  
+
   return (unsigned int) status;
 }
 
@@ -207,7 +208,7 @@ idigi_callback_status_t iDigiDataService::appReqHandler(idigi_data_service_reque
                                        (idigi_data_service_msg_response_t *)response_data);
         break;                
     default:
-        APP_DEBUG("iDigiDataService::appReqHandler(): put request not supported: %d\n", put_request->message_type);
+        // APP_DEBUG("iDigiDataService::appReqHandler(): put request not supported: %d\n", put_request->message_type);
         break;
     }
   } else if (request == idigi_data_service_device_request)
@@ -229,12 +230,12 @@ idigi_callback_status_t iDigiDataService::appReqHandler(idigi_data_service_reque
                                           (idigi_data_service_msg_response_t *)response_data);
         break;
       default:
-        APP_DEBUG("iDigiDataService::appReqHandler(): device request not supported: %d\n", device_request->message_type);
+        // APP_DEBUG("iDigiDataService::appReqHandler(): device request not supported: %d\n", device_request->message_type);
         break;
     } 
   } else
   {
-    APP_DEBUG("iDigiDataService::appReqHandler(): unhandled request %d (not %d or %d)\n", request, idigi_data_service_put_request, idigi_data_service_device_request);
+    // APP_DEBUG("iDigiDataService::appReqHandler(): unhandled request %d (not %d or %d)\n", request, idigi_data_service_put_request, idigi_data_service_device_request);
   }
   
   return status;
@@ -285,10 +286,10 @@ idigi_callback_status_t iDigiDataService::appPutReqHandlerHaveData(idigi_data_se
   idigi_callback_status_t status = idigi_callback_continue;
   idigi_data_service_block_t * message = request_data->server_data;
 
-  APP_DEBUG("Received %s response from server\n", ((message->flags & IDIGI_MSG_RESP_SUCCESS) != 0) ? "success" : "error");
+  // APP_DEBUG("Received %s response from server\n", ((message->flags & IDIGI_MSG_RESP_SUCCESS) != 0) ? "success" : "error");
   if (message->length_in_bytes > 0)
   {
-    APP_DEBUG("Server response %s\n", (char *) message->data);
+    // APP_DEBUG("Server response %s\n", (char *) message->data);
   }
   
   
@@ -304,7 +305,7 @@ idigi_callback_status_t iDigiDataService::appPutReqHandlerError(idigi_data_servi
   _putFileContext.active_flag = false;
   _putFileContext.finished_flag = true;
   _putFileContext.error = *((idigi_msg_error_t *) message->data);
-  APP_DEBUG("put data service error: %u\n", _putFileContext.error);
+  // APP_DEBUG("Put data service error: %u\n", _putFileContext.error);
   
   return status;
 }
@@ -317,7 +318,7 @@ idigi_callback_status_t iDigiDataService::appDeviceReqHandlerNeedData(idigi_data
   
   if ((response_data->client_data == NULL) || (context == NULL))
   {
-    APP_DEBUG("invalid client data or context is NULL!\n");
+    // APP_DEBUG("invalid client data or context is NULL!\n");
     
     return idigi_callback_continue;
   }
@@ -374,7 +375,7 @@ idigi_callback_status_t iDigiDataService::appDeviceReqHandlerHaveData(idigi_data
   
   if (context == NULL)
   {
-    APP_DEBUG("device data NULL context!\n");
+    // APP_DEBUG("device data NULL context!\n");
     return idigi_callback_continue;
   }
   
@@ -398,7 +399,7 @@ idigi_callback_status_t iDigiDataService::appDeviceReqHandlerError(idigi_data_se
   idigi_data_service_block_t * error_data = request_data->server_data;
   idigi_msg_error_t const error_code = *((idigi_msg_error_t *)error_data->data);
   
-  APP_DEBUG("device data service error: %d\n", error_code);
+  // APP_DEBUG("Device data service error: %d\n", error_code);
   
   return idigi_callback_continue;
 }

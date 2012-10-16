@@ -21,17 +21,14 @@ extern "C" {
 #include "idigi_api.h"
 }
 
-#define IDIGI_DS_TARGET_LEN  64
+#define IDIGI_DS_TARGET_LEN  32
 
 class DigiString : public String
 {
   // Extension of Arduino Wiring string to have access to internal buffer
 public:
-  DigiString & operator= (const char *cstr) { 
-        if (cstr) copy(cstr, strlen(cstr));
-        else invalidate();
-                
-        return *this;
+  DigiString & operator= (const char *cstr) {
+        return (DigiString &) String::operator=(cstr);
   };
   char *c_str() { return buffer; };
 };
@@ -91,27 +88,34 @@ typedef void (* iDigiDataServiceHandler)(iDigiDataServiceRequest *);
 
 class iDigiDiaSample {
 public:
-  String name, unit, value, isoTimestamp;
-  iDigiDiaSample() { };
+  char *name, *unit, *value, *isoTimestamp;
+  iDigiDiaSample() { name = unit = value = isoTimestamp = NULL; };
   iDigiDiaSample(const char *name, const char *value, const char *unit, const char *isoTimestamp) { 
-      this->name = name;
-      this->value = value;
-      this->unit = unit;
-      this->isoTimestamp = isoTimestamp;
+      this->name = strdup(name);
+      this->value = strdup(value);
+      this->unit = strdup(unit);
+      this->isoTimestamp = strdup(isoTimestamp);
+  };
+  ~iDigiDiaSample() { 
+      free(this->name);
+      free(this->value);
+      free(this->unit);
+      free(this->isoTimestamp);
   };
 };
 
 class iDigiDiaDataset {
 public:
-    DigiString name;
+    char *name;
 
     iDigiDiaDataset(size_t maxNumSamples, const char *name) {
-      this->name = name;
+      this->name = strdup(name);
       this->_maxNumSamples = maxNumSamples;
-      _samples = new Vector<iDigiDiaSample>();
+      _samples = new Vector<iDigiDiaSample *>();
     };
     ~iDigiDiaDataset() {
       dealloc();
+      free(this->name);
     };
     bool add(const char *name, const char *value, const char *unit) {
       return add(name, value, unit, "");
@@ -120,20 +124,21 @@ public:
       if (_samples->size() >= _maxNumSamples)
         return false;
       iDigiDiaSample *sample = new iDigiDiaSample(name, value, unit, isoTimestamp);
-      _samples->push_back(*sample);
+      _samples->push_back(sample);
       return true;
     };
     size_t size() { return _samples->size(); }
-    iDigiDiaSample const *operator[](size_t idx) const { return &(*_samples)[idx]; };
-    void clear() { dealloc(); _samples = new Vector<iDigiDiaSample>(); };
+    bool spaceAvailable() { return _samples->size() < _maxNumSamples; }
+    iDigiDiaSample const *operator[](size_t idx) const { return (*_samples)[idx]; };
+    void clear() { dealloc(); _samples = new Vector<iDigiDiaSample *>(); };
 
 private:
-    Vector <iDigiDiaSample> *_samples;
+    Vector <iDigiDiaSample *> *_samples;
     size_t _maxNumSamples;
 
     void dealloc() {
       for (size_t i=0; i < _samples->size(); i++)
-        delete &(*_samples)[i];
+        delete (*_samples)[i];
       delete _samples;
     }
 };

@@ -209,7 +209,7 @@ static idigi_callback_status_t iDigiConnectorClass::app_get_imei_number(uint8_t 
 
 void iDigiConnectorClass::app_config_error(idigi_error_status_t const * const error_data)
 {
-
+#if 0
     /* do not arrange the strings. The strings are corresponding to enum list */
     static char const * error_status_string[] = {"idigi_success", "idigi_init_error",
                                           "idigi_configuration_error",
@@ -331,7 +331,8 @@ void iDigiConnectorClass::app_config_error(idigi_error_status_t const * const er
         APP_DEBUG("app_config_error: unsupport class_id = %d status = %d\n", error_data->class_id, error_data->status);
         break;
     }
-
+#endif
+    APP_DEBUG("app_config_error: class_id = %d status = %d\n", error_data->class_id, error_data->status);
 }
 
 idigi_callback_status_t iDigiConnectorClass::app_config_handler(idigi_config_request_t const request,
