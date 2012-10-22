@@ -5,7 +5,10 @@ class Vector {
    size_t d_size; // Stores no. of actually stored objects
    size_t d_capacity; // Stores allocated capacity
    Data *d_data; // Stores data
+   
    public:
+     typedef Data * iterator;
+
      Vector() : d_size(0), d_capacity(0), d_data(0) {}; // Default constructor
      Vector(Vector const &other) : d_size(other.d_size), d_capacity(other.d_capacity), d_data(0) { d_data = (Data *)malloc(d_capacity*sizeof(Data)); memcpy(d_data, other.d_data, d_size*sizeof(Data)); }; // Copy constuctor
      ~Vector() { free(d_data); }; // Destructor
@@ -14,6 +17,8 @@ class Vector {
      size_t size() const { return d_size; }; // Size getter
      Data const &operator[](size_t idx) const { return d_data[idx]; }; // Const getter
      Data &operator[](size_t idx) { return d_data[idx]; }; // Changeable getter
+     iterator begin() { if (!d_size) return NULL; return &d_data[0]; };
+     iterator end() { if (!d_size) return NULL; return &d_data[d_size]; };
    private:
      void resize() { d_capacity = d_capacity ? d_capacity*2 : 1; Data *newdata = (Data *)malloc(d_capacity*sizeof(Data)); memcpy(newdata, d_data, d_size * sizeof(Data)); free(d_data); d_data = newdata; };// Allocates double the old space
 };

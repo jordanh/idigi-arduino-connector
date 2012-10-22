@@ -107,8 +107,6 @@ public:
 class iDigiDiaDataset {
 public:
     char *name;
-    typedef iDigiDiaSample *iterator;
-    typedef iDigiDiaSample * const const_iterator;
 
     iDigiDiaDataset(size_t maxNumSamples, const char *name) {
       this->name = strdup(name);
@@ -130,16 +128,15 @@ public:
       return true;
     };
 
-    iterator operator[](size_t idx) const { return (*_samples)[idx]; };
+    iDigiDiaSample * const operator[](size_t idx) const { return (*_samples)[idx]; };
     size_t size() { return _samples->size(); }
-    iterator begin() { return (*this)[0]; }
-    iterator end() { return (*this)[this->size()-1]; }
-    bool spaceAvailable() { return _samples->size() < _maxNumSamples; }
-    
+    iDigiDiaSample ** const begin() { return _samples->begin(); }
+    iDigiDiaSample ** const end() { return _samples->end(); }
+    bool spaceAvailable() { return _samples->size() < _maxNumSamples; }    
     void clear() { dealloc(); _samples = new Vector<iDigiDiaSample *>(); };
 
 private:
-    Vector <iDigiDiaSample *> *_samples;
+    Vector<iDigiDiaSample *> *_samples;
     size_t _maxNumSamples;
 
     void dealloc() {
@@ -153,7 +150,7 @@ class putDiaDatasetContext {
 public:
   DigiString formatBuffer;
   iDigiDiaDataset *dataset;
-  iDigiDiaDataset::iterator it;
+  Vector<iDigiDiaSample *>::iterator it;
 
   putDiaDatasetContext():dataset(NULL), it(NULL) {};
   putDiaDatasetContext(iDigiDiaDataset *ds) { dataset = ds; it = ds->begin(); }

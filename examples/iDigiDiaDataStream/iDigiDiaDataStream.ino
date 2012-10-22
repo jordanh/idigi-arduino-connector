@@ -18,10 +18,10 @@ byte mac[] = { 0x90, 0xA2, 0xDA, 0x05, 0x00, 0x57 };
 // iDigi Device ID will be 00000000-00000000-90A2DAFF-FF050057
 
 #if(ETHERNET_DHCP == 0)
-IPAddress ip(10, 101, 1, 142);
-IPAddress gw(10, 101, 1, 1);
+IPAddress ip(10, 8, 113, 101);
+IPAddress gw(10, 8, 1, 1);
 IPAddress nameserver(8, 8, 8, 8);
-IPAddress subnet(255, 255, 255, 0);
+IPAddress subnet(255, 255, 0, 0);
 #endif /* ETHERNET_DHCP */
 
 bool idigi_connected = false;

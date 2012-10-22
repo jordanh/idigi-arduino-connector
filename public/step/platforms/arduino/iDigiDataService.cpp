@@ -48,7 +48,7 @@ size_t iDigiDataService::putDiaDataset(iDigiDiaDataset *dataset)
 {
   putDiaDatasetContext context(dataset);
 
-  // APP_DEBUG("iDigiDataService::putDiaDataset: About to upload dataset \"%s\" (%d samples) \r\n", dataset->name, dataset->size());
+  APP_DEBUG("iDigiDataService::putDiaDataset: About to upload dataset \"%s\" (%d samples) \r\n", dataset->name, dataset->size());
   unsigned int result = putFileAsync("diaData.xml", "text/xml",
                                      &putDiaDatasetHandler, 0, (void *) &context);
 
@@ -60,7 +60,7 @@ size_t iDigiDataService::putDiaDataset(iDigiDiaDataset *dataset)
   
   while (putFileAsyncBusy())
   {
-    iDigi.step();
+    iDigi.step(); 
   }
 
   return _putFileContext.written;
@@ -74,6 +74,7 @@ void iDigiDataService::putDiaDatasetHandler(iDigiPutFileRequest *request)
 
     if (context->it == context->dataset->begin())
     {
+      APP_DEBUG("iDigiDataService::putDiaDatasetHandler: begin\r\n");
       // We need to begin the document:
       context->formatBuffer += "<idigi_data compact=\"True\">";
     }
@@ -81,21 +82,22 @@ void iDigiDataService::putDiaDatasetHandler(iDigiPutFileRequest *request)
     if (context->it != context->dataset->end())
     {
       // We're in the middle of the vector of samples:
+      APP_DEBUG("iDigiDataService::putDiaDatasetHandler: middle\r\n");
       context->formatBuffer += "<sample name=\"";
       context->formatBuffer += context->dataset->name;
       context->formatBuffer += ".";
-      context->formatBuffer += context->it->name;
+      context->formatBuffer += (*context->it)->name;
       context->formatBuffer += "\" ";
       context->formatBuffer += "value=\"";
-      context->formatBuffer += context->it->value;
+      context->formatBuffer += (*context->it)->value;
       context->formatBuffer += "\" ";
       context->formatBuffer += "unit=\"";
-      context->formatBuffer += context->it->unit;
+      context->formatBuffer += (*context->it)->unit;
       context->formatBuffer += "\" ";
-      if (strlen(context->it->isoTimestamp) > 0)
+      if (strlen((*context->it)->isoTimestamp) > 0)
       {
         context->formatBuffer += "timestamp=\"";
-        context->formatBuffer += context->it->isoTimestamp;
+        context->formatBuffer += (*context->it)->isoTimestamp;
         context->formatBuffer += "\" ";
       }
       context->formatBuffer += "/>";
@@ -103,11 +105,12 @@ void iDigiDataService::putDiaDatasetHandler(iDigiPutFileRequest *request)
     } else
     {
       // We've processed the last sample:
+      APP_DEBUG("iDigiDataService::putDiaDatasetHandler: end\r\n");
       context->formatBuffer += "</idigi_data>";
       request->finished();
     }
 
-    // APP_DEBUG("iDigiDataService::putDiaDatasetHandler: %s\r\n", context->formatBuffer.c_str());
+    APP_DEBUG("iDigiDataService::putDiaDatasetHandler: %s\r\n", context->formatBuffer.c_str());
 
     request->length = context->formatBuffer.length();
     request->buffer = context->formatBuffer.c_str();
