@@ -42,33 +42,19 @@
   #include <stdint.h>
   #include <inttypes.h>
 #else
-/**
-* @defgroup user_types User Defined C types
-* If your compiler is C89 complaint these defines are used: you will need
-* to define them appropriately for your system.  If your compiler is C99 complaint
-* then the types from stdint.h and inttypes.h are used.
-* @{
-*/
-/**
- *  Unsigned 8 bit value.
- */
+
+#if defined __SAM3X8E__
   typedef unsigned char uint8_t;
+  typedef unsigned short uint16_t;
+  typedef unsigned long int uint32_t;
+  typedef long int int32_t;
 
-/**
- *  Unsigned 16 bit value.
- */
+#else
+  typedef unsigned char uint8_t;
   typedef unsigned int uint16_t;
-
-/**
- *  Unsigned 32 bit value.
- */
   typedef unsigned long uint32_t;
-
-/**
-*  Signed 32 bit value.
-*/
-   typedef long int32_t;
-
+  typedef long int32_t;
+#endif /* __SAM3X8E__ */
 #ifndef UINT16_MAX
 /**
 *  Unsigned 16 bit maximum value.
