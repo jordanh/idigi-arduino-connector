@@ -18,7 +18,7 @@
 /* #define IDIGI_FIRMWARE_SERVICE */
 /* #define IDIGI_COMPRESSION */
 #define IDIGI_DATA_SERVICE
-/* #define IDIGI_FILE_SYSTEM */
+#define IDIGI_FILE_SYSTEM
 /* #define IDIGI_RCI_SERVICE */
 #define IDIGI_DEFAULT_SERVERHOST    "my.idigi.com"
 #define IDIGI_DEFAULT_VENDORID      0x03000009

@@ -100,6 +100,10 @@ idigi_callback_status_t iDigiConnectorClass::appCallback(
       break;
     case idigi_class_data_service:
       status = dataService.appReqHandler(request_id.data_service_request, request_data, request_length, response_data, response_length);
+      break;
+    case idigi_class_file_system:
+      status = fileSystem.appReqHandler(request_id.file_system_request, request_data, request_length, response_data, response_length);
+      break;      
     default:
       /* not supported */
       break;

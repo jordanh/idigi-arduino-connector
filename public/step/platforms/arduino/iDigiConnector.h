@@ -21,6 +21,7 @@ extern "C" {
 }
 
 #include "iDigiDataService.h"
+#include "iDigiFileSystem.h"
 
 class iDigiConnectorClass {
   friend class iDigiDataService;
@@ -53,6 +54,7 @@ public:
 
   /* cloud file interface */
   iDigiDataService dataService;
+  iDigiFileSystem fileSystem;
   
   /* config functions */
   void setMac(uint8_t *mac);
