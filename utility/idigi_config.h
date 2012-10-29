@@ -1,1 +1,0 @@
-../public/include/idigi_config.h
