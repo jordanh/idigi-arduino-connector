@@ -1,0 +1,40 @@
+# Ignore C output files
+*.d
+*.a
+*.so
+*.o
+*.map
+
+# Ignore compiled python data
+*.pyc
+
+# Ignore generated nosetests and coverage data
+nosestest*.xml
+*.nxml
+*coverage.xml
+
+# Ignore memory usage files
+memory_usage.txt
+
+# Ignore generated archive and output dirs
+archive
+output
+
+# Doxygen Generated Docs
+docs
+
+# Ignore compiled java class files and build/dist folders
+*.class
+build
+dist
+
+# Eclipse droppings
+.project
+.cproject
+
+# Generated Makefiles and Executables
+public/*/samples/*/Makefile
+public/*/samples/*/idigi
+dvt/samples/*/idigi
+dvt/samples/*/idigi.stats
+dvt/samples/*/Makefile
