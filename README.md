@@ -1,10 +1,10 @@
 iDigi Connector for Arduino
 ===========================
 
-The iDigi Connector for Arduino is a port of the iDigi Connector for Embedded
-to the Arduino platform.  The iDigi Connector is a software library that
-allows you to connect your Arduino to the [iDigi Device Cloud][iDigi].  Why
-would you want to connect your Arduino to iDigi?  With iDigi you can:
+
+The iDigi Connector is a software library that allows you to connect your Arduino
+to the [iDigi Device Cloud][iDigi].  Why would you want to connect your Arduino to iDigi?
+With iDigi you can:
 
   * Control your Arduino sketch remotely from a web app or smartphone, even
     if your Arduino is behind a firewall
@@ -37,8 +37,8 @@ or later.
 Installation
 ------------
 
-To install the iDigi Connector for Arduino, you'll need to install as
-a library for the Arduino Software.  In order to install it, follow the
+To install the iDigi Connector for Arduino, you'll need to install it as
+a library for the Arduino IDE.  In order to install it, follow the
 instructions from Arduino.cc about *Contributed Libraries* on
 [this page][instructions]; or, follow the instructions below:
 
@@ -180,7 +180,7 @@ See example: iDigiPutFileAsync
 
 #### iDigi.dataService.putFileAsyncBusy()
 
-A function used to indicate to your sketch at a file is uploading in
+A function used to indicate to your sketch that a file is uploading in
 the background.
 
 While this function returns true, no calls to iDigi.dataService.putFileAsync()
