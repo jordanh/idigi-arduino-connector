@@ -24,11 +24,12 @@ void iDigiFileSystem::enableSharing(uint8_t sdChipSelect, uint8_t ssPin)
 	digitalWrite(ssPin, HIGH);
 
 	DigiSD.begin(sdCS);
+    serviceEnabled = true;
 }
 
 void iDigiFileSystem::disableSharing()
 {
-
+    serviceEnabled = false;
 };
 
 idigi_callback_status_t iDigiFileSystem::appReqHandler(idigi_file_system_request_t const request,
@@ -39,6 +40,13 @@ idigi_callback_status_t iDigiFileSystem::appReqHandler(idigi_file_system_request
 
     UNUSED_ARGUMENT(request_length);
     UNUSED_ARGUMENT(response_length);
+
+    if (!serviceEnabled)
+    {
+        // Return an error to iDigi
+        ((idigi_file_response_t *) response_data)->error->error_status = idigi_file_permision_denied;
+        return status;
+    }
 
     switch (request)
     {
