@@ -6,14 +6,25 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-iDigi	KEYWORD1
+iDigi				KEYWORD1
+iDigi.dataService 	KEYWORD1
+iDigi.fileSystem 	KEYWORD1
+iDigiDiaDataset		KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
-setup	KEYWORD2
-isConnected	KEYWORD2
+setup				KEYWORD2
+getDeviceIdString	KEYWORD2
+isConnected	      	KEYWORD2
+step				KEYWORD2
+putFile				KEYWORD2
+putFileAsync		KEYWORD2
+putFileAsyncBusy	KEYWORD2
+registerHandler		KEYWORD2
+sendResponse		KEYWORD2
+
 
 #######################################
 # Constants (LITERAL1)
