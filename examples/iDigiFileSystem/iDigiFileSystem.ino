@@ -42,7 +42,7 @@ extern "C" {
 #define ETHERNET_DHCP 1                          // Set to 1 if you want to use DHCP   
 #define IDIGI_SERVER       "my.idigi.com"        // iDigi server hostname to use
 #define IDIGI_DEVICE_NAME  "Arduino Mega"        // How your device will be labelled on iDigi
-#define IDIGI_VENDOR_ID    0x03000009            // If you don't know what this is, leave it alone :)
+#define IDIGI_VENDOR_ID    0                     // If you don't know what this is, leave it alone :)
 byte mac[] =                                     // Set this to the MAC address of your Ethernet shield
     { 0x90, 0xA2, 0xDA, 0x05, 0x00, 0x57 };      // iDigi Device ID will be 00000000-00000000-90A2DAFF-FF050057
 

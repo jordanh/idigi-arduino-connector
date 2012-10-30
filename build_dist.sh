@@ -47,8 +47,8 @@ usage () {
   echo "Usage: $SCRIPT_NAME [options] [arguments]
 
 Options:
-  --no-color   do not use colors
-  -h, --help   display this help and exit
+  -o, --output_file   output ZIP archive filename
+  -h, --help           display this help and exit
 "  
 }
 
@@ -125,7 +125,7 @@ parse_options "$@"
 
 # start to do something
 
-OUTPUT_FILE="idigi_connector_arduino.zip"
+OUTPUT_FILE="idigi-connector-arduino.zip"
 
 if SCRIPT_OPT "output_file"; then
   OUTPUT_FILE=${SCRIPT_OPT_VALUE}
@@ -135,7 +135,7 @@ touch $OUTPUT_FILE
 OUTPUT_FILE=`ls -1 $(pwd)/${OUTPUT_FILE}`
 
 TEMPDIR=`mktemp -d -t ${SCRIPT_NAME}`
-DESTDIR="${TEMPDIR}/$(basename "$OUTPUT_FILE" .zip)"
+DESTDIR="${TEMPDIR}/$(basename "$OUTPUT_FILE" .zip)/iDigi"
 mkdir -p $DESTDIR
 
 echo "Copying README.md to ${DESTDIR}"

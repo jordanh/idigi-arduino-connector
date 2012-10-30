@@ -26,21 +26,17 @@ extern "C" {
 
 class iDigiFileSystem {
   friend class iDigiConnectorClass;
-  
-  class FileContext {
-  public:
-  	uint8_t mode;
-  };
 
 public:
 
-  iDigiFileSystem() { };
+  iDigiFileSystem() : serviceEnabled(false) { };
 
   void enableSharing(uint8_t ethernetChipSelect, uint8_t ssPin);
   void disableSharing();
 
 private:
   uint8_t sdCS, ssPin;
+  bool serviceEnabled;
 
   idigi_callback_status_t appReqHandler(idigi_file_system_request_t const request,
                                         void const * request_data, size_t const request_length,
