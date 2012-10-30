@@ -29,7 +29,7 @@ class iDigiFileSystem {
 
 public:
 
-  iDigiFileSystem() { };
+  iDigiFileSystem() : serviceEnabled(false) { };
 
   void enableSharing(uint8_t ethernetChipSelect, uint8_t ssPin);
   void disableSharing();
