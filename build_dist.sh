@@ -152,8 +152,8 @@ cp -L utility/* "${DESTDIR}/utility"
 
 echo "Compressing to ${OUTPUT_FILE}..."
 PREVWD=$(pwd); cd ${TEMPDIR}
-rm -f $OUTPUT_FILE
-zip -9r $OUTPUT_FILE *
+rm -f "$OUTPUT_FILE"
+zip -9r "$OUTPUT_FILE" *
 
 echo "Cleaning up..."
 rm -rf $TEMPDIR
