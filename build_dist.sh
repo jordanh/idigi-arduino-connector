@@ -132,7 +132,7 @@ if SCRIPT_OPT "output_file"; then
 fi
 
 touch $OUTPUT_FILE
-OUTPUT_FILE=`ls -1 $(pwd)/${OUTPUT_FILE}`
+OUTPUT_FILE=`ls -1 "$(pwd)/${OUTPUT_FILE}"`
 
 TEMPDIR=`mktemp -d -t ${SCRIPT_NAME}`
 DESTDIR="${TEMPDIR}/$(basename "$OUTPUT_FILE" .zip)/iDigi"
