@@ -21,12 +21,18 @@ extern "C" {
 #include <Ethernet.h>
 
 
+static int freeRam () {
+  extern int __heap_start, *__brkval; 
+  int v; 
+  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
+}
+
 iDigiConnectorClass::iDigiConnectorClass()
 {  
   memset(&_mac, 0, sizeof(_mac));
   memset(&_ip, 0, sizeof(_ip));
   memset(&_deviceId, 0, sizeof(_deviceId));
-  setVendorId(0x03000009);
+  setVendorId(IDIGI_DEFAULT_VENDORID);
   setServerHost((const char *) IDIGI_DEFAULT_SERVERHOST);
   setDeviceType((const char *) IDIGI_DEFAULT_DEVICETYPE);
   _connectionType = idigi_lan_connection_type;
@@ -42,10 +48,11 @@ void iDigiConnectorClass::setup(uint8_t *mac, IPAddress ip, uint32_t vendorId)
 {
   setMac(mac);
   setIp(ip);
-  setVendorId(vendorId);
+  if (vendorId)
+    setVendorId(vendorId);
   
   idigi_handle = idigi_init((idigi_callback_t) &iDigiConnectorClass::appCallbackWrapper);
-  // APP_DEBUG("idigi_init complete.\r\n"); 
+  // APP_DEBUG("iDigiConnectorClass.appCallback(): idigi_init %p\r\n", idigi_handle); 
 }
 
 void iDigiConnectorClass::setup(uint8_t *mac, IPAddress ip, uint32_t vendorId,
@@ -108,6 +115,7 @@ idigi_callback_status_t iDigiConnectorClass::appCallback(
       /* not supported */
       break;
   }
+  // APP_DEBUG("iDigiConnectorClass.appCallback(): returns %d\n", status);
   return status;
 }
 
@@ -298,12 +306,6 @@ void APP_DEBUG(char const * format, ...)
 #else
   (void) format;
 #endif
-}
-
-static int freeRam () {
-  extern int __heap_start, *__brkval; 
-  int v; 
-  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
 }
 
 } /* /extern "C" */
