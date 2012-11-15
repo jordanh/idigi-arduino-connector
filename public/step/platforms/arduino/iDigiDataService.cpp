@@ -15,16 +15,16 @@
 
 extern iDigiConnectorClass iDigi;
 
-size_t iDigiDataService::putFile(const char *filePath, const char *mimeType, 
+size_t iDigiDataService::sendFile(const char *filePath, const char *mimeType, 
                                         const char *buffer, size_t length)
 {
-  return putFile(filePath, mimeType, buffer, length, 0);
+  return sendFile(filePath, mimeType, buffer, length, 0);
 }
 
-size_t iDigiDataService::putFile(const char *filePath, const char *mimeType, 
+size_t iDigiDataService::sendFile(const char *filePath, const char *mimeType, 
                                         const char *buffer, size_t length, unsigned int flags)
 {
-  unsigned int result = putFileAsync(filePath, mimeType, &putFileSyncHandler, flags);
+  unsigned int result = sendFileAsync(filePath, mimeType, &sendFileSyncHandler, flags);
   
   if (result != idigi_success)
   {
@@ -32,25 +32,25 @@ size_t iDigiDataService::putFile(const char *filePath, const char *mimeType,
     return -result;
   }
   
-  _putFileContext.buffer = buffer;
-  _putFileContext.length = length;
-  _putFileContext.finished_flag = true;
+  _sendFileContext.buffer = buffer;
+  _sendFileContext.length = length;
+  _sendFileContext.finished_flag = true;
   
-  while (putFileAsyncBusy())
+  while (!sendFileAsyncFinished())
   {
-    iDigi.step();
+    iDigi.update();
   }
   
-  return _putFileContext.written;
+  return _sendFileContext.written;
 }
 
-size_t iDigiDataService::putDiaDataset(iDigiDiaDataset *dataset)
+size_t iDigiDataService::sendDataset(iDigiDataset *dataset)
 {
-  putDiaDatasetContext context(dataset);
+  sendDatasetContext context(dataset);
 
-  //APP_DEBUG("iDigiDataService::putDiaDataset: About to upload dataset \"%s\" (%d samples) \r\n", dataset->name, dataset->size());
-  unsigned int result = putFileAsync("diaData.xml", "text/xml",
-                                     &putDiaDatasetHandler, 0, (void *) &context);
+  //APP_DEBUG("iDigiDataService::sendDataset: About to upload dataset \"%s\" (%d samples) \r\n", dataset->name, dataset->size());
+  unsigned int result = sendFileAsync("diaData.xml", "text/xml",
+                                     &sendDatasetHandler, 0, (void *) &context);
 
   if (result != idigi_success)
   {
@@ -58,23 +58,23 @@ size_t iDigiDataService::putDiaDataset(iDigiDiaDataset *dataset)
     return -result;
   }
   
-  while (putFileAsyncBusy())
+  while (!sendFileAsyncFinished())
   {
-    iDigi.step(); 
+    iDigi.update(); 
   }
 
-  return _putFileContext.written;
+  return _sendFileContext.written;
 }
 
-void iDigiDataService::putDiaDatasetHandler(iDigiPutFileRequest *request)
+void iDigiDataService::sendDatasetHandler(iDigiSendFileRequest *request)
 {
-    putDiaDatasetContext *context = (putDiaDatasetContext *) request->userContext;
+    sendDatasetContext *context = (sendDatasetContext *) request->userContext;
 
     context->formatBuffer = "";
 
     if (context->it == context->dataset->begin())
     {
-      //APP_DEBUG("iDigiDataService::putDiaDatasetHandler: begin\r\n");
+      //APP_DEBUG("iDigiDataService::sendDatasetHandler: begin\r\n");
       // We need to begin the document:
       context->formatBuffer += "<idigi_data compact=\"True\">";
     }
@@ -82,7 +82,7 @@ void iDigiDataService::putDiaDatasetHandler(iDigiPutFileRequest *request)
     if (context->it != context->dataset->end())
     {
       // We're in the middle of the vector of samples:
-      //APP_DEBUG("iDigiDataService::putDiaDatasetHandler: middle\r\n");
+      //APP_DEBUG("iDigiDataService::sendDatasetHandler: middle\r\n");
       context->formatBuffer += "<sample name=\"";
       context->formatBuffer += context->dataset->name;
       context->formatBuffer += ".";
@@ -105,63 +105,63 @@ void iDigiDataService::putDiaDatasetHandler(iDigiPutFileRequest *request)
     } else
     {
       // We've processed the last sample:
-      //APP_DEBUG("iDigiDataService::putDiaDatasetHandler: end\r\n");
+      //APP_DEBUG("iDigiDataService::sendDatasetHandler: end\r\n");
       context->formatBuffer += "</idigi_data>";
       request->finished();
     }
 
-    //APP_DEBUG("iDigiDataService::putDiaDatasetHandler: %s\r\n", context->formatBuffer.c_str());
+    //APP_DEBUG("iDigiDataService::sendDatasetHandler: %s\r\n", context->formatBuffer.c_str());
 
     request->length = context->formatBuffer.length();
     request->buffer = context->formatBuffer.c_str();
 }
 
-unsigned int iDigiDataService::putFileAsync(const char *filePath, const char *mimeType,
-                                          iDigiPutFileHandler handler)
+unsigned int iDigiDataService::sendFileAsync(const char *filePath, const char *mimeType,
+                                          iDigiSendFileHandler handler)
 {
-  return putFileAsync(filePath, mimeType, handler, 0);
+  return sendFileAsync(filePath, mimeType, handler, 0);
 }
 
-unsigned int iDigiDataService::putFileAsync(const char *filePath, const char *mimeType,
-                                          iDigiPutFileHandler handler, unsigned int flags)
+unsigned int iDigiDataService::sendFileAsync(const char *filePath, const char *mimeType,
+                                          iDigiSendFileHandler handler, unsigned int flags)
 {
-  return putFileAsync(filePath, mimeType, handler, 0, NULL);
+  return sendFileAsync(filePath, mimeType, handler, 0, NULL);
 }
 
-unsigned int iDigiDataService::putFileAsync(const char *filePath, const char *mimeType,
-                                          iDigiPutFileHandler handler, unsigned int flags,
+unsigned int iDigiDataService::sendFileAsync(const char *filePath, const char *mimeType,
+                                          iDigiSendFileHandler handler, unsigned int flags,
                                           void *userContext)
 {
   idigi_status_t status = idigi_success;
   
-  if (_putFileContext.active_flag)
+  if (_sendFileContext.active_flag)
   {
     // Another request is already active, do not create a new request
-    // APP_DEBUG("iDigiDataService::putFileAsync(): another request in progress");
+    // APP_DEBUG("iDigiDataService::sendFileAsync(): another request in progress");
     return (unsigned int) idigi_service_busy;
   }
 
-  _putFileCallback = handler;
-  _putFileContext.written = 0;
-  _putFileContext.userContext = userContext;
-  _putFileContext.finished_flag = 0;
-  _putFileContext.header.flags = flags;
-  _putFileContext.header.path = filePath;
-  _putFileContext.header.content_type = mimeType;
-  _putFileContext.header.context = (void *) &_putFileContext;
+  _sendFileCallback = handler;
+  _sendFileContext.written = 0;
+  _sendFileContext.userContext = userContext;
+  _sendFileContext.finished_flag = 0;
+  _sendFileContext.header.flags = flags;
+  _sendFileContext.header.path = filePath;
+  _sendFileContext.header.content_type = mimeType;
+  _sendFileContext.header.context = (void *) &_sendFileContext;
   
   status = idigi_initiate_action(iDigi.getHandle(), idigi_initiate_data_service,
-                                 &(_putFileContext.header), NULL);
+                                 &(_sendFileContext.header), NULL);
   
   if (status == idigi_success)
   {
-    _putFileContext.active_flag = true;
+    _sendFileContext.active_flag = true;
   }
 
   return (unsigned int) status;
 }
 
-void iDigiDataService::registerHandler(iDigiDataServiceHandler handler)
+void iDigiDataService::attachInterrupt(iDigiDataServiceInterrupt handler)
 {
   _requestCallback = handler;
 }
@@ -250,31 +250,31 @@ idigi_callback_status_t iDigiDataService::appPutReqHandlerNeedData(idigi_data_se
   idigi_data_service_block_t * message = (idigi_data_service_block_t *) response_data->client_data;
 
   
-  size_t copylen = _putFileContext.length < message->length_in_bytes ? _putFileContext.length :
+  size_t copylen = _sendFileContext.length < message->length_in_bytes ? _sendFileContext.length :
                                                                       message->length_in_bytes;
   
-  memcpy(message->data, (void *)_putFileContext.buffer, copylen);
+  memcpy(message->data, (void *)_sendFileContext.buffer, copylen);
   message->length_in_bytes = copylen;
-  _putFileContext.buffer += copylen;
-  _putFileContext.length -= copylen;
+  _sendFileContext.buffer += copylen;
+  _sendFileContext.length -= copylen;
   response_data->message_status = idigi_msg_error_none;
   
-  if (_putFileContext.written == 0)
+  if (_sendFileContext.written == 0)
   {
     message->flags |= IDIGI_MSG_FIRST_DATA;
   }
-  _putFileContext.written += copylen;
+  _sendFileContext.written += copylen;
 
-  if (_putFileContext.length == 0)
+  if (_sendFileContext.length == 0)
   {
-    if (_putFileContext.finished_flag)
+    if (_sendFileContext.finished_flag)
     {
       message->flags |= IDIGI_MSG_LAST_DATA;
-      _putFileContext.active_flag = false;
+      _sendFileContext.active_flag = false;
     } else
     {
       // not finished, we need more data from the user
-      _putFileCallback(&_putFileContext);
+      _sendFileCallback(&_sendFileContext);
     }
   }
   
@@ -304,10 +304,10 @@ idigi_callback_status_t iDigiDataService::appPutReqHandlerError(idigi_data_servi
   idigi_callback_status_t status = idigi_callback_continue;
   idigi_data_service_block_t * message = request_data->server_data;
   
-  _putFileContext.active_flag = false;
-  _putFileContext.finished_flag = true;
-  _putFileContext.error = *((idigi_msg_error_t *) message->data);
-  // APP_DEBUG("Put data service error: %u\n", _putFileContext.error);
+  _sendFileContext.active_flag = false;
+  _sendFileContext.finished_flag = true;
+  _sendFileContext.error = *((idigi_msg_error_t *) message->data);
+  // APP_DEBUG("Put data service error: %u\n", _sendFileContext.error);
   
   return status;
 }

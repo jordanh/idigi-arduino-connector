@@ -34,7 +34,7 @@ extern "C" {
 // -------------------------------------------
 #define ETHERNET_DHCP 1                          // Set to 1 if you want to use DHCP   
 #define IDIGI_SERVER       "my.idigi.com"        // iDigi server hostname to use
-#define IDIGI_DEVICE_NAME  "Arduino Mega"        // How your device will be labelled on iDigi
+#define IDIGI_DEVICE_NAME  "Arduino"             // How your device will be labelled on iDigi
 #define IDIGI_VENDOR_ID    0                     // If you don't know what this is, leave it alone :)
 byte mac[] =                                     // Set this to the MAC address of your Ethernet shield
     { 0x90, 0xA2, 0xDA, 0x05, 0x00, 0x57 };      // iDigi Device ID will be 00000000-00000000-90A2DAFF-FF050057
@@ -56,8 +56,6 @@ bool idigi_connected = false;
 long int next_upload_time = 0;
 
 void setup() {
-  String deviceId;
-  
   Serial.begin(9600);
   Serial.println("Starting up...");
  
@@ -65,21 +63,23 @@ void setup() {
 #if(ETHERNET_DHCP == 0)
   Ethernet.begin(mac, ip, nameserver, gw, subnet);
   Serial.println("Starting iDigi...");
-  iDigi.setup(mac, ip, IDIGI_VENDOR_ID, IDIGI_SERVER, IDIGI_DEVICE_NAME);
+  iDigi.begin(mac, ip, IDIGI_VENDOR_ID, IDIGI_SERVER, IDIGI_DEVICE_NAME);
   Serial.println("iDigi started!");
 #else
   Ethernet.begin(mac);
   Serial.println("Starting iDigi...");
-  iDigi.setup(mac, Ethernet.localIP(), IDIGI_VENDOR_ID, IDIGI_SERVER, IDIGI_DEVICE_NAME);
+  Serial.print("Ethernet IP: ");
+  Serial.println(Ethernet.localIP());    
+  iDigi.begin(mac, Ethernet.localIP(), IDIGI_VENDOR_ID, IDIGI_SERVER, IDIGI_DEVICE_NAME);
   Serial.println("iDigi started!");
 #endif /* ETHERNET_DHCP */
   Serial.println("Ethernet started!");
   delay(500);
 
-  iDigi.getDeviceIdString(&deviceId);
   Serial.print("iDigi Device ID: ");
-  Serial.println(deviceId);
+  Serial.println(iDigi.getId());
   
+  // Set initial time to upload to iDigi:
   next_upload_time = ((long) millis()) + UPLOAD_PERIOD;
 }
 
@@ -100,30 +100,30 @@ void loop() {
   
   if (idigi_connected && (now - next_upload_time >= 0)) // detect change in iDigi status
   {
-    if (iDigi.dataService.putFileAsyncBusy())
+    if (!iDigi.dataService.sendFileAsyncFinished())
     {
       // This is how you detect if an upload is already in progress:
-      Serial.println("iDigi putFileAsync() busy, will try later.");
+      Serial.println("iDigi sendFileAsync() busy, will try later.");
     } else {
       // Create the asynchronous upload request; this will cause the function
       // putFileUptimeData to be called repeatedly until its finished:
-      unsigned int result = iDigi.dataService.putFileAsync("uptime.txt", "text/plain",
-                              putFileUptimeData, IDIGI_DATA_PUT_APPEND);
+      unsigned int result = iDigi.dataService.sendFileAsync("uptime.txt", "text/plain",
+                              sendFileUptimeData, IDIGI_DATA_PUT_APPEND);
       if (result == 0)
       {
-        Serial.println("iDigi putFile request submitted.");
+        Serial.println("iDigi sendFile request submitted.");
       } else {
-        Serial.print("Error returned from putFileAsync(): ");
+        Serial.print("Error returned from sendFileAsync(): ");
         Serial.println(result, DEC);
       }
     }
     next_upload_time = ((long) millis()) + UPLOAD_PERIOD;
   }
 
-  iDigi.step();
+  iDigi.update();
 }
 
-void putFileUptimeData(iDigiPutFileRequest *request)
+void sendFileUptimeData(iDigiSendFileRequest *request)
 {
     // Format the data to send to iDigi, report string length in request:
     request->length = snprintf(file_data, sizeof(file_data), "Arduino up for %lu seconds.\r\n",

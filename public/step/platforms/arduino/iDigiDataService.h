@@ -34,11 +34,11 @@ public:
 };
 
 
-class iDigiPutFileRequest {
+class iDigiSendFileRequest {
   friend class iDigiDataService;
   
 public:
-  iDigiPutFileRequest():active_flag(false), finished_flag(false) { };
+  iDigiSendFileRequest():active_flag(false), finished_flag(false) { };
   
   const char *buffer;
   size_t length;
@@ -58,7 +58,7 @@ private:
   idigi_msg_error_t error;
 };
 
-typedef void (* iDigiPutFileHandler)(iDigiPutFileRequest *);
+typedef void (* iDigiSendFileHandler)(iDigiSendFileRequest *);
 
 class iDigiDataServiceRequest {
   friend class iDigiDataService;
@@ -83,20 +83,20 @@ private:
   bool is_response;
 };
 
-typedef void (* iDigiDataServiceHandler)(iDigiDataServiceRequest *);
+typedef void (* iDigiDataServiceInterrupt)(iDigiDataServiceRequest *);
 
 
-class iDigiDiaSample {
+class iDigiSample {
 public:
   char *name, *unit, *value, *isoTimestamp;
-  iDigiDiaSample() { name = unit = value = isoTimestamp = NULL; };
-  iDigiDiaSample(const char *name, const char *value, const char *unit, const char *isoTimestamp) { 
+  iDigiSample() { name = unit = value = isoTimestamp = NULL; };
+  iDigiSample(const char *name, const char *value, const char *unit, const char *isoTimestamp) { 
       this->name = strdup(name);
       this->value = strdup(value);
       this->unit = strdup(unit);
       this->isoTimestamp = strdup(isoTimestamp);
   };
-  ~iDigiDiaSample() { 
+  ~iDigiSample() { 
       free(this->name);
       free(this->value);
       free(this->unit);
@@ -104,16 +104,16 @@ public:
   };
 };
 
-class iDigiDiaDataset {
+class iDigiDataset {
 public:
     char *name;
 
-    iDigiDiaDataset(size_t maxNumSamples, const char *name) {
+    iDigiDataset(size_t maxNumSamples, const char *name) {
       this->name = strdup(name);
       this->_maxNumSamples = maxNumSamples;
-      _samples = new Vector<iDigiDiaSample *>();
+      _samples = new Vector<iDigiSample *>();
     };
-    ~iDigiDiaDataset() {
+    ~iDigiDataset() {
       dealloc();
       free(this->name);
     };
@@ -123,20 +123,20 @@ public:
     bool add(const char *name, const char *value, const char *unit, const char *isoTimestamp) {
       if (_samples->size() >= _maxNumSamples)
         return false;
-      iDigiDiaSample *sample = new iDigiDiaSample(name, value, unit, isoTimestamp);
+      iDigiSample *sample = new iDigiSample(name, value, unit, isoTimestamp);
       _samples->push_back(sample);
       return true;
     };
 
-    iDigiDiaSample * const operator[](size_t idx) const { return (*_samples)[idx]; };
+    iDigiSample * const operator[](size_t idx) const { return (*_samples)[idx]; };
     size_t size() { return _samples->size(); }
-    iDigiDiaSample ** const begin() { return _samples->begin(); }
-    iDigiDiaSample ** const end() { return _samples->end(); }
+    iDigiSample ** const begin() { return _samples->begin(); }
+    iDigiSample ** const end() { return _samples->end(); }
     bool spaceAvailable() { return _samples->size() < _maxNumSamples; }    
-    void clear() { dealloc(); _samples = new Vector<iDigiDiaSample *>(); };
+    void clear() { dealloc(); _samples = new Vector<iDigiSample *>(); };
 
 private:
-    Vector<iDigiDiaSample *> *_samples;
+    Vector<iDigiSample *> *_samples;
     size_t _maxNumSamples;
 
     void dealloc() {
@@ -146,45 +146,45 @@ private:
     }
 };
 
-class putDiaDatasetContext {
+class sendDatasetContext {
 public:
   DigiString formatBuffer;
-  iDigiDiaDataset *dataset;
-  Vector<iDigiDiaSample *>::iterator it;
+  iDigiDataset *dataset;
+  Vector<iDigiSample *>::iterator it;
 
-  putDiaDatasetContext():dataset(NULL), it(NULL) {};
-  putDiaDatasetContext(iDigiDiaDataset *ds) { dataset = ds; it = ds->begin(); }
+  sendDatasetContext():dataset(NULL), it(NULL) {};
+  sendDatasetContext(iDigiDataset *ds) { dataset = ds; it = ds->begin(); }
 };
 
 class iDigiDataService {
   friend class iDigiConnectorClass;
   
 public:
-  iDigiDataService():_putFileCallback(NULL), _putFileContext(),
+  iDigiDataService():_sendFileCallback(NULL), _sendFileContext(),
                             _requestCallback(NULL), _requestContext() { };
   
-  size_t putFile(const char *filePath, const char *mimeType, const char *buffer, size_t length);
-  size_t putFile(const char *filePath, const char *mimeType, const char *buffer, size_t length, unsigned int flags);
-  size_t putDiaDataset(iDigiDiaDataset *dataset);
-  unsigned int putFileAsync(const char *filePath, const char *mimeType, iDigiPutFileHandler handler);
-  unsigned int putFileAsync(const char *filePath, const char *mimeType, iDigiPutFileHandler handler, unsigned int flags);
-  unsigned int putFileAsync(const char *filePath, const char *mimeType, iDigiPutFileHandler handler, unsigned int flags,
+  size_t sendFile(const char *filePath, const char *mimeType, const char *buffer, size_t length);
+  size_t sendFile(const char *filePath, const char *mimeType, const char *buffer, size_t length, unsigned int flags);
+  size_t sendDataset(iDigiDataset *dataset);
+  unsigned int sendFileAsync(const char *filePath, const char *mimeType, iDigiSendFileHandler handler);
+  unsigned int sendFileAsync(const char *filePath, const char *mimeType, iDigiSendFileHandler handler, unsigned int flags);
+  unsigned int sendFileAsync(const char *filePath, const char *mimeType, iDigiSendFileHandler handler, unsigned int flags,
                             void *userContext);
-  bool putFileAsyncBusy() { return _putFileContext.active_flag; }
+  bool sendFileAsyncFinished() { return !(_sendFileContext.active_flag); }
 
-  void registerHandler(iDigiDataServiceHandler callback);
+  void attachInterrupt(iDigiDataServiceInterrupt callback);
   bool sendResponse(iDigiDataServiceRequest *request, char *buffer, size_t length);
 
 
 
 private:
-  iDigiPutFileHandler     _putFileCallback;
-  iDigiPutFileRequest     _putFileContext;
-  iDigiDataServiceHandler _requestCallback;
-  iDigiDataServiceRequest _requestContext;
+  iDigiSendFileHandler       _sendFileCallback;
+  iDigiSendFileRequest       _sendFileContext;
+  iDigiDataServiceInterrupt  _requestCallback;
+  iDigiDataServiceRequest    _requestContext;
 
-  static void putFileSyncHandler(iDigiPutFileRequest *request) { }
-  static void putDiaDatasetHandler(iDigiPutFileRequest *request);
+  static void sendFileSyncHandler(iDigiSendFileRequest *request) { }
+  static void sendDatasetHandler(iDigiSendFileRequest *request);
   
   idigi_callback_status_t appReqHandler(idigi_data_service_request_t const request,
                                         void const * request_data, size_t const request_length,
