@@ -52,7 +52,7 @@ extern "C" {
 // -------------------------------------------
 #define ETHERNET_DHCP 1                          // Set to 1 if you want to use DHCP   
 #define IDIGI_SERVER       "my.idigi.com"        // iDigi server hostname to use
-#define IDIGI_DEVICE_NAME  "Arduino Mega"        // How your device will be labelled on iDigi
+#define IDIGI_DEVICE_NAME  "Arduino"             // How your device will be labelled on iDigi
 #define IDIGI_VENDOR_ID    0                     // If you don't know what this is, leave it alone :)
 byte mac[] =                                     // Set this to the MAC address of your Ethernet shield
     { 0x90, 0xA2, 0xDA, 0x05, 0x00, 0x57 };      // iDigi Device ID will be 00000000-00000000-90A2DAFF-FF050057
@@ -68,13 +68,11 @@ IPAddress subnet(255, 255, 255, 0);              // Set your subnet mask
 /// -------------------------------------------
 
 
-void iDigiRequestHandler(iDigiDataServiceRequest *request);
+void iDigiInterrupt(iDigiDataServiceRequest *request);
 bool idigi_connected = false;
 char response_buffer[128];
 
 void setup() {
-  String deviceId;
-  
   Serial.begin(9600);
   Serial.println("Starting up...");
  
@@ -83,26 +81,27 @@ void setup() {
   // Static IP Configuration
   Ethernet.begin(mac, ip, nameserver, gw, subnet);
   Serial.println("Starting iDigi...");
-  iDigi.setup(mac, ip, IDIGI_VENDOR_ID, IDIGI_SERVER, IDIGI_DEVICE_NAME);
+  iDigi.begin(mac, ip, IDIGI_VENDOR_ID, IDIGI_SERVER, IDIGI_DEVICE_NAME);
   Serial.println("iDigi started!");
 #else
   // DHCP Configuration
   Ethernet.begin(mac);
   Serial.println("Starting iDigi...");
-  iDigi.setup(mac, Ethernet.localIP(), IDIGI_VENDOR_ID, IDIGI_SERVER, IDIGI_DEVICE_NAME);
+  Serial.print("Ethernet IP: ");
+  Serial.println(Ethernet.localIP());    
+  iDigi.begin(mac, Ethernet.localIP(), IDIGI_VENDOR_ID, IDIGI_SERVER, IDIGI_DEVICE_NAME);
   Serial.println("iDigi started!");
 #endif /* ETHERNET_DHCP */
   Serial.println("Ethernet started!");
   delay(500);
 
-  iDigi.getDeviceIdString(&deviceId);
   Serial.print("iDigi Device ID: ");
-  Serial.println(deviceId);
-  
+  Serial.println(iDigi.getId());
+
   // Register a function to be called when we get a data service request
   // from iDigi.  In this case, the function iDigiRequestHandler will be
   // called.  It is defined further down in the file.
-  iDigi.dataService.registerHandler(iDigiRequestHandler);
+  iDigi.dataService.attachInterrupt(iDigiInterrupt);
 }
 
 void loop() {
@@ -118,10 +117,10 @@ void loop() {
     }
   }
   
-  iDigi.step();  // Run iDigi tasks
+  iDigi.update();  // Run iDigi tasks
 }
 
-void iDigiRequestHandler(iDigiDataServiceRequest *request)
+void iDigiInterrupt(iDigiDataServiceRequest *request)
 {
   // We got a chunk of data from iDigi!  Let's print it:
   Serial.print("iDigiRequestHandler(): data chunk for target \"");

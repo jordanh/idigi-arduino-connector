@@ -30,13 +30,13 @@ public:
   iDigiConnectorClass();
   
   /* important interface functions */
-  void setup(uint8_t *mac, IPAddress ip, uint32_t vendorId);
-  void setup(uint8_t *mac, IPAddress ip, uint32_t vendorId,
+  void begin(uint8_t *mac, IPAddress ip, uint32_t vendorId);
+  void begin(uint8_t *mac, IPAddress ip, uint32_t vendorId,
         char *serverHost);
-  void setup(uint8_t *mac, IPAddress ip, uint32_t vendorId,
+  void begin(uint8_t *mac, IPAddress ip, uint32_t vendorId,
         char *serverHost, char *deviceType);
   bool isConnected();
-  idigi_status_t step();
+  idigi_status_t update();
   
   /* iDigi Connector callback */
   idigi_callback_status_t appCallback(idigi_class_t const class_id,
@@ -67,8 +67,8 @@ public:
   
   void getMac(uint8_t **mac, size_t *length);
   void getIp(uint8_t **ip, size_t *length);
-  void getDeviceId(uint8_t **deviceId, size_t *length);
-  void getDeviceIdString(String *dest);
+  void getId(uint8_t **deviceId, size_t *length);
+  String getId();
   void getVendorId(uint8_t **vendorId, size_t *length);
   char *getDeviceType();
   char *getServerHost();

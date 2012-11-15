@@ -78,10 +78,12 @@ Using the iDigi Connector for Arduino is easy! To use it, do the following:
 #include <iDigi.h>
 ```
 
-  2. In your sketch's setup() function, call iDigi.setup() with your Ethernet
-     sheild's MAC address, your current IP address, a vendor id of 0, the
+  2. In your sketch's setup() function, call iDigi.begin() with your Ethernet
+     sheild's MAC address, your IP address, a vendor id of 0, the
      iDigi server you'd like to connect to, and the name you'd like your
      Arduino to show up as on iDigi:
+
+  (If you'd rather use DHCP, refer to one of the examples included in the library)
 
 ```c++
 
@@ -92,7 +94,7 @@ IPAddress gw(192, 168, 1, 1);
 IPAddress nameserver(8, 8, 8, 8);
 IPAddress subnet(255, 255, 255, 0);
 #define IDIGI_SERVER       "my.idigi.com"
-#define IDIGI_DEVICE_NAME  "Arduino Mega"
+#define IDIGI_DEVICE_NAME  "Arduino"
 #define IDIGI_VENDOR_ID    0
 
 void setup()
@@ -104,12 +106,10 @@ void setup()
 }
 ```
 
-  (If you'd rather use DHCP, refer to one of the examples included in the library)
-
   3. Use the other high-level iDigi Connector for Arduino functions such
-     as dataService.putFile(), dataService.registerHandler() in order to
+     as dataService.putFile(), dataService.attachInterrupt() in order to
      interact with the world! At the end of each loop(), ensure that you
-     call iDigi.step():
+     call iDigi.update():
 
 ```c++
 void loop()
@@ -123,7 +123,7 @@ void loop()
     delay(1000);
   }
   // interact with iDigi:
-  iDigi.step();
+  iDigi.update();
 }
 ```
 
@@ -132,9 +132,9 @@ High-Level Function Reference
 
 ### Basic Functions
 
-#### iDigi.setup()
+#### iDigi.begin()
 
-Called to setup the iDigi Connector for Arduino library.
+Called to start the iDigi Connector for Arduino library.
 
 Parameters include the Ethernet Shield's MAC address and other information
 used to describe your Arduino to the iDigi Device Cloud platform.
@@ -142,10 +142,10 @@ used to describe your Arduino to the iDigi Device Cloud platform.
 See example: iDigiConnect
 
 
-#### iDigi.getDeviceIdString()
+#### iDigi.getId()
 
 Retrieves the current iDigi Device ID which is used to uniquely identify
-your Arduino.
+your Arduino as a string.
 
 This iDigi Device ID is used as an address to send your Arduino messages
 from iDigi.
@@ -160,12 +160,14 @@ Returns true if your Arduino is currently connected to iDigi.
 See example: iDigiConnect
 
 
-#### iDigi.step()
+#### iDigi.update()
 
 Must be called at the end of every loop().
 
-iDigi.step() keeps the connection with iDigi active by executing any
-outstanding network operations.
+iDigi.update() keeps the connection with iDigi active by executing any
+outstanding network operations or calling functions you may have
+registered with dataService.attachInterrupt() or
+dataService.sendFileAsync() (see below).
 
 See example: iDigiConnect
 
@@ -173,48 +175,50 @@ See example: iDigiConnect
 ### Sending Data to iDigi
 
 Files appear under iDigi's *Data Services* folder nested in a folder
-containing your device's iDigi Device ID (see iDigi.getDeviceIdString()).
+containing your device's iDigi Device ID (see iDigi.getId()).
 
-#### iDigi.dataService.putFile()
+#### iDigi.dataService.sendFile()
 
 Sends a file to iDigi.
 
 If you need to send a large file, consider using
-iDigi.dataService.putFileAsync().
+iDigi.dataService.sendFileAsync().
 
-See example: iDigiPutFile
-
-
-#### iDigi.dataService.putFileAsync()
-
-Sends a file to iDigi asynchronously (a piece at a time).
-
-Each piece of the file is requested by the iDigi Connector library
-from your sketch.  You pass a function to putFileAsync() which will
-be called repeatedly until you have no more data to upload.
-
-See example: iDigiPutFileAsync
+See example: iDigiSendFile
 
 
-#### iDigi.dataService.putFileAsyncBusy()
+#### iDigi.dataService.sendFileAsync()
 
-A function used to indicate to your sketch that a file is uploading in
-the background.
+Sends a file to iDigi asynchronously, a piece at a time.
 
-While this function returns true, no calls to iDigi.dataService.putFileAsync()
-are aloud.
+First, you pass a function to sendFileAsync()
+which will return immediately.  Next, you call iDigi.update() as
+normal.  Each time iDigi.update() is called the function you passed
+to sendFileAsync() will be called to retrieve a piece of the file.
+until you indicate have no more data to upload.
 
-See example: iDigiPutFileAynsc
+See example: iDigiSendFileAsync
 
 
-#### iDigi.dataService.iDigi.dataService.putDiaDataset()
+#### iDigi.dataService.sendFileAsyncFinished()
+
+A function can use check if your sketch is finished uploading a file to
+iDigi in the background.
+
+While this function returns false, no calls to 
+iDigi.dataService.sendFileAsync() are aloud.
+
+See example: iDigiSendFileAynsc
+
+
+#### iDigi.dataService.iDigi.dataService.sendDataset()
 
 Sends a batch of time-series samples (such as sensor information) to
 iDigi for graphing, storage and analytics.  As your sketch executes,
-you add your samples to a iDigiDiaDataset object.  When you want to
-upload them to iDigi you call the putDiaDataset() function.
+you add your samples to a iDigiDataset object.  When you want to
+upload them to iDigi you call the sendDataset() function.
 
-See examples: iDigiDiaDataStream, iDigiDiaDataStreamT
+See examples: iDigiDataSet, iDigiDataSetT
 
 
 ### Receiving Data from iDigi
@@ -225,19 +229,19 @@ your free iDigi account, navigate to the *Web Services Console*, add your
 Arduino's iDigi Device ID as a target, and select the
 "SCI->Data Services" example from the *Examples* drop-down.
 
-#### iDigi.dataService.registerHandler()
+#### iDigi.dataService.attachInterrupt()
 
 Called with the name of a function to call when iDigi has data for your
 sketch.
 
-See example: iDigiDataServices
+See example: iDigiDataService
 
 #### iDigi.dataService.sendResponse()
 
 Called from your sketch's function which handles requests from iDigi.  You
 call this function when you want to send a response to iDigi.
 
-See example: iDigiDataServices
+See example: iDigiDataService
 
 
 ### Managing an SD Card Remotely
@@ -289,7 +293,7 @@ $ ln -s $HOME/source/idigi-connector-arduino/keywords.txt .
 $ ln -s $HOME/source/idigi-connector-arduino/README.md .
 ```
 
-### Generating a Distributable
+### Generating a Library Archive
 
 If you want to share your own special version of the iDigi Connector for Arduino with a friend you'll need to run the `build_dist.sh` tool included in the source repository.  Running the command with the `--help` option will tell you how to use it:
 

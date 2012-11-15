@@ -23,7 +23,7 @@
 // -------------------------------------------
 #define ETHERNET_DHCP 1                          // Set to 1 if you want to use DHCP   
 #define IDIGI_SERVER       "my.idigi.com"        // iDigi server hostname to use
-#define IDIGI_DEVICE_NAME  "Arduino Mega"        // How your device will be labelled on iDigi
+#define IDIGI_DEVICE_NAME  "Arduino"             // How your device will be labelled on iDigi
 #define IDIGI_VENDOR_ID    0                     // If you don't know what this is, leave it alone :)
 byte mac[] =                                     // Set this to the MAC address of your Ethernet shield
     { 0x90, 0xA2, 0xDA, 0x05, 0x00, 0x57 };      // iDigi Device ID will be 00000000-00000000-90A2DAFF-FF050057
@@ -42,8 +42,6 @@ IPAddress subnet(255, 255, 255, 0);              // Set your subnet mask
 bool idigi_connected = false;
 
 void setup() {
-  String deviceId;
-  
   Serial.begin(9600);
   Serial.println("Starting up...");
  
@@ -52,37 +50,40 @@ void setup() {
   // Static IP Configuration
   Ethernet.begin(mac, ip, nameserver, gw, subnet);
   Serial.println("Starting iDigi...");
-  iDigi.setup(mac, ip, IDIGI_VENDOR_ID);
+  iDigi.begin(mac, ip, IDIGI_VENDOR_ID);
   Serial.println("iDigi started!");
 #else
   // DHCP Configuration
   Ethernet.begin(mac);
   Serial.println("Starting iDigi...");
-  iDigi.setup(mac, Ethernet.localIP(), IDIGI_VENDOR_ID);
+  Serial.print("Ethernet IP: ");
+  Serial.println(Ethernet.localIP());
+  iDigi.begin(mac, Ethernet.localIP(), IDIGI_VENDOR_ID);
   Serial.println("iDigi started!");
 #endif /* ETHERNET_DHCP */
   Serial.println("Ethernet started!");
   delay(500);
 
-  iDigi.getDeviceIdString(&deviceId);
   Serial.print("iDigi Device ID: ");
-  Serial.println(deviceId);
+  Serial.println(iDigi.getId());
 }
 
 void loop() {
-  if (idigi_connected ^ iDigi.isConnected())  // Detect change in iDigi status
+
+  idigi_connected = iDigi.isConnected();
+  Serial.print("iDigi");
+  if (idigi_connected)
   {
-    idigi_connected = iDigi.isConnected();
-    Serial.print("iDigi");
-    if (idigi_connected)
-    {
-      Serial.println(" connected.");
-    } else {
-      Serial.println(" disconnected.");
-    }
+    Serial.println(" connected.");
+  } else {
+    Serial.println(" disconnected.");
   }
+
+  // Delay a little while so the print messages don't scroll by too quickly:
+  delay(500);
+
 
   // Must be called once in each loop(), it causes the iDigi library to
   // figure out what needs to be done this cycle and then does it.
-  iDigi.step();
+  iDigi.update();
 }

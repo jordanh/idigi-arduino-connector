@@ -9,6 +9,7 @@
  * Digi International Inc. 11001 Bren Road East, Minnetonka, MN 55343
  * =======================================================================
  */
+
 #include <SPI.h>
 #include <SD.h>
 #include <Ethernet.h>
@@ -20,14 +21,12 @@ extern "C" {
 }
 
 // ===========================================================================
-// iDigiDiaDataStream.ino: send data samples to iDigi using Dia sample
-//                         format, where they can be graphed, nalyzed or
-//                         pushed to another system using HTTP or TCP
-//                         
-// Data uploaded to iDigi can be visualized under Data Services->Data Streams
-// or, if you use the /ws/Monitor API you can have it pushed to any
-// destination (or destinations) you like by configuring the monitor to
-// watch the DiaChannelDataFull topic.
+// iDigiPutFile.ino: periodically upload a file to iDigi bulk storage
+//
+// The uploaded files may be browsed by logging into your iDigi account
+// and navigating to Data Services->Files.  You can also have these files
+// sent to an application in real time by setting up an iDigi /ws/Monitor API
+// request to watch the FileData topic.
 // ===========================================================================
 
 // -------------------------------------------
@@ -35,7 +34,7 @@ extern "C" {
 // -------------------------------------------
 #define ETHERNET_DHCP 1                          // Set to 1 if you want to use DHCP   
 #define IDIGI_SERVER       "my.idigi.com"        // iDigi server hostname to use
-#define IDIGI_DEVICE_NAME  "Arduino Mega"        // How your device will be labelled on iDigi
+#define IDIGI_DEVICE_NAME  "Arduino"             // How your device will be labelled on iDigi
 #define IDIGI_VENDOR_ID    0                     // If you don't know what this is, leave it alone :)
 byte mac[] =                                     // Set this to the MAC address of your Ethernet shield
     { 0x90, 0xA2, 0xDA, 0x05, 0x00, 0x57 };      // iDigi Device ID will be 00000000-00000000-90A2DAFF-FF050057
@@ -47,56 +46,46 @@ IPAddress nameserver(8, 8, 8, 8);                // Set to your nameserver
 IPAddress subnet(255, 255, 255, 0);              // Set your subnet mask
 #endif /* ETHERNET_DHCP */
 
-#define SAMPLE_PERIOD 5000                       // How often to record a sample locally
-#define UPLOAD_PERIOD 20000                      // How often to upload to iDigi
+#define UPLOAD_PERIOD   10000                    // How often to upload to iDigi
 /// -------------------------------------------
 ///         END OF CONFIGURATION ITEMS
 /// -------------------------------------------
 
-
 bool idigi_connected = false;
-iDigiDiaDataset dataset(4, "arduino");    // iDigiDiaDataset objects store our samples
-unsigned long int counter = 0;
-long int next_sample_time = 0;
 long int next_upload_time = 0;
 
 void setup() {
-  String deviceId;
-  
   Serial.begin(9600);
   Serial.println("Starting up...");
  
   Serial.println("Starting Ethernet..."); 
 #if(ETHERNET_DHCP == 0)
-  // Static IP Configuration
   Ethernet.begin(mac, ip, nameserver, gw, subnet);
   Serial.println("Starting iDigi...");
-  iDigi.setup(mac, ip, IDIGI_VENDOR_ID, IDIGI_SERVER, IDIGI_DEVICE_NAME);
+  iDigi.begin(mac, ip, IDIGI_VENDOR_ID, IDIGI_SERVER, IDIGI_DEVICE_NAME);
   Serial.println("iDigi started!");
 #else
-  // DHCP Configuration
   Ethernet.begin(mac);
   Serial.println("Starting iDigi...");
-  iDigi.setup(mac, Ethernet.localIP(), IDIGI_VENDOR_ID, IDIGI_SERVER, IDIGI_DEVICE_NAME);
+  Serial.print("Ethernet IP: ");
+  Serial.println(Ethernet.localIP());  
+  iDigi.begin(mac, Ethernet.localIP(), IDIGI_VENDOR_ID, IDIGI_SERVER, IDIGI_DEVICE_NAME);
   Serial.println("iDigi started!");
 #endif /* ETHERNET_DHCP */
   Serial.println("Ethernet started!");
   delay(500);
 
-  iDigi.getDeviceIdString(&deviceId);
   Serial.print("iDigi Device ID: ");
-  Serial.println(deviceId);
+  Serial.println(iDigi.getId());
   
-  // Calculate times to 
-  next_sample_time = ((long) millis()) + SAMPLE_PERIOD;
+  // Set initial time to upload to iDigi:
   next_upload_time = ((long) millis()) + UPLOAD_PERIOD;
 }
 
 void loop() {
   long int now = (long) millis();
-  char value[32] = { 0 };
-  
-  if (idigi_connected ^ iDigi.isConnected())
+
+  if (idigi_connected ^ iDigi.isConnected())  // detect change in iDigi status
   {
     idigi_connected = iDigi.isConnected();
     Serial.print("iDigi");
@@ -107,40 +96,30 @@ void loop() {
       Serial.println(" disconnected.");
     }
   }
-
-  if (idigi_connected && (now - next_sample_time >= 0) && dataset.spaceAvailable())
-  {
-    snprintf(value, sizeof(value), "%lu", counter);
-    Serial.print("Adding ");
-    Serial.print(value);
-    Serial.println(" to dataset.");
-    dataset.add("counter", value, "count");
-    counter++;
-    next_sample_time = ((long) millis() + SAMPLE_PERIOD);
-  }
   
-  if (idigi_connected && (now - next_upload_time >= 0) && dataset.size() > 0)
+  if (idigi_connected && (now - next_upload_time >= 0))
   {
-    size_t bytesUploaded = iDigi.dataService.putDiaDataset(&dataset);
-    
-    if (bytesUploaded < 0)
-    {
-      Serial.print("putDiaDataSet: error returned from putDiaDataSet(");
-      Serial.print(bytesUploaded, DEC);
-      Serial.println(")");
-      
-      return;
-    } else {
-      Serial.print("putDiaDataSet: uploaded ");
-      Serial.print(bytesUploaded, DEC);
-      Serial.println(" bytes");
-    }
+    char file_data[128] = { 0 };
+    // Generate file content:
+    size_t len = snprintf(file_data, sizeof(file_data), "Arduino up for %lu seconds.\r\n",
+                                 millis() / 1000);
+    // Upload file called "uptime.txt", append it to existing file:
+    size_t uploaded = iDigi.dataService.sendFile("uptime.txt", "text/plain",
+                                                file_data, len, IDIGI_DATA_PUT_APPEND);
 
-    dataset.clear();
+    if (uploaded > 0)
+    {
+      Serial.print(uploaded);
+      Serial.println(" bytes uploaded in uptime.txt to iDigi.");
+    } else
+    {
+      Serial.print("Error uploading uptime.txt: ");
+      Serial.println(-uploaded);
+    }
+    // schedule next upload
     next_upload_time = ((long) millis()) + UPLOAD_PERIOD;
   }
- 
-  delay(125);
-  iDigi.step();
+
+  iDigi.update();
 }
 

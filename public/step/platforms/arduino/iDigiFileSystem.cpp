@@ -422,7 +422,7 @@ idigi_callback_status_t iDigiFileSystem::app_process_file_msg_error(idigi_file_e
 {
     UNUSED_ARGUMENT(request_data);
     UNUSED_ARGUMENT(response_data);
-    APP_DEBUG("Message Error %d\n", request_data->message_status);
+    APP_DEBUG("iDigiFileSystem Error %d\n", request_data->message_status);
 
     // All application resources, used in the session, must be released in this callback
     return idigi_callback_continue;

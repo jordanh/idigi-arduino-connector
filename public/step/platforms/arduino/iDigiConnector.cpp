@@ -20,12 +20,7 @@ extern "C" {
 #include <SPI.h>
 #include <Ethernet.h>
 
-
-static int freeRam () {
-  extern int __heap_start, *__brkval; 
-  int v; 
-  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
-}
+static int freeRam();
 
 iDigiConnectorClass::iDigiConnectorClass()
 {  
@@ -44,7 +39,7 @@ iDigiConnectorClass::iDigiConnectorClass()
 }
 
 /* important interface functions */
-void iDigiConnectorClass::setup(uint8_t *mac, IPAddress ip, uint32_t vendorId)
+void iDigiConnectorClass::begin(uint8_t *mac, IPAddress ip, uint32_t vendorId)
 {
   setMac(mac);
   setIp(ip);
@@ -52,21 +47,21 @@ void iDigiConnectorClass::setup(uint8_t *mac, IPAddress ip, uint32_t vendorId)
     setVendorId(vendorId);
   
   idigi_handle = idigi_init((idigi_callback_t) &iDigiConnectorClass::appCallbackWrapper);
-  // APP_DEBUG("iDigiConnectorClass.appCallback(): idigi_init %p\r\n", idigi_handle); 
+  //APP_DEBUG("iDigiConnectorClass.appCallback(): idigi_init %p\r\n", idigi_handle); 
 }
 
-void iDigiConnectorClass::setup(uint8_t *mac, IPAddress ip, uint32_t vendorId,
+void iDigiConnectorClass::begin(uint8_t *mac, IPAddress ip, uint32_t vendorId,
                                        char *serverHost)
 {
   setServerHost(serverHost);
-  setup(mac, ip, vendorId);
+  begin(mac, ip, vendorId);
 }
 
-void iDigiConnectorClass::setup(uint8_t *mac, IPAddress ip, uint32_t vendorId,
+void iDigiConnectorClass::begin(uint8_t *mac, IPAddress ip, uint32_t vendorId,
                                        char *serverHost, char *deviceType)
 {
   setDeviceType(deviceType);
-  setup(mac, ip, vendorId, serverHost);
+  begin(mac, ip, vendorId, serverHost);
 }
 
 bool iDigiConnectorClass::isConnected()
@@ -74,7 +69,7 @@ bool iDigiConnectorClass::isConnected()
   return connected;
 }
 
-idigi_status_t iDigiConnectorClass::step()
+idigi_status_t iDigiConnectorClass::update()
 {
   return idigi_step(idigi_handle);
 }
@@ -200,24 +195,27 @@ void iDigiConnectorClass::getIp(uint8_t **ip, size_t *length)
   *length = sizeof(_ip);
 }
 
-void iDigiConnectorClass::getDeviceId(uint8_t **deviceId, size_t *length)
+void iDigiConnectorClass::getId(uint8_t **deviceId, size_t *length)
 {
 //  APP_DEBUG("getDeviceId()\r\n");
   *deviceId = _deviceId;
   *length = sizeof(_deviceId);
 }
 
-void iDigiConnectorClass::getDeviceIdString(String *dest)
+String iDigiConnectorClass::getId()
 {
+  String dest;
 //  APP_DEBUG("getDeviceIdString()\r\n");
   for (uint8_t i = 0; i < sizeof(_deviceId); i++)
   {
     char formatBuf[3];
     sprintf(formatBuf, "%02X", _deviceId[i]);
-    *dest += formatBuf;
+    dest += formatBuf;
     if (i && (i+1) % 4 == 0 && (i+1) < (uint8_t) sizeof(_deviceId))
-      *dest += String("-");
+      dest += String("-");
   }
+
+  return dest;
 }
 
 void iDigiConnectorClass::getVendorId(uint8_t **vendorId, size_t *length)
@@ -309,3 +307,9 @@ void APP_DEBUG(char const * format, ...)
 }
 
 } /* /extern "C" */
+
+static int freeRam () {
+  extern int __heap_start, *__brkval; 
+  int v; 
+  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
+}
